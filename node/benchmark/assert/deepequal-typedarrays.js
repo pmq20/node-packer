@@ -24,50 +24,22 @@ const bench = common.createBenchmark(main, {
   len: [1e6]
 });
 
-function main(conf) {
-  const type = conf.type;
+function main({ type, n, len, method }) {
+  if (!method)
+    method = 'deepEqual';
   const clazz = global[type];
-  const n = +conf.n;
-  const len = +conf.len;
-
   const actual = new clazz(len);
   const expected = new clazz(len);
   const expectedWrong = Buffer.alloc(len);
-  expectedWrong[100] = 123;
-  var i;
+  const wrongIndex = Math.floor(len / 2);
+  expectedWrong[wrongIndex] = 123;
 
-  switch (conf.method) {
-    case 'deepEqual':
-      bench.start();
-      for (i = 0; i < n; ++i) {
-        // eslint-disable-next-line no-restricted-properties
-        assert.deepEqual(actual, expected);
-      }
-      bench.end(n);
-      break;
-    case 'deepStrictEqual':
-      bench.start();
-      for (i = 0; i < n; ++i) {
-        assert.deepStrictEqual(actual, expected);
-      }
-      bench.end(n);
-      break;
-    case 'notDeepEqual':
-      bench.start();
-      for (i = 0; i < n; ++i) {
-        // eslint-disable-next-line no-restricted-properties
-        assert.notDeepEqual(actual, expectedWrong);
-      }
-      bench.end(n);
-      break;
-    case 'notDeepStrictEqual':
-      bench.start();
-      for (i = 0; i < n; ++i) {
-        assert.notDeepStrictEqual(actual, expectedWrong);
-      }
-      bench.end(n);
-      break;
-    default:
-      throw new Error('Unsupported method');
+  const fn = assert[method];
+  const value2 = method.includes('not') ? expectedWrong : expected;
+
+  bench.start();
+  for (var i = 0; i < n; ++i) {
+    fn(actual, value2);
   }
+  bench.end(n);
 }

@@ -32,15 +32,13 @@ const options = {
   host: '127.0.0.1',
 };
 
-//http.globalAgent.maxSockets = 15;
-
 const server = http.createServer(function(req, res) {
   const m = /\/(.*)/.exec(req.url);
   const reqid = parseInt(m[1], 10);
   if (reqid % 2) {
     // do not reply the request
   } else {
-    res.writeHead(200, {'Content-Type': 'text/plain'});
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
     res.write(reqid.toString());
     res.end();
   }
@@ -48,11 +46,10 @@ const server = http.createServer(function(req, res) {
 
 server.listen(0, options.host, function() {
   options.port = this.address().port;
-  let req;
 
   for (requests_sent = 0; requests_sent < 30; requests_sent += 1) {
     options.path = `/${requests_sent}`;
-    req = http.request(options);
+    const req = http.request(options);
     req.id = requests_sent;
     req.on('response', function(res) {
       res.on('data', function(data) {
@@ -61,6 +58,7 @@ server.listen(0, options.host, function() {
       res.on('end', function(data) {
         console.log(`res#${this.req.id} end`);
         requests_done += 1;
+        req.destroy();
       });
     });
     req.on('close', function() {
@@ -90,7 +88,7 @@ server.listen(0, options.host, function() {
 });
 
 process.on('exit', function() {
-  console.error('done=%j sent=%j', requests_done, requests_sent);
-  assert.strictEqual(requests_done, requests_sent,
-                     'timeout on http request called too much');
+  console.error(`done=${requests_done} sent=${requests_sent}`);
+  // check that timeout on http request was not called too much
+  assert.strictEqual(requests_done, requests_sent);
 });

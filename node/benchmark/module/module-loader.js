@@ -1,24 +1,20 @@
 'use strict';
-var fs = require('fs');
-var path = require('path');
-var common = require('../common.js');
+const fs = require('fs');
+const path = require('path');
+const common = require('../common.js');
 
-var tmpDirectory = path.join(__dirname, '..', 'tmp');
-var benchmarkDirectory = path.join(tmpDirectory, 'nodejs-benchmark-module');
+const tmpdir = require('../../test/common/tmpdir');
+const benchmarkDirectory = path.join(tmpdir.path, 'nodejs-benchmark-module');
 
-var bench = common.createBenchmark(main, {
-  thousands: [50],
+const bench = common.createBenchmark(main, {
+  n: [5e4],
   fullPath: ['true', 'false'],
   useCache: ['true', 'false']
 });
 
-function main(conf) {
-  var n = +conf.thousands * 1e3;
-
-  rmrf(tmpDirectory);
-  try { fs.mkdirSync(tmpDirectory); } catch (e) {}
+function main({ n, fullPath, useCache }) {
+  tmpdir.refresh();
   try { fs.mkdirSync(benchmarkDirectory); } catch (e) {}
-
   for (var i = 0; i <= n; i++) {
     fs.mkdirSync(`${benchmarkDirectory}${i}`);
     fs.writeFileSync(
@@ -31,12 +27,12 @@ function main(conf) {
     );
   }
 
-  if (conf.fullPath === 'true')
-    measureFull(n, conf.useCache === 'true');
+  if (fullPath === 'true')
+    measureFull(n, useCache === 'true');
   else
-    measureDir(n, conf.useCache === 'true');
+    measureDir(n, useCache === 'true');
 
-  rmrf(tmpDirectory);
+  tmpdir.refresh();
 }
 
 function measureFull(n, useCache) {
@@ -50,7 +46,7 @@ function measureFull(n, useCache) {
   for (i = 0; i <= n; i++) {
     require(`${benchmarkDirectory}${i}/index.js`);
   }
-  bench.end(n / 1e3);
+  bench.end(n);
 }
 
 function measureDir(n, useCache) {
@@ -64,23 +60,5 @@ function measureDir(n, useCache) {
   for (i = 0; i <= n; i++) {
     require(`${benchmarkDirectory}${i}`);
   }
-  bench.end(n / 1e3);
-}
-
-function rmrf(location) {
-  try {
-    var things = fs.readdirSync(location);
-    things.forEach(function(thing) {
-      var cur = path.join(location, thing),
-        isDirectory = fs.statSync(cur).isDirectory();
-      if (isDirectory) {
-        rmrf(cur);
-        return;
-      }
-      fs.unlinkSync(cur);
-    });
-    fs.rmdirSync(location);
-  } catch (err) {
-    // Ignore error
-  }
+  bench.end(n);
 }

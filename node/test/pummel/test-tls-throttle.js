@@ -29,15 +29,15 @@ if (!common.hasCrypto)
 
 const assert = require('assert');
 const tls = require('tls');
-const fs = require('fs');
+const fixtures = require('../common/fixtures');
 
 process.stdout.write('build body...');
 const body = 'hello world\n'.repeat(1024 * 1024);
 process.stdout.write('done\n');
 
 const options = {
-  key: fs.readFileSync(`${common.fixturesDir}/keys/agent2-key.pem`),
-  cert: fs.readFileSync(`${common.fixturesDir}/keys/agent2-cert.pem`)
+  key: fixtures.readKey('agent2-key.pem'),
+  cert: fixtures.readKey('agent2-cert.pem')
 };
 
 const server = tls.Server(options, common.mustCall(function(socket) {
@@ -72,8 +72,8 @@ server.listen(common.PORT, function() {
 
 
 function displayCounts() {
-  console.log('body.length: %d', body.length);
-  console.log('  recvCount: %d', recvCount);
+  console.log(`body.length: ${body.length}`);
+  console.log(`  recvCount: ${recvCount}`);
 }
 
 

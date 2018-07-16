@@ -11,9 +11,12 @@
 #include <memory>
 
 #include "src/api.h"
-#include "src/factory.h"
+#include "src/global-handles.h"
+#include "src/heap/factory.h"
 #include "src/isolate.h"
+#include "src/managed.h"
 #include "src/objects-inl.h"
+#include "src/property-descriptor.h"
 #include "unicode/brkiter.h"
 #include "unicode/bytestream.h"
 #include "unicode/calendar.h"
@@ -27,6 +30,7 @@
 #include "unicode/locid.h"
 #include "unicode/numfmt.h"
 #include "unicode/numsys.h"
+#include "unicode/plurrule.h"
 #include "unicode/rbbi.h"
 #include "unicode/smpdtfmt.h"
 #include "unicode/timezone.h"
@@ -34,6 +38,7 @@
 #include "unicode/ucol.h"
 #include "unicode/ucurr.h"
 #include "unicode/unum.h"
+#include "unicode/upluralrules.h"
 #include "unicode/uvernum.h"
 #include "unicode/uversion.h"
 
@@ -48,12 +53,13 @@ namespace {
 
 bool ExtractStringSetting(Isolate* isolate, Handle<JSObject> options,
                           const char* key, icu::UnicodeString* setting) {
+  v8::Isolate* v8_isolate = reinterpret_cast<v8::Isolate*>(isolate);
   Handle<String> str = isolate->factory()->NewStringFromAsciiChecked(key);
   Handle<Object> object =
       JSReceiver::GetProperty(options, str).ToHandleChecked();
   if (object->IsString()) {
     v8::String::Utf8Value utf8_string(
-        v8::Utils::ToLocal(Handle<String>::cast(object)));
+        v8_isolate, v8::Utils::ToLocal(Handle<String>::cast(object)));
     *setting = icu::UnicodeString::fromUTF8(*utf8_string);
     return true;
   }
@@ -89,7 +95,7 @@ icu::SimpleDateFormat* CreateICUDateFormat(Isolate* isolate,
                                            Handle<JSObject> options) {
   // Create time zone as specified by the user. We have to re-create time zone
   // since calendar takes ownership.
-  icu::TimeZone* tz = NULL;
+  icu::TimeZone* tz = nullptr;
   icu::UnicodeString timezone;
   if (ExtractStringSetting(isolate, options, "timeZone", &timezone)) {
     tz = icu::TimeZone::createTimeZone(timezone);
@@ -114,11 +120,23 @@ icu::SimpleDateFormat* CreateICUDateFormat(Isolate* isolate,
 
   // Make formatter from skeleton. Calendar and numbering system are added
   // to the locale as Unicode extension (if they were specified at all).
-  icu::SimpleDateFormat* date_format = NULL;
+  icu::SimpleDateFormat* date_format = nullptr;
   icu::UnicodeString skeleton;
   if (ExtractStringSetting(isolate, options, "skeleton", &skeleton)) {
+    // See https://github.com/tc39/ecma402/issues/225 . The best pattern
+    // generation needs to be done in the base locale according to the
+    // current spec however odd it may be. See also crbug.com/826549 .
+    // This is a temporary work-around to get v8's external behavior to match
+    // the current spec, but does not follow the spec provisions mentioned
+    // in the above Ecma 402 issue.
+    // TODO(jshin): The spec may need to be revised because using the base
+    // locale for the pattern match is not quite right. Moreover, what to
+    // do with 'related year' part when 'chinese/dangi' calendar is specified
+    // has to be discussed. Revisit once the spec is clarified/revised.
+    icu::Locale no_extension_locale(icu_locale.getBaseName());
     std::unique_ptr<icu::DateTimePatternGenerator> generator(
-        icu::DateTimePatternGenerator::createInstance(icu_locale, status));
+        icu::DateTimePatternGenerator::createInstance(no_extension_locale,
+                                                      status));
     icu::UnicodeString pattern;
     if (U_SUCCESS(status))
       pattern = generator->getBestPattern(skeleton, status);
@@ -152,7 +170,7 @@ void SetResolvedDateSettings(Isolate* isolate, const icu::Locale& icu_locale,
               reinterpret_cast<const uint16_t*>(pattern.getBuffer()),
               pattern.length()))
           .ToHandleChecked(),
-      SLOPPY)
+      LanguageMode::kSloppy)
       .Assert();
 
   // Set time zone and calendar.
@@ -163,7 +181,7 @@ void SetResolvedDateSettings(Isolate* isolate, const icu::Locale& icu_locale,
   const char* calendar_name = calendar->getType();
   JSObject::SetProperty(resolved, factory->NewStringFromStaticChars("calendar"),
                         factory->NewStringFromAsciiChecked(calendar_name),
-                        SLOPPY)
+                        LanguageMode::kSloppy)
       .Assert();
 
   const icu::TimeZone& tz = calendar->getTimeZone();
@@ -182,9 +200,9 @@ void SetResolvedDateSettings(Isolate* isolate, const icu::Locale& icu_locale,
     //  DCHECK(canonical_time_zone != UNICODE_STRING_SIMPLE("Etc/GMT")) .
     if (canonical_time_zone == UNICODE_STRING_SIMPLE("Etc/UTC") ||
         canonical_time_zone == UNICODE_STRING_SIMPLE("Etc/GMT")) {
-      JSObject::SetProperty(resolved,
-                            factory->NewStringFromStaticChars("timeZone"),
-                            factory->NewStringFromStaticChars("UTC"), SLOPPY)
+      JSObject::SetProperty(
+          resolved, factory->NewStringFromStaticChars("timeZone"),
+          factory->NewStringFromStaticChars("UTC"), LanguageMode::kSloppy)
           .Assert();
     } else {
       JSObject::SetProperty(resolved,
@@ -195,7 +213,7 @@ void SetResolvedDateSettings(Isolate* isolate, const icu::Locale& icu_locale,
                                         canonical_time_zone.getBuffer()),
                                     canonical_time_zone.length()))
                                 .ToHandleChecked(),
-                            SLOPPY)
+                            LanguageMode::kSloppy)
           .Assert();
     }
   }
@@ -208,14 +226,14 @@ void SetResolvedDateSettings(Isolate* isolate, const icu::Locale& icu_locale,
       icu::NumberingSystem::createInstance(icu_locale, status);
   if (U_SUCCESS(status)) {
     const char* ns = numbering_system->getName();
-    JSObject::SetProperty(resolved,
-                          factory->NewStringFromStaticChars("numberingSystem"),
-                          factory->NewStringFromAsciiChecked(ns), SLOPPY)
+    JSObject::SetProperty(
+        resolved, factory->NewStringFromStaticChars("numberingSystem"),
+        factory->NewStringFromAsciiChecked(ns), LanguageMode::kSloppy)
         .Assert();
   } else {
     JSObject::SetProperty(resolved,
                           factory->NewStringFromStaticChars("numberingSystem"),
-                          factory->undefined_value(), SLOPPY)
+                          factory->undefined_value(), LanguageMode::kSloppy)
         .Assert();
   }
   delete numbering_system;
@@ -227,14 +245,52 @@ void SetResolvedDateSettings(Isolate* isolate, const icu::Locale& icu_locale,
                      FALSE, &status);
   if (U_SUCCESS(status)) {
     JSObject::SetProperty(resolved, factory->NewStringFromStaticChars("locale"),
-                          factory->NewStringFromAsciiChecked(result), SLOPPY)
+                          factory->NewStringFromAsciiChecked(result),
+                          LanguageMode::kSloppy)
         .Assert();
   } else {
     // This would never happen, since we got the locale from ICU.
     JSObject::SetProperty(resolved, factory->NewStringFromStaticChars("locale"),
-                          factory->NewStringFromStaticChars("und"), SLOPPY)
+                          factory->NewStringFromStaticChars("und"),
+                          LanguageMode::kSloppy)
         .Assert();
   }
+}
+
+void SetNumericSettings(Isolate* isolate, icu::DecimalFormat* number_format,
+                        Handle<JSObject> options) {
+  int32_t digits;
+  if (ExtractIntegerSetting(isolate, options, "minimumIntegerDigits",
+                            &digits)) {
+    number_format->setMinimumIntegerDigits(digits);
+  }
+
+  if (ExtractIntegerSetting(isolate, options, "minimumFractionDigits",
+                            &digits)) {
+    number_format->setMinimumFractionDigits(digits);
+  }
+
+  if (ExtractIntegerSetting(isolate, options, "maximumFractionDigits",
+                            &digits)) {
+    number_format->setMaximumFractionDigits(digits);
+  }
+
+  bool significant_digits_used = false;
+  if (ExtractIntegerSetting(isolate, options, "minimumSignificantDigits",
+                            &digits)) {
+    number_format->setMinimumSignificantDigits(digits);
+    significant_digits_used = true;
+  }
+
+  if (ExtractIntegerSetting(isolate, options, "maximumSignificantDigits",
+                            &digits)) {
+    number_format->setMaximumSignificantDigits(digits);
+    significant_digits_used = true;
+  }
+
+  number_format->setSignificantDigitsUsed(significant_digits_used);
+
+  number_format->setRoundingMode(icu::DecimalFormat::kRoundHalfUp);
 }
 
 icu::DecimalFormat* CreateICUNumberFormat(Isolate* isolate,
@@ -243,7 +299,7 @@ icu::DecimalFormat* CreateICUNumberFormat(Isolate* isolate,
   // Make formatter from options. Numbering system is added
   // to the locale as Unicode extension (if it was specified at all).
   UErrorCode status = U_ZERO_ERROR;
-  icu::DecimalFormat* number_format = NULL;
+  icu::DecimalFormat* number_format = nullptr;
   icu::UnicodeString style;
   icu::UnicodeString currency;
   if (ExtractStringSetting(isolate, options, "style", &style)) {
@@ -277,14 +333,14 @@ icu::DecimalFormat* CreateICUNumberFormat(Isolate* isolate,
 
       if (U_FAILURE(status)) {
         delete number_format;
-        return NULL;
+        return nullptr;
       }
     } else if (style == UNICODE_STRING_SIMPLE("percent")) {
       number_format = static_cast<icu::DecimalFormat*>(
           icu::NumberFormat::createPercentInstance(icu_locale, status));
       if (U_FAILURE(status)) {
         delete number_format;
-        return NULL;
+        return nullptr;
       }
       // Make sure 1.1% doesn't go into 2%.
       number_format->setMinimumFractionDigits(1);
@@ -297,7 +353,7 @@ icu::DecimalFormat* CreateICUNumberFormat(Isolate* isolate,
 
   if (U_FAILURE(status)) {
     delete number_format;
-    return NULL;
+    return nullptr;
   }
 
   // Set all options.
@@ -305,63 +361,85 @@ icu::DecimalFormat* CreateICUNumberFormat(Isolate* isolate,
     number_format->setCurrency(currency.getBuffer(), status);
   }
 
-  int32_t digits;
-  if (ExtractIntegerSetting(isolate, options, "minimumIntegerDigits",
-                            &digits)) {
-    number_format->setMinimumIntegerDigits(digits);
-  }
-
-  if (ExtractIntegerSetting(isolate, options, "minimumFractionDigits",
-                            &digits)) {
-    number_format->setMinimumFractionDigits(digits);
-  }
-
-  if (ExtractIntegerSetting(isolate, options, "maximumFractionDigits",
-                            &digits)) {
-    number_format->setMaximumFractionDigits(digits);
-  }
-
-  bool significant_digits_used = false;
-  if (ExtractIntegerSetting(isolate, options, "minimumSignificantDigits",
-                            &digits)) {
-    number_format->setMinimumSignificantDigits(digits);
-    significant_digits_used = true;
-  }
-
-  if (ExtractIntegerSetting(isolate, options, "maximumSignificantDigits",
-                            &digits)) {
-    number_format->setMaximumSignificantDigits(digits);
-    significant_digits_used = true;
-  }
-
-  number_format->setSignificantDigitsUsed(significant_digits_used);
+  SetNumericSettings(isolate, number_format, options);
 
   bool grouping;
   if (ExtractBooleanSetting(isolate, options, "useGrouping", &grouping)) {
     number_format->setGroupingUsed(grouping);
   }
 
-  // Set rounding mode.
-  number_format->setRoundingMode(icu::DecimalFormat::kRoundHalfUp);
-
   return number_format;
+}
+
+void SetResolvedNumericSettings(Isolate* isolate, const icu::Locale& icu_locale,
+                                icu::DecimalFormat* number_format,
+                                Handle<JSObject> resolved) {
+  Factory* factory = isolate->factory();
+
+  JSObject::SetProperty(
+      resolved, factory->NewStringFromStaticChars("minimumIntegerDigits"),
+      factory->NewNumberFromInt(number_format->getMinimumIntegerDigits()),
+      LanguageMode::kSloppy)
+      .Assert();
+
+  JSObject::SetProperty(
+      resolved, factory->NewStringFromStaticChars("minimumFractionDigits"),
+      factory->NewNumberFromInt(number_format->getMinimumFractionDigits()),
+      LanguageMode::kSloppy)
+      .Assert();
+
+  JSObject::SetProperty(
+      resolved, factory->NewStringFromStaticChars("maximumFractionDigits"),
+      factory->NewNumberFromInt(number_format->getMaximumFractionDigits()),
+      LanguageMode::kSloppy)
+      .Assert();
+
+  Handle<String> key =
+      factory->NewStringFromStaticChars("minimumSignificantDigits");
+  Maybe<bool> maybe = JSReceiver::HasOwnProperty(resolved, key);
+  CHECK(maybe.IsJust());
+  if (maybe.FromJust()) {
+    JSObject::SetProperty(
+        resolved, factory->NewStringFromStaticChars("minimumSignificantDigits"),
+        factory->NewNumberFromInt(number_format->getMinimumSignificantDigits()),
+        LanguageMode::kSloppy)
+        .Assert();
+  }
+
+  key = factory->NewStringFromStaticChars("maximumSignificantDigits");
+  maybe = JSReceiver::HasOwnProperty(resolved, key);
+  CHECK(maybe.IsJust());
+  if (maybe.FromJust()) {
+    JSObject::SetProperty(
+        resolved, factory->NewStringFromStaticChars("maximumSignificantDigits"),
+        factory->NewNumberFromInt(number_format->getMaximumSignificantDigits()),
+        LanguageMode::kSloppy)
+        .Assert();
+  }
+
+  // Set the locale
+  char result[ULOC_FULLNAME_CAPACITY];
+  UErrorCode status = U_ZERO_ERROR;
+  uloc_toLanguageTag(icu_locale.getName(), result, ULOC_FULLNAME_CAPACITY,
+                     FALSE, &status);
+  if (U_SUCCESS(status)) {
+    JSObject::SetProperty(resolved, factory->NewStringFromStaticChars("locale"),
+                          factory->NewStringFromAsciiChecked(result),
+                          LanguageMode::kSloppy)
+        .Assert();
+  } else {
+    // This would never happen, since we got the locale from ICU.
+    JSObject::SetProperty(resolved, factory->NewStringFromStaticChars("locale"),
+                          factory->NewStringFromStaticChars("und"),
+                          LanguageMode::kSloppy)
+        .Assert();
+  }
 }
 
 void SetResolvedNumberSettings(Isolate* isolate, const icu::Locale& icu_locale,
                                icu::DecimalFormat* number_format,
                                Handle<JSObject> resolved) {
   Factory* factory = isolate->factory();
-  icu::UnicodeString pattern;
-  number_format->toPattern(pattern);
-  JSObject::SetProperty(
-      resolved, factory->intl_pattern_symbol(),
-      factory
-          ->NewStringFromTwoByte(Vector<const uint16_t>(
-              reinterpret_cast<const uint16_t*>(pattern.getBuffer()),
-              pattern.length()))
-          .ToHandleChecked(),
-      SLOPPY)
-      .Assert();
 
   // Set resolved currency code in options.currency if not empty.
   icu::UnicodeString currency(number_format->getCurrency());
@@ -373,7 +451,7 @@ void SetResolvedNumberSettings(Isolate* isolate, const icu::Locale& icu_locale,
                 reinterpret_cast<const uint16_t*>(currency.getBuffer()),
                 currency.length()))
             .ToHandleChecked(),
-        SLOPPY)
+        LanguageMode::kSloppy)
         .Assert();
   }
 
@@ -385,92 +463,38 @@ void SetResolvedNumberSettings(Isolate* isolate, const icu::Locale& icu_locale,
       icu::NumberingSystem::createInstance(icu_locale, status);
   if (U_SUCCESS(status)) {
     const char* ns = numbering_system->getName();
-    JSObject::SetProperty(resolved,
-                          factory->NewStringFromStaticChars("numberingSystem"),
-                          factory->NewStringFromAsciiChecked(ns), SLOPPY)
+    JSObject::SetProperty(
+        resolved, factory->NewStringFromStaticChars("numberingSystem"),
+        factory->NewStringFromAsciiChecked(ns), LanguageMode::kSloppy)
         .Assert();
   } else {
     JSObject::SetProperty(resolved,
                           factory->NewStringFromStaticChars("numberingSystem"),
-                          factory->undefined_value(), SLOPPY)
+                          factory->undefined_value(), LanguageMode::kSloppy)
         .Assert();
   }
   delete numbering_system;
 
-  JSObject::SetProperty(
-      resolved, factory->NewStringFromStaticChars("useGrouping"),
-      factory->ToBoolean(number_format->isGroupingUsed()), SLOPPY)
+  JSObject::SetProperty(resolved,
+                        factory->NewStringFromStaticChars("useGrouping"),
+                        factory->ToBoolean(number_format->isGroupingUsed()),
+                        LanguageMode::kSloppy)
       .Assert();
 
-  JSObject::SetProperty(
-      resolved, factory->NewStringFromStaticChars("minimumIntegerDigits"),
-      factory->NewNumberFromInt(number_format->getMinimumIntegerDigits()),
-      SLOPPY)
-      .Assert();
-
-  JSObject::SetProperty(
-      resolved, factory->NewStringFromStaticChars("minimumFractionDigits"),
-      factory->NewNumberFromInt(number_format->getMinimumFractionDigits()),
-      SLOPPY)
-      .Assert();
-
-  JSObject::SetProperty(
-      resolved, factory->NewStringFromStaticChars("maximumFractionDigits"),
-      factory->NewNumberFromInt(number_format->getMaximumFractionDigits()),
-      SLOPPY)
-      .Assert();
-
-  Handle<String> key =
-      factory->NewStringFromStaticChars("minimumSignificantDigits");
-  Maybe<bool> maybe = JSReceiver::HasOwnProperty(resolved, key);
-  CHECK(maybe.IsJust());
-  if (maybe.FromJust()) {
-    JSObject::SetProperty(
-        resolved, factory->NewStringFromStaticChars("minimumSignificantDigits"),
-        factory->NewNumberFromInt(number_format->getMinimumSignificantDigits()),
-        SLOPPY)
-        .Assert();
-  }
-
-  key = factory->NewStringFromStaticChars("maximumSignificantDigits");
-  maybe = JSReceiver::HasOwnProperty(resolved, key);
-  CHECK(maybe.IsJust());
-  if (maybe.FromJust()) {
-    JSObject::SetProperty(
-        resolved, factory->NewStringFromStaticChars("maximumSignificantDigits"),
-        factory->NewNumberFromInt(number_format->getMaximumSignificantDigits()),
-        SLOPPY)
-        .Assert();
-  }
-
-  // Set the locale
-  char result[ULOC_FULLNAME_CAPACITY];
-  status = U_ZERO_ERROR;
-  uloc_toLanguageTag(icu_locale.getName(), result, ULOC_FULLNAME_CAPACITY,
-                     FALSE, &status);
-  if (U_SUCCESS(status)) {
-    JSObject::SetProperty(resolved, factory->NewStringFromStaticChars("locale"),
-                          factory->NewStringFromAsciiChecked(result), SLOPPY)
-        .Assert();
-  } else {
-    // This would never happen, since we got the locale from ICU.
-    JSObject::SetProperty(resolved, factory->NewStringFromStaticChars("locale"),
-                          factory->NewStringFromStaticChars("und"), SLOPPY)
-        .Assert();
-  }
+  SetResolvedNumericSettings(isolate, icu_locale, number_format, resolved);
 }
 
 icu::Collator* CreateICUCollator(Isolate* isolate,
                                  const icu::Locale& icu_locale,
                                  Handle<JSObject> options) {
   // Make collator from options.
-  icu::Collator* collator = NULL;
+  icu::Collator* collator = nullptr;
   UErrorCode status = U_ZERO_ERROR;
   collator = icu::Collator::createInstance(icu_locale, status);
 
   if (U_FAILURE(status)) {
     delete collator;
-    return NULL;
+    return nullptr;
   }
 
   // Set flags first, and then override them with sensitivity if necessary.
@@ -533,26 +557,26 @@ void SetResolvedCollatorSettings(Isolate* isolate,
       resolved, factory->NewStringFromStaticChars("numeric"),
       factory->ToBoolean(
           collator->getAttribute(UCOL_NUMERIC_COLLATION, status) == UCOL_ON),
-      SLOPPY)
+      LanguageMode::kSloppy)
       .Assert();
 
   switch (collator->getAttribute(UCOL_CASE_FIRST, status)) {
     case UCOL_LOWER_FIRST:
-      JSObject::SetProperty(resolved,
-                            factory->NewStringFromStaticChars("caseFirst"),
-                            factory->NewStringFromStaticChars("lower"), SLOPPY)
+      JSObject::SetProperty(
+          resolved, factory->NewStringFromStaticChars("caseFirst"),
+          factory->NewStringFromStaticChars("lower"), LanguageMode::kSloppy)
           .Assert();
       break;
     case UCOL_UPPER_FIRST:
-      JSObject::SetProperty(resolved,
-                            factory->NewStringFromStaticChars("caseFirst"),
-                            factory->NewStringFromStaticChars("upper"), SLOPPY)
+      JSObject::SetProperty(
+          resolved, factory->NewStringFromStaticChars("caseFirst"),
+          factory->NewStringFromStaticChars("upper"), LanguageMode::kSloppy)
           .Assert();
       break;
     default:
-      JSObject::SetProperty(resolved,
-                            factory->NewStringFromStaticChars("caseFirst"),
-                            factory->NewStringFromStaticChars("false"), SLOPPY)
+      JSObject::SetProperty(
+          resolved, factory->NewStringFromStaticChars("caseFirst"),
+          factory->NewStringFromStaticChars("false"), LanguageMode::kSloppy)
           .Assert();
   }
 
@@ -560,19 +584,19 @@ void SetResolvedCollatorSettings(Isolate* isolate,
     case UCOL_PRIMARY: {
       JSObject::SetProperty(
           resolved, factory->NewStringFromStaticChars("strength"),
-          factory->NewStringFromStaticChars("primary"), SLOPPY)
+          factory->NewStringFromStaticChars("primary"), LanguageMode::kSloppy)
           .Assert();
 
       // case level: true + s1 -> case, s1 -> base.
       if (UCOL_ON == collator->getAttribute(UCOL_CASE_LEVEL, status)) {
-        JSObject::SetProperty(resolved,
-                              factory->NewStringFromStaticChars("sensitivity"),
-                              factory->NewStringFromStaticChars("case"), SLOPPY)
+        JSObject::SetProperty(
+            resolved, factory->NewStringFromStaticChars("sensitivity"),
+            factory->NewStringFromStaticChars("case"), LanguageMode::kSloppy)
             .Assert();
       } else {
-        JSObject::SetProperty(resolved,
-                              factory->NewStringFromStaticChars("sensitivity"),
-                              factory->NewStringFromStaticChars("base"), SLOPPY)
+        JSObject::SetProperty(
+            resolved, factory->NewStringFromStaticChars("sensitivity"),
+            factory->NewStringFromStaticChars("base"), LanguageMode::kSloppy)
             .Assert();
       }
       break;
@@ -580,43 +604,44 @@ void SetResolvedCollatorSettings(Isolate* isolate,
     case UCOL_SECONDARY:
       JSObject::SetProperty(
           resolved, factory->NewStringFromStaticChars("strength"),
-          factory->NewStringFromStaticChars("secondary"), SLOPPY)
+          factory->NewStringFromStaticChars("secondary"), LanguageMode::kSloppy)
           .Assert();
-      JSObject::SetProperty(resolved,
-                            factory->NewStringFromStaticChars("sensitivity"),
-                            factory->NewStringFromStaticChars("accent"), SLOPPY)
+      JSObject::SetProperty(
+          resolved, factory->NewStringFromStaticChars("sensitivity"),
+          factory->NewStringFromStaticChars("accent"), LanguageMode::kSloppy)
           .Assert();
       break;
     case UCOL_TERTIARY:
       JSObject::SetProperty(
           resolved, factory->NewStringFromStaticChars("strength"),
-          factory->NewStringFromStaticChars("tertiary"), SLOPPY)
+          factory->NewStringFromStaticChars("tertiary"), LanguageMode::kSloppy)
           .Assert();
       JSObject::SetProperty(
           resolved, factory->NewStringFromStaticChars("sensitivity"),
-          factory->NewStringFromStaticChars("variant"), SLOPPY)
+          factory->NewStringFromStaticChars("variant"), LanguageMode::kSloppy)
           .Assert();
       break;
     case UCOL_QUATERNARY:
       // We shouldn't get quaternary and identical from ICU, but if we do
       // put them into variant.
-      JSObject::SetProperty(
-          resolved, factory->NewStringFromStaticChars("strength"),
-          factory->NewStringFromStaticChars("quaternary"), SLOPPY)
+      JSObject::SetProperty(resolved,
+                            factory->NewStringFromStaticChars("strength"),
+                            factory->NewStringFromStaticChars("quaternary"),
+                            LanguageMode::kSloppy)
           .Assert();
       JSObject::SetProperty(
           resolved, factory->NewStringFromStaticChars("sensitivity"),
-          factory->NewStringFromStaticChars("variant"), SLOPPY)
+          factory->NewStringFromStaticChars("variant"), LanguageMode::kSloppy)
           .Assert();
       break;
     default:
       JSObject::SetProperty(
           resolved, factory->NewStringFromStaticChars("strength"),
-          factory->NewStringFromStaticChars("identical"), SLOPPY)
+          factory->NewStringFromStaticChars("identical"), LanguageMode::kSloppy)
           .Assert();
       JSObject::SetProperty(
           resolved, factory->NewStringFromStaticChars("sensitivity"),
-          factory->NewStringFromStaticChars("variant"), SLOPPY)
+          factory->NewStringFromStaticChars("variant"), LanguageMode::kSloppy)
           .Assert();
   }
 
@@ -624,7 +649,7 @@ void SetResolvedCollatorSettings(Isolate* isolate,
       resolved, factory->NewStringFromStaticChars("ignorePunctuation"),
       factory->ToBoolean(collator->getAttribute(UCOL_ALTERNATE_HANDLING,
                                                 status) == UCOL_SHIFTED),
-      SLOPPY)
+      LanguageMode::kSloppy)
       .Assert();
 
   // Set the locale
@@ -634,13 +659,97 @@ void SetResolvedCollatorSettings(Isolate* isolate,
                      FALSE, &status);
   if (U_SUCCESS(status)) {
     JSObject::SetProperty(resolved, factory->NewStringFromStaticChars("locale"),
-                          factory->NewStringFromAsciiChecked(result), SLOPPY)
+                          factory->NewStringFromAsciiChecked(result),
+                          LanguageMode::kSloppy)
         .Assert();
   } else {
     // This would never happen, since we got the locale from ICU.
     JSObject::SetProperty(resolved, factory->NewStringFromStaticChars("locale"),
-                          factory->NewStringFromStaticChars("und"), SLOPPY)
+                          factory->NewStringFromStaticChars("und"),
+                          LanguageMode::kSloppy)
         .Assert();
+  }
+}
+
+bool CreateICUPluralRules(Isolate* isolate, const icu::Locale& icu_locale,
+                          Handle<JSObject> options, icu::PluralRules** pl,
+                          icu::DecimalFormat** nf) {
+  // Make formatter from options. Numbering system is added
+  // to the locale as Unicode extension (if it was specified at all).
+  UErrorCode status = U_ZERO_ERROR;
+
+  UPluralType type = UPLURAL_TYPE_CARDINAL;
+
+  icu::UnicodeString type_string;
+  if (ExtractStringSetting(isolate, options, "type", &type_string)) {
+    if (type_string == UNICODE_STRING_SIMPLE("ordinal")) {
+      type = UPLURAL_TYPE_ORDINAL;
+    } else {
+      CHECK(type_string == UNICODE_STRING_SIMPLE("cardinal"));
+    }
+  }
+
+  icu::PluralRules* plural_rules =
+      icu::PluralRules::forLocale(icu_locale, type, status);
+
+  if (U_FAILURE(status)) {
+    delete plural_rules;
+    return false;
+  }
+
+  icu::DecimalFormat* number_format = static_cast<icu::DecimalFormat*>(
+      icu::NumberFormat::createInstance(icu_locale, UNUM_DECIMAL, status));
+
+  if (U_FAILURE(status)) {
+    delete plural_rules;
+    delete number_format;
+    return false;
+  }
+
+  *pl = plural_rules;
+  *nf = number_format;
+
+  SetNumericSettings(isolate, number_format, options);
+
+  // Set rounding mode.
+
+  return true;
+}
+
+bool SetResolvedPluralRulesSettings(Isolate* isolate,
+                                    const icu::Locale& icu_locale,
+                                    icu::PluralRules* plural_rules,
+                                    icu::DecimalFormat* number_format,
+                                    Handle<JSObject> resolved) {
+  SetResolvedNumericSettings(isolate, icu_locale, number_format, resolved);
+
+  Factory* factory = isolate->factory();
+
+  Handle<JSObject> pluralCategories = Handle<JSObject>::cast(
+      JSObject::GetProperty(
+          resolved, factory->NewStringFromStaticChars("pluralCategories"))
+          .ToHandleChecked());
+
+  UErrorCode status = U_ZERO_ERROR;
+  std::unique_ptr<icu::StringEnumeration> categories(
+      plural_rules->getKeywords(status));
+  if (U_FAILURE(status)) return false;
+
+  if (U_FAILURE(status)) return false;
+
+  for (int32_t i = 0;; i++) {
+    const icu::UnicodeString* category = categories->snext(status);
+    if (U_FAILURE(status)) return false;
+    if (category == nullptr) return true;
+
+    std::string keyword;
+    Handle<String> value = factory->NewStringFromAsciiChecked(
+        category->toUTF8String(keyword).data());
+
+    LookupIterator it(isolate, pluralCategories, i, LookupIterator::OWN);
+    JSObject::DefineOwnPropertyIgnoreAttributes(&it, value,
+                                                PropertyAttributes::NONE)
+        .ToHandleChecked();
   }
 }
 
@@ -648,9 +757,9 @@ icu::BreakIterator* CreateICUBreakIterator(Isolate* isolate,
                                            const icu::Locale& icu_locale,
                                            Handle<JSObject> options) {
   UErrorCode status = U_ZERO_ERROR;
-  icu::BreakIterator* break_iterator = NULL;
+  icu::BreakIterator* break_iterator = nullptr;
   icu::UnicodeString type;
-  if (!ExtractStringSetting(isolate, options, "type", &type)) return NULL;
+  if (!ExtractStringSetting(isolate, options, "type", &type)) return nullptr;
 
   if (type == UNICODE_STRING_SIMPLE("character")) {
     break_iterator =
@@ -667,7 +776,7 @@ icu::BreakIterator* CreateICUBreakIterator(Isolate* isolate,
 
   if (U_FAILURE(status)) {
     delete break_iterator;
-    return NULL;
+    return nullptr;
   }
 
   isolate->CountUsage(v8::Isolate::UseCounterFeature::kBreakIterator);
@@ -689,12 +798,14 @@ void SetResolvedBreakIteratorSettings(Isolate* isolate,
                      FALSE, &status);
   if (U_SUCCESS(status)) {
     JSObject::SetProperty(resolved, factory->NewStringFromStaticChars("locale"),
-                          factory->NewStringFromAsciiChecked(result), SLOPPY)
+                          factory->NewStringFromAsciiChecked(result),
+                          LanguageMode::kSloppy)
         .Assert();
   } else {
     // This would never happen, since we got the locale from ICU.
     JSObject::SetProperty(resolved, factory->NewStringFromStaticChars("locale"),
-                          factory->NewStringFromStaticChars("und"), SLOPPY)
+                          factory->NewStringFromStaticChars("und"),
+                          LanguageMode::kSloppy)
         .Assert();
   }
 }
@@ -704,17 +815,18 @@ void SetResolvedBreakIteratorSettings(Isolate* isolate,
 icu::SimpleDateFormat* DateFormat::InitializeDateTimeFormat(
     Isolate* isolate, Handle<String> locale, Handle<JSObject> options,
     Handle<JSObject> resolved) {
+  v8::Isolate* v8_isolate = reinterpret_cast<v8::Isolate*>(isolate);
   // Convert BCP47 into ICU locale format.
   UErrorCode status = U_ZERO_ERROR;
   icu::Locale icu_locale;
   char icu_result[ULOC_FULLNAME_CAPACITY];
   int icu_length = 0;
-  v8::String::Utf8Value bcp47_locale(v8::Utils::ToLocal(locale));
+  v8::String::Utf8Value bcp47_locale(v8_isolate, v8::Utils::ToLocal(locale));
   if (bcp47_locale.length() != 0) {
     uloc_forLanguageTag(*bcp47_locale, icu_result, ULOC_FULLNAME_CAPACITY,
                         &icu_length, &status);
     if (U_FAILURE(status) || icu_length == 0) {
-      return NULL;
+      return nullptr;
     }
     icu_locale = icu::Locale(icu_result);
   }
@@ -753,17 +865,19 @@ void DateFormat::DeleteDateFormat(const v8::WeakCallbackInfo<void>& data) {
 icu::DecimalFormat* NumberFormat::InitializeNumberFormat(
     Isolate* isolate, Handle<String> locale, Handle<JSObject> options,
     Handle<JSObject> resolved) {
+  v8::Isolate* v8_isolate = reinterpret_cast<v8::Isolate*>(isolate);
+
   // Convert BCP47 into ICU locale format.
   UErrorCode status = U_ZERO_ERROR;
   icu::Locale icu_locale;
   char icu_result[ULOC_FULLNAME_CAPACITY];
   int icu_length = 0;
-  v8::String::Utf8Value bcp47_locale(v8::Utils::ToLocal(locale));
+  v8::String::Utf8Value bcp47_locale(v8_isolate, v8::Utils::ToLocal(locale));
   if (bcp47_locale.length() != 0) {
     uloc_forLanguageTag(*bcp47_locale, icu_result, ULOC_FULLNAME_CAPACITY,
                         &icu_length, &status);
     if (U_FAILURE(status) || icu_length == 0) {
-      return NULL;
+      return nullptr;
     }
     icu_locale = icu::Locale(icu_result);
   }
@@ -800,21 +914,23 @@ void NumberFormat::DeleteNumberFormat(const v8::WeakCallbackInfo<void>& data) {
   GlobalHandles::Destroy(reinterpret_cast<Object**>(data.GetParameter()));
 }
 
-icu::Collator* Collator::InitializeCollator(Isolate* isolate,
-                                            Handle<String> locale,
-                                            Handle<JSObject> options,
-                                            Handle<JSObject> resolved) {
+bool Collator::InitializeCollator(Isolate* isolate,
+                                  Handle<JSObject> collator_holder,
+                                  Handle<String> locale,
+                                  Handle<JSObject> options,
+                                  Handle<JSObject> resolved) {
+  v8::Isolate* v8_isolate = reinterpret_cast<v8::Isolate*>(isolate);
   // Convert BCP47 into ICU locale format.
   UErrorCode status = U_ZERO_ERROR;
   icu::Locale icu_locale;
   char icu_result[ULOC_FULLNAME_CAPACITY];
   int icu_length = 0;
-  v8::String::Utf8Value bcp47_locale(v8::Utils::ToLocal(locale));
+  v8::String::Utf8Value bcp47_locale(v8_isolate, v8::Utils::ToLocal(locale));
   if (bcp47_locale.length() != 0) {
     uloc_forLanguageTag(*bcp47_locale, icu_result, ULOC_FULLNAME_CAPACITY,
                         &icu_length, &status);
     if (U_FAILURE(status) || icu_length == 0) {
-      return NULL;
+      return false;
     }
     icu_locale = icu::Locale(icu_result);
   }
@@ -836,33 +952,93 @@ icu::Collator* Collator::InitializeCollator(Isolate* isolate,
     SetResolvedCollatorSettings(isolate, icu_locale, collator, resolved);
   }
 
-  return collator;
+  Handle<Managed<icu::Collator>> managed =
+      Managed<icu::Collator>::From(isolate, collator);
+  collator_holder->SetEmbedderField(0, *managed);
+
+  return true;
 }
 
 icu::Collator* Collator::UnpackCollator(Isolate* isolate,
                                         Handle<JSObject> obj) {
-  return reinterpret_cast<icu::Collator*>(obj->GetEmbedderField(0));
+  return Managed<icu::Collator>::cast(obj->GetEmbedderField(0))->get();
 }
 
-void Collator::DeleteCollator(const v8::WeakCallbackInfo<void>& data) {
-  delete reinterpret_cast<icu::Collator*>(data.GetInternalField(0));
+bool PluralRules::InitializePluralRules(Isolate* isolate, Handle<String> locale,
+                                        Handle<JSObject> options,
+                                        Handle<JSObject> resolved,
+                                        icu::PluralRules** plural_rules,
+                                        icu::DecimalFormat** number_format) {
+  // Convert BCP47 into ICU locale format.
+  UErrorCode status = U_ZERO_ERROR;
+  icu::Locale icu_locale;
+  char locale_name[ULOC_FULLNAME_CAPACITY];
+  int icu_length = 0;
+  v8::String::Utf8Value bcp47_locale(reinterpret_cast<v8::Isolate*>(isolate),
+                                     v8::Utils::ToLocal(locale));
+  if (bcp47_locale.length() != 0) {
+    uloc_forLanguageTag(*bcp47_locale, locale_name, ULOC_FULLNAME_CAPACITY,
+                        &icu_length, &status);
+    if (U_FAILURE(status) || icu_length == 0) {
+      return false;
+    }
+    icu_locale = icu::Locale(locale_name);
+  }
+
+  bool success = CreateICUPluralRules(isolate, icu_locale, options,
+                                      plural_rules, number_format);
+  if (!success) {
+    // Remove extensions and try again.
+    icu::Locale no_extension_locale(icu_locale.getBaseName());
+    success = CreateICUPluralRules(isolate, no_extension_locale, options,
+                                   plural_rules, number_format);
+
+    if (!success) {
+      FATAL("Failed to create ICU PluralRules, are ICU data files missing?");
+    }
+
+    // Set resolved settings (pattern, numbering system).
+    success = SetResolvedPluralRulesSettings(
+        isolate, no_extension_locale, *plural_rules, *number_format, resolved);
+  } else {
+    success = SetResolvedPluralRulesSettings(isolate, icu_locale, *plural_rules,
+                                             *number_format, resolved);
+  }
+
+  return success;
+}
+
+icu::PluralRules* PluralRules::UnpackPluralRules(Isolate* isolate,
+                                                 Handle<JSObject> obj) {
+  return reinterpret_cast<icu::PluralRules*>(obj->GetEmbedderField(0));
+}
+
+icu::DecimalFormat* PluralRules::UnpackNumberFormat(Isolate* isolate,
+                                                    Handle<JSObject> obj) {
+  return reinterpret_cast<icu::DecimalFormat*>(obj->GetEmbedderField(1));
+}
+
+void PluralRules::DeletePluralRules(const v8::WeakCallbackInfo<void>& data) {
+  delete reinterpret_cast<icu::PluralRules*>(data.GetInternalField(0));
+  delete reinterpret_cast<icu::DecimalFormat*>(data.GetInternalField(1));
   GlobalHandles::Destroy(reinterpret_cast<Object**>(data.GetParameter()));
 }
 
 icu::BreakIterator* V8BreakIterator::InitializeBreakIterator(
     Isolate* isolate, Handle<String> locale, Handle<JSObject> options,
     Handle<JSObject> resolved) {
+  v8::Isolate* v8_isolate = reinterpret_cast<v8::Isolate*>(isolate);
   // Convert BCP47 into ICU locale format.
   UErrorCode status = U_ZERO_ERROR;
   icu::Locale icu_locale;
   char icu_result[ULOC_FULLNAME_CAPACITY];
   int icu_length = 0;
-  v8::String::Utf8Value bcp47_locale(v8::Utils::ToLocal(locale));
+  v8::String::Utf8Value bcp47_locale(v8_isolate, v8::Utils::ToLocal(locale));
   if (bcp47_locale.length() != 0) {
     uloc_forLanguageTag(*bcp47_locale, icu_result, ULOC_FULLNAME_CAPACITY,
                         &icu_length, &status);
     if (U_FAILURE(status) || icu_length == 0) {
-      return NULL;
+      return nullptr;
     }
     icu_locale = icu::Locale(icu_result);
   }

@@ -14,10 +14,22 @@ namespace v8 {
 namespace internal {
 namespace interpreter {
 
+namespace {
+void PrintBuiltinSize(Bytecode bytecode, OperandScale operand_scale,
+                      Handle<Code> code) {
+  PrintF(stdout, "Ignition Handler, %s, %d\n",
+         Bytecodes::ToString(bytecode, operand_scale).c_str(),
+         code->InstructionSize());
+}
+}  // namespace
+
 // static
 void SetupInterpreter::InstallBytecodeHandlers(Interpreter* interpreter) {
   DCHECK(!interpreter->IsDispatchTableInitialized());
   HandleScope scope(interpreter->isolate_);
+  // Canonicalize handles, so that we can share constant pool entries pointing
+  // to code targets without dereferencing their handles.
+  CanonicalHandleScope canonical(interpreter->isolate_);
   Address* dispatch_table = interpreter->dispatch_table_;
 
   // Generate bytecode handlers for all bytecodes and scales.
@@ -44,33 +56,20 @@ void SetupInterpreter::InstallBytecodeHandlers(Interpreter* interpreter) {
     }
   }
 
+  // Generate the DeserializeLazy handlers, one for each operand scale.
+  Heap* heap = interpreter->isolate_->heap();
+  DCHECK_EQ(Smi::kZero, heap->deserialize_lazy_handler());
+  heap->SetDeserializeLazyHandler(*GenerateDeserializeLazyHandler(
+      interpreter->isolate_, OperandScale::kSingle));
+  DCHECK_EQ(Smi::kZero, heap->deserialize_lazy_handler_wide());
+  heap->SetDeserializeLazyHandlerWide(*GenerateDeserializeLazyHandler(
+      interpreter->isolate_, OperandScale::kDouble));
+  DCHECK_EQ(Smi::kZero, heap->deserialize_lazy_handler_extra_wide());
+  heap->SetDeserializeLazyHandlerExtraWide(*GenerateDeserializeLazyHandler(
+      interpreter->isolate_, OperandScale::kQuadruple));
+
   // Initialization should have been successful.
   DCHECK(interpreter->IsDispatchTableInitialized());
-}
-
-// static
-bool SetupInterpreter::ReuseExistingHandler(Address* dispatch_table,
-                                            Bytecode bytecode,
-                                            OperandScale operand_scale) {
-  size_t index = Interpreter::GetDispatchTableIndex(bytecode, operand_scale);
-  switch (bytecode) {
-    case Bytecode::kLdaImmutableContextSlot:
-      STATIC_ASSERT(static_cast<int>(Bytecode::kLdaContextSlot) <
-                    static_cast<int>(Bytecode::kLdaImmutableContextSlot));
-      dispatch_table[index] = dispatch_table[Interpreter::GetDispatchTableIndex(
-          Bytecode::kLdaContextSlot, operand_scale)];
-      return true;
-    case Bytecode::kLdaImmutableCurrentContextSlot:
-      STATIC_ASSERT(
-          static_cast<int>(Bytecode::kLdaCurrentContextSlot) <
-          static_cast<int>(Bytecode::kLdaImmutableCurrentContextSlot));
-      dispatch_table[index] = dispatch_table[Interpreter::GetDispatchTableIndex(
-          Bytecode::kLdaCurrentContextSlot, operand_scale)];
-      return true;
-    default:
-      return false;
-  }
-  return false;
 }
 
 // static
@@ -79,11 +78,12 @@ void SetupInterpreter::InstallBytecodeHandler(Isolate* isolate,
                                               Bytecode bytecode,
                                               OperandScale operand_scale) {
   if (!Bytecodes::BytecodeHasHandler(bytecode, operand_scale)) return;
-  if (ReuseExistingHandler(dispatch_table, bytecode, operand_scale)) return;
 
   size_t index = Interpreter::GetDispatchTableIndex(bytecode, operand_scale);
   Handle<Code> code = GenerateBytecodeHandler(isolate, bytecode, operand_scale);
   dispatch_table[index] = code->entry();
+
+  if (FLAG_print_builtin_size) PrintBuiltinSize(bytecode, operand_scale, code);
 }
 
 }  // namespace interpreter

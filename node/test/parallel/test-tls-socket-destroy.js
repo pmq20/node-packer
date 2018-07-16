@@ -5,12 +5,13 @@ const common = require('../common');
 if (!common.hasCrypto)
   common.skip('missing crypto');
 
-const fs = require('fs');
 const net = require('net');
 const tls = require('tls');
+const fixtures = require('../common/fixtures');
 
-const key = fs.readFileSync(`${common.fixturesDir}/keys/agent1-key.pem`);
-const cert = fs.readFileSync(`${common.fixturesDir}/keys/agent1-cert.pem`);
+const key = fixtures.readKey('agent1-key.pem');
+const cert = fixtures.readKey('agent1-cert.pem');
+
 const secureContext = tls.createSecureContext({ key, cert });
 
 const server = net.createServer(common.mustCall((conn) => {
@@ -18,6 +19,7 @@ const server = net.createServer(common.mustCall((conn) => {
   const socket = new tls.TLSSocket(conn, options);
   socket.once('data', common.mustCall(() => {
     socket._destroySSL();  // Should not crash.
+    socket.destroy();
     server.close();
   }));
 }));

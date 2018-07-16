@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 
 #include "src/source-position.h"
-#include "src/compilation-info.h"
 #include "src/objects-inl.h"
+#include "src/optimized-compilation-info.h"
 
 namespace v8 {
 namespace internal {
@@ -50,7 +50,7 @@ std::ostream& operator<<(std::ostream& out, const SourcePosition& pos) {
 }
 
 std::vector<SourcePositionInfo> SourcePosition::InliningStack(
-    CompilationInfo* cinfo) const {
+    OptimizedCompilationInfo* cinfo) const {
   SourcePosition pos = *this;
   std::vector<SourcePositionInfo> stack;
   while (pos.isInlined()) {
@@ -64,8 +64,8 @@ std::vector<SourcePositionInfo> SourcePosition::InliningStack(
 
 std::vector<SourcePositionInfo> SourcePosition::InliningStack(
     Handle<Code> code) const {
-  Handle<DeoptimizationInputData> deopt_data(
-      DeoptimizationInputData::cast(code->deoptimization_data()));
+  Handle<DeoptimizationData> deopt_data(
+      DeoptimizationData::cast(code->deoptimization_data()));
   SourcePosition pos = *this;
   std::vector<SourcePositionInfo> stack;
   while (pos.isInlined()) {
@@ -103,8 +103,8 @@ void SourcePosition::Print(std::ostream& out,
 }
 
 void SourcePosition::Print(std::ostream& out, Code* code) const {
-  DeoptimizationInputData* deopt_data =
-      DeoptimizationInputData::cast(code->deoptimization_data());
+  DeoptimizationData* deopt_data =
+      DeoptimizationData::cast(code->deoptimization_data());
   if (!isInlined()) {
     SharedFunctionInfo* function(
         SharedFunctionInfo::cast(deopt_data->SharedFunctionInfo()));

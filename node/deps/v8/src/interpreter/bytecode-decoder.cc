@@ -6,6 +6,7 @@
 
 #include <iomanip>
 
+#include "src/contexts.h"
 #include "src/interpreter/interpreter-intrinsics.h"
 #include "src/objects-inl.h"
 
@@ -69,6 +70,7 @@ uint32_t BytecodeDecoder::DecodeUnsignedOperand(const uint8_t* operand_start,
 }
 
 namespace {
+
 const char* NameForRuntimeId(uint32_t idx) {
   switch (idx) {
 #define CASE(name, nargs, ressize) \
@@ -80,9 +82,21 @@ const char* NameForRuntimeId(uint32_t idx) {
 #undef CASE
     default:
       UNREACHABLE();
-      return nullptr;
   }
 }
+
+const char* NameForNativeContextIndex(uint32_t idx) {
+  switch (idx) {
+#define CASE(index_name, type, name) \
+  case Context::index_name:          \
+    return #name;
+    NATIVE_CONTEXT_FIELDS(CASE)
+#undef CASE
+    default:
+      UNREACHABLE();
+  }
+}
+
 }  // anonymous namespace
 
 // static
@@ -140,6 +154,11 @@ std::ostream& BytecodeDecoder::Decode(std::ostream& os,
         os << "[" << NameForRuntimeId(IntrinsicsHelper::ToRuntimeId(id)) << "]";
         break;
       }
+      case interpreter::OperandType::kNativeContextIndex: {
+        auto id = DecodeUnsignedOperand(operand_start, op_type, operand_scale);
+        os << "[" << NameForNativeContextIndex(id) << "]";
+        break;
+      }
       case interpreter::OperandType::kRuntimeId:
         os << "[" << NameForRuntimeId(DecodeUnsignedOperand(
                          operand_start, op_type, operand_scale))
@@ -175,6 +194,7 @@ std::ostream& BytecodeDecoder::Decode(std::ostream& os,
            << reg_list.last_register().ToString(parameter_count);
         break;
       }
+      case interpreter::OperandType::kRegOutList:
       case interpreter::OperandType::kRegList: {
         DCHECK_LT(i, number_of_operands - 1);
         DCHECK_EQ(Bytecodes::GetOperandType(bytecode, i + 1),

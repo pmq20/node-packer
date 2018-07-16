@@ -1,5 +1,7 @@
 # Query String
 
+<!--introduced_in=v0.10.0-->
+
 > Stability: 2 - Stable
 
 <!--name=querystring-->
@@ -44,15 +46,15 @@ changes:
 
 * `str` {string} The URL query string to parse
 * `sep` {string} The substring used to delimit key and value pairs in the
-  query string. Defaults to `'&'`.
+  query string. **Default:** `'&'`.
 * `eq` {string}. The substring used to delimit keys and values in the
-  query string. Defaults to `'='`.
+  query string. **Default:** `'='`.
 * `options` {Object}
   * `decodeURIComponent` {Function} The function to use when decoding
-    percent-encoded characters in the query string. Defaults to
+    percent-encoded characters in the query string. **Default:**
     `querystring.unescape()`.
   * `maxKeys` {number} Specifies the maximum number of keys to parse.
-    Defaults to `1000`. Specify `0` to remove key counting limitations.
+    Specify `0` to remove key counting limitations. **Default:** `1000`.
 
 The `querystring.parse()` method parses a URL query string (`str`) into a
 collection of key and value pairs.
@@ -67,7 +69,7 @@ For example, the query string `'foo=bar&abc=xyz&abc=123'` is parsed into:
 }
 ```
 
-*Note*: The object returned by the `querystring.parse()` method _does not_
+The object returned by the `querystring.parse()` method _does not_
 prototypically inherit from the JavaScript `Object`. This means that typical
 `Object` methods such as `obj.toString()`, `obj.hasOwnProperty()`, and others
 are not defined and *will not work*.
@@ -91,12 +93,12 @@ added: v0.1.25
 
 * `obj` {Object} The object to serialize into a URL query string
 * `sep` {string} The substring used to delimit key and value pairs in the
-  query string. Defaults to `'&'`.
+  query string. **Default:** `'&'`.
 * `eq` {string}. The substring used to delimit keys and values in the
-  query string. Defaults to `'='`.
+  query string. **Default:** `'='`.
 * `options`
   * `encodeURIComponent` {Function} The function to use when converting
-    URL-unsafe characters to percent-encoding in the query string. Defaults to
+    URL-unsafe characters to percent-encoding in the query string. **Default:**
     `querystring.escape()`.
 
 The `querystring.stringify()` method produces a URL query string from a
@@ -105,8 +107,6 @@ given `obj` by iterating through the object's "own properties".
 It serializes the following types of values passed in `obj`:
 {string|number|boolean|string[]|number[]|boolean[]}
 Any other input values will be coerced to empty strings.
-
-For example:
 
 ```js
 querystring.stringify({ foo: 'bar', baz: ['qux', 'quux'], corge: '' });
@@ -133,7 +133,6 @@ querystring.stringify({ w: '中文', foo: 'bar' }, null, null,
 added: v0.1.25
 -->
 * `str` {string}
-
 
 The `querystring.unescape()` method performs decoding of URL percent-encoded
 characters on the given `str`.

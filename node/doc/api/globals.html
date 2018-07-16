@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Global Objects | Node.js v8.4.0 Documentation</title>
+  <meta name="viewport" content="width=device-width">
+  <title>Global Objects | Node.js v10.6.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -16,7 +17,8 @@
           Node.js
         </a>
       </div>
-      <ul>
+      <!--introduced_in=v0.10.0-->
+<ul>
 <li><a class="nav-documentation" href="documentation.html">About these Docs</a></li>
 <li><a class="nav-synopsis" href="synopsis.html">Usage &amp; Example</a></li>
 </ul>
@@ -37,6 +39,7 @@
 <li><a class="nav-deprecations" href="deprecations.html">Deprecated APIs</a></li>
 <li><a class="nav-dns" href="dns.html">DNS</a></li>
 <li><a class="nav-domain" href="domain.html">Domain</a></li>
+<li><a class="nav-esm" href="esm.html">ECMAScript Modules</a></li>
 <li><a class="nav-errors" href="errors.html">Errors</a></li>
 <li><a class="nav-events" href="events.html">Events</a></li>
 <li><a class="nav-fs" href="fs.html">File System</a></li>
@@ -50,6 +53,7 @@
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
 <li><a class="nav-path" href="path.html">Path</a></li>
+<li><a class="nav-perf_hooks" href="perf_hooks.html">Performance Hooks</a></li>
 <li><a class="nav-process" href="process.html">Process</a></li>
 <li><a class="nav-punycode" href="punycode.html">Punycode</a></li>
 <li><a class="nav-querystring" href="querystring.html">Query Strings</a></li>
@@ -59,33 +63,54 @@
 <li><a class="nav-string_decoder" href="string_decoder.html">String Decoder</a></li>
 <li><a class="nav-timers" href="timers.html">Timers</a></li>
 <li><a class="nav-tls" href="tls.html">TLS/SSL</a></li>
-<li><a class="nav-tracing" href="tracing.html">Tracing</a></li>
+<li><a class="nav-tracing" href="tracing.html">Trace Events</a></li>
 <li><a class="nav-tty" href="tty.html">TTY</a></li>
 <li><a class="nav-dgram" href="dgram.html">UDP/Datagram</a></li>
 <li><a class="nav-url" href="url.html">URL</a></li>
 <li><a class="nav-util" href="util.html">Utilities</a></li>
 <li><a class="nav-v8" href="v8.html">V8</a></li>
 <li><a class="nav-vm" href="vm.html">VM</a></li>
+<li><a class="nav-worker_threads" href="worker_threads.html">Worker Threads</a></li>
 <li><a class="nav-zlib" href="zlib.html">ZLIB</a></li>
 </ul>
 <div class="line"></div>
 
 <ul>
 <li><a class="nav-https-github-com-nodejs-node" href="https://github.com/nodejs/node">GitHub Repo &amp; Issue Tracker</a></li>
-<li><a class="nav-http-groups-google-com-group-nodejs" href="http://groups.google.com/group/nodejs">Mailing List</a></li>
+<li><a class="nav-https-groups-google-com-group-nodejs" href="https://groups.google.com/group/nodejs">Mailing List</a></li>
 </ul>
 
     </div>
 
     <div id="column1" data-id="globals" class="interior">
       <header>
-        <h1>Node.js v8.4.0 Documentation</h1>
+        <h1>Node.js v10.6.0 Documentation</h1>
         <div id="gtoc">
-          <p>
-            <a href="index.html" name="toc">Index</a> |
-            <a href="all.html">View on single page</a> |
-            <a href="globals.json">View as JSON</a>
-          </p>
+          <ul>
+            <li>
+              <a href="index.html" name="toc">Index</a>
+            </li>
+            <li>
+              <a href="all.html">View on single page</a>
+            </li>
+            <li>
+              <a href="globals.json">View as JSON</a>
+            </li>
+            
+    <li class="version-picker">
+      <a href="#">View another version <span>&#x25bc;</span></a>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v10.x/api/globals.html">10.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v9.x/api/globals.html">9.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v8.x/api/globals.html">8.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v7.x/api/globals.html">7.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v6.x/api/globals.html">6.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v5.x/api/globals.html">5.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v4.x/api/globals.html">4.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v0.12.x/api/globals.html">0.12.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v0.10.x/api/globals.html">0.10.x</a></li></ol>
+    </li>
+  
+          </ul>
         </div>
         <hr>
       </header>
@@ -93,22 +118,24 @@
       <div id="toc">
         <h2>Table of Contents</h2>
         <ul>
-<li><span class="stability_undefined"><a href="#globals_global_objects">Global Objects</a></span><ul>
-<li><span class="stability_undefined"><a href="#globals_class_buffer">Class: Buffer</a></span></li>
-<li><span class="stability_undefined"><a href="#globals_dirname">__dirname</a></span></li>
-<li><span class="stability_undefined"><a href="#globals_filename">__filename</a></span></li>
-<li><span class="stability_undefined"><a href="#globals_clearimmediate_immediateobject">clearImmediate(immediateObject)</a></span></li>
-<li><span class="stability_undefined"><a href="#globals_clearinterval_intervalobject">clearInterval(intervalObject)</a></span></li>
-<li><span class="stability_undefined"><a href="#globals_cleartimeout_timeoutobject">clearTimeout(timeoutObject)</a></span></li>
-<li><span class="stability_undefined"><a href="#globals_console">console</a></span></li>
-<li><span class="stability_undefined"><a href="#globals_exports">exports</a></span></li>
-<li><span class="stability_undefined"><a href="#globals_global">global</a></span></li>
-<li><span class="stability_undefined"><a href="#globals_module">module</a></span></li>
-<li><span class="stability_undefined"><a href="#globals_process">process</a></span></li>
-<li><span class="stability_undefined"><a href="#globals_require">require()</a></span></li>
-<li><span class="stability_undefined"><a href="#globals_setimmediate_callback_args">setImmediate(callback[, ...args])</a></span></li>
-<li><span class="stability_undefined"><a href="#globals_setinterval_callback_delay_args">setInterval(callback, delay[, ...args])</a></span></li>
-<li><span class="stability_undefined"><a href="#globals_settimeout_callback_delay_args">setTimeout(callback, delay[, ...args])</a></span></li>
+<li><a href="#globals_global_objects">Global Objects</a><ul>
+<li><a href="#globals_class_buffer">Class: Buffer</a></li>
+<li><a href="#globals_dirname">__dirname</a></li>
+<li><a href="#globals_filename">__filename</a></li>
+<li><a href="#globals_clearimmediate_immediateobject">clearImmediate(immediateObject)</a></li>
+<li><a href="#globals_clearinterval_intervalobject">clearInterval(intervalObject)</a></li>
+<li><a href="#globals_cleartimeout_timeoutobject">clearTimeout(timeoutObject)</a></li>
+<li><a href="#globals_console">console</a></li>
+<li><a href="#globals_exports">exports</a></li>
+<li><a href="#globals_global">global</a></li>
+<li><a href="#globals_module">module</a></li>
+<li><a href="#globals_process">process</a></li>
+<li><a href="#globals_require">require()</a></li>
+<li><a href="#globals_setimmediate_callback_args">setImmediate(callback[, ...args])</a></li>
+<li><a href="#globals_setinterval_callback_delay_args">setInterval(callback, delay[, ...args])</a></li>
+<li><a href="#globals_settimeout_callback_delay_args">setTimeout(callback, delay[, ...args])</a></li>
+<li><a href="#globals_url">URL</a></li>
+<li><a href="#globals_urlsearchparams">URLSearchParams</a></li>
 </ul>
 </li>
 </ul>
@@ -117,6 +144,7 @@
 
       <div id="apicontent">
         <h1>Global Objects<span><a class="mark" href="#globals_global_objects" id="globals_global_objects">#</a></span></h1>
+<!--introduced_in=v0.10.0-->
 <!-- type=misc -->
 <p>These objects are available in all modules. The following variables may appear
 to be global but are not. They exist only in the scope of modules, see the
@@ -206,6 +234,16 @@ Node.js this is different. The top-level scope is not the global scope;
 <span>Added in: v0.0.1</span>
 </div><!-- type=global -->
 <p><a href="timers.html#timers_settimeout_callback_delay_args"><code>setTimeout</code></a> is described in the <a href="timers.html">timers</a> section.</p>
+<h2>URL<span><a class="mark" href="#globals_url" id="globals_url">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v10.0.0</span>
+</div><!-- type=global -->
+<p>The WHATWG <code>URL</code> class. See the <a href="url.html#url_class_url"><code>URL</code></a> section.</p>
+<h2>URLSearchParams<span><a class="mark" href="#globals_urlsearchparams" id="globals_urlsearchparams">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v10.0.0</span>
+</div><!-- type=global -->
+<p>The WHATWG <code>URLSearchParams</code> class. See the <a href="url.html#url_class_urlsearchparams"><code>URLSearchParams</code></a> section.</p>
 
       </div>
     </div>

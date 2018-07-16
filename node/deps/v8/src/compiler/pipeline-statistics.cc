@@ -4,10 +4,12 @@
 
 #include <memory>
 
-#include "src/compilation-info.h"
 #include "src/compiler/pipeline-statistics.h"
 #include "src/compiler/zone-stats.h"
 #include "src/isolate.h"
+#include "src/objects/shared-function-info.h"
+#include "src/objects/string.h"
+#include "src/optimized-compilation-info.h"
 
 namespace v8 {
 namespace internal {
@@ -43,9 +45,9 @@ void PipelineStatistics::CommonStats::End(
   timer_.Stop();
 }
 
-PipelineStatistics::PipelineStatistics(CompilationInfo* info,
-                                       ZoneStats* zone_stats)
-    : isolate_(info->isolate()),
+PipelineStatistics::PipelineStatistics(OptimizedCompilationInfo* info,
+                                       Isolate* isolate, ZoneStats* zone_stats)
+    : isolate_(isolate),
       outer_zone_(info->zone()),
       zone_stats_(zone_stats),
       compilation_stats_(isolate_->GetTurboStatistics()),

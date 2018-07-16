@@ -12,7 +12,7 @@ namespace internal {
 
 RootIndexMap::RootIndexMap(Isolate* isolate) {
   map_ = isolate->root_index_map();
-  if (map_ != NULL) return;
+  if (map_ != nullptr) return;
   map_ = new HeapObjectToIndexHashMap();
   for (uint32_t i = 0; i < Heap::kStrongRootListLength; i++) {
     Heap::RootListIndex root_index = static_cast<Heap::RootListIndex>(i);
@@ -20,6 +20,8 @@ RootIndexMap::RootIndexMap(Isolate* isolate) {
     if (!root->IsHeapObject()) continue;
     // Omit root entries that can be written after initialization. They must
     // not be referenced through the root list in the snapshot.
+    // Since we map the raw address of an root item to its root list index, the
+    // raw address must be constant, i.e. the object must be immovable.
     if (isolate->heap()->RootCanBeTreatedAsConstant(root_index)) {
       HeapObject* heap_object = HeapObject::cast(root);
       Maybe<uint32_t> maybe_index = map_->Get(heap_object);

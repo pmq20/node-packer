@@ -5,6 +5,7 @@
 #ifndef V8_STRING_HASHER_INL_H_
 #define V8_STRING_HASHER_INL_H_
 
+#include "src/char-predicates-inl.h"
 #include "src/objects.h"
 #include "src/string-hasher.h"
 
@@ -44,7 +45,7 @@ uint32_t StringHasher::GetHashCore(uint32_t running_hash) {
 uint32_t StringHasher::ComputeRunningHash(uint32_t running_hash,
                                           const uc16* chars, int length) {
   DCHECK_NOT_NULL(chars);
-  DCHECK(length >= 0);
+  DCHECK_GE(length, 0);
   for (int i = 0; i < length; ++i) {
     running_hash = AddCharacterCore(running_hash, *chars++);
   }
@@ -55,7 +56,7 @@ uint32_t StringHasher::ComputeRunningHashOneByte(uint32_t running_hash,
                                                  const char* chars,
                                                  int length) {
   DCHECK_NOT_NULL(chars);
-  DCHECK(length >= 0);
+  DCHECK_GE(length, 0);
   for (int i = 0; i < length; ++i) {
     uint16_t c = static_cast<uint16_t>(*chars++);
     running_hash = AddCharacterCore(running_hash, c);
@@ -71,14 +72,14 @@ void StringHasher::AddCharacter(uint16_t c) {
 
 bool StringHasher::UpdateIndex(uint16_t c) {
   DCHECK(is_array_index_);
-  if (c < '0' || c > '9') {
+  if (!IsDecimalDigit(c)) {
     is_array_index_ = false;
     return false;
   }
   int d = c - '0';
   if (is_first_char_) {
     is_first_char_ = false;
-    if (c == '0' && length_ > 1) {
+    if (d == 0 && length_ > 1) {
       is_array_index_ = false;
       return false;
     }

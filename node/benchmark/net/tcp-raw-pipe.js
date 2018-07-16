@@ -2,40 +2,30 @@
 // as many bytes as we can in the specified time (default = 10s)
 'use strict';
 
-var common = require('../common.js');
-var util = require('util');
+const common = require('../common.js');
+const util = require('util');
 
 // if there are --dur=N and --len=N args, then
 // run the function with those settings.
 // if not, then queue up a bunch of child processes.
-var bench = common.createBenchmark(main, {
+const bench = common.createBenchmark(main, {
   len: [102400, 1024 * 1024 * 16],
   type: ['utf', 'asc', 'buf'],
   dur: [5]
 });
 
-var TCP = process.binding('tcp_wrap').TCP;
-var TCPConnectWrap = process.binding('tcp_wrap').TCPConnectWrap;
-var WriteWrap = process.binding('stream_wrap').WriteWrap;
-var PORT = common.PORT;
-
-var dur;
-var len;
-var type;
-
-function main(conf) {
-  dur = +conf.dur;
-  len = +conf.len;
-  type = conf.type;
-  server();
-}
-
 function fail(err, syscall) {
   throw util._errnoException(err, syscall);
 }
 
-function server() {
-  var serverHandle = new TCP();
+const { TCP, constants: TCPConstants } = process.binding('tcp_wrap');
+const TCPConnectWrap = process.binding('tcp_wrap').TCPConnectWrap;
+const WriteWrap = process.binding('stream_wrap').WriteWrap;
+const PORT = common.PORT;
+
+function main({ dur, len, type }) {
+  // Server
+  const serverHandle = new TCP(TCPConstants.SERVER);
   var err = serverHandle.bind('127.0.0.1', PORT);
   if (err)
     fail(err, 'bind');
@@ -54,14 +44,14 @@ function server() {
       if (nread < 0)
         fail(nread, 'read');
 
-      var writeReq = new WriteWrap();
+      const writeReq = new WriteWrap();
       writeReq.async = false;
       err = clientHandle.writeBuffer(writeReq, buffer);
 
       if (err)
         fail(err, 'write');
 
-      writeReq.oncomplete = function(status, handle, req, err) {
+      writeReq.oncomplete = function(status, handle, err) {
         if (err)
           fail(err, 'write');
       };
@@ -70,10 +60,7 @@ function server() {
     clientHandle.readStart();
   };
 
-  client();
-}
-
-function client() {
+  // Client
   var chunk;
   switch (type) {
     case 'buf':
@@ -89,11 +76,11 @@ function client() {
       throw new Error(`invalid type: ${type}`);
   }
 
-  var clientHandle = new TCP();
-  var connectReq = new TCPConnectWrap();
-  var err = clientHandle.connect(connectReq, '127.0.0.1', PORT);
+  const clientHandle = new TCP(TCPConstants.SOCKET);
+  const connectReq = new TCPConnectWrap();
   var bytes = 0;
 
+  err = clientHandle.connect(connectReq, '127.0.0.1', PORT);
   if (err)
     fail(err, 'connect');
 
@@ -124,7 +111,7 @@ function client() {
   };
 
   function write() {
-    var writeReq = new WriteWrap();
+    const writeReq = new WriteWrap();
     writeReq.oncomplete = afterWrite;
     var err;
     switch (type) {
@@ -143,7 +130,7 @@ function client() {
       fail(err, 'write');
   }
 
-  function afterWrite(err, handle, req) {
+  function afterWrite(err, handle) {
     if (err)
       fail(err, 'write');
 

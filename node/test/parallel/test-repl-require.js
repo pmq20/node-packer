@@ -1,10 +1,14 @@
 'use strict';
 
 const common = require('../common');
+const fixtures = require('../common/fixtures');
 const assert = require('assert');
 const net = require('net');
 
-process.chdir(common.fixturesDir);
+if (!common.isMainThread)
+  common.skip('process.chdir is not available in Workers');
+
+process.chdir(fixtures.fixturesDir);
 const repl = require('repl');
 
 const server = net.createServer((conn) => {

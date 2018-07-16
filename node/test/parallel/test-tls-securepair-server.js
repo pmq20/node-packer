@@ -29,13 +29,12 @@ if (!common.opensslCli)
 
 const assert = require('assert');
 const tls = require('tls');
-const join = require('path').join;
 const net = require('net');
-const fs = require('fs');
 const spawn = require('child_process').spawn;
+const fixtures = require('../common/fixtures');
 
-const key = fs.readFileSync(join(common.fixturesDir, 'agent.key')).toString();
-const cert = fs.readFileSync(join(common.fixturesDir, 'agent.crt')).toString();
+const key = fixtures.readSync('agent.key').toString();
+const cert = fixtures.readSync('agent.crt').toString();
 
 function log(a) {
   console.error(`***server*** ${a}`);
@@ -43,7 +42,7 @@ function log(a) {
 
 const server = net.createServer(common.mustCall(function(socket) {
   log(`connection fd=${socket.fd}`);
-  const sslcontext = tls.createSecureContext({key: key, cert: cert});
+  const sslcontext = tls.createSecureContext({ key, cert });
   sslcontext.context.setCiphers('RC4-SHA:AES128-SHA:AES256-SHA');
 
   const pair = tls.createSecurePair(sslcontext, true);
@@ -113,10 +112,6 @@ server.listen(0, common.mustCall(function() {
   // To test use: openssl s_client -connect localhost:8000
 
   const args = ['s_client', '-connect', `127.0.0.1:${this.address().port}`];
-
-  // for the performance and stability issue in s_client on Windows
-  if (common.isWindows)
-    args.push('-no_rand_screen');
 
   const client = spawn(common.opensslCli, args);
 

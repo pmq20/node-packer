@@ -2,9 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "src/codegen.h"
+#include "src/assembler-inl.h"
 #include "src/deoptimizer.h"
-#include "src/full-codegen/full-codegen.h"
 #include "src/register-configuration.h"
 #include "src/safepoint-table.h"
 
@@ -12,96 +11,6 @@ namespace v8 {
 namespace internal {
 
 const int Deoptimizer::table_entry_size_ = 8;
-
-
-int Deoptimizer::patch_size() {
-#if V8_TARGET_ARCH_PPC64
-  const int kCallInstructionSizeInWords = 7;
-#else
-  const int kCallInstructionSizeInWords = 4;
-#endif
-  return kCallInstructionSizeInWords * Assembler::kInstrSize;
-}
-
-
-void Deoptimizer::EnsureRelocSpaceForLazyDeoptimization(Handle<Code> code) {
-  // Empty because there is no need for relocation information for the code
-  // patching in Deoptimizer::PatchCodeForDeoptimization below.
-}
-
-
-void Deoptimizer::PatchCodeForDeoptimization(Isolate* isolate, Code* code) {
-  Address code_start_address = code->instruction_start();
-
-  // Invalidate the relocation information, as it will become invalid by the
-  // code patching below, and is not needed any more.
-  code->InvalidateRelocation();
-
-  // Fail hard and early if we enter this code object again.
-  byte* pointer = code->FindCodeAgeSequence();
-  if (pointer != NULL) {
-    pointer += kNoCodeAgeSequenceLength;
-  } else {
-    pointer = code->instruction_start();
-  }
-  CodePatcher patcher(isolate, pointer, 1);
-  patcher.masm()->bkpt(0);
-
-  DeoptimizationInputData* data =
-      DeoptimizationInputData::cast(code->deoptimization_data());
-  int osr_offset = data->OsrPcOffset()->value();
-  if (osr_offset > 0) {
-    CodePatcher osr_patcher(isolate, code_start_address + osr_offset, 1);
-    osr_patcher.masm()->bkpt(0);
-  }
-
-  DeoptimizationInputData* deopt_data =
-      DeoptimizationInputData::cast(code->deoptimization_data());
-#ifdef DEBUG
-  Address prev_call_address = NULL;
-#endif
-  // For each LLazyBailout instruction insert a call to the corresponding
-  // deoptimization entry.
-  for (int i = 0; i < deopt_data->DeoptCount(); i++) {
-    if (deopt_data->Pc(i)->value() == -1) continue;
-    Address call_address = code_start_address + deopt_data->Pc(i)->value();
-    Address deopt_entry = GetDeoptimizationEntry(isolate, i, LAZY);
-    // We need calls to have a predictable size in the unoptimized code, but
-    // this is optimized code, so we don't have to have a predictable size.
-    int call_size_in_bytes = MacroAssembler::CallSizeNotPredictableCodeSize(
-        deopt_entry, kRelocInfo_NONEPTR);
-    int call_size_in_words = call_size_in_bytes / Assembler::kInstrSize;
-    DCHECK(call_size_in_bytes % Assembler::kInstrSize == 0);
-    DCHECK(call_size_in_bytes <= patch_size());
-    CodePatcher patcher(isolate, call_address, call_size_in_words);
-    patcher.masm()->Call(deopt_entry, kRelocInfo_NONEPTR);
-    DCHECK(prev_call_address == NULL ||
-           call_address >= prev_call_address + patch_size());
-    DCHECK(call_address + patch_size() <= code->instruction_end());
-#ifdef DEBUG
-    prev_call_address = call_address;
-#endif
-  }
-}
-
-
-void Deoptimizer::SetPlatformCompiledStubRegisters(
-    FrameDescription* output_frame, CodeStubDescriptor* descriptor) {
-  ApiFunction function(descriptor->deoptimization_handler());
-  ExternalReference xref(&function, ExternalReference::BUILTIN_CALL, isolate_);
-  intptr_t handler = reinterpret_cast<intptr_t>(xref.address());
-  int params = descriptor->GetHandlerParameterCount();
-  output_frame->SetRegister(r3.code(), params);
-  output_frame->SetRegister(r4.code(), handler);
-}
-
-
-void Deoptimizer::CopyDoubleRegisters(FrameDescription* output_frame) {
-  for (int i = 0; i < DoubleRegister::kNumRegisters; ++i) {
-    Float64 double_value = input_->GetDoubleRegister(i);
-    output_frame->SetDoubleRegister(i, double_value);
-  }
-}
 
 #define __ masm()->
 
@@ -122,7 +31,7 @@ void Deoptimizer::TableEntryGenerator::Generate() {
 
   // Save all double registers before messing with them.
   __ subi(sp, sp, Operand(kDoubleRegsSize));
-  const RegisterConfiguration* config = RegisterConfiguration::Crankshaft();
+  const RegisterConfiguration* config = RegisterConfiguration::Default();
   for (int i = 0; i < config->num_allocatable_double_registers(); ++i) {
     int code = config->GetAllocatableDoubleCode(i);
     const DoubleRegister dreg = DoubleRegister::from_code(code);
@@ -147,7 +56,8 @@ void Deoptimizer::TableEntryGenerator::Generate() {
     }
   }
 
-  __ mov(ip, Operand(ExternalReference(Isolate::kCEntryFPAddress, isolate())));
+  __ mov(ip, Operand(ExternalReference(IsolateAddressId::kCEntryFPAddress,
+                                       isolate())));
   __ StoreP(fp, MemOperand(ip));
 
   const int kSavedRegistersAreaSize =
@@ -189,7 +99,7 @@ void Deoptimizer::TableEntryGenerator::Generate() {
   __ LoadP(r4, MemOperand(r3, Deoptimizer::input_offset()));
 
   // Copy core registers into FrameDescription::registers_[kNumRegisters].
-  DCHECK(Register::kNumRegisters == kNumberOfRegisters);
+  DCHECK_EQ(Register::kNumRegisters, kNumberOfRegisters);
   for (int i = 0; i < kNumberOfRegisters; i++) {
     int offset = (i * kPointerSize) + FrameDescription::registers_offset();
     __ LoadP(r5, MemOperand(sp, i * kPointerSize));
@@ -293,9 +203,7 @@ void Deoptimizer::TableEntryGenerator::Generate() {
     __ lfd(dreg, MemOperand(r4, src_offset));
   }
 
-  // Push state, pc, and continuation from the last output frame.
-  __ LoadP(r9, MemOperand(r5, FrameDescription::state_offset()));
-  __ push(r9);
+  // Push pc, and continuation from the last output frame.
   __ LoadP(r9, MemOperand(r5, FrameDescription::pc_offset()));
   __ push(r9);
   __ LoadP(r9, MemOperand(r5, FrameDescription::continuation_offset()));
@@ -338,6 +246,7 @@ void Deoptimizer::TableEntryGenerator::GeneratePrologue() {
   __ push(ip);
 }
 
+bool Deoptimizer::PadTopOfStackRegister() { return false; }
 
 void FrameDescription::SetCallerPc(unsigned offset, intptr_t value) {
   SetFrameSlot(offset, value);

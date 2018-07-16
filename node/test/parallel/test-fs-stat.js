@@ -19,15 +19,19 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-/* eslint-disable strict */
+'use strict';
 const common = require('../common');
+
 const assert = require('assert');
 const fs = require('fs');
 
 fs.stat('.', common.mustCall(function(err, stats) {
   assert.ifError(err);
   assert.ok(stats.mtime instanceof Date);
-  assert.strictEqual(this, global);
+  // Confirm that we are not running in the context of the internal binding
+  // layer.
+  // Ref: https://github.com/nodejs/node/commit/463d6bac8b349acc462d345a6e298a76f7d06fb1
+  assert.strictEqual(this, undefined);
 }));
 
 fs.stat('.', common.mustCall(function(err, stats) {
@@ -38,22 +42,31 @@ fs.stat('.', common.mustCall(function(err, stats) {
 fs.lstat('.', common.mustCall(function(err, stats) {
   assert.ifError(err);
   assert.ok(stats.mtime instanceof Date);
-  assert.strictEqual(this, global);
+  // Confirm that we are not running in the context of the internal binding
+  // layer.
+  // Ref: https://github.com/nodejs/node/commit/463d6bac8b349acc462d345a6e298a76f7d06fb1
+  assert.strictEqual(this, undefined);
 }));
 
 // fstat
 fs.open('.', 'r', undefined, common.mustCall(function(err, fd) {
-  assert.ok(!err);
+  assert.ifError(err);
   assert.ok(fd);
 
   fs.fstat(fd, common.mustCall(function(err, stats) {
     assert.ifError(err);
     assert.ok(stats.mtime instanceof Date);
     fs.close(fd, assert.ifError);
-    assert.strictEqual(this, global);
+    // Confirm that we are not running in the context of the internal binding
+    // layer.
+    // Ref: https://github.com/nodejs/node/commit/463d6bac8b349acc462d345a6e298a76f7d06fb1
+    assert.strictEqual(this, undefined);
   }));
 
-  assert.strictEqual(this, global);
+  // Confirm that we are not running in the context of the internal binding
+  // layer.
+  // Ref: https://github.com/nodejs/node/commit/463d6bac8b349acc462d345a6e298a76f7d06fb1
+  assert.strictEqual(this, undefined);
 }));
 
 // fstatSync
@@ -72,13 +85,13 @@ fs.open('.', 'r', undefined, common.mustCall(function(err, fd) {
 
 fs.stat(__filename, common.mustCall(function(err, s) {
   assert.ifError(err);
-  assert.strictEqual(false, s.isDirectory());
-  assert.strictEqual(true, s.isFile());
-  assert.strictEqual(false, s.isSocket());
-  assert.strictEqual(false, s.isBlockDevice());
-  assert.strictEqual(false, s.isCharacterDevice());
-  assert.strictEqual(false, s.isFIFO());
-  assert.strictEqual(false, s.isSymbolicLink());
+  assert.strictEqual(s.isDirectory(), false);
+  assert.strictEqual(s.isFile(), true);
+  assert.strictEqual(s.isSocket(), false);
+  assert.strictEqual(s.isBlockDevice(), false);
+  assert.strictEqual(s.isCharacterDevice(), false);
+  assert.strictEqual(s.isFIFO(), false);
+  assert.strictEqual(s.isSymbolicLink(), false);
   const keys = [
     'dev', 'mode', 'nlink', 'uid',
     'gid', 'rdev', 'ino', 'size',
@@ -117,3 +130,48 @@ fs.stat(__filename, common.mustCall(function(err, s) {
     assert.strictEqual(typeof parsed[k], 'string', `${k} should be a string`);
   });
 }));
+
+['', false, null, undefined, {}, []].forEach((input) => {
+  ['fstat', 'fstatSync'].forEach((fnName) => {
+    assert.throws(
+      () => fs[fnName](input),
+      {
+        code: 'ERR_INVALID_ARG_TYPE',
+        name: 'TypeError [ERR_INVALID_ARG_TYPE]',
+        message: 'The "fd" argument must be of type number. ' +
+                 `Received type ${typeof input}`
+      }
+    );
+  });
+});
+
+[false, 1, {}, [], null, undefined].forEach((input) => {
+  assert.throws(
+    () => fs.lstat(input, common.mustNotCall()),
+    {
+      code: 'ERR_INVALID_ARG_TYPE',
+      name: 'TypeError [ERR_INVALID_ARG_TYPE]'
+    }
+  );
+  assert.throws(
+    () => fs.lstatSync(input),
+    {
+      code: 'ERR_INVALID_ARG_TYPE',
+      name: 'TypeError [ERR_INVALID_ARG_TYPE]'
+    }
+  );
+  assert.throws(
+    () => fs.stat(input, common.mustNotCall()),
+    {
+      code: 'ERR_INVALID_ARG_TYPE',
+      name: 'TypeError [ERR_INVALID_ARG_TYPE]'
+    }
+  );
+  assert.throws(
+    () => fs.statSync(input),
+    {
+      code: 'ERR_INVALID_ARG_TYPE',
+      name: 'TypeError [ERR_INVALID_ARG_TYPE]'
+    }
+  );
+});

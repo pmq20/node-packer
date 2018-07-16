@@ -26,12 +26,11 @@ if (!common.hasCrypto)
 
 const assert = require('assert');
 const https = require('https');
-const fs = require('fs');
-const path = require('path');
+const fixtures = require('../common/fixtures');
 
 const options = {
-  key: fs.readFileSync(path.join(common.fixturesDir, 'test_key.pem')),
-  cert: fs.readFileSync(path.join(common.fixturesDir, 'test_cert.pem'))
+  key: fixtures.readSync('test_key.pem'),
+  cert: fixtures.readSync('test_cert.pem')
 };
 
 const buf = Buffer.allocUnsafe(1024 * 1024);
@@ -55,7 +54,7 @@ server.listen(common.PORT, function() {
     setTimeout(function() {
       // Read buffer should be somewhere near high watermark
       // (i.e. should not leak)
-      assert(res._readableState.length < 100 * 1024);
+      assert(res.readableLength < 100 * 1024);
       process.exit(0);
     }, 2000);
   });

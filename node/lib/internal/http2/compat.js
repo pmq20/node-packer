@@ -4,16 +4,46 @@ const Stream = require('stream');
 const Readable = Stream.Readable;
 const binding = process.binding('http2');
 const constants = binding.constants;
-const errors = require('internal/errors');
+const {
+  ERR_HTTP2_HEADERS_SENT,
+  ERR_HTTP2_INFO_STATUS_NOT_ALLOWED,
+  ERR_HTTP2_INVALID_HEADER_VALUE,
+  ERR_HTTP2_INVALID_STREAM,
+  ERR_HTTP2_NO_SOCKET_MANIPULATION,
+  ERR_HTTP2_PSEUDOHEADER_NOT_ALLOWED,
+  ERR_HTTP2_STATUS_INVALID,
+  ERR_INVALID_ARG_TYPE,
+  ERR_INVALID_ARG_VALUE,
+  ERR_INVALID_CALLBACK,
+  ERR_INVALID_HTTP_TOKEN
+} = require('internal/errors').codes;
+const { kSocket } = require('internal/http2/util');
 
-const kFinish = Symbol('finish');
 const kBeginSend = Symbol('begin-send');
 const kState = Symbol('state');
 const kStream = Symbol('stream');
 const kRequest = Symbol('request');
 const kResponse = Symbol('response');
 const kHeaders = Symbol('headers');
+const kRawHeaders = Symbol('rawHeaders');
 const kTrailers = Symbol('trailers');
+const kRawTrailers = Symbol('rawTrailers');
+const kProxySocket = Symbol('proxySocket');
+const kSetHeader = Symbol('setHeader');
+const kAborted = Symbol('aborted');
+
+const {
+  HTTP2_HEADER_AUTHORITY,
+  HTTP2_HEADER_METHOD,
+  HTTP2_HEADER_PATH,
+  HTTP2_HEADER_SCHEME,
+  HTTP2_HEADER_STATUS,
+
+  HTTP_STATUS_CONTINUE,
+  HTTP_STATUS_EXPECTATION_FAILED,
+  HTTP_STATUS_METHOD_NOT_ALLOWED,
+  HTTP_STATUS_OK
+} = constants;
 
 let statusMessageWarned = false;
 
@@ -22,132 +52,235 @@ let statusMessageWarned = false;
 // close as possible to the current require('http') API
 
 function assertValidHeader(name, value) {
-  if (isPseudoHeader(name))
-    throw new errors.Error('ERR_HTTP2_PSEUDOHEADER_NOT_ALLOWED');
-  if (value === undefined || value === null)
-    throw new errors.TypeError('ERR_HTTP2_INVALID_HEADER_VALUE');
+  let err;
+  if (name === '' || typeof name !== 'string') {
+    err = new ERR_INVALID_HTTP_TOKEN('Header name', name);
+  } else if (isPseudoHeader(name)) {
+    err = new ERR_HTTP2_PSEUDOHEADER_NOT_ALLOWED();
+  } else if (value === undefined || value === null) {
+    err = new ERR_HTTP2_INVALID_HEADER_VALUE(value, name);
+  }
+  if (err !== undefined) {
+    Error.captureStackTrace(err, assertValidHeader);
+    throw err;
+  }
 }
 
 function isPseudoHeader(name) {
   switch (name) {
-    case ':status':
-      return true;
-    case ':method':
-      return true;
-    case ':path':
-      return true;
-    case ':authority':
-      return true;
-    case ':scheme':
+    case HTTP2_HEADER_STATUS:    // :status
+    case HTTP2_HEADER_METHOD:    // :method
+    case HTTP2_HEADER_PATH:      // :path
+    case HTTP2_HEADER_AUTHORITY: // :authority
+    case HTTP2_HEADER_SCHEME:    // :scheme
       return true;
     default:
       return false;
   }
 }
 
+function statusMessageWarn() {
+  if (statusMessageWarned === false) {
+    process.emitWarning(
+      'Status message is not supported by HTTP/2 (RFC7540 8.1.2.4)',
+      'UnsupportedWarning'
+    );
+    statusMessageWarned = true;
+  }
+}
+
 function onStreamData(chunk) {
   const request = this[kRequest];
-  if (!request.push(chunk))
+  if (request !== undefined && !request.push(chunk))
     this.pause();
+}
+
+function onStreamTrailers(trailers, flags, rawTrailers) {
+  const request = this[kRequest];
+  if (request !== undefined) {
+    Object.assign(request[kTrailers], trailers);
+    request[kRawTrailers].push(...rawTrailers);
+  }
 }
 
 function onStreamEnd() {
   // Cause the request stream to end as well.
   const request = this[kRequest];
-  request.push(null);
+  if (request !== undefined)
+    this[kRequest].push(null);
 }
 
 function onStreamError(error) {
-  const request = this[kRequest];
-  request.emit('error', error);
+  // this is purposefully left blank
+  //
+  // errors in compatibility mode are
+  // not forwarded to the request
+  // and response objects. However,
+  // they are forwarded to 'streamError'
+  // on the server by Http2Stream
 }
 
 function onRequestPause() {
-  const stream = this[kStream];
-  stream.pause();
+  this[kStream].pause();
 }
 
 function onRequestResume() {
-  const stream = this[kStream];
+  this[kStream].resume();
+}
+
+function onStreamDrain() {
+  const response = this[kResponse];
+  if (response !== undefined)
+    response.emit('drain');
+}
+
+function onStreamAbortedRequest() {
+  const request = this[kRequest];
+  if (request !== undefined && request[kState].closed === false) {
+    request[kAborted] = true;
+    request.emit('aborted');
+  }
+}
+
+function onStreamAbortedResponse() {
+  // non-op for now
+}
+
+function resumeStream(stream) {
   stream.resume();
 }
 
-function onRequestDrain() {
-  if (this.isPaused())
-    this.resume();
-}
-
-function onStreamResponseDrain() {
-  const response = this[kResponse];
-  response.emit('drain');
-}
-
-function onStreamResponseError(error) {
-  const response = this[kResponse];
-  response.emit('error', error);
-}
-
-function onStreamClosedRequest() {
-  const req = this[kRequest];
-  req.push(null);
-}
-
-function onStreamClosedResponse() {
-  const res = this[kResponse];
-  res.writable = false;
-  res.emit('finish');
-}
-
-function onAborted(hadError, code) {
-  if ((this.writable) ||
-      (this._readableState && !this._readableState.ended)) {
-    this.emit('aborted', hadError, code);
+const proxySocketHandler = {
+  get(stream, prop) {
+    switch (prop) {
+      case 'on':
+      case 'once':
+      case 'end':
+      case 'emit':
+      case 'destroy':
+        return stream[prop].bind(stream);
+      case 'writable':
+      case 'destroyed':
+        return stream[prop];
+      case 'readable':
+        if (stream.destroyed)
+          return false;
+        const request = stream[kRequest];
+        return request ? request.readable : stream.readable;
+      case 'setTimeout':
+        const session = stream.session;
+        if (session !== undefined)
+          return session.setTimeout.bind(session);
+        return stream.setTimeout.bind(stream);
+      case 'write':
+      case 'read':
+      case 'pause':
+      case 'resume':
+        throw new ERR_HTTP2_NO_SOCKET_MANIPULATION();
+      default:
+        const ref = stream.session !== undefined ?
+          stream.session[kSocket] : stream;
+        const value = ref[prop];
+        return typeof value === 'function' ? value.bind(ref) : value;
+    }
+  },
+  getPrototypeOf(stream) {
+    if (stream.session !== undefined)
+      return Reflect.getPrototypeOf(stream.session[kSocket]);
+    return Reflect.getPrototypeOf(stream);
+  },
+  set(stream, prop, value) {
+    switch (prop) {
+      case 'writable':
+      case 'readable':
+      case 'destroyed':
+      case 'on':
+      case 'once':
+      case 'end':
+      case 'emit':
+      case 'destroy':
+        stream[prop] = value;
+        return true;
+      case 'setTimeout':
+        const session = stream.session;
+        if (session !== undefined)
+          session.setTimeout = value;
+        else
+          stream.setTimeout = value;
+        return true;
+      case 'write':
+      case 'read':
+      case 'pause':
+      case 'resume':
+        throw new ERR_HTTP2_NO_SOCKET_MANIPULATION();
+      default:
+        const ref = stream.session !== undefined ?
+          stream.session[kSocket] : stream;
+        ref[prop] = value;
+        return true;
+    }
   }
+};
+
+function onStreamCloseRequest() {
+  const req = this[kRequest];
+
+  if (req === undefined)
+    return;
+
+  const state = req[kState];
+  state.closed = true;
+
+  req.push(null);
+  // if the user didn't interact with incoming data and didn't pipe it,
+  // dump it for compatibility with http1
+  if (!state.didRead && !req._readableState.resumeScheduled)
+    req.resume();
+
+  this[kProxySocket] = null;
+  this[kRequest] = undefined;
+
+  req.emit('close');
 }
 
 class Http2ServerRequest extends Readable {
-  constructor(stream, headers, options) {
+  constructor(stream, headers, options, rawHeaders) {
     super(options);
     this[kState] = {
-      statusCode: null,
       closed: false,
-      closedCode: constants.NGHTTP2_NO_ERROR
+      didRead: false,
     };
     this[kHeaders] = headers;
+    this[kRawHeaders] = rawHeaders;
+    this[kTrailers] = {};
+    this[kRawTrailers] = [];
     this[kStream] = stream;
+    this[kAborted] = false;
+    stream[kProxySocket] = null;
     stream[kRequest] = this;
 
     // Pause the stream..
-    stream.pause();
-    stream.on('data', onStreamData);
+    stream.on('trailers', onStreamTrailers);
     stream.on('end', onStreamEnd);
     stream.on('error', onStreamError);
-    stream.on('close', onStreamClosedRequest);
-    stream.on('aborted', onAborted.bind(this));
-    const onfinish = this[kFinish].bind(this);
-    stream.on('streamClosed', onfinish);
-    stream.on('finish', onfinish);
+    stream.on('aborted', onStreamAbortedRequest);
+    stream.on('close', onStreamCloseRequest);
     this.on('pause', onRequestPause);
     this.on('resume', onRequestResume);
-    this.on('drain', onRequestDrain);
   }
 
-  get closed() {
-    const state = this[kState];
-    return Boolean(state.closed);
+  get aborted() {
+    return this[kAborted];
   }
 
-  get code() {
-    const state = this[kState];
-    return Number(state.closedCode);
+  get complete() {
+    return this._readableState.ended ||
+           this[kState].closed ||
+           this[kStream].destroyed;
   }
 
   get stream() {
     return this[kStream];
-  }
-
-  get statusCode() {
-    return this[kState].statusCode;
   }
 
   get headers() {
@@ -155,16 +288,15 @@ class Http2ServerRequest extends Readable {
   }
 
   get rawHeaders() {
-    const headers = this[kHeaders];
-    if (headers === undefined)
-      return [];
-    const tuples = Object.entries(headers);
-    const flattened = Array.prototype.concat.apply([], tuples);
-    return flattened.map(String);
+    return this[kRawHeaders];
   }
 
   get trailers() {
     return this[kTrailers];
+  }
+
+  get rawTrailers() {
+    return this[kRawTrailers];
   }
 
   get httpVersionMajor() {
@@ -180,7 +312,11 @@ class Http2ServerRequest extends Readable {
   }
 
   get socket() {
-    return this.stream.session.socket;
+    const stream = this[kStream];
+    const proxySocket = stream[kProxySocket];
+    if (proxySocket === null)
+      return stream[kProxySocket] = new Proxy(stream, proxySocketHandler);
+    return proxySocket;
   }
 
   get connection() {
@@ -188,110 +324,130 @@ class Http2ServerRequest extends Readable {
   }
 
   _read(nread) {
-    const stream = this[kStream];
-    if (stream) {
-      stream.resume();
+    const state = this[kState];
+    if (!state.closed) {
+      if (!state.didRead) {
+        state.didRead = true;
+        this[kStream].on('data', onStreamData);
+      } else {
+        process.nextTick(resumeStream, this[kStream]);
+      }
     } else {
-      this.emit('error', new errors.Error('ERR_HTTP2_STREAM_CLOSED'));
+      this.emit('error', new ERR_HTTP2_INVALID_STREAM());
     }
   }
 
   get method() {
-    const headers = this[kHeaders];
-    if (headers === undefined)
-      return;
-    return headers[constants.HTTP2_HEADER_METHOD];
+    return this[kHeaders][HTTP2_HEADER_METHOD];
+  }
+
+  set method(method) {
+    if (typeof method !== 'string')
+      throw new ERR_INVALID_ARG_TYPE('method', 'string', method);
+    if (method.trim() === '')
+      throw new ERR_INVALID_ARG_VALUE('method', method);
+
+    this[kHeaders][HTTP2_HEADER_METHOD] = method;
   }
 
   get authority() {
-    const headers = this[kHeaders];
-    if (headers === undefined)
-      return;
-    return headers[constants.HTTP2_HEADER_AUTHORITY];
+    return this[kHeaders][HTTP2_HEADER_AUTHORITY];
   }
 
   get scheme() {
-    const headers = this[kHeaders];
-    if (headers === undefined)
-      return;
-    return headers[constants.HTTP2_HEADER_SCHEME];
+    return this[kHeaders][HTTP2_HEADER_SCHEME];
   }
 
   get url() {
-    return this.path;
+    return this[kHeaders][HTTP2_HEADER_PATH];
   }
 
   set url(url) {
-    this.path = url;
-  }
-
-  get path() {
-    const headers = this[kHeaders];
-    if (headers === undefined)
-      return;
-    return headers[constants.HTTP2_HEADER_PATH];
-  }
-
-  set path(path) {
-    let headers = this[kHeaders];
-    if (headers === undefined)
-      headers = this[kHeaders] = Object.create(null);
-    headers[constants.HTTP2_HEADER_PATH] = path;
+    this[kHeaders][HTTP2_HEADER_PATH] = url;
   }
 
   setTimeout(msecs, callback) {
-    const stream = this[kStream];
-    if (stream === undefined) return;
-    stream.setTimeout(msecs, callback);
-  }
-
-  [kFinish](code) {
-    const state = this[kState];
-    if (state.closed)
+    if (this[kState].closed)
       return;
-    state.closedCode = code;
-    state.closed = true;
-    this.push(null);
-    this[kStream] = undefined;
+    this[kStream].setTimeout(msecs, callback);
   }
+}
+
+function onStreamTrailersReady() {
+  this.sendTrailers(this[kResponse][kTrailers]);
+}
+
+function onStreamCloseResponse() {
+  const res = this[kResponse];
+
+  if (res === undefined)
+    return;
+
+  const state = res[kState];
+
+  if (this.headRequest !== state.headRequest)
+    return;
+
+  state.closed = true;
+
+  this[kProxySocket] = null;
+  this[kResponse] = undefined;
+
+  res.emit('finish');
+  res.emit('close');
 }
 
 class Http2ServerResponse extends Stream {
   constructor(stream, options) {
     super(options);
     this[kState] = {
-      sendDate: true,
-      statusCode: constants.HTTP_STATUS_OK,
-      headerCount: 0,
-      trailerCount: 0,
       closed: false,
-      closedCode: constants.NGHTTP2_NO_ERROR
+      ending: false,
+      headRequest: false,
+      sendDate: true,
+      statusCode: HTTP_STATUS_OK,
     };
+    this[kHeaders] = Object.create(null);
+    this[kTrailers] = Object.create(null);
     this[kStream] = stream;
+    stream[kProxySocket] = null;
     stream[kResponse] = this;
     this.writable = true;
-    stream.on('drain', onStreamResponseDrain);
-    stream.on('error', onStreamResponseError);
-    stream.on('close', onStreamClosedResponse);
-    stream.on('aborted', onAborted.bind(this));
-    const onfinish = this[kFinish].bind(this);
-    stream.on('streamClosed', onfinish);
-    stream.on('finish', onfinish);
+    stream.on('drain', onStreamDrain);
+    stream.on('aborted', onStreamAbortedResponse);
+    stream.on('close', onStreamCloseResponse);
+    stream.on('wantTrailers', onStreamTrailersReady);
+  }
+
+  // User land modules such as finalhandler just check truthiness of this
+  // but if someone is actually trying to use this for more than that
+  // then we simply can't support such use cases
+  get _header() {
+    return this.headersSent;
   }
 
   get finished() {
     const stream = this[kStream];
-    return stream === undefined || stream._writableState.ended;
+    return stream.destroyed ||
+           stream._writableState.ended ||
+           this[kState].closed;
   }
 
-  get closed() {
-    const state = this[kState];
-    return Boolean(state.closed);
+  get socket() {
+    // this is compatible with http1 which removes socket reference
+    // only from ServerResponse but not IncomingMessage
+    if (this[kState].closed)
+      return;
+
+    const stream = this[kStream];
+    const proxySocket = stream[kProxySocket];
+    if (proxySocket === null)
+      return stream[kProxySocket] = new Proxy(stream, proxySocketHandler);
+    return proxySocket;
   }
 
-  get code() {
-    const state = this[kState];
-    return Number(state.closedCode);
+  get connection() {
+    return this.socket;
   }
 
   get stream() {
@@ -299,12 +455,11 @@ class Http2ServerResponse extends Stream {
   }
 
   get headersSent() {
-    const stream = this[kStream];
-    return stream.headersSent;
+    return this[kStream].headersSent;
   }
 
   get sendDate() {
-    return Boolean(this[kState].sendDate);
+    return this[kState].sendDate;
   }
 
   set sendDate(bool) {
@@ -316,237 +471,251 @@ class Http2ServerResponse extends Stream {
   }
 
   set statusCode(code) {
-    const state = this[kState];
     code |= 0;
     if (code >= 100 && code < 200)
-      throw new errors.RangeError('ERR_HTTP2_INFO_STATUS_NOT_ALLOWED');
-    if (code < 200 || code > 599)
-      throw new errors.RangeError('ERR_HTTP2_STATUS_INVALID', code);
-    state.statusCode = code;
+      throw new ERR_HTTP2_INFO_STATUS_NOT_ALLOWED();
+    if (code < 100 || code > 599)
+      throw new ERR_HTTP2_STATUS_INVALID(code);
+    this[kState].statusCode = code;
+  }
+
+  setTrailer(name, value) {
+    if (typeof name !== 'string')
+      throw new ERR_INVALID_ARG_TYPE('name', 'string', name);
+
+    name = name.trim().toLowerCase();
+    assertValidHeader(name, value);
+    this[kTrailers][name] = value;
   }
 
   addTrailers(headers) {
-    let trailers = this[kTrailers];
     const keys = Object.keys(headers);
-    if (keys.length === 0)
-      return;
-    if (trailers === undefined)
-      trailers = this[kTrailers] = Object.create(null);
+    let key = '';
     for (var i = 0; i < keys.length; i++) {
-      trailers[keys[i]] = String(headers[keys[i]]);
+      key = keys[i];
+      this.setTrailer(key, headers[key]);
     }
   }
 
   getHeader(name) {
-    const headers = this[kHeaders];
-    if (headers === undefined)
-      return;
-    name = String(name).trim().toLowerCase();
-    return headers[name];
+    if (typeof name !== 'string')
+      throw new ERR_INVALID_ARG_TYPE('name', 'string', name);
+
+    name = name.trim().toLowerCase();
+    return this[kHeaders][name];
   }
 
   getHeaderNames() {
-    const headers = this[kHeaders];
-    if (headers === undefined)
-      return [];
-    return Object.keys(headers);
+    return Object.keys(this[kHeaders]);
   }
 
   getHeaders() {
-    const headers = this[kHeaders];
-    return Object.assign({}, headers);
+    return Object.assign({}, this[kHeaders]);
   }
 
   hasHeader(name) {
-    const headers = this[kHeaders];
-    if (headers === undefined)
-      return false;
-    name = String(name).trim().toLowerCase();
-    return Object.prototype.hasOwnProperty.call(headers, name);
+    if (typeof name !== 'string')
+      throw new ERR_INVALID_ARG_TYPE('name', 'string', name);
+
+    name = name.trim().toLowerCase();
+    return Object.prototype.hasOwnProperty.call(this[kHeaders], name);
   }
 
   removeHeader(name) {
-    const headers = this[kHeaders];
-    if (headers === undefined)
-      return;
-    name = String(name).trim().toLowerCase();
-    delete headers[name];
+    if (typeof name !== 'string')
+      throw new ERR_INVALID_ARG_TYPE('name', 'string', name);
+
+    if (this[kStream].headersSent)
+      throw new ERR_HTTP2_HEADERS_SENT();
+
+    name = name.trim().toLowerCase();
+    delete this[kHeaders][name];
   }
 
   setHeader(name, value) {
-    name = String(name).trim().toLowerCase();
+    if (typeof name !== 'string')
+      throw new ERR_INVALID_ARG_TYPE('name', 'string', name);
+
+    if (this[kStream].headersSent)
+      throw new ERR_HTTP2_HEADERS_SENT();
+
+    this[kSetHeader](name, value);
+  }
+
+  [kSetHeader](name, value) {
+    name = name.trim().toLowerCase();
     assertValidHeader(name, value);
-    let headers = this[kHeaders];
-    if (headers === undefined)
-      headers = this[kHeaders] = Object.create(null);
-    headers[name] = String(value);
+    this[kHeaders][name] = value;
   }
 
   get statusMessage() {
-    if (statusMessageWarned === false) {
-      process.emitWarning(
-        'Status message is not supported by HTTP/2 (RFC7540 8.1.2.4)',
-        'UnsupportedWarning'
-      );
-      statusMessageWarned = true;
-    }
+    statusMessageWarn();
 
     return '';
   }
 
+  set statusMessage(msg) {
+    statusMessageWarn();
+  }
+
   flushHeaders() {
-    if (this[kStream].headersSent === false)
-      this[kBeginSend]();
+    const state = this[kState];
+    if (!state.closed && !this[kStream].headersSent)
+      this.writeHead(state.statusCode);
   }
 
   writeHead(statusCode, statusMessage, headers) {
-    if (typeof statusMessage === 'string' && statusMessageWarned === false) {
-      process.emitWarning(
-        'Status message is not supported by HTTP/2 (RFC7540 8.1.2.4)',
-        'UnsupportedWarning'
-      );
-      statusMessageWarned = true;
-    }
-    if (headers === undefined && typeof statusMessage === 'object') {
+    const state = this[kState];
+
+    if (state.closed)
+      throw new ERR_HTTP2_INVALID_STREAM();
+    if (this[kStream].headersSent)
+      throw new ERR_HTTP2_HEADERS_SENT();
+
+    if (typeof statusMessage === 'string')
+      statusMessageWarn();
+
+    if (headers === undefined && typeof statusMessage === 'object')
       headers = statusMessage;
-    }
 
-    const stream = this[kStream];
-    if (stream.headersSent === true) {
-      throw new errors.Error('ERR_HTTP2_INFO_HEADERS_AFTER_RESPOND');
-    }
-
-    if (headers) {
+    if (typeof headers === 'object') {
       const keys = Object.keys(headers);
       let key = '';
       for (var i = 0; i < keys.length; i++) {
         key = keys[i];
-        this.setHeader(key, headers[key]);
+        this[kSetHeader](key, headers[key]);
       }
     }
 
-    this.statusCode = statusCode;
+    state.statusCode = statusCode;
     this[kBeginSend]();
   }
 
   write(chunk, encoding, cb) {
-    const stream = this[kStream];
-
     if (typeof encoding === 'function') {
       cb = encoding;
       encoding = 'utf8';
     }
 
-    if (stream === undefined) {
-      const err = new errors.Error('ERR_HTTP2_STREAM_CLOSED');
-      if (cb)
+    if (this[kState].closed) {
+      const err = new ERR_HTTP2_INVALID_STREAM();
+      if (typeof cb === 'function')
         process.nextTick(cb, err);
       else
         throw err;
       return;
     }
-    this[kBeginSend]();
+
+    const stream = this[kStream];
+    if (!stream.headersSent)
+      this.writeHead(this[kState].statusCode);
     return stream.write(chunk, encoding, cb);
   }
 
   end(chunk, encoding, cb) {
     const stream = this[kStream];
+    const state = this[kState];
+
+    if ((state.closed || state.ending) &&
+        state.headRequest === stream.headRequest) {
+      return false;
+    }
 
     if (typeof chunk === 'function') {
       cb = chunk;
       chunk = null;
-      encoding = 'utf8';
     } else if (typeof encoding === 'function') {
       cb = encoding;
       encoding = 'utf8';
     }
-    if (chunk !== null && chunk !== undefined) {
+
+    if (chunk !== null && chunk !== undefined)
       this.write(chunk, encoding);
+
+    const isFinished = this.finished;
+    state.headRequest = stream.headRequest;
+    state.ending = true;
+
+    if (typeof cb === 'function') {
+      if (isFinished)
+        this.once('finish', cb);
+      else
+        stream.once('finish', cb);
     }
 
-    if (typeof cb === 'function' && stream !== undefined) {
-      stream.once('finish', cb);
-    }
+    if (!stream.headersSent)
+      this.writeHead(this[kState].statusCode);
 
-    this[kBeginSend]({ endStream: true });
-
-    if (stream !== undefined) {
+    if (isFinished)
+      onStreamCloseResponse.call(stream);
+    else
       stream.end();
-    }
+
+    return this;
   }
 
   destroy(err) {
-    const stream = this[kStream];
-    if (stream === undefined) {
-      // nothing to do, already closed
+    if (this[kState].closed)
       return;
-    }
-    stream.destroy(err);
+    this[kStream].destroy(err);
   }
 
   setTimeout(msecs, callback) {
-    const stream = this[kStream];
-    if (stream === undefined) return;
-    stream.setTimeout(msecs, callback);
+    if (this[kState].closed)
+      return;
+    this[kStream].setTimeout(msecs, callback);
   }
 
   createPushResponse(headers, callback) {
-    const stream = this[kStream];
-    if (stream === undefined) {
-      process.nextTick(callback, new errors.Error('ERR_HTTP2_STREAM_CLOSED'));
+    if (typeof callback !== 'function')
+      throw new ERR_INVALID_CALLBACK();
+    if (this[kState].closed) {
+      process.nextTick(callback, new ERR_HTTP2_INVALID_STREAM());
       return;
     }
-    stream.pushStream(headers, {}, function(stream, headers, options) {
-      const response = new Http2ServerResponse(stream);
-      callback(null, response);
+    this[kStream].pushStream(headers, {}, (err, stream, headers, options) => {
+      if (err) {
+        callback(err);
+        return;
+      }
+      callback(null, new Http2ServerResponse(stream));
     });
   }
 
-  [kBeginSend](options) {
-    const stream = this[kStream];
-    options = options || Object.create(null);
-    if (stream !== undefined && stream.headersSent === false) {
-      const state = this[kState];
-      const headers = this[kHeaders] || Object.create(null);
-      headers[constants.HTTP2_HEADER_STATUS] = state.statusCode;
-      if (stream.finished === true)
-        options.endStream = true;
-      options.getTrailers = (trailers) => {
-        Object.assign(trailers, this[kTrailers]);
-      };
-      if (stream.destroyed === false) {
-        stream.respond(headers, options);
-      }
-    }
-  }
-
-  [kFinish](code) {
+  [kBeginSend]() {
     const state = this[kState];
-    if (state.closed)
-      return;
-    state.closedCode = code;
-    state.closed = true;
-    this.end();
-    this[kStream] = undefined;
-    this.emit('finish');
+    const headers = this[kHeaders];
+    headers[HTTP2_HEADER_STATUS] = state.statusCode;
+    const options = {
+      endStream: state.ending,
+      waitForTrailers: true,
+    };
+    this[kStream].respond(headers, options);
   }
 
+  // TODO doesn't support callbacks
   writeContinue() {
-    // TODO mcollina check what is the continue flow
-    throw new Error('not implemented yet');
+    const stream = this[kStream];
+    if (stream.headersSent || this[kState].closed)
+      return false;
+    stream.additionalHeaders({
+      [HTTP2_HEADER_STATUS]: HTTP_STATUS_CONTINUE
+    });
+    return true;
   }
 }
 
-function onServerStream(stream, headers, flags) {
+function onServerStream(ServerRequest, ServerResponse,
+                        stream, headers, flags, rawHeaders) {
   const server = this;
-  const request = new Http2ServerRequest(stream, headers);
-  const response = new Http2ServerResponse(stream);
+  const request = new ServerRequest(stream, headers, undefined, rawHeaders);
+  const response = new ServerResponse(stream);
 
   // Check for the CONNECT method
-  const method = headers[constants.HTTP2_HEADER_METHOD];
+  const method = headers[HTTP2_HEADER_METHOD];
   if (method === 'CONNECT') {
     if (!server.emit('connect', request, response)) {
-      response.statusCode = constants.HTTP_STATUS_METHOD_NOT_ALLOWED;
+      response.statusCode = HTTP_STATUS_METHOD_NOT_ALLOWED;
       response.end();
     }
     return;
@@ -558,13 +727,13 @@ function onServerStream(stream, headers, flags) {
       if (server.listenerCount('checkContinue')) {
         server.emit('checkContinue', request, response);
       } else {
-        response.sendContinue();
+        response.writeContinue();
         server.emit('request', request, response);
       }
     } else if (server.listenerCount('checkExpectation')) {
       server.emit('checkExpectation', request, response);
     } else {
-      response.statusCode = constants.HTTP_STATUS_EXPECTATION_FAILED;
+      response.statusCode = HTTP_STATUS_EXPECTATION_FAILED;
       response.end();
     }
     return;
@@ -573,4 +742,8 @@ function onServerStream(stream, headers, flags) {
   server.emit('request', request, response);
 }
 
-module.exports = { onServerStream };
+module.exports = {
+  onServerStream,
+  Http2ServerRequest,
+  Http2ServerResponse,
+};

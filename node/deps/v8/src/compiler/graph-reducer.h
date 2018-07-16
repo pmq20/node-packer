@@ -23,6 +23,8 @@ class Node;
 // out-of-line data associated with each node.
 typedef uint32_t NodeId;
 
+// Possible outcomes for decisions.
+enum class Decision : uint8_t { kUnknown, kTrue, kFalse };
 
 // Represents the result of trying to reduce a node in the graph.
 class Reduction final {
@@ -45,6 +47,9 @@ class Reduction final {
 class V8_EXPORT_PRIVATE Reducer {
  public:
   virtual ~Reducer() {}
+
+  // Only used for tracing, when using the --trace_turbo_reduction flag.
+  virtual const char* reducer_name() const = 0;
 
   // Try to reduce a node if possible.
   virtual Reduction Reduce(Node* node) = 0;

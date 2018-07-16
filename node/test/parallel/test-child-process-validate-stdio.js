@@ -26,10 +26,12 @@ assert.throws(() => _validateStdio(600), expectedError);
 
 // should throw if stdio has ipc and sync is true
 const stdio2 = ['ipc', 'ipc', 'ipc'];
-assert.throws(() => _validateStdio(stdio2, true),
-              common.expectsError({ code: 'ERR_IPC_SYNC_FORK', type: Error }));
+common.expectsError(() => _validateStdio(stdio2, true),
+                    { code: 'ERR_IPC_SYNC_FORK', type: Error }
+);
 
-{
+
+if (common.isMainThread) {
   const stdio3 = [process.stdin, process.stdout, process.stderr];
   const result = _validateStdio(stdio3, false);
   assert.deepStrictEqual(result, {
@@ -41,4 +43,7 @@ assert.throws(() => _validateStdio(stdio2, true),
     ipc: undefined,
     ipcFd: undefined
   });
+} else {
+  common.printSkipMessage(
+    'stdio is not associated with file descriptors in Workers');
 }

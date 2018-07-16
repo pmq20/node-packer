@@ -1,5 +1,7 @@
 # Path
 
+<!--introduced_in=v0.10.0-->
+
 > Stability: 2 - Stable
 
 The `path` module provides utilities for working with file and directory paths.
@@ -77,8 +79,6 @@ The `path.basename()` methods returns the last portion of a `path`, similar to
 the Unix `basename` command. Trailing directory separators are ignored, see
 [`path.sep`][].
 
-For example:
-
 ```js
 path.basename('/foo/bar/baz/asdf/quux.html');
 // Returns: 'quux.html'
@@ -138,8 +138,6 @@ The `path.dirname()` method returns the directory name of a `path`, similar to
 the Unix `dirname` command. Trailing directory separators are ignored, see
 [`path.sep`][].
 
-For example:
-
 ```js
 path.dirname('/foo/bar/baz/asdf/quux');
 // Returns: '/foo/bar/baz/asdf'
@@ -161,11 +159,9 @@ changes:
 
 The `path.extname()` method returns the extension of the `path`, from the last
 occurrence of the `.` (period) character to end of string in the last portion of
-the `path`.  If there is no `.` in the last portion of the `path`, or if the
+the `path`. If there is no `.` in the last portion of the `path`, or if the
 first character of the basename of `path` (see `path.basename()`) is `.`, then
 an empty string is returned.
-
-For example:
 
 ```js
 path.extname('index.html');
@@ -300,8 +296,6 @@ Zero-length `path` segments are ignored. If the joined path string is a
 zero-length string then `'.'` will be returned, representing the current
 working directory.
 
-For example:
-
 ```js
 path.join('/foo', 'bar', 'baz/asdf', 'quux', '..');
 // Returns: '/foo/bar/baz/asdf'
@@ -394,7 +388,7 @@ path.parse('/home/user/dir/file.txt');
 │ root │              │ name │ ext │
 "  /    home/user/dir / file  .txt "
 └──────┴──────────────┴──────┴─────┘
-(all spaces in the "" line should be ignored -- they are purely for formatting)
+(all spaces in the "" line should be ignored — they are purely for formatting)
 ```
 
 On Windows:
@@ -416,7 +410,7 @@ path.parse('C:\\path\\dir\\file.txt');
 │ root │              │ name │ ext │
 " C:\      path\dir   \ file  .txt "
 └──────┴──────────────┴──────┴─────┘
-(all spaces in the "" line should be ignored -- they are purely for formatting)
+(all spaces in the "" line should be ignored — they are purely for formatting)
 ```
 
 A [`TypeError`][] is thrown if `path` is not a string.
@@ -495,8 +489,6 @@ Zero-length `path` segments are ignored.
 If no `path` segments are passed, `path.resolve()` will return the absolute path
 of the current working directory.
 
-For example:
-
 ```js
 path.resolve('/foo/bar', './baz');
 // Returns: '/foo/bar/baz'
@@ -537,9 +529,24 @@ On Windows:
 // Returns: ['foo', 'bar', 'baz']
 ```
 
-*Note*: On Windows, both the forward slash (`/`) and backward slash (`\`) are
-accepted as path segment separators; however, the `path` methods only add
-backward slashes (`\`).
+On Windows, both the forward slash (`/`) and backward slash (`\`) are accepted
+as path segment separators; however, the `path` methods only add backward
+slashes (`\`).
+
+## path.toNamespacedPath(path)
+<!-- YAML
+added: v9.0.0
+-->
+
+* `path` {string}
+* Returns: {string}
+
+On Windows systems only, returns an equivalent [namespace-prefixed path][] for
+the given `path`. If `path` is not a string, `path` will be returned without
+modifications.
+
+This method is meaningful only on Windows system. On posix systems, the
+method is non-operational and always returns `path` without modifications.
 
 ## path.win32
 <!-- YAML
@@ -556,4 +563,5 @@ of the `path` methods.
 [`path.posix`]: #path_path_posix
 [`path.sep`]: #path_path_sep
 [`path.win32`]: #path_path_win32
-[MSDN-Rel-Path]: https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247.aspx#fully_qualified_vs._relative_paths
+[MSDN-Rel-Path]: https://docs.microsoft.com/en-us/windows/desktop/FileIO/naming-a-file#fully-qualified-vs-relative-paths
+[namespace-prefixed path]: https://msdn.microsoft.com/library/windows/desktop/aa365247(v=vs.85).aspx#namespaces

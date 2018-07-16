@@ -26,21 +26,29 @@ const fs = require('fs');
 const URL = require('url').URL;
 
 function check(async, sync) {
-  const expected = /Path must be a string without null bytes/;
   const argsSync = Array.prototype.slice.call(arguments, 2);
-  const argsAsync = argsSync.concat((er) => {
-    assert(er && expected.test(er.message));
-    assert.strictEqual(er.code, 'ENOENT');
-  });
+  const argsAsync = argsSync.concat(common.mustNotCall());
 
   if (sync) {
-    assert.throws(() => {
-      sync.apply(null, argsSync);
-    }, expected);
+    common.expectsError(
+      () => {
+        sync.apply(null, argsSync);
+      },
+      {
+        code: 'ERR_INVALID_ARG_VALUE',
+        type: TypeError,
+      });
   }
 
   if (async) {
-    async.apply(null, argsAsync);
+    common.expectsError(
+      () => {
+        async.apply(null, argsAsync);
+      },
+      {
+        code: 'ERR_INVALID_ARG_VALUE',
+        type: TypeError
+      });
   }
 }
 
@@ -49,6 +57,9 @@ check(fs.access, fs.accessSync, 'foo\u0000bar', fs.F_OK);
 check(fs.appendFile, fs.appendFileSync, 'foo\u0000bar', 'abc');
 check(fs.chmod, fs.chmodSync, 'foo\u0000bar', '0644');
 check(fs.chown, fs.chownSync, 'foo\u0000bar', 12, 34);
+check(fs.copyFile, fs.copyFileSync, 'foo\u0000bar', 'abc');
+check(fs.copyFile, fs.copyFileSync, 'abc', 'foo\u0000bar');
+check(fs.lchown, fs.lchownSync, 'foo\u0000bar', 12, 34);
 check(fs.link, fs.linkSync, 'foo\u0000bar', 'foobar');
 check(fs.link, fs.linkSync, 'foobar', 'foo\u0000bar');
 check(fs.lstat, fs.lstatSync, 'foo\u0000bar');
@@ -80,6 +91,9 @@ check(fs.access, fs.accessSync, fileUrl, fs.F_OK);
 check(fs.appendFile, fs.appendFileSync, fileUrl, 'abc');
 check(fs.chmod, fs.chmodSync, fileUrl, '0644');
 check(fs.chown, fs.chownSync, fileUrl, 12, 34);
+check(fs.copyFile, fs.copyFileSync, fileUrl, 'abc');
+check(fs.copyFile, fs.copyFileSync, 'abc', fileUrl);
+check(fs.lchown, fs.lchownSync, fileUrl, 12, 34);
 check(fs.link, fs.linkSync, fileUrl, 'foobar');
 check(fs.link, fs.linkSync, 'foobar', fileUrl);
 check(fs.lstat, fs.lstatSync, fileUrl);
@@ -108,6 +122,9 @@ check(fs.access, fs.accessSync, fileUrl2, fs.F_OK);
 check(fs.appendFile, fs.appendFileSync, fileUrl2, 'abc');
 check(fs.chmod, fs.chmodSync, fileUrl2, '0644');
 check(fs.chown, fs.chownSync, fileUrl2, 12, 34);
+check(fs.copyFile, fs.copyFileSync, fileUrl2, 'abc');
+check(fs.copyFile, fs.copyFileSync, 'abc', fileUrl2);
+check(fs.lchown, fs.lchownSync, fileUrl2, 12, 34);
 check(fs.link, fs.linkSync, fileUrl2, 'foobar');
 check(fs.link, fs.linkSync, 'foobar', fileUrl2);
 check(fs.lstat, fs.lstatSync, fileUrl2);

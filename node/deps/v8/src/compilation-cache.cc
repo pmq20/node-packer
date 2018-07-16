@@ -5,15 +5,14 @@
 #include "src/compilation-cache.h"
 
 #include "src/counters.h"
-#include "src/factory.h"
 #include "src/globals.h"
+#include "src/heap/factory.h"
 #include "src/objects-inl.h"
 #include "src/objects/compilation-cache-inl.h"
 #include "src/visitors.h"
 
 namespace v8 {
 namespace internal {
-
 
 // The number of generations for each sub cache.
 static const int kRegExpGenerations = 2;
@@ -35,9 +34,7 @@ CompilationCache::CompilationCache(Isolate* isolate)
   }
 }
 
-
 CompilationCache::~CompilationCache() {}
-
 
 Handle<CompilationCacheTable> CompilationSubCache::GetTable(int generation) {
   DCHECK(generation < generations_);
@@ -52,7 +49,6 @@ Handle<CompilationCacheTable> CompilationSubCache::GetTable(int generation) {
   }
   return result;
 }
-
 
 void CompilationSubCache::Age() {
   // Don't directly age single-generation caches.
@@ -72,26 +68,14 @@ void CompilationSubCache::Age() {
   tables_[0] = isolate()->heap()->undefined_value();
 }
 
-
-void CompilationSubCache::IterateFunctions(ObjectVisitor* v) {
-  Object* undefined = isolate()->heap()->undefined_value();
-  for (int i = 0; i < generations_; i++) {
-    if (tables_[i] != undefined) {
-      reinterpret_cast<CompilationCacheTable*>(tables_[i])->IterateElements(v);
-    }
-  }
-}
-
 void CompilationSubCache::Iterate(RootVisitor* v) {
-  v->VisitRootPointers(Root::kCompilationCache, &tables_[0],
+  v->VisitRootPointers(Root::kCompilationCache, nullptr, &tables_[0],
                        &tables_[generations_]);
 }
-
 
 void CompilationSubCache::Clear() {
   MemsetPointer(tables_, isolate()->heap()->undefined_value(), generations_);
 }
-
 
 void CompilationSubCache::Remove(Handle<SharedFunctionInfo> function_info) {
   // Probe the script generation tables. Make sure not to leak handles
@@ -111,14 +95,15 @@ CompilationCacheScript::CompilationCacheScript(Isolate* isolate)
 // script originates from the same place. This is to avoid issues
 // when reporting errors, etc.
 bool CompilationCacheScript::HasOrigin(Handle<SharedFunctionInfo> function_info,
-                                       Handle<Object> name, int line_offset,
-                                       int column_offset,
+                                       MaybeHandle<Object> maybe_name,
+                                       int line_offset, int column_offset,
                                        ScriptOriginOptions resource_options) {
   Handle<Script> script =
       Handle<Script>(Script::cast(function_info->script()), isolate());
   // If the script name isn't set, the boilerplate script should have
   // an undefined name to have the same origin.
-  if (name.is_null()) {
+  Handle<Object> name;
+  if (!maybe_name.ToHandle(&name)) {
     return script->name()->IsUndefined(isolate());
   }
   // Do the fast bailout checks first.
@@ -134,36 +119,31 @@ bool CompilationCacheScript::HasOrigin(Handle<SharedFunctionInfo> function_info,
                         Handle<String>(String::cast(script->name())));
 }
 
-
 // TODO(245): Need to allow identical code from different contexts to
 // be cached in the same script generation. Currently the first use
 // will be cached, but subsequent code from different source / line
 // won't.
-InfoVectorPair CompilationCacheScript::Lookup(
-    Handle<String> source, Handle<Object> name, int line_offset,
+MaybeHandle<SharedFunctionInfo> CompilationCacheScript::Lookup(
+    Handle<String> source, MaybeHandle<Object> name, int line_offset,
     int column_offset, ScriptOriginOptions resource_options,
     Handle<Context> context, LanguageMode language_mode) {
-  InfoVectorPair result;
+  MaybeHandle<SharedFunctionInfo> result;
 
   // Probe the script generation tables. Make sure not to leak handles
   // into the caller's handle scope.
   { HandleScope scope(isolate());
     const int generation = 0;
-    DCHECK(generations() == 1);
+    DCHECK_EQ(generations(), 1);
     Handle<CompilationCacheTable> table = GetTable(generation);
-    InfoVectorPair probe = table->LookupScript(source, context, language_mode);
-    if (probe.has_shared()) {
-      Handle<SharedFunctionInfo> function_info(probe.shared(), isolate());
-      Handle<Cell> vector_handle;
-      if (probe.has_vector()) {
-        vector_handle = Handle<Cell>(probe.vector(), isolate());
-      }
+    MaybeHandle<SharedFunctionInfo> probe =
+        table->LookupScript(source, context, language_mode);
+    Handle<SharedFunctionInfo> function_info;
+    if (probe.ToHandle(&function_info)) {
       // Break when we've found a suitable shared function info that
       // matches the origin.
       if (HasOrigin(function_info, name, line_offset, column_offset,
                     resource_options)) {
-        result = InfoVectorPair(*function_info,
-                                probe.has_vector() ? *vector_handle : nullptr);
+        result = scope.CloseAndEscape(function_info);
       }
     }
   }
@@ -171,19 +151,13 @@ InfoVectorPair CompilationCacheScript::Lookup(
   // Once outside the manacles of the handle scope, we need to recheck
   // to see if we actually found a cached script. If so, we return a
   // handle created in the caller's handle scope.
-  if (result.has_shared()) {
+  Handle<SharedFunctionInfo> function_info;
+  if (result.ToHandle(&function_info)) {
 #ifdef DEBUG
     // Since HasOrigin can allocate, we need to protect the SharedFunctionInfo
-    // and the FeedbackVector with handles during the call.
-    Handle<SharedFunctionInfo> shared(result.shared(), isolate());
-    Handle<Cell> vector_handle;
-    if (result.has_vector()) {
-      vector_handle = Handle<Cell>(result.vector(), isolate());
-    }
-    DCHECK(
-        HasOrigin(shared, name, line_offset, column_offset, resource_options));
-    result =
-        InfoVectorPair(*shared, result.has_vector() ? *vector_handle : nullptr);
+    // with handles during the call.
+    DCHECK(HasOrigin(function_info, name, line_offset, column_offset,
+                     resource_options));
 #endif
     isolate()->counters()->compilation_cache_hits()->Increment();
   } else {
@@ -194,24 +168,25 @@ InfoVectorPair CompilationCacheScript::Lookup(
 
 void CompilationCacheScript::Put(Handle<String> source, Handle<Context> context,
                                  LanguageMode language_mode,
-                                 Handle<SharedFunctionInfo> function_info,
-                                 Handle<Cell> literals) {
+                                 Handle<SharedFunctionInfo> function_info) {
   HandleScope scope(isolate());
   Handle<CompilationCacheTable> table = GetFirstTable();
-  SetFirstTable(CompilationCacheTable::PutScript(
-      table, source, context, language_mode, function_info, literals));
+  SetFirstTable(CompilationCacheTable::PutScript(table, source, context,
+                                                 language_mode, function_info));
 }
 
-InfoVectorPair CompilationCacheEval::Lookup(
-    Handle<String> source, Handle<SharedFunctionInfo> outer_info,
-    Handle<Context> native_context, LanguageMode language_mode, int position) {
+InfoCellPair CompilationCacheEval::Lookup(Handle<String> source,
+                                          Handle<SharedFunctionInfo> outer_info,
+                                          Handle<Context> native_context,
+                                          LanguageMode language_mode,
+                                          int position) {
   HandleScope scope(isolate());
   // Make sure not to leak the table into the surrounding handle
   // scope. Otherwise, we risk keeping old tables around even after
   // having cleared the cache.
-  InfoVectorPair result;
+  InfoCellPair result;
   const int generation = 0;
-  DCHECK(generations() == 1);
+  DCHECK_EQ(generations(), 1);
   Handle<CompilationCacheTable> table = GetTable(generation);
   result = table->LookupEval(source, outer_info, native_context, language_mode,
                              position);
@@ -227,15 +202,15 @@ void CompilationCacheEval::Put(Handle<String> source,
                                Handle<SharedFunctionInfo> outer_info,
                                Handle<SharedFunctionInfo> function_info,
                                Handle<Context> native_context,
-                               Handle<Cell> literals, int position) {
+                               Handle<FeedbackCell> feedback_cell,
+                               int position) {
   HandleScope scope(isolate());
   Handle<CompilationCacheTable> table = GetFirstTable();
   table =
       CompilationCacheTable::PutEval(table, source, outer_info, function_info,
-                                     native_context, literals, position);
+                                     native_context, feedback_cell, position);
   SetFirstTable(table);
 }
-
 
 MaybeHandle<FixedArray> CompilationCacheRegExp::Lookup(
     Handle<String> source,
@@ -264,7 +239,6 @@ MaybeHandle<FixedArray> CompilationCacheRegExp::Lookup(
   }
 }
 
-
 void CompilationCacheRegExp::Put(Handle<String> source,
                                  JSRegExp::Flags flags,
                                  Handle<FixedArray> data) {
@@ -272,7 +246,6 @@ void CompilationCacheRegExp::Put(Handle<String> source,
   Handle<CompilationCacheTable> table = GetFirstTable();
   SetFirstTable(CompilationCacheTable::PutRegExp(table, source, flags, data));
 }
-
 
 void CompilationCache::Remove(Handle<SharedFunctionInfo> function_info) {
   if (!IsEnabled()) return;
@@ -282,28 +255,29 @@ void CompilationCache::Remove(Handle<SharedFunctionInfo> function_info) {
   script_.Remove(function_info);
 }
 
-InfoVectorPair CompilationCache::LookupScript(
-    Handle<String> source, Handle<Object> name, int line_offset,
+MaybeHandle<SharedFunctionInfo> CompilationCache::LookupScript(
+    Handle<String> source, MaybeHandle<Object> name, int line_offset,
     int column_offset, ScriptOriginOptions resource_options,
     Handle<Context> context, LanguageMode language_mode) {
-  InfoVectorPair empty_result;
-  if (!IsEnabled()) return empty_result;
+  if (!IsEnabled()) return MaybeHandle<SharedFunctionInfo>();
 
   return script_.Lookup(source, name, line_offset, column_offset,
                         resource_options, context, language_mode);
 }
 
-InfoVectorPair CompilationCache::LookupEval(
-    Handle<String> source, Handle<SharedFunctionInfo> outer_info,
-    Handle<Context> context, LanguageMode language_mode, int position) {
-  InfoVectorPair result;
+InfoCellPair CompilationCache::LookupEval(Handle<String> source,
+                                          Handle<SharedFunctionInfo> outer_info,
+                                          Handle<Context> context,
+                                          LanguageMode language_mode,
+                                          int position) {
+  InfoCellPair result;
   if (!IsEnabled()) return result;
 
   if (context->IsNativeContext()) {
     result = eval_global_.Lookup(source, outer_info, context, language_mode,
                                  position);
   } else {
-    DCHECK(position != kNoSourcePosition);
+    DCHECK_NE(position, kNoSourcePosition);
     Handle<Context> native_context(context->native_context(), isolate());
     result = eval_contextual_.Lookup(source, outer_info, native_context,
                                      language_mode, position);
@@ -311,7 +285,6 @@ InfoVectorPair CompilationCache::LookupEval(
 
   return result;
 }
-
 
 MaybeHandle<FixedArray> CompilationCache::LookupRegExp(Handle<String> source,
                                                        JSRegExp::Flags flags) {
@@ -322,33 +295,31 @@ MaybeHandle<FixedArray> CompilationCache::LookupRegExp(Handle<String> source,
 
 void CompilationCache::PutScript(Handle<String> source, Handle<Context> context,
                                  LanguageMode language_mode,
-                                 Handle<SharedFunctionInfo> function_info,
-                                 Handle<Cell> literals) {
+                                 Handle<SharedFunctionInfo> function_info) {
   if (!IsEnabled()) return;
 
-  script_.Put(source, context, language_mode, function_info, literals);
+  script_.Put(source, context, language_mode, function_info);
 }
 
 void CompilationCache::PutEval(Handle<String> source,
                                Handle<SharedFunctionInfo> outer_info,
                                Handle<Context> context,
                                Handle<SharedFunctionInfo> function_info,
-                               Handle<Cell> literals, int position) {
+                               Handle<FeedbackCell> feedback_cell,
+                               int position) {
   if (!IsEnabled()) return;
 
   HandleScope scope(isolate());
   if (context->IsNativeContext()) {
-    eval_global_.Put(source, outer_info, function_info, context, literals,
+    eval_global_.Put(source, outer_info, function_info, context, feedback_cell,
                      position);
   } else {
-    DCHECK(position != kNoSourcePosition);
+    DCHECK_NE(position, kNoSourcePosition);
     Handle<Context> native_context(context->native_context(), isolate());
     eval_contextual_.Put(source, outer_info, function_info, native_context,
-                         literals, position);
+                         feedback_cell, position);
   }
 }
-
-
 
 void CompilationCache::PutRegExp(Handle<String> source,
                                  JSRegExp::Flags flags,
@@ -359,7 +330,6 @@ void CompilationCache::PutRegExp(Handle<String> source,
 
   reg_exp_.Put(source, flags, data);
 }
-
 
 void CompilationCache::Clear() {
   for (int i = 0; i < kSubCacheCount; i++) {
@@ -373,31 +343,20 @@ void CompilationCache::Iterate(RootVisitor* v) {
   }
 }
 
-
-void CompilationCache::IterateFunctions(ObjectVisitor* v) {
-  for (int i = 0; i < kSubCacheCount; i++) {
-    subcaches_[i]->IterateFunctions(v);
-  }
-}
-
-
 void CompilationCache::MarkCompactPrologue() {
   for (int i = 0; i < kSubCacheCount; i++) {
     subcaches_[i]->Age();
   }
 }
 
-
 void CompilationCache::Enable() {
   enabled_ = true;
 }
-
 
 void CompilationCache::Disable() {
   enabled_ = false;
   Clear();
 }
-
 
 }  // namespace internal
 }  // namespace v8

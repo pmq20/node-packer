@@ -27,7 +27,7 @@
 
 import test
 import os
-from os.path import join, dirname, exists
+from os.path import join, dirname, exists, splitext
 import re
 import ast
 
@@ -61,10 +61,7 @@ class SimpleTestCase(test.TestCase):
     source = open(self.file).read()
     flags_match = FLAGS_PATTERN.search(source)
     if flags_match:
-      # PORT should match the definition in test/common/index.js.
-      env = { 'PORT': int(os.getenv('NODE_COMMON_PORT', '12346')) }
-      env['PORT'] += self.thread_id * 100
-      flag = flags_match.group(1).strip().format(**env).split()
+      flag = flags_match.group(1).strip().split()
       # The following block reads config.gypi to extract the v8_enable_inspector
       # value. This is done to check if the inspector is disabled in which case
       # the '--inspect' flag cannot be passed to the node process as it will
@@ -109,18 +106,17 @@ class SimpleTestConfiguration(test.TestConfiguration):
       self.additional_flags = []
 
   def Ls(self, path):
-    def SelectTest(name):
-      return name.startswith('test-') and name.endswith('.js')
-    return [f[:-3] for f in os.listdir(path) if SelectTest(f)]
+    return [f for f in os.listdir(path) if re.match('^test-.*\.m?js$', f)]
 
   def ListTests(self, current_path, path, arch, mode):
     all_tests = [current_path + [t] for t in self.Ls(join(self.root))]
     result = []
     for test in all_tests:
       if self.Contains(path, test):
-        file_path = join(self.root, reduce(join, test[1:], "") + ".js")
-        result.append(SimpleTestCase(test, file_path, arch, mode, self.context,
-                                     self, self.additional_flags))
+        file_path = join(self.root, reduce(join, test[1:], ""))
+        test_name = test[:-1] + [splitext(test[-1])[0]]
+        result.append(SimpleTestCase(test_name, file_path, arch, mode,
+                                     self.context, self, self.additional_flags))
     return result
 
   def GetBuildRequirements(self):
@@ -179,4 +175,16 @@ class AsyncHooksTestConfiguration(SimpleTestConfiguration):
          current_path, path, arch, mode)
     for test in result:
       test.parallel = True
+    return result
+
+class AbortTestConfiguration(SimpleTestConfiguration):
+  def __init__(self, context, root, section, additional=None):
+    super(AbortTestConfiguration, self).__init__(context, root, section,
+                                                 additional)
+
+  def ListTests(self, current_path, path, arch, mode):
+    result = super(AbortTestConfiguration, self).ListTests(
+         current_path, path, arch, mode)
+    for test in result:
+      test.disable_core_files = True
     return result

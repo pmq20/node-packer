@@ -1,7 +1,7 @@
 'use strict';
 const common = require('../common');
 const assert = require('assert');
-const fs = require('fs');
+const fixtures = require('../common/fixtures');
 
 // Tests that calling disableRenegotiation on a TLSSocket stops renegotiation.
 
@@ -11,15 +11,17 @@ if (!common.hasCrypto)
 const tls = require('tls');
 
 const options = {
-  key: fs.readFileSync(`${common.fixturesDir}/keys/agent1-key.pem`),
-  cert: fs.readFileSync(`${common.fixturesDir}/keys/agent1-cert.pem`)
+  key: fixtures.readKey('agent1-key.pem'),
+  cert: fixtures.readKey('agent1-cert.pem')
 };
 
 const server = tls.Server(options, common.mustCall((socket) => {
   socket.on('error', common.mustCall((err) => {
-    assert.strictEqual(
-      err.message,
-      'TLS session renegotiation disabled for this socket');
+    common.expectsError({
+      type: Error,
+      code: 'ERR_TLS_RENEGOTIATION_DISABLED',
+      message: 'TLS session renegotiation disabled for this socket'
+    })(err);
     socket.destroy();
     server.close();
   }));

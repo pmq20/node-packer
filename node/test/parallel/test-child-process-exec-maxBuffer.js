@@ -5,8 +5,9 @@ const cp = require('child_process');
 
 function checkFactory(streamName) {
   return common.mustCall((err) => {
-    const message = `${streamName} maxBuffer exceeded`;
-    assert.strictEqual(err.message, message);
+    assert.strictEqual(err.message, `${streamName} maxBuffer length exceeded`);
+    assert(err instanceof RangeError);
+    assert.strictEqual(err.code, 'ERR_CHILD_PROCESS_STDIO_MAXBUFFER');
   });
 }
 
@@ -32,11 +33,33 @@ const unicode = '中文测试'; // length = 4, byte length = 12
 {
   const cmd = `"${process.execPath}" -e "console.log('${unicode}');"`;
 
-  cp.exec(cmd, {maxBuffer: 10}, checkFactory('stdout'));
+  cp.exec(cmd, { maxBuffer: 10 }, checkFactory('stdout'));
 }
 
 {
-  const cmd = `"${process.execPath}" -e "console.('${unicode}');"`;
+  const cmd = `"${process.execPath}" -e "console.error('${unicode}');"`;
 
-  cp.exec(cmd, {maxBuffer: 10}, checkFactory('stderr'));
+  cp.exec(cmd, { maxBuffer: 10 }, checkFactory('stderr'));
+}
+
+{
+  const cmd = `"${process.execPath}" -e "console.log('${unicode}');"`;
+
+  const child = cp.exec(
+    cmd,
+    { encoding: null, maxBuffer: 10 },
+    checkFactory('stdout'));
+
+  child.stdout.setEncoding('utf-8');
+}
+
+{
+  const cmd = `"${process.execPath}" -e "console.error('${unicode}');"`;
+
+  const child = cp.exec(
+    cmd,
+    { encoding: null, maxBuffer: 10 },
+    checkFactory('stderr'));
+
+  child.stderr.setEncoding('utf-8');
 }

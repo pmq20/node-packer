@@ -5,7 +5,9 @@
 #ifndef V8_MACRO_ASSEMBLER_H_
 #define V8_MACRO_ASSEMBLER_H_
 
-#include "src/assembler-inl.h"
+#include "src/assembler.h"
+#include "src/frames.h"
+#include "src/heap/heap.h"
 
 // Helper types to make boolean flag easier to read at call-site.
 enum InvokeFlag {
@@ -28,10 +30,6 @@ enum AllocationFlags {
   DOUBLE_ALIGNMENT = 1 << 2,
   // Directly allocate in old space
   PRETENURE = 1 << 3,
-  // Allocation folding dominator
-  ALLOCATION_FOLDING_DOMINATOR = 1 << 4,
-  // Folded allocation
-  ALLOCATION_FOLDED = 1 << 5
 };
 
 #if V8_TARGET_ARCH_IA32
@@ -56,8 +54,6 @@ enum AllocationFlags {
 #elif V8_TARGET_ARCH_S390
 #include "src/s390/constants-s390.h"
 #include "src/s390/macro-assembler-s390.h"
-#elif V8_TARGET_ARCH_X87
-#include "src/x87/macro-assembler-x87.h"
 #else
 #error Unsupported target architecture.
 #endif
@@ -70,19 +66,19 @@ static constexpr int kMaxCParameters = 9;
 
 class FrameScope {
  public:
-  explicit FrameScope(MacroAssembler* masm, StackFrame::Type type)
-      : masm_(masm), type_(type), old_has_frame_(masm->has_frame()) {
-    masm->set_has_frame(true);
+  explicit FrameScope(TurboAssembler* tasm, StackFrame::Type type)
+      : tasm_(tasm), type_(type), old_has_frame_(tasm->has_frame()) {
+    tasm->set_has_frame(true);
     if (type != StackFrame::MANUAL && type_ != StackFrame::NONE) {
-      masm->EnterFrame(type);
+      tasm->EnterFrame(type);
     }
   }
 
   ~FrameScope() {
     if (type_ != StackFrame::MANUAL && type_ != StackFrame::NONE) {
-      masm_->LeaveFrame(type_);
+      tasm_->LeaveFrame(type_);
     }
-    masm_->set_has_frame(old_has_frame_);
+    tasm_->set_has_frame(old_has_frame_);
   }
 
   // Normally we generate the leave-frame code when this object goes
@@ -92,11 +88,11 @@ class FrameScope {
   // the code will be generated again when it goes out of scope.
   void GenerateLeaveFrame() {
     DCHECK(type_ != StackFrame::MANUAL && type_ != StackFrame::NONE);
-    masm_->LeaveFrame(type_);
+    tasm_->LeaveFrame(type_);
   }
 
  private:
-  MacroAssembler* masm_;
+  TurboAssembler* tasm_;
   StackFrame::Type type_;
   bool old_has_frame_;
 };
@@ -193,30 +189,6 @@ class NoCurrentFrameScope {
   bool saved_;
 };
 
-
-// Support for "structured" code comments.
-#ifdef DEBUG
-
-class Comment {
- public:
-  Comment(Assembler* assembler, const char* msg);
-  ~Comment();
-
- private:
-  Assembler* assembler_;
-  const char* msg_;
-};
-
-#else
-
-class Comment {
- public:
-  Comment(Assembler*, const char*) {}
-};
-
-#endif  // DEBUG
-
-
 // Wrapper class for passing expected and actual parameter counts as
 // either registers or immediate values. Used to make sure that the
 // caller provides exactly the expected number of parameters to the
@@ -226,7 +198,7 @@ class ParameterCount BASE_EMBEDDED {
   explicit ParameterCount(Register reg) : reg_(reg), immediate_(0) {}
   explicit ParameterCount(int imm) : reg_(no_reg), immediate_(imm) {}
 
-  bool is_reg() const { return !reg_.is(no_reg); }
+  bool is_reg() const { return reg_.is_valid(); }
   bool is_immediate() const { return !is_reg(); }
 
   Register reg() const {
@@ -244,28 +216,6 @@ class ParameterCount BASE_EMBEDDED {
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(ParameterCount);
 };
-
-
-class AllocationUtils {
- public:
-  static ExternalReference GetAllocationTopReference(
-      Isolate* isolate, AllocationFlags flags) {
-    if ((flags & PRETENURE) != 0) {
-      return ExternalReference::old_space_allocation_top_address(isolate);
-    }
-    return ExternalReference::new_space_allocation_top_address(isolate);
-  }
-
-
-  static ExternalReference GetAllocationLimitReference(
-      Isolate* isolate, AllocationFlags flags) {
-    if ((flags & PRETENURE) != 0) {
-      return ExternalReference::old_space_allocation_limit_address(isolate);
-    }
-    return ExternalReference::new_space_allocation_limit_address(isolate);
-  }
-};
-
 
 }  // namespace internal
 }  // namespace v8

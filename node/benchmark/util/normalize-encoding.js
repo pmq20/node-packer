@@ -19,7 +19,7 @@ const inputs = [
 
 const bench = common.createBenchmark(main, {
   input: inputs.concat(Object.keys(groupedInputs)),
-  n: [1e5]
+  n: [1e7]
 }, {
   flags: '--expose-internals'
 });
@@ -47,11 +47,9 @@ function getInput(input) {
   }
 }
 
-function main(conf) {
-  const normalizeEncoding = require('internal/util').normalizeEncoding;
-
-  const n = conf.n | 0;
-  const inputs = getInput(conf.input);
+function main({ input, n }) {
+  const { normalizeEncoding } = require('internal/util');
+  const inputs = getInput(input);
   var noDead = '';
 
   bench.start();

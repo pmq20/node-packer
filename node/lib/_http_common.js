@@ -21,25 +21,27 @@
 
 'use strict';
 
-const binding = process.binding('http_parser');
-const methods = binding.methods;
-const HTTPParser = binding.HTTPParser;
+const { methods, HTTPParser } = process.binding('http_parser');
 
 const FreeList = require('internal/freelist');
-const ondrain = require('internal/http').ondrain;
+const { ondrain } = require('internal/http');
 const incoming = require('_http_incoming');
-const emitDestroy = require('async_hooks').emitDestroy;
-const IncomingMessage = incoming.IncomingMessage;
-const readStart = incoming.readStart;
-const readStop = incoming.readStop;
+const {
+  IncomingMessage,
+  readStart,
+  readStop
+} = incoming;
 
 const debug = require('util').debuglog('http');
 
+const kIncomingMessage = Symbol('IncomingMessage');
 const kOnHeaders = HTTPParser.kOnHeaders | 0;
 const kOnHeadersComplete = HTTPParser.kOnHeadersComplete | 0;
 const kOnBody = HTTPParser.kOnBody | 0;
 const kOnMessageComplete = HTTPParser.kOnMessageComplete | 0;
 const kOnExecute = HTTPParser.kOnExecute | 0;
+
+const MAX_HEADER_PAIRS = 2000;
 
 // Only called in the slow case where slow means
 // that the request headers were either fragmented
@@ -62,23 +64,30 @@ function parserOnHeaders(headers, url) {
 function parserOnHeadersComplete(versionMajor, versionMinor, headers, method,
                                  url, statusCode, statusMessage, upgrade,
                                  shouldKeepAlive) {
-  var parser = this;
+  const parser = this;
+  const { socket } = parser;
 
-  if (!headers) {
+  if (headers === undefined) {
     headers = parser._headers;
     parser._headers = [];
   }
 
-  if (!url) {
+  if (url === undefined) {
     url = parser._url;
     parser._url = '';
   }
 
-  parser.incoming = new IncomingMessage(parser.socket);
-  parser.incoming.httpVersionMajor = versionMajor;
-  parser.incoming.httpVersionMinor = versionMinor;
-  parser.incoming.httpVersion = versionMajor + '.' + versionMinor;
-  parser.incoming.url = url;
+  // Parser is also used by http client
+  const ParserIncomingMessage = (socket && socket.server &&
+                                 socket.server[kIncomingMessage]) ||
+                                 IncomingMessage;
+
+  const incoming = parser.incoming = new ParserIncomingMessage(socket);
+  incoming.httpVersionMajor = versionMajor;
+  incoming.httpVersionMinor = versionMinor;
+  incoming.httpVersion = `${versionMajor}.${versionMinor}`;
+  incoming.url = url;
+  incoming.upgrade = upgrade;
 
   var n = headers.length;
 
@@ -86,73 +95,46 @@ function parserOnHeadersComplete(versionMajor, versionMinor, headers, method,
   if (parser.maxHeaderPairs > 0)
     n = Math.min(n, parser.maxHeaderPairs);
 
-  parser.incoming._addHeaderLines(headers, n);
+  incoming._addHeaderLines(headers, n);
 
   if (typeof method === 'number') {
     // server only
-    parser.incoming.method = methods[method];
+    incoming.method = methods[method];
   } else {
     // client only
-    parser.incoming.statusCode = statusCode;
-    parser.incoming.statusMessage = statusMessage;
+    incoming.statusCode = statusCode;
+    incoming.statusMessage = statusMessage;
   }
 
-  if (upgrade && parser.outgoing !== null && !parser.outgoing.upgrading) {
-    // The client made non-upgrade request, and server is just advertising
-    // supported protocols.
-    //
-    // See RFC7230 Section 6.7
-    upgrade = false;
-  }
-
-  parser.incoming.upgrade = upgrade;
-
-  var skipBody = 0; // response to HEAD or CONNECT
-
-  if (!upgrade) {
-    // For upgraded connections and CONNECT method request, we'll emit this
-    // after parser.execute so that we can capture the first part of the new
-    // protocol.
-    skipBody = parser.onIncoming(parser.incoming, shouldKeepAlive);
-  }
-
-  if (typeof skipBody !== 'number')
-    return skipBody ? 1 : 0;
-  else
-    return skipBody;
+  return parser.onIncoming(incoming, shouldKeepAlive);
 }
 
-// XXX This is a mess.
-// TODO: http.Parser should be a Writable emits request/response events.
 function parserOnBody(b, start, len) {
-  var parser = this;
-  var stream = parser.incoming;
+  const stream = this.incoming;
 
   // if the stream has already been removed, then drop it.
-  if (!stream)
+  if (stream === null)
     return;
-
-  var socket = stream.socket;
 
   // pretend this was the result of a stream._read call.
   if (len > 0 && !stream._dumped) {
     var slice = b.slice(start, start + len);
     var ret = stream.push(slice);
     if (!ret)
-      readStop(socket);
+      readStop(this.socket);
   }
 }
 
 function parserOnMessageComplete() {
-  var parser = this;
-  var stream = parser.incoming;
+  const parser = this;
+  const stream = parser.incoming;
 
-  if (stream) {
+  if (stream !== null) {
     stream.complete = true;
     // Emit any trailing headers.
-    var headers = parser._headers;
-    if (headers) {
-      parser.incoming._addHeaderLines(headers, headers.length);
+    const headers = parser._headers;
+    if (headers.length) {
+      stream._addHeaderLines(headers, headers.length);
       parser._headers = [];
       parser._url = '';
     }
@@ -166,8 +148,8 @@ function parserOnMessageComplete() {
 }
 
 
-var parsers = new FreeList('parsers', 1000, function() {
-  var parser = new HTTPParser(HTTPParser.REQUEST);
+const parsers = new FreeList('parsers', 1000, function() {
+  const parser = new HTTPParser(HTTPParser.REQUEST);
 
   parser._headers = [];
   parser._url = '';
@@ -177,11 +159,9 @@ var parsers = new FreeList('parsers', 1000, function() {
   parser.incoming = null;
   parser.outgoing = null;
 
-  // Only called in the slow case where slow means
-  // that the request headers were either fragmented
-  // across multiple TCP packets or too large to be
-  // processed in a single run. This method is also
-  // called to process trailing HTTP headers.
+  parser.maxHeaderPairs = MAX_HEADER_PAIRS;
+
+  parser.onIncoming = null;
   parser[kOnHeaders] = parserOnHeaders;
   parser[kOnHeadersComplete] = parserOnHeadersComplete;
   parser[kOnBody] = parserOnBody;
@@ -191,6 +171,7 @@ var parsers = new FreeList('parsers', 1000, function() {
   return parser;
 });
 
+function closeParserInstance(parser) { parser.close(); }
 
 // Free the parser and also break any links that it
 // might have to any other things.
@@ -202,22 +183,24 @@ var parsers = new FreeList('parsers', 1000, function() {
 function freeParser(parser, req, socket) {
   if (parser) {
     parser._headers = [];
+    parser._url = '';
+    parser.maxHeaderPairs = MAX_HEADER_PAIRS;
     parser.onIncoming = null;
     if (parser._consumed)
       parser.unconsume();
     parser._consumed = false;
-    if (parser.socket)
-      parser.socket.parser = null;
     parser.socket = null;
     parser.incoming = null;
     parser.outgoing = null;
     parser[kOnExecute] = null;
     if (parsers.free(parser) === false) {
-      parser.close();
+      // Make sure the parser's stack has unwound before deleting the
+      // corresponding C++ object through .close().
+      setImmediate(closeParserInstance, parser);
     } else {
       // Since the Parser destructor isn't going to run the destroy() callbacks
       // it needs to be triggered manually.
-      emitDestroy(parser.getAsyncId());
+      parser.free();
     }
   }
   if (req) {
@@ -234,123 +217,25 @@ function httpSocketSetup(socket) {
   socket.on('drain', ondrain);
 }
 
+const tokenRegExp = /^[\^_`a-zA-Z\-0-9!#$%&'*+.|~]+$/;
 /**
  * Verifies that the given val is a valid HTTP token
  * per the rules defined in RFC 7230
  * See https://tools.ietf.org/html/rfc7230#section-3.2.6
- *
- * Allowed characters in an HTTP token:
- * ^_`a-z  94-122
- * A-Z     65-90
- * -       45
- * 0-9     48-57
- * !       33
- * #$%&'   35-39
- * *+      42-43
- * .       46
- * |       124
- * ~       126
- *
- * This implementation of checkIsHttpToken() loops over the string instead of
- * using a regular expression since the former is up to 180% faster with v8 4.9
- * depending on the string length (the shorter the string, the larger the
- * performance difference)
- *
- * Additionally, checkIsHttpToken() is currently designed to be inlinable by v8,
- * so take care when making changes to the implementation so that the source
- * code size does not exceed v8's default max_inlined_source_size setting.
- **/
-var validTokens = [
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 0 - 15
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 16 - 31
-  0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, // 32 - 47
-  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, // 48 - 63
-  0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 64 - 79
-  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, // 80 - 95
-  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 96 - 111
-  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, // 112 - 127
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 128 ...
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0  // ... 255
-];
+ */
 function checkIsHttpToken(val) {
-  if (!validTokens[val.charCodeAt(0)])
-    return false;
-  if (val.length < 2)
-    return true;
-  if (!validTokens[val.charCodeAt(1)])
-    return false;
-  if (val.length < 3)
-    return true;
-  if (!validTokens[val.charCodeAt(2)])
-    return false;
-  if (val.length < 4)
-    return true;
-  if (!validTokens[val.charCodeAt(3)])
-    return false;
-  for (var i = 4; i < val.length; ++i) {
-    if (!validTokens[val.charCodeAt(i)])
-      return false;
-  }
-  return true;
+  return tokenRegExp.test(val);
 }
 
+const headerCharRegex = /[^\t\x20-\x7e\x80-\xff]/;
 /**
  * True if val contains an invalid field-vchar
  *  field-value    = *( field-content / obs-fold )
  *  field-content  = field-vchar [ 1*( SP / HTAB ) field-vchar ]
  *  field-vchar    = VCHAR / obs-text
- *
- * checkInvalidHeaderChar() is currently designed to be inlinable by v8,
- * so take care when making changes to the implementation so that the source
- * code size does not exceed v8's default max_inlined_source_size setting.
- **/
-var validHdrChars = [
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, // 0 - 15
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 16 - 31
-  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 32 - 47
-  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 48 - 63
-  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 64 - 79
-  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 80 - 95
-  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 96 - 111
-  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, // 112 - 127
-  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 128 ...
-  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1  // ... 255
-];
+ */
 function checkInvalidHeaderChar(val) {
-  val += '';
-  if (val.length < 1)
-    return false;
-  if (!validHdrChars[val.charCodeAt(0)])
-    return true;
-  if (val.length < 2)
-    return false;
-  if (!validHdrChars[val.charCodeAt(1)])
-    return true;
-  if (val.length < 3)
-    return false;
-  if (!validHdrChars[val.charCodeAt(2)])
-    return true;
-  if (val.length < 4)
-    return false;
-  if (!validHdrChars[val.charCodeAt(3)])
-    return true;
-  for (var i = 4; i < val.length; ++i) {
-    if (!validHdrChars[val.charCodeAt(i)])
-      return true;
-  }
-  return false;
+  return headerCharRegex.test(val);
 }
 
 module.exports = {
@@ -363,5 +248,6 @@ module.exports = {
   freeParser,
   httpSocketSetup,
   methods,
-  parsers
+  parsers,
+  kIncomingMessage
 };

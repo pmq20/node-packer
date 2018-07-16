@@ -6,6 +6,7 @@
 #define V8_ZONE_ACCOUNTING_ALLOCATOR_H_
 
 #include "include/v8-platform.h"
+#include "include/v8.h"
 #include "src/base/atomic-utils.h"
 #include "src/base/atomicops.h"
 #include "src/base/macros.h"
@@ -20,10 +21,7 @@ namespace internal {
 
 class V8_EXPORT_PRIVATE AccountingAllocator {
  public:
-  static const size_t kMaxPoolSizeLowMemoryDevice = 8ul * KB;
-  static const size_t kMaxPoolSizeMediumMemoryDevice = 8ul * KB;
-  static const size_t kMaxPoolSizeHighMemoryDevice = 8ul * KB;
-  static const size_t kMaxPoolSizeHugeMemoryDevice = 8ul * KB;
+  static const size_t kMaxPoolSize = 8ul * KB;
 
   AccountingAllocator();
   virtual ~AccountingAllocator();

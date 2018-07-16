@@ -20,15 +20,11 @@
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 'use strict';
-const common = require('../common');
+const { mustCall, mustNotCall } = require('../common');
 const assert = require('assert');
 
-const binding = process.binding('http_parser');
-const methods = binding.methods;
-const HTTPParser = binding.HTTPParser;
-
-const REQUEST = HTTPParser.REQUEST;
-const RESPONSE = HTTPParser.RESPONSE;
+const { methods, HTTPParser } = process.binding('http_parser');
+const { REQUEST, RESPONSE } = HTTPParser;
 
 const kOnHeaders = HTTPParser.kOnHeaders | 0;
 const kOnHeadersComplete = HTTPParser.kOnHeadersComplete | 0;
@@ -52,30 +48,15 @@ function newParser(type) {
     parser.url += url;
   };
 
-  parser[kOnHeadersComplete] = function(info) {
+  parser[kOnHeadersComplete] = function() {
   };
 
-  parser[kOnBody] = common.mustNotCall('kOnBody should not be called');
+  parser[kOnBody] = mustNotCall('kOnBody should not be called');
 
   parser[kOnMessageComplete] = function() {
   };
 
   return parser;
-}
-
-
-function mustCall(f, times) {
-  let actual = 0;
-
-  process.setMaxListeners(256);
-  process.on('exit', function() {
-    assert.strictEqual(actual, times || 1);
-  });
-
-  return function() {
-    actual++;
-    return f.apply(this, Array.prototype.slice.call(arguments));
-  };
 }
 
 
@@ -94,8 +75,7 @@ function expectBody(expected) {
   const request = Buffer.from('GET /hello HTTP/1.1\r\n\r\n');
 
   const onHeadersComplete = (versionMajor, versionMinor, headers,
-                             method, url, statusCode, statusMessage,
-                             upgrade, shouldKeepAlive) => {
+                             method, url) => {
     assert.strictEqual(versionMajor, 1);
     assert.strictEqual(versionMinor, 1);
     assert.strictEqual(method, methods.indexOf('GET'));
@@ -111,15 +91,16 @@ function expectBody(expected) {
   // thrown from parser.execute()
   //
 
-  parser[kOnHeadersComplete] = function(info) {
+  parser[kOnHeadersComplete] = function() {
     throw new Error('hello world');
   };
 
   parser.reinitialize(HTTPParser.REQUEST);
 
-  assert.throws(function() {
-    parser.execute(request, 0, request.length);
-  }, Error, 'hello world');
+  assert.throws(
+    () => { parser.execute(request, 0, request.length); },
+    { name: 'Error', message: 'hello world' }
+  );
 }
 
 
@@ -136,8 +117,7 @@ function expectBody(expected) {
   );
 
   const onHeadersComplete = (versionMajor, versionMinor, headers,
-                             method, url, statusCode, statusMessage,
-                             upgrade, shouldKeepAlive) => {
+                             method, url, statusCode, statusMessage) => {
     assert.strictEqual(method, undefined);
     assert.strictEqual(versionMajor, 1);
     assert.strictEqual(versionMinor, 1);
@@ -165,8 +145,7 @@ function expectBody(expected) {
     'HTTP/1.0 200 Connection established\r\n\r\n');
 
   const onHeadersComplete = (versionMajor, versionMinor, headers,
-                             method, url, statusCode, statusMessage,
-                             upgrade, shouldKeepAlive) => {
+                             method, url, statusCode, statusMessage) => {
     assert.strictEqual(versionMajor, 1);
     assert.strictEqual(versionMinor, 0);
     assert.strictEqual(method, undefined);
@@ -199,15 +178,14 @@ function expectBody(expected) {
 
   let seen_body = false;
 
-  const onHeaders = (headers, url) => {
+  const onHeaders = (headers) => {
     assert.ok(seen_body); // trailers should come after the body
     assert.deepStrictEqual(headers,
                            ['Vary', '*', 'Content-Type', 'text/plain']);
   };
 
   const onHeadersComplete = (versionMajor, versionMinor, headers,
-                             method, url, statusCode, statusMessage,
-                             upgrade, shouldKeepAlive) => {
+                             method, url) => {
     assert.strictEqual(method, methods.indexOf('POST'));
     assert.strictEqual(url || parser.url, '/it');
     assert.strictEqual(versionMajor, 1);
@@ -242,8 +220,7 @@ function expectBody(expected) {
   );
 
   const onHeadersComplete = (versionMajor, versionMinor, headers,
-                             method, url, statusCode, statusMessage,
-                             upgrade, shouldKeepAlive) => {
+                             method) => {
     assert.strictEqual(method, methods.indexOf('GET'));
     assert.strictEqual(versionMajor, 1);
     assert.strictEqual(versionMinor, 0);
@@ -272,8 +249,7 @@ function expectBody(expected) {
   );
 
   const onHeadersComplete = (versionMajor, versionMinor, headers,
-                             method, url, statusCode, statusMessage,
-                             upgrade, shouldKeepAlive) => {
+                             method, url) => {
     assert.strictEqual(method, methods.indexOf('GET'));
     assert.strictEqual(url || parser.url, '/foo/bar/baz?quux=42#1337');
     assert.strictEqual(versionMajor, 1);
@@ -307,8 +283,7 @@ function expectBody(expected) {
   );
 
   const onHeadersComplete = (versionMajor, versionMinor, headers,
-                             method, url, statusCode, statusMessage,
-                             upgrade, shouldKeepAlive) => {
+                             method, url) => {
     assert.strictEqual(method, methods.indexOf('POST'));
     assert.strictEqual(url || parser.url, '/it');
     assert.strictEqual(versionMajor, 1);
@@ -346,8 +321,7 @@ function expectBody(expected) {
   );
 
   const onHeadersComplete = (versionMajor, versionMinor, headers,
-                             method, url, statusCode, statusMessage,
-                             upgrade, shouldKeepAlive) => {
+                             method, url) => {
     assert.strictEqual(method, methods.indexOf('POST'));
     assert.strictEqual(url || parser.url, '/it');
     assert.strictEqual(versionMajor, 1);
@@ -385,8 +359,7 @@ function expectBody(expected) {
   );
 
   const onHeadersComplete = (versionMajor, versionMinor, headers,
-                             method, url, statusCode, statusMessage,
-                             upgrade, shouldKeepAlive) => {
+                             method, url) => {
     assert.strictEqual(method, methods.indexOf('POST'));
     assert.strictEqual(url || parser.url, '/it');
     assert.strictEqual(versionMajor, 1);
@@ -445,8 +418,7 @@ function expectBody(expected) {
 
   function test(a, b) {
     const onHeadersComplete = (versionMajor, versionMinor, headers,
-                               method, url, statusCode, statusMessage,
-                               upgrade, shouldKeepAlive) => {
+                               method, url) => {
       assert.strictEqual(method, methods.indexOf('POST'));
       assert.strictEqual(url || parser.url, '/helpme');
       assert.strictEqual(versionMajor, 1);
@@ -503,8 +475,7 @@ function expectBody(expected) {
   );
 
   const onHeadersComplete = (versionMajor, versionMinor, headers,
-                             method, url, statusCode, statusMessage,
-                             upgrade, shouldKeepAlive) => {
+                             method, url) => {
     assert.strictEqual(method, methods.indexOf('POST'));
     assert.strictEqual(url || parser.url, '/it');
     assert.strictEqual(versionMajor, 1);
@@ -557,8 +528,7 @@ function expectBody(expected) {
   );
 
   const onHeadersComplete1 = (versionMajor, versionMinor, headers,
-                              method, url, statusCode, statusMessage,
-                              upgrade, shouldKeepAlive) => {
+                              method, url) => {
     assert.strictEqual(method, methods.indexOf('PUT'));
     assert.strictEqual(url, '/this');
     assert.strictEqual(versionMajor, 1);
@@ -569,8 +539,7 @@ function expectBody(expected) {
   };
 
   const onHeadersComplete2 = (versionMajor, versionMinor, headers,
-                              method, url, statusCode, statusMessage,
-                              upgrade, shouldKeepAlive) => {
+                              method, url) => {
     assert.strictEqual(method, methods.indexOf('POST'));
     assert.strictEqual(url, '/that');
     assert.strictEqual(versionMajor, 1);

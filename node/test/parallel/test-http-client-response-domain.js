@@ -27,7 +27,8 @@ const domain = require('domain');
 
 let d;
 
-common.refreshTmpDir();
+const tmpdir = require('../common/tmpdir');
+tmpdir.refresh();
 
 // first fire up a simple HTTP server
 const server = http.createServer(function(req, res) {
@@ -49,7 +50,7 @@ function test() {
 
   const req = http.get({
     socketPath: common.PIPE,
-    headers: {'Content-Length': '1'},
+    headers: { 'Content-Length': '1' },
     method: 'POST',
     path: '/'
   });

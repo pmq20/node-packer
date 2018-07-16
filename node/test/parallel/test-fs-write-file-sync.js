@@ -28,6 +28,9 @@ let openCount = 0;
 let mode;
 let content;
 
+if (!common.isMainThread)
+  common.skip('process.umask is not available in Workers');
+
 // Need to hijack fs.open/close to make sure that things
 // get closed once they're opened.
 fs._openSync = fs.openSync;
@@ -46,36 +49,37 @@ if (common.isWindows) {
   mode = 0o755;
 }
 
-common.refreshTmpDir();
+const tmpdir = require('../common/tmpdir');
+tmpdir.refresh();
 
 // Test writeFileSync
-const file1 = path.join(common.tmpDir, 'testWriteFileSync.txt');
+const file1 = path.join(tmpdir.path, 'testWriteFileSync.txt');
 
-fs.writeFileSync(file1, '123', {mode: mode});
+fs.writeFileSync(file1, '123', { mode });
 
-content = fs.readFileSync(file1, {encoding: 'utf8'});
+content = fs.readFileSync(file1, { encoding: 'utf8' });
 assert.strictEqual(content, '123');
 
 assert.strictEqual(fs.statSync(file1).mode & 0o777, mode);
 
 // Test appendFileSync
-const file2 = path.join(common.tmpDir, 'testAppendFileSync.txt');
+const file2 = path.join(tmpdir.path, 'testAppendFileSync.txt');
 
-fs.appendFileSync(file2, 'abc', {mode: mode});
+fs.appendFileSync(file2, 'abc', { mode });
 
-content = fs.readFileSync(file2, {encoding: 'utf8'});
+content = fs.readFileSync(file2, { encoding: 'utf8' });
 assert.strictEqual(content, 'abc');
 
 assert.strictEqual(fs.statSync(file2).mode & mode, mode);
 
 // Test writeFileSync with file descriptor
-const file3 = path.join(common.tmpDir, 'testWriteFileSyncFd.txt');
+const file3 = path.join(tmpdir.path, 'testWriteFileSyncFd.txt');
 
 const fd = fs.openSync(file3, 'w+', mode);
 fs.writeFileSync(fd, '123');
 fs.closeSync(fd);
 
-content = fs.readFileSync(file3, {encoding: 'utf8'});
+content = fs.readFileSync(file3, { encoding: 'utf8' });
 assert.strictEqual(content, '123');
 
 assert.strictEqual(fs.statSync(file3).mode & 0o777, mode);

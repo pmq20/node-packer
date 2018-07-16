@@ -65,9 +65,11 @@ if (!common.hasIntl) {
   const GMT = 'Etc/GMT';
 
   // Construct an English formatter. Should format to "Jan 70"
-  const dtf =
-      new Intl.DateTimeFormat(['en'],
-                              {timeZone: GMT, month: 'short', year: '2-digit'});
+  const dtf = new Intl.DateTimeFormat(['en'], {
+    timeZone: GMT,
+    month: 'short',
+    year: '2-digit'
+  });
 
   // If list is specified and doesn't contain 'en' then return.
   if (process.config.variables.icu_locales && !haveLocale('en')) {
@@ -89,7 +91,7 @@ if (!common.hasIntl) {
     assert.strictEqual(localeString, 'Jan 70');
   }
   // Options to request GMT
-  const optsGMT = {timeZone: GMT};
+  const optsGMT = { timeZone: GMT };
 
   // Test format
   {
@@ -103,14 +105,14 @@ if (!common.hasIntl) {
   const collOpts = { sensitivity: 'base', ignorePunctuation: true };
   const coll = new Intl.Collator(['en'], collOpts);
 
-  assert.strictEqual(coll.compare('blackbird', 'black-bird'), 0,
-                     'ignore punctuation failed');
-  assert.strictEqual(coll.compare('blackbird', 'red-bird'), -1,
-                     'compare less failed');
-  assert.strictEqual(coll.compare('bluebird', 'blackbird'), 1,
-                     'compare greater failed');
-  assert.strictEqual(coll.compare('Bluebird', 'bluebird'), 0,
-                     'ignore case failed');
-  assert.strictEqual(coll.compare('\ufb03', 'ffi'), 0,
-                     'ffi ligature (contraction) failed');
+  // ignore punctuation
+  assert.strictEqual(coll.compare('blackbird', 'black-bird'), 0);
+  // compare less
+  assert.strictEqual(coll.compare('blackbird', 'red-bird'), -1);
+  // compare greater
+  assert.strictEqual(coll.compare('bluebird', 'blackbird'), 1);
+  // ignore case
+  assert.strictEqual(coll.compare('Bluebird', 'bluebird'), 0);
+  // ffi ligature (contraction)
+  assert.strictEqual(coll.compare('\ufb03', 'ffi'), 0);
 }

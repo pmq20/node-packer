@@ -4,24 +4,11 @@
 #include <stdlib.h>
 #include "gtest/gtest.h"
 #include "node.h"
+#include "node_platform.h"
+#include "node_internals.h"
 #include "env.h"
 #include "v8.h"
 #include "libplatform/libplatform.h"
-
-class ArrayBufferAllocator : public v8::ArrayBuffer::Allocator {
- public:
-  virtual void* Allocate(size_t length) {
-    return AllocateUninitialized(length);
-  }
-
-  virtual void* AllocateUninitialized(size_t length) {
-    return calloc(length, 1);
-  }
-
-  virtual void Free(void* data, size_t) {
-    free(data);
-  }
-};
 
 struct Argv {
  public:
@@ -66,33 +53,93 @@ struct Argv {
   int nr_args_;
 };
 
+using ArrayBufferUniquePtr = std::unique_ptr<node::ArrayBufferAllocator,
+      decltype(&node::FreeArrayBufferAllocator)>;
+using TracingControllerUniquePtr = std::unique_ptr<v8::TracingController>;
+using NodePlatformUniquePtr = std::unique_ptr<node::NodePlatform>;
+
 class NodeTestFixture : public ::testing::Test {
  protected:
-  v8::Isolate::CreateParams params_;
-  ArrayBufferAllocator allocator_;
+  static ArrayBufferUniquePtr allocator;
+  static TracingControllerUniquePtr tracing_controller;
+  static NodePlatformUniquePtr platform;
+  static uv_loop_t current_loop;
   v8::Isolate* isolate_;
 
-  ~NodeTestFixture() {
-    TearDown();
+  static void SetUpTestCase() {
+    tracing_controller.reset(new v8::TracingController());
+    node::tracing::TraceEventHelper::SetTracingController(
+        tracing_controller.get());
+    platform.reset(new node::NodePlatform(4, nullptr));
+    CHECK_EQ(0, uv_loop_init(&current_loop));
+    v8::V8::InitializePlatform(platform.get());
+    v8::V8::Initialize();
+  }
+
+  static void TearDownTestCase() {
+    platform->Shutdown();
+    while (uv_loop_alive(&current_loop)) {
+      uv_run(&current_loop, UV_RUN_ONCE);
+    }
+    v8::V8::ShutdownPlatform();
+    CHECK_EQ(0, uv_loop_close(&current_loop));
   }
 
   virtual void SetUp() {
-    platform_ = v8::platform::CreateDefaultPlatform();
-    v8::V8::InitializePlatform(platform_);
-    v8::V8::Initialize();
-    params_.array_buffer_allocator = &allocator_;
-    isolate_ = v8::Isolate::New(params_);
+    allocator = ArrayBufferUniquePtr(node::CreateArrayBufferAllocator(),
+                                     &node::FreeArrayBufferAllocator);
+    isolate_ = NewIsolate(allocator.get());
+    CHECK_NE(isolate_, nullptr);
   }
 
   virtual void TearDown() {
-    if (platform_ == nullptr) return;
-    v8::V8::ShutdownPlatform();
-    delete platform_;
-    platform_ = nullptr;
+    isolate_->Dispose();
+    isolate_ = nullptr;
   }
+};
 
- private:
-  v8::Platform* platform_ = nullptr;
+
+class EnvironmentTestFixture : public NodeTestFixture {
+ public:
+  class Env {
+   public:
+    Env(const v8::HandleScope& handle_scope, const Argv& argv) {
+      auto isolate = handle_scope.GetIsolate();
+      context_ = node::NewContext(isolate);
+      CHECK(!context_.IsEmpty());
+      context_->Enter();
+
+      isolate_data_ = node::CreateIsolateData(isolate,
+                                              &NodeTestFixture::current_loop,
+                                              platform.get());
+      CHECK_NE(nullptr, isolate_data_);
+      environment_ = node::CreateEnvironment(isolate_data_,
+                                             context_,
+                                             1, *argv,
+                                             argv.nr_args(), *argv);
+      CHECK_NE(nullptr, environment_);
+    }
+
+    ~Env() {
+      node::FreeEnvironment(environment_);
+      node::FreeIsolateData(isolate_data_);
+      context_->Exit();
+    }
+
+    node::Environment* operator*() const {
+      return environment_;
+    }
+
+    v8::Local<v8::Context> context()  const {
+      return context_;
+    }
+
+   private:
+    v8::Local<v8::Context> context_;
+    node::IsolateData* isolate_data_;
+    node::Environment* environment_;
+    DISALLOW_COPY_AND_ASSIGN(Env);
+  };
 };
 
 #endif  // TEST_CCTEST_NODE_TEST_FIXTURE_H_

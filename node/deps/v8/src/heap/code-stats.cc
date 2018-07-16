@@ -49,7 +49,7 @@ void CodeStatistics::ResetCodeAndMetadataStatistics(Isolate* isolate) {
 void CodeStatistics::CollectCodeStatistics(PagedSpace* space,
                                            Isolate* isolate) {
   HeapObjectIterator obj_it(space);
-  for (HeapObject* obj = obj_it.Next(); obj != NULL; obj = obj_it.Next()) {
+  for (HeapObject* obj = obj_it.Next(); obj != nullptr; obj = obj_it.Next()) {
     RecordCodeAndMetadataStatistics(obj, isolate);
   }
 }
@@ -61,7 +61,7 @@ void CodeStatistics::CollectCodeStatistics(PagedSpace* space,
 void CodeStatistics::CollectCodeStatistics(LargeObjectSpace* space,
                                            Isolate* isolate) {
   LargeObjectIterator obj_it(space);
-  for (HeapObject* obj = obj_it.Next(); obj != NULL; obj = obj_it.Next()) {
+  for (HeapObject* obj = obj_it.Next(); obj != nullptr; obj = obj_it.Next()) {
     RecordCodeAndMetadataStatistics(obj, isolate);
   }
 }
@@ -136,7 +136,7 @@ void CodeStatistics::EnterComment(Isolate* isolate, const char* comment,
   // Search for a free or matching entry in 'comments_statistics': 'cs'
   // points to result.
   for (int i = 0; i < CommentStatistic::kMaxComments; i++) {
-    if (comments_statistics[i].comment == NULL) {
+    if (comments_statistics[i].comment == nullptr) {
       cs = &comments_statistics[i];
       cs->comment = comment;
       break;
@@ -199,7 +199,7 @@ void CodeStatistics::CollectCodeCommentStatistics(HeapObject* obj,
   Code* code = Code::cast(obj);
   RelocIterator it(code);
   int delta = 0;
-  const byte* prev_pc = code->instruction_start();
+  const byte* prev_pc = code->raw_instruction_start();
   while (!it.done()) {
     if (it.rinfo()->rmode() == RelocInfo::COMMENT) {
       delta += static_cast<int>(it.rinfo()->pc() - prev_pc);
@@ -209,9 +209,9 @@ void CodeStatistics::CollectCodeCommentStatistics(HeapObject* obj,
     it.next();
   }
 
-  DCHECK(code->instruction_start() <= prev_pc &&
-         prev_pc <= code->instruction_end());
-  delta += static_cast<int>(code->instruction_end() - prev_pc);
+  DCHECK(code->raw_instruction_start() <= prev_pc &&
+         prev_pc <= code->raw_instruction_end());
+  delta += static_cast<int>(code->raw_instruction_end() - prev_pc);
   EnterComment(isolate, "NoComment", delta);
 }
 #endif

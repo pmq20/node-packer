@@ -43,6 +43,7 @@ class V8_EXPORT_PRIVATE JSGraph : public NON_EXPORTED_BASE(ZoneObject) {
   // Canonicalized global constants.
   Node* AllocateInNewSpaceStubConstant();
   Node* AllocateInOldSpaceStubConstant();
+  Node* ArrayConstructorStubConstant();
   Node* ToNumberBuiltinConstant();
   Node* CEntryStubConstant(int result_size,
                            SaveFPRegsMode save_doubles = kDontSaveFPRegs,
@@ -51,6 +52,7 @@ class V8_EXPORT_PRIVATE JSGraph : public NON_EXPORTED_BASE(ZoneObject) {
   Node* EmptyFixedArrayConstant();
   Node* EmptyStringConstant();
   Node* FixedArrayMapConstant();
+  Node* PropertyArrayMapConstant();
   Node* FixedDoubleArrayMapConstant();
   Node* HeapNumberMapConstant();
   Node* OptimizedOutConstant();
@@ -63,6 +65,10 @@ class V8_EXPORT_PRIVATE JSGraph : public NON_EXPORTED_BASE(ZoneObject) {
   Node* ZeroConstant();
   Node* OneConstant();
   Node* NaNConstant();
+  Node* MinusOneConstant();
+
+  // Used for padding frames.
+  Node* PaddingConstant() { return TheHoleConstant(); }
 
   // Creates a HeapConstant node, possibly canonicalized, and may access the
   // heap to inspect the object.
@@ -164,6 +170,7 @@ class V8_EXPORT_PRIVATE JSGraph : public NON_EXPORTED_BASE(ZoneObject) {
   enum CachedNode {
     kAllocateInNewSpaceStubConstant,
     kAllocateInOldSpaceStubConstant,
+    kArrayConstructorStubConstant,
     kToNumberBuiltinConstant,
     kCEntryStub1Constant,
     kCEntryStub2Constant,
@@ -173,6 +180,7 @@ class V8_EXPORT_PRIVATE JSGraph : public NON_EXPORTED_BASE(ZoneObject) {
     kEmptyStringConstant,
     kFixedArrayMapConstant,
     kFixedDoubleArrayMapConstant,
+    kPropertyArrayMapConstant,
     kHeapNumberMapConstant,
     kOptimizedOutConstant,
     kStaleRegisterConstant,
@@ -183,6 +191,7 @@ class V8_EXPORT_PRIVATE JSGraph : public NON_EXPORTED_BASE(ZoneObject) {
     kNullConstant,
     kZeroConstant,
     kOneConstant,
+    kMinusOneConstant,
     kNaNConstant,
     kEmptyStateValues,
     kSingleDeadTypedStateValues,
@@ -208,4 +217,4 @@ class V8_EXPORT_PRIVATE JSGraph : public NON_EXPORTED_BASE(ZoneObject) {
 }  // namespace internal
 }  // namespace v8
 
-#endif
+#endif  // V8_COMPILER_JS_GRAPH_H_

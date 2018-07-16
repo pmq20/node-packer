@@ -30,11 +30,11 @@ if (!common.hasCrypto)
 const assert = require('assert');
 const https = require('https');
 const tls = require('tls');
-const fs = require('fs');
+const fixtures = require('../common/fixtures');
 
 const options = {
-  key: fs.readFileSync(`${common.fixturesDir}/keys/agent2-key.pem`),
-  cert: fs.readFileSync(`${common.fixturesDir}/keys/agent2-cert.pem`)
+  key: fixtures.readKey('agent2-key.pem'),
+  cert: fixtures.readKey('agent2-cert.pem')
 };
 
 // create server
@@ -79,5 +79,9 @@ server.listen(0, function() {
       console.log('close2');
       server.close();
     });
+
+    client2.resume();
   });
+
+  client1.resume();
 });

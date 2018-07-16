@@ -2,12 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef V8_DEPENDENCIES_H_
-#define V8_DEPENDENCIES_H_
+#ifndef V8_COMPILATION_DEPENDENCIES_H_
+#define V8_COMPILATION_DEPENDENCIES_H_
 
 #include "src/handles.h"
 #include "src/objects.h"
 #include "src/objects/map.h"
+#include "src/zone/zone-containers.h"
 
 namespace v8 {
 namespace internal {
@@ -62,7 +63,7 @@ class CompilationDependencies {
   Zone* zone_;
   Handle<Foreign> object_wrapper_;
   bool aborted_;
-  ZoneList<Handle<HeapObject> >* groups_[DependentCode::kGroupCount];
+  ZoneVector<Handle<HeapObject> >* groups_[DependentCode::kGroupCount];
 
   DependentCode* Get(Handle<Object> object) const;
   void Set(Handle<Object> object, Handle<DependentCode> dep);
@@ -70,4 +71,4 @@ class CompilationDependencies {
 }  // namespace internal
 }  // namespace v8
 
-#endif  // V8_DEPENDENCIES_H_
+#endif  // V8_COMPILATION_DEPENDENCIES_H_

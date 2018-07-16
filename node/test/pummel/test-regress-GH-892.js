@@ -33,14 +33,13 @@ if (!common.hasCrypto)
 const assert = require('assert');
 const spawn = require('child_process').spawn;
 const https = require('https');
-const fs = require('fs');
+const fixtures = require('../common/fixtures');
 
 const bytesExpected = 1024 * 1024 * 32;
 
 let started = false;
 
-const childScript = require('path').join(common.fixturesDir,
-                                         'GH-892-request.js');
+const childScript = fixtures.path('GH-892-request.js');
 
 function makeRequest() {
   if (started) return;
@@ -78,8 +77,8 @@ function makeRequest() {
 
 
 const serverOptions = {
-  key: fs.readFileSync(`${common.fixturesDir}/keys/agent1-key.pem`),
-  cert: fs.readFileSync(`${common.fixturesDir}/keys/agent1-cert.pem`)
+  key: fixtures.readKey('agent1-key.pem'),
+  cert: fixtures.readKey('agent1-cert.pem')
 };
 
 let uploadCount = 0;
@@ -97,17 +96,17 @@ const server = https.Server(serverOptions, function(req, res) {
 
   req.on('end', function() {
     assert.strictEqual(bytesExpected, uploadCount);
-    res.writeHead(200, {'content-type': 'text/plain'});
+    res.writeHead(200, { 'content-type': 'text/plain' });
     res.end('successful upload\n');
   });
 });
 
 server.listen(common.PORT, function() {
-  console.log('expecting %d bytes', bytesExpected);
+  console.log(`expecting ${bytesExpected} bytes`);
   makeRequest();
 });
 
 process.on('exit', function() {
-  console.error('got %d bytes', uploadCount);
+  console.error(`got ${uploadCount} bytes`);
   assert.strictEqual(uploadCount, bytesExpected);
 });

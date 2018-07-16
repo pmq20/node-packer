@@ -1,5 +1,6 @@
 {
   "source": "doc/api/globals.md",
+  "introduced_in": "v0.10.0",
   "globals": [
     {
       "textRaw": "Class: Buffer",
@@ -120,6 +121,30 @@
         "changes": []
       },
       "desc": "<p><a href=\"timers.html#timers_settimeout_callback_delay_args\"><code>setTimeout</code></a> is described in the <a href=\"timers.html\">timers</a> section.</p>\n"
+    },
+    {
+      "textRaw": "URL",
+      "name": "URL",
+      "meta": {
+        "added": [
+          "v10.0.0"
+        ],
+        "changes": []
+      },
+      "type": "global",
+      "desc": "<p>The WHATWG <code>URL</code> class. See the <a href=\"url.html#url_class_url\"><code>URL</code></a> section.</p>\n"
+    },
+    {
+      "textRaw": "URLSearchParams",
+      "name": "URLSearchParams",
+      "meta": {
+        "added": [
+          "v10.0.0"
+        ],
+        "changes": []
+      },
+      "type": "global",
+      "desc": "<p>The WHATWG <code>URLSearchParams</code> class. See the <a href=\"url.html#url_class_urlsearchparams\"><code>URLSearchParams</code></a> section.</p>\n"
     }
   ],
   "methods": [
@@ -139,6 +164,7 @@
     {
       "textRaw": "Global Objects",
       "name": "Global Objects",
+      "introduced_in": "v0.10.0",
       "type": "misc",
       "desc": "<p>These objects are available in all modules. The following variables may appear\nto be global but are not. They exist only in the scope of modules, see the\n<a href=\"modules.html\">module system documentation</a>:</p>\n<ul>\n<li><a href=\"modules.html#modules_dirname\"><code>__dirname</code></a></li>\n<li><a href=\"modules.html#modules_filename\"><code>__filename</code></a></li>\n<li><a href=\"modules.html#modules_exports\"><code>exports</code></a></li>\n<li><a href=\"modules.html#modules_module\"><code>module</code></a></li>\n<li><a href=\"modules.html#modules_require\"><code>require()</code></a></li>\n</ul>\n<p>The objects listed here are specific to Node.js. There are a number of\n<a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects\">built-in objects</a> that are part of the JavaScript language itself, which are\nalso globally accessible.</p>\n",
       "globals": [
@@ -261,6 +287,30 @@
             "changes": []
           },
           "desc": "<p><a href=\"timers.html#timers_settimeout_callback_delay_args\"><code>setTimeout</code></a> is described in the <a href=\"timers.html\">timers</a> section.</p>\n"
+        },
+        {
+          "textRaw": "URL",
+          "name": "URL",
+          "meta": {
+            "added": [
+              "v10.0.0"
+            ],
+            "changes": []
+          },
+          "type": "global",
+          "desc": "<p>The WHATWG <code>URL</code> class. See the <a href=\"url.html#url_class_url\"><code>URL</code></a> section.</p>\n"
+        },
+        {
+          "textRaw": "URLSearchParams",
+          "name": "URLSearchParams",
+          "meta": {
+            "added": [
+              "v10.0.0"
+            ],
+            "changes": []
+          },
+          "type": "global",
+          "desc": "<p>The WHATWG <code>URLSearchParams</code> class. See the <a href=\"url.html#url_class_urlsearchparams\"><code>URLSearchParams</code></a> section.</p>\n"
         }
       ],
       "miscs": [

@@ -188,6 +188,16 @@
     },
     {
       "type": "text",
+      "text": "[ECMAScript Modules](esm.html)"
+    },
+    {
+      "type": "list_item_end"
+    },
+    {
+      "type": "list_item_start"
+    },
+    {
+      "type": "text",
       "text": "[Errors](errors.html)"
     },
     {
@@ -318,6 +328,16 @@
     },
     {
       "type": "text",
+      "text": "[Performance Hooks](perf_hooks.html)"
+    },
+    {
+      "type": "list_item_end"
+    },
+    {
+      "type": "list_item_start"
+    },
+    {
+      "type": "text",
       "text": "[Process](process.html)"
     },
     {
@@ -408,7 +428,7 @@
     },
     {
       "type": "text",
-      "text": "[Tracing](tracing.html)"
+      "text": "[Trace Events](tracing.html)"
     },
     {
       "type": "list_item_end"
@@ -478,6 +498,16 @@
     },
     {
       "type": "text",
+      "text": "[Worker Threads](worker_threads.html)"
+    },
+    {
+      "type": "list_item_end"
+    },
+    {
+      "type": "list_item_start"
+    },
+    {
+      "type": "text",
       "text": "[ZLIB](zlib.html)"
     },
     {
@@ -513,7 +543,7 @@
     },
     {
       "type": "text",
-      "text": "[Mailing List](http://groups.google.com/group/nodejs)"
+      "text": "[Mailing List](https://groups.google.com/group/nodejs)"
     },
     {
       "type": "list_item_end"
@@ -521,5 +551,6 @@
     {
       "type": "list_end"
     }
-  ]
+  ],
+  "introduced_in": "v0.10.0"
 }

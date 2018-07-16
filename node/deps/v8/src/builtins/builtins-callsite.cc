@@ -9,7 +9,6 @@
 #include "src/objects-inl.h"
 #include "src/objects/frame-array-inl.h"
 #include "src/string-builder.h"
-#include "src/wasm/wasm-module.h"
 
 namespace v8 {
 namespace internal {
@@ -41,7 +40,7 @@ Handle<FrameArray> GetFrameArray(Isolate* isolate, Handle<JSObject> object) {
 int GetFrameIndex(Isolate* isolate, Handle<JSObject> object) {
   Handle<Object> frame_index_obj = JSObject::GetDataProperty(
       object, isolate->factory()->call_site_frame_index_symbol());
-  return Smi::cast(*frame_index_obj)->value();
+  return Smi::ToInt(*frame_index_obj);
 }
 
 }  // namespace

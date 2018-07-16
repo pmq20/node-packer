@@ -24,17 +24,12 @@ const common = require('../common');
 if (!common.hasCrypto)
   common.skip('missing crypto');
 
-const assert = require('assert');
 const tls = require('tls');
-const fs = require('fs');
-const path = require('path');
+const fixtures = require('../common/fixtures');
 
-const cert = fs.readFileSync(path.join(common.fixturesDir, 'test_cert.pem'));
-const key = fs.readFileSync(path.join(common.fixturesDir, 'test_key.pem'));
+const cert = fixtures.readSync('test_cert.pem');
+const key = fixtures.readSync('test_key.pem');
 
-const conn = tls.connect({cert, key, port: 0}, common.mustNotCall());
-conn.on('error', function() {
-});
-assert.doesNotThrow(function() {
-  conn.destroy();
-});
+const conn = tls.connect({ cert, key, port: 0 }, common.mustNotCall());
+conn.on('error', function() {});
+conn.destroy();

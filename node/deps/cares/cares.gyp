@@ -40,6 +40,7 @@
         'include/ares_rules.h',
         'include/ares_version.h',
         'include/nameser.h',
+        'src/ares_android.c',
         'src/ares_cancel.c',
         'src/ares__close_sockets.c',
         'src/ares_create_query.c',
@@ -111,6 +112,7 @@
           'defines': [ 'CARES_BUILDING_LIBRARY' ]
         }],
         [ 'OS=="win"', {
+          'defines': [ 'CARES_PULL_WS2TCPIP_H=1' ],
           'include_dirs': [ 'config/win32' ],
           'sources': [
             'src/config-win32.h',

@@ -20,12 +20,15 @@
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 'use strict';
+const common = require('../common');
+
 if ('osx' === process.env.TRAVIS_OS_NAME) { return; }
-require('../common');
+
 const assert = require('assert');
 const JSStream = process.binding('js_stream').JSStream;
 const util = require('util');
 const vm = require('vm');
+const { previewEntries } = process.binding('util');
 
 assert.strictEqual(util.inspect(1), '1');
 assert.strictEqual(util.inspect(false), 'false');
@@ -44,45 +47,56 @@ assert.strictEqual(
   new Date('2010-02-14T12:48:40+01:00').toISOString()
 );
 assert.strictEqual(util.inspect(new Date('')), (new Date('')).toString());
-
 assert.strictEqual(util.inspect('\n\u0001'), "'\\n\\u0001'");
-
+assert.strictEqual(
+  util.inspect(`${Array(75).fill(1)}'\n\u001d\n\u0003`),
+  `'${Array(75).fill(1)}\\'\\n\\u001d\\n\\u0003'`
+);
 assert.strictEqual(util.inspect([]), '[]');
 assert.strictEqual(util.inspect(Object.create([])), 'Array {}');
 assert.strictEqual(util.inspect([1, 2]), '[ 1, 2 ]');
 assert.strictEqual(util.inspect([1, [2, 3]]), '[ 1, [ 2, 3 ] ]');
-
 assert.strictEqual(util.inspect({}), '{}');
-assert.strictEqual(util.inspect({a: 1}), '{ a: 1 }');
-assert.strictEqual(util.inspect({a: function() {}}), '{ a: [Function: a] }');
-assert.strictEqual(util.inspect({a: () => {}}), '{ a: [Function: a] }');
-assert.strictEqual(util.inspect({a: async function() {}}),
+assert.strictEqual(util.inspect({ a: 1 }), '{ a: 1 }');
+assert.strictEqual(util.inspect({ a: function() {} }), '{ a: [Function: a] }');
+assert.strictEqual(util.inspect({ a: () => {} }), '{ a: [Function: a] }');
+assert.strictEqual(util.inspect({ a: async function() {} }),
                    '{ a: [AsyncFunction: a] }');
-assert.strictEqual(util.inspect({a: async () => {}}),
+assert.strictEqual(util.inspect({ a: async () => {} }),
                    '{ a: [AsyncFunction: a] }');
-assert.strictEqual(util.inspect({a: function*() {}}),
+assert.strictEqual(util.inspect({ a: function*() {} }),
                    '{ a: [GeneratorFunction: a] }');
-assert.strictEqual(util.inspect({a: 1, b: 2}), '{ a: 1, b: 2 }');
-assert.strictEqual(util.inspect({'a': {}}), '{ a: {} }');
-assert.strictEqual(util.inspect({'a': {'b': 2}}), '{ a: { b: 2 } }');
-assert.strictEqual(util.inspect({'a': {'b': { 'c': { 'd': 2 }}}}),
+assert.strictEqual(util.inspect({ a: 1, b: 2 }), '{ a: 1, b: 2 }');
+assert.strictEqual(util.inspect({ 'a': {} }), '{ a: {} }');
+assert.strictEqual(util.inspect({ 'a': { 'b': 2 } }), '{ a: { b: 2 } }');
+assert.strictEqual(util.inspect({ 'a': { 'b': { 'c': { 'd': 2 } } } }),
                    '{ a: { b: { c: [Object] } } }');
-assert.strictEqual(util.inspect({'a': {'b': { 'c': { 'd': 2 }}}}, false, null),
-                   '{ a: { b: { c: { d: 2 } } } }');
+assert.strictEqual(
+  util.inspect({ 'a': { 'b': { 'c': { 'd': 2 } } } }, false, null),
+  '{ a: { b: { c: { d: 2 } } } }');
 assert.strictEqual(util.inspect([1, 2, 3], true), '[ 1, 2, 3, [length]: 3 ]');
-assert.strictEqual(util.inspect({'a': {'b': { 'c': 2}}}, false, 0),
+assert.strictEqual(util.inspect({ 'a': { 'b': { 'c': 2 } } }, false, 0),
                    '{ a: [Object] }');
-assert.strictEqual(util.inspect({'a': {'b': { 'c': 2}}}, false, 1),
+assert.strictEqual(util.inspect({ 'a': { 'b': { 'c': 2 } } }, false, 1),
                    '{ a: { b: [Object] } }');
-assert.strictEqual(util.inspect({'a': {'b': ['c']}}, false, 1),
+assert.strictEqual(util.inspect({ 'a': { 'b': ['c'] } }, false, 1),
                    '{ a: { b: [Array] } }');
+assert.strictEqual(util.inspect(new Uint8Array(0)), 'Uint8Array [  ]');
 assert.strictEqual(
   util.inspect(
     Object.create(
-      {}, {visible: {value: 1, enumerable: true}, hidden: {value: 2}}
+      {},
+      { visible: { value: 1, enumerable: true }, hidden: { value: 2 } }
     )
   ),
   '{ visible: 1 }'
+);
+assert.strictEqual(
+  util.inspect(
+    Object.assign(new String('hello'), { [Symbol('foo')]: 123 }),
+    { showHidden: true }
+  ),
+  '{ [String: \'hello\'] [length]: 5, [Symbol(foo)]: 123 }'
 );
 
 assert.strictEqual(util.inspect((new JSStream())._externalStream),
@@ -91,14 +105,14 @@ assert.strictEqual(util.inspect((new JSStream())._externalStream),
 {
   const regexp = /regexp/;
   regexp.aprop = 42;
-  assert.strictEqual(util.inspect({a: regexp}, false, 0), '{ a: /regexp/ }');
+  assert.strictEqual(util.inspect({ a: regexp }, false, 0), '{ a: /regexp/ }');
 }
 
 assert(/Object/.test(
-  util.inspect({a: {a: {a: {a: {}}}}}, undefined, undefined, true)
+  util.inspect({ a: { a: { a: { a: {} } } } }, undefined, undefined, true)
 ));
 assert(!/Object/.test(
-  util.inspect({a: {a: {a: {a: {}}}}}, undefined, null, true)
+  util.inspect({ a: { a: { a: { a: {} } } } }, undefined, null, true)
 ));
 
 for (const showHidden of [true, false]) {
@@ -134,10 +148,10 @@ for (const showHidden of [true, false]) {
                      '  y: 1337 }');
 }
 
-// Now do the same checks but from a different context
+// Now do the same checks but from a different context.
 for (const showHidden of [true, false]) {
   const ab = vm.runInNewContext('new ArrayBuffer(4)');
-  const dv = vm.runInNewContext('new DataView(ab, 1, 2)', { ab: ab });
+  const dv = vm.runInNewContext('new DataView(ab, 1, 2)', { ab });
   assert.strictEqual(
     util.inspect(ab, showHidden),
     'ArrayBuffer { byteLength: 4 }'
@@ -199,7 +213,7 @@ for (const showHidden of [true, false]) {
   );
 });
 
-// Now check that declaring a TypedArray in a different context works the same
+// Now check that declaring a TypedArray in a different context works the same.
 [ Float32Array,
   Float64Array,
   Int16Array,
@@ -233,62 +247,51 @@ for (const showHidden of [true, false]) {
   );
 });
 
-// Due to the hash seed randomization it's not deterministic the order that
-// the following ways this hash is displayed.
-// See http://codereview.chromium.org/9124004/
-
-{
-  const out =
-    util.inspect(
-      Object.create(
-        {},
-        {visible: {value: 1, enumerable: true}, hidden: {value: 2}}
-      ),
-      true
-    );
-  if (out !== '{ [hidden]: 2, visible: 1 }' &&
-      out !== '{ visible: 1, [hidden]: 2 }') {
-    assert.fail(`unexpected value for out ${out}`);
-  }
-}
-
-// Objects without prototype
-{
-  const out = util.inspect(Object.create(null,
-                                         { name: {value: 'Tim',
-                                                  enumerable: true},
-                                           hidden: {value: 'secret'}}), true);
-  if (out !== "{ [hidden]: 'secret', name: 'Tim' }" &&
-      out !== "{ name: 'Tim', [hidden]: 'secret' }") {
-    assert.fail(`unexpected value for out ${out}`);
-  }
-}
+assert.strictEqual(
+  util.inspect(Object.create({}, {
+    visible: { value: 1, enumerable: true },
+    hidden: { value: 2 }
+  }), { showHidden: true }),
+  '{ visible: 1, [hidden]: 2 }'
+);
+// Objects without prototype.
+assert.strictEqual(
+  util.inspect(Object.create(null, {
+    name: { value: 'Tim', enumerable: true },
+    hidden: { value: 'secret' }
+  }), { showHidden: true }),
+  "{ name: 'Tim', [hidden]: 'secret' }"
+);
 
 assert.strictEqual(
-  util.inspect(Object.create(null,
-                             {name: {value: 'Tim', enumerable: true},
-                              hidden: {value: 'secret'}})),
+  util.inspect(Object.create(null, {
+    name: { value: 'Tim', enumerable: true },
+    hidden: { value: 'secret' }
+  })),
   '{ name: \'Tim\' }'
 );
 
-
-// Dynamic properties
+// Dynamic properties.
 {
-  assert.strictEqual(util.inspect({get readonly() {}}),
-                     '{ readonly: [Getter] }');
+  assert.strictEqual(
+    util.inspect({ get readonly() {} }),
+    '{ readonly: [Getter] }');
 
-  assert.strictEqual(util.inspect({get readwrite() {}, set readwrite(val) {}}),
-                     '{ readwrite: [Getter/Setter] }');
+  assert.strictEqual(
+    util.inspect({ get readwrite() {}, set readwrite(val) {} }),
+    '{ readwrite: [Getter/Setter] }');
 
-  assert.strictEqual(util.inspect({set writeonly(val) {}}),
-                     '{ writeonly: [Setter] }');
+  assert.strictEqual(
+    // eslint-disable-next-line accessor-pairs
+    util.inspect({ set writeonly(val) {} }),
+    '{ writeonly: [Setter] }');
 
   const value = {};
-  value['a'] = value;
+  value.a = value;
   assert.strictEqual(util.inspect(value), '{ a: [Circular] }');
 }
 
-// Array with dynamic properties
+// Array with dynamic properties.
 {
   const value = [1, 2, 3];
   Object.defineProperty(
@@ -311,7 +314,7 @@ assert.strictEqual(
                      '[ 1, 2, 3, growingLength: [Getter], \'-1\': -1 ]');
 }
 
-// Array with inherited number properties
+// Array with inherited number properties.
 {
   class CustomArray extends Array {}
   CustomArray.prototype[5] = 'foo';
@@ -319,28 +322,83 @@ assert.strictEqual(
   assert.strictEqual(util.inspect(arr), 'CustomArray [ <50 empty items> ]');
 }
 
-// Function with properties
+// Array with extra properties.
+{
+  const arr = [1, 2, 3, , ];
+  arr.foo = 'bar';
+  assert.strictEqual(util.inspect(arr),
+                     "[ 1, 2, 3, <1 empty item>, foo: 'bar' ]");
+
+  const arr2 = [];
+  assert.strictEqual(util.inspect([], { showHidden: true }), '[ [length]: 0 ]');
+  arr2['00'] = 1;
+  assert.strictEqual(util.inspect(arr2), "[ '00': 1 ]");
+  assert.strictEqual(util.inspect(arr2, { showHidden: true }),
+                     "[ [length]: 0, '00': 1 ]");
+  arr2[1] = 0;
+  assert.strictEqual(util.inspect(arr2), "[ <1 empty item>, 0, '00': 1 ]");
+  assert.strictEqual(util.inspect(arr2, { showHidden: true }),
+                     "[ <1 empty item>, 0, [length]: 2, '00': 1 ]");
+  delete arr2[1];
+  assert.strictEqual(util.inspect(arr2), "[ <2 empty items>, '00': 1 ]");
+  assert.strictEqual(util.inspect(arr2, { showHidden: true }),
+                     "[ <2 empty items>, [length]: 2, '00': 1 ]");
+  arr2['01'] = 2;
+  assert.strictEqual(util.inspect(arr2),
+                     "[ <2 empty items>, '00': 1, '01': 2 ]");
+  assert.strictEqual(util.inspect(arr2, { showHidden: true }),
+                     "[ <2 empty items>, [length]: 2, '00': 1, '01': 2 ]");
+
+  const arr3 = [];
+  arr3[-1] = -1;
+  assert.strictEqual(util.inspect(arr3), "[ '-1': -1 ]");
+}
+
+// Indices out of bounds.
+{
+  const arr = [];
+  arr[2 ** 32] = true; // Not a valid array index.
+  assert.strictEqual(util.inspect(arr), "[ '4294967296': true ]");
+  arr[0] = true;
+  arr[10] = true;
+  assert.strictEqual(util.inspect(arr),
+                     "[ true, <9 empty items>, true, '4294967296': true ]");
+  arr[2 ** 32 - 2] = true;
+  arr[2 ** 32 - 1] = true;
+  arr[2 ** 32 + 1] = true;
+  delete arr[0];
+  delete arr[10];
+  assert.strictEqual(util.inspect(arr),
+                     ['[ <4294967294 empty items>,',
+                      'true,',
+                      "'4294967296': true,",
+                      "'4294967295': true,",
+                      "'4294967297': true ]"
+                     ].join('\n  '));
+}
+
+// Function with properties.
 {
   const value = () => {};
   value.aprop = 42;
   assert.strictEqual(util.inspect(value), '{ [Function: value] aprop: 42 }');
 }
 
-// Anonymous function with properties
+// Anonymous function with properties.
 {
   const value = (() => function() {})();
   value.aprop = 42;
   assert.strictEqual(util.inspect(value), '{ [Function] aprop: 42 }');
 }
 
-// Regular expressions with properties
+// Regular expressions with properties.
 {
   const value = /123/ig;
   value.aprop = 42;
   assert.strictEqual(util.inspect(value), '{ /123/gi aprop: 42 }');
 }
 
-// Dates with properties
+// Dates with properties.
 {
   const value = new Date('Sun, 14 Feb 2010 11:48:40 GMT');
   value.aprop = 42;
@@ -348,7 +406,7 @@ assert.strictEqual(
                      '{ 2010-02-14T11:48:40.000Z aprop: 42 }');
 }
 
-// test the internal isDate implementation
+// Test the internal isDate implementation.
 {
   const Date2 = vm.runInNewContext('Date');
   const d = new Date2();
@@ -358,11 +416,13 @@ assert.strictEqual(
   assert.strictEqual(orig, after);
 }
 
-// test positive/negative zero
+// Test positive/negative zero.
 assert.strictEqual(util.inspect(0), '0');
 assert.strictEqual(util.inspect(-0), '-0');
+// Edge case from check.
+assert.strictEqual(util.inspect(-5e-324), '-5e-324');
 
-// test for sparse array
+// Test for sparse array.
 {
   const a = ['foo', 'bar', 'baz'];
   assert.strictEqual(util.inspect(a), '[ \'foo\', \'bar\', \'baz\' ]');
@@ -379,15 +439,18 @@ assert.strictEqual(util.inspect(-0), '-0');
     util.inspect(a, { breakLength: Infinity }),
     '[ \'foo\', <1 empty item>, \'baz\', \'bar\', <96 empty items>, \'qux\' ]'
   );
+  delete a[3];
+  assert.strictEqual(
+    util.inspect(a, { maxArrayLength: 4 }),
+    '[ \'foo\', <1 empty item>, \'baz\', <97 empty items>, ... 1 more item ]'
+  );
 }
 
-// test for Array constructor in different context
+// Test for Array constructor in different context.
 {
-  const Debug = vm.runInDebugContext('Debug');
   const map = new Map();
   map.set(1, 2);
-  const mirror = Debug.MakeMirror(map.entries(), true);
-  const vals = mirror.preview();
+  const vals = previewEntries(map.entries());
   const valsOutput = [];
   for (const o of vals) {
     valsOutput.push(o);
@@ -396,7 +459,7 @@ assert.strictEqual(util.inspect(-0), '-0');
   assert.strictEqual(util.inspect(valsOutput), '[ [ 1, 2 ] ]');
 }
 
-// test for other constructors in different context
+// Test for other constructors in different context.
 {
   let obj = vm.runInNewContext('(function(){return {}})()', {});
   assert.strictEqual(util.inspect(obj), '{}');
@@ -408,7 +471,7 @@ assert.strictEqual(util.inspect(-0), '-0');
   assert.strictEqual(util.inspect(obj), 'Promise { <pending> }');
 }
 
-// test for property descriptors
+// Test for property descriptors.
 {
   const getter = Object.create(null, {
     a: {
@@ -416,7 +479,7 @@ assert.strictEqual(util.inspect(-0), '-0');
     }
   });
   const setter = Object.create(null, {
-    b: {
+    b: { // eslint-disable-line accessor-pairs
       set: function() {}
     }
   });
@@ -434,14 +497,14 @@ assert.strictEqual(util.inspect(-0), '-0');
   );
 }
 
-// exceptions should print the error message, not '{}'
+// Exceptions should print the error message, not '{}'.
 {
-  const errors = [];
-  errors.push(new Error());
-  errors.push(new Error('FAIL'));
-  errors.push(new TypeError('FAIL'));
-  errors.push(new SyntaxError('FAIL'));
-  errors.forEach((err) => {
+  [
+    new Error(),
+    new Error('FAIL'),
+    new TypeError('FAIL'),
+    new SyntaxError('FAIL')
+  ].forEach((err) => {
     assert.strictEqual(util.inspect(err), err.stack);
   });
   try {
@@ -455,7 +518,57 @@ assert.strictEqual(util.inspect(-0), '-0');
   assert(ex.includes('[message]'));
 }
 
-// Doesn't capture stack trace
+{
+  const tmp = Error.stackTraceLimit;
+  Error.stackTraceLimit = 0;
+  const err = new Error('foo');
+  const err2 = new Error('foo\nbar');
+  assert.strictEqual(util.inspect(err, { compact: true }), '[Error: foo]');
+  assert(err.stack);
+  delete err.stack;
+  assert(!err.stack);
+  assert.strictEqual(util.inspect(err, { compact: true }), '[Error: foo]');
+  assert.strictEqual(
+    util.inspect(err2, { compact: true }),
+    '[Error: foo\nbar]'
+  );
+
+  err.bar = true;
+  err2.bar = true;
+
+  assert.strictEqual(
+    util.inspect(err, { compact: true }),
+    '{ [Error: foo] bar: true }'
+  );
+  assert.strictEqual(
+    util.inspect(err2, { compact: true }),
+    '{ [Error: foo\nbar] bar: true }'
+  );
+  assert.strictEqual(
+    util.inspect(err, { compact: true, breakLength: 5 }),
+    '{ [Error: foo]\n  bar: true }'
+  );
+  assert.strictEqual(
+    util.inspect(err, { compact: true, breakLength: 1 }),
+    '{ [Error: foo]\n  bar:\n   true }'
+  );
+  assert.strictEqual(
+    util.inspect(err2, { compact: true, breakLength: 5 }),
+    '{ [Error: foo\nbar]\n  bar: true }'
+  );
+  assert.strictEqual(
+    util.inspect(err, { compact: false }),
+    '[Error: foo] {\n  bar: true\n}'
+  );
+  assert.strictEqual(
+    util.inspect(err2, { compact: false }),
+    '[Error: foo\nbar] {\n  bar: true\n}'
+  );
+
+  Error.stackTraceLimit = tmp;
+}
+
+// Doesn't capture stack trace.
 {
   function BadCustomError(msg) {
     Error.call(this);
@@ -472,34 +585,29 @@ assert.strictEqual(util.inspect(-0), '-0');
 }
 
 // GH-1941
-// should not throw:
 assert.strictEqual(util.inspect(Object.create(Date.prototype)), 'Date {}');
 
 // GH-1944
-assert.doesNotThrow(() => {
+{
   const d = new Date();
   d.toUTCString = null;
   util.inspect(d);
-});
+}
 
-assert.doesNotThrow(() => {
+// Should not throw.
+{
   const d = new Date();
   d.toISOString = null;
   util.inspect(d);
-});
+}
 
-assert.doesNotThrow(() => {
-  const r = /regexp/;
-  r.toString = null;
-  util.inspect(r);
-});
+// Should not throw.
+const r = /regexp/;
+r.toString = null;
+util.inspect(r);
 
-// bug with user-supplied inspect function returns non-string
-assert.doesNotThrow(() => {
-  util.inspect([{
-    inspect: () => 123
-  }]);
-});
+// Bug with user-supplied inspect function returns non-string.
+util.inspect([{ inspect: () => 123 }]);
 
 // GH-2225
 {
@@ -507,29 +615,35 @@ assert.doesNotThrow(() => {
   assert.strictEqual(util.inspect(x).includes('inspect'), true);
 }
 
-// util.inspect should not display the escaped value of a key.
+// util.inspect should display the escaped value of a key.
 {
   const w = {
     '\\': 1,
     '\\\\': 2,
     '\\\\\\': 3,
     '\\\\\\\\': 4,
+    '\n': 5,
+    '\r': 6
   };
 
   const y = ['a', 'b', 'c'];
-  y['\\\\\\'] = 'd';
+  y['\\\\'] = 'd';
+  y['\n'] = 'e';
+  y['\r'] = 'f';
 
   assert.strictEqual(
     util.inspect(w),
-    '{ \'\\\': 1, \'\\\\\': 2, \'\\\\\\\': 3, \'\\\\\\\\\': 4 }'
+    '{ \'\\\\\': 1, \'\\\\\\\\\': 2, \'\\\\\\\\\\\\\': 3, ' +
+    '\'\\\\\\\\\\\\\\\\\': 4, \'\\n\': 5, \'\\r\': 6 }'
   );
   assert.strictEqual(
     util.inspect(y),
-    '[ \'a\', \'b\', \'c\', \'\\\\\\\': \'d\' ]'
+    '[ \'a\', \'b\', \'c\', \'\\\\\\\\\': \'d\', ' +
+    '\'\\n\': \'e\', \'\\r\': \'f\' ]'
   );
 }
 
-// util.inspect.styles and util.inspect.colors
+// Test util.inspect.styles and util.inspect.colors.
 {
   function testColorStyle(style, input, implicit) {
     const colorName = util.inspect.styles[style];
@@ -556,14 +670,10 @@ assert.doesNotThrow(() => {
   testColorStyle('regexp', /regexp/);
 }
 
-// an object with "hasOwnProperty" overwritten should not throw
-assert.doesNotThrow(() => {
-  util.inspect({
-    hasOwnProperty: null
-  });
-});
+// An object with "hasOwnProperty" overwritten should not throw.
+util.inspect({ hasOwnProperty: null });
 
-// new API, accepts an "options" object
+// New API, accepts an "options" object.
 {
   const subject = { foo: 'bar', hello: 31, a: { b: { c: { d: 0 } } } };
   Object.defineProperty(subject, 'hidden', { enumerable: false, value: null });
@@ -596,10 +706,14 @@ assert.doesNotThrow(() => {
     util.inspect(subject, { depth: null }).includes('{ d: 0 }'),
     true
   );
+  assert.strictEqual(
+    util.inspect(subject, { depth: undefined }).includes('{ d: 0 }'),
+    true
+  );
 }
 
 {
-  // "customInspect" option can enable/disable calling inspect() on objects
+  // "customInspect" option can enable/disable calling inspect() on objects.
   const subject = { inspect: () => 123 };
 
   assert.strictEqual(
@@ -619,7 +733,7 @@ assert.doesNotThrow(() => {
     true
   );
 
-  // custom inspect() functions should be able to return other Objects
+  // Custom inspect() functions should be able to return other Objects.
   subject.inspect = () => ({ foo: 'bar' });
 
   assert.strictEqual(util.inspect(subject), '{ foo: \'bar\' }');
@@ -632,7 +746,7 @@ assert.doesNotThrow(() => {
 }
 
 {
-  // "customInspect" option can enable/disable calling [util.inspect.custom]()
+  // "customInspect" option can enable/disable calling [util.inspect.custom]().
   const subject = { [util.inspect.custom]: () => 123 };
 
   assert.strictEqual(
@@ -644,7 +758,7 @@ assert.doesNotThrow(() => {
     false
   );
 
-  // a custom [util.inspect.custom]() should be able to return other Objects
+  // A custom [util.inspect.custom]() should be able to return other Objects.
   subject[util.inspect.custom] = () => ({ foo: 'bar' });
 
   assert.strictEqual(util.inspect(subject), '{ foo: \'bar\' }');
@@ -657,7 +771,7 @@ assert.doesNotThrow(() => {
 }
 
 {
-  // [util.inspect.custom] takes precedence over inspect
+  // [util.inspect.custom] takes precedence over inspect.
   const subject = {
     [util.inspect.custom]() { return 123; },
     inspect() { return 456; }
@@ -692,12 +806,12 @@ assert.doesNotThrow(() => {
                      `{ a: 123,\n  [Symbol(${UIC})]: [Function: [${UIC}]] }`);
 }
 
-// util.inspect with "colors" option should produce as many lines as without it
+// util.inspect with "colors" option should produce as many lines as without it.
 {
   function testLines(input) {
     const countLines = (str) => (str.match(/\n/g) || []).length;
     const withoutColor = util.inspect(input);
-    const withColor = util.inspect(input, {colors: true});
+    const withColor = util.inspect(input, { colors: true });
     assert.strictEqual(countLines(withoutColor), countLines(withColor));
   }
 
@@ -705,17 +819,18 @@ assert.doesNotThrow(() => {
 
   testLines([1, 2, 3, 4, 5, 6, 7]);
   testLines(bigArray);
-  testLines({foo: 'bar', baz: 35, b: {a: 35}});
+  testLines({ foo: 'bar', baz: 35, b: { a: 35 } });
+  testLines({ a: { a: 3, b: 1, c: 1, d: 1, e: 1, f: 1, g: 1, h: 1 }, b: 1 });
   testLines({
     foo: 'bar',
     baz: 35,
-    b: {a: 35},
+    b: { a: 35 },
     veryLongKey: 'very long value',
     evenLongerKey: ['with even longer value in array']
   });
 }
 
-// test boxed primitives output the correct values
+// Test boxed primitives output the correct values.
 assert.strictEqual(util.inspect(new String('test')), '[String: \'test\']');
 assert.strictEqual(
   util.inspect(Object(Symbol('test'))),
@@ -728,7 +843,7 @@ assert.strictEqual(util.inspect(new Number(-0)), '[Number: -0]');
 assert.strictEqual(util.inspect(new Number(-1.1)), '[Number: -1.1]');
 assert.strictEqual(util.inspect(new Number(13.37)), '[Number: 13.37]');
 
-// test boxed primitives with own properties
+// Test boxed primitives with own properties.
 {
   const str = new String('baz');
   str.foo = 'bar';
@@ -743,7 +858,7 @@ assert.strictEqual(util.inspect(new Number(13.37)), '[Number: 13.37]');
   assert.strictEqual(util.inspect(num), '{ [Number: 13.37] foo: \'bar\' }');
 }
 
-// test es6 Symbol
+// Test es6 Symbol.
 if (typeof Symbol !== 'undefined') {
   assert.strictEqual(util.inspect(Symbol()), 'Symbol()');
   assert.strictEqual(util.inspect(Symbol(123)), 'Symbol(123)');
@@ -765,7 +880,7 @@ if (typeof Symbol !== 'undefined') {
   Object.defineProperty(
     subject,
     Symbol(),
-    {enumerable: false, value: 'non-enum'});
+    { enumerable: false, value: 'non-enum' });
   assert.strictEqual(util.inspect(subject), '{ [Symbol(symbol)]: 42 }');
   assert.strictEqual(
     util.inspect(subject, options),
@@ -779,7 +894,7 @@ if (typeof Symbol !== 'undefined') {
                      '[ 1, 2, 3, [Symbol(symbol)]: 42 ]');
 }
 
-// test Set
+// Test Set.
 {
   assert.strictEqual(util.inspect(new Set()), 'Set {}');
   assert.strictEqual(util.inspect(new Set([1, 2, 3])), 'Set { 1, 2, 3 }');
@@ -791,7 +906,14 @@ if (typeof Symbol !== 'undefined') {
   );
 }
 
-// test Map
+// Test circular Set.
+{
+  const set = new Set();
+  set.add(set);
+  assert.strictEqual(util.inspect(set), 'Set { [Circular] }');
+}
+
+// Test Map.
 {
   assert.strictEqual(util.inspect(new Map()), 'Map {}');
   assert.strictEqual(util.inspect(new Map([[1, 'a'], [2, 'b'], [3, 'c']])),
@@ -802,14 +924,26 @@ if (typeof Symbol !== 'undefined') {
                      'Map { \'foo\' => null, [size]: 1, bar: 42 }');
 }
 
-// test Promise
+// Test circular Map.
+{
+  const map = new Map();
+  map.set(map, 'map');
+  assert.strictEqual(util.inspect(map), "Map { [Circular] => 'map' }");
+  map.set(map, map);
+  assert.strictEqual(util.inspect(map), 'Map { [Circular] => [Circular] }');
+  map.delete(map);
+  map.set('map', map);
+  assert.strictEqual(util.inspect(map), "Map { 'map' => [Circular] }");
+}
+
+// Test Promise.
 {
   const resolved = Promise.resolve(3);
   assert.strictEqual(util.inspect(resolved), 'Promise { 3 }');
 
   const rejected = Promise.reject(3);
   assert.strictEqual(util.inspect(rejected), 'Promise { <rejected> 3 }');
-  // squelch UnhandledPromiseRejection
+  // Squelch UnhandledPromiseRejection.
   rejected.catch(() => {});
 
   const pending = new Promise(() => {});
@@ -831,33 +965,40 @@ if (typeof Symbol !== 'undefined') {
   global.Promise = oldPromise;
 }
 
-// Test Map iterators
+// Test Map iterators.
 {
   const map = new Map([['foo', 'bar']]);
-  assert.strictEqual(util.inspect(map.keys()), 'MapIterator { \'foo\' }');
-  assert.strictEqual(util.inspect(map.values()), 'MapIterator { \'bar\' }');
+  assert.strictEqual(util.inspect(map.keys()), '[Map Iterator] { \'foo\' }');
+  assert.strictEqual(util.inspect(map.values()), '[Map Iterator] { \'bar\' }');
   assert.strictEqual(util.inspect(map.entries()),
-                     'MapIterator { [ \'foo\', \'bar\' ] }');
-  // make sure the iterator doesn't get consumed
+                     '[Map Iterator] { [ \'foo\', \'bar\' ] }');
+  // Make sure the iterator doesn't get consumed.
   const keys = map.keys();
-  assert.strictEqual(util.inspect(keys), 'MapIterator { \'foo\' }');
-  assert.strictEqual(util.inspect(keys), 'MapIterator { \'foo\' }');
+  assert.strictEqual(util.inspect(keys), '[Map Iterator] { \'foo\' }');
+  assert.strictEqual(util.inspect(keys), '[Map Iterator] { \'foo\' }');
+  keys.extra = true;
+  assert.strictEqual(
+    util.inspect(keys, { maxArrayLength: 0 }),
+    '[Map Iterator] { ... more items, extra: true }');
 }
 
-// Test Set iterators
+// Test Set iterators.
 {
   const aSet = new Set([1, 3]);
-  assert.strictEqual(util.inspect(aSet.keys()), 'SetIterator { 1, 3 }');
-  assert.strictEqual(util.inspect(aSet.values()), 'SetIterator { 1, 3 }');
-  assert.strictEqual(util.inspect(aSet.entries()),
-                     'SetIterator { [ 1, 1 ], [ 3, 3 ] }');
-  // make sure the iterator doesn't get consumed
+  assert.strictEqual(util.inspect(aSet.keys()), '[Set Iterator] { 1, 3 }');
+  assert.strictEqual(util.inspect(aSet.values()), '[Set Iterator] { 1, 3 }');
+  assert.strictEqual(util.inspect(aSet.entries()), '[Set Iterator] { 1, 3 }');
+  // Make sure the iterator doesn't get consumed.
   const keys = aSet.keys();
-  assert.strictEqual(util.inspect(keys), 'SetIterator { 1, 3 }');
-  assert.strictEqual(util.inspect(keys), 'SetIterator { 1, 3 }');
+  assert.strictEqual(util.inspect(keys), '[Set Iterator] { 1, 3 }');
+  assert.strictEqual(util.inspect(keys), '[Set Iterator] { 1, 3 }');
+  keys.extra = true;
+  assert.strictEqual(
+    util.inspect(keys, { maxArrayLength: 1 }),
+    '[Set Iterator] { 1, ... more items, extra: true }');
 }
 
-// Test alignment of items in container
+// Test alignment of items in container.
 // Assumes that the first numeric character is the start of an item.
 {
   function checkAlignment(container) {
@@ -892,7 +1033,7 @@ if (typeof Symbol !== 'undefined') {
 }
 
 
-// Test display of constructors
+// Test display of constructors.
 {
   class ObjectSubclass {}
   class ArraySubclass extends Array {}
@@ -907,11 +1048,29 @@ if (typeof Symbol !== 'undefined') {
   assert.strictEqual(util.inspect(new ArraySubclass(1, 2, 3)),
                      'ArraySubclass [ 1, 2, 3 ]');
   assert.strictEqual(util.inspect(new SetSubclass([1, 2, 3])),
-                     'SetSubclass { 1, 2, 3 }');
+                     'SetSubclass [Set] { 1, 2, 3 }');
   assert.strictEqual(util.inspect(new MapSubclass([['foo', 42]])),
-                     'MapSubclass { \'foo\' => 42 }');
+                     'MapSubclass [Map] { \'foo\' => 42 }');
   assert.strictEqual(util.inspect(new PromiseSubclass(() => {})),
-                     'PromiseSubclass { <pending> }');
+                     'PromiseSubclass [Promise] { <pending> }');
+  assert.strictEqual(
+    util.inspect({ a: { b: new ArraySubclass([1, [2], 3]) } }, { depth: 1 }),
+    '{ a: { b: [ArraySubclass] } }'
+  );
+}
+
+// Empty and circular before depth.
+{
+  const arr = [[[[]]]];
+  assert.strictEqual(util.inspect(arr), '[ [ [ [] ] ] ]');
+  arr[0][0][0][0] = [];
+  assert.strictEqual(util.inspect(arr), '[ [ [ [Array] ] ] ]');
+  arr[0][0][0] = {};
+  assert.strictEqual(util.inspect(arr), '[ [ [ {} ] ] ]');
+  arr[0][0][0] = { a: 2 };
+  assert.strictEqual(util.inspect(arr), '[ [ [ [Object] ] ] ]');
+  arr[0][0][0] = arr;
+  assert.strictEqual(util.inspect(arr), '[ [ [ [Circular] ] ] ]');
 }
 
 // Corner cases.
@@ -941,21 +1100,23 @@ if (typeof Symbol !== 'undefined') {
   assert.strictEqual(util.inspect(x), '{}');
 }
 
+{
+  const x = [];
+  x[''] = 1;
+  assert.strictEqual(util.inspect(x), '[ \'\': 1 ]');
+}
+
 // The following maxArrayLength tests were introduced after v6.0.0 was released.
 // Do not backport to v5/v4 unless all of
 // https://github.com/nodejs/node/pull/6334 is backported.
 {
   const x = new Array(101).fill();
   assert(util.inspect(x).endsWith('1 more item ]'));
-}
-
-{
-  const x = new Array(101).fill();
   assert(!util.inspect(x, { maxArrayLength: 101 }).endsWith('1 more item ]'));
-}
-
-{
-  const x = new Array(101).fill();
+  assert.strictEqual(
+    util.inspect(x, { maxArrayLength: -1 }),
+    '[ ... 101 more items ]'
+  );
   assert.strictEqual(util.inspect(x, { maxArrayLength: 0 }),
                      '[ ... 101 more items ]');
 }
@@ -964,69 +1125,44 @@ if (typeof Symbol !== 'undefined') {
   const x = Array(101);
   assert.strictEqual(util.inspect(x, { maxArrayLength: 0 }),
                      '[ ... 101 more items ]');
+  assert(!util.inspect(x, { maxArrayLength: null }).endsWith('1 more item ]'));
+  assert(!util.inspect(
+    x, { maxArrayLength: Infinity }
+  ).endsWith('1 more item ]'));
 }
 
 {
   const x = new Uint8Array(101);
   assert(util.inspect(x).endsWith('1 more item ]'));
-}
-
-{
-  const x = new Uint8Array(101);
   assert(!util.inspect(x, { maxArrayLength: 101 }).endsWith('1 more item ]'));
-}
-
-{
-  const x = new Uint8Array(101);
   assert.strictEqual(util.inspect(x, { maxArrayLength: 0 }),
                      'Uint8Array [ ... 101 more items ]');
-}
-
-{
-  const x = Array(101);
   assert(!util.inspect(x, { maxArrayLength: null }).endsWith('1 more item ]'));
+  assert(util.inspect(x, { maxArrayLength: Infinity }).endsWith('  0 ]'));
 }
 
 {
-  const x = Array(101);
-  assert(!util.inspect(
-    x, { maxArrayLength: Infinity }
-  ).endsWith('1 more item ]'));
-}
-
-{
-  const x = new Uint8Array(101);
-  assert(!util.inspect(x, { maxArrayLength: null }).endsWith('1 more item ]'));
-}
-
-{
-  const x = new Uint8Array(101);
-  assert(!util.inspect(
-    x, { maxArrayLength: Infinity }
-  ).endsWith('1 more item ]'));
-}
-
-{
-  const obj = {foo: 'abc', bar: 'xyz'};
-  const oneLine = util.inspect(obj, {breakLength: Infinity});
+  const obj = { foo: 'abc', bar: 'xyz' };
+  const oneLine = util.inspect(obj, { breakLength: Infinity });
   // Subtract four for the object's two curly braces and two spaces of padding.
   // Add one more to satisfy the strictly greater than condition in the code.
   const breakpoint = oneLine.length - 5;
-  const twoLines = util.inspect(obj, {breakLength: breakpoint});
+  const twoLines = util.inspect(obj, { breakLength: breakpoint });
 
   assert.strictEqual(oneLine, '{ foo: \'abc\', bar: \'xyz\' }');
-  assert.strictEqual(oneLine, util.inspect(obj, {breakLength: breakpoint + 1}));
+  assert.strictEqual(oneLine,
+                     util.inspect(obj, { breakLength: breakpoint + 1 }));
   assert.strictEqual(twoLines, '{ foo: \'abc\',\n  bar: \'xyz\' }');
 }
 
-// util.inspect.defaultOptions tests
+// util.inspect.defaultOptions tests.
 {
   const arr = new Array(101).fill();
-  const obj = {a: {a: {a: {a: 1}}}};
+  const obj = { a: { a: { a: { a: 1 } } } };
 
   const oldOptions = Object.assign({}, util.inspect.defaultOptions);
 
-  // Set single option through property assignment
+  // Set single option through property assignment.
   util.inspect.defaultOptions.maxArrayLength = null;
   assert(!/1 more item/.test(util.inspect(arr)));
   util.inspect.defaultOptions.maxArrayLength = oldOptions.maxArrayLength;
@@ -1040,10 +1176,10 @@ if (typeof Symbol !== 'undefined') {
     JSON.stringify(oldOptions)
   );
 
-  // Set multiple options through object assignment
-  util.inspect.defaultOptions = {maxArrayLength: null, depth: null};
+  // Set multiple options through object assignment.
+  util.inspect.defaultOptions = { maxArrayLength: null, depth: 2 };
   assert(!/1 more item/.test(util.inspect(arr)));
-  assert(!/Object/.test(util.inspect(obj)));
+  assert(/Object/.test(util.inspect(obj)));
   util.inspect.defaultOptions = oldOptions;
   assert(/1 more item/.test(util.inspect(arr)));
   assert(/Object/.test(util.inspect(obj)));
@@ -1052,13 +1188,291 @@ if (typeof Symbol !== 'undefined') {
     JSON.stringify(oldOptions)
   );
 
-  assert.throws(() => {
+  common.expectsError(() => {
     util.inspect.defaultOptions = null;
-  }, /"options" must be an object/);
+  }, {
+    code: 'ERR_INVALID_ARG_TYPE',
+    type: TypeError,
+    message: 'The "options" argument must be of type Object. ' +
+             'Received type object'
+  }
+  );
 
-  assert.throws(() => {
+  common.expectsError(() => {
     util.inspect.defaultOptions = 'bad';
-  }, /"options" must be an object/);
+  }, {
+    code: 'ERR_INVALID_ARG_TYPE',
+    type: TypeError,
+    message: 'The "options" argument must be of type Object. ' +
+             'Received type string'
+  }
+  );
 }
 
-assert.doesNotThrow(() => util.inspect(process));
+util.inspect(process);
+
+// Setting custom inspect property to a non-function should do nothing.
+{
+  const obj = { inspect: 'fhqwhgads' };
+  assert.strictEqual(util.inspect(obj), "{ inspect: 'fhqwhgads' }");
+}
+
+{
+  // @@toStringTag
+  assert.strictEqual(util.inspect({ [Symbol.toStringTag]: 'a' }),
+                     'Object [a] { [Symbol(Symbol.toStringTag)]: \'a\' }');
+
+  class Foo {
+    constructor() {
+      this.foo = 'bar';
+    }
+
+    get [Symbol.toStringTag]() {
+      return this.foo;
+    }
+  }
+
+  assert.strictEqual(util.inspect(
+    Object.create(null, { [Symbol.toStringTag]: { value: 'foo' } })),
+                     '[foo] {}');
+
+  assert.strictEqual(util.inspect(new Foo()), 'Foo [bar] { foo: \'bar\' }');
+
+  assert.strictEqual(
+    util.inspect(new (class extends Foo {})()),
+    'Foo [bar] { foo: \'bar\' }');
+
+  assert.strictEqual(
+    util.inspect(Object.create(Object.create(Foo.prototype), {
+      foo: { value: 'bar', enumerable: true }
+    })),
+    'Foo [bar] { foo: \'bar\' }');
+
+  class ThrowingClass {
+    get [Symbol.toStringTag]() {
+      throw new Error('toStringTag error');
+    }
+  }
+
+  assert.throws(() => util.inspect(new ThrowingClass()), /toStringTag error/);
+
+  class NotStringClass {
+    get [Symbol.toStringTag]() {
+      return null;
+    }
+  }
+
+  assert.strictEqual(util.inspect(new NotStringClass()),
+                     'NotStringClass {}');
+}
+
+{
+  const o = {
+    a: [1, 2, [[
+      'Lorem ipsum dolor\nsit amet,\tconsectetur adipiscing elit, sed do ' +
+        'eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+      'test',
+      'foo']], 4],
+    b: new Map([['za', 1], ['zb', 'test']])
+  };
+
+  let out = util.inspect(o, { compact: true, depth: 5, breakLength: 80 });
+  let expect = [
+    '{ a:',
+    '   [ 1,',
+    '     2,',
+    "     [ [ 'Lorem ipsum dolor\\nsit amet,\\tconsectetur adipiscing elit, " +
+      "sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',",
+    "         'test',",
+    "         'foo' ] ],",
+    '     4 ],',
+    "  b: Map { 'za' => 1, 'zb' => 'test' } }",
+  ].join('\n');
+  assert.strictEqual(out, expect);
+
+  out = util.inspect(o, { compact: false, depth: 5, breakLength: 60 });
+  expect = [
+    '{',
+    '  a: [',
+    '    1,',
+    '    2,',
+    '    [',
+    '      [',
+    '        \'Lorem ipsum dolor\\nsit amet,\\tconsectetur \' +',
+    '          \'adipiscing elit, sed do eiusmod tempor \' +',
+    '          \'incididunt ut labore et dolore magna \' +',
+    '          \'aliqua.\',',
+    '        \'test\',',
+    '        \'foo\'',
+    '      ]',
+    '    ],',
+    '    4',
+    '  ],',
+    '  b: Map {',
+    '    \'za\' => 1,',
+    '    \'zb\' => \'test\'',
+    '  }',
+    '}'
+  ].join('\n');
+  assert.strictEqual(out, expect);
+
+  out = util.inspect(o.a[2][0][0], { compact: false, breakLength: 30 });
+  expect = [
+    '\'Lorem ipsum dolor\\nsit \' +',
+    '  \'amet,\\tconsectetur \' +',
+    '  \'adipiscing elit, sed do \' +',
+    '  \'eiusmod tempor incididunt \' +',
+    '  \'ut labore et dolore magna \' +',
+    '  \'aliqua.\''
+  ].join('\n');
+  assert.strictEqual(out, expect);
+
+  out = util.inspect(
+    '12345678901234567890123456789012345678901234567890',
+    { compact: false, breakLength: 3 });
+  expect = '\'12345678901234567890123456789012345678901234567890\'';
+  assert.strictEqual(out, expect);
+
+  out = util.inspect(
+    '12 45 78 01 34 67 90 23 56 89 123456789012345678901234567890',
+    { compact: false, breakLength: 3 });
+  expect = [
+    '\'12 45 78 01 34 \' +',
+    '  \'67 90 23 56 89 \' +',
+    '  \'123456789012345678901234567890\''
+  ].join('\n');
+  assert.strictEqual(out, expect);
+
+  out = util.inspect(
+    '12 45 78 01 34 67 90 23 56 89 1234567890123 0',
+    { compact: false, breakLength: 3 });
+  expect = [
+    '\'12 45 78 01 34 \' +',
+    '  \'67 90 23 56 89 \' +',
+    '  \'1234567890123 0\''
+  ].join('\n');
+  assert.strictEqual(out, expect);
+
+  out = util.inspect(
+    '12 45 78 01 34 67 90 23 56 89 12345678901234567 0',
+    { compact: false, breakLength: 3 });
+  expect = [
+    '\'12 45 78 01 34 \' +',
+    '  \'67 90 23 56 89 \' +',
+    '  \'12345678901234567 \' +',
+    '  \'0\''
+  ].join('\n');
+  assert.strictEqual(out, expect);
+
+  o.a = () => {};
+  o.b = new Number(3);
+  out = util.inspect(o, { compact: false, breakLength: 3 });
+  expect = [
+    '{',
+    '  a: [Function],',
+    '  b: [Number: 3]',
+    '}'
+  ].join('\n');
+  assert.strictEqual(out, expect);
+
+  out = util.inspect(o, { compact: false, breakLength: 3, showHidden: true });
+  expect = [
+    '{',
+    '  a: [Function] {',
+    '    [length]: 0,',
+    "    [name]: ''",
+    '  },',
+    '  b: [Number: 3]',
+    '}'
+  ].join('\n');
+  assert.strictEqual(out, expect);
+
+  o[util.inspect.custom] = () => 42;
+  out = util.inspect(o, { compact: false, breakLength: 3 });
+  expect = '42';
+  assert.strictEqual(out, expect);
+
+  o[util.inspect.custom] = () => '12 45 78 01 34 67 90 23';
+  out = util.inspect(o, { compact: false, breakLength: 3 });
+  expect = '12 45 78 01 34 67 90 23';
+  assert.strictEqual(out, expect);
+
+  o[util.inspect.custom] = () => ({ a: '12 45 78 01 34 67 90 23' });
+  out = util.inspect(o, { compact: false, breakLength: 3 });
+  expect = '{\n  a: \'12 45 78 01 34 \' +\n    \'67 90 23\'\n}';
+  assert.strictEqual(out, expect);
+}
+
+{ // Test WeakMap
+  const obj = {};
+  const arr = [];
+  const weakMap = new WeakMap([[obj, arr], [arr, obj]]);
+  let out = util.inspect(weakMap, { showHidden: true });
+  let expect = 'WeakMap { [ [length]: 0 ] => {}, {} => [ [length]: 0 ] }';
+  assert.strictEqual(out, expect);
+
+  out = util.inspect(weakMap);
+  expect = 'WeakMap { [items unknown] }';
+  assert.strictEqual(out, expect);
+
+  out = util.inspect(weakMap, { maxArrayLength: 0, showHidden: true });
+  expect = 'WeakMap { ... more items }';
+  assert.strictEqual(out, expect);
+
+  weakMap.extra = true;
+  out = util.inspect(weakMap, { maxArrayLength: 1, showHidden: true });
+  // It is not possible to determine the output reliable.
+  expect = 'WeakMap { [ [length]: 0 ] => {}, ... more items, extra: true }';
+  const expectAlt = 'WeakMap { {} => [ [length]: 0 ], ... more items, ' +
+                    'extra: true }';
+  assert(out === expect || out === expectAlt,
+         `Found "${out}" rather than "${expect}" or "${expectAlt}"`);
+}
+
+{ // Test WeakSet
+  const weakSet = new WeakSet([{}, [1]]);
+  let out = util.inspect(weakSet, { showHidden: true });
+  let expect = 'WeakSet { [ 1, [length]: 1 ], {} }';
+  assert.strictEqual(out, expect);
+
+  out = util.inspect(weakSet);
+  expect = 'WeakSet { [items unknown] }';
+  assert.strictEqual(out, expect);
+
+  out = util.inspect(weakSet, { maxArrayLength: -2, showHidden: true });
+  expect = 'WeakSet { ... more items }';
+  assert.strictEqual(out, expect);
+
+  weakSet.extra = true;
+  out = util.inspect(weakSet, { maxArrayLength: 1, showHidden: true });
+  // It is not possible to determine the output reliable.
+  expect = 'WeakSet { {}, ... more items, extra: true }';
+  const expectAlt = 'WeakSet { [ 1, [length]: 1 ], ... more items, ' +
+                    'extra: true }';
+  assert(out === expect || out === expectAlt,
+         `Found "${out}" rather than "${expect}" or "${expectAlt}"`);
+}
+
+{ // Test argument objects.
+  const args = (function() { return arguments; })('a');
+  assert.strictEqual(util.inspect(args), "[Arguments] { '0': 'a' }");
+}
+
+{
+  // Test that a long linked list can be inspected without throwing an error.
+  const list = {};
+  let head = list;
+  // A linked list of length 100k should be inspectable in some way, even though
+  // the real cutoff value is much lower than 100k.
+  for (let i = 0; i < 100000; i++)
+    head = head.next = {};
+  assert.strictEqual(
+    util.inspect(list),
+    '{ next: { next: { next: [Object] } } }'
+  );
+  const longList = util.inspect(list, { depth: Infinity });
+  const match = longList.match(/next/g);
+  assert(match.length > 1000 && match.length < 10000);
+  assert(longList.includes('[Object: Inspection interrupted ' +
+    'prematurely. Maximum call stack size exceeded.]'));
+}

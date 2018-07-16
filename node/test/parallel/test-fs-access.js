@@ -1,18 +1,26 @@
 'use strict';
+
+// This tests that fs.access and fs.accessSync works as expected
+// and the errors thrown from these APIs include the desired properties
+
 const common = require('../common');
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
-const doesNotExist = path.join(common.tmpDir, '__this_should_not_exist');
-const readOnlyFile = path.join(common.tmpDir, 'read_only_file');
-const readWriteFile = path.join(common.tmpDir, 'read_write_file');
+
+const uv = process.binding('uv');
+
+const tmpdir = require('../common/tmpdir');
+const doesNotExist = path.join(tmpdir.path, '__this_should_not_exist');
+const readOnlyFile = path.join(tmpdir.path, 'read_only_file');
+const readWriteFile = path.join(tmpdir.path, 'read_write_file');
 
 function createFileWithPerms(file, mode) {
   fs.writeFileSync(file, '');
   fs.chmodSync(file, mode);
 }
 
-common.refreshTmpDir();
+tmpdir.refresh();
 createFileWithPerms(readOnlyFile, 0o444);
 createFileWithPerms(readWriteFile, 0o666);
 
@@ -28,7 +36,7 @@ createFileWithPerms(readWriteFile, 0o666);
  * The change of user id is done after creating the fixtures files for the same
  * reason: the test may be run as the superuser within a directory in which
  * only the superuser can create files, and thus it may need superuser
- * priviledges to create them.
+ * privileges to create them.
  *
  * There's not really any point in resetting the process' user id to 0 after
  * changing it to 'nobody', since in the case that the test runs without
@@ -54,54 +62,93 @@ assert.strictEqual(typeof fs.R_OK, 'number');
 assert.strictEqual(typeof fs.W_OK, 'number');
 assert.strictEqual(typeof fs.X_OK, 'number');
 
-fs.access(__filename, common.mustCall((err) => {
-  assert.ifError(err);
-}));
+const throwNextTick = (e) => { process.nextTick(() => { throw e; }); };
 
-fs.access(__filename, fs.R_OK, common.mustCall((err) => {
-  assert.ifError(err);
+fs.access(__filename, common.mustCall(function(...args) {
+  assert.deepStrictEqual(args, [null]);
 }));
-
-fs.access(doesNotExist, common.mustCall((err) => {
-  assert.notStrictEqual(err, null, 'error should exist');
-  assert.strictEqual(err.code, 'ENOENT');
-  assert.strictEqual(err.path, doesNotExist);
+fs.promises.access(__filename)
+  .then(common.mustCall())
+  .catch(throwNextTick);
+fs.access(__filename, fs.R_OK, common.mustCall(function(...args) {
+  assert.deepStrictEqual(args, [null]);
 }));
-
-fs.access(readOnlyFile, fs.F_OK | fs.R_OK, common.mustCall((err) => {
-  assert.ifError(err);
+fs.promises.access(__filename, fs.R_OK)
+  .then(common.mustCall())
+  .catch(throwNextTick);
+fs.access(readOnlyFile, fs.F_OK | fs.R_OK, common.mustCall(function(...args) {
+  assert.deepStrictEqual(args, [null]);
 }));
+fs.promises.access(readOnlyFile, fs.F_OK | fs.R_OK)
+  .then(common.mustCall())
+  .catch(throwNextTick);
 
-fs.access(readOnlyFile, fs.W_OK, common.mustCall((err) => {
-  if (hasWriteAccessForReadonlyFile) {
-    assert.ifError(err);
-  } else {
-    assert.notStrictEqual(err, null, 'error should exist');
-    assert.strictEqual(err.path, readOnlyFile);
+{
+  const expectedError = (err) => {
+    assert.notStrictEqual(err, null);
+    assert.strictEqual(err.code, 'ENOENT');
+    assert.strictEqual(err.path, doesNotExist);
+  };
+  fs.access(doesNotExist, common.mustCall(expectedError));
+  fs.promises.access(doesNotExist)
+    .then(common.mustNotCall(), common.mustCall(expectedError))
+    .catch(throwNextTick);
+}
+
+{
+  function expectedError(err) {
+    assert.strictEqual(this, undefined);
+    if (hasWriteAccessForReadonlyFile) {
+      assert.ifError(err);
+    } else {
+      assert.notStrictEqual(err, null);
+      assert.strictEqual(err.path, readOnlyFile);
+    }
   }
-}));
+  fs.access(readOnlyFile, fs.W_OK, common.mustCall(expectedError));
+  fs.promises.access(readOnlyFile, fs.W_OK)
+    .then(common.mustNotCall(), common.mustCall(expectedError))
+    .catch(throwNextTick);
+}
 
-assert.throws(() => {
-  fs.access(100, fs.F_OK, common.mustNotCall());
-}, /^TypeError: path must be a string or Buffer$/);
+{
+  const expectedError = (err) => {
+    assert.strictEqual(err.code, 'ERR_INVALID_ARG_TYPE');
+    assert.ok(err instanceof TypeError);
+    return true;
+  };
+  assert.throws(
+    () => { fs.access(100, fs.F_OK, common.mustNotCall()); },
+    expectedError
+  );
 
-assert.throws(() => {
-  fs.access(__filename, fs.F_OK);
-}, /^TypeError: "callback" argument must be a function$/);
+  fs.promises.access(100, fs.F_OK)
+    .then(common.mustNotCall(), common.mustCall(expectedError))
+    .catch(throwNextTick);
+}
 
-assert.throws(() => {
-  fs.access(__filename, fs.F_OK, {});
-}, /^TypeError: "callback" argument must be a function$/);
+common.expectsError(
+  () => {
+    fs.access(__filename, fs.F_OK);
+  },
+  {
+    code: 'ERR_INVALID_CALLBACK',
+    type: TypeError
+  });
 
-assert.doesNotThrow(() => {
-  fs.accessSync(__filename);
-});
+common.expectsError(
+  () => {
+    fs.access(__filename, fs.F_OK, {});
+  },
+  {
+    code: 'ERR_INVALID_CALLBACK',
+    type: TypeError
+  });
 
-assert.doesNotThrow(() => {
-  const mode = fs.F_OK | fs.R_OK | fs.W_OK;
-
-  fs.accessSync(readWriteFile, mode);
-});
+// Regular access should not throw.
+fs.accessSync(__filename);
+const mode = fs.F_OK | fs.R_OK | fs.W_OK;
+fs.accessSync(readWriteFile, mode);
 
 assert.throws(
   () => { fs.accessSync(doesNotExist); },
@@ -113,6 +160,24 @@ assert.throws(
       `ENOENT: no such file or directory, access '${doesNotExist}'`
     );
     assert.strictEqual(err.constructor, Error);
+    assert.strictEqual(err.syscall, 'access');
+    assert.strictEqual(err.errno, uv.UV_ENOENT);
+    return true;
+  }
+);
+
+assert.throws(
+  () => { fs.accessSync(Buffer.from(doesNotExist)); },
+  (err) => {
+    assert.strictEqual(err.code, 'ENOENT');
+    assert.strictEqual(err.path, doesNotExist);
+    assert.strictEqual(
+      err.message,
+      `ENOENT: no such file or directory, access '${doesNotExist}'`
+    );
+    assert.strictEqual(err.constructor, Error);
+    assert.strictEqual(err.syscall, 'access');
+    assert.strictEqual(err.errno, uv.UV_ENOENT);
     return true;
   }
 );

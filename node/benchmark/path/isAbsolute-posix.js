@@ -1,8 +1,8 @@
 'use strict';
-var common = require('../common.js');
-var path = require('path');
+const common = require('../common.js');
+const { posix } = require('path');
 
-var bench = common.createBenchmark(main, {
+const bench = common.createBenchmark(main, {
   path: [
     '',
     '.',
@@ -13,14 +13,10 @@ var bench = common.createBenchmark(main, {
   n: [1e6]
 });
 
-function main(conf) {
-  var n = +conf.n;
-  var p = path.posix;
-  var input = String(conf.path);
-
+function main({ n, path }) {
   bench.start();
   for (var i = 0; i < n; i++) {
-    p.isAbsolute(input);
+    posix.isAbsolute(path);
   }
   bench.end(n);
 }

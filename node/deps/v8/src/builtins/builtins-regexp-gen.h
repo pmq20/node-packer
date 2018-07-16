@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef V8_BUILTINS_BUILTINS_REGEXP_H_
-#define V8_BUILTINS_BUILTINS_REGEXP_H_
+#ifndef V8_BUILTINS_BUILTINS_REGEXP_GEN_H_
+#define V8_BUILTINS_BUILTINS_REGEXP_GEN_H_
 
 #include "src/code-stub-assembler.h"
 
@@ -19,7 +19,27 @@ class RegExpBuiltinsAssembler : public CodeStubAssembler {
                           Node* const map, Label* const if_isunmodified,
                           Label* const if_ismodified);
 
+  // Create and initialize a RegExp object.
+  TNode<Object> RegExpCreate(TNode<Context> context,
+                             TNode<Context> native_context,
+                             TNode<Object> regexp_string, TNode<String> flags);
+
+  TNode<Object> RegExpCreate(TNode<Context> context, TNode<Map> initial_map,
+                             TNode<Object> regexp_string, TNode<String> flags);
+
+  TNode<Object> MatchAllIterator(TNode<Context> context,
+                                 TNode<Context> native_context,
+                                 TNode<Object> regexp, TNode<Object> string,
+                                 char const* method_name);
+
  protected:
+  // Allocate a RegExpResult with the given length (the number of captures,
+  // including the match itself), index (the index where the match starts),
+  // and input string. |length| and |index| are expected to be tagged, and
+  // |input| must be a string.
+  Node* AllocateRegExpResult(Node* context, Node* length, Node* index,
+                             Node* input);
+
   Node* FastLoadLastIndex(Node* regexp);
   Node* SlowLoadLastIndex(Node* context, Node* regexp);
   Node* LoadLastIndex(Node* context, Node* regexp, bool is_fastpath);
@@ -43,7 +63,7 @@ class RegExpBuiltinsAssembler : public CodeStubAssembler {
 
   Node* ConstructNewResultFromMatchInfo(Node* const context, Node* const regexp,
                                         Node* const match_info,
-                                        Node* const string);
+                                        TNode<String> const string);
 
   Node* RegExpPrototypeExecBodyWithoutResult(Node* const context,
                                              Node* const regexp,
@@ -51,7 +71,7 @@ class RegExpBuiltinsAssembler : public CodeStubAssembler {
                                              Label* if_didnotmatch,
                                              const bool is_fastpath);
   Node* RegExpPrototypeExecBody(Node* const context, Node* const regexp,
-                                Node* const string, const bool is_fastpath);
+                                TNode<String> string, const bool is_fastpath);
 
   Node* ThrowIfNotJSReceiver(Node* context, Node* maybe_receiver,
                              MessageTemplate::Template msg_template,
@@ -83,9 +103,6 @@ class RegExpBuiltinsAssembler : public CodeStubAssembler {
   void FlagGetter(Node* context, Node* receiver, JSRegExp::Flag flag,
                   int counter, const char* method_name);
 
-  // Utility method, remove once dotall is unstaged.
-  Node* IsDotAllEnabled(Isolate* isolate);
-
   Node* IsRegExp(Node* const context, Node* const maybe_receiver);
   Node* RegExpInitialize(Node* const context, Node* const regexp,
                          Node* const maybe_pattern, Node* const maybe_flags);
@@ -96,7 +113,8 @@ class RegExpBuiltinsAssembler : public CodeStubAssembler {
                            Node* const is_unicode, bool is_fastpath);
 
   void RegExpPrototypeMatchBody(Node* const context, Node* const regexp,
-                                Node* const string, const bool is_fastpath);
+                                TNode<String> const string,
+                                const bool is_fastpath);
 
   void RegExpPrototypeSearchBodyFast(Node* const context, Node* const regexp,
                                      Node* const string);
@@ -104,15 +122,16 @@ class RegExpBuiltinsAssembler : public CodeStubAssembler {
                                      Node* const string);
 
   void RegExpPrototypeSplitBody(Node* const context, Node* const regexp,
-                                Node* const string, Node* const limit);
+                                TNode<String> const string, Node* const limit);
 
   Node* ReplaceGlobalCallableFastPath(Node* context, Node* regexp, Node* string,
                                       Node* replace_callable);
-  Node* ReplaceSimpleStringFastPath(Node* context, Node* regexp, Node* string,
-                                    Node* replace_string);
+  Node* ReplaceSimpleStringFastPath(Node* context, Node* regexp,
+                                    TNode<String> string,
+                                    TNode<String> replace_string);
 };
 
 }  // namespace internal
 }  // namespace v8
 
-#endif  // V8_BUILTINS_BUILTINS_REGEXP_H_
+#endif  // V8_BUILTINS_BUILTINS_REGEXP_GEN_H_

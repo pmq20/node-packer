@@ -96,9 +96,11 @@ int InstructionScheduler::GetTargetInstructionFlags(
     case kS390_CmpDouble:
     case kS390_Tst32:
     case kS390_Tst64:
-    case kS390_ExtendSignWord8:
-    case kS390_ExtendSignWord16:
-    case kS390_ExtendSignWord32:
+    case kS390_SignExtendWord8ToInt32:
+    case kS390_SignExtendWord16ToInt32:
+    case kS390_SignExtendWord8ToInt64:
+    case kS390_SignExtendWord16ToInt64:
+    case kS390_SignExtendWord32ToInt64:
     case kS390_Uint32ToUint64:
     case kS390_Int64ToInt32:
     case kS390_Int64ToFloat32:
@@ -164,6 +166,7 @@ int InstructionScheduler::GetTargetInstructionFlags(
     case kS390_Push:
     case kS390_PushFrame:
     case kS390_StoreToStackSlot:
+    case kS390_StackClaim:
       return kHasSideEffect;
 
 #define CASE(Name) case k##Name:
@@ -174,7 +177,6 @@ int InstructionScheduler::GetTargetInstructionFlags(
   }
 
   UNREACHABLE();
-  return kNoOpcodeFlags;
 }
 
 int InstructionScheduler::GetInstructionLatency(const Instruction* instr) {

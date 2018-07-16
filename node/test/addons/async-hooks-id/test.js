@@ -13,9 +13,6 @@ assert.strictEqual(
   binding.getTriggerAsyncId(),
   async_hooks.triggerAsyncId()
 );
-assert.strictEqual(
-  typeof binding.emitAsyncInit({}), 'number'
-);
 
 process.nextTick(common.mustCall(function() {
   assert.strictEqual(

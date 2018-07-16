@@ -5,20 +5,32 @@ const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 
+const tmpdir = require('../common/tmpdir');
+
 // Basic usage tests.
-assert.throws(function() {
-  fs.watchFile('./some-file');
-}, /^Error: "watchFile\(\)" requires a listener function$/);
+common.expectsError(
+  () => {
+    fs.watchFile('./some-file');
+  },
+  {
+    code: 'ERR_INVALID_ARG_TYPE',
+    type: TypeError
+  });
 
-assert.throws(function() {
-  fs.watchFile('./another-file', {}, 'bad listener');
-}, /^Error: "watchFile\(\)" requires a listener function$/);
+common.expectsError(
+  () => {
+    fs.watchFile('./another-file', {}, 'bad listener');
+  },
+  {
+    code: 'ERR_INVALID_ARG_TYPE',
+    type: TypeError
+  });
 
-assert.throws(function() {
+common.expectsError(function() {
   fs.watchFile(new Object(), common.mustNotCall());
-}, /Path must be a string/);
+}, { code: 'ERR_INVALID_ARG_TYPE', type: TypeError });
 
-const enoentFile = path.join(common.tmpDir, 'non-existent-file');
+const enoentFile = path.join(tmpdir.path, 'non-existent-file');
 const expectedStatObject = new fs.Stats(
   0,                                        // dev
   0,                                        // mode
@@ -36,38 +48,46 @@ const expectedStatObject = new fs.Stats(
   Date.UTC(1970, 0, 1, 0, 0, 0)             // birthtime
 );
 
-common.refreshTmpDir();
+tmpdir.refresh();
 
 // If the file initially didn't exist, and gets created at a later point of
 // time, the callback should be invoked again with proper values in stat object
 let fileExists = false;
 
-fs.watchFile(enoentFile, {interval: 0}, common.mustCall(function(curr, prev) {
-  if (!fileExists) {
-    // If the file does not exist, all the fields should be zero and the date
-    // fields should be UNIX EPOCH time
-    assert.deepStrictEqual(curr, expectedStatObject);
-    assert.deepStrictEqual(prev, expectedStatObject);
-    // Create the file now, so that the callback will be called back once the
-    // event loop notices it.
-    fs.closeSync(fs.openSync(enoentFile, 'w'));
-    fileExists = true;
-  } else {
-    // If the ino (inode) value is greater than zero, it means that the file is
-    // present in the filesystem and it has a valid inode number.
-    assert(curr.ino > 0);
-    // As the file just got created, previous ino value should be lesser than
-    // or equal to zero (non-existent file).
-    assert(prev.ino <= 0);
-    // Stop watching the file
-    fs.unwatchFile(enoentFile);
-  }
-}, 2));
+const watcher =
+  fs.watchFile(enoentFile, { interval: 0 }, common.mustCall((curr, prev) => {
+    if (!fileExists) {
+      // If the file does not exist, all the fields should be zero and the date
+      // fields should be UNIX EPOCH time
+      assert.deepStrictEqual(curr, expectedStatObject);
+      assert.deepStrictEqual(prev, expectedStatObject);
+      // Create the file now, so that the callback will be called back once the
+      // event loop notices it.
+      fs.closeSync(fs.openSync(enoentFile, 'w'));
+      fileExists = true;
+    } else {
+      // If the ino (inode) value is greater than zero, it means that the file
+      // is present in the filesystem and it has a valid inode number.
+      assert(curr.ino > 0);
+      // As the file just got created, previous ino value should be lesser than
+      // or equal to zero (non-existent file).
+      assert(prev.ino <= 0);
+      // Stop watching the file
+      fs.unwatchFile(enoentFile);
+      watcher.stop();  // stopping a stopped watcher should be a noop
+    }
+  }, 2));
+
+// 'stop' should only be emitted once - stopping a stopped watcher should
+// not trigger a 'stop' event.
+watcher.on('stop', common.mustCall(function onStop() {}));
+
+watcher.start();  // starting a started watcher should be a noop
 
 // Watch events should callback with a filename on supported systems.
 // Omitting AIX. It works but not reliably.
 if (common.isLinux || common.isOSX || common.isWindows) {
-  const dir = path.join(common.tmpDir, 'watch');
+  const dir = path.join(tmpdir.path, 'watch');
 
   fs.mkdir(dir, common.mustCall(function(err) {
     if (err) assert.fail(err);

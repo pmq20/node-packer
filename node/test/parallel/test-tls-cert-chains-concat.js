@@ -1,13 +1,13 @@
 'use strict';
 const common = require('../common');
+const fixtures = require('../common/fixtures');
 
 // Check cert chain is received by client, and is completed with the ca cert
 // known to the client.
 
-const join = require('path').join;
 const {
   assert, connect, debug, keys
-} = require(join(common.fixturesDir, 'tls-connect'));
+} = require(fixtures.path('tls-connect'));
 
 // agent6-cert.pem includes cert for agent6 and ca3
 connect({
@@ -19,7 +19,7 @@ connect({
     cert: keys.agent6.cert,
     key: keys.agent6.key,
   },
-}, function(err, pair, cleanup) {
+}, common.mustCall((err, pair, cleanup) => {
   assert.ifError(err);
 
   const peer = pair.client.conn.getPeerCertificate();
@@ -47,4 +47,4 @@ connect({
   assert.deepStrictEqual(pair.server.conn.getPeerCertificate(true), {});
 
   return cleanup();
-});
+}));

@@ -20,12 +20,44 @@
 
 'use strict';
 
-const { compare } = process.binding('buffer');
-const util = require('util');
-const { isSet, isMap } = process.binding('util');
-const { objectToString } = require('internal/util');
 const { Buffer } = require('buffer');
-const errors = require('internal/errors');
+const { codes: {
+  ERR_AMBIGUOUS_ARGUMENT,
+  ERR_INVALID_ARG_TYPE,
+  ERR_INVALID_RETURN_VALUE
+} } = require('internal/errors');
+const { AssertionError, errorCache } = require('internal/assert');
+const { openSync, closeSync, readSync } = require('fs');
+const { inspect, types: { isPromise, isRegExp } } = require('util');
+const { EOL } = require('internal/constants');
+const { NativeModule } = require('internal/bootstrap/loaders');
+
+let isDeepEqual;
+let isDeepStrictEqual;
+
+function lazyLoadComparison() {
+  const comparison = require('internal/util/comparisons');
+  isDeepEqual = comparison.isDeepEqual;
+  isDeepStrictEqual = comparison.isDeepStrictEqual;
+}
+
+// Escape control characters but not \n and \t to keep the line breaks and
+// indentation intact.
+// eslint-disable-next-line no-control-regex
+const escapeSequencesRegExp = /[\x00-\x08\x0b\x0c\x0e-\x1f]/g;
+const meta = [
+  '\\u0000', '\\u0001', '\\u0002', '\\u0003', '\\u0004',
+  '\\u0005', '\\u0006', '\\u0007', '\\b', '',
+  '', '\\u000b', '\\f', '', '\\u000e',
+  '\\u000f', '\\u0010', '\\u0011', '\\u0012', '\\u0013',
+  '\\u0014', '\\u0015', '\\u0016', '\\u0017', '\\u0018',
+  '\\u0019', '\\u001a', '\\u001b', '\\u001c', '\\u001d',
+  '\\u001e', '\\u001f'
+];
+
+const escapeFn = (str) => meta[str.charCodeAt(0)];
+
+let warned = false;
 
 // The assert module provides functions that throw
 // AssertionError's when particular conditions are not met. The
@@ -33,42 +65,215 @@ const errors = require('internal/errors');
 
 const assert = module.exports = ok;
 
+const NO_EXCEPTION_SENTINEL = {};
+
 // All of the following functions must throw an AssertionError
 // when a corresponding condition is not met, with a message that
 // may be undefined if not provided. All assertion methods provide
 // both the actual and expected values to the assertion error for
 // display purposes.
 
-function innerFail(actual, expected, message, operator, stackStartFunction) {
-  throw new errors.AssertionError({
-    message,
+function innerFail(obj) {
+  if (obj.message instanceof Error) throw obj.message;
+
+  throw new AssertionError(obj);
+}
+
+function fail(actual, expected, message, operator, stackStartFn) {
+  const argsLen = arguments.length;
+
+  if (argsLen === 0) {
+    message = 'Failed';
+  } else if (argsLen === 1) {
+    message = actual;
+    actual = undefined;
+  } else {
+    if (warned === false) {
+      warned = true;
+      process.emitWarning(
+        'assert.fail() with more than one argument is deprecated. ' +
+          'Please use assert.strictEqual() instead or only pass a message.',
+        'DeprecationWarning',
+        'DEP0094'
+      );
+    }
+    if (argsLen === 2)
+      operator = '!=';
+  }
+
+  innerFail({
     actual,
     expected,
+    message,
     operator,
-    stackStartFunction
+    stackStartFn: stackStartFn || fail
   });
 }
 
-function fail(actual, expected, message, operator, stackStartFunction) {
-  if (arguments.length === 1)
-    message = actual;
-  if (arguments.length === 2)
-    operator = '!=';
-  innerFail(actual, expected, message, operator, stackStartFunction || fail);
-}
 assert.fail = fail;
 
 // The AssertionError is defined in internal/error.
 // new assert.AssertionError({ message: message,
 //                             actual: actual,
 //                             expected: expected });
-assert.AssertionError = errors.AssertionError;
+assert.AssertionError = AssertionError;
 
+function getBuffer(fd, assertLine) {
+  let lines = 0;
+  // Prevent blocking the event loop by limiting the maximum amount of
+  // data that may be read.
+  let maxReads = 64; // bytesPerRead * maxReads = 512 kb
+  let bytesRead = 0;
+  let startBuffer = 0; // Start reading from that char on
+  const bytesPerRead = 8192;
+  const buffers = [];
+  do {
+    const buffer = Buffer.allocUnsafe(bytesPerRead);
+    bytesRead = readSync(fd, buffer, 0, bytesPerRead);
+    for (var i = 0; i < bytesRead; i++) {
+      if (buffer[i] === 10) {
+        lines++;
+        if (lines === assertLine) {
+          startBuffer = i + 1;
+        // Read up to 15 more lines to make sure all code gets matched
+        } else if (lines === assertLine + 16) {
+          buffers.push(buffer.slice(startBuffer, i));
+          return buffers;
+        }
+      }
+    }
+    if (lines >= assertLine) {
+      buffers.push(buffer.slice(startBuffer, bytesRead));
+      // Reset the startBuffer in case we need more than one chunk
+      startBuffer = 0;
+    }
+  } while (--maxReads !== 0 && bytesRead !== 0);
+  return buffers;
+}
+
+function getErrMessage(call) {
+  const filename = call.getFileName();
+  if (!filename) {
+    return;
+  }
+
+  const line = call.getLineNumber() - 1;
+  const column = call.getColumnNumber() - 1;
+  const identifier = `${filename}${line}${column}`;
+
+  if (errorCache.has(identifier)) {
+    return errorCache.get(identifier);
+  }
+
+  // Skip Node.js modules!
+  if (filename.endsWith('.js') && NativeModule.exists(filename.slice(0, -3))) {
+    errorCache.set(identifier, undefined);
+    return;
+  }
+
+  let fd, message;
+  try {
+    fd = openSync(filename, 'r', 0o666);
+    const buffers = getBuffer(fd, line);
+    const code = Buffer.concat(buffers).toString('utf8');
+    // Lazy load acorn.
+    const { parseExpressionAt } = require('internal/deps/acorn/dist/acorn');
+    const nodes = parseExpressionAt(code, column);
+    // Node type should be "CallExpression" and some times
+    // "SequenceExpression".
+    const node = nodes.type === 'CallExpression' ? nodes : nodes.expressions[0];
+    const name = node.callee.name;
+    // Calling `ok` with .apply or .call is uncommon but we use a simple
+    // safeguard nevertheless.
+    if (name !== 'apply' && name !== 'call') {
+    // Only use `assert` and `assert.ok` to reference the "real API" and
+    // not user defined function names.
+      const ok = name === 'ok' ? '.ok' : '';
+      const args = node.arguments;
+      message = code
+        .slice(args[0].start, args[args.length - 1].end)
+        .replace(escapeSequencesRegExp, escapeFn);
+      if (EOL === '\r\n') {
+        message = message.replace(/\r\n/g, '\n');
+      }
+      // Always normalize indentation, otherwise the message could look weird.
+      if (message.indexOf('\n') !== -1) {
+        const tmp = message.split('\n');
+        message = tmp[0];
+        for (var i = 1; i < tmp.length; i++) {
+          let pos = 0;
+          while (pos < column &&
+              (tmp[i][pos] === ' ' || tmp[i][pos] === '\t')) {
+            pos++;
+          }
+          message += `\n  ${tmp[i].slice(pos)}`;
+        }
+      }
+      message = 'The expression evaluated to a falsy value:' +
+        `\n\n  assert${ok}(${message})\n`;
+    }
+    // Make sure to always set the cache! No matter if the message is
+    // undefined or not
+    errorCache.set(identifier, message);
+
+    return message;
+
+  } catch (e) {
+  // Invalidate cache to prevent trying to read this part again.
+    errorCache.set(identifier, undefined);
+  } finally {
+    if (fd !== undefined)
+      closeSync(fd);
+  }
+}
+
+function innerOk(fn, argLen, value, message) {
+  if (!value) {
+    let generatedMessage = false;
+
+    if (argLen === 0) {
+      generatedMessage = true;
+      message = 'No value argument passed to `assert.ok()`';
+    } else if (message == null) {
+      // Use the call as error message if possible.
+      // This does not work with e.g. the repl.
+      // eslint-disable-next-line no-restricted-syntax
+      const err = new Error();
+      // Make sure the limit is set to 1. Otherwise it could fail (<= 0) or it
+      // does to much work.
+      const tmpLimit = Error.stackTraceLimit;
+      Error.stackTraceLimit = 1;
+      Error.captureStackTrace(err, fn);
+      Error.stackTraceLimit = tmpLimit;
+
+      const tmpPrepare = Error.prepareStackTrace;
+      Error.prepareStackTrace = (_, stack) => stack;
+      const call = err.stack[0];
+      Error.prepareStackTrace = tmpPrepare;
+
+      // Make sure it would be "null" in case that is used.
+      message = getErrMessage(call) || message;
+      generatedMessage = true;
+    } else if (message instanceof Error) {
+      throw message;
+    }
+
+    const err = new AssertionError({
+      actual: value,
+      expected: true,
+      message,
+      operator: '==',
+      stackStartFn: fn
+    });
+    err.generatedMessage = generatedMessage;
+    throw err;
+  }
+}
 
 // Pure assertion tests whether a value is truthy, as determined
 // by !!value.
-function ok(value, message) {
-  if (!value) innerFail(value, true, message, '==', ok);
+function ok(...args) {
+  innerOk(ok, args.length, ...args);
 }
 assert.ok = ok;
 
@@ -76,7 +281,15 @@ assert.ok = ok;
 /* eslint-disable no-restricted-properties */
 assert.equal = function equal(actual, expected, message) {
   // eslint-disable-next-line eqeqeq
-  if (actual != expected) innerFail(actual, expected, message, '==', equal);
+  if (actual != expected) {
+    innerFail({
+      actual,
+      expected,
+      message,
+      operator: '==',
+      stackStartFn: equal
+    });
+  }
 };
 
 // The non-equality assertion tests for whether two objects are not
@@ -84,488 +297,187 @@ assert.equal = function equal(actual, expected, message) {
 assert.notEqual = function notEqual(actual, expected, message) {
   // eslint-disable-next-line eqeqeq
   if (actual == expected) {
-    innerFail(actual, expected, message, '!=', notEqual);
+    innerFail({
+      actual,
+      expected,
+      message,
+      operator: '!=',
+      stackStartFn: notEqual
+    });
   }
 };
 
 // The equivalence assertion tests a deep equality relation.
 assert.deepEqual = function deepEqual(actual, expected, message) {
-  if (!innerDeepEqual(actual, expected, false)) {
-    innerFail(actual, expected, message, 'deepEqual', deepEqual);
+  if (isDeepEqual === undefined) lazyLoadComparison();
+  if (!isDeepEqual(actual, expected)) {
+    innerFail({
+      actual,
+      expected,
+      message,
+      operator: 'deepEqual',
+      stackStartFn: deepEqual
+    });
+  }
+};
+
+// The non-equivalence assertion tests for any deep inequality.
+assert.notDeepEqual = function notDeepEqual(actual, expected, message) {
+  if (isDeepEqual === undefined) lazyLoadComparison();
+  if (isDeepEqual(actual, expected)) {
+    innerFail({
+      actual,
+      expected,
+      message,
+      operator: 'notDeepEqual',
+      stackStartFn: notDeepEqual
+    });
   }
 };
 /* eslint-enable */
 
 assert.deepStrictEqual = function deepStrictEqual(actual, expected, message) {
-  if (!innerDeepEqual(actual, expected, true)) {
-    innerFail(actual, expected, message, 'deepStrictEqual', deepStrictEqual);
-  }
-};
-
-// Check if they have the same source and flags
-function areSimilarRegExps(a, b) {
-  return a.source === b.source && a.flags === b.flags;
-}
-
-// For small buffers it's faster to compare the buffer in a loop. The c++
-// barrier including the Buffer.from operation takes the advantage of the faster
-// compare otherwise. 300 was the number after which compare became faster.
-function areSimilarTypedArrays(a, b) {
-  const len = a.byteLength;
-  if (len !== b.byteLength) {
-    return false;
-  }
-  if (len < 300) {
-    for (var offset = 0; offset < len; offset++) {
-      if (a[offset] !== b[offset]) {
-        return false;
-      }
-    }
-    return true;
-  }
-  return compare(Buffer.from(a.buffer,
-                             a.byteOffset,
-                             len),
-                 Buffer.from(b.buffer,
-                             b.byteOffset,
-                             b.byteLength)) === 0;
-}
-
-function isFloatTypedArrayTag(tag) {
-  return tag === '[object Float32Array]' || tag === '[object Float64Array]';
-}
-
-function isArguments(tag) {
-  return tag === '[object Arguments]';
-}
-
-function isObjectOrArrayTag(tag) {
-  return tag === '[object Array]' || tag === '[object Object]';
-}
-
-// Notes: Type tags are historical [[Class]] properties that can be set by
-// FunctionTemplate::SetClassName() in C++ or Symbol.toStringTag in JS
-// and retrieved using Object.prototype.toString.call(obj) in JS
-// See https://tc39.github.io/ecma262/#sec-object.prototype.tostring
-// for a list of tags pre-defined in the spec.
-// There are some unspecified tags in the wild too (e.g. typed array tags).
-// Since tags can be altered, they only serve fast failures
-//
-// Typed arrays and buffers are checked by comparing the content in their
-// underlying ArrayBuffer. This optimization requires that it's
-// reasonable to interpret their underlying memory in the same way,
-// which is checked by comparing their type tags.
-// (e.g. a Uint8Array and a Uint16Array with the same memory content
-// could still be different because they will be interpreted differently)
-// Never perform binary comparisons for Float*Arrays, though,
-// since e.g. +0 === -0 is true despite the two values' bit patterns
-// not being identical.
-//
-// For strict comparison, objects should have
-// a) The same built-in type tags
-// b) The same prototypes.
-function strictDeepEqual(actual, expected) {
-  if (actual === null || expected === null ||
-    typeof actual !== 'object' || typeof expected !== 'object') {
-    return false;
-  }
-  const actualTag = objectToString(actual);
-  const expectedTag = objectToString(expected);
-
-  if (actualTag !== expectedTag) {
-    return false;
-  }
-  if (Object.getPrototypeOf(actual) !== Object.getPrototypeOf(expected)) {
-    return false;
-  }
-  if (isObjectOrArrayTag(actualTag)) {
-    // Skip testing the part below and continue in the callee function.
-    return;
-  }
-  if (util.isDate(actual)) {
-    if (actual.getTime() !== expected.getTime()) {
-      return false;
-    }
-  } else if (util.isRegExp(actual)) {
-    if (!areSimilarRegExps(actual, expected)) {
-      return false;
-    }
-  } else if (!isFloatTypedArrayTag(actualTag) && ArrayBuffer.isView(actual)) {
-    if (!areSimilarTypedArrays(actual, expected)) {
-      return false;
-    }
-
-    // Buffer.compare returns true, so actual.length === expected.length
-    // if they both only contain numeric keys, we don't need to exam further
-    if (Object.keys(actual).length === actual.length &&
-        Object.keys(expected).length === expected.length) {
-      return true;
-    }
-  }
-}
-
-function looseDeepEqual(actual, expected) {
-  if (actual === null || typeof actual !== 'object') {
-    if (expected === null || typeof expected !== 'object') {
-      // eslint-disable-next-line eqeqeq
-      return actual == expected;
-    }
-    return false;
-  }
-  if (expected === null || typeof expected !== 'object') {
-    return false;
-  }
-  if (util.isDate(actual) && util.isDate(expected)) {
-    return actual.getTime() === expected.getTime();
-  }
-  if (util.isRegExp(actual) && util.isRegExp(expected)) {
-    return areSimilarRegExps(actual, expected);
-  }
-  const actualTag = objectToString(actual);
-  const expectedTag = objectToString(expected);
-  if (actualTag === expectedTag) {
-    if (!isObjectOrArrayTag(actualTag) && !isFloatTypedArrayTag(actualTag) &&
-      ArrayBuffer.isView(actual)) {
-      return areSimilarTypedArrays(actual, expected);
-    }
-  // Ensure reflexivity of deepEqual with `arguments` objects.
-  // See https://github.com/nodejs/node-v0.x-archive/pull/7178
-  } else if (isArguments(actualTag) || isArguments(expectedTag)) {
-    return false;
-  }
-}
-
-function innerDeepEqual(actual, expected, strict, memos) {
-  // All identical values are equivalent, as determined by ===.
-  if (actual === expected) {
-    return true;
-  }
-
-  // Returns a boolean if (not) equal and undefined in case we have to check
-  // further.
-  const partialCheck = strict ?
-    strictDeepEqual(actual, expected) :
-    looseDeepEqual(actual, expected);
-
-  if (partialCheck !== undefined) {
-    return partialCheck;
-  }
-
-  // For all remaining Object pairs, including Array, objects and Maps,
-  // equivalence is determined by having:
-  // a) The same number of owned enumerable properties
-  // b) The same set of keys/indexes (although not necessarily the same order)
-  // c) Equivalent values for every corresponding key/index
-  // d) For Sets and Maps, equal contents
-  // Note: this accounts for both named and indexed properties on Arrays.
-
-  // Use memos to handle cycles.
-  if (memos === undefined) {
-    memos = {
-      actual: new Map(),
-      expected: new Map(),
-      position: 0
-    };
-  } else {
-    if (memos.actual.has(actual)) {
-      return memos.actual.get(actual) === memos.expected.get(expected);
-    }
-    memos.position++;
-  }
-
-  const aKeys = Object.keys(actual);
-  const bKeys = Object.keys(expected);
-  var i;
-
-  // The pair must have the same number of owned properties
-  // (keys incorporates hasOwnProperty).
-  if (aKeys.length !== bKeys.length)
-    return false;
-
-  // Cheap key test:
-  const keys = {};
-  for (i = 0; i < aKeys.length; i++) {
-    keys[aKeys[i]] = true;
-  }
-  for (i = 0; i < aKeys.length; i++) {
-    if (keys[bKeys[i]] === undefined)
-      return false;
-  }
-
-  memos.actual.set(actual, memos.position);
-  memos.expected.set(expected, memos.position);
-
-  const areEq = objEquiv(actual, expected, strict, aKeys, memos);
-
-  memos.actual.delete(actual);
-  memos.expected.delete(expected);
-
-  return areEq;
-}
-
-function setHasEqualElement(set, val1, strict, memo) {
-  // Go looking.
-  for (const val2 of set) {
-    if (innerDeepEqual(val1, val2, strict, memo)) {
-      // Remove the matching element to make sure we do not check that again.
-      set.delete(val2);
-      return true;
-    }
-  }
-
-  return false;
-}
-
-// Note: we actually run this multiple times for each loose key!
-// This is done to prevent slowing down the average case.
-function setHasLoosePrim(a, b, val) {
-  const altValues = findLooseMatchingPrimitives(val);
-  if (altValues === undefined)
-    return false;
-
-  var matches = 1;
-  for (var i = 0; i < altValues.length; i++) {
-    if (b.has(altValues[i])) {
-      matches--;
-    }
-    if (a.has(altValues[i])) {
-      matches++;
-    }
-  }
-  return matches === 0;
-}
-
-function setEquiv(a, b, strict, memo) {
-  // This code currently returns false for this pair of sets:
-  //   assert.deepEqual(new Set(['1', 1]), new Set([1]))
-  //
-  // In theory, all the items in the first set have a corresponding == value in
-  // the second set, but the sets have different sizes. Its a silly case,
-  // and more evidence that deepStrictEqual should always be preferred over
-  // deepEqual.
-  if (a.size !== b.size)
-    return false;
-
-  // This is a lazily initiated Set of entries which have to be compared
-  // pairwise.
-  var set = null;
-  for (const val of a) {
-    // Note: Checking for the objects first improves the performance for object
-    // heavy sets but it is a minor slow down for primitives. As they are fast
-    // to check this improves the worst case scenario instead.
-    if (typeof val === 'object' && val !== null) {
-      if (set === null) {
-        set = new Set();
-      }
-      // If the specified value doesn't exist in the second set its an not null
-      // object (or non strict only: a not matching primitive) we'll need to go
-      // hunting for something thats deep-(strict-)equal to it. To make this
-      // O(n log n) complexity we have to copy these values in a new set first.
-      set.add(val);
-    } else if (!b.has(val) && (strict || !setHasLoosePrim(a, b, val))) {
-      return false;
-    }
-  }
-
-  if (set !== null) {
-    for (const val of b) {
-      // We have to check if a primitive value is already
-      // matching and only if it's not, go hunting for it.
-      if (typeof val === 'object' && val !== null) {
-        if (!setHasEqualElement(set, val, strict, memo))
-          return false;
-      } else if (!a.has(val) && (strict || !setHasLoosePrim(b, a, val))) {
-        return false;
-      }
-    }
-  }
-
-  return true;
-}
-
-function findLooseMatchingPrimitives(prim) {
-  var values, number;
-  switch (typeof prim) {
-    case 'number':
-      values = ['' + prim];
-      if (prim === 1 || prim === 0)
-        values.push(Boolean(prim));
-      return values;
-    case 'string':
-      number = +prim;
-      if ('' + number === prim) {
-        values = [number];
-        if (number === 1 || number === 0)
-          values.push(Boolean(number));
-      }
-      return values;
-    case 'undefined':
-      return [null];
-    case 'object': // Only pass in null as object!
-      return [undefined];
-    case 'boolean':
-      number = +prim;
-      return [number, '' + number];
-  }
-}
-
-// This is a ugly but relatively fast way to determine if a loose equal entry
-// actually has a correspondent matching entry. Otherwise checking for such
-// values would be way more expensive (O(n^2)).
-// Note: we actually run this multiple times for each loose key!
-// This is done to prevent slowing down the average case.
-function mapHasLoosePrim(a, b, key1, memo, item1, item2) {
-  const altKeys = findLooseMatchingPrimitives(key1);
-  if (altKeys === undefined)
-    return false;
-
-  const setA = new Set();
-  const setB = new Set();
-
-  var keyCount = 1;
-
-  setA.add(item1);
-  if (b.has(key1)) {
-    keyCount--;
-    setB.add(item2);
-  }
-
-  for (var i = 0; i < altKeys.length; i++) {
-    const key2 = altKeys[i];
-    if (a.has(key2)) {
-      keyCount++;
-      setA.add(a.get(key2));
-    }
-    if (b.has(key2)) {
-      keyCount--;
-      setB.add(b.get(key2));
-    }
-  }
-  if (keyCount !== 0 || setA.size !== setB.size)
-    return false;
-
-  for (const val of setA) {
-    if (typeof val === 'object' && val !== null) {
-      if (!setHasEqualElement(setB, val, false, memo))
-        return false;
-    } else if (!setB.has(val) && !setHasLoosePrim(setA, setB, val)) {
-      return false;
-    }
-  }
-  return true;
-}
-
-function mapHasEqualEntry(set, map, key1, item1, strict, memo) {
-  // To be able to handle cases like:
-  //   Map([[{}, 'a'], [{}, 'b']]) vs Map([[{}, 'b'], [{}, 'a']])
-  // ... we need to consider *all* matching keys, not just the first we find.
-  for (const key2 of set) {
-    if (innerDeepEqual(key1, key2, strict, memo) &&
-      innerDeepEqual(item1, map.get(key2), strict, memo)) {
-      set.delete(key2);
-      return true;
-    }
-  }
-
-  return false;
-}
-
-function mapEquiv(a, b, strict, memo) {
-  if (a.size !== b.size)
-    return false;
-
-  var set = null;
-
-  for (const [key, item1] of a) {
-    if (typeof key === 'object' && key !== null) {
-      if (set === null) {
-        set = new Set();
-      }
-      set.add(key);
-    } else {
-      // By directly retrieving the value we prevent another b.has(key) check in
-      // almost all possible cases.
-      const item2 = b.get(key);
-      if ((item2 === undefined && !b.has(key) ||
-        !innerDeepEqual(item1, item2, strict, memo)) &&
-        (strict || !mapHasLoosePrim(a, b, key, memo, item1, item2))) {
-        return false;
-      }
-    }
-  }
-
-  if (set !== null) {
-    for (const [key, item] of b) {
-      if (typeof key === 'object' && key !== null) {
-        if (!mapHasEqualEntry(set, a, key, item, strict, memo))
-          return false;
-      } else if (!a.has(key) &&
-        (strict || !mapHasLoosePrim(b, a, key, memo, item))) {
-        return false;
-      }
-    }
-  }
-
-  return true;
-}
-
-function objEquiv(a, b, strict, keys, memos) {
-  // Sets and maps don't have their entries accessible via normal object
-  // properties.
-  if (isSet(a)) {
-    if (!isSet(b) || !setEquiv(a, b, strict, memos))
-      return false;
-  } else if (isMap(a)) {
-    if (!isMap(b) || !mapEquiv(a, b, strict, memos))
-      return false;
-  } else if (isSet(b) || isMap(b)) {
-    return false;
-  }
-
-  // The pair must have equivalent values for every corresponding key.
-  // Possibly expensive deep test:
-  for (var i = 0; i < keys.length; i++) {
-    const key = keys[i];
-    if (!innerDeepEqual(a[key], b[key], strict, memos))
-      return false;
-  }
-  return true;
-}
-
-// The non-equivalence assertion tests for any deep inequality.
-assert.notDeepEqual = function notDeepEqual(actual, expected, message) {
-  if (innerDeepEqual(actual, expected, false)) {
-    innerFail(actual, expected, message, 'notDeepEqual', notDeepEqual);
+  if (isDeepEqual === undefined) lazyLoadComparison();
+  if (!isDeepStrictEqual(actual, expected)) {
+    innerFail({
+      actual,
+      expected,
+      message,
+      operator: 'deepStrictEqual',
+      stackStartFn: deepStrictEqual
+    });
   }
 };
 
 assert.notDeepStrictEqual = notDeepStrictEqual;
 function notDeepStrictEqual(actual, expected, message) {
-  if (innerDeepEqual(actual, expected, true)) {
-    innerFail(actual, expected, message, 'notDeepStrictEqual',
-              notDeepStrictEqual);
+  if (isDeepEqual === undefined) lazyLoadComparison();
+  if (isDeepStrictEqual(actual, expected)) {
+    innerFail({
+      actual,
+      expected,
+      message,
+      operator: 'notDeepStrictEqual',
+      stackStartFn: notDeepStrictEqual
+    });
   }
 }
 
-// The strict equality assertion tests strict equality, as determined by ===.
 assert.strictEqual = function strictEqual(actual, expected, message) {
-  if (actual !== expected) {
-    innerFail(actual, expected, message, '===', strictEqual);
+  if (!Object.is(actual, expected)) {
+    innerFail({
+      actual,
+      expected,
+      message,
+      operator: 'strictEqual',
+      stackStartFn: strictEqual
+    });
   }
 };
 
-// The strict non-equality assertion tests for strict inequality, as
-// determined by !==.
 assert.notStrictEqual = function notStrictEqual(actual, expected, message) {
-  if (actual === expected) {
-    innerFail(actual, expected, message, '!==', notStrictEqual);
+  if (Object.is(actual, expected)) {
+    innerFail({
+      actual,
+      expected,
+      message,
+      operator: 'notStrictEqual',
+      stackStartFn: notStrictEqual
+    });
   }
 };
 
-function expectedException(actual, expected) {
+class Comparison {
+  constructor(obj, keys, actual) {
+    for (const key of keys) {
+      if (key in obj) {
+        if (actual !== undefined &&
+            typeof actual[key] === 'string' &&
+            isRegExp(obj[key]) &&
+            obj[key].test(actual[key])) {
+          this[key] = actual[key];
+        } else {
+          this[key] = obj[key];
+        }
+      }
+    }
+  }
+}
+
+function compareExceptionKey(actual, expected, key, message, keys) {
+  if (!(key in actual) || !isDeepStrictEqual(actual[key], expected[key])) {
+    if (!message) {
+      // Create placeholder objects to create a nice output.
+      const a = new Comparison(actual, keys);
+      const b = new Comparison(expected, keys, actual);
+
+      const err = new AssertionError({
+        actual: a,
+        expected: b,
+        operator: 'deepStrictEqual',
+        stackStartFn: assert.throws
+      });
+      err.actual = actual;
+      err.expected = expected;
+      err.operator = 'throws';
+      throw err;
+    }
+    innerFail({
+      actual,
+      expected,
+      message,
+      operator: 'throws',
+      stackStartFn: assert.throws
+    });
+  }
+}
+
+function expectedException(actual, expected, msg) {
   if (typeof expected !== 'function') {
-    // Should be a RegExp, if not fail hard
-    return expected.test(actual);
+    if (isRegExp(expected))
+      return expected.test(actual);
+    // assert.doesNotThrow does not accept objects.
+    if (arguments.length === 2) {
+      throw new ERR_INVALID_ARG_TYPE(
+        'expected', ['Function', 'RegExp'], expected
+      );
+    }
+
+    // TODO: Disallow primitives as error argument.
+    // This is here to prevent a breaking change.
+    if (typeof expected !== 'object') {
+      return true;
+    }
+
+    // Handle primitives properly.
+    if (typeof actual !== 'object' || actual === null) {
+      const err = new AssertionError({
+        actual,
+        expected,
+        message: msg,
+        operator: 'deepStrictEqual',
+        stackStartFn: assert.throws
+      });
+      err.operator = 'throws';
+      throw err;
+    }
+
+    const keys = Object.keys(expected);
+    // Special handle errors to make sure the name and the message are compared
+    // as well.
+    if (expected instanceof Error) {
+      keys.push('name', 'message');
+    }
+    if (isDeepEqual === undefined) lazyLoadComparison();
+    for (const key of keys) {
+      if (typeof actual[key] === 'string' &&
+          isRegExp(expected[key]) &&
+          expected[key].test(actual[key])) {
+        continue;
+      }
+      compareExceptionKey(actual, expected, key, msg, keys);
+    }
+    return true;
   }
   // Guard instanceof against arrow functions as they don't have a prototype.
   if (expected.prototype !== undefined && actual instanceof expected) {
@@ -577,56 +489,193 @@ function expectedException(actual, expected) {
   return expected.call({}, actual) === true;
 }
 
-function tryBlock(block) {
+function getActual(block) {
+  if (typeof block !== 'function') {
+    throw new ERR_INVALID_ARG_TYPE('block', 'Function', block);
+  }
   try {
     block();
   } catch (e) {
     return e;
   }
+  return NO_EXCEPTION_SENTINEL;
 }
 
-function innerThrows(shouldThrow, block, expected, message) {
-  var details = '';
+function checkIsPromise(obj) {
+  // Accept native ES6 promises and promises that are implemented in a similar
+  // way. Do not accept thenables that use a function as `obj` and that have no
+  // `catch` handler.
+  return isPromise(obj) ||
+    obj !== null && typeof obj === 'object' &&
+    typeof obj.then === 'function' &&
+    typeof obj.catch === 'function';
+}
 
-  if (typeof block !== 'function') {
-    throw new errors.TypeError('ERR_INVALID_ARG_TYPE', 'block', 'function',
-                               block);
+async function waitForActual(block) {
+  let resultPromise;
+  if (typeof block === 'function') {
+    // Return a rejected promise if `block` throws synchronously.
+    resultPromise = block();
+    // Fail in case no promise is returned.
+    if (!checkIsPromise(resultPromise)) {
+      throw new ERR_INVALID_RETURN_VALUE('instance of Promise',
+                                         'block', resultPromise);
+    }
+  } else if (checkIsPromise(block)) {
+    resultPromise = block;
+  } else {
+    throw new ERR_INVALID_ARG_TYPE('block', ['Function', 'Promise'], block);
   }
 
-  if (typeof expected === 'string') {
-    message = expected;
-    expected = null;
+  try {
+    await resultPromise;
+  } catch (e) {
+    return e;
   }
+  return NO_EXCEPTION_SENTINEL;
+}
 
-  const actual = tryBlock(block);
-
-  if (shouldThrow === true) {
-    if (actual === undefined) {
-      if (expected && expected.name) {
-        details += ` (${expected.name})`;
+function expectsError(stackStartFn, actual, error, message) {
+  if (typeof error === 'string') {
+    if (arguments.length === 4) {
+      throw new ERR_INVALID_ARG_TYPE('error',
+                                     ['Object', 'Error', 'Function', 'RegExp'],
+                                     error);
+    }
+    if (typeof actual === 'object' && actual !== null) {
+      if (actual.message === error) {
+        throw new ERR_AMBIGUOUS_ARGUMENT(
+          'error/message',
+          `The error message "${actual.message}" is identical to the message.`
+        );
       }
-      details += message ? `: ${message}` : '.';
-      fail(actual, expected, `Missing expected exception${details}`, fail);
+    } else if (actual === error) {
+      throw new ERR_AMBIGUOUS_ARGUMENT(
+        'error/message',
+        `The error "${actual}" is identical to the message.`
+      );
     }
-    if (expected && expectedException(actual, expected) === false) {
-      throw actual;
+    message = error;
+    error = undefined;
+  }
+
+  if (actual === NO_EXCEPTION_SENTINEL) {
+    let details = '';
+    if (error && error.name) {
+      details += ` (${error.name})`;
     }
-  } else if (actual !== undefined) {
-    if (!expected || expectedException(actual, expected)) {
-      details = message ? `: ${message}` : '.';
-      fail(actual, expected, `Got unwanted exception${details}`, fail);
-    }
+    details += message ? `: ${message}` : '.';
+    const fnType = stackStartFn.name === 'rejects' ? 'rejection' : 'exception';
+    innerFail({
+      actual: undefined,
+      expected: error,
+      operator: stackStartFn.name,
+      message: `Missing expected ${fnType}${details}`,
+      stackStartFn
+    });
+  }
+  if (error && expectedException(actual, error, message) === false) {
     throw actual;
   }
 }
 
-// Expected to throw an error.
-assert.throws = function throws(block, error, message) {
-  innerThrows(true, block, error, message);
+function expectsNoError(stackStartFn, actual, error, message) {
+  if (actual === NO_EXCEPTION_SENTINEL)
+    return;
+
+  if (typeof error === 'string') {
+    message = error;
+    error = undefined;
+  }
+
+  if (!error || expectedException(actual, error)) {
+    const details = message ? `: ${message}` : '.';
+    const fnType = stackStartFn.name === 'doesNotReject' ?
+      'rejection' : 'exception';
+    innerFail({
+      actual,
+      expected: error,
+      operator: stackStartFn.name,
+      message: `Got unwanted ${fnType}${details}\n` +
+               `Actual message: "${actual && actual.message}"`,
+      stackStartFn
+    });
+  }
+  throw actual;
+}
+
+assert.throws = function throws(block, ...args) {
+  expectsError(throws, getActual(block), ...args);
 };
 
-assert.doesNotThrow = function doesNotThrow(block, error, message) {
-  innerThrows(false, block, error, message);
+assert.rejects = async function rejects(block, ...args) {
+  expectsError(rejects, await waitForActual(block), ...args);
 };
 
-assert.ifError = function ifError(err) { if (err) throw err; };
+assert.doesNotThrow = function doesNotThrow(block, ...args) {
+  expectsNoError(doesNotThrow, getActual(block), ...args);
+};
+
+assert.doesNotReject = async function doesNotReject(block, ...args) {
+  expectsNoError(doesNotReject, await waitForActual(block), ...args);
+};
+
+assert.ifError = function ifError(err) {
+  if (err !== null && err !== undefined) {
+    let message = 'ifError got unwanted exception: ';
+    if (typeof err === 'object' && typeof err.message === 'string') {
+      if (err.message.length === 0 && err.constructor) {
+        message += err.constructor.name;
+      } else {
+        message += err.message;
+      }
+    } else {
+      message += inspect(err);
+    }
+
+    const newErr = new AssertionError({
+      actual: err,
+      expected: null,
+      operator: 'ifError',
+      message,
+      stackStartFn: ifError
+    });
+
+    // Make sure we actually have a stack trace!
+    const origStack = err.stack;
+
+    if (typeof origStack === 'string') {
+      // This will remove any duplicated frames from the error frames taken
+      // from within `ifError` and add the original error frames to the newly
+      // created ones.
+      const tmp2 = origStack.split('\n');
+      tmp2.shift();
+      // Filter all frames existing in err.stack.
+      let tmp1 = newErr.stack.split('\n');
+      for (var i = 0; i < tmp2.length; i++) {
+        // Find the first occurrence of the frame.
+        const pos = tmp1.indexOf(tmp2[i]);
+        if (pos !== -1) {
+          // Only keep new frames.
+          tmp1 = tmp1.slice(0, pos);
+          break;
+        }
+      }
+      newErr.stack = `${tmp1.join('\n')}\n${tmp2.join('\n')}`;
+    }
+
+    throw newErr;
+  }
+};
+
+// Expose a strict only variant of assert
+function strict(...args) {
+  innerOk(strict, args.length, ...args);
+}
+assert.strict = Object.assign(strict, assert, {
+  equal: assert.strictEqual,
+  deepEqual: assert.deepStrictEqual,
+  notEqual: assert.notStrictEqual,
+  notDeepEqual: assert.notDeepStrictEqual
+});
+assert.strict.strict = assert.strict;

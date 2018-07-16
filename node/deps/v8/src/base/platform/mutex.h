@@ -51,13 +51,13 @@ class V8_BASE_EXPORT Mutex final {
 
   // Tries to lock the given mutex. Returns whether the mutex was
   // successfully locked.
-  bool TryLock() WARN_UNUSED_RESULT;
+  bool TryLock() V8_WARN_UNUSED_RESULT;
 
   // The implementation-defined native handle type.
 #if V8_OS_POSIX
   typedef pthread_mutex_t NativeHandle;
 #elif V8_OS_WIN
-  typedef CRITICAL_SECTION NativeHandle;
+  typedef SRWLOCK NativeHandle;
 #endif
 
   NativeHandle& native_handle() {
@@ -150,10 +150,14 @@ class V8_BASE_EXPORT RecursiveMutex final {
 
   // Tries to lock the given mutex. Returns whether the mutex was
   // successfully locked.
-  bool TryLock() WARN_UNUSED_RESULT;
+  bool TryLock() V8_WARN_UNUSED_RESULT;
 
   // The implementation-defined native handle type.
-  typedef Mutex::NativeHandle NativeHandle;
+#if V8_OS_POSIX
+  typedef pthread_mutex_t NativeHandle;
+#elif V8_OS_WIN
+  typedef CRITICAL_SECTION NativeHandle;
+#endif
 
   NativeHandle& native_handle() {
     return native_handle_;

@@ -4,8 +4,8 @@
 
 #include <stdint.h>
 
-#ifndef WASM_EXTERNAL_REFS_H
-#define WASM_EXTERNAL_REFS_H
+#ifndef V8_WASM_WASM_EXTERNAL_REFS_H_
+#define V8_WASM_WASM_EXTERNAL_REFS_H_
 
 namespace v8 {
 namespace internal {
@@ -59,7 +59,14 @@ uint32_t word32_popcnt_wrapper(uint32_t* input);
 
 uint32_t word64_popcnt_wrapper(uint64_t* input);
 
+uint32_t word32_rol_wrapper(uint32_t* input_p, uint32_t* shift_p);
+
+uint32_t word32_ror_wrapper(uint32_t* input_p, uint32_t* shift_p);
+
 void float64_pow_wrapper(double* param0, double* param1);
+
+void set_thread_in_wasm_flag();
+void clear_thread_in_wasm_flag();
 
 typedef void (*WasmTrapCallbackForTesting)();
 
@@ -70,4 +77,5 @@ void call_trap_callback_for_testing();
 }  // namespace wasm
 }  // namespace internal
 }  // namespace v8
-#endif
+
+#endif  // V8_WASM_WASM_EXTERNAL_REFS_H_

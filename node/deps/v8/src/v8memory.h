@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef V8_MEMORY_H_
-#define V8_MEMORY_H_
+#ifndef V8_V8MEMORY_H_
+#define V8_V8MEMORY_H_
 
 namespace v8 {
 namespace internal {
@@ -49,6 +49,10 @@ class Memory {
     return *reinterpret_cast<uintptr_t*>(addr);
   }
 
+  static float& float_at(Address addr) {
+    return *reinterpret_cast<float*>(addr);
+  }
+
   static double& double_at(Address addr)  {
     return *reinterpret_cast<double*>(addr);
   }
@@ -76,4 +80,4 @@ class Memory {
 }  // namespace internal
 }  // namespace v8
 
-#endif  // V8_MEMORY_H_
+#endif  // V8_V8MEMORY_H_

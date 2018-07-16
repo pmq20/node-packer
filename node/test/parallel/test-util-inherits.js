@@ -1,19 +1,16 @@
 'use strict';
 
-require('../common');
+const common = require('../common');
 const assert = require('assert');
-const inherits = require('util').inherits;
-const errCheck =
-  /^TypeError: The super constructor to "inherits" must not be null or undefined$/;
+const { inherits } = require('util');
 
-
-// super constructor
+// Super constructor
 function A() {
   this._a = 'a';
 }
 A.prototype.a = function() { return this._a; };
 
-// one level of inheritance
+// One level of inheritance
 function B(value) {
   A.call(this);
   this._b = value;
@@ -28,7 +25,7 @@ assert.strictEqual(b.a(), 'a');
 assert.strictEqual(b.b(), 'b');
 assert.strictEqual(b.constructor, B);
 
-// two levels of inheritance
+// Two levels of inheritance
 function C() {
   B.call(this, 'b');
   this._c = 'c';
@@ -43,7 +40,7 @@ const c = new C();
 assert.strictEqual(c.getValue(), 'abc');
 assert.strictEqual(c.constructor, C);
 
-// inherits can be called after setting prototype properties
+// Inherits can be called after setting prototype properties
 function D() {
   C.call(this);
   this._d = 'd';
@@ -77,13 +74,29 @@ assert.strictEqual(e.d(), 'd');
 assert.strictEqual(e.e(), 'e');
 assert.strictEqual(e.constructor, E);
 
-// should throw with invalid arguments
-assert.throws(function() {
+// Should throw with invalid arguments
+common.expectsError(function() {
   inherits(A, {});
-}, /^TypeError: The super constructor to "inherits" must have a prototype$/);
-assert.throws(function() {
+}, {
+  code: 'ERR_INVALID_ARG_TYPE',
+  type: TypeError,
+  message: 'The "superCtor.prototype" property must be of type Function. ' +
+           'Received type undefined'
+});
+
+common.expectsError(function() {
   inherits(A, null);
-}, errCheck);
-assert.throws(function() {
+}, {
+  code: 'ERR_INVALID_ARG_TYPE',
+  type: TypeError,
+  message: 'The "superCtor" argument must be of type Function. ' +
+           'Received type object'
+});
+
+common.expectsError(function() {
   inherits(null, A);
-}, /^TypeError: The constructor to "inherits" must not be null or undefined$/);
+}, {
+  code: 'ERR_INVALID_ARG_TYPE',
+  type: TypeError,
+  message: 'The "ctor" argument must be of type Function. Received type object'
+});

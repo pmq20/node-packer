@@ -7,18 +7,19 @@ if (!common.hasCrypto)
   common.skip('missing crypto');
 
 const assert = require('assert');
-const tls = require('tls');
+const fixtures = require('../common/fixtures');
 const fork = require('child_process').fork;
+const tls = require('tls');
 
 if (process.env.CHILD) {
   // This will try to load the extra CA certs, and emit a warning when it fails.
   return tls.createServer({});
 }
 
-const env = {
+const env = Object.assign({}, process.env, {
   CHILD: 'yes',
-  NODE_EXTRA_CA_CERTS: `${common.fixturesDir}/no-such-file-exists`,
-};
+  NODE_EXTRA_CA_CERTS: `${fixtures.fixturesDir}/no-such-file-exists-🐢`,
+});
 
 const opts = {
   env: env,
@@ -31,8 +32,12 @@ fork(__filename, opts)
     assert.strictEqual(status, 0, 'client did not succeed in connecting');
   }))
   .on('close', common.mustCall(function() {
-    const re = /Warning: Ignoring extra certs from.*no-such-file-exists.* load failed:.*No such file or directory/;
-    assert(re.test(stderr), stderr);
+    // TODO(addaleax): Make `SafeGetenv` work like `process.env`
+    // encoding-wise
+    if (!common.isWindows) {
+      const re = /Warning: Ignoring extra certs from.*no-such-file-exists-🐢.* load failed:.*No such file or directory/;
+      assert(re.test(stderr), stderr);
+    }
   }))
   .stderr.setEncoding('utf8').on('data', function(str) {
     stderr += str;

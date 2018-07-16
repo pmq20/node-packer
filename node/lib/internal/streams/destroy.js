@@ -31,16 +31,32 @@ function destroy(err, cb) {
 
   this._destroy(err || null, (err) => {
     if (!cb && err) {
-      process.nextTick(emitErrorNT, this, err);
+      process.nextTick(emitErrorAndCloseNT, this, err);
       if (this._writableState) {
         this._writableState.errorEmitted = true;
       }
     } else if (cb) {
+      process.nextTick(emitCloseNT, this);
       cb(err);
+    } else {
+      process.nextTick(emitCloseNT, this);
     }
   });
 
   return this;
+}
+
+function emitErrorAndCloseNT(self, err) {
+  emitErrorNT(self, err);
+  emitCloseNT(self);
+}
+
+function emitCloseNT(self) {
+  if (self._writableState && !self._writableState.emitClose)
+    return;
+  if (self._readableState && !self._readableState.emitClose)
+    return;
+  self.emit('close');
 }
 
 function undestroy() {
@@ -55,6 +71,8 @@ function undestroy() {
     this._writableState.destroyed = false;
     this._writableState.ended = false;
     this._writableState.ending = false;
+    this._writableState.finalCalled = false;
+    this._writableState.prefinished = false;
     this._writableState.finished = false;
     this._writableState.errorEmitted = false;
   }

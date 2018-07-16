@@ -1,34 +1,32 @@
 'use strict';
-var fs = require('fs'),
-  path = require('path'),
-  tls = require('tls');
+const fs = require('fs');
+const path = require('path');
+const tls = require('tls');
 
-var common = require('../common.js');
-var bench = common.createBenchmark(main, {
+const common = require('../common.js');
+const bench = common.createBenchmark(main, {
   concurrency: [1, 10],
   dur: [5]
 });
 
 var clientConn = 0;
 var serverConn = 0;
-var server;
 var dur;
 var concurrency;
 var running = true;
 
 function main(conf) {
-  dur = +conf.dur;
-  concurrency = +conf.concurrency;
-
-  var cert_dir = path.resolve(__dirname, '../../test/fixtures');
-  var options = {
+  dur = conf.dur;
+  concurrency = conf.concurrency;
+  const cert_dir = path.resolve(__dirname, '../../test/fixtures');
+  const options = {
     key: fs.readFileSync(`${cert_dir}/test_key.pem`),
     cert: fs.readFileSync(`${cert_dir}/test_cert.pem`),
     ca: [ fs.readFileSync(`${cert_dir}/test_ca.pem`) ],
     ciphers: 'AES256-GCM-SHA384'
   };
 
-  server = tls.createServer(options, onConnection);
+  const server = tls.createServer(options, onConnection);
   server.listen(common.PORT, onListening);
 }
 
@@ -44,7 +42,7 @@ function onConnection(conn) {
 }
 
 function makeConnection() {
-  var options = {
+  const options = {
     port: common.PORT,
     rejectUnauthorized: false
   };

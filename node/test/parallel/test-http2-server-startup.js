@@ -1,4 +1,3 @@
-// Flags: --expose-http2
 'use strict';
 
 // Tests the basic operation of creating a plaintext or TLS
@@ -6,46 +5,34 @@
 // other than start listening.
 
 const common = require('../common');
+const commonFixtures = require('../common/fixtures');
 
 if (!common.hasCrypto)
   common.skip('missing crypto');
 
-const assert = require('assert');
 const http2 = require('http2');
-const path = require('path');
 const tls = require('tls');
 const net = require('net');
-const fs = require('fs');
 
 const options = {
-  key: fs.readFileSync(
-    path.resolve(common.fixturesDir, 'keys/agent2-key.pem')),
-  cert: fs.readFileSync(
-    path.resolve(common.fixturesDir, 'keys/agent2-cert.pem'))
+  key: commonFixtures.readKey('agent2-key.pem'),
+  cert: commonFixtures.readKey('agent2-cert.pem')
 };
 
-// There should not be any throws
-assert.doesNotThrow(() => {
+// There should not be any throws.
+const serverTLS = http2.createSecureServer(options, () => {});
+serverTLS.listen(0, common.mustCall(() => serverTLS.close()));
 
-  const serverTLS = http2.createSecureServer(options, () => {});
+// There should not be an error event reported either.
+serverTLS.on('error', common.mustNotCall());
 
-  serverTLS.listen(0, common.mustCall(() => serverTLS.close()));
+const server = http2.createServer(options, common.mustNotCall());
+server.listen(0, common.mustCall(() => server.close()));
 
-  // There should not be an error event reported either
-  serverTLS.on('error', common.mustNotCall());
-});
+// There should not be an error event reported either.
+server.on('error', common.mustNotCall());
 
-// There should not be any throws
-assert.doesNotThrow(() => {
-  const server = http2.createServer(options, common.mustNotCall());
-
-  server.listen(0, common.mustCall(() => server.close()));
-
-  // There should not be an error event reported either
-  server.on('error', common.mustNotCall());
-});
-
-// Test the plaintext server socket timeout
+// Test the plaintext server socket timeout.
 {
   let client;
   const server = http2.createServer();
@@ -54,14 +41,14 @@ assert.doesNotThrow(() => {
     if (client)
       client.end();
   }));
-  server.setTimeout(common.platformTimeout(1000));
+  server.setTimeout(common.platformTimeout(1000), common.mustCall());
   server.listen(0, common.mustCall(() => {
     const port = server.address().port;
     client = net.connect(port, common.mustCall());
   }));
 }
 
-// Test the secure server socket timeout
+// Test the secure server socket timeout.
 {
   let client;
   const server = http2.createSecureServer(options);
@@ -70,7 +57,7 @@ assert.doesNotThrow(() => {
     if (client)
       client.end();
   }));
-  server.setTimeout(common.platformTimeout(1000));
+  server.setTimeout(common.platformTimeout(1000), common.mustCall());
   server.listen(0, common.mustCall(() => {
     const port = server.address().port;
     client = tls.connect({

@@ -21,21 +21,16 @@
 
 'use strict';
 const common = require('../common');
+if (!common.hasCrypto)
+  common.skip('missing crypto');
+const fixtures = require('../common/fixtures');
+const assert = require('assert');
+const tls = require('tls');
+const { spawn } = require('child_process');
 
 if (!common.opensslCli)
   common.skip('node compiled without OpenSSL CLI.');
 
-if (!common.hasCrypto)
-  common.skip('missing crypto');
-
-const assert = require('assert');
-const tls = require('tls');
-const fs = require('fs');
-const { join } = require('path');
-const { spawn } = require('child_process');
-
-const keyFile = join(common.fixturesDir, 'agent.key');
-const certFile = join(common.fixturesDir, 'agent.crt');
 
 doTest({ tickets: false }, function() {
   doTest({ tickets: true }, function() {
@@ -46,11 +41,11 @@ doTest({ tickets: false }, function() {
 });
 
 function doTest(testOptions, callback) {
-  const key = fs.readFileSync(keyFile);
-  const cert = fs.readFileSync(certFile);
+  const key = fixtures.readSync('agent.key');
+  const cert = fixtures.readSync('agent.crt');
   const options = {
-    key: key,
-    cert: cert,
+    key,
+    cert,
     ca: [cert],
     requestCert: true,
     rejectUnauthorized: false
@@ -74,14 +69,11 @@ function doTest(testOptions, callback) {
   server.on('newSession', function(id, data, cb) {
     ++newSessionCount;
     // Emulate asynchronous store
-    setTimeout(function() {
+    setImmediate(() => {
       assert.ok(!session);
-      session = {
-        id: id,
-        data: data
-      };
+      session = { id, data };
       cb();
-    }, 1000);
+    });
   });
   server.on('resumeSession', function(id, callback) {
     ++resumeCount;
@@ -97,9 +89,9 @@ function doTest(testOptions, callback) {
     }
 
     // Just to check that async really works there
-    setTimeout(function() {
+    setImmediate(() => {
       callback(null, data);
-    }, 100);
+    });
   });
 
   server.listen(0, function() {
@@ -108,14 +100,10 @@ function doTest(testOptions, callback) {
       '-tls1',
       '-connect', `localhost:${this.address().port}`,
       '-servername', 'ohgod',
-      '-key', join(common.fixturesDir, 'agent.key'),
-      '-cert', join(common.fixturesDir, 'agent.crt'),
+      '-key', fixtures.path('agent.key'),
+      '-cert', fixtures.path('agent.crt'),
       '-reconnect'
     ].concat(testOptions.tickets ? [] : '-no_ticket');
-
-    // for the performance and stability issue in s_client on Windows
-    if (common.isWindows)
-      args.push('-no_rand_screen');
 
     function spawnClient() {
       const client = spawn(common.opensslCli, args, {
@@ -140,7 +128,7 @@ function doTest(testOptions, callback) {
         }
         assert.strictEqual(code, 0);
         server.close(common.mustCall(function() {
-          setTimeout(callback, 100);
+          setImmediate(callback);
         }));
       }));
     }

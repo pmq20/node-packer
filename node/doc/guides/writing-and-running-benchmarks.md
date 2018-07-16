@@ -10,6 +10,7 @@
   * [Running all benchmarks](#running-all-benchmarks)
   * [Comparing Node.js versions](#comparing-nodejs-versions)
   * [Comparing parameters](#comparing-parameters)
+  * [Running Benchmarks on the CI](#running-benchmarks-on-the-ci)
 * [Creating a benchmark](#creating-a-benchmark)
   * [Basics of a benchmark](#basics-of-a-benchmark)
   * [Creating an HTTP benchmark](#creating-an-http-benchmark)
@@ -30,8 +31,8 @@ either [`wrk`][wrk] or [`autocannon`][autocannon].
 path. In order to compare two HTTP benchmark runs, make sure that the
 Node.js version in the path is not altered.
 
-`wrk` may be available through one of the available package managers. If not, it can
-be easily built [from source][wrk] via `make`.
+`wrk` may be available through one of the available package managers. If not,
+it can be easily built [from source][wrk] via `make`.
 
 By default, `wrk` will be used as the benchmarker. If it is not available,
 `autocannon` will be used in its place. When creating an HTTP benchmark, the
@@ -103,7 +104,7 @@ buffers/buffer-tostring.js n=10000000 len=1024 arg=false: 4103857.0726124765
 Each line represents a single benchmark with parameters specified as
 `${variable}=${value}`. Each configuration combination is executed in a separate
 process. This ensures that benchmark results aren't affected by the execution
-order due to v8 optimizations. **The last number is the rate of operations
+order due to V8 optimizations. **The last number is the rate of operations
 measured in ops/sec (higher is better).**
 
 Furthermore a subset of the configurations can be specified, by setting them in
@@ -143,6 +144,7 @@ arrays/zero-int.js n=25 type=Buffer: 90.49906662339653
 ```
 
 It is possible to execute more groups by adding extra process arguments.
+
 ```console
 $ node benchmark/run.js arrays buffers
 ```
@@ -163,10 +165,36 @@ First build two versions of Node.js, one from the master branch (here called
 `./node-master`) and another with the pull request applied (here called
 `./node-pr-5134`).
 
+To run multiple compiled versions in parallel you need to copy the output of the
+build: `cp ./out/Release/node ./node-master`. Check out the following example:
+
+```console
+$ git checkout master
+$ ./configure && make -j4
+$ cp ./out/Release/node ./node-master
+
+$ git checkout pr-5134
+$ ./configure && make -j4
+$ cp ./out/Release/node ./node-pr-5134
+```
+
 The `compare.js` tool will then produce a csv file with the benchmark results.
 
 ```console
 $ node benchmark/compare.js --old ./node-master --new ./node-pr-5134 string_decoder > compare-pr-5134.csv
+```
+
+*Tips: there are some useful options of `benchmark/compare.js`. For example,
+if you want to compare the benchmark of a single script instead of a whole
+module, you can use the `--filter` option:*
+
+```console
+  --new      ./new-node-binary  new node binary (required)
+  --old      ./old-node-binary  old node binary (required)
+  --runs     30                 number of samples
+  --filter   pattern            string to filter benchmark scripts
+  --set      variable=value     set benchmark variable (can be repeated)
+  --no-progress                 don't show benchmark progress indicator
 ```
 
 For analysing the benchmark results use the `compare.R` tool.
@@ -174,12 +202,11 @@ For analysing the benchmark results use the `compare.R` tool.
 ```console
 $ cat compare-pr-5134.csv | Rscript benchmark/compare.R
 
-                                                                                      improvement confidence      p.value
-string_decoder/string-decoder.js n=250000 chunk=1024 inlen=1024 encoding=ascii           12.46 %         *** 1.165345e-04
-string_decoder/string-decoder.js n=250000 chunk=1024 inlen=1024 encoding=base64-ascii    24.70 %         *** 1.820615e-15
-string_decoder/string-decoder.js n=250000 chunk=1024 inlen=1024 encoding=base64-utf8     23.60 %         *** 2.105625e-12
-string_decoder/string-decoder.js n=250000 chunk=1024 inlen=1024 encoding=utf8            14.04 %         *** 1.291105e-07
-string_decoder/string-decoder.js n=250000 chunk=1024 inlen=128  encoding=ascii            6.70 %           * 2.928003e-02
+                                                                                             confidence improvement accuracy (*)    (**)   (***)
+ string_decoder/string-decoder.js n=2500000 chunkLen=16 inLen=128 encoding='ascii'                  ***     -3.76 %       ±1.36%  ±1.82%  ±2.40%
+ string_decoder/string-decoder.js n=2500000 chunkLen=16 inLen=128 encoding='utf8'                    **     -0.81 %       ±0.53%  ±0.71%  ±0.93%
+ string_decoder/string-decoder.js n=2500000 chunkLen=16 inLen=32 encoding='ascii'                   ***     -2.70 %       ±0.83%  ±1.11%  ±1.45%
+ string_decoder/string-decoder.js n=2500000 chunkLen=16 inLen=32 encoding='base64-ascii'            ***     -1.57 %       ±0.83%  ±1.11%  ±1.46%
 ...
 ```
 
@@ -208,19 +235,18 @@ is less than `0.05`._
 The `compare.R` tool can also produce a box plot by using the `--plot filename`
 option. In this case there are 48 different benchmark combinations, and there
 may be a need to filter the csv file. This can be done while benchmarking
-using the `--set` parameter (e.g. `--set encoding=ascii`) or by filtering results
-afterwards using tools such as `sed` or `grep`. In the `sed` case be sure to
-keep the first line since that contains the header information.
+using the `--set` parameter (e.g. `--set encoding=ascii`) or by filtering
+results afterwards using tools such as `sed` or `grep`. In the `sed` case be
+sure to keep the first line since that contains the header information.
 
 ```console
-$ cat compare-pr-5134.csv | sed '1p;/encoding=ascii/!d' | Rscript benchmark/compare.R --plot compare-plot.png
+$ cat compare-pr-5134.csv | sed '1p;/encoding='"'"ascii"'"'/!d' | Rscript benchmark/compare.R --plot compare-plot.png
 
-                                                                               improvement confidence      p.value
-string_decoder/string-decoder.js n=250000 chunk=1024 inlen=1024 encoding=ascii    12.46 %         *** 1.165345e-04
-string_decoder/string-decoder.js n=250000 chunk=1024 inlen=128 encoding=ascii      6.70 %           * 2.928003e-02
-string_decoder/string-decoder.js n=250000 chunk=1024 inlen=32 encoding=ascii       7.47 %         *** 5.780583e-04
-string_decoder/string-decoder.js n=250000 chunk=16 inlen=1024 encoding=ascii       8.94 %         *** 1.788579e-04
-string_decoder/string-decoder.js n=250000 chunk=16 inlen=128 encoding=ascii       10.54 %         *** 4.016172e-05
+                                                                                      confidence improvement accuracy (*)    (**)   (***)
+ string_decoder/string-decoder.js n=2500000 chunkLen=16 inLen=128 encoding='ascii'           ***     -3.76 %       ±1.36%  ±1.82%  ±2.40%
+ string_decoder/string-decoder.js n=2500000 chunkLen=16 inLen=32 encoding='ascii'            ***     -2.70 %       ±0.83%  ±1.11%  ±1.45%
+ string_decoder/string-decoder.js n=2500000 chunkLen=16 inLen=4096 encoding='ascii'          ***     -4.06 %       ±0.31%  ±0.41%  ±0.54%
+ string_decoder/string-decoder.js n=2500000 chunkLen=256 inLen=1024 encoding='ascii'         ***     -1.42 %       ±0.58%  ±0.77%  ±1.01%
 ...
 ```
 
@@ -297,6 +323,11 @@ chunk     encoding       mean confidence.interval
 ```
 
 ![compare tool boxplot](doc_img/scatter-plot.png)
+
+### Running Benchmarks on the CI
+
+To see the performance impact of a Pull Request by running benchmarks on
+the CI, check out [How to: Running core benchmarks on Node.js CI][benchmark-ci].
 
 ## Creating a benchmark
 
@@ -420,6 +451,7 @@ function main(conf) {
 ```
 
 Supported options keys are:
+
 * `port` - defaults to `common.PORT`
 * `path` - defaults to `/`
 * `connections` - number of concurrent connections to use, defaults to 100
@@ -432,3 +464,4 @@ Supported options keys are:
 [t-test]: https://en.wikipedia.org/wiki/Student%27s_t-test#Equal_or_unequal_sample_sizes.2C_unequal_variances
 [git-for-windows]: http://git-scm.com/download/win
 [nghttp2.org]: http://nghttp2.org
+[benchmark-ci]: https://github.com/nodejs/benchmarking/blob/master/docs/core_benchmarks.md

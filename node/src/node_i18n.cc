@@ -46,12 +46,10 @@
 
 #include "node.h"
 #include "node_buffer.h"
-#include "env.h"
+#include "node_errors.h"
 #include "env-inl.h"
-#include "util.h"
 #include "util-inl.h"
-#include "base-object.h"
-#include "base-object-inl.h"
+#include "base_object-inl.h"
 #include "v8.h"
 
 #include <unicode/utypes.h>
@@ -117,21 +115,21 @@ MaybeLocal<Object> ToBufferEndian(Environment* env, MaybeStackBuffer<T>* buf) {
 }
 
 struct Converter {
-  explicit Converter(const char* name, const char* sub = NULL)
+  explicit Converter(const char* name, const char* sub = nullptr)
       : conv(nullptr) {
     UErrorCode status = U_ZERO_ERROR;
     conv = ucnv_open(name, &status);
     CHECK(U_SUCCESS(status));
-    if (sub != NULL) {
+    if (sub != nullptr) {
       ucnv_setSubstChars(conv, sub, strlen(sub), &status);
     }
   }
 
   explicit Converter(UConverter* converter,
-                     const char* sub = NULL) : conv(converter) {
-    CHECK_NE(conv, nullptr);
+                     const char* sub = nullptr) : conv(converter) {
+    CHECK_NOT_NULL(conv);
     UErrorCode status = U_ZERO_ERROR;
-    if (sub != NULL) {
+    if (sub != nullptr) {
       ucnv_setSubstChars(conv, sub, strlen(sub), &status);
     }
   }
@@ -232,7 +230,7 @@ class ConverterObject : public BaseObject, Converter {
     ucnv_toUnicode(converter->conv,
                    &target, target + (limit * sizeof(UChar)),
                    &source, source + source_length,
-                   NULL, flush, &status);
+                   nullptr, flush, &status);
 
     if (U_SUCCESS(status)) {
       if (limit > 0)
@@ -257,11 +255,11 @@ class ConverterObject : public BaseObject, Converter {
                   v8::Local<v8::Object> wrap,
                   UConverter* converter,
                   bool ignoreBOM,
-                  const char* sub = NULL) :
+                  const char* sub = nullptr) :
                   BaseObject(env, wrap),
                   Converter(converter, sub),
                   ignoreBOM_(ignoreBOM) {
-    MakeWeak<ConverterObject>(this);
+    MakeWeak();
 
     switch (ucnv_getType(converter)) {
       case UCNV_UTF8:
@@ -430,7 +428,7 @@ const char* EncodingName(const enum encoding encoding) {
     case LATIN1: return "iso8859-1";
     case UCS2: return "utf16le";
     case UTF8: return "utf-8";
-    default: return NULL;
+    default: return nullptr;
   }
 }
 
@@ -450,7 +448,7 @@ void Transcode(const FunctionCallbackInfo<Value>&args) {
   UErrorCode status = U_ZERO_ERROR;
   MaybeLocal<Object> result;
 
-  THROW_AND_RETURN_UNLESS_BUFFER(env, args[0]);
+  CHECK(Buffer::HasInstance(args[0]));
   SPREAD_BUFFER_ARG(args[0], ts_obj);
   const enum encoding fromEncoding = ParseEncoding(isolate, args[1], BUFFER);
   const enum encoding toEncoding = ParseEncoding(isolate, args[2], BUFFER);
@@ -526,7 +524,7 @@ const char* GetVersion(const char* type,
   } else if (!strcmp(type, TYPE_UNICODE)) {
     return U_UNICODE_VERSION;
   } else if (!strcmp(type, TYPE_TZ)) {
-    return TimeZone::getTZDataVersion(*status);
+    return icu::TimeZone::getTZDataVersion(*status);
   } else if (!strcmp(type, TYPE_CLDR)) {
     UVersionInfo versionArray;
     ulocdata_getCLDRVersion(versionArray, status);
@@ -791,7 +789,8 @@ static int GetColumnWidth(UChar32 codepoint,
       if (ambiguous_as_full_width) {
         return 2;
       }
-      // Fall through if ambiguous_as_full_width if false.
+      // If ambiguous_as_full_width is false:
+      // Fall through
     case U_EA_NEUTRAL:
       if (u_hasBinaryProperty(codepoint, UCHAR_EMOJI_PRESENTATION)) {
         return 2;
@@ -854,10 +853,10 @@ static void GetStringWidth(const FunctionCallbackInfo<Value>& args) {
   args.GetReturnValue().Set(width);
 }
 
-void Init(Local<Object> target,
-          Local<Value> unused,
-          Local<Context> context,
-          void* priv) {
+void Initialize(Local<Object> target,
+                Local<Value> unused,
+                Local<Context> context,
+                void* priv) {
   Environment* env = Environment::GetCurrent(context);
   env->SetMethod(target, "toUnicode", ToUnicode);
   env->SetMethod(target, "toASCII", ToASCII);
@@ -877,6 +876,6 @@ void Init(Local<Object> target,
 }  // namespace i18n
 }  // namespace node
 
-NODE_MODULE_CONTEXT_AWARE_BUILTIN(icu, node::i18n::Init)
+NODE_BUILTIN_MODULE_CONTEXT_AWARE(icu, node::i18n::Initialize)
 
 #endif  // NODE_HAVE_I18N_SUPPORT

@@ -4,7 +4,8 @@
     {
       "textRaw": "V8",
       "name": "v8",
-      "desc": "<p>The <code>v8</code> module exposes APIs that are specific to the version of <a href=\"https://developers.google.com/v8/\">V8</a>\nbuilt into the Node.js binary. It can be accessed using:</p>\n<pre><code class=\"lang-js\">const v8 = require(&#39;v8&#39;);\n</code></pre>\n<p><em>Note</em>: The APIs and implementation are subject to change at any time.</p>\n",
+      "introduced_in": "v4.0.0",
+      "desc": "<p>The <code>v8</code> module exposes APIs that are specific to the version of <a href=\"https://developers.google.com/v8/\">V8</a>\nbuilt into the Node.js binary. It can be accessed using:</p>\n<pre><code class=\"lang-js\">const v8 = require(&#39;v8&#39;);\n</code></pre>\n<p>The APIs and implementation are subject to change at any time.</p>\n",
       "methods": [
         {
           "textRaw": "v8.cachedDataVersionTag()",
@@ -16,12 +17,20 @@
             ],
             "changes": []
           },
-          "desc": "<p>Returns an integer representing a &quot;version tag&quot; derived from the V8 version,\ncommand line flags and detected CPU features. This is useful for determining\nwhether a <a href=\"vm.html#vm_new_vm_script_code_options\"><code>vm.Script</code></a> <code>cachedData</code> buffer is compatible with this instance\nof V8.</p>\n",
           "signatures": [
+            {
+              "return": {
+                "textRaw": "Returns: {integer} ",
+                "name": "return",
+                "type": "integer"
+              },
+              "params": []
+            },
             {
               "params": []
             }
-          ]
+          ],
+          "desc": "<p>Returns an integer representing a &quot;version tag&quot; derived from the V8 version,\ncommand line flags and detected CPU features. This is useful for determining\nwhether a <a href=\"vm.html#vm_new_vm_script_code_options\"><code>vm.Script</code></a> <code>cachedData</code> buffer is compatible with this instance\nof V8.</p>\n"
         },
         {
           "textRaw": "v8.getHeapSpaceStatistics()",
@@ -39,12 +48,20 @@
               }
             ]
           },
-          "desc": "<p>Returns statistics about the V8 heap spaces, i.e. the segments which make up\nthe V8 heap. Neither the ordering of heap spaces, nor the availability of a\nheap space can be guaranteed as the statistics are provided via the V8\n<a href=\"https://v8docs.nodesource.com/node-8.0/d5/dda/classv8_1_1_isolate.html#ac673576f24fdc7a33378f8f57e1d13a4\"><code>GetHeapSpaceStatistics</code></a> function and may change from one V8 version to the\nnext.</p>\n<p>The value returned is an array of objects containing the following properties:</p>\n<ul>\n<li><code>space_name</code> {string}</li>\n<li><code>space_size</code> {number}</li>\n<li><code>space_used_size</code> {number}</li>\n<li><code>space_available_size</code> {number}</li>\n<li><code>physical_space_size</code> {number}</li>\n</ul>\n<p>For example:</p>\n<pre><code class=\"lang-json\">[\n  {\n    &quot;space_name&quot;: &quot;new_space&quot;,\n    &quot;space_size&quot;: 2063872,\n    &quot;space_used_size&quot;: 951112,\n    &quot;space_available_size&quot;: 80824,\n    &quot;physical_space_size&quot;: 2063872\n  },\n  {\n    &quot;space_name&quot;: &quot;old_space&quot;,\n    &quot;space_size&quot;: 3090560,\n    &quot;space_used_size&quot;: 2493792,\n    &quot;space_available_size&quot;: 0,\n    &quot;physical_space_size&quot;: 3090560\n  },\n  {\n    &quot;space_name&quot;: &quot;code_space&quot;,\n    &quot;space_size&quot;: 1260160,\n    &quot;space_used_size&quot;: 644256,\n    &quot;space_available_size&quot;: 960,\n    &quot;physical_space_size&quot;: 1260160\n  },\n  {\n    &quot;space_name&quot;: &quot;map_space&quot;,\n    &quot;space_size&quot;: 1094160,\n    &quot;space_used_size&quot;: 201608,\n    &quot;space_available_size&quot;: 0,\n    &quot;physical_space_size&quot;: 1094160\n  },\n  {\n    &quot;space_name&quot;: &quot;large_object_space&quot;,\n    &quot;space_size&quot;: 0,\n    &quot;space_used_size&quot;: 0,\n    &quot;space_available_size&quot;: 1490980608,\n    &quot;physical_space_size&quot;: 0\n  }\n]\n</code></pre>\n",
           "signatures": [
+            {
+              "return": {
+                "textRaw": "Returns: {Object[]} ",
+                "name": "return",
+                "type": "Object[]"
+              },
+              "params": []
+            },
             {
               "params": []
             }
-          ]
+          ],
+          "desc": "<p>Returns statistics about the V8 heap spaces, i.e. the segments which make up\nthe V8 heap. Neither the ordering of heap spaces, nor the availability of a\nheap space can be guaranteed as the statistics are provided via the V8\n<a href=\"https://v8docs.nodesource.com/node-8.0/d5/dda/classv8_1_1_isolate.html#ac673576f24fdc7a33378f8f57e1d13a4\"><code>GetHeapSpaceStatistics</code></a> function and may change from one V8 version to the\nnext.</p>\n<p>The value returned is an array of objects containing the following properties:</p>\n<ul>\n<li><code>space_name</code> {string}</li>\n<li><code>space_size</code> {number}</li>\n<li><code>space_used_size</code> {number}</li>\n<li><code>space_available_size</code> {number}</li>\n<li><code>physical_space_size</code> {number}</li>\n</ul>\n<pre><code class=\"lang-json\">[\n  {\n    &quot;space_name&quot;: &quot;new_space&quot;,\n    &quot;space_size&quot;: 2063872,\n    &quot;space_used_size&quot;: 951112,\n    &quot;space_available_size&quot;: 80824,\n    &quot;physical_space_size&quot;: 2063872\n  },\n  {\n    &quot;space_name&quot;: &quot;old_space&quot;,\n    &quot;space_size&quot;: 3090560,\n    &quot;space_used_size&quot;: 2493792,\n    &quot;space_available_size&quot;: 0,\n    &quot;physical_space_size&quot;: 3090560\n  },\n  {\n    &quot;space_name&quot;: &quot;code_space&quot;,\n    &quot;space_size&quot;: 1260160,\n    &quot;space_used_size&quot;: 644256,\n    &quot;space_available_size&quot;: 960,\n    &quot;physical_space_size&quot;: 1260160\n  },\n  {\n    &quot;space_name&quot;: &quot;map_space&quot;,\n    &quot;space_size&quot;: 1094160,\n    &quot;space_used_size&quot;: 201608,\n    &quot;space_available_size&quot;: 0,\n    &quot;physical_space_size&quot;: 1094160\n  },\n  {\n    &quot;space_name&quot;: &quot;large_object_space&quot;,\n    &quot;space_size&quot;: 0,\n    &quot;space_used_size&quot;: 0,\n    &quot;space_available_size&quot;: 1490980608,\n    &quot;physical_space_size&quot;: 0\n  }\n]\n</code></pre>\n"
         },
         {
           "textRaw": "v8.getHeapStatistics()",
@@ -67,15 +84,23 @@
               }
             ]
           },
-          "desc": "<p>Returns an object with the following properties:</p>\n<ul>\n<li><code>total_heap_size</code> {number}</li>\n<li><code>total_heap_size_executable</code> {number}</li>\n<li><code>total_physical_size</code> {number}</li>\n<li><code>total_available_size</code> {number}</li>\n<li><code>used_heap_size</code> {number}</li>\n<li><code>heap_size_limit</code> {number}</li>\n<li><code>malloced_memory</code> {number}</li>\n<li><code>peak_malloced_memory</code> {number}</li>\n<li><code>does_zap_garbage</code> {number}</li>\n</ul>\n<p><code>does_zap_garbage</code> is a 0/1 boolean, which signifies whether the <code>--zap_code_space</code>\noption is enabled or not. This makes V8 overwrite heap garbage with a bit\npattern. The RSS footprint (resident memory set) gets bigger because it\ncontinuously touches all heap pages and that makes them less likely to get\nswapped out by the operating system.</p>\n<p>For example:</p>\n<!-- eslint-skip -->\n<pre><code class=\"lang-js\">{\n  total_heap_size: 7326976,\n  total_heap_size_executable: 4194304,\n  total_physical_size: 7326976,\n  total_available_size: 1152656,\n  used_heap_size: 3476208,\n  heap_size_limit: 1535115264,\n  malloced_memory: 16384,\n  peak_malloced_memory: 1127496,\n  does_zap_garbage: 0\n}\n</code></pre>\n",
           "signatures": [
+            {
+              "return": {
+                "textRaw": "Returns: {Object} ",
+                "name": "return",
+                "type": "Object"
+              },
+              "params": []
+            },
             {
               "params": []
             }
-          ]
+          ],
+          "desc": "<p>Returns an object with the following properties:</p>\n<ul>\n<li><code>total_heap_size</code> {number}</li>\n<li><code>total_heap_size_executable</code> {number}</li>\n<li><code>total_physical_size</code> {number}</li>\n<li><code>total_available_size</code> {number}</li>\n<li><code>used_heap_size</code> {number}</li>\n<li><code>heap_size_limit</code> {number}</li>\n<li><code>malloced_memory</code> {number}</li>\n<li><code>peak_malloced_memory</code> {number}</li>\n<li><code>does_zap_garbage</code> {number}</li>\n</ul>\n<p><code>does_zap_garbage</code> is a 0/1 boolean, which signifies whether the\n<code>--zap_code_space</code> option is enabled or not. This makes V8 overwrite heap\ngarbage with a bit pattern. The RSS footprint (resident memory set) gets bigger\nbecause it continuously touches all heap pages and that makes them less likely\nto get swapped out by the operating system.</p>\n<!-- eslint-skip -->\n<pre><code class=\"lang-js\">{\n  total_heap_size: 7326976,\n  total_heap_size_executable: 4194304,\n  total_physical_size: 7326976,\n  total_available_size: 1152656,\n  used_heap_size: 3476208,\n  heap_size_limit: 1535115264,\n  malloced_memory: 16384,\n  peak_malloced_memory: 1127496,\n  does_zap_garbage: 0\n}\n</code></pre>\n"
         },
         {
-          "textRaw": "v8.setFlagsFromString(string)",
+          "textRaw": "v8.setFlagsFromString(flags)",
           "type": "method",
           "name": "setFlagsFromString",
           "meta": {
@@ -84,16 +109,25 @@
             ],
             "changes": []
           },
-          "desc": "<p>The <code>v8.setFlagsFromString()</code> method can be used to programmatically set\nV8 command line flags. This method should be used with care. Changing settings\nafter the VM has started may result in unpredictable behavior, including\ncrashes and data loss; or it may simply do nothing.</p>\n<p>The V8 options available for a version of Node.js may be determined by running\n<code>node --v8-options</code>.  An unofficial, community-maintained list of options\nand their effects is available <a href=\"https://github.com/thlorenz/v8-flags/blob/master/flags-0.11.md\">here</a>.</p>\n<p>Usage:</p>\n<pre><code class=\"lang-js\">// Print GC events to stdout for one minute.\nconst v8 = require(&#39;v8&#39;);\nv8.setFlagsFromString(&#39;--trace_gc&#39;);\nsetTimeout(function() { v8.setFlagsFromString(&#39;--notrace_gc&#39;); }, 60e3);\n</code></pre>\n",
           "signatures": [
             {
               "params": [
                 {
-                  "name": "string"
+                  "textRaw": "`flags` {string} ",
+                  "name": "flags",
+                  "type": "string"
+                }
+              ]
+            },
+            {
+              "params": [
+                {
+                  "name": "flags"
                 }
               ]
             }
-          ]
+          ],
+          "desc": "<p>The <code>v8.setFlagsFromString()</code> method can be used to programmatically set\nV8 command line flags. This method should be used with care. Changing settings\nafter the VM has started may result in unpredictable behavior, including\ncrashes and data loss; or it may simply do nothing.</p>\n<p>The V8 options available for a version of Node.js may be determined by running\n<code>node --v8-options</code>. An unofficial, community-maintained list of options\nand their effects is available <a href=\"https://github.com/thlorenz/v8-flags/blob/master/flags-0.11.md\">here</a>.</p>\n<p>Usage:</p>\n<pre><code class=\"lang-js\">// Print GC events to stdout for one minute.\nconst v8 = require(&#39;v8&#39;);\nv8.setFlagsFromString(&#39;--trace_gc&#39;);\nsetTimeout(function() { v8.setFlagsFromString(&#39;--notrace_gc&#39;); }, 60e3);\n</code></pre>\n"
         }
       ],
       "modules": [
@@ -102,14 +136,31 @@
           "name": "serialization_api",
           "stability": 1,
           "stabilityText": "Experimental",
-          "desc": "<p>The serialization API provides means of serializing JavaScript values in a way\nthat is compatible with the <a href=\"https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm\">HTML structured clone algorithm</a>.\nThe format is backward-compatible (i.e. safe to store to disk).</p>\n<p><em>Note</em>: This API is under development, and changes (including incompatible\nchanges to the API or wire format) may occur until this warning is removed.</p>\n",
+          "desc": "<p>The serialization API provides means of serializing JavaScript values in a way\nthat is compatible with the <a href=\"https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm\">HTML structured clone algorithm</a>.\nThe format is backward-compatible (i.e. safe to store to disk).</p>\n<p>This API is under development, and changes (including incompatible\nchanges to the API or wire format) may occur until this warning is removed.</p>\n",
           "methods": [
             {
               "textRaw": "v8.serialize(value)",
               "type": "method",
               "name": "serialize",
-              "desc": "<!--\nadded: v8.0.0\n-->\n<ul>\n<li>Returns: {Buffer}</li>\n</ul>\n<p>Uses a <a href=\"#v8_class_v8_defaultserializer\"><code>DefaultSerializer</code></a> to serialize <code>value</code> into a buffer.</p>\n",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
               "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {Buffer} ",
+                    "name": "return",
+                    "type": "Buffer"
+                  },
+                  "params": [
+                    {
+                      "name": "value"
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -117,14 +168,30 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Uses a <a href=\"#v8_class_v8_defaultserializer\"><code>DefaultSerializer</code></a> to serialize <code>value</code> into a buffer.</p>\n"
             },
             {
               "textRaw": "v8.deserialize(buffer)",
               "type": "method",
               "name": "deserialize",
-              "desc": "<!--\nadded: v8.0.0\n-->\n<ul>\n<li><code>buffer</code> {Buffer|Uint8Array} A buffer returned by <a href=\"#v8_v8_serialize_value\"><code>serialize()</code></a>.</li>\n</ul>\n<p>Uses a <a href=\"#v8_class_v8_defaultdeserializer\"><code>DefaultDeserializer</code></a> with default options to read a JS value\nfrom a buffer.</p>\n",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`buffer` {Buffer|Uint8Array} A buffer returned by [`serialize()`][]. ",
+                      "name": "buffer",
+                      "type": "Buffer|Uint8Array",
+                      "desc": "A buffer returned by [`serialize()`][]."
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -132,7 +199,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Uses a <a href=\"#v8_class_v8_defaultdeserializer\"><code>DefaultDeserializer</code></a> with default options to read a JS value\nfrom a buffer.</p>\n"
             }
           ],
           "classes": [
@@ -140,7 +208,12 @@
               "textRaw": "class: v8.Serializer",
               "type": "class",
               "name": "v8.Serializer",
-              "desc": "<!--\nadded: v8.0.0\n-->\n",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
               "methods": [
                 {
                   "textRaw": "serializer.writeHeader()",
@@ -172,12 +245,20 @@
                   "textRaw": "serializer.releaseBuffer()",
                   "type": "method",
                   "name": "releaseBuffer",
-                  "desc": "<p>Returns the stored internal buffer. This serializer should not be used once\nthe buffer is released. Calling this method results in undefined behavior\nif a previous write has failed.</p>\n",
                   "signatures": [
+                    {
+                      "return": {
+                        "textRaw": "Returns: {Buffer} ",
+                        "name": "return",
+                        "type": "Buffer"
+                      },
+                      "params": []
+                    },
                     {
                       "params": []
                     }
-                  ]
+                  ],
+                  "desc": "<p>Returns the stored internal buffer. This serializer should not be used once\nthe buffer is released. Calling this method results in undefined behavior\nif a previous write has failed.</p>\n"
                 },
                 {
                   "textRaw": "serializer.transferArrayBuffer(id, arrayBuffer)",
@@ -363,7 +444,7 @@
                       ]
                     }
                   ],
-                  "desc": "<p>This method is called to generate error objects that will be thrown when an\nobject can not be cloned.</p>\n<p>This method defaults to the <a href=\"errors.html#errors_class_error\"><code>Error</code></a> constructor and can be be overridden on\nsubclasses.</p>\n"
+                  "desc": "<p>This method is called to generate error objects that will be thrown when an\nobject can not be cloned.</p>\n<p>This method defaults to the <a href=\"errors.html#errors_class_error\"><code>Error</code></a> constructor and can be overridden on\nsubclasses.</p>\n"
                 },
                 {
                   "textRaw": "serializer.\\_getSharedArrayBufferId(sharedArrayBuffer)",
@@ -397,9 +478,10 @@
                     {
                       "params": [
                         {
-                          "textRaw": "`flag` {boolean} ",
+                          "textRaw": "`flag` {boolean} **Default:** `false` ",
                           "name": "flag",
-                          "type": "boolean"
+                          "type": "boolean",
+                          "default": "`false`"
                         }
                       ]
                     },
@@ -411,7 +493,7 @@
                       ]
                     }
                   ],
-                  "desc": "<p>Indicate whether to treat <code>TypedArray</code> and <code>DataView</code> objects as\nhost objects, i.e. pass them to <a href=\"#v8_serializer_writehostobject_object\"><code>serializer._writeHostObject()</code></a>.</p>\n<p>The default is not to treat those objects as host objects.</p>\n"
+                  "desc": "<p>Indicate whether to treat <code>TypedArray</code> and <code>DataView</code> objects as\nhost objects, i.e. pass them to <a href=\"#v8_serializer_writehostobject_object\"><code>serializer._writeHostObject()</code></a>.</p>\n"
                 }
               ],
               "signatures": [
@@ -425,7 +507,12 @@
               "textRaw": "class: v8.Deserializer",
               "type": "class",
               "name": "v8.Deserializer",
-              "desc": "<!--\nadded: v8.0.0\n-->\n",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
               "methods": [
                 {
                   "textRaw": "deserializer.readHeader()",
@@ -528,9 +615,9 @@
                   "signatures": [
                     {
                       "return": {
-                        "textRaw": "Returns: {Array} ",
+                        "textRaw": "Returns: {integer[]} ",
                         "name": "return",
-                        "type": "Array"
+                        "type": "integer[]"
                       },
                       "params": []
                     },
@@ -624,13 +711,25 @@
               "textRaw": "class: v8.DefaultSerializer",
               "type": "class",
               "name": "v8.DefaultSerializer",
-              "desc": "<!--\nadded: v8.0.0\n-->\n<p>A subclass of <a href=\"#v8_class_v8_serializer\"><code>Serializer</code></a> that serializes <code>TypedArray</code>\n(in particular <a href=\"buffer.html\"><code>Buffer</code></a>) and <code>DataView</code> objects as host objects, and only\nstores the part of their underlying <code>ArrayBuffer</code>s that they are referring to.</p>\n"
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>A subclass of <a href=\"#v8_class_v8_serializer\"><code>Serializer</code></a> that serializes <code>TypedArray</code>\n(in particular <a href=\"buffer.html\"><code>Buffer</code></a>) and <code>DataView</code> objects as host objects, and only\nstores the part of their underlying <code>ArrayBuffer</code>s that they are referring to.</p>\n"
             },
             {
               "textRaw": "class: v8.DefaultDeserializer",
               "type": "class",
               "name": "v8.DefaultDeserializer",
-              "desc": "<!--\nadded: v8.0.0\n-->\n<p>A subclass of <a href=\"#v8_class_v8_deserializer\"><code>Deserializer</code></a> corresponding to the format written by\n<a href=\"#v8_class_v8_defaultserializer\"><code>DefaultSerializer</code></a>.</p>\n"
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>A subclass of <a href=\"#v8_class_v8_deserializer\"><code>Deserializer</code></a> corresponding to the format written by\n<a href=\"#v8_class_v8_defaultserializer\"><code>DefaultSerializer</code></a>.</p>\n"
             }
           ],
           "type": "module",

@@ -21,25 +21,48 @@
 
 'use strict';
 
-const pushValToArrayMax = process.binding('util').pushValToArrayMax;
+const { pushValToArrayMax, safeGetenv } = process.binding('util');
 const constants = process.binding('constants').os;
-const deprecate = require('internal/util').deprecate;
+const { deprecate } = require('internal/util');
+const { getCIDRSuffix } = require('internal/os');
 const isWindows = process.platform === 'win32';
+
+const { ERR_SYSTEM_ERROR } = require('internal/errors');
 
 const {
   getCPUs,
   getFreeMem,
-  getHomeDirectory,
-  getHostname,
-  getInterfaceAddresses,
+  getHomeDirectory: _getHomeDirectory,
+  getHostname: _getHostname,
+  getInterfaceAddresses: _getInterfaceAddresses,
   getLoadAvg,
-  getOSRelease,
-  getOSType,
+  getOSRelease: _getOSRelease,
+  getOSType: _getOSType,
   getTotalMem,
-  getUserInfo,
+  getUserInfo: _getUserInfo,
   getUptime,
   isBigEndian
 } = process.binding('os');
+
+function getCheckedFunction(fn) {
+  return function checkError(...args) {
+    const ctx = {};
+    const ret = fn(...args, ctx);
+    if (ret === undefined) {
+      const err = new ERR_SYSTEM_ERROR(ctx);
+      Error.captureStackTrace(err, checkError);
+      throw err;
+    }
+    return ret;
+  };
+}
+
+const getHomeDirectory = getCheckedFunction(_getHomeDirectory);
+const getHostname = getCheckedFunction(_getHostname);
+const getInterfaceAddresses = getCheckedFunction(_getInterfaceAddresses);
+const getOSRelease = getCheckedFunction(_getOSRelease);
+const getOSType = getCheckedFunction(_getOSType);
+const getUserInfo = getCheckedFunction(_getUserInfo);
 
 getFreeMem[Symbol.toPrimitive] = () => getFreeMem();
 getHostname[Symbol.toPrimitive] = () => getHostname();
@@ -104,9 +127,9 @@ function tmpdir() {
     if (path.length > 1 && path.endsWith('\\') && !path.endsWith(':\\'))
       path = path.slice(0, -1);
   } else {
-    path = process.env.TMPDIR ||
-           process.env.TMP ||
-           process.env.TEMP ||
+    path = safeGetenv('TMPDIR') ||
+           safeGetenv('TMP') ||
+           safeGetenv('TEMP') ||
            '/tmp';
     if (path.length > 1 && path.endsWith('/'))
       path = path.slice(0, -1);
@@ -121,16 +144,30 @@ function endianness() {
 }
 endianness[Symbol.toPrimitive] = () => kEndianness;
 
-module.exports = exports = {
+function networkInterfaces() {
+  const interfaceAddresses = getInterfaceAddresses();
+
+  return Object.entries(interfaceAddresses).reduce((acc, [key, val]) => {
+    acc[key] = val.map((v) => {
+      const protocol = v.family.toLowerCase();
+      const suffix = getCIDRSuffix(v.netmask, protocol);
+      const cidr = suffix ? `${v.address}/${suffix}` : null;
+
+      return Object.assign({}, v, { cidr });
+    });
+    return acc;
+  }, {});
+}
+
+module.exports = {
   arch,
   cpus,
-  EOL: isWindows ? '\r\n' : '\n',
   endianness,
   freemem: getFreeMem,
   homedir: getHomeDirectory,
   hostname: getHostname,
   loadavg,
-  networkInterfaces: getInterfaceAddresses,
+  networkInterfaces,
   platform,
   release: getOSRelease,
   tmpdir,
@@ -146,8 +183,17 @@ module.exports = exports = {
   tmpDir: deprecate(tmpdir, tmpDirDeprecationMsg, 'DEP0022')
 };
 
-Object.defineProperty(module.exports, 'constants', {
-  configurable: false,
-  enumerable: true,
-  value: constants
+Object.defineProperties(module.exports, {
+  constants: {
+    configurable: false,
+    enumerable: true,
+    value: constants
+  },
+
+  EOL: {
+    configurable: true,
+    enumerable: true,
+    writable: false,
+    value: isWindows ? '\r\n' : '\n'
+  }
 });

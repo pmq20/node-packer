@@ -4,9 +4,6 @@ const common = require('../common');
 if (!common.hasCrypto)
   common.skip('missing crypto');
 
-if (!process.features.tls_sni)
-  common.skip('node compiled without OpenSSL or with old OpenSSL version.');
-
 const assert = require('assert');
 const tls = require('tls');
 
@@ -29,6 +26,6 @@ const server = tls.createServer(options, (c) => {
   }, common.mustNotCall());
 
   c.on('error', common.mustCall((err) => {
-    assert(/socket hang up/.test(err.message));
+    assert(/Client network socket disconnected/.test(err.message));
   }));
 }));

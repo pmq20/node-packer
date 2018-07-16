@@ -1,8 +1,5 @@
-#include "node.h"
+#include "node_internals.h"
 #include "node_watchdog.h"
-#include "v8.h"
-#include "env.h"
-#include "env-inl.h"
 
 namespace node {
 namespace util {
@@ -17,40 +14,8 @@ using v8::Object;
 using v8::Private;
 using v8::Promise;
 using v8::Proxy;
+using v8::String;
 using v8::Value;
-
-
-#define VALUE_METHOD_MAP(V)                                                   \
-  V(isArrayBuffer, IsArrayBuffer)                                             \
-  V(isAsyncFunction, IsAsyncFunction)                                         \
-  V(isDataView, IsDataView)                                                   \
-  V(isDate, IsDate)                                                           \
-  V(isExternal, IsExternal)                                                   \
-  V(isMap, IsMap)                                                             \
-  V(isMapIterator, IsMapIterator)                                             \
-  V(isNativeError, IsNativeError)                                             \
-  V(isPromise, IsPromise)                                                     \
-  V(isRegExp, IsRegExp)                                                       \
-  V(isSet, IsSet)                                                             \
-  V(isSetIterator, IsSetIterator)                                             \
-  V(isTypedArray, IsTypedArray)                                               \
-  V(isUint8Array, IsUint8Array)
-
-
-#define V(_, ucname) \
-  static void ucname(const FunctionCallbackInfo<Value>& args) {               \
-    CHECK_EQ(1, args.Length());                                               \
-    args.GetReturnValue().Set(args[0]->ucname());                             \
-  }
-
-  VALUE_METHOD_MAP(V)
-#undef V
-
-static void IsAnyArrayBuffer(const FunctionCallbackInfo<Value>& args) {
-  CHECK_EQ(1, args.Length());
-  args.GetReturnValue().Set(
-    args[0]->IsArrayBuffer() || args[0]->IsSharedArrayBuffer());
-}
 
 static void GetPromiseDetails(const FunctionCallbackInfo<Value>& args) {
   // Return undefined if it's not a Promise.
@@ -84,6 +49,41 @@ static void GetProxyDetails(const FunctionCallbackInfo<Value>& args) {
   args.GetReturnValue().Set(ret);
 }
 
+static void PreviewEntries(const FunctionCallbackInfo<Value>& args) {
+  if (!args[0]->IsObject())
+    return;
+
+  bool is_key_value;
+  Local<Array> entries;
+  if (!args[0].As<Object>()->PreviewEntries(&is_key_value).ToLocal(&entries))
+    return;
+  if (!is_key_value)
+    return args.GetReturnValue().Set(entries);
+
+  uint32_t length = entries->Length();
+  CHECK_EQ(length % 2, 0);
+
+  Environment* env = Environment::GetCurrent(args);
+  Local<Context> context = env->context();
+
+  Local<Array> pairs = Array::New(env->isolate(), length / 2);
+  for (uint32_t i = 0; i < length / 2; i++) {
+    Local<Array> pair = Array::New(env->isolate(), 2);
+    pair->Set(context, 0, entries->Get(context, i * 2).ToLocalChecked())
+        .FromJust();
+    pair->Set(context, 1, entries->Get(context, i * 2 + 1).ToLocalChecked())
+        .FromJust();
+    pairs->Set(context, i, pair).FromJust();
+  }
+  args.GetReturnValue().Set(pairs);
+}
+
+// Side effect-free stringification that will never throw exceptions.
+static void SafeToString(const FunctionCallbackInfo<Value>& args) {
+  auto context = args.GetIsolate()->GetCurrentContext();
+  args.GetReturnValue().Set(args[0]->ToDetailString(context).ToLocalChecked());
+}
+
 inline Local<Private> IndexToPrivateSymbol(Environment* env, uint32_t index) {
 #define V(name, _) &Environment::name,
   static Local<Private> (Environment::*const methods[])() const = {
@@ -97,11 +97,8 @@ inline Local<Private> IndexToPrivateSymbol(Environment* env, uint32_t index) {
 static void GetHiddenValue(const FunctionCallbackInfo<Value>& args) {
   Environment* env = Environment::GetCurrent(args);
 
-  if (!args[0]->IsObject())
-    return env->ThrowTypeError("obj must be an object");
-
-  if (!args[1]->IsUint32())
-    return env->ThrowTypeError("index must be an uint32");
+  CHECK(args[0]->IsObject());
+  CHECK(args[1]->IsUint32());
 
   Local<Object> obj = args[0].As<Object>();
   auto index = args[1]->Uint32Value(env->context()).FromJust();
@@ -114,11 +111,8 @@ static void GetHiddenValue(const FunctionCallbackInfo<Value>& args) {
 static void SetHiddenValue(const FunctionCallbackInfo<Value>& args) {
   Environment* env = Environment::GetCurrent(args);
 
-  if (!args[0]->IsObject())
-    return env->ThrowTypeError("obj must be an object");
-
-  if (!args[1]->IsUint32())
-    return env->ThrowTypeError("index must be an uint32");
+  CHECK(args[0]->IsObject());
+  CHECK(args[1]->IsUint32());
 
   Local<Object> obj = args[0].As<Object>();
   auto index = args[1]->Uint32Value(env->context()).FromJust();
@@ -131,10 +125,7 @@ static void SetHiddenValue(const FunctionCallbackInfo<Value>& args) {
 
 void StartSigintWatchdog(const FunctionCallbackInfo<Value>& args) {
   int ret = SigintWatchdogHelper::GetInstance()->Start();
-  if (ret != 0) {
-    Environment* env = Environment::GetCurrent(args);
-    env->ThrowErrnoException(ret, "StartSigintWatchdog");
-  }
+  args.GetReturnValue().Set(ret == 0);
 }
 
 
@@ -179,17 +170,21 @@ void PromiseReject(const FunctionCallbackInfo<Value>& args) {
   args.GetReturnValue().Set(ret.FromMaybe(false));
 }
 
+void SafeGetenv(const FunctionCallbackInfo<Value>& args) {
+  CHECK(args[0]->IsString());
+  Utf8Value strenvtag(args.GetIsolate(), args[0]);
+  std::string text;
+  if (!node::SafeGetenv(*strenvtag, &text)) return;
+  args.GetReturnValue()
+      .Set(String::NewFromUtf8(
+            args.GetIsolate(), text.c_str(),
+            v8::NewStringType::kNormal).ToLocalChecked());
+}
 
 void Initialize(Local<Object> target,
                 Local<Value> unused,
                 Local<Context> context) {
   Environment* env = Environment::GetCurrent(context);
-
-#define V(lcname, ucname) env->SetMethod(target, #lcname, ucname);
-  VALUE_METHOD_MAP(V)
-#undef V
-
-  env->SetMethod(target, "isAnyArrayBuffer", IsAnyArrayBuffer);
 
 #define V(name, _)                                                            \
   target->Set(context,                                                        \
@@ -221,6 +216,8 @@ void Initialize(Local<Object> target,
   env->SetMethod(target, "setHiddenValue", SetHiddenValue);
   env->SetMethod(target, "getPromiseDetails", GetPromiseDetails);
   env->SetMethod(target, "getProxyDetails", GetProxyDetails);
+  env->SetMethod(target, "safeToString", SafeToString);
+  env->SetMethod(target, "previewEntries", PreviewEntries);
 
   env->SetMethod(target, "startSigintWatchdog", StartSigintWatchdog);
   env->SetMethod(target, "stopSigintWatchdog", StopSigintWatchdog);
@@ -229,9 +226,11 @@ void Initialize(Local<Object> target,
   env->SetMethod(target, "createPromise", CreatePromise);
   env->SetMethod(target, "promiseResolve", PromiseResolve);
   env->SetMethod(target, "promiseReject", PromiseReject);
+
+  env->SetMethod(target, "safeGetenv", SafeGetenv);
 }
 
 }  // namespace util
 }  // namespace node
 
-NODE_MODULE_CONTEXT_AWARE_BUILTIN(util, node::util::Initialize)
+NODE_BUILTIN_MODULE_CONTEXT_AWARE(util, node::util::Initialize)

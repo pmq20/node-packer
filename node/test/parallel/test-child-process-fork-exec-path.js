@@ -23,10 +23,15 @@
 const common = require('../common');
 const assert = require('assert');
 const fs = require('fs');
+const { COPYFILE_FICLONE } = fs.constants;
 const path = require('path');
-const msg = {test: 'this'};
+const tmpdir = require('../common/tmpdir');
+const msg = { test: 'this' };
 const nodePath = process.execPath;
-const copyPath = path.join(common.tmpDir, 'node-copy.exe');
+const copyPath = path.join(tmpdir.path, 'node-copy.exe');
+const { addLibraryPath } = require('../common/shared-lib-util');
+
+addLibraryPath(process.env);
 
 if (process.env.FORK) {
   assert(process.send);
@@ -34,13 +39,13 @@ if (process.env.FORK) {
   process.send(msg);
   process.exit();
 } else {
-  common.refreshTmpDir();
+  tmpdir.refresh();
   try {
     fs.unlinkSync(copyPath);
   } catch (e) {
     if (e.code !== 'ENOENT') throw e;
   }
-  fs.writeFileSync(copyPath, fs.readFileSync(nodePath));
+  fs.copyFileSync(nodePath, copyPath, COPYFILE_FICLONE);
   fs.chmodSync(copyPath, '0755');
 
   // slow but simple

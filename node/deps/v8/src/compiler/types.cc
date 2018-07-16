@@ -68,36 +68,38 @@ bool Type::Contains(RangeType* range, i::Object* val) {
 
 double Type::Min() {
   DCHECK(this->Is(Number()));
+  DCHECK(!this->Is(NaN()));
   if (this->IsBitset()) return BitsetType::Min(this->AsBitset());
   if (this->IsUnion()) {
     double min = +V8_INFINITY;
-    for (int i = 0, n = this->AsUnion()->Length(); i < n; ++i) {
+    for (int i = 1, n = this->AsUnion()->Length(); i < n; ++i) {
       min = std::min(min, this->AsUnion()->Get(i)->Min());
     }
+    Type* bitset = this->AsUnion()->Get(0);
+    if (!bitset->Is(NaN())) min = std::min(min, bitset->Min());
     return min;
   }
   if (this->IsRange()) return this->AsRange()->Min();
-  if (this->IsOtherNumberConstant())
-    return this->AsOtherNumberConstant()->Value();
-  UNREACHABLE();
-  return 0;
+  DCHECK(this->IsOtherNumberConstant());
+  return this->AsOtherNumberConstant()->Value();
 }
 
 double Type::Max() {
   DCHECK(this->Is(Number()));
+  DCHECK(!this->Is(NaN()));
   if (this->IsBitset()) return BitsetType::Max(this->AsBitset());
   if (this->IsUnion()) {
     double max = -V8_INFINITY;
-    for (int i = 0, n = this->AsUnion()->Length(); i < n; ++i) {
+    for (int i = 1, n = this->AsUnion()->Length(); i < n; ++i) {
       max = std::max(max, this->AsUnion()->Get(i)->Max());
     }
+    Type* bitset = this->AsUnion()->Get(0);
+    if (!bitset->Is(NaN())) max = std::max(max, bitset->Max());
     return max;
   }
   if (this->IsRange()) return this->AsRange()->Max();
-  if (this->IsOtherNumberConstant())
-    return this->AsOtherNumberConstant()->Value();
-  UNREACHABLE();
-  return 0;
+  DCHECK(this->IsOtherNumberConstant());
+  return this->AsOtherNumberConstant()->Value();
 }
 
 // -----------------------------------------------------------------------------
@@ -142,14 +144,11 @@ Type::bitset BitsetType::Lub(Type* type) {
   if (type->IsRange()) return type->AsRange()->Lub();
   if (type->IsTuple()) return kOtherInternal;
   UNREACHABLE();
-  return kNone;
 }
 
 Type::bitset BitsetType::Lub(i::Map* map) {
   DisallowHeapAllocation no_allocation;
   switch (map->instance_type()) {
-    case STRING_TYPE:
-    case ONE_BYTE_STRING_TYPE:
     case CONS_STRING_TYPE:
     case CONS_ONE_BYTE_STRING_TYPE:
     case THIN_STRING_TYPE:
@@ -162,18 +161,22 @@ Type::bitset BitsetType::Lub(i::Map* map) {
     case SHORT_EXTERNAL_STRING_TYPE:
     case SHORT_EXTERNAL_ONE_BYTE_STRING_TYPE:
     case SHORT_EXTERNAL_STRING_WITH_ONE_BYTE_DATA_TYPE:
-      return kOtherString;
-    case INTERNALIZED_STRING_TYPE:
-    case ONE_BYTE_INTERNALIZED_STRING_TYPE:
+    case STRING_TYPE:
+    case ONE_BYTE_STRING_TYPE:
+      return kString;
     case EXTERNAL_INTERNALIZED_STRING_TYPE:
     case EXTERNAL_ONE_BYTE_INTERNALIZED_STRING_TYPE:
     case EXTERNAL_INTERNALIZED_STRING_WITH_ONE_BYTE_DATA_TYPE:
     case SHORT_EXTERNAL_INTERNALIZED_STRING_TYPE:
     case SHORT_EXTERNAL_ONE_BYTE_INTERNALIZED_STRING_TYPE:
     case SHORT_EXTERNAL_INTERNALIZED_STRING_WITH_ONE_BYTE_DATA_TYPE:
+    case INTERNALIZED_STRING_TYPE:
+    case ONE_BYTE_INTERNALIZED_STRING_TYPE:
       return kInternalizedString;
     case SYMBOL_TYPE:
       return kSymbol;
+    case BIGINT_TYPE:
+      return kBigInt;
     case ODDBALL_TYPE: {
       Heap* heap = map->GetHeap();
       if (map == heap->undefined_map()) return kUndefined;
@@ -218,56 +221,28 @@ Type::bitset BitsetType::Lub(i::Map* map) {
     case JS_ASYNC_GENERATOR_OBJECT_TYPE:
     case JS_MODULE_NAMESPACE_TYPE:
     case JS_ARRAY_BUFFER_TYPE:
+    case JS_ARRAY_ITERATOR_TYPE:
     case JS_REGEXP_TYPE:  // TODO(rossberg): there should be a RegExp type.
+    case JS_REGEXP_STRING_ITERATOR_TYPE:
     case JS_TYPED_ARRAY_TYPE:
     case JS_DATA_VIEW_TYPE:
     case JS_SET_TYPE:
     case JS_MAP_TYPE:
-    case JS_SET_ITERATOR_TYPE:
-    case JS_MAP_ITERATOR_TYPE:
+    case JS_SET_KEY_VALUE_ITERATOR_TYPE:
+    case JS_SET_VALUE_ITERATOR_TYPE:
+    case JS_MAP_KEY_ITERATOR_TYPE:
+    case JS_MAP_KEY_VALUE_ITERATOR_TYPE:
+    case JS_MAP_VALUE_ITERATOR_TYPE:
     case JS_STRING_ITERATOR_TYPE:
     case JS_ASYNC_FROM_SYNC_ITERATOR_TYPE:
-
-    case JS_TYPED_ARRAY_KEY_ITERATOR_TYPE:
-    case JS_FAST_ARRAY_KEY_ITERATOR_TYPE:
-    case JS_GENERIC_ARRAY_KEY_ITERATOR_TYPE:
-    case JS_UINT8_ARRAY_KEY_VALUE_ITERATOR_TYPE:
-    case JS_INT8_ARRAY_KEY_VALUE_ITERATOR_TYPE:
-    case JS_UINT16_ARRAY_KEY_VALUE_ITERATOR_TYPE:
-    case JS_INT16_ARRAY_KEY_VALUE_ITERATOR_TYPE:
-    case JS_UINT32_ARRAY_KEY_VALUE_ITERATOR_TYPE:
-    case JS_INT32_ARRAY_KEY_VALUE_ITERATOR_TYPE:
-    case JS_FLOAT32_ARRAY_KEY_VALUE_ITERATOR_TYPE:
-    case JS_FLOAT64_ARRAY_KEY_VALUE_ITERATOR_TYPE:
-    case JS_UINT8_CLAMPED_ARRAY_KEY_VALUE_ITERATOR_TYPE:
-    case JS_FAST_SMI_ARRAY_KEY_VALUE_ITERATOR_TYPE:
-    case JS_FAST_HOLEY_SMI_ARRAY_KEY_VALUE_ITERATOR_TYPE:
-    case JS_FAST_ARRAY_KEY_VALUE_ITERATOR_TYPE:
-    case JS_FAST_HOLEY_ARRAY_KEY_VALUE_ITERATOR_TYPE:
-    case JS_FAST_DOUBLE_ARRAY_KEY_VALUE_ITERATOR_TYPE:
-    case JS_FAST_HOLEY_DOUBLE_ARRAY_KEY_VALUE_ITERATOR_TYPE:
-    case JS_GENERIC_ARRAY_KEY_VALUE_ITERATOR_TYPE:
-    case JS_UINT8_ARRAY_VALUE_ITERATOR_TYPE:
-    case JS_INT8_ARRAY_VALUE_ITERATOR_TYPE:
-    case JS_UINT16_ARRAY_VALUE_ITERATOR_TYPE:
-    case JS_INT16_ARRAY_VALUE_ITERATOR_TYPE:
-    case JS_UINT32_ARRAY_VALUE_ITERATOR_TYPE:
-    case JS_INT32_ARRAY_VALUE_ITERATOR_TYPE:
-    case JS_FLOAT32_ARRAY_VALUE_ITERATOR_TYPE:
-    case JS_FLOAT64_ARRAY_VALUE_ITERATOR_TYPE:
-    case JS_UINT8_CLAMPED_ARRAY_VALUE_ITERATOR_TYPE:
-    case JS_FAST_SMI_ARRAY_VALUE_ITERATOR_TYPE:
-    case JS_FAST_HOLEY_SMI_ARRAY_VALUE_ITERATOR_TYPE:
-    case JS_FAST_ARRAY_VALUE_ITERATOR_TYPE:
-    case JS_FAST_HOLEY_ARRAY_VALUE_ITERATOR_TYPE:
-    case JS_FAST_DOUBLE_ARRAY_VALUE_ITERATOR_TYPE:
-    case JS_FAST_HOLEY_DOUBLE_ARRAY_VALUE_ITERATOR_TYPE:
-    case JS_GENERIC_ARRAY_VALUE_ITERATOR_TYPE:
-
     case JS_WEAK_MAP_TYPE:
     case JS_WEAK_SET_TYPE:
-    case JS_PROMISE_CAPABILITY_TYPE:
     case JS_PROMISE_TYPE:
+    case WASM_MODULE_TYPE:
+    case WASM_GLOBAL_TYPE:
+    case WASM_INSTANCE_TYPE:
+    case WASM_MEMORY_TYPE:
+    case WASM_TABLE_TYPE:
       DCHECK(!map->is_callable());
       DCHECK(!map->is_undetectable());
       return kOtherObject;
@@ -288,11 +263,29 @@ Type::bitset BitsetType::Lub(i::Map* map) {
     case FUNCTION_TEMPLATE_INFO_TYPE:
     case ACCESSOR_PAIR_TYPE:
     case FIXED_ARRAY_TYPE:
+    case HASH_TABLE_TYPE:
+    case WEAK_FIXED_ARRAY_TYPE:
     case FIXED_DOUBLE_ARRAY_TYPE:
+    case FEEDBACK_METADATA_TYPE:
     case BYTE_ARRAY_TYPE:
     case BYTECODE_ARRAY_TYPE:
+    case BOILERPLATE_DESCRIPTION_TYPE:
+    case DESCRIPTOR_ARRAY_TYPE:
     case TRANSITION_ARRAY_TYPE:
+    case FEEDBACK_CELL_TYPE:
+    case FEEDBACK_VECTOR_TYPE:
+    case PROPERTY_ARRAY_TYPE:
     case FOREIGN_TYPE:
+    case SCOPE_INFO_TYPE:
+    case BLOCK_CONTEXT_TYPE:
+    case CATCH_CONTEXT_TYPE:
+    case DEBUG_EVALUATE_CONTEXT_TYPE:
+    case EVAL_CONTEXT_TYPE:
+    case FUNCTION_CONTEXT_TYPE:
+    case MODULE_CONTEXT_TYPE:
+    case NATIVE_CONTEXT_TYPE:
+    case SCRIPT_CONTEXT_TYPE:
+    case WITH_CONTEXT_TYPE:
     case SCRIPT_TYPE:
     case CODE_TYPE:
     case PROPERTY_CELL_TYPE:
@@ -312,29 +305,38 @@ Type::bitset BitsetType::Lub(i::Map* map) {
 #undef FIXED_TYPED_ARRAY_CASE
     case FILLER_TYPE:
     case ACCESS_CHECK_INFO_TYPE:
+    case CALL_HANDLER_INFO_TYPE:
     case INTERCEPTOR_INFO_TYPE:
     case OBJECT_TEMPLATE_INFO_TYPE:
     case ALLOCATION_MEMENTO_TYPE:
     case ALIASED_ARGUMENTS_ENTRY_TYPE:
-    case PROMISE_RESOLVE_THENABLE_JOB_INFO_TYPE:
-    case PROMISE_REACTION_JOB_INFO_TYPE:
+    case PROMISE_CAPABILITY_TYPE:
+    case PROMISE_REACTION_TYPE:
     case DEBUG_INFO_TYPE:
     case STACK_FRAME_INFO_TYPE:
     case WEAK_CELL_TYPE:
+    case SMALL_ORDERED_HASH_MAP_TYPE:
+    case SMALL_ORDERED_HASH_SET_TYPE:
     case PROTOTYPE_INFO_TYPE:
+    case INTERPRETER_DATA_TYPE:
     case TUPLE2_TYPE:
     case TUPLE3_TYPE:
+    case WASM_COMPILED_MODULE_TYPE:
+    case WASM_DEBUG_INFO_TYPE:
+    case WASM_SHARED_MODULE_DATA_TYPE:
+    case LOAD_HANDLER_TYPE:
+    case STORE_HANDLER_TYPE:
     case CONTEXT_EXTENSION_TYPE:
     case ASYNC_GENERATOR_REQUEST_TYPE:
-    case PADDING_TYPE_1:
-    case PADDING_TYPE_2:
-    case PADDING_TYPE_3:
-    case PADDING_TYPE_4:
+    case CODE_DATA_CONTAINER_TYPE:
+    case CALLBACK_TASK_TYPE:
+    case CALLABLE_TASK_TYPE:
+    case PROMISE_FULFILL_REACTION_JOB_TASK_TYPE:
+    case PROMISE_REJECT_REACTION_JOB_TASK_TYPE:
+    case PROMISE_RESOLVE_THENABLE_JOB_TASK_TYPE:
       UNREACHABLE();
-      return kNone;
   }
   UNREACHABLE();
-  return kNone;
 }
 
 Type::bitset BitsetType::Lub(i::Object* value) {
@@ -372,6 +374,7 @@ size_t BitsetType::BoundariesSize() {
 }
 
 Type::bitset BitsetType::ExpandInternals(Type::bitset bits) {
+  DCHECK_IMPLIES(bits & kOtherString, (bits & kString) == kString);
   DisallowHeapAllocation no_allocation;
   if (!(bits & kPlainNumber)) return bits;  // Shortcut.
   const Boundary* boundaries = Boundaries();
@@ -420,6 +423,7 @@ Type::bitset BitsetType::Glb(double min, double max) {
 double BitsetType::Min(bitset bits) {
   DisallowHeapAllocation no_allocation;
   DCHECK(Is(bits, kNumber));
+  DCHECK(!Is(bits, kNaN));
   const Boundary* mins = Boundaries();
   bool mz = bits & kMinusZero;
   for (size_t i = 0; i < BoundariesSize(); ++i) {
@@ -427,13 +431,14 @@ double BitsetType::Min(bitset bits) {
       return mz ? std::min(0.0, mins[i].min) : mins[i].min;
     }
   }
-  if (mz) return 0;
-  return std::numeric_limits<double>::quiet_NaN();
+  DCHECK(mz);
+  return 0;
 }
 
 double BitsetType::Max(bitset bits) {
   DisallowHeapAllocation no_allocation;
   DCHECK(Is(bits, kNumber));
+  DCHECK(!Is(bits, kNaN));
   const Boundary* mins = Boundaries();
   bool mz = bits & kMinusZero;
   if (BitsetType::Is(mins[BoundariesSize() - 1].internal, bits)) {
@@ -444,8 +449,8 @@ double BitsetType::Max(bitset bits) {
       return mz ? std::max(0.0, mins[i + 1].min - 1) : mins[i + 1].min - 1;
     }
   }
-  if (mz) return 0;
-  return std::numeric_limits<double>::quiet_NaN();
+  DCHECK(mz);
+  return 0;
 }
 
 // static
@@ -499,7 +504,6 @@ bool Type::SimplyEquals(Type* that) {
     return true;
   }
   UNREACHABLE();
-  return false;
 }
 
 // Check if [this] <= [that].
@@ -544,8 +548,7 @@ bool Type::SlowIs(Type* that) {
 bool Type::Maybe(Type* that) {
   DisallowHeapAllocation no_allocation;
 
-  if (!BitsetType::IsInhabited(this->BitsetLub() & that->BitsetLub()))
-    return false;
+  if (BitsetType::IsNone(this->BitsetLub() & that->BitsetLub())) return false;
 
   // (T1 \/ ... \/ Tn) overlaps T  if  (T1 overlaps T) \/ ... \/ (Tn overlaps T)
   if (this->IsUnion()) {
@@ -588,14 +591,14 @@ bool Type::Maybe(Type* that) {
   return this->SimplyEquals(that);
 }
 
-// Return the range in [this], or [NULL].
+// Return the range in [this], or [nullptr].
 Type* Type::GetRange() {
   DisallowHeapAllocation no_allocation;
   if (this->IsRange()) return this;
   if (this->IsUnion() && this->AsUnion()->Get(1)->IsRange()) {
     return this->AsUnion()->Get(1);
   }
-  return NULL;
+  return nullptr;
 }
 
 bool UnionType::Wellformed() {
@@ -608,7 +611,7 @@ bool UnionType::Wellformed() {
   // 5. No element (except the bitset) is a subtype of any other.
   // 6. If there is a range, then the bitset type does not contain
   //    plain number bits.
-  DCHECK(this->Length() >= 2);       // (1)
+  DCHECK_LE(2, this->Length());      // (1)
   DCHECK(this->Get(0)->IsBitset());  // (2a)
 
   for (int i = 0; i < this->Length(); ++i) {
@@ -627,11 +630,6 @@ bool UnionType::Wellformed() {
 
 // -----------------------------------------------------------------------------
 // Union and intersection
-
-static bool AddIsSafe(int x, int y) {
-  return x >= 0 ? y <= std::numeric_limits<int>::max() - x
-                : y >= std::numeric_limits<int>::min() - x;
-}
 
 Type* Type::Intersect(Type* type1, Type* type2, Zone* zone) {
   // Fast case: bit sets.
@@ -660,10 +658,9 @@ Type* Type::Intersect(Type* type1, Type* type2, Zone* zone) {
   bitset bits = type1->BitsetGlb() & type2->BitsetGlb();
   int size1 = type1->IsUnion() ? type1->AsUnion()->Length() : 1;
   int size2 = type2->IsUnion() ? type2->AsUnion()->Length() : 1;
-  if (!AddIsSafe(size1, size2)) return Any();
-  int size = size1 + size2;
-  if (!AddIsSafe(size, 2)) return Any();
-  size += 2;
+  int size;
+  if (base::bits::SignedAddOverflow32(size1, size2, &size)) return Any();
+  if (base::bits::SignedAddOverflow32(size, 2, &size)) return Any();
   Type* result_type = UnionType::New(size, zone);
   UnionType* result = result_type->AsUnion();
   size = 0;
@@ -742,9 +739,7 @@ int Type::IntersectAux(Type* lhs, Type* rhs, UnionType* result, int size,
     return size;
   }
 
-  if (!BitsetType::IsInhabited(lhs->BitsetLub() & rhs->BitsetLub())) {
-    return size;
-  }
+  if (BitsetType::IsNone(lhs->BitsetLub() & rhs->BitsetLub())) return size;
 
   if (lhs->IsRange()) {
     if (rhs->IsBitset()) {
@@ -842,7 +837,7 @@ Type* Type::NewConstant(i::Handle<i::Object> value, Zone* zone) {
   } else if (value->IsHeapNumber()) {
     return NewConstant(value->Number(), zone);
   } else if (value->IsString() && !value->IsInternalizedString()) {
-    return Type::OtherString();
+    return Type::String();
   }
   return HeapConstant(i::Handle<i::HeapObject>::cast(value), zone);
 }
@@ -864,10 +859,9 @@ Type* Type::Union(Type* type1, Type* type2, Zone* zone) {
   // Slow case: create union.
   int size1 = type1->IsUnion() ? type1->AsUnion()->Length() : 1;
   int size2 = type2->IsUnion() ? type2->AsUnion()->Length() : 1;
-  if (!AddIsSafe(size1, size2)) return Any();
-  int size = size1 + size2;
-  if (!AddIsSafe(size, 2)) return Any();
-  size += 2;
+  int size;
+  if (base::bits::SignedAddOverflow32(size1, size2, &size)) return Any();
+  if (base::bits::SignedAddOverflow32(size, 2, &size)) return Any();
   Type* result_type = UnionType::New(size, zone);
   UnionType* result = result_type->AsUnion();
   size = 0;
@@ -879,15 +873,15 @@ Type* Type::Union(Type* type1, Type* type2, Zone* zone) {
   Type* range = None();
   Type* range1 = type1->GetRange();
   Type* range2 = type2->GetRange();
-  if (range1 != NULL && range2 != NULL) {
+  if (range1 != nullptr && range2 != nullptr) {
     RangeType::Limits lims =
         RangeType::Limits::Union(RangeType::Limits(range1->AsRange()),
                                  RangeType::Limits(range2->AsRange()));
     Type* union_range = RangeType::New(lims, zone);
     range = NormalizeRangeAndBitset(union_range, &new_bitset, zone);
-  } else if (range1 != NULL) {
+  } else if (range1 != nullptr) {
     range = NormalizeRangeAndBitset(range1, &new_bitset, zone);
-  } else if (range2 != NULL) {
+  } else if (range2 != nullptr) {
     range = NormalizeRangeAndBitset(range2, &new_bitset, zone);
   }
   Type* bits = BitsetType::New(new_bitset);
@@ -918,7 +912,7 @@ int Type::AddToUnion(Type* type, UnionType* result, int size, Zone* zone) {
 
 Type* Type::NormalizeUnion(Type* union_type, int size, Zone* zone) {
   UnionType* unioned = union_type->AsUnion();
-  DCHECK(size >= 1);
+  DCHECK_LE(1, size);
   DCHECK(unioned->Get(0)->IsBitset());
   // If the union has just one element, return it.
   if (size == 1) {
@@ -965,7 +959,7 @@ const char* BitsetType::Name(bitset bits) {
 #undef RETURN_NAMED_TYPE
 
     default:
-      return NULL;
+      return nullptr;
   }
 }
 
@@ -973,7 +967,7 @@ void BitsetType::Print(std::ostream& os,  // NOLINT
                        bitset bits) {
   DisallowHeapAllocation no_allocation;
   const char* name = Name(bits);
-  if (name != NULL) {
+  if (name != nullptr) {
     os << name;
     return;
   }
@@ -998,7 +992,7 @@ void BitsetType::Print(std::ostream& os,  // NOLINT
       bits -= subset;
     }
   }
-  DCHECK(bits == 0);
+  DCHECK_EQ(0, bits);
   os << ")";
 }
 

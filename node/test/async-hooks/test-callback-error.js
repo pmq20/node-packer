@@ -11,35 +11,22 @@ switch (arg) {
     initHooks({
       oninit: common.mustCall(() => { throw new Error(arg); })
     }).enable();
-    async_hooks.emitInit(
-      async_hooks.newUid(),
-      `${arg}_type`,
-      async_hooks.executionAsyncId()
-    );
+    new async_hooks.AsyncResource(`${arg}_type`);
     return;
 
   case 'test_callback':
     initHooks({
       onbefore: common.mustCall(() => { throw new Error(arg); })
     }).enable();
-    const newAsyncId = async_hooks.newUid();
-    async_hooks.emitInit(
-      newAsyncId,
-      `${arg}_type`,
-      async_hooks.executionAsyncId()
-    );
-    async_hooks.emitBefore(newAsyncId, async_hooks.executionAsyncId());
+    const resource = new async_hooks.AsyncResource(`${arg}_type`);
+    resource.emitBefore();
     return;
 
   case 'test_callback_abort':
     initHooks({
       oninit: common.mustCall(() => { throw new Error(arg); })
     }).enable();
-    async_hooks.emitInit(
-      async_hooks.newUid(),
-      `${arg}_type`,
-      async_hooks.executionAsyncId()
-    );
+    new async_hooks.AsyncResource(`${arg}_type`);
     return;
 }
 
@@ -101,13 +88,13 @@ assert.ok(!arg);
   child.on('close', (code, signal) => {
     clearTimeout(tO);
     if (common.isWindows) {
-      assert.strictEqual(code, 3);
+      assert.strictEqual(code, 134);
       assert.strictEqual(signal, null);
     } else {
       assert.strictEqual(code, null);
       // most posix systems will show 'SIGABRT', but alpine34 does not
       if (signal !== 'SIGABRT') {
-        console.log(`parent recived signal ${signal}\nchild's stderr:`);
+        console.log(`parent received signal ${signal}\nchild's stderr:`);
         console.log(stderr);
         process.exit(1);
       }

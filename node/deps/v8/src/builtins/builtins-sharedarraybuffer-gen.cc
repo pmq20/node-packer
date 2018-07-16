@@ -46,9 +46,8 @@ void SharedArrayBufferBuiltinsAssembler::ValidateSharedTypedArray(
   GotoIf(TaggedIsSmi(tagged), &invalid);
 
   // Fail if the array's instance type is not JSTypedArray.
-  GotoIf(Word32NotEqual(LoadInstanceType(tagged),
-                        Int32Constant(JS_TYPED_ARRAY_TYPE)),
-         &invalid);
+  GotoIfNot(InstanceTypeEqual(LoadInstanceType(tagged), JS_TYPED_ARRAY_TYPE),
+            &invalid);
 
   // Fail if the array's JSArrayBuffer is not shared.
   Node* array_buffer = LoadObjectField(tagged, JSTypedArray::kBufferOffset);
@@ -57,8 +56,7 @@ void SharedArrayBufferBuiltinsAssembler::ValidateSharedTypedArray(
   GotoIfNot(IsSetWord32<JSArrayBuffer::IsShared>(bitfield), &invalid);
 
   // Fail if the array's element type is float32, float64 or clamped.
-  Node* elements_instance_type =
-      LoadInstanceType(LoadObjectField(tagged, JSObject::kElementsOffset));
+  Node* elements_instance_type = LoadInstanceType(LoadElements(tagged));
   STATIC_ASSERT(FIXED_INT8_ARRAY_TYPE < FIXED_FLOAT32_ARRAY_TYPE);
   STATIC_ASSERT(FIXED_INT16_ARRAY_TYPE < FIXED_FLOAT32_ARRAY_TYPE);
   STATIC_ASSERT(FIXED_INT32_ARRAY_TYPE < FIXED_FLOAT32_ARRAY_TYPE);
@@ -71,9 +69,8 @@ void SharedArrayBufferBuiltinsAssembler::ValidateSharedTypedArray(
 
   BIND(&invalid);
   {
-    CallRuntime(Runtime::kThrowNotIntegerSharedTypedArrayError, context,
-                tagged);
-    Unreachable();
+    ThrowTypeError(context, MessageTemplate::kNotIntegerSharedTypedArray,
+                   tagged);
   }
 
   BIND(&not_float_or_clamped);
@@ -98,15 +95,12 @@ Node* SharedArrayBufferBuiltinsAssembler::ConvertTaggedAtomicIndexToWord32(
   // The |number_index| output parameter is used only for architectures that
   // don't currently have a TF implementation and forward to runtime functions
   // instead; they expect the value has already been coerced to an integer.
-  *number_index = ToSmiIndex(tagged, context, &range_error);
-  var_result.Bind(SmiToWord32(*number_index));
+  *number_index = ToSmiIndex(CAST(tagged), CAST(context), &range_error);
+  var_result.Bind(SmiToInt32(*number_index));
   Goto(&done);
 
   BIND(&range_error);
-  {
-    CallRuntime(Runtime::kThrowInvalidAtomicAccessIndexError, context);
-    Unreachable();
-  }
+  { ThrowRangeError(context, MessageTemplate::kInvalidAtomicAccessIndex); }
 
   BIND(&done);
   return var_result.value();
@@ -121,8 +115,7 @@ void SharedArrayBufferBuiltinsAssembler::ValidateAtomicIndex(Node* array,
       context, LoadObjectField(array, JSTypedArray::kLengthOffset));
   GotoIf(Uint32LessThan(index_word, array_length_word32), &check_passed);
 
-  CallRuntime(Runtime::kThrowInvalidAtomicAccessIndexError, context);
-  Unreachable();
+  ThrowRangeError(context, MessageTemplate::kInvalidAtomicAccessIndex);
 
   BIND(&check_passed);
 }
@@ -171,20 +164,20 @@ TF_BUILTIN(AtomicsLoad, SharedArrayBufferBuiltinsAssembler) {
          arraysize(case_labels));
 
   BIND(&i8);
-  Return(SmiFromWord32(
-      AtomicLoad(MachineType::Int8(), backing_store, index_word)));
+  Return(
+      SmiFromInt32(AtomicLoad(MachineType::Int8(), backing_store, index_word)));
 
   BIND(&u8);
-  Return(SmiFromWord32(
+  Return(SmiFromInt32(
       AtomicLoad(MachineType::Uint8(), backing_store, index_word)));
 
   BIND(&i16);
-  Return(SmiFromWord32(
+  Return(SmiFromInt32(
       AtomicLoad(MachineType::Int16(), backing_store, WordShl(index_word, 1))));
 
   BIND(&u16);
-  Return(SmiFromWord32(AtomicLoad(MachineType::Uint16(), backing_store,
-                                  WordShl(index_word, 1))));
+  Return(SmiFromInt32(AtomicLoad(MachineType::Uint16(), backing_store,
+                                 WordShl(index_word, 1))));
 
   BIND(&i32);
   Return(ChangeInt32ToTagged(
@@ -215,7 +208,7 @@ TF_BUILTIN(AtomicsStore, SharedArrayBufferBuiltinsAssembler) {
   ValidateAtomicIndex(array, index_word32, context);
   Node* index_word = ChangeUint32ToWord(index_word32);
 
-  Node* value_integer = ToInteger(context, value);
+  Node* value_integer = ToInteger_Inline(CAST(context), CAST(value));
   Node* value_word32 = TruncateTaggedToWord32(context, value_integer);
 
 #if DEBUG
@@ -268,7 +261,7 @@ TF_BUILTIN(AtomicsExchange, SharedArrayBufferBuiltinsAssembler) {
       ConvertTaggedAtomicIndexToWord32(index, context, &index_integer);
   ValidateAtomicIndex(array, index_word32, context);
 
-  Node* value_integer = ToInteger(context, value);
+  Node* value_integer = ToInteger_Inline(CAST(context), CAST(value));
 
 #if DEBUG
   DebugSanityCheckAtomicIndex(array, index_word32, context);
@@ -295,20 +288,20 @@ TF_BUILTIN(AtomicsExchange, SharedArrayBufferBuiltinsAssembler) {
          arraysize(case_labels));
 
   BIND(&i8);
-  Return(SmiFromWord32(AtomicExchange(MachineType::Int8(), backing_store,
-                                      index_word, value_word32)));
+  Return(SmiFromInt32(AtomicExchange(MachineType::Int8(), backing_store,
+                                     index_word, value_word32)));
 
   BIND(&u8);
-  Return(SmiFromWord32(AtomicExchange(MachineType::Uint8(), backing_store,
-                                      index_word, value_word32)));
+  Return(SmiFromInt32(AtomicExchange(MachineType::Uint8(), backing_store,
+                                     index_word, value_word32)));
 
   BIND(&i16);
-  Return(SmiFromWord32(AtomicExchange(MachineType::Int16(), backing_store,
-                                      WordShl(index_word, 1), value_word32)));
+  Return(SmiFromInt32(AtomicExchange(MachineType::Int16(), backing_store,
+                                     WordShl(index_word, 1), value_word32)));
 
   BIND(&u16);
-  Return(SmiFromWord32(AtomicExchange(MachineType::Uint16(), backing_store,
-                                      WordShl(index_word, 1), value_word32)));
+  Return(SmiFromInt32(AtomicExchange(MachineType::Uint16(), backing_store,
+                                     WordShl(index_word, 1), value_word32)));
 
   BIND(&i32);
   Return(ChangeInt32ToTagged(AtomicExchange(MachineType::Int32(), backing_store,
@@ -342,8 +335,8 @@ TF_BUILTIN(AtomicsCompareExchange, SharedArrayBufferBuiltinsAssembler) {
       ConvertTaggedAtomicIndexToWord32(index, context, &index_integer);
   ValidateAtomicIndex(array, index_word32, context);
 
-  Node* old_value_integer = ToInteger(context, old_value);
-  Node* new_value_integer = ToInteger(context, new_value);
+  Node* old_value_integer = ToInteger_Inline(CAST(context), CAST(old_value));
+  Node* new_value_integer = ToInteger_Inline(CAST(context), CAST(new_value));
 
 #if DEBUG
   DebugSanityCheckAtomicIndex(array, index_word32, context);
@@ -373,22 +366,22 @@ TF_BUILTIN(AtomicsCompareExchange, SharedArrayBufferBuiltinsAssembler) {
          arraysize(case_labels));
 
   BIND(&i8);
-  Return(SmiFromWord32(AtomicCompareExchange(MachineType::Int8(), backing_store,
-                                             index_word, old_value_word32,
-                                             new_value_word32)));
+  Return(SmiFromInt32(AtomicCompareExchange(MachineType::Int8(), backing_store,
+                                            index_word, old_value_word32,
+                                            new_value_word32)));
 
   BIND(&u8);
-  Return(SmiFromWord32(
-      AtomicCompareExchange(MachineType::Uint8(), backing_store, index_word,
-                            old_value_word32, new_value_word32)));
+  Return(SmiFromInt32(AtomicCompareExchange(MachineType::Uint8(), backing_store,
+                                            index_word, old_value_word32,
+                                            new_value_word32)));
 
   BIND(&i16);
-  Return(SmiFromWord32(AtomicCompareExchange(
+  Return(SmiFromInt32(AtomicCompareExchange(
       MachineType::Int16(), backing_store, WordShl(index_word, 1),
       old_value_word32, new_value_word32)));
 
   BIND(&u16);
-  Return(SmiFromWord32(AtomicCompareExchange(
+  Return(SmiFromInt32(AtomicCompareExchange(
       MachineType::Uint16(), backing_store, WordShl(index_word, 1),
       old_value_word32, new_value_word32)));
 
@@ -438,7 +431,7 @@ void SharedArrayBufferBuiltinsAssembler::AtomicBinopBuiltinCommon(
       ConvertTaggedAtomicIndexToWord32(index, context, &index_integer);
   ValidateAtomicIndex(array, index_word32, context);
 
-  Node* value_integer = ToInteger(context, value);
+  Node* value_integer = ToInteger_Inline(CAST(context), CAST(value));
 
 #if DEBUG
   // In Debug mode, we re-validate the index as a sanity check because
@@ -470,22 +463,20 @@ void SharedArrayBufferBuiltinsAssembler::AtomicBinopBuiltinCommon(
          arraysize(case_labels));
 
   BIND(&i8);
-  Return(SmiFromWord32((this->*function)(MachineType::Int8(), backing_store,
-                                         index_word, value_word32)));
+  Return(SmiFromInt32((this->*function)(MachineType::Int8(), backing_store,
+                                        index_word, value_word32)));
 
   BIND(&u8);
-  Return(SmiFromWord32((this->*function)(MachineType::Uint8(), backing_store,
-                                         index_word, value_word32)));
+  Return(SmiFromInt32((this->*function)(MachineType::Uint8(), backing_store,
+                                        index_word, value_word32)));
 
   BIND(&i16);
-  Return(
-      SmiFromWord32((this->*function)(MachineType::Int16(), backing_store,
-                                      WordShl(index_word, 1), value_word32)));
+  Return(SmiFromInt32((this->*function)(MachineType::Int16(), backing_store,
+                                        WordShl(index_word, 1), value_word32)));
 
   BIND(&u16);
-  Return(
-      SmiFromWord32((this->*function)(MachineType::Uint16(), backing_store,
-                                      WordShl(index_word, 1), value_word32)));
+  Return(SmiFromInt32((this->*function)(MachineType::Uint16(), backing_store,
+                                        WordShl(index_word, 1), value_word32)));
 
   BIND(&i32);
   Return(ChangeInt32ToTagged(

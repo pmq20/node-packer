@@ -5,9 +5,9 @@
 #ifndef V8_MANAGED_H_
 #define V8_MANAGED_H_
 
-#include "src/factory.h"
 #include "src/global-handles.h"
 #include "src/handles.h"
+#include "src/heap/factory.h"
 #include "src/isolate.h"
 
 namespace v8 {
@@ -20,11 +20,21 @@ namespace internal {
 // address is typed as CppType**. The double indirection is due to the
 // use, by Managed, of Isolate::ManagedObjectFinalizer, which has a CppType*
 // first field.
+// Calling Foreign::set_foreign_address is not allowed on a Managed object.
 template <class CppType>
 class Managed : public Foreign {
+  class FinalizerWithHandle : public Isolate::ManagedObjectFinalizer {
+   public:
+    FinalizerWithHandle(void* value,
+                        Isolate::ManagedObjectFinalizer::Deleter deleter)
+        : Isolate::ManagedObjectFinalizer(value, deleter) {}
+
+    Object** global_handle_location;
+  };
+
  public:
   V8_INLINE CppType* get() {
-    return *(reinterpret_cast<CppType**>(foreign_address()));
+    return reinterpret_cast<CppType*>(GetFinalizer()->value());
   }
 
   static Managed<CppType>* cast(Object* obj) {
@@ -32,47 +42,60 @@ class Managed : public Foreign {
     return reinterpret_cast<Managed<CppType>*>(obj);
   }
 
-  static Handle<Managed<CppType>> New(Isolate* isolate, CppType* ptr) {
-    Isolate::ManagedObjectFinalizer* node =
-        isolate->RegisterForReleaseAtTeardown(ptr,
-                                              Managed<CppType>::NativeDelete);
+  // Allocate a new CppType and wrap it in a Managed.
+  template <typename... Args>
+  static Handle<Managed<CppType>> Allocate(Isolate* isolate, Args&&... args) {
+    CppType* ptr = new CppType(std::forward<Args>(args)...);
+    return From(isolate, ptr);
+  }
+
+  // Create a Managed from an existing CppType*. Takes ownership of the passed
+  // object.
+  static Handle<Managed<CppType>> From(Isolate* isolate, CppType* ptr) {
+    FinalizerWithHandle* finalizer =
+        new FinalizerWithHandle(ptr, &NativeDelete);
+    isolate->RegisterForReleaseAtTeardown(finalizer);
     Handle<Managed<CppType>> handle = Handle<Managed<CppType>>::cast(
-        isolate->factory()->NewForeign(reinterpret_cast<Address>(node)));
-    RegisterWeakCallbackForDelete(isolate, handle);
+        isolate->factory()->NewForeign(reinterpret_cast<Address>(finalizer)));
+    Handle<Object> global_handle = isolate->global_handles()->Create(*handle);
+    finalizer->global_handle_location = global_handle.location();
+    GlobalHandles::MakeWeak(
+        finalizer->global_handle_location, handle->GetFinalizer(),
+        &ResetWeakAndScheduleGCDelete, v8::WeakCallbackType::kParameter);
+
     return handle;
   }
 
  private:
-  static void RegisterWeakCallbackForDelete(Isolate* isolate,
-                                            Handle<Managed<CppType>> handle) {
-    Handle<Object> global_handle = isolate->global_handles()->Create(*handle);
-    GlobalHandles::MakeWeak(global_handle.location(), global_handle.location(),
-                            &Managed<CppType>::GCDelete,
-                            v8::WeakCallbackType::kFinalizer);
+  static void ResetWeakAndScheduleGCDelete(
+      const v8::WeakCallbackInfo<void>& data) {
+    FinalizerWithHandle* finalizer =
+        reinterpret_cast<FinalizerWithHandle*>(data.GetParameter());
+    GlobalHandles::Destroy(finalizer->global_handle_location);
+    Isolate* isolate = reinterpret_cast<Isolate*>(data.GetIsolate());
+    isolate->UnregisterFromReleaseAtTeardown(finalizer);
+    // We need to call GCDelete as a second pass callback because
+    // it can trigger garbage collection. The first pass callbacks
+    // are not allowed to invoke V8 API.
+    data.SetSecondPassCallback(&GCDelete);
   }
 
   static void GCDelete(const v8::WeakCallbackInfo<void>& data) {
-    Managed<CppType>** p =
-        reinterpret_cast<Managed<CppType>**>(data.GetParameter());
-
-    Isolate::ManagedObjectFinalizer* finalizer = (*p)->GetFinalizer();
-
-    Isolate* isolate = reinterpret_cast<Isolate*>(data.GetIsolate());
-    finalizer->Dispose();
-    isolate->UnregisterFromReleaseAtTeardown(&finalizer);
-
-    (*p)->set_foreign_address(static_cast<Address>(nullptr));
-    GlobalHandles::Destroy(reinterpret_cast<Object**>(p));
+    FinalizerWithHandle* finalizer =
+        reinterpret_cast<FinalizerWithHandle*>(data.GetParameter());
+    NativeDelete(finalizer);
   }
 
-  static void NativeDelete(void* value) {
-    CppType* typed_value = reinterpret_cast<CppType*>(value);
+  static void NativeDelete(Isolate::ManagedObjectFinalizer* finalizer) {
+    CppType* typed_value = reinterpret_cast<CppType*>(finalizer->value());
     delete typed_value;
+    FinalizerWithHandle* finalizer_with_handle =
+        static_cast<FinalizerWithHandle*>(finalizer);
+    delete finalizer_with_handle;
   }
 
-  Isolate::ManagedObjectFinalizer* GetFinalizer() {
-    return reinterpret_cast<Isolate::ManagedObjectFinalizer*>(
-        foreign_address());
+  FinalizerWithHandle* GetFinalizer() {
+    return reinterpret_cast<FinalizerWithHandle*>(foreign_address());
   }
 };
 }  // namespace internal

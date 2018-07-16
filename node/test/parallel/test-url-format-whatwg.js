@@ -21,15 +21,17 @@ assert.strictEqual(
 );
 
 {
-  const expectedErr = common.expectsError({
-    code: 'ERR_INVALID_ARG_TYPE',
-    type: TypeError,
-    message: 'The "options" argument must be of type object'
-  }, 4);
-  assert.throws(() => url.format(myURL, true), expectedErr);
-  assert.throws(() => url.format(myURL, 1), expectedErr);
-  assert.throws(() => url.format(myURL, 'test'), expectedErr);
-  assert.throws(() => url.format(myURL, Infinity), expectedErr);
+  [true, 1, 'test', Infinity].forEach((value) => {
+    assert.throws(
+      () => url.format(myURL, value),
+      {
+        code: 'ERR_INVALID_ARG_TYPE',
+        name: 'TypeError [ERR_INVALID_ARG_TYPE]',
+        message: 'The "options" argument must be of type Object. ' +
+                 `Received type ${typeof value}`
+      }
+    );
+  });
 }
 
 // Any falsy value other than undefined will be treated as false.
@@ -108,4 +110,9 @@ assert.strictEqual(
 assert.strictEqual(
   url.format(myURL, { unicode: 0 }),
   'http://xn--lck1c3crb1723bpq4a.com/a?a=b#c'
+);
+
+assert.strictEqual(
+  url.format(new URL('http://xn--0zwm56d.com:8080/path'), { unicode: true }),
+  'http://测试.com:8080/path'
 );

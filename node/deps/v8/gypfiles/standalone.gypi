@@ -43,6 +43,7 @@
     'v8_enable_i18n_support%': 1,
     'v8_deprecation_warnings': 1,
     'v8_imminent_deprecation_warnings': 1,
+    'v8_check_microtasks_scopes_consistency': 'true',
     'msvs_multi_core_compile%': '1',
     'mac_deployment_target%': '10.7',
     'release_extra_cflags%': '',
@@ -92,16 +93,16 @@
           ['OS=="linux" and use_sysroot==1', {
             'conditions': [
               ['target_arch=="arm"', {
-                'sysroot%': '<!(cd <(DEPTH) && pwd -P)/build/linux/debian_jessie_arm-sysroot',
+                'sysroot%': '<!(cd <(DEPTH) && pwd -P)/build/linux/debian_sid_arm-sysroot',
               }],
               ['target_arch=="x64"', {
-                'sysroot%': '<!(cd <(DEPTH) && pwd -P)/build/linux/debian_jessie_amd64-sysroot',
+                'sysroot%': '<!(cd <(DEPTH) && pwd -P)/build/linux/debian_sid_amd64-sysroot',
               }],
               ['target_arch=="ia32"', {
-                'sysroot%': '<!(cd <(DEPTH) && pwd -P)/build/linux/debian_jessie_i386-sysroot',
+                'sysroot%': '<!(cd <(DEPTH) && pwd -P)/build/linux/debian_sid_i386-sysroot',
               }],
               ['target_arch=="mipsel"', {
-                'sysroot%': '<!(cd <(DEPTH) && pwd -P)/build/linux/debian_jessie_mips-sysroot',
+                'sysroot%': '<!(cd <(DEPTH) && pwd -P)/build/linux/debian_sid_mips-sysroot',
               }],
             ],
           }], # OS=="linux" and use_sysroot==1
@@ -134,8 +135,6 @@
 
       'clang_dir%': '<(base_dir)/third_party/llvm-build/Release+Asserts',
       'make_clang_dir%': '<(base_dir)/third_party/llvm-build/Release+Asserts',
-
-      'use_lto%': 0,
 
       # Control Flow Integrity for virtual calls and casts.
       # See http://clang.llvm.org/docs/ControlFlowIntegrity.html
@@ -201,7 +200,6 @@
     'use_prebuilt_instrumented_libraries%': '<(use_prebuilt_instrumented_libraries)',
     'use_custom_libcxx%': '<(use_custom_libcxx)',
     'linux_use_bundled_gold%': '<(linux_use_bundled_gold)',
-    'use_lto%': '<(use_lto)',
     'cfi_vptr%': '<(cfi_vptr)',
     'cfi_diag%': '<(cfi_diag)',
     'cfi_blacklist%': '<(cfi_blacklist)',
@@ -264,14 +262,14 @@
         # goma doesn't support PDB yet.
         'fastbuild%': 1,
       }],
-      ['((v8_target_arch=="ia32" or v8_target_arch=="x64" or v8_target_arch=="x87") and \
+      ['((v8_target_arch=="ia32" or v8_target_arch=="x64") and \
         (OS=="linux" or OS=="mac")) or (v8_target_arch=="ppc64" and OS=="linux")', {
         'v8_enable_gdbjit%': 1,
       }, {
         'v8_enable_gdbjit%': 0,
       }],
       ['(OS=="linux" or OS=="mac") and (target_arch=="ia32" or target_arch=="x64") and \
-        (v8_target_arch!="x87" and v8_target_arch!="x32")', {
+        v8_target_arch!="x32"', {
         'clang%': 1,
       }, {
         'clang%': 0,
@@ -292,16 +290,13 @@
         # the C++ standard library is used.
         'use_custom_libcxx%': 1,
       }],
-      ['cfi_vptr==1', {
-        'use_lto%': 1,
-      }],
       ['OS=="android"', {
         # Location of Android NDK.
         'variables': {
           'variables': {
             # The Android toolchain needs to use the absolute path to the NDK
             # because it is used at different levels in the GYP files.
-            'android_ndk_root%': '<(base_dir)/third_party/android_tools/ndk/',
+            'android_ndk_root%': '<(base_dir)/third_party/android_ndk/',
             'android_host_arch%': "<!(uname -m | sed -e 's/i[3456]86/x86/')",
             # Version of the NDK. Used to ensure full rebuilds on NDK rolls.
             'android_ndk_version%': 'r12b',
@@ -444,6 +439,7 @@
         '-Wno-undefined-var-template',
         # TODO(yangguo): issue 5258
         '-Wno-nonportable-include-path',
+        '-Wno-tautological-constant-compare',
       ],
       'conditions':[
         ['OS=="android"', {
@@ -678,15 +674,11 @@
               }],
             ],
           }],
-          ['linux_use_bundled_gold==1 and not (clang==0 and use_lto==1)', {
+          ['linux_use_bundled_gold==1', {
             # Put our binutils, which contains gold in the search path. We pass
             # the path to gold to the compiler. gyp leaves unspecified what the
             # cwd is when running the compiler, so the normal gyp path-munging
             # fails us. This hack gets the right path.
-            #
-            # Disabled when using GCC LTO because GCC also uses the -B search
-            # path at link time to find "as", and our bundled "as" can only
-            # target x86.
             'ldflags': [
               # Note, Chromium allows ia32 host arch as well, we limit this to
               # x64 in v8.
@@ -696,12 +688,15 @@
           ['sysroot!="" and clang==1', {
             'target_conditions': [
               ['_toolset=="target"', {
+                'variables': {
+                  'ld_paths': ['<!(<(DEPTH)/build/linux/sysroot_ld_path.sh <(sysroot))'],
+                },
                 'cflags': [
                   '--sysroot=<(sysroot)',
                 ],
                 'ldflags': [
                   '--sysroot=<(sysroot)',
-                  '<!(<(DEPTH)/build/linux/sysroot_ld_path.sh <(sysroot))',
+                  '<!(<(base_dir)/gypfiles/sysroot_ld_flags.sh <@(ld_paths))',
                 ],
               }]]
           }],
@@ -760,7 +755,7 @@
           '-Wno-unused-parameter',
           '-pthread',
           '-pedantic',
-          '-Wmissing-field-initializers',
+          '-Wno-missing-field-initializers',
           '-Wno-gnu-zero-variadic-macro-arguments',
         ],
         'cflags_cc': [
@@ -785,6 +780,14 @@
               # that signed overflow does not occur. Generates false positives
               # (see http://crbug.com/v8/6341).
               "-Wno-strict-overflow",
+              # Don't rely on strict aliasing; v8 does weird pointer casts all
+              # over the place.
+              '-fno-strict-aliasing',
+            ],
+          }, {
+            'cflags' : [
+              # TODO(hans): https://crbug.com/767059
+              '-Wno-tautological-constant-compare',
             ],
           }],
           [ 'clang==1 and (v8_target_arch=="x64" or v8_target_arch=="arm64" \
@@ -1210,7 +1213,7 @@
                   '-L<(android_libcpp_libs)/arm64-v8a',
                 ],
               }],
-              ['target_arch=="ia32" or target_arch=="x87"', {
+              ['target_arch=="ia32"', {
                 # The x86 toolchain currently has problems with stack-protector.
                 'cflags!': [
                   '-fstack-protector',
@@ -1405,108 +1408,6 @@
           ],
         }],
       ],
-    }],
-    ['use_lto==1', {
-      'target_defaults': {
-        'target_conditions': [
-          ['_toolset=="target"', {
-            'cflags': [
-              '-flto',
-            ],
-          }],
-        ],
-      },
-    }],
-    ['use_lto==1 and clang==0', {
-      'target_defaults': {
-        'target_conditions': [
-          ['_toolset=="target"', {
-            'cflags': [
-              '-ffat-lto-objects',
-            ],
-          }],
-        ],
-      },
-    }],
-    ['use_lto==1 and clang==1', {
-      'target_defaults': {
-        'target_conditions': [
-          ['_toolset=="target"', {
-            'arflags': [
-              '--plugin', '<(clang_dir)/lib/LLVMgold.so',
-            ],
-            # Apply a lower optimization level with lto. Chromium does this
-            # for non-official builds only - a differentiation that doesn't
-            # exist in v8.
-            'ldflags': [
-              '-Wl,--plugin-opt,O1',
-            ],
-          }],
-        ],
-      },
-    }],
-    ['use_lto==1 and clang==0', {
-      'target_defaults': {
-        'target_conditions': [
-          ['_toolset=="target"', {
-            'ldflags': [
-              '-flto=32',
-            ],
-          }],
-        ],
-      },
-    }],
-    ['use_lto==1 and clang==1', {
-      'target_defaults': {
-        'target_conditions': [
-          ['_toolset=="target"', {
-            'ldflags': [
-              '-flto',
-            ],
-          }],
-        ],
-      },
-    }],
-    ['cfi_diag==1', {
-      'target_defaults': {
-        'target_conditions': [
-          ['_toolset=="target"', {
-            'cflags': [
-              '-fno-sanitize-trap=cfi',
-              '-fno-sanitize-recover=cfi',
-            ],
-            'cflags_cc!': [
-              '-fno-rtti',
-            ],
-            'cflags!': [
-              '-fno-rtti',
-            ],
-            'ldflags': [
-              '-fno-sanitize-trap=cfi',
-              '-fno-sanitize-recover=cfi',
-            ],
-          }],
-        ],
-      },
-    }],
-    ['cfi_vptr==1', {
-      'target_defaults': {
-        'target_conditions': [
-          ['_toolset=="target"', {
-            'cflags': [
-              '-fsanitize=cfi-vcall',
-              '-fsanitize=cfi-derived-cast',
-              '-fsanitize=cfi-unrelated-cast',
-              '-fsanitize-blacklist=<(cfi_blacklist)',
-            ],
-            'ldflags': [
-              '-fsanitize=cfi-vcall',
-              '-fsanitize=cfi-derived-cast',
-              '-fsanitize=cfi-unrelated-cast',
-            ],
-          }],
-        ],
-      },
     }],
   ],
 }

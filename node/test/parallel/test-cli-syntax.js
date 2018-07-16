@@ -2,8 +2,8 @@
 
 const common = require('../common');
 const assert = require('assert');
-const {exec, spawnSync} = require('child_process');
-const path = require('path');
+const { exec, spawnSync } = require('child_process');
+const fixtures = require('../common/fixtures');
 
 const node = process.execPath;
 
@@ -13,7 +13,9 @@ const syntaxArgs = [
   ['--check']
 ];
 
-const syntaxErrorRE = /^SyntaxError: Unexpected identifier$/m;
+// Match on the name of the `Error` but not the message as it is different
+// depending on the JavaScript engine.
+const syntaxErrorRE = /^SyntaxError: \b/m;
 const notFoundRE = /^Error: Cannot find module/m;
 
 // test good syntax with and without shebang
@@ -24,7 +26,7 @@ const notFoundRE = /^Error: Cannot find module/m;
   'syntax/good_syntax_shebang',
   'syntax/illegal_if_not_wrapped.js'
 ].forEach(function(file) {
-  file = path.join(common.fixturesDir, file);
+  file = fixtures.path(file);
 
   // loop each possible option, `-c` or `--check`
   syntaxArgs.forEach(function(args) {
@@ -33,8 +35,8 @@ const notFoundRE = /^Error: Cannot find module/m;
     const cmd = [node, ..._args].join(' ');
     exec(cmd, common.mustCall((err, stdout, stderr) => {
       assert.ifError(err);
-      assert.strictEqual(stdout, '', 'stdout produced');
-      assert.strictEqual(stderr, '', 'stderr produced');
+      assert.strictEqual(stdout, '');
+      assert.strictEqual(stderr, '');
     }));
   });
 });
@@ -46,7 +48,7 @@ const notFoundRE = /^Error: Cannot find module/m;
   'syntax/bad_syntax_shebang.js',
   'syntax/bad_syntax_shebang'
 ].forEach(function(file) {
-  file = path.join(common.fixturesDir, file);
+  file = fixtures.path(file);
 
   // loop each possible option, `-c` or `--check`
   syntaxArgs.forEach(function(args) {
@@ -54,16 +56,16 @@ const notFoundRE = /^Error: Cannot find module/m;
     const cmd = [node, ..._args].join(' ');
     exec(cmd, common.mustCall((err, stdout, stderr) => {
       assert.strictEqual(err instanceof Error, true);
-      assert.strictEqual(err.code, 1, `code === ${err.code}`);
+      assert.strictEqual(err.code, 1);
 
       // no stdout should be produced
-      assert.strictEqual(stdout, '', 'stdout produced');
+      assert.strictEqual(stdout, '');
 
       // stderr should have a syntax error message
-      assert(syntaxErrorRE.test(stderr), 'stderr incorrect');
+      assert(syntaxErrorRE.test(stderr), `${syntaxErrorRE} === ${stderr}`);
 
       // stderr should include the filename
-      assert(stderr.startsWith(file), "stderr doesn't start with the filename");
+      assert(stderr.startsWith(file), `${stderr} starts with ${file}`);
     }));
   });
 });
@@ -73,7 +75,7 @@ const notFoundRE = /^Error: Cannot find module/m;
   'syntax/file_not_found.js',
   'syntax/file_not_found'
 ].forEach(function(file) {
-  file = path.join(common.fixturesDir, file);
+  file = fixtures.path(file);
 
   // loop each possible option, `-c` or `--check`
   syntaxArgs.forEach(function(args) {
@@ -81,12 +83,12 @@ const notFoundRE = /^Error: Cannot find module/m;
     const cmd = [node, ..._args].join(' ');
     exec(cmd, common.mustCall((err, stdout, stderr) => {
       // no stdout should be produced
-      assert.strictEqual(stdout, '', 'stdout produced');
+      assert.strictEqual(stdout, '');
 
       // stderr should have a module not found error message
-      assert(notFoundRE.test(stderr), 'stderr incorrect');
+      assert(notFoundRE.test(stderr), `${notFoundRE} === ${stderr}`);
 
-      assert.strictEqual(err.code, 1, `code === ${err.code}`);
+      assert.strictEqual(err.code, 1);
     }));
   });
 });
@@ -95,31 +97,31 @@ const notFoundRE = /^Error: Cannot find module/m;
 // loop each possible option, `-c` or `--check`
 syntaxArgs.forEach(function(args) {
   const stdin = 'throw new Error("should not get run");';
-  const c = spawnSync(node, args, {encoding: 'utf8', input: stdin});
+  const c = spawnSync(node, args, { encoding: 'utf8', input: stdin });
 
   // no stdout or stderr should be produced
-  assert.strictEqual(c.stdout, '', 'stdout produced');
-  assert.strictEqual(c.stderr, '', 'stderr produced');
+  assert.strictEqual(c.stdout, '');
+  assert.strictEqual(c.stderr, '');
 
-  assert.strictEqual(c.status, 0, `code === ${c.status}`);
+  assert.strictEqual(c.status, 0);
 });
 
 // should throw if code piped from stdin with --check has bad syntax
 // loop each possible option, `-c` or `--check`
 syntaxArgs.forEach(function(args) {
   const stdin = 'var foo bar;';
-  const c = spawnSync(node, args, {encoding: 'utf8', input: stdin});
+  const c = spawnSync(node, args, { encoding: 'utf8', input: stdin });
 
   // stderr should include '[stdin]' as the filename
-  assert(c.stderr.startsWith('[stdin]'), "stderr doesn't start with [stdin]");
+  assert(c.stderr.startsWith('[stdin]'), `${c.stderr} starts with ${stdin}`);
 
   // no stdout or stderr should be produced
-  assert.strictEqual(c.stdout, '', 'stdout produced');
+  assert.strictEqual(c.stdout, '');
 
   // stderr should have a syntax error message
-  assert(syntaxErrorRE.test(c.stderr), 'stderr incorrect');
+  assert(syntaxErrorRE.test(c.stderr), `${syntaxErrorRE} === ${c.stderr}`);
 
-  assert.strictEqual(c.status, 1, `code === ${c.status}`);
+  assert.strictEqual(c.status, 1);
 });
 
 // should throw if -c and -e flags are both passed
@@ -129,12 +131,35 @@ syntaxArgs.forEach(function(args) {
     const cmd = [node, ...args].join(' ');
     exec(cmd, common.mustCall((err, stdout, stderr) => {
       assert.strictEqual(err instanceof Error, true);
-      assert.strictEqual(err.code, 9, `code === ${err.code}`);
+      assert.strictEqual(err.code, 9);
       assert(
         stderr.startsWith(
           `${node}: either --check or --eval can be used, not both`
         )
       );
+    }));
+  });
+});
+
+// should work with -r flags
+['-c', '--check'].forEach(function(checkFlag) {
+  ['-r', '--require'].forEach(function(requireFlag) {
+    const preloadFile = fixtures.path('no-wrapper.js');
+    const file = fixtures.path('syntax', 'illegal_if_not_wrapped.js');
+    const args = [requireFlag, preloadFile, checkFlag, file];
+    const cmd = [node, ...args].join(' ');
+    exec(cmd, common.mustCall((err, stdout, stderr) => {
+      assert.strictEqual(err instanceof Error, true);
+      assert.strictEqual(err.code, 1);
+
+      // no stdout should be produced
+      assert.strictEqual(stdout, '');
+
+      // stderr should have a syntax error message
+      assert(syntaxErrorRE.test(stderr), `${syntaxErrorRE} === ${stderr}`);
+
+      // stderr should include the filename
+      assert(stderr.startsWith(file), `${stderr} starts with ${file}`);
     }));
   });
 });

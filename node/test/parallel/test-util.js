@@ -25,7 +25,6 @@ const common = require('../common');
 const assert = require('assert');
 const util = require('util');
 const errors = require('internal/errors');
-const binding = process.binding('util');
 const context = require('vm').runInNewContext;
 
 // isArray
@@ -43,7 +42,7 @@ assert.strictEqual(false, util.isArray(Object.create(Array.prototype)));
 
 // isRegExp
 assert.strictEqual(true, util.isRegExp(/regexp/));
-assert.strictEqual(true, util.isRegExp(RegExp()));
+assert.strictEqual(true, util.isRegExp(RegExp(), 'foo'));
 assert.strictEqual(true, util.isRegExp(new RegExp()));
 assert.strictEqual(true, util.isRegExp(context('RegExp')()));
 assert.strictEqual(false, util.isRegExp({}));
@@ -53,7 +52,7 @@ assert.strictEqual(false, util.isRegExp(Object.create(RegExp.prototype)));
 
 // isDate
 assert.strictEqual(true, util.isDate(new Date()));
-assert.strictEqual(true, util.isDate(new Date(0)));
+assert.strictEqual(true, util.isDate(new Date(0), 'foo'));
 assert.strictEqual(true, util.isDate(new (context('Date'))()));
 assert.strictEqual(false, util.isDate(Date()));
 assert.strictEqual(false, util.isDate({}));
@@ -100,13 +99,13 @@ assert.strictEqual(false, util.isBuffer('foo'));
 assert.strictEqual(true, util.isBuffer(Buffer.from('foo')));
 
 // _extend
-assert.deepStrictEqual(util._extend({a: 1}), {a: 1});
-assert.deepStrictEqual(util._extend({a: 1}, []), {a: 1});
-assert.deepStrictEqual(util._extend({a: 1}, null), {a: 1});
-assert.deepStrictEqual(util._extend({a: 1}, true), {a: 1});
-assert.deepStrictEqual(util._extend({a: 1}, false), {a: 1});
-assert.deepStrictEqual(util._extend({a: 1}, {b: 2}), {a: 1, b: 2});
-assert.deepStrictEqual(util._extend({a: 1, b: 2}, {b: 3}), {a: 1, b: 3});
+assert.deepStrictEqual(util._extend({ a: 1 }), { a: 1 });
+assert.deepStrictEqual(util._extend({ a: 1 }, []), { a: 1 });
+assert.deepStrictEqual(util._extend({ a: 1 }, null), { a: 1 });
+assert.deepStrictEqual(util._extend({ a: 1 }, true), { a: 1 });
+assert.deepStrictEqual(util._extend({ a: 1 }, false), { a: 1 });
+assert.deepStrictEqual(util._extend({ a: 1 }, { b: 2 }), { a: 1, b: 2 });
+assert.deepStrictEqual(util._extend({ a: 1, b: 2 }, { b: 3 }), { a: 1, b: 3 });
 
 // deprecated
 assert.strictEqual(util.isBoolean(true), true);
@@ -143,10 +142,10 @@ assert.strictEqual(util.isFunction(), false);
 assert.strictEqual(util.isFunction('string'), false);
 
 common.expectWarning('DeprecationWarning', [
-  'util.print is deprecated. Use console.log instead.',
-  'util.puts is deprecated. Use console.log instead.',
-  'util.debug is deprecated. Use console.error instead.',
-  'util.error is deprecated. Use console.error instead.'
+  ['util.print is deprecated. Use console.log instead.', 'DEP0026'],
+  ['util.puts is deprecated. Use console.log instead.', 'DEP0027'],
+  ['util.debug is deprecated. Use console.error instead.', 'DEP0028'],
+  ['util.error is deprecated. Use console.error instead.', 'DEP0029']
 ]);
 
 util.print('test');
@@ -155,22 +154,23 @@ util.debug('test');
 util.error('test');
 
 {
-  // binding.isNativeError()
-  assert.strictEqual(binding.isNativeError(new Error()), true);
-  assert.strictEqual(binding.isNativeError(new TypeError()), true);
-  assert.strictEqual(binding.isNativeError(new SyntaxError()), true);
-  assert.strictEqual(binding.isNativeError(new (context('Error'))()), true);
-  assert.strictEqual(binding.isNativeError(new (context('TypeError'))()), true);
-  assert.strictEqual(binding.isNativeError(new (context('SyntaxError'))()),
+  assert.strictEqual(util.types.isNativeError(new Error()), true);
+  assert.strictEqual(util.types.isNativeError(new TypeError()), true);
+  assert.strictEqual(util.types.isNativeError(new SyntaxError()), true);
+  assert.strictEqual(util.types.isNativeError(new (context('Error'))()),
                      true);
-  assert.strictEqual(binding.isNativeError({}), false);
-  assert.strictEqual(binding.isNativeError({ name: 'Error', message: '' }),
+  assert.strictEqual(util.types.isNativeError(new (context('TypeError'))()),
+                     true);
+  assert.strictEqual(util.types.isNativeError(new (context('SyntaxError'))()),
+                     true);
+  assert.strictEqual(util.types.isNativeError({}), false);
+  assert.strictEqual(util.types.isNativeError({ name: 'Error', message: '' }),
                      false);
-  assert.strictEqual(binding.isNativeError([]), false);
-  assert.strictEqual(binding.isNativeError(Object.create(Error.prototype)),
+  assert.strictEqual(util.types.isNativeError([]), false);
+  assert.strictEqual(util.types.isNativeError(Object.create(Error.prototype)),
                      false);
   assert.strictEqual(
-    binding.isNativeError(new errors.Error('ERR_IPC_CHANNEL_CLOSED')),
+    util.types.isNativeError(new errors.codes.ERR_IPC_CHANNEL_CLOSED()),
     true
   );
 }

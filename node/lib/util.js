@@ -22,14 +22,28 @@
 'use strict';
 
 const errors = require('internal/errors');
+const {
+  ERR_FALSY_VALUE_REJECTION,
+  ERR_INVALID_ARG_TYPE,
+  ERR_OUT_OF_RANGE
+} = errors.codes;
 const { TextDecoder, TextEncoder } = require('internal/encoding');
-
-const { errname } = process.binding('uv');
+const { isBuffer } = require('buffer').Buffer;
 
 const {
   getPromiseDetails,
   getProxyDetails,
+  kPending,
+  kRejected,
+  previewEntries
+} = process.binding('util');
+
+const { internalBinding } = require('internal/bootstrap/loaders');
+const types = internalBinding('types');
+Object.assign(types, require('internal/util/types'));
+const {
   isAnyArrayBuffer,
+  isArgumentsObject,
   isDataView,
   isExternal,
   isMap,
@@ -37,19 +51,21 @@ const {
   isPromise,
   isSet,
   isSetIterator,
-  isTypedArray,
-  isRegExp: _isRegExp,
-  isDate: _isDate,
-  kPending,
-  kRejected,
-} = process.binding('util');
+  isWeakMap,
+  isWeakSet,
+  isRegExp,
+  isDate,
+  isTypedArray
+} = types;
 
 const {
   customInspectSymbol,
   deprecate,
-  getConstructorOf,
+  getSystemErrorName: internalErrorName,
   isError,
-  promisify
+  promisify,
+  join,
+  removeColors
 } = require('internal/util');
 
 const inspectDefaultOptions = Object.seal({
@@ -59,18 +75,77 @@ const inspectDefaultOptions = Object.seal({
   customInspect: true,
   showProxy: false,
   maxArrayLength: 100,
-  breakLength: 60
+  breakLength: 60,
+  compact: true
 });
-
-const numbersOnlyRE = /^\d+$/;
 
 const propertyIsEnumerable = Object.prototype.propertyIsEnumerable;
 const regExpToString = RegExp.prototype.toString;
 const dateToISOString = Date.prototype.toISOString;
 const errorToString = Error.prototype.toString;
 
-var CIRCULAR_ERROR_MESSAGE;
-var Debug;
+let CIRCULAR_ERROR_MESSAGE;
+let internalDeepEqual;
+
+/* eslint-disable no-control-regex */
+const strEscapeSequencesRegExp = /[\x00-\x1f\x27\x5c]/;
+const strEscapeSequencesReplacer = /[\x00-\x1f\x27\x5c]/g;
+/* eslint-enable no-control-regex */
+
+const keyStrRegExp = /^[a-zA-Z_][a-zA-Z_0-9]*$/;
+const numberRegExp = /^(0|[1-9][0-9]*)$/;
+
+const readableRegExps = {};
+
+const MIN_LINE_LENGTH = 16;
+
+// Escaped special characters. Use empty strings to fill up unused entries.
+const meta = [
+  '\\u0000', '\\u0001', '\\u0002', '\\u0003', '\\u0004',
+  '\\u0005', '\\u0006', '\\u0007', '\\b', '\\t',
+  '\\n', '\\u000b', '\\f', '\\r', '\\u000e',
+  '\\u000f', '\\u0010', '\\u0011', '\\u0012', '\\u0013',
+  '\\u0014', '\\u0015', '\\u0016', '\\u0017', '\\u0018',
+  '\\u0019', '\\u001a', '\\u001b', '\\u001c', '\\u001d',
+  '\\u001e', '\\u001f', '', '', '',
+  '', '', '', '', "\\'", '', '', '', '', '',
+  '', '', '', '', '', '', '', '', '', '',
+  '', '', '', '', '', '', '', '', '', '',
+  '', '', '', '', '', '', '', '', '', '',
+  '', '', '', '', '', '', '', '', '', '',
+  '', '', '', '', '', '', '', '\\\\'
+];
+
+const escapeFn = (str) => meta[str.charCodeAt(0)];
+
+// Escape control characters, single quotes and the backslash.
+// This is similar to JSON stringify escaping.
+function strEscape(str) {
+  // Some magic numbers that worked out fine while benchmarking with v8 6.0
+  if (str.length < 5000 && !strEscapeSequencesRegExp.test(str))
+    return `'${str}'`;
+  if (str.length > 100)
+    return `'${str.replace(strEscapeSequencesReplacer, escapeFn)}'`;
+  let result = '';
+  let last = 0;
+  for (var i = 0; i < str.length; i++) {
+    const point = str.charCodeAt(i);
+    if (point === 39 || point === 92 || point < 32) {
+      if (last === i) {
+        result += meta[point];
+      } else {
+        result += `${str.slice(last, i)}${meta[point]}`;
+      }
+      last = i + 1;
+    }
+  }
+  if (last === 0) {
+    result = str;
+  } else if (last !== i) {
+    result += str.slice(last);
+  }
+  return `'${result}'`;
+}
 
 function tryStringify(arg) {
   try {
@@ -90,79 +165,78 @@ function tryStringify(arg) {
   }
 }
 
-function format(f) {
+const emptyOptions = {};
+function format(...args) {
+  return formatWithOptions(emptyOptions, ...args);
+}
+
+function formatWithOptions(inspectOptions, f) {
+  let i, tempStr;
   if (typeof f !== 'string') {
-    const objects = new Array(arguments.length);
-    for (var index = 0; index < arguments.length; index++) {
-      objects[index] = inspect(arguments[index]);
+    if (arguments.length === 1) return '';
+    let res = '';
+    for (i = 1; i < arguments.length - 1; i++) {
+      res += inspect(arguments[i], inspectOptions);
+      res += ' ';
     }
-    return objects.join(' ');
+    res += inspect(arguments[i], inspectOptions);
+    return res;
   }
 
-  if (arguments.length === 1) return f;
+  if (arguments.length === 2) return f;
 
-  var str = '';
-  var a = 1;
-  var lastPos = 0;
-  for (var i = 0; i < f.length;) {
-    if (f.charCodeAt(i) === 37/*'%'*/ && i + 1 < f.length) {
-      if (f.charCodeAt(i + 1) !== 37/*'%'*/ && a >= arguments.length) {
-        ++i;
-        continue;
+  let str = '';
+  let a = 2;
+  let lastPos = 0;
+  for (i = 0; i < f.length - 1; i++) {
+    if (f.charCodeAt(i) === 37) { // '%'
+      const nextChar = f.charCodeAt(++i);
+      if (a !== arguments.length) {
+        switch (nextChar) {
+          case 115: // 's'
+            tempStr = String(arguments[a++]);
+            break;
+          case 106: // 'j'
+            tempStr = tryStringify(arguments[a++]);
+            break;
+          case 100: // 'd'
+            tempStr = `${Number(arguments[a++])}`;
+            break;
+          case 79: // 'O'
+            tempStr = inspect(arguments[a++], inspectOptions);
+            break;
+          case 111: // 'o'
+          {
+            const opts = Object.assign({}, inspectOptions, {
+              showHidden: true,
+              showProxy: true,
+              depth: 4
+            });
+            tempStr = inspect(arguments[a++], opts);
+            break;
+          }
+          case 105: // 'i'
+            tempStr = `${parseInt(arguments[a++])}`;
+            break;
+          case 102: // 'f'
+            tempStr = `${parseFloat(arguments[a++])}`;
+            break;
+          case 37: // '%'
+            str += f.slice(lastPos, i);
+            lastPos = i + 1;
+            continue;
+          default: // any other character is not a correct placeholder
+            continue;
+        }
+        if (lastPos !== i - 1)
+          str += f.slice(lastPos, i - 1);
+        str += tempStr;
+        lastPos = i + 1;
+      } else if (nextChar === 37) {
+        str += f.slice(lastPos, i);
+        lastPos = i + 1;
       }
-      switch (f.charCodeAt(i + 1)) {
-        case 100: // 'd'
-          if (lastPos < i)
-            str += f.slice(lastPos, i);
-          str += Number(arguments[a++]);
-          break;
-        case 105: // 'i'
-          if (lastPos < i)
-            str += f.slice(lastPos, i);
-          str += parseInt(arguments[a++]);
-          break;
-        case 102: // 'f'
-          if (lastPos < i)
-            str += f.slice(lastPos, i);
-          str += parseFloat(arguments[a++]);
-          break;
-        case 106: // 'j'
-          if (lastPos < i)
-            str += f.slice(lastPos, i);
-          str += tryStringify(arguments[a++]);
-          break;
-        case 115: // 's'
-          if (lastPos < i)
-            str += f.slice(lastPos, i);
-          str += String(arguments[a++]);
-          break;
-        case 79: // 'O'
-          if (lastPos < i)
-            str += f.slice(lastPos, i);
-          str += inspect(arguments[a++]);
-          break;
-        case 111: // 'o'
-          if (lastPos < i)
-            str += f.slice(lastPos, i);
-          str += inspect(arguments[a++],
-                         { showHidden: true, depth: 4, showProxy: true });
-          break;
-        case 37: // '%'
-          if (lastPos < i)
-            str += f.slice(lastPos, i);
-          str += '%';
-          break;
-        default: // any other character is not a correct placeholder
-          if (lastPos < i)
-            str += f.slice(lastPos, i);
-          str += '%';
-          lastPos = i = i + 1;
-          continue;
-      }
-      lastPos = i = i + 2;
-      continue;
     }
-    ++i;
   }
   if (lastPos === 0)
     str = f;
@@ -170,83 +244,102 @@ function format(f) {
     str += f.slice(lastPos);
   while (a < arguments.length) {
     const x = arguments[a++];
-    if (x === null || (typeof x !== 'object' && typeof x !== 'symbol')) {
+    if ((typeof x !== 'object' && typeof x !== 'symbol') || x === null) {
       str += ` ${x}`;
     } else {
-      str += ` ${inspect(x)}`;
+      str += ` ${inspect(x, inspectOptions)}`;
     }
   }
   return str;
 }
 
-
-var debugs = {};
-var debugEnviron;
+const debugs = {};
+let debugEnvRegex = /^$/;
+if (process.env.NODE_DEBUG) {
+  let debugEnv = process.env.NODE_DEBUG;
+  debugEnv = debugEnv.replace(/[|\\{}()[\]^$+?.]/g, '\\$&')
+      .replace(/\*/g, '.*')
+      .replace(/,/g, '$|^')
+      .toUpperCase();
+  debugEnvRegex = new RegExp(`^${debugEnv}$`, 'i');
+}
 
 function debuglog(set) {
-  if (debugEnviron === undefined) {
-    debugEnviron = new Set(
-      (process.env.NODE_DEBUG || '').split(',').map((s) => s.toUpperCase()));
-  }
   set = set.toUpperCase();
   if (!debugs[set]) {
-    if (debugEnviron.has(set)) {
-      var pid = process.pid;
-      debugs[set] = function() {
-        var msg = exports.format.apply(exports, arguments);
+    if (debugEnvRegex.test(set)) {
+      const pid = process.pid;
+      debugs[set] = function debug() {
+        const msg = exports.format.apply(exports, arguments);
         console.error('%s %d: %s', set, pid, msg);
       };
     } else {
-      debugs[set] = function() {};
+      debugs[set] = function debug() {};
     }
   }
   return debugs[set];
 }
 
-
 /**
- * Echos the value of a value. Tries to print the value out
+ * Echos the value of any input. Tries to print the value out
  * in the best way possible given the different types.
  *
- * @param {Object} obj The object to print out.
+ * @param {any} value The value to print out.
  * @param {Object} opts Optional options object that alters the output.
  */
-/* legacy: obj, showHidden, depth, colors*/
-function inspect(obj, opts) {
-  // default options
-  var ctx = {
+/* Legacy: value, showHidden, depth, colors */
+function inspect(value, opts) {
+  // Default options
+  const ctx = {
     seen: [],
-    stylize: stylizeNoColor
+    stylize: stylizeNoColor,
+    showHidden: inspectDefaultOptions.showHidden,
+    depth: inspectDefaultOptions.depth,
+    colors: inspectDefaultOptions.colors,
+    customInspect: inspectDefaultOptions.customInspect,
+    showProxy: inspectDefaultOptions.showProxy,
+    // TODO(BridgeAR): Deprecate `maxArrayLength` and replace it with
+    // `maxEntries`.
+    maxArrayLength: inspectDefaultOptions.maxArrayLength,
+    breakLength: inspectDefaultOptions.breakLength,
+    indentationLvl: 0,
+    compact: inspectDefaultOptions.compact
   };
-  // legacy...
-  if (arguments.length >= 3 && arguments[2] !== undefined) {
-    ctx.depth = arguments[2];
+  // Legacy...
+  if (arguments.length > 2) {
+    if (arguments[2] !== undefined) {
+      ctx.depth = arguments[2];
+    }
+    if (arguments.length > 3 && arguments[3] !== undefined) {
+      ctx.colors = arguments[3];
+    }
   }
-  if (arguments.length >= 4 && arguments[3] !== undefined) {
-    ctx.colors = arguments[3];
-  }
+  // Set user-specified options
   if (typeof opts === 'boolean') {
-    // legacy...
     ctx.showHidden = opts;
+  } else if (opts) {
+    const optKeys = Object.keys(opts);
+    for (var i = 0; i < optKeys.length; i++) {
+      ctx[optKeys[i]] = opts[optKeys[i]];
+    }
   }
-  // Set default and user-specified options
-  ctx = Object.assign({}, inspect.defaultOptions, ctx, opts);
   if (ctx.colors) ctx.stylize = stylizeWithColor;
   if (ctx.maxArrayLength === null) ctx.maxArrayLength = Infinity;
-  return formatValue(ctx, obj, ctx.depth);
+  return formatValue(ctx, value, ctx.depth);
 }
 inspect.custom = customInspectSymbol;
 
 Object.defineProperty(inspect, 'defaultOptions', {
-  get: function() {
+  get() {
     return inspectDefaultOptions;
   },
-  set: function(options) {
+  set(options) {
     if (options === null || typeof options !== 'object') {
-      throw new TypeError('"options" must be an object');
+      throw new ERR_INVALID_ARG_TYPE('options', 'Object', options);
     }
-    Object.assign(inspectDefaultOptions, options);
-    return inspectDefaultOptions;
+    // TODO(BridgeAR): Add input validation and make sure `defaultOptions` are
+    // not configurable.
+    return _extend(inspectDefaultOptions, options);
   }
 });
 
@@ -271,6 +364,7 @@ inspect.colors = Object.assign(Object.create(null), {
 inspect.styles = Object.assign(Object.create(null), {
   'special': 'cyan',
   'number': 'yellow',
+  'bigint': 'yellow',
   'boolean': 'yellow',
   'undefined': 'grey',
   'null': 'bold',
@@ -282,612 +376,763 @@ inspect.styles = Object.assign(Object.create(null), {
 });
 
 function stylizeWithColor(str, styleType) {
-  var style = inspect.styles[styleType];
-
-  if (style) {
-    return `\u001b[${inspect.colors[style][0]}m${str}` +
-           `\u001b[${inspect.colors[style][1]}m`;
-  } else {
-    return str;
+  const style = inspect.styles[styleType];
+  if (style !== undefined) {
+    const color = inspect.colors[style];
+    return `\u001b[${color[0]}m${str}\u001b[${color[1]}m`;
   }
+  return str;
 }
-
 
 function stylizeNoColor(str, styleType) {
   return str;
 }
 
+function getConstructorName(obj) {
+  while (obj) {
+    const descriptor = Object.getOwnPropertyDescriptor(obj, 'constructor');
+    if (descriptor !== undefined &&
+        typeof descriptor.value === 'function' &&
+        descriptor.value.name !== '') {
+      return descriptor.value.name;
+    }
 
-function arrayToHash(array) {
-  var hash = Object.create(null);
-
-  for (var i = 0; i < array.length; i++) {
-    var val = array[i];
-    hash[val] = true;
+    obj = Object.getPrototypeOf(obj);
   }
 
-  return hash;
+  return '';
 }
 
-
-function ensureDebugIsInitialized() {
-  if (Debug === undefined) {
-    const runInDebugContext = require('vm').runInDebugContext;
-    Debug = runInDebugContext('Debug');
+function getPrefix(constructor, tag) {
+  if (constructor !== '') {
+    if (tag !== '' && constructor !== tag) {
+      return `${constructor} [${tag}] `;
+    }
+    return `${constructor} `;
   }
-}
 
+  if (tag !== '')
+    return `[${tag}] `;
+
+  return '';
+}
 
 function formatValue(ctx, value, recurseTimes) {
-  if (ctx.showProxy &&
-      ((typeof value === 'object' && value !== null) ||
-       typeof value === 'function')) {
-    var proxy = undefined;
-    var proxyCache = ctx.proxyCache;
-    if (!proxyCache)
-      proxyCache = ctx.proxyCache = new Map();
-    // Determine if we've already seen this object and have
-    // determined that it either is or is not a proxy.
-    if (proxyCache.has(value)) {
-      // We've seen it, if the value is not undefined, it's a Proxy.
-      proxy = proxyCache.get(value);
-    } else {
-      // Haven't seen it. Need to check.
-      // If it's not a Proxy, this will return undefined.
-      // Otherwise, it'll return an array. The first item
-      // is the target, the second item is the handler.
-      // We ignore (and do not return) the Proxy isRevoked property.
-      proxy = getProxyDetails(value);
-      if (proxy) {
-        // We know for a fact that this isn't a Proxy.
-        // Mark it as having already been evaluated.
-        // We do this because this object is passed
-        // recursively to formatValue below in order
-        // for it to get proper formatting, and because
-        // the target and handle objects also might be
-        // proxies... it's unfortunate but necessary.
-        proxyCache.set(proxy, undefined);
+  // Primitive types cannot have properties
+  if (typeof value !== 'object' && typeof value !== 'function') {
+    return formatPrimitive(ctx.stylize, value, ctx);
+  }
+  if (value === null) {
+    return ctx.stylize('null', 'null');
+  }
+
+  if (ctx.showProxy) {
+    const proxy = getProxyDetails(value);
+    if (proxy !== undefined) {
+      if (recurseTimes != null) {
+        if (recurseTimes < 0)
+          return ctx.stylize('Proxy [Array]', 'special');
+        recurseTimes -= 1;
       }
-      // If the object is not a Proxy, then this stores undefined.
-      // This tells the code above that we've already checked and
-      // ruled it out. If the object is a proxy, this caches the
-      // results of the getProxyDetails call.
-      proxyCache.set(value, proxy);
-    }
-    if (proxy) {
-      return `Proxy ${formatValue(ctx, proxy, recurseTimes)}`;
+      ctx.indentationLvl += 2;
+      const res = [
+        formatValue(ctx, proxy[0], recurseTimes),
+        formatValue(ctx, proxy[1], recurseTimes)
+      ];
+      ctx.indentationLvl -= 2;
+      const str = reduceToSingleString(ctx, res, '', ['[', ']']);
+      return `Proxy ${str}`;
     }
   }
 
   // Provide a hook for user-specified inspect functions.
   // Check that value is an object with an inspect function on it
-  if (ctx.customInspect && value) {
-    const maybeCustomInspect = value[customInspectSymbol] || value.inspect;
+  if (ctx.customInspect) {
+    let maybeCustom = value[customInspectSymbol];
 
-    if (typeof maybeCustomInspect === 'function' &&
+    if (!maybeCustom && value.inspect !== exports.inspect &&
+        typeof value.inspect === 'function') {
+      maybeCustom = deprecate(
+        value.inspect,
+        'Custom inspection function on Objects via .inspect() is deprecated',
+        'DEP0079'
+      );
+    }
+
+    if (typeof maybeCustom === 'function' &&
         // Filter out the util module, its inspect function is special
-        maybeCustomInspect !== exports.inspect &&
+        maybeCustom !== exports.inspect &&
         // Also filter out any prototype objects using the circular check.
         !(value.constructor && value.constructor.prototype === value)) {
-      let ret = maybeCustomInspect.call(value, recurseTimes, ctx);
+      const ret = maybeCustom.call(value, recurseTimes, ctx);
 
       // If the custom inspection method returned `this`, don't go into
       // infinite recursion.
       if (ret !== value) {
         if (typeof ret !== 'string') {
-          ret = formatValue(ctx, ret, recurseTimes);
+          return formatValue(ctx, ret, recurseTimes);
         }
         return ret;
       }
     }
   }
 
-  // Primitive types cannot have properties
-  var primitive = formatPrimitive(ctx, value);
-  if (primitive) {
-    return primitive;
-  }
+  // Using an array here is actually better for the average case than using
+  // a Set. `seen` will only check for the depth and will never grow too large.
+  if (ctx.seen.indexOf(value) !== -1)
+    return ctx.stylize('[Circular]', 'special');
+
+  let keys;
+  let symbols = Object.getOwnPropertySymbols(value);
 
   // Look up the keys of the object.
-  var keys = Object.keys(value);
-  var visibleKeys = arrayToHash(keys);
-  const symbolKeys = Object.getOwnPropertySymbols(value);
-  const enumSymbolKeys = symbolKeys
-      .filter((key) => propertyIsEnumerable.call(value, key));
-  keys = keys.concat(enumSymbolKeys);
-
   if (ctx.showHidden) {
-    keys = Object.getOwnPropertyNames(value).concat(symbolKeys);
-  }
-
-  // This could be a boxed primitive (new String(), etc.), check valueOf()
-  // NOTE: Avoid calling `valueOf` on `Date` instance because it will return
-  // a number which, when object has some additional user-stored `keys`,
-  // will be printed out.
-  var formatted;
-  var raw = value;
-  try {
-    // the .valueOf() call can fail for a multitude of reasons
-    if (!isDate(value))
-      raw = value.valueOf();
-  } catch (e) {
-    // ignore...
-  }
-
-  if (typeof raw === 'string') {
-    // for boxed Strings, we have to remove the 0-n indexed entries,
-    // since they just noisy up the output and are redundant
-    keys = keys.filter(function(key) {
-      if (typeof key === 'symbol') {
-        return true;
-      }
-
-      return !(key >= 0 && key < raw.length);
-    });
-  }
-
-  var constructor = getConstructorOf(value);
-
-  // Some type of object without properties can be shortcutted.
-  if (keys.length === 0) {
-    if (typeof value === 'function') {
-      const ctorName = constructor ? constructor.name : 'Function';
-      return ctx.stylize(
-        `[${ctorName}${value.name ? `: ${value.name}` : ''}]`, 'special');
-    }
-    if (isRegExp(value)) {
-      return ctx.stylize(regExpToString.call(value), 'regexp');
-    }
-    if (isDate(value)) {
-      if (Number.isNaN(value.getTime())) {
-        return ctx.stylize(value.toString(), 'date');
+    keys = Object.getOwnPropertyNames(value);
+  } else {
+    // This might throw if `value` is a Module Namespace Object from an
+    // unevaluated module, but we don't want to perform the actual type
+    // check because it's expensive.
+    // TODO(devsnek): track https://github.com/tc39/ecma262/issues/1209
+    // and modify this logic as needed.
+    try {
+      keys = Object.keys(value);
+    } catch (err) {
+      if (types.isNativeError(err) &&
+          err.name === 'ReferenceError' &&
+          types.isModuleNamespaceObject(value)) {
+        keys = Object.getOwnPropertyNames(value);
       } else {
+        throw err;
+      }
+    }
+
+    if (symbols.length !== 0)
+      symbols = symbols.filter((key) => propertyIsEnumerable.call(value, key));
+  }
+
+  const keyLength = keys.length + symbols.length;
+
+  const constructor = getConstructorName(value);
+  let tag = value[Symbol.toStringTag];
+  if (typeof tag !== 'string')
+    tag = '';
+  let base = '';
+  let formatter = formatObject;
+  let braces;
+  let noIterator = true;
+  let raw;
+  let extra;
+
+  // Iterators and the rest are split to reduce checks
+  if (value[Symbol.iterator]) {
+    noIterator = false;
+    if (Array.isArray(value)) {
+      // Only set the constructor for non ordinary ("Array [...]") arrays.
+      const prefix = getPrefix(constructor, tag);
+      braces = [`${prefix === 'Array ' ? '' : prefix}[`, ']'];
+      if (value.length === 0 && keyLength === 0)
+        return `${braces[0]}]`;
+      formatter = formatArray;
+    } else if (isSet(value)) {
+      const prefix = getPrefix(constructor, tag);
+      if (value.size === 0 && keyLength === 0)
+        return `${prefix}{}`;
+      braces = [`${prefix}{`, '}'];
+      formatter = formatSet;
+    } else if (isMap(value)) {
+      const prefix = getPrefix(constructor, tag);
+      if (value.size === 0 && keyLength === 0)
+        return `${prefix}{}`;
+      braces = [`${prefix}{`, '}'];
+      formatter = formatMap;
+    } else if (isTypedArray(value)) {
+      braces = [`${getPrefix(constructor, tag)}[`, ']'];
+      formatter = formatTypedArray;
+    } else if (isMapIterator(value)) {
+      braces = [`[${tag}] {`, '}'];
+      formatter = formatMapIterator;
+    } else if (isSetIterator(value)) {
+      braces = [`[${tag}] {`, '}'];
+      formatter = formatSetIterator;
+    } else {
+      // Check for boxed strings with valueOf()
+      // The .valueOf() call can fail for a multitude of reasons
+      try {
+        raw = value.valueOf();
+      } catch (e) { /* ignore */ }
+
+      if (typeof raw === 'string') {
+        const formatted = formatPrimitive(stylizeNoColor, raw, ctx);
+        if (keyLength === raw.length)
+          return ctx.stylize(`[String: ${formatted}]`, 'string');
+        base = `[String: ${formatted}]`;
+        // For boxed Strings, we have to remove the 0-n indexed entries,
+        // since they just noisy up the output and are redundant
+        // Make boxed primitive Strings look like such
+        keys = keys.slice(value.length);
+        braces = ['{', '}'];
+      } else {
+        noIterator = true;
+      }
+    }
+  }
+  if (noIterator) {
+    braces = ['{', '}'];
+    if (constructor === 'Object') {
+      if (isArgumentsObject(value)) {
+        braces[0] = '[Arguments] {';
+        if (keyLength === 0)
+          return '[Arguments] {}';
+      } else if (tag !== '') {
+        braces[0] = `${getPrefix(constructor, tag)}{`;
+        if (keyLength === 0) {
+          return `${braces[0]}}`;
+        }
+      } else if (keyLength === 0) {
+        return '{}';
+      }
+    } else if (typeof value === 'function') {
+      const name =
+        `${constructor || tag}${value.name ? `: ${value.name}` : ''}`;
+      if (keyLength === 0)
+        return ctx.stylize(`[${name}]`, 'special');
+      base = `[${name}]`;
+    } else if (isRegExp(value)) {
+      // Make RegExps say that they are RegExps
+      if (keyLength === 0 || recurseTimes < 0)
+        return ctx.stylize(regExpToString.call(value), 'regexp');
+      base = `${regExpToString.call(value)}`;
+    } else if (isDate(value)) {
+      if (keyLength === 0) {
+        if (Number.isNaN(value.getTime()))
+          return ctx.stylize(value.toString(), 'date');
         return ctx.stylize(dateToISOString.call(value), 'date');
       }
-    }
-    if (isError(value)) {
-      return formatError(value);
-    }
-    // now check the `raw` value to handle boxed primitives
-    if (typeof raw === 'string') {
-      formatted = formatPrimitiveNoColor(ctx, raw);
-      return ctx.stylize(`[String: ${formatted}]`, 'string');
-    }
-    if (typeof raw === 'symbol') {
-      formatted = formatPrimitiveNoColor(ctx, raw);
-      return ctx.stylize(`[Symbol: ${formatted}]`, 'symbol');
-    }
-    if (typeof raw === 'number') {
-      formatted = formatPrimitiveNoColor(ctx, raw);
-      return ctx.stylize(`[Number: ${formatted}]`, 'number');
-    }
-    if (typeof raw === 'boolean') {
-      formatted = formatPrimitiveNoColor(ctx, raw);
-      return ctx.stylize(`[Boolean: ${formatted}]`, 'boolean');
-    }
-    // Fast path for ArrayBuffer and SharedArrayBuffer.
-    // Can't do the same for DataView because it has a non-primitive
-    // .buffer property that we need to recurse for.
-    if (isAnyArrayBuffer(value)) {
-      return `${constructor.name}` +
-             ` { byteLength: ${formatNumber(ctx, value.byteLength)} }`;
-    }
-    if (isExternal(value)) {
-      return ctx.stylize('[External]', 'special');
-    }
-  }
+      // Make dates with properties first say the date
+      base = dateToISOString.call(value);
+    } else if (isError(value)) {
+      // Make error with message first say the error
+      base = formatError(value);
+      // Wrap the error in brackets in case it has no stack trace.
+      const stackStart = base.indexOf('\n    at');
+      if (stackStart === -1) {
+        base = `[${base}]`;
+      }
+      // The message and the stack have to be indented as well!
+      if (ctx.indentationLvl !== 0) {
+        const indentation = ' '.repeat(ctx.indentationLvl);
+        base = formatError(value).replace(/\n/g, `\n${indentation}`);
+      }
+      if (keyLength === 0)
+        return base;
 
-  var base = '';
-  var empty = false;
-  var formatter = formatObject;
-  var braces;
-
-  // We can't compare constructors for various objects using a comparison like
-  // `constructor === Array` because the object could have come from a different
-  // context and thus the constructor won't match. Instead we check the
-  // constructor names (including those up the prototype chain where needed) to
-  // determine object types.
-  if (Array.isArray(value)) {
-    // Unset the constructor to prevent "Array [...]" for ordinary arrays.
-    if (constructor && constructor.name === 'Array')
-      constructor = null;
-    braces = ['[', ']'];
-    empty = value.length === 0;
-    formatter = formatArray;
-  } else if (isSet(value)) {
-    braces = ['{', '}'];
-    // With `showHidden`, `length` will display as a hidden property for
-    // arrays. For consistency's sake, do the same for `size`, even though this
-    // property isn't selected by Object.getOwnPropertyNames().
-    if (ctx.showHidden)
-      keys.unshift('size');
-    empty = value.size === 0;
-    formatter = formatSet;
-  } else if (isMap(value)) {
-    braces = ['{', '}'];
-    // Ditto.
-    if (ctx.showHidden)
-      keys.unshift('size');
-    empty = value.size === 0;
-    formatter = formatMap;
-  } else if (isAnyArrayBuffer(value)) {
-    braces = ['{', '}'];
-    keys.unshift('byteLength');
-    visibleKeys.byteLength = true;
-  } else if (isDataView(value)) {
-    braces = ['{', '}'];
-    // .buffer goes last, it's not a primitive like the others.
-    keys.unshift('byteLength', 'byteOffset', 'buffer');
-    visibleKeys.byteLength = true;
-    visibleKeys.byteOffset = true;
-    visibleKeys.buffer = true;
-  } else if (isTypedArray(value)) {
-    braces = ['[', ']'];
-    formatter = formatTypedArray;
-    if (ctx.showHidden) {
+      if (ctx.compact === false && stackStart !== -1) {
+        braces[0] += `${base.slice(stackStart)}`;
+        base = `[${base.slice(0, stackStart)}]`;
+      }
+    } else if (isAnyArrayBuffer(value)) {
+      // Fast path for ArrayBuffer and SharedArrayBuffer.
+      // Can't do the same for DataView because it has a non-primitive
+      // .buffer property that we need to recurse for.
+      const prefix = getPrefix(constructor, tag);
+      if (keyLength === 0)
+        return prefix +
+              `{ byteLength: ${formatNumber(ctx.stylize, value.byteLength)} }`;
+      braces[0] = `${prefix}{`;
+      keys.unshift('byteLength');
+    } else if (isDataView(value)) {
+      braces[0] = `${getPrefix(constructor, tag)}{`;
       // .buffer goes last, it's not a primitive like the others.
-      keys.unshift('BYTES_PER_ELEMENT',
-                   'length',
-                   'byteLength',
-                   'byteOffset',
-                   'buffer');
-    }
-  } else if (isPromise(value)) {
-    braces = ['{', '}'];
-    formatter = formatPromise;
-  } else if (isMapIterator(value)) {
-    constructor = { name: 'MapIterator' };
-    braces = ['{', '}'];
-    empty = false;
-    formatter = formatCollectionIterator;
-  } else if (isSetIterator(value)) {
-    constructor = { name: 'SetIterator' };
-    braces = ['{', '}'];
-    empty = false;
-    formatter = formatCollectionIterator;
-  } else {
-    // Unset the constructor to prevent "Object {...}" for ordinary objects.
-    if (constructor && constructor.name === 'Object')
-      constructor = null;
-    braces = ['{', '}'];
-    empty = true;  // No other data than keys.
-  }
-
-  empty = empty === true && keys.length === 0;
-
-  // Make functions say that they are functions
-  if (typeof value === 'function') {
-    const ctorName = constructor ? constructor.name : 'Function';
-    base = ` [${ctorName}${value.name ? `: ${value.name}` : ''}]`;
-  }
-
-  // Make RegExps say that they are RegExps
-  if (isRegExp(value)) {
-    base = ` ${regExpToString.call(value)}`;
-  }
-
-  // Make dates with properties first say the date
-  if (isDate(value)) {
-    base = ` ${dateToISOString.call(value)}`;
-  }
-
-  // Make error with message first say the error
-  if (isError(value)) {
-    base = ` ${formatError(value)}`;
-  }
-
-  // Make boxed primitive Strings look like such
-  if (typeof raw === 'string') {
-    formatted = formatPrimitiveNoColor(ctx, raw);
-    base = ` [String: ${formatted}]`;
-  }
-
-  // Make boxed primitive Numbers look like such
-  if (typeof raw === 'number') {
-    formatted = formatPrimitiveNoColor(ctx, raw);
-    base = ` [Number: ${formatted}]`;
-  }
-
-  // Make boxed primitive Booleans look like such
-  if (typeof raw === 'boolean') {
-    formatted = formatPrimitiveNoColor(ctx, raw);
-    base = ` [Boolean: ${formatted}]`;
-  }
-
-  // Add constructor name if available
-  if (base === '' && constructor)
-    braces[0] = `${constructor.name} ${braces[0]}`;
-
-  if (empty === true) {
-    return `${braces[0]}${base}${braces[1]}`;
-  }
-
-  if (recurseTimes < 0) {
-    if (isRegExp(value)) {
-      return ctx.stylize(regExpToString.call(value), 'regexp');
-    } else if (Array.isArray(value)) {
-      return ctx.stylize('[Array]', 'special');
+      keys.unshift('byteLength', 'byteOffset', 'buffer');
+    } else if (isPromise(value)) {
+      braces[0] = `${getPrefix(constructor, tag)}{`;
+      formatter = formatPromise;
+    } else if (isWeakSet(value)) {
+      braces[0] = `${getPrefix(constructor, tag)}{`;
+      if (ctx.showHidden) {
+        formatter = formatWeakSet;
+      } else {
+        extra = '[items unknown]';
+      }
+    } else if (isWeakMap(value)) {
+      braces[0] = `${getPrefix(constructor, tag)}{`;
+      if (ctx.showHidden) {
+        formatter = formatWeakMap;
+      } else {
+        extra = '[items unknown]';
+      }
+    } else if (types.isModuleNamespaceObject(value)) {
+      braces[0] = `[${tag}] {`;
+      formatter = formatNamespaceObject;
     } else {
-      return ctx.stylize('[Object]', 'special');
+      // Check boxed primitives other than string with valueOf()
+      // NOTE: `Date` has to be checked first!
+      // The .valueOf() call can fail for a multitude of reasons
+      try {
+        raw = value.valueOf();
+      } catch (e) { /* ignore */ }
+
+      if (typeof raw === 'number') {
+        // Make boxed primitive Numbers look like such
+        const formatted = formatPrimitive(stylizeNoColor, raw);
+        if (keyLength === 0)
+          return ctx.stylize(`[Number: ${formatted}]`, 'number');
+        base = `[Number: ${formatted}]`;
+      } else if (typeof raw === 'boolean') {
+        // Make boxed primitive Booleans look like such
+        const formatted = formatPrimitive(stylizeNoColor, raw);
+        if (keyLength === 0)
+          return ctx.stylize(`[Boolean: ${formatted}]`, 'boolean');
+        base = `[Boolean: ${formatted}]`;
+        // eslint-disable-next-line valid-typeof
+      } else if (typeof raw === 'bigint') {
+        // Make boxed primitive BigInts look like such
+        const formatted = formatPrimitive(stylizeNoColor, raw);
+        if (keyLength === 0)
+          return ctx.stylize(`[BigInt: ${formatted}]`, 'bigint');
+        base = `[BigInt: ${formatted}]`;
+      } else if (typeof raw === 'symbol') {
+        const formatted = formatPrimitive(stylizeNoColor, raw);
+        return ctx.stylize(`[Symbol: ${formatted}]`, 'symbol');
+      } else if (keyLength === 0) {
+        if (isExternal(value))
+          return ctx.stylize('[External]', 'special');
+        return `${getPrefix(constructor, tag)}{}`;
+      } else {
+        braces[0] = `${getPrefix(constructor, tag)}{`;
+      }
     }
+  }
+
+  if (recurseTimes != null) {
+    if (recurseTimes < 0)
+      return ctx.stylize(`[${constructor || tag || 'Object'}]`, 'special');
+    recurseTimes -= 1;
   }
 
   ctx.seen.push(value);
+  let output;
+  // This corresponds to a depth of at least 333 and likely 500.
+  if (ctx.indentationLvl < 1000) {
+    output = formatter(ctx, value, recurseTimes, keys);
+  } else {
+    try {
+      output = formatter(ctx, value, recurseTimes, keys);
+    } catch (err) {
+      if (errors.isStackOverflowError(err)) {
+        ctx.seen.pop();
+        return ctx.stylize(
+          `[${constructor || tag || 'Object'}: Inspection interrupted ` +
+            'prematurely. Maximum call stack size exceeded.]',
+          'special'
+        );
+      }
+      throw err;
+    }
+  }
+  if (extra !== undefined)
+    output.unshift(extra);
 
-  var output = formatter(ctx, value, recurseTimes, visibleKeys, keys);
+  for (var i = 0; i < symbols.length; i++) {
+    output.push(formatProperty(ctx, value, recurseTimes, symbols[i], 0));
+  }
 
   ctx.seen.pop();
 
-  return reduceToSingleString(output, base, braces, ctx.breakLength);
+  return reduceToSingleString(ctx, output, base, braces);
 }
 
-
-function formatNumber(ctx, value) {
-  // Format -0 as '-0'. Strict equality won't distinguish 0 from -0.
+function formatNumber(fn, value) {
+  // Format -0 as '-0'. Checking `value === -0` won't distinguish 0 from -0.
   if (Object.is(value, -0))
-    return ctx.stylize('-0', 'number');
-  return ctx.stylize(`${value}`, 'number');
+    return fn('-0', 'number');
+  return fn(`${value}`, 'number');
 }
 
-
-function formatPrimitive(ctx, value) {
-  if (value === undefined)
-    return ctx.stylize('undefined', 'undefined');
-
-  // For some reason typeof null is "object", so special case here.
-  if (value === null)
-    return ctx.stylize('null', 'null');
-
-  var type = typeof value;
-
-  if (type === 'string') {
-    var simple = JSON.stringify(value)
-                     .replace(/^"|"$/g, '')
-                     .replace(/'/g, "\\'")
-                     .replace(/\\"/g, '"');
-    return ctx.stylize(`'${simple}'`, 'string');
+function formatPrimitive(fn, value, ctx) {
+  if (typeof value === 'string') {
+    if (ctx.compact === false &&
+      ctx.indentationLvl + value.length > ctx.breakLength &&
+      value.length > MIN_LINE_LENGTH) {
+      // eslint-disable-next-line max-len
+      const minLineLength = Math.max(ctx.breakLength - ctx.indentationLvl, MIN_LINE_LENGTH);
+      // eslint-disable-next-line max-len
+      const averageLineLength = Math.ceil(value.length / Math.ceil(value.length / minLineLength));
+      const divisor = Math.max(averageLineLength, MIN_LINE_LENGTH);
+      let res = '';
+      if (readableRegExps[divisor] === undefined) {
+        // Build a new RegExp that naturally breaks text into multiple lines.
+        //
+        // Rules
+        // 1. Greedy match all text up the max line length that ends with a
+        //    whitespace or the end of the string.
+        // 2. If none matches, non-greedy match any text up to a whitespace or
+        //    the end of the string.
+        //
+        // eslint-disable-next-line max-len, node-core/no-unescaped-regexp-dot
+        readableRegExps[divisor] = new RegExp(`(.|\\n){1,${divisor}}(\\s|$)|(\\n|.)+?(\\s|$)`, 'gm');
+      }
+      const matches = value.match(readableRegExps[divisor]);
+      if (matches.length > 1) {
+        const indent = ' '.repeat(ctx.indentationLvl);
+        res += `${fn(strEscape(matches[0]), 'string')} +\n`;
+        for (var i = 1; i < matches.length - 1; i++) {
+          res += `${indent}  ${fn(strEscape(matches[i]), 'string')} +\n`;
+        }
+        res += `${indent}  ${fn(strEscape(matches[i]), 'string')}`;
+        return res;
+      }
+    }
+    return fn(strEscape(value), 'string');
   }
-  if (type === 'number')
-    return formatNumber(ctx, value);
-  if (type === 'boolean')
-    return ctx.stylize(`${value}`, 'boolean');
+  if (typeof value === 'number')
+    return formatNumber(fn, value);
+  // eslint-disable-next-line valid-typeof
+  if (typeof value === 'bigint')
+    return fn(`${value}n`, 'bigint');
+  if (typeof value === 'boolean')
+    return fn(`${value}`, 'boolean');
+  if (typeof value === 'undefined')
+    return fn('undefined', 'undefined');
   // es6 symbol primitive
-  if (type === 'symbol')
-    return ctx.stylize(value.toString(), 'symbol');
+  return fn(value.toString(), 'symbol');
 }
-
-
-function formatPrimitiveNoColor(ctx, value) {
-  var stylize = ctx.stylize;
-  ctx.stylize = stylizeNoColor;
-  var str = formatPrimitive(ctx, value);
-  ctx.stylize = stylize;
-  return str;
-}
-
 
 function formatError(value) {
-  return value.stack || `[${errorToString.call(value)}]`;
+  return value.stack || errorToString.call(value);
 }
 
-
-function formatObject(ctx, value, recurseTimes, visibleKeys, keys) {
-  return keys.map(function(key) {
-    return formatProperty(ctx, value, recurseTimes, visibleKeys, key, false);
-  });
+function formatObject(ctx, value, recurseTimes, keys) {
+  const len = keys.length;
+  const output = new Array(len);
+  for (var i = 0; i < len; i++)
+    output[i] = formatProperty(ctx, value, recurseTimes, keys[i], 0);
+  return output;
 }
 
-
-function formatArray(ctx, value, recurseTimes, visibleKeys, keys) {
-  var output = [];
-  let visibleLength = 0;
-  let index = 0;
-  for (const elem of keys) {
-    if (visibleLength === ctx.maxArrayLength)
-      break;
-    // Symbols might have been added to the keys
-    if (typeof elem !== 'string')
-      continue;
-    const i = +elem;
-    if (index !== i) {
-      // Skip zero and negative numbers as well as non numbers
-      if (i > 0 === false)
-        continue;
-      const emptyItems = i - index;
-      const ending = emptyItems > 1 ? 's' : '';
-      const message = `<${emptyItems} empty item${ending}>`;
-      output.push(ctx.stylize(message, 'undefined'));
-      index = i;
-      if (++visibleLength === ctx.maxArrayLength)
-        break;
+function formatNamespaceObject(ctx, value, recurseTimes, keys) {
+  const len = keys.length;
+  const output = new Array(len);
+  for (var i = 0; i < len; i++) {
+    try {
+      output[i] = formatProperty(ctx, value, recurseTimes, keys[i], 0);
+    } catch (err) {
+      if (!(types.isNativeError(err) && err.name === 'ReferenceError')) {
+        throw err;
+      }
+      // Use the existing functionality. This makes sure the indentation and
+      // line breaks are always correct. Otherwise it is very difficult to keep
+      // this aligned, even though this is a hacky way of dealing with this.
+      const tmp = { [keys[i]]: '' };
+      output[i] = formatProperty(ctx, tmp, recurseTimes, keys[i], 0);
+      const pos = output[i].lastIndexOf(' ');
+      // We have to find the last whitespace and have to replace that value as
+      // it will be visualized as a regular string.
+      output[i] = output[i].slice(0, pos + 1) +
+                  ctx.stylize('<uninitialized>', 'special');
     }
-    output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
-                               elem, true));
-    visibleLength++;
-    index++;
   }
-  if (index < value.length && visibleLength !== ctx.maxArrayLength) {
-    const len = value.length - index;
+  return output;
+}
+
+// The array is sparse and/or has extra keys
+function formatSpecialArray(ctx, value, recurseTimes, keys, maxLength, valLen) {
+  const output = [];
+  const keyLen = keys.length;
+  let visibleLength = 0;
+  let i = 0;
+  if (keyLen !== 0 && numberRegExp.test(keys[0])) {
+    for (const key of keys) {
+      if (visibleLength === maxLength)
+        break;
+      const index = +key;
+      // Arrays can only have up to 2^32 - 1 entries
+      if (index > 2 ** 32 - 2)
+        break;
+      if (i !== index) {
+        if (!numberRegExp.test(key))
+          break;
+        const emptyItems = index - i;
+        const ending = emptyItems > 1 ? 's' : '';
+        const message = `<${emptyItems} empty item${ending}>`;
+        output.push(ctx.stylize(message, 'undefined'));
+        i = index;
+        if (++visibleLength === maxLength)
+          break;
+      }
+      output.push(formatProperty(ctx, value, recurseTimes, key, 1));
+      visibleLength++;
+      i++;
+    }
+  }
+  if (i < valLen && visibleLength !== maxLength) {
+    const len = valLen - i;
     const ending = len > 1 ? 's' : '';
     const message = `<${len} empty item${ending}>`;
     output.push(ctx.stylize(message, 'undefined'));
-    index = value.length;
+    i = valLen;
+    if (keyLen === 0)
+      return output;
   }
-  var remaining = value.length - index;
+  const remaining = valLen - i;
   if (remaining > 0) {
     output.push(`... ${remaining} more item${remaining > 1 ? 's' : ''}`);
   }
-  for (var n = 0; n < keys.length; n++) {
-    var key = keys[n];
-    if (typeof key === 'symbol' || !numbersOnlyRE.test(key)) {
-      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
-                                 key, true));
+  if (ctx.showHidden && keys[keyLen - 1] === 'length') {
+    // No extra keys
+    output.push(formatProperty(ctx, value, recurseTimes, 'length', 2));
+  } else if (valLen === 0 ||
+    keyLen > valLen && keys[valLen - 1] === `${valLen - 1}`) {
+    // The array is not sparse
+    for (i = valLen; i < keyLen; i++)
+      output.push(formatProperty(ctx, value, recurseTimes, keys[i], 2));
+  } else if (keys[keyLen - 1] !== `${valLen - 1}`) {
+    const extra = [];
+    // Only handle special keys
+    let key;
+    for (i = keys.length - 1; i >= 0; i--) {
+      key = keys[i];
+      if (numberRegExp.test(key) && +key < 2 ** 32 - 1)
+        break;
+      extra.push(formatProperty(ctx, value, recurseTimes, key, 2));
     }
+    for (i = extra.length - 1; i >= 0; i--)
+      output.push(extra[i]);
   }
   return output;
 }
 
+function formatArray(ctx, value, recurseTimes, keys) {
+  const len = Math.min(Math.max(0, ctx.maxArrayLength), value.length);
+  const hidden = ctx.showHidden ? 1 : 0;
+  const valLen = value.length;
+  const keyLen = keys.length - hidden;
+  if (keyLen !== valLen || keys[keyLen - 1] !== `${valLen - 1}`)
+    return formatSpecialArray(ctx, value, recurseTimes, keys, len, valLen);
 
-function formatTypedArray(ctx, value, recurseTimes, visibleKeys, keys) {
+  const remaining = valLen - len;
+  const output = new Array(len + (remaining > 0 ? 1 : 0) + hidden);
+  for (var i = 0; i < len; i++)
+    output[i] = formatProperty(ctx, value, recurseTimes, keys[i], 1);
+  if (remaining > 0)
+    output[i++] = `... ${remaining} more item${remaining > 1 ? 's' : ''}`;
+  if (ctx.showHidden === true)
+    output[i] = formatProperty(ctx, value, recurseTimes, 'length', 2);
+  return output;
+}
+
+function formatTypedArray(ctx, value, recurseTimes, keys) {
   const maxLength = Math.min(Math.max(0, ctx.maxArrayLength), value.length);
   const remaining = value.length - maxLength;
-  var output = new Array(maxLength);
+  const output = new Array(maxLength + (remaining > 0 ? 1 : 0));
   for (var i = 0; i < maxLength; ++i)
-    output[i] = formatNumber(ctx, value[i]);
-  if (remaining > 0) {
-    output.push(`... ${remaining} more item${remaining > 1 ? 's' : ''}`);
-  }
-  for (const key of keys) {
-    if (typeof key === 'symbol' || !numbersOnlyRE.test(key)) {
-      output.push(
-        formatProperty(ctx, value, recurseTimes, visibleKeys, key, true));
+    output[i] = formatNumber(ctx.stylize, value[i]);
+  if (remaining > 0)
+    output[i] = `... ${remaining} more item${remaining > 1 ? 's' : ''}`;
+  if (ctx.showHidden) {
+    // .buffer goes last, it's not a primitive like the others.
+    const extraKeys = [
+      'BYTES_PER_ELEMENT',
+      'length',
+      'byteLength',
+      'byteOffset',
+      'buffer'
+    ];
+    for (i = 0; i < extraKeys.length; i++) {
+      const str = formatValue(ctx, value[extraKeys[i]], recurseTimes);
+      output.push(`[${extraKeys[i]}]: ${str}`);
     }
   }
+  // TypedArrays cannot have holes. Therefore it is safe to assume that all
+  // extra keys are indexed after value.length.
+  for (i = value.length; i < keys.length; i++) {
+    output.push(formatProperty(ctx, value, recurseTimes, keys[i], 2));
+  }
   return output;
 }
 
-
-function formatSet(ctx, value, recurseTimes, visibleKeys, keys) {
-  var output = [];
-  value.forEach(function(v) {
-    var nextRecurseTimes = recurseTimes === null ? null : recurseTimes - 1;
-    var str = formatValue(ctx, v, nextRecurseTimes);
-    output.push(str);
-  });
+function formatSet(ctx, value, recurseTimes, keys) {
+  const output = new Array(value.size + keys.length + (ctx.showHidden ? 1 : 0));
+  let i = 0;
+  for (const v of value)
+    output[i++] = formatValue(ctx, v, recurseTimes);
+  // With `showHidden`, `length` will display as a hidden property for
+  // arrays. For consistency's sake, do the same for `size`, even though this
+  // property isn't selected by Object.getOwnPropertyNames().
+  if (ctx.showHidden)
+    output[i++] = `[size]: ${ctx.stylize(`${value.size}`, 'number')}`;
   for (var n = 0; n < keys.length; n++) {
-    output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
-                               keys[n], false));
+    output[i++] = formatProperty(ctx, value, recurseTimes, keys[n], 0);
   }
   return output;
 }
 
-
-function formatMap(ctx, value, recurseTimes, visibleKeys, keys) {
-  var output = [];
-  value.forEach(function(v, k) {
-    var nextRecurseTimes = recurseTimes === null ? null : recurseTimes - 1;
-    var str = formatValue(ctx, k, nextRecurseTimes);
-    str += ' => ';
-    str += formatValue(ctx, v, nextRecurseTimes);
-    output.push(str);
-  });
+function formatMap(ctx, value, recurseTimes, keys) {
+  const output = new Array(value.size + keys.length + (ctx.showHidden ? 1 : 0));
+  let i = 0;
+  for (const [k, v] of value)
+    output[i++] = `${formatValue(ctx, k, recurseTimes)} => ` +
+      formatValue(ctx, v, recurseTimes);
+  // See comment in formatSet
+  if (ctx.showHidden)
+    output[i++] = `[size]: ${ctx.stylize(`${value.size}`, 'number')}`;
   for (var n = 0; n < keys.length; n++) {
-    output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
-                               keys[n], false));
+    output[i++] = formatProperty(ctx, value, recurseTimes, keys[n], 0);
   }
   return output;
 }
 
-function formatCollectionIterator(ctx, value, recurseTimes, visibleKeys, keys) {
-  ensureDebugIsInitialized();
-  const mirror = Debug.MakeMirror(value, true);
-  var nextRecurseTimes = recurseTimes === null ? null : recurseTimes - 1;
-  var vals = mirror.preview();
-  var output = [];
-  for (const o of vals) {
-    output.push(formatValue(ctx, o, nextRecurseTimes));
-  }
+function formatWeakSet(ctx, value, recurseTimes, keys) {
+  const maxArrayLength = Math.max(ctx.maxArrayLength, 0);
+  const entries = previewEntries(value).slice(0, maxArrayLength + 1);
+  const maxLength = Math.min(maxArrayLength, entries.length);
+  let output = new Array(maxLength);
+  for (var i = 0; i < maxLength; ++i)
+    output[i] = formatValue(ctx, entries[i], recurseTimes);
+  // Sort all entries to have a halfway reliable output (if more entries than
+  // retrieved ones exist, we can not reliably return the same output).
+  output = output.sort();
+  if (entries.length > maxArrayLength)
+    output.push('... more items');
+  for (i = 0; i < keys.length; i++)
+    output.push(formatProperty(ctx, value, recurseTimes, keys[i], 0));
   return output;
 }
 
-function formatPromise(ctx, value, recurseTimes, visibleKeys, keys) {
+function formatWeakMap(ctx, value, recurseTimes, keys) {
+  const maxArrayLength = Math.max(ctx.maxArrayLength, 0);
+  const entries = previewEntries(value).slice(0, maxArrayLength + 1);
+  const remainder = entries.length > maxArrayLength;
+  const len = entries.length - (remainder ? 1 : 0);
+  const maxLength = Math.min(maxArrayLength, len);
+  let output = new Array(maxLength);
+  for (var i = 0; i < len; i++) {
+    output[i] = `${formatValue(ctx, entries[i][0], recurseTimes)} => ` +
+      formatValue(ctx, entries[i][1], recurseTimes);
+  }
+  // Sort all entries to have a halfway reliable output (if more entries than
+  // retrieved ones exist, we can not reliably return the same output).
+  output = output.sort();
+  if (remainder > 0)
+    output.push('... more items');
+  for (i = 0; i < keys.length; i++)
+    output.push(formatProperty(ctx, value, recurseTimes, keys[i], 0));
+  return output;
+}
+
+function formatCollectionIterator(ctx, value, recurseTimes, keys) {
   const output = [];
-  const [state, result] = getPromiseDetails(value);
-
-  if (state === kPending) {
-    output.push('<pending>');
-  } else {
-    var nextRecurseTimes = recurseTimes === null ? null : recurseTimes - 1;
-    var str = formatValue(ctx, result, nextRecurseTimes);
-    if (state === kRejected) {
-      output.push(`<rejected> ${str}`);
-    } else {
-      output.push(str);
+  for (const entry of previewEntries(value)) {
+    if (ctx.maxArrayLength === output.length) {
+      output.push('... more items');
+      break;
     }
+    output.push(formatValue(ctx, entry, recurseTimes));
   }
   for (var n = 0; n < keys.length; n++) {
-    output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
-                               keys[n], false));
+    output.push(formatProperty(ctx, value, recurseTimes, keys[n], 0));
   }
   return output;
 }
 
+function formatMapIterator(ctx, value, recurseTimes, keys) {
+  return formatCollectionIterator(ctx, value, recurseTimes, keys);
+}
 
-function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array) {
-  var name, str, desc;
-  desc = Object.getOwnPropertyDescriptor(value, key) || { value: value[key] };
-  if (desc.get) {
-    if (desc.set) {
+function formatSetIterator(ctx, value, recurseTimes, keys) {
+  return formatCollectionIterator(ctx, value, recurseTimes, keys);
+}
+
+function formatPromise(ctx, value, recurseTimes, keys) {
+  let output;
+  const [state, result] = getPromiseDetails(value);
+  if (state === kPending) {
+    output = ['<pending>'];
+  } else {
+    const str = formatValue(ctx, result, recurseTimes);
+    output = [state === kRejected ? `<rejected> ${str}` : str];
+  }
+  for (var n = 0; n < keys.length; n++) {
+    output.push(formatProperty(ctx, value, recurseTimes, keys[n], 0));
+  }
+  return output;
+}
+
+function formatProperty(ctx, value, recurseTimes, key, array) {
+  let name, str;
+  let extra = ' ';
+  const desc = Object.getOwnPropertyDescriptor(value, key) ||
+    { value: value[key], enumerable: true };
+  if (desc.value !== undefined) {
+    const diff = array !== 0 || ctx.compact === false ? 2 : 3;
+    ctx.indentationLvl += diff;
+    str = formatValue(ctx, desc.value, recurseTimes);
+    if (diff === 3) {
+      const len = ctx.colors ? removeColors(str).length : str.length;
+      if (ctx.breakLength < len) {
+        extra = `\n${' '.repeat(ctx.indentationLvl)}`;
+      }
+    }
+    ctx.indentationLvl -= diff;
+  } else if (desc.get !== undefined) {
+    if (desc.set !== undefined) {
       str = ctx.stylize('[Getter/Setter]', 'special');
     } else {
       str = ctx.stylize('[Getter]', 'special');
     }
+  } else if (desc.set !== undefined) {
+    str = ctx.stylize('[Setter]', 'special');
   } else {
-    if (desc.set) {
-      str = ctx.stylize('[Setter]', 'special');
-    }
+    str = ctx.stylize('undefined', 'undefined');
   }
-  if (visibleKeys[key] === undefined) {
-    if (typeof key === 'symbol') {
-      name = `[${ctx.stylize(key.toString(), 'symbol')}]`;
-    } else {
-      name = `[${key}]`;
-    }
+  if (array === 1) {
+    return str;
   }
-  if (!str) {
-    if (ctx.seen.indexOf(desc.value) < 0) {
-      if (recurseTimes === null) {
-        str = formatValue(ctx, desc.value, null);
-      } else {
-        str = formatValue(ctx, desc.value, recurseTimes - 1);
-      }
-      if (str.indexOf('\n') > -1) {
-        if (array) {
-          str = str.replace(/\n/g, '\n  ');
-        } else {
-          str = str.replace(/^|\n/g, '\n   ');
-        }
-      }
-    } else {
-      str = ctx.stylize('[Circular]', 'special');
-    }
+  if (typeof key === 'symbol') {
+    name = `[${ctx.stylize(key.toString(), 'symbol')}]`;
+  } else if (desc.enumerable === false) {
+    name = `[${key}]`;
+  } else if (keyStrRegExp.test(key)) {
+    name = ctx.stylize(key, 'name');
+  } else {
+    name = ctx.stylize(strEscape(key), 'string');
   }
-  if (name === undefined) {
-    if (array && numbersOnlyRE.test(key)) {
-      return str;
-    }
-    name = JSON.stringify(`${key}`);
-    if (/^"[a-zA-Z_][a-zA-Z_0-9]*"$/.test(name)) {
-      name = name.substr(1, name.length - 2);
-      name = ctx.stylize(name, 'name');
-    } else {
-      name = name.replace(/'/g, "\\'")
-                 .replace(/\\"/g, '"')
-                 .replace(/^"|"$/g, "'")
-                 .replace(/\\\\/g, '\\');
-      name = ctx.stylize(name, 'string');
-    }
-  }
-
-  return `${name}: ${str}`;
+  return `${name}:${extra}${str}`;
 }
 
-
-function reduceToSingleString(output, base, braces, breakLength) {
-  var length = output.reduce(function(prev, cur) {
-    return prev + cur.replace(/\u001b\[\d\d?m/g, '').length + 1;
-  }, 0);
-
-  if (length > breakLength) {
-    return braces[0] +
-           // If the opening "brace" is too large, like in the case of "Set {",
-           // we need to force the first item to be on the next line or the
-           // items will not line up correctly.
-           (base === '' && braces[0].length === 1 ? '' : `${base}\n `) +
-           ` ${output.join(',\n  ')} ${braces[1]}`;
+function reduceToSingleString(ctx, output, base, braces) {
+  const breakLength = ctx.breakLength;
+  let i = 0;
+  if (ctx.compact === false) {
+    const indentation = ' '.repeat(ctx.indentationLvl);
+    let res = `${base ? `${base} ` : ''}${braces[0]}\n${indentation}  `;
+    for (; i < output.length - 1; i++) {
+      res += `${output[i]},\n${indentation}  `;
+    }
+    res += `${output[i]}\n${indentation}${braces[1]}`;
+    return res;
   }
-
-  return `${braces[0]}${base} ${output.join(', ')} ${braces[1]}`;
+  if (output.length * 2 <= breakLength) {
+    let length = 0;
+    for (; i < output.length && length <= breakLength; i++) {
+      if (ctx.colors) {
+        length += removeColors(output[i]).length + 1;
+      } else {
+        length += output[i].length + 1;
+      }
+    }
+    if (length <= breakLength)
+      return `${braces[0]}${base ? ` ${base}` : ''} ${join(output, ', ')} ` +
+        braces[1];
+  }
+  // If the opening "brace" is too large, like in the case of "Set {",
+  // we need to force the first item to be on the next line or the
+  // items will not line up correctly.
+  const indentation = ' '.repeat(ctx.indentationLvl);
+  const ln = base === '' && braces[0].length === 1 ?
+    ' ' : `${base ? ` ${base}` : ''}\n${indentation}  `;
+  const str = join(output, `,\n${indentation}  `);
+  return `${braces[0]}${ln}${str} ${braces[1]}`;
 }
 
 function isBoolean(arg) {
@@ -918,16 +1163,8 @@ function isUndefined(arg) {
   return arg === undefined;
 }
 
-function isRegExp(re) {
-  return _isRegExp(re);
-}
-
 function isObject(arg) {
   return arg !== null && typeof arg === 'object';
-}
-
-function isDate(d) {
-  return _isDate(d);
 }
 
 function isFunction(arg) {
@@ -943,25 +1180,22 @@ function pad(n) {
   return n < 10 ? `0${n.toString(10)}` : n.toString(10);
 }
 
-
 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
                 'Oct', 'Nov', 'Dec'];
 
 // 26 Feb 16:19:34
 function timestamp() {
-  var d = new Date();
-  var time = [pad(d.getHours()),
-              pad(d.getMinutes()),
-              pad(d.getSeconds())].join(':');
+  const d = new Date();
+  const time = [pad(d.getHours()),
+                pad(d.getMinutes()),
+                pad(d.getSeconds())].join(':');
   return [d.getDate(), months[d.getMonth()], time].join(' ');
 }
-
 
 // log is just a thin wrapper to console.log that prepends a timestamp
 function log() {
   console.log('%s - %s', timestamp(), exports.format.apply(exports, arguments));
 }
-
 
 /**
  * Inherit the prototype methods from one constructor into another.
@@ -981,18 +1215,15 @@ function log() {
 function inherits(ctor, superCtor) {
 
   if (ctor === undefined || ctor === null)
-    throw new TypeError('The constructor to "inherits" must not be ' +
-                        'null or undefined');
+    throw new ERR_INVALID_ARG_TYPE('ctor', 'Function', ctor);
 
   if (superCtor === undefined || superCtor === null)
-    throw new TypeError('The super constructor to "inherits" must not ' +
-                        'be null or undefined');
+    throw new ERR_INVALID_ARG_TYPE('superCtor', 'Function', superCtor);
 
   if (superCtor.prototype === undefined) {
-    throw new TypeError('The super constructor to "inherits" must ' +
-                        'have a prototype');
+    throw new ERR_INVALID_ARG_TYPE('superCtor.prototype',
+                                   'Function', superCtor.prototype);
   }
-
   ctor.super_ = superCtor;
   Object.setPrototypeOf(ctor.prototype, superCtor.prototype);
 }
@@ -1001,8 +1232,8 @@ function _extend(target, source) {
   // Don't do anything if source isn't an object
   if (source === null || typeof source !== 'object') return target;
 
-  var keys = Object.keys(source);
-  var i = keys.length;
+  const keys = Object.keys(source);
+  let i = keys.length;
   while (i--) {
     target[keys[i]] = source[keys[i]];
   }
@@ -1033,53 +1264,13 @@ function error(...args) {
   }
 }
 
-function _errnoException(err, syscall, original) {
-  var name = errname(err);
-  var message = `${syscall} ${name}`;
-  if (original)
-    message += ` ${original}`;
-  var e = new Error(message);
-  e.code = name;
-  e.errno = name;
-  e.syscall = syscall;
-  return e;
-}
-
-
-function _exceptionWithHostPort(err,
-                                syscall,
-                                address,
-                                port,
-                                additional) {
-  var details;
-  if (port && port > 0) {
-    details = `${address}:${port}`;
-  } else {
-    details = address;
-  }
-
-  if (additional) {
-    details += ` - Local (${additional})`;
-  }
-  var ex = exports._errnoException(err, syscall, details);
-  ex.address = address;
-  if (port) {
-    ex.port = port;
-  }
-  return ex;
-}
-
-// process.versions needs a custom function as some values are lazy-evaluated.
-process.versions[inspect.custom] =
-  () => exports.format(JSON.parse(JSON.stringify(process.versions)));
-
 function callbackifyOnRejected(reason, cb) {
   // `!reason` guard inspired by bluebird (Ref: https://goo.gl/t5IS6M).
   // Because `null` is a special error value in callbacks which means "no error
   // occurred", we error-wrap so the callback consumer can distinguish between
   // "the promise rejected with null" or "the promise fulfilled with undefined".
   if (!reason) {
-    const newReason = new errors.Error('ERR_FALSY_VALUE_REJECTION');
+    const newReason = new ERR_FALSY_VALUE_REJECTION();
     newReason.reason = reason;
     reason = newReason;
     Error.captureStackTrace(reason, callbackifyOnRejected);
@@ -1087,13 +1278,9 @@ function callbackifyOnRejected(reason, cb) {
   return cb(reason);
 }
 
-
 function callbackify(original) {
   if (typeof original !== 'function') {
-    throw new errors.TypeError(
-      'ERR_INVALID_ARG_TYPE',
-      'original',
-      'function');
+    throw new ERR_INVALID_ARG_TYPE('original', 'Function', original);
   }
 
   // We DO NOT return the promise as it gives the user a false sense that
@@ -1102,10 +1289,7 @@ function callbackify(original) {
   function callbackified(...args) {
     const maybeCb = args.pop();
     if (typeof maybeCb !== 'function') {
-      throw new errors.TypeError(
-        'ERR_INVALID_ARG_TYPE',
-        'last argument',
-        'function');
+      throw new ERR_INVALID_ARG_TYPE('last argument', 'Function', maybeCb);
     }
     const cb = (...args) => { Reflect.apply(maybeCb, this, args); };
     // In true node style we process the callback on `nextTick` with all the
@@ -1121,19 +1305,39 @@ function callbackify(original) {
   return callbackified;
 }
 
+function getSystemErrorName(err) {
+  if (typeof err !== 'number') {
+    throw new ERR_INVALID_ARG_TYPE('err', 'number', err);
+  }
+  if (err >= 0 || !Number.isSafeInteger(err)) {
+    throw new ERR_OUT_OF_RANGE('err', 'a negative integer', err);
+  }
+  return internalErrorName(err);
+}
+
 // Keep the `exports =` so that various functions can still be monkeypatched
 module.exports = exports = {
-  _errnoException,
-  _exceptionWithHostPort,
+  _errnoException: errors.errnoException,
+  _exceptionWithHostPort: errors.exceptionWithHostPort,
   _extend,
   callbackify,
   debuglog,
   deprecate,
   format,
+  formatWithOptions,
+  getSystemErrorName,
   inherits,
   inspect,
   isArray: Array.isArray,
   isBoolean,
+  isBuffer,
+  isDeepStrictEqual(a, b) {
+    if (internalDeepEqual === undefined) {
+      internalDeepEqual = require('internal/util/comparisons')
+        .isDeepStrictEqual;
+    }
+    return internalDeepEqual(a, b);
+  },
   isNull,
   isNullOrUndefined,
   isNumber,
@@ -1150,6 +1354,7 @@ module.exports = exports = {
   promisify,
   TextDecoder,
   TextEncoder,
+  types,
 
   // Deprecated Old Stuff
   debug: deprecate(debug,
@@ -1165,18 +1370,3 @@ module.exports = exports = {
                   'util.puts is deprecated. Use console.log instead.',
                   'DEP0027')
 };
-
-// Avoid a circular dependency
-var isBuffer;
-Object.defineProperty(exports, 'isBuffer', {
-  configurable: true,
-  enumerable: true,
-  get() {
-    if (!isBuffer)
-      isBuffer = require('buffer').Buffer.isBuffer;
-    return isBuffer;
-  },
-  set(val) {
-    isBuffer = val;
-  }
-});

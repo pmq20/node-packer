@@ -3,9 +3,8 @@
 
 static double value_ = 1;
 static double static_value_ = 10;
-napi_ref constructor_;
 
-napi_value GetValue(napi_env env, napi_callback_info info) {
+static napi_value GetValue(napi_env env, napi_callback_info info) {
   size_t argc = 0;
   NAPI_CALL(env, napi_get_cb_info(env, info, &argc, NULL, NULL, NULL));
 
@@ -17,7 +16,7 @@ napi_value GetValue(napi_env env, napi_callback_info info) {
   return number;
 }
 
-napi_value SetValue(napi_env env, napi_callback_info info) {
+static napi_value SetValue(napi_env env, napi_callback_info info) {
   size_t argc = 1;
   napi_value args[1];
   NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, NULL, NULL));
@@ -29,7 +28,7 @@ napi_value SetValue(napi_env env, napi_callback_info info) {
   return NULL;
 }
 
-napi_value Echo(napi_env env, napi_callback_info info) {
+static napi_value Echo(napi_env env, napi_callback_info info) {
   size_t argc = 1;
   napi_value args[1];
   NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, NULL, NULL));
@@ -39,14 +38,14 @@ napi_value Echo(napi_env env, napi_callback_info info) {
   return args[0];
 }
 
-napi_value New(napi_env env, napi_callback_info info) {
+static napi_value New(napi_env env, napi_callback_info info) {
   napi_value _this;
   NAPI_CALL(env, napi_get_cb_info(env, info, NULL, NULL, &_this, NULL));
 
   return _this;
 }
 
-napi_value GetStaticValue(napi_env env, napi_callback_info info) {
+static napi_value GetStaticValue(napi_env env, napi_callback_info info) {
   size_t argc = 0;
   NAPI_CALL(env, napi_get_cb_info(env, info, &argc, NULL, NULL, NULL));
 
@@ -59,9 +58,9 @@ napi_value GetStaticValue(napi_env env, napi_callback_info info) {
 }
 
 
-void Init(napi_env env, napi_value exports, napi_value module, void* priv) {
+static napi_value Init(napi_env env, napi_value exports) {
   napi_value number;
-  NAPI_CALL_RETURN_VOID(env, napi_create_double(env, value_, &number));
+  NAPI_CALL(env, napi_create_double(env, value_, &number));
 
   napi_property_descriptor properties[] = {
     { "echo", 0, Echo, 0, 0, 0, napi_enumerable, 0 },
@@ -77,14 +76,10 @@ void Init(napi_env env, napi_value exports, napi_value module, void* priv) {
   };
 
   napi_value cons;
-  NAPI_CALL_RETURN_VOID(env, napi_define_class(env, "MyObject", New,
-    NULL, sizeof(properties)/sizeof(*properties), properties, &cons));
+  NAPI_CALL(env, napi_define_class(env, "MyObject", NAPI_AUTO_LENGTH, New,
+      NULL, sizeof(properties)/sizeof(*properties), properties, &cons));
 
-  NAPI_CALL_RETURN_VOID(env,
-    napi_set_named_property(env, module, "exports", cons));
-
-  NAPI_CALL_RETURN_VOID(env,
-    napi_create_reference(env, cons, 1, &constructor_));
+  return cons;
 }
 
-NAPI_MODULE(addon, Init)
+NAPI_MODULE(NODE_GYP_MODULE_NAME, Init)

@@ -14,7 +14,7 @@ const primValues = {
 };
 
 const bench = common.createBenchmark(main, {
-  prim: Object.keys(primValues),
+  primitive: Object.keys(primValues),
   n: [1e6],
   method: [
     'deepEqual',
@@ -24,47 +24,20 @@ const bench = common.createBenchmark(main, {
   ]
 });
 
-function main(conf) {
-  const prim = primValues[conf.prim];
-  const n = +conf.n;
+function main({ n, primitive, method }) {
+  if (!method)
+    method = 'deepEqual';
+  const prim = primValues[primitive];
   const actual = prim;
   const expected = prim;
   const expectedWrong = 'b';
-  var i;
 
-  // Creates new array to avoid loop invariant code motion
-  switch (conf.method) {
-    case 'deepEqual':
-      bench.start();
-      for (i = 0; i < n; ++i) {
-        // eslint-disable-next-line no-restricted-properties
-        assert.deepEqual([actual], [expected]);
-      }
-      bench.end(n);
-      break;
-    case 'deepStrictEqual':
-      bench.start();
-      for (i = 0; i < n; ++i) {
-        assert.deepStrictEqual([actual], [expected]);
-      }
-      bench.end(n);
-      break;
-    case 'notDeepEqual':
-      bench.start();
-      for (i = 0; i < n; ++i) {
-        // eslint-disable-next-line no-restricted-properties
-        assert.notDeepEqual([actual], [expectedWrong]);
-      }
-      bench.end(n);
-      break;
-    case 'notDeepStrictEqual':
-      bench.start();
-      for (i = 0; i < n; ++i) {
-        assert.notDeepStrictEqual([actual], [expectedWrong]);
-      }
-      bench.end(n);
-      break;
-    default:
-      throw new Error('Unsupported method');
+  const fn = assert[method];
+  const value2 = method.includes('not') ? expectedWrong : expected;
+
+  bench.start();
+  for (var i = 0; i < n; ++i) {
+    fn([actual], [value2]);
   }
+  bench.end(n);
 }

@@ -8,6 +8,7 @@
 #include "src/compiler/node.h"
 #include "src/compiler/types.h"
 #include "src/globals.h"
+#include "src/objects/map.h"
 #include "src/zone/zone-handle-set.h"
 
 namespace v8 {
@@ -122,6 +123,9 @@ class V8_EXPORT_PRIVATE NodeProperties final {
   // Collect the output-value projection for the given output index.
   static Node* FindProjection(Node* node, size_t projection_index);
 
+  // Collect the value projections from a node.
+  static void CollectValueProjections(Node* node, Node** proj, size_t count);
+
   // Collect the branch-related projections from a node, such as IfTrue,
   // IfFalse, IfSuccess, IfException, IfValue and IfDefault.
   //  - Branch: [ IfTrue, IfFalse ]
@@ -132,16 +136,41 @@ class V8_EXPORT_PRIVATE NodeProperties final {
   // Checks if two nodes are the same, looking past {CheckHeapObject}.
   static bool IsSame(Node* a, Node* b);
 
+  // Check if two nodes have equal operators and reference-equal inputs. Used
+  // for value numbering/hash-consing.
+  static bool Equals(Node* a, Node* b);
+  // A corresponding hash function.
+  static size_t HashCode(Node* node);
+
   // Walks up the {effect} chain to find a witness that provides map
   // information about the {receiver}. Can look through potentially
   // side effecting nodes.
   enum InferReceiverMapsResult {
     kNoReceiverMaps,         // No receiver maps inferred.
     kReliableReceiverMaps,   // Receiver maps can be trusted.
-    kUnreliableReceiverMaps  // Receiver maps might have changed (side-effect).
+    kUnreliableReceiverMaps  // Receiver maps might have changed (side-effect),
+                             // but instance type is reliable.
   };
   static InferReceiverMapsResult InferReceiverMaps(
       Node* receiver, Node* effect, ZoneHandleSet<Map>* maps_return);
+
+  static MaybeHandle<Map> GetMapWitness(Node* node);
+  static bool HasInstanceTypeWitness(Node* receiver, Node* effect,
+                                     InstanceType instance_type);
+
+  // Walks up the {effect} chain to check that there's no observable side-effect
+  // between the {effect} and it's {dominator}. Aborts the walk if there's join
+  // in the effect chain.
+  static bool NoObservableSideEffectBetween(Node* effect, Node* dominator);
+
+  // Returns true if the {receiver} can be a primitive value (i.e. is not
+  // definitely a JavaScript object); might walk up the {effect} chain to
+  // find map checks on {receiver}.
+  static bool CanBePrimitive(Node* receiver, Node* effect);
+
+  // Returns true if the {receiver} can be null or undefined. Might walk
+  // up the {effect} chain to find map checks for {receiver}.
+  static bool CanBeNullOrUndefined(Node* receiver, Node* effect);
 
   // ---------------------------------------------------------------------------
   // Context.

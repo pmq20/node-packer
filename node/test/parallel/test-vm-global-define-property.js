@@ -36,7 +36,7 @@ const code =
     'f;\n';
 
 const x = {};
-const o = vm.createContext({ console: console, x: x });
+const o = vm.createContext({ console, x });
 
 const res = vm.runInContext(code, o, 'test');
 
@@ -44,4 +44,4 @@ assert(res);
 assert.strictEqual(typeof res, 'object');
 assert.strictEqual(res, x);
 assert.strictEqual(o.f, res);
-assert.deepStrictEqual(Object.keys(o), ['console', 'x', 'g', 'f']);
+assert.deepStrictEqual(Object.keys(o), ['console', 'x', 'f', 'g']);

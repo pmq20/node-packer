@@ -6,8 +6,9 @@
 
 #include "src/wasm/leb-helper.h"
 
-using namespace v8::internal;
-using namespace v8::internal::wasm;
+namespace v8 {
+namespace internal {
+namespace wasm {
 
 void LocalDeclEncoder::Prepend(Zone* zone, const byte** start,
                                const byte** end) const {
@@ -49,3 +50,7 @@ size_t LocalDeclEncoder::Size() const {
   for (auto p : local_decls) size += 1 + LEBHelper::sizeof_u32v(p.first);
   return size;
 }
+
+}  // namespace wasm
+}  // namespace internal
+}  // namespace v8

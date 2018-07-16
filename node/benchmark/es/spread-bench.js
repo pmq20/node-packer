@@ -8,7 +8,7 @@ const bench = common.createBenchmark(main, {
   count: [5, 10, 20],
   context: ['context', 'null'],
   rest: [0, 1],
-  millions: [5]
+  n: [5e6]
 });
 
 function makeTest(count, rest) {
@@ -23,21 +23,22 @@ function makeTest(count, rest) {
   }
 }
 
-function main(conf) {
-  const n = +conf.millions * 1e6;
-  const ctx = conf.context === 'context' ? {} : null;
-  var fn = makeTest(conf.count, conf.rest);
-  const args = new Array(conf.count);
+function main({ n, context, count, rest, method }) {
+  const ctx = context === 'context' ? {} : null;
+  var fn = makeTest(count, rest);
+  const args = new Array(count);
   var i;
-  for (i = 0; i < conf.count; i++)
+  for (i = 0; i < count; i++)
     args[i] = i;
 
-  switch (conf.method) {
+  switch (method) {
+    case '':
+      // Empty string falls through to next line as default, mostly for tests.
     case 'apply':
       bench.start();
       for (i = 0; i < n; i++)
         fn.apply(ctx, args);
-      bench.end(n / 1e6);
+      bench.end(n);
       break;
     case 'spread':
       if (ctx !== null)
@@ -45,15 +46,15 @@ function main(conf) {
       bench.start();
       for (i = 0; i < n; i++)
         fn(...args);
-      bench.end(n / 1e6);
+      bench.end(n);
       break;
     case 'call-spread':
       bench.start();
       for (i = 0; i < n; i++)
         fn.call(ctx, ...args);
-      bench.end(n / 1e6);
+      bench.end(n);
       break;
     default:
-      throw new Error('Unexpected method');
+      throw new Error(`Unexpected method "${method}"`);
   }
 }

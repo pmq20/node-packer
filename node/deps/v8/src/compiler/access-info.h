@@ -63,7 +63,8 @@ class PropertyAccessInfo final {
     kDataConstant,
     kDataField,
     kDataConstantField,
-    kAccessorConstant
+    kAccessorConstant,
+    kModuleExport
   };
 
   static PropertyAccessInfo NotFound(MapHandles const& receiver_maps,
@@ -80,11 +81,13 @@ class PropertyAccessInfo final {
   static PropertyAccessInfo AccessorConstant(MapHandles const& receiver_maps,
                                              Handle<Object> constant,
                                              MaybeHandle<JSObject> holder);
+  static PropertyAccessInfo ModuleExport(MapHandles const& receiver_maps,
+                                         Handle<Cell> cell);
 
   PropertyAccessInfo();
 
   bool Merge(PropertyAccessInfo const* that, AccessMode access_mode,
-             Zone* zone) WARN_UNUSED_RESULT;
+             Zone* zone) V8_WARN_UNUSED_RESULT;
 
   bool IsNotFound() const { return kind() == kNotFound; }
   bool IsDataConstant() const { return kind() == kDataConstant; }
@@ -93,6 +96,7 @@ class PropertyAccessInfo final {
   // is done.
   bool IsDataConstantField() const { return kind() == kDataConstantField; }
   bool IsAccessorConstant() const { return kind() == kAccessorConstant; }
+  bool IsModuleExport() const { return kind() == kModuleExport; }
 
   bool HasTransitionMap() const { return !transition_map().is_null(); }
 
@@ -107,6 +111,7 @@ class PropertyAccessInfo final {
   }
   MaybeHandle<Map> field_map() const { return field_map_; }
   MapHandles const& receiver_maps() const { return receiver_maps_; }
+  Handle<Cell> export_cell() const;
 
  private:
   PropertyAccessInfo(MaybeHandle<JSObject> holder,
@@ -142,6 +147,9 @@ class AccessInfoFactory final {
   bool ComputeElementAccessInfos(MapHandles const& maps, AccessMode access_mode,
                                  ZoneVector<ElementAccessInfo>* access_infos);
   bool ComputePropertyAccessInfo(Handle<Map> map, Handle<Name> name,
+                                 AccessMode access_mode,
+                                 PropertyAccessInfo* access_info);
+  bool ComputePropertyAccessInfo(MapHandles const& maps, Handle<Name> name,
                                  AccessMode access_mode,
                                  PropertyAccessInfo* access_info);
   bool ComputePropertyAccessInfos(MapHandles const& maps, Handle<Name> name,

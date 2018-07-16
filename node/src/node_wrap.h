@@ -25,19 +25,16 @@
 #if defined(NODE_WANT_INTERNALS) && NODE_WANT_INTERNALS
 
 #include "env.h"
-#include "env-inl.h"
-#include "js_stream.h"
 #include "pipe_wrap.h"
 #include "tcp_wrap.h"
 #include "tty_wrap.h"
-#include "udp_wrap.h"
-#include "util.h"
-#include "util-inl.h"
 #include "uv.h"
 #include "v8.h"
 
 namespace node {
 
+// TODO(addaleax): Use real inheritance for the JS object templates to avoid
+// this unnecessary case switching.
 #define WITH_GENERIC_UV_STREAM(env, obj, BODY, ELSE)                          \
     do {                                                                      \
       if (env->tcp_constructor_template().IsEmpty() == false &&               \

@@ -311,7 +311,7 @@ struct nghttp2_session {
   /* Unacked local SETTINGS_MAX_CONCURRENT_STREAMS value. We use this
      to refuse the incoming stream if it exceeds this value. */
   uint32_t pending_local_max_concurrent_stream;
-  /* The bitwose OR of zero or more of nghttp2_typemask to indicate
+  /* The bitwise OR of zero or more of nghttp2_typemask to indicate
      that the default handling of extension frame is enabled. */
   uint32_t builtin_recv_ext_types;
   /* Unacked local ENABLE_PUSH value.  We use this to refuse
@@ -319,7 +319,7 @@ struct nghttp2_session {
   uint8_t pending_enable_push;
   /* Nonzero if the session is server side. */
   uint8_t server;
-  /* Flags indicating GOAWAY is sent and/or recieved. The flags are
+  /* Flags indicating GOAWAY is sent and/or received. The flags are
      composed by bitwise OR-ing nghttp2_goaway_flag. */
   uint8_t goaway_flags;
   /* This flag is used to reduce excessive queuing of WINDOW_UPDATE to
@@ -722,7 +722,7 @@ int nghttp2_session_on_goaway_received(nghttp2_session *session,
                                        nghttp2_frame *frame);
 
 /*
- * Called when WINDOW_UPDATE is recieved, assuming |frame| is properly
+ * Called when WINDOW_UPDATE is received, assuming |frame| is properly
  * initialized.
  *
  * This function returns 0 if it succeeds, or one of the following
@@ -737,7 +737,7 @@ int nghttp2_session_on_window_update_received(nghttp2_session *session,
                                               nghttp2_frame *frame);
 
 /*
- * Called when ALTSVC is recieved, assuming |frame| is properly
+ * Called when ALTSVC is received, assuming |frame| is properly
  * initialized.
  *
  * This function returns 0 if it succeeds, or one of the following

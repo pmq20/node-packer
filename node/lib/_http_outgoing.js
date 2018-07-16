@@ -26,42 +26,42 @@ const Stream = require('stream');
 const util = require('util');
 const internalUtil = require('internal/util');
 const internalHttp = require('internal/http');
-const Buffer = require('buffer').Buffer;
+const { Buffer } = require('buffer');
 const common = require('_http_common');
 const checkIsHttpToken = common._checkIsHttpToken;
 const checkInvalidHeaderChar = common._checkInvalidHeaderChar;
-const outHeadersKey = require('internal/http').outHeadersKey;
-const async_id_symbol = process.binding('async_wrap').async_id_symbol;
-const nextTick = require('internal/process/next_tick').nextTick;
+const { outHeadersKey } = require('internal/http');
+const {
+  defaultTriggerAsyncIdScope,
+  symbols: { async_id_symbol }
+} = require('internal/async_hooks');
+const {
+  ERR_HTTP_HEADERS_SENT,
+  ERR_HTTP_INVALID_HEADER_VALUE,
+  ERR_HTTP_TRAILER_INVALID,
+  ERR_INVALID_HTTP_TOKEN,
+  ERR_INVALID_ARG_TYPE,
+  ERR_INVALID_CHAR,
+  ERR_METHOD_NOT_IMPLEMENTED,
+  ERR_STREAM_CANNOT_PIPE,
+  ERR_STREAM_WRITE_AFTER_END
+} = require('internal/errors').codes;
 
-const CRLF = common.CRLF;
-const debug = common.debug;
-const utcDate = internalHttp.utcDate;
+const { CRLF, debug } = common;
+const { utcDate } = internalHttp;
 
-var RE_FIELDS =
-  /^(?:Connection|Transfer-Encoding|Content-Length|Date|Expect|Trailer|Upgrade)$/i;
-var RE_CONN_VALUES = /(?:^|\W)close|upgrade(?:$|\W)/ig;
+const kIsCorked = Symbol('isCorked');
+
+const hasOwnProperty = Function.call.bind(Object.prototype.hasOwnProperty);
+
+var RE_CONN_CLOSE = /(?:^|\W)close(?:$|\W)/i;
 var RE_TE_CHUNKED = common.chunkExpression;
 
 // isCookieField performs a case-insensitive comparison of a provided string
-// against the word "cookie." This method (at least as of V8 5.4) is faster than
-// the equivalent case-insensitive regexp, even if isCookieField does not get
-// inlined.
+// against the word "cookie." As of V8 6.6 this is faster than handrolling or
+// using a case-insensitive RegExp.
 function isCookieField(s) {
-  if (s.length !== 6) return false;
-  var ch = s.charCodeAt(0);
-  if (ch !== 99 && ch !== 67) return false;
-  ch = s.charCodeAt(1);
-  if (ch !== 111 && ch !== 79) return false;
-  ch = s.charCodeAt(2);
-  if (ch !== 111 && ch !== 79) return false;
-  ch = s.charCodeAt(3);
-  if (ch !== 107 && ch !== 75) return false;
-  ch = s.charCodeAt(4);
-  if (ch !== 105 && ch !== 73) return false;
-  ch = s.charCodeAt(5);
-  if (ch !== 101 && ch !== 69) return false;
-  return true;
+  return s.length === 6 && s.toLowerCase() === 'cookie';
 }
 
 function noopPendingOutput(amount) {}
@@ -84,7 +84,6 @@ function OutgoingMessage() {
   this.writable = true;
 
   this._last = false;
-  this.upgrading = false;
   this.chunkedEncoding = false;
   this.shouldKeepAlive = true;
   this.useChunkedEncodingByDefault = true;
@@ -99,6 +98,7 @@ function OutgoingMessage() {
 
   this.finished = false;
   this._headerSent = false;
+  this[kIsCorked] = false;
 
   this.socket = null;
   this.connection = null;
@@ -118,7 +118,7 @@ Object.defineProperty(OutgoingMessage.prototype, '_headers', {
     if (val == null) {
       this[outHeadersKey] = null;
     } else if (typeof val === 'object') {
-      const headers = this[outHeadersKey] = {};
+      const headers = this[outHeadersKey] = Object.create(null);
       const keys = Object.keys(val);
       for (var i = 0; i < keys.length; ++i) {
         const name = keys[i];
@@ -131,7 +131,7 @@ Object.defineProperty(OutgoingMessage.prototype, '_headers', {
 Object.defineProperty(OutgoingMessage.prototype, '_headerNames', {
   get: function() {
     const headers = this[outHeadersKey];
-    if (headers) {
+    if (headers !== null) {
       const out = Object.create(null);
       const keys = Object.keys(headers);
       for (var i = 0; i < keys.length; ++i) {
@@ -140,9 +140,8 @@ Object.defineProperty(OutgoingMessage.prototype, '_headerNames', {
         out[key] = val;
       }
       return out;
-    } else {
-      return headers;
     }
+    return null;
   },
   set: function(val) {
     if (typeof val === 'object' && val !== null) {
@@ -162,24 +161,21 @@ Object.defineProperty(OutgoingMessage.prototype, '_headerNames', {
 
 OutgoingMessage.prototype._renderHeaders = function _renderHeaders() {
   if (this._header) {
-    throw new Error('Can\'t render headers after they are sent to the client');
+    throw new ERR_HTTP_HEADERS_SENT('render');
   }
 
   var headersMap = this[outHeadersKey];
-  if (!headersMap) return {};
+  const headers = {};
 
-  var headers = {};
-  var keys = Object.keys(headersMap);
-
-  for (var i = 0, l = keys.length; i < l; i++) {
-    var key = keys[i];
-    headers[headersMap[key][0]] = headersMap[key][1];
+  if (headersMap !== null) {
+    const keys = Object.keys(headersMap);
+    for (var i = 0, l = keys.length; i < l; i++) {
+      const key = keys[i];
+      headers[headersMap[key][0]] = headersMap[key][1];
+    }
   }
   return headers;
 };
-
-
-exports.OutgoingMessage = OutgoingMessage;
 
 
 OutgoingMessage.prototype.setTimeout = function setTimeout(msecs, callback) {
@@ -262,7 +258,14 @@ function _writeRaw(data, encoding, callback) {
       this._flushOutput(conn);
     } else if (!data.length) {
       if (typeof callback === 'function') {
-        nextTick(this.socket[async_id_symbol], callback);
+        // If the socket was set directly it won't be correctly initialized
+        // with an async_id_symbol.
+        // TODO(AndreasMadsen): @trevnorris suggested some more correct
+        // solutions in:
+        // https://github.com/nodejs/node/pull/14389/files#r128522202
+        defaultTriggerAsyncIdScope(conn[async_id_symbol],
+                                   process.nextTick,
+                                   callback);
       }
       return true;
     }
@@ -283,77 +286,40 @@ OutgoingMessage.prototype._storeHeader = _storeHeader;
 function _storeHeader(firstLine, headers) {
   // firstLine in the case of request is: 'GET /index.html HTTP/1.1\r\n'
   // in the case of response it is: 'HTTP/1.1 200 OK\r\n'
-  var state = {
+  const state = {
     connection: false,
-    connUpgrade: false,
     contLen: false,
     te: false,
     date: false,
     expect: false,
     trailer: false,
-    upgrade: false,
     header: firstLine
   };
 
-  var field;
   var key;
-  var value;
-  var i;
-  var j;
   if (headers === this[outHeadersKey]) {
     for (key in headers) {
-      var entry = headers[key];
-      field = entry[0];
-      value = entry[1];
-
-      if (value instanceof Array) {
-        if (value.length < 2 || !isCookieField(field)) {
-          for (j = 0; j < value.length; j++)
-            storeHeader(this, state, field, value[j], false);
-          continue;
-        }
-        value = value.join('; ');
-      }
-      storeHeader(this, state, field, value, false);
+      const entry = headers[key];
+      processHeader(this, state, entry[0], entry[1], false);
     }
-  } else if (headers instanceof Array) {
-    for (i = 0; i < headers.length; i++) {
-      field = headers[i][0];
-      value = headers[i][1];
-
-      if (value instanceof Array) {
-        for (j = 0; j < value.length; j++) {
-          storeHeader(this, state, field, value[j], true);
-        }
-      } else {
-        storeHeader(this, state, field, value, true);
-      }
+  } else if (Array.isArray(headers)) {
+    for (var i = 0; i < headers.length; i++) {
+      const entry = headers[i];
+      processHeader(this, state, entry[0], entry[1], true);
     }
   } else if (headers) {
-    var keys = Object.keys(headers);
-    for (i = 0; i < keys.length; i++) {
-      field = keys[i];
-      value = headers[field];
-
-      if (value instanceof Array) {
-        if (value.length < 2 || !isCookieField(field)) {
-          for (j = 0; j < value.length; j++)
-            storeHeader(this, state, field, value[j], true);
-          continue;
-        }
-        value = value.join('; ');
+    for (key in headers) {
+      if (hasOwnProperty(headers, key)) {
+        processHeader(this, state, key, headers[key], true);
       }
-      storeHeader(this, state, field, value, true);
     }
   }
 
-  // Are we upgrading the connection?
-  if (state.connUpgrade && state.upgrade)
-    this.upgrading = true;
+  let { header } = state;
 
   // Date header
   if (this.sendDate && !state.date) {
-    state.header += 'Date: ' + utcDate() + CRLF;
+    header += 'Date: ' + utcDate() + CRLF;
   }
 
   // Force the connection to close when the response is a 204 No Content or
@@ -367,9 +333,9 @@ function _storeHeader(firstLine, headers) {
   // It was pointed out that this might confuse reverse proxies to the point
   // of creating security liabilities, so suppress the zero chunk and force
   // the connection to close.
-  var statusCode = this.statusCode;
-  if ((statusCode === 204 || statusCode === 304) && this.chunkedEncoding) {
-    debug(statusCode + ' response should not use chunked encoding,' +
+  if (this.chunkedEncoding && (this.statusCode === 204 ||
+                               this.statusCode === 304)) {
+    debug(this.statusCode + ' response should not use chunked encoding,' +
           ' closing connection.');
     this.chunkedEncoding = false;
     this.shouldKeepAlive = false;
@@ -380,13 +346,13 @@ function _storeHeader(firstLine, headers) {
     this._last = true;
     this.shouldKeepAlive = false;
   } else if (!state.connection) {
-    var shouldSendKeepAlive = this.shouldKeepAlive &&
+    const shouldSendKeepAlive = this.shouldKeepAlive &&
         (state.contLen || this.useChunkedEncodingByDefault || this.agent);
     if (shouldSendKeepAlive) {
-      state.header += 'Connection: keep-alive\r\n';
+      header += 'Connection: keep-alive\r\n';
     } else {
       this._last = true;
-      state.header += 'Connection: close\r\n';
+      header += 'Connection: close\r\n';
     }
   }
 
@@ -396,24 +362,30 @@ function _storeHeader(firstLine, headers) {
       this.chunkedEncoding = false;
     } else if (!this.useChunkedEncodingByDefault) {
       this._last = true;
+    } else if (!state.trailer &&
+               !this._removedContLen &&
+               typeof this._contentLength === 'number') {
+      header += 'Content-Length: ' + this._contentLength + CRLF;
+    } else if (!this._removedTE) {
+      header += 'Transfer-Encoding: chunked\r\n';
+      this.chunkedEncoding = true;
     } else {
-      if (!state.trailer &&
-          !this._removedContLen &&
-          typeof this._contentLength === 'number') {
-        state.header += 'Content-Length: ' + this._contentLength + CRLF;
-      } else if (!this._removedTE) {
-        state.header += 'Transfer-Encoding: chunked\r\n';
-        this.chunkedEncoding = true;
-      } else {
-        // We should only be able to get here if both Content-Length and
-        // Transfer-Encoding are removed by the user.
-        // See: test/parallel/test-http-remove-header-stays-removed.js
-        debug('Both Content-Length and Transfer-Encoding are removed');
-      }
+      // We should only be able to get here if both Content-Length and
+      // Transfer-Encoding are removed by the user.
+      // See: test/parallel/test-http-remove-header-stays-removed.js
+      debug('Both Content-Length and Transfer-Encoding are removed');
     }
   }
 
-  this._header = state.header + CRLF;
+  // Test non-chunked message does not have trailer header set,
+  // message will be terminated by the first empty line after the
+  // header fields, regardless of the header fields present in the
+  // message, and thus cannot contain a message body or 'trailers'.
+  if (this.chunkedEncoding !== true && state.trailer) {
+    throw new ERR_HTTP_TRAILER_INVALID();
+  }
+
+  this._header = header + CRLF;
   this._headerSent = false;
 
   // wait until the first body chunk, or close(), is sent to flush,
@@ -421,120 +393,111 @@ function _storeHeader(firstLine, headers) {
   if (state.expect) this._send('');
 }
 
-function storeHeader(self, state, key, value, validate) {
-  if (validate) {
-    if (typeof key !== 'string' || !key || !checkIsHttpToken(key)) {
-      throw new TypeError(
-        'Header name must be a valid HTTP Token ["' + key + '"]');
+function processHeader(self, state, key, value, validate) {
+  if (validate)
+    validateHeaderName(key);
+  if (Array.isArray(value)) {
+    if (value.length < 2 || !isCookieField(key)) {
+      for (var i = 0; i < value.length; i++)
+        storeHeader(self, state, key, value[i], validate);
+      return;
     }
-    if (value === undefined) {
-      throw new Error('Header "%s" value must not be undefined', key);
-    } else if (checkInvalidHeaderChar(value)) {
-      debug('Header "%s" contains invalid characters', key);
-      throw new TypeError('The header content contains invalid characters');
-    }
+    value = value.join('; ');
   }
+  storeHeader(self, state, key, value, validate);
+}
+
+function storeHeader(self, state, key, value, validate) {
+  if (validate)
+    validateHeaderValue(key, value);
   state.header += key + ': ' + escapeHeaderValue(value) + CRLF;
   matchHeader(self, state, key, value);
 }
 
-function matchConnValue(self, state, value) {
-  var sawClose = false;
-  var m = RE_CONN_VALUES.exec(value);
-  while (m) {
-    if (m[0].length === 5)
-      sawClose = true;
-    else
-      state.connUpgrade = true;
-    m = RE_CONN_VALUES.exec(value);
-  }
-  if (sawClose)
-    self._last = true;
-  else
-    self.shouldKeepAlive = true;
-}
-
 function matchHeader(self, state, field, value) {
-  var m = RE_FIELDS.exec(field);
-  if (!m)
+  if (field.length < 4 || field.length > 17)
     return;
-  var len = m[0].length;
-  if (len === 10) {
-    state.connection = true;
-    matchConnValue(self, state, value);
-  } else if (len === 17) {
-    state.te = true;
-    if (RE_TE_CHUNKED.test(value)) self.chunkedEncoding = true;
-  } else if (len === 14) {
-    state.contLen = true;
-  } else if (len === 4) {
-    state.date = true;
-  } else if (len === 6) {
-    state.expect = true;
-  } else if (len === 7) {
-    var ch = m[0].charCodeAt(0);
-    if (ch === 85 || ch === 117)
-      state.upgrade = true;
-    else
-      state.trailer = true;
+  field = field.toLowerCase();
+  switch (field) {
+    case 'connection':
+      state.connection = true;
+      self._removedConnection = false;
+      if (RE_CONN_CLOSE.test(value))
+        self._last = true;
+      else
+        self.shouldKeepAlive = true;
+      break;
+    case 'transfer-encoding':
+      state.te = true;
+      self._removedTE = false;
+      if (RE_TE_CHUNKED.test(value)) self.chunkedEncoding = true;
+      break;
+    case 'content-length':
+      state.contLen = true;
+      self._removedContLen = false;
+      break;
+    case 'date':
+    case 'expect':
+    case 'trailer':
+      state[field] = true;
+      break;
   }
 }
 
-function validateHeader(msg, name, value) {
-  if (typeof name !== 'string' || !name || !checkIsHttpToken(name))
-    throw new TypeError(`Header name must be a valid HTTP Token ["${name}"]`);
-  if (value === undefined)
-    throw new Error('"value" required in setHeader("' + name + '", value)');
-  if (msg._header)
-    throw new Error('Can\'t set headers after they are sent.');
-  if (checkInvalidHeaderChar(value)) {
+function validateHeaderName(name) {
+  if (typeof name !== 'string' || !name || !checkIsHttpToken(name)) {
+    const err = new ERR_INVALID_HTTP_TOKEN('Header name', name);
+    Error.captureStackTrace(err, validateHeaderName);
+    throw err;
+  }
+}
+
+function validateHeaderValue(name, value) {
+  let err;
+  if (value === undefined) {
+    err = new ERR_HTTP_INVALID_HEADER_VALUE(value, name);
+  } else if (checkInvalidHeaderChar(value)) {
     debug('Header "%s" contains invalid characters', name);
-    throw new TypeError('The header content contains invalid characters');
+    err = new ERR_INVALID_CHAR('header content', name);
+  }
+  if (err !== undefined) {
+    Error.captureStackTrace(err, validateHeaderValue);
+    throw err;
   }
 }
+
 OutgoingMessage.prototype.setHeader = function setHeader(name, value) {
-  validateHeader(this, name, value);
-
-  if (!this[outHeadersKey])
-    this[outHeadersKey] = {};
-
-  const key = name.toLowerCase();
-  this[outHeadersKey][key] = [name, value];
-
-  switch (key.length) {
-    case 10:
-      if (key === 'connection')
-        this._removedConnection = false;
-      break;
-    case 14:
-      if (key === 'content-length')
-        this._removedContLen = false;
-      break;
-    case 17:
-      if (key === 'transfer-encoding')
-        this._removedTE = false;
-      break;
+  if (this._header) {
+    throw new ERR_HTTP_HEADERS_SENT('set');
   }
+  validateHeaderName(name);
+  validateHeaderValue(name, value);
+
+  let headers = this[outHeadersKey];
+  if (headers === null)
+    this[outHeadersKey] = headers = Object.create(null);
+
+  headers[name.toLowerCase()] = [name, value];
 };
 
 
 OutgoingMessage.prototype.getHeader = function getHeader(name) {
   if (typeof name !== 'string') {
-    throw new TypeError('"name" argument must be a string');
+    throw new ERR_INVALID_ARG_TYPE('name', 'string', name);
   }
 
-  if (!this[outHeadersKey]) return;
-
-  var entry = this[outHeadersKey][name.toLowerCase()];
-  if (!entry)
+  const headers = this[outHeadersKey];
+  if (headers === null)
     return;
-  return entry[1];
+
+  const entry = headers[name.toLowerCase()];
+  return entry && entry[1];
 };
 
 
 // Returns an array of the names of the current outgoing headers.
 OutgoingMessage.prototype.getHeaderNames = function getHeaderNames() {
-  return (this[outHeadersKey] ? Object.keys(this[outHeadersKey]) : []);
+  return this[outHeadersKey] !== null ? Object.keys(this[outHeadersKey]) : [];
 };
 
 
@@ -556,51 +519,48 @@ OutgoingMessage.prototype.getHeaders = function getHeaders() {
 
 OutgoingMessage.prototype.hasHeader = function hasHeader(name) {
   if (typeof name !== 'string') {
-    throw new TypeError('"name" argument must be a string');
+    throw new ERR_INVALID_ARG_TYPE('name', 'string', name);
   }
 
-  return !!(this[outHeadersKey] && this[outHeadersKey][name.toLowerCase()]);
+  return this[outHeadersKey] !== null &&
+    !!this[outHeadersKey][name.toLowerCase()];
 };
 
 
 OutgoingMessage.prototype.removeHeader = function removeHeader(name) {
   if (typeof name !== 'string') {
-    throw new TypeError('"name" argument must be a string');
+    throw new ERR_INVALID_ARG_TYPE('name', 'string', name);
   }
 
   if (this._header) {
-    throw new Error('Can\'t remove headers after they are sent');
+    throw new ERR_HTTP_HEADERS_SENT('remove');
   }
 
   var key = name.toLowerCase();
 
-  switch (key.length) {
-    case 10:
-      if (key === 'connection')
-        this._removedConnection = true;
+  switch (key) {
+    case 'connection':
+      this._removedConnection = true;
       break;
-    case 14:
-      if (key === 'content-length')
-        this._removedContLen = true;
+    case 'content-length':
+      this._removedContLen = true;
       break;
-    case 17:
-      if (key === 'transfer-encoding')
-        this._removedTE = true;
+    case 'transfer-encoding':
+      this._removedTE = true;
       break;
-    case 4:
-      if (key === 'date')
-        this.sendDate = false;
+    case 'date':
+      this.sendDate = false;
       break;
   }
 
-  if (this[outHeadersKey]) {
+  if (this[outHeadersKey] !== null) {
     delete this[outHeadersKey][key];
   }
 };
 
 
 OutgoingMessage.prototype._implicitHeader = function _implicitHeader() {
-  throw new Error('_implicitHeader() method is not implemented');
+  this.emit('error', new ERR_METHOD_NOT_IMPLEMENTED('_implicitHeader()'));
 };
 
 Object.defineProperty(OutgoingMessage.prototype, 'headersSent', {
@@ -617,11 +577,14 @@ OutgoingMessage.prototype.write = function write(chunk, encoding, callback) {
 
 function write_(msg, chunk, encoding, callback, fromEnd) {
   if (msg.finished) {
-    var err = new Error('write after end');
-    nextTick(msg.socket && msg.socket[async_id_symbol],
-             writeAfterEndNT.bind(msg),
-             err,
-             callback);
+    const err = new ERR_STREAM_WRITE_AFTER_END();
+    const triggerAsyncId = msg.socket ? msg.socket[async_id_symbol] : undefined;
+    defaultTriggerAsyncIdScope(triggerAsyncId,
+                               process.nextTick,
+                               writeAfterEndNT,
+                               msg,
+                               err,
+                               callback);
 
     return true;
   }
@@ -637,7 +600,8 @@ function write_(msg, chunk, encoding, callback, fromEnd) {
   }
 
   if (!fromEnd && typeof chunk !== 'string' && !(chunk instanceof Buffer)) {
-    throw new TypeError('First argument must be a string or Buffer');
+    throw new ERR_INVALID_ARG_TYPE('first argument',
+                                   ['string', 'Buffer'], chunk);
   }
 
 
@@ -645,9 +609,10 @@ function write_(msg, chunk, encoding, callback, fromEnd) {
   // signal the user to keep writing.
   if (chunk.length === 0) return true;
 
-  if (!fromEnd && msg.connection && !msg.connection.corked) {
+  if (!fromEnd && msg.connection && !msg[kIsCorked]) {
     msg.connection.cork();
-    process.nextTick(connectionCorkNT, msg.connection);
+    msg[kIsCorked] = true;
+    process.nextTick(connectionCorkNT, msg, msg.connection);
   }
 
   var len, ret;
@@ -670,13 +635,14 @@ function write_(msg, chunk, encoding, callback, fromEnd) {
 }
 
 
-function writeAfterEndNT(err, callback) {
-  this.emit('error', err);
+function writeAfterEndNT(msg, err, callback) {
+  msg.emit('error', err);
   if (callback) callback(err);
 }
 
 
-function connectionCorkNT(conn) {
+function connectionCorkNT(msg, conn) {
+  msg[kIsCorked] = false;
   conn.uncork();
 }
 
@@ -703,12 +669,11 @@ OutgoingMessage.prototype.addTrailers = function addTrailers(headers) {
       value = headers[key];
     }
     if (typeof field !== 'string' || !field || !checkIsHttpToken(field)) {
-      throw new TypeError(
-        'Trailer name must be a valid HTTP Token ["' + field + '"]');
+      throw new ERR_INVALID_HTTP_TOKEN('Trailer name', field);
     }
     if (checkInvalidHeaderChar(value)) {
       debug('Trailer "%s" contains invalid characters', field);
-      throw new TypeError('The trailer content contains invalid characters');
+      throw new ERR_INVALID_CHAR('trailer content', field);
     }
     this._trailer += field + ': ' + escapeHeaderValue(value) + CRLF;
   }
@@ -728,13 +693,13 @@ OutgoingMessage.prototype.end = function end(chunk, encoding, callback) {
   }
 
   if (this.finished) {
-    return false;
+    return this;
   }
 
   var uncork;
   if (chunk) {
     if (typeof chunk !== 'string' && !(chunk instanceof Buffer)) {
-      throw new TypeError('First argument must be a string or Buffer');
+      throw new ERR_INVALID_ARG_TYPE('chunk', ['string', 'Buffer'], chunk);
     }
     if (!this._header) {
       if (typeof chunk === 'string')
@@ -757,19 +722,17 @@ OutgoingMessage.prototype.end = function end(chunk, encoding, callback) {
 
   var finish = onFinish.bind(undefined, this);
 
-  var ret;
   if (this._hasBody && this.chunkedEncoding) {
-    ret = this._send('0\r\n' + this._trailer + '\r\n', 'latin1', finish);
+    this._send('0\r\n' + this._trailer + '\r\n', 'latin1', finish);
   } else {
     // Force a flush, HACK.
-    ret = this._send('', 'latin1', finish);
+    this._send('', 'latin1', finish);
   }
 
   if (uncork)
     this.connection.uncork();
 
   this.finished = true;
-  this.writable = false;
 
   // There is the first message on the outgoing queue, and we've sent
   // everything to the socket.
@@ -780,7 +743,7 @@ OutgoingMessage.prototype.end = function end(chunk, encoding, callback) {
     this._finish();
   }
 
-  return ret;
+  return this;
 };
 
 
@@ -865,6 +828,10 @@ OutgoingMessage.prototype.flush = internalUtil.deprecate(function() {
   this.flushHeaders();
 }, 'OutgoingMessage.flush is deprecated. Use flushHeaders instead.', 'DEP0001');
 
+OutgoingMessage.prototype.pipe = function pipe() {
+  // OutgoingMessage should be write-only. Piping from it is disabled.
+  this.emit('error', new ERR_STREAM_CANNOT_PIPE());
+};
 
 module.exports = {
   OutgoingMessage

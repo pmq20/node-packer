@@ -60,7 +60,6 @@ consts_misc = [
 
     { 'name': 'IsNotStringMask',        'value': 'kIsNotStringMask' },
     { 'name': 'StringTag',              'value': 'kStringTag' },
-    { 'name': 'NotStringTag',           'value': 'kNotStringTag' },
 
     { 'name': 'StringEncodingMask',     'value': 'kStringEncodingMask' },
     { 'name': 'TwoByteStringTag',       'value': 'kTwoByteStringTag' },
@@ -72,6 +71,7 @@ consts_misc = [
     { 'name': 'ConsStringTag',          'value': 'kConsStringTag' },
     { 'name': 'ExternalStringTag',      'value': 'kExternalStringTag' },
     { 'name': 'SlicedStringTag',        'value': 'kSlicedStringTag' },
+    { 'name': 'ThinStringTag',          'value': 'kThinStringTag' },
 
     { 'name': 'HeapObjectTag',          'value': 'kHeapObjectTag' },
     { 'name': 'HeapObjectTagMask',      'value': 'kHeapObjectTagMask' },
@@ -154,9 +154,9 @@ consts_misc = [
         'value': 'DescriptorArray::kEntrySize' },
 
     { 'name': 'elements_fast_holey_elements',
-        'value': 'FAST_HOLEY_ELEMENTS' },
+        'value': 'HOLEY_ELEMENTS' },
     { 'name': 'elements_fast_elements',
-        'value': 'FAST_ELEMENTS' },
+        'value': 'PACKED_ELEMENTS' },
     { 'name': 'elements_dictionary_elements',
         'value': 'DICTIONARY_ELEMENTS' },
 
@@ -164,8 +164,8 @@ consts_misc = [
         'value': 'Map::ElementsKindBits::kMask' },
     { 'name': 'bit_field2_elements_kind_shift',
         'value': 'Map::ElementsKindBits::kShift' },
-    { 'name': 'bit_field3_dictionary_map_shift',
-        'value': 'Map::DictionaryMap::kShift' },
+    { 'name': 'bit_field3_is_dictionary_map_shift',
+        'value': 'Map::IsDictionaryMapBit::kShift' },
     { 'name': 'bit_field3_number_of_own_descriptors_mask',
         'value': 'Map::NumberOfOwnDescriptorsBits::kMask' },
     { 'name': 'bit_field3_number_of_own_descriptors_shift',
@@ -192,9 +192,9 @@ consts_misc = [
         'value': 'ScopeInfo::kVariablePartIndex' },
 
     { 'name': 'sharedfunctioninfo_start_position_mask',
-        'value': 'SharedFunctionInfo::kStartPositionMask' },
+        'value': 'SharedFunctionInfo::StartPositionBits::kMask' },
     { 'name': 'sharedfunctioninfo_start_position_shift',
-        'value': 'SharedFunctionInfo::kStartPositionShift' },
+        'value': 'SharedFunctionInfo::StartPositionBits::kShift' },
 
     { 'name': 'jsarray_buffer_was_neutered_mask',
         'value': 'JSArrayBuffer::WasNeutered::kMask' },
@@ -222,15 +222,15 @@ consts_misc = [
     { 'name': 'namedictionary_prefix_start_index',
         'value': 'NameDictionary::kPrefixStartIndex' },
 
-    { 'name': 'seedednumberdictionaryshape_prefix_size',
-        'value': 'SeededNumberDictionaryShape::kPrefixSize' },
-    { 'name': 'seedednumberdictionaryshape_entry_size',
-        'value': 'SeededNumberDictionaryShape::kEntrySize' },
+    { 'name': 'numberdictionaryshape_prefix_size',
+        'value': 'NumberDictionaryShape::kPrefixSize' },
+    { 'name': 'numberdictionaryshape_entry_size',
+        'value': 'NumberDictionaryShape::kEntrySize' },
 
-    { 'name': 'unseedednumberdictionaryshape_prefix_size',
-        'value': 'UnseededNumberDictionaryShape::kPrefixSize' },
-    { 'name': 'unseedednumberdictionaryshape_entry_size',
-        'value': 'UnseededNumberDictionaryShape::kEntrySize' }
+    { 'name': 'simplenumberdictionaryshape_prefix_size',
+        'value': 'SimpleNumberDictionaryShape::kPrefixSize' },
+    { 'name': 'simplenumberdictionaryshape_entry_size',
+        'value': 'SimpleNumberDictionaryShape::kEntrySize' },
 ];
 
 #
@@ -247,12 +247,13 @@ extras_accessors = [
     'JSObject, elements, Object, kElementsOffset',
     'JSObject, internal_fields, uintptr_t, kHeaderSize',
     'FixedArray, data, uintptr_t, kHeaderSize',
+    'FixedTypedArrayBase, external_pointer, Object, kExternalPointerOffset',
     'JSArrayBuffer, backing_store, Object, kBackingStoreOffset',
     'JSArrayBufferView, byte_offset, Object, kByteOffsetOffset',
     'JSTypedArray, length, Object, kLengthOffset',
-    'Map, instance_attributes, int, kInstanceAttributesOffset',
-    'Map, inobject_properties_or_constructor_function_index, int, kInObjectPropertiesOrConstructorFunctionIndexOffset',
-    'Map, instance_size, int, kInstanceSizeOffset',
+    'Map, instance_size_in_words, char, kInstanceSizeInWordsOffset',
+    'Map, inobject_properties_start_or_constructor_function_index, char, kInObjectPropertiesStartOrConstructorFunctionIndexOffset',
+    'Map, instance_type, uint16_t, kInstanceTypeOffset',
     'Map, bit_field, char, kBitFieldOffset',
     'Map, bit_field2, char, kBitField2Offset',
     'Map, bit_field3, int, kBitField3Offset',
@@ -264,8 +265,12 @@ extras_accessors = [
     'ExternalString, resource, Object, kResourceOffset',
     'SeqOneByteString, chars, char, kHeaderSize',
     'SeqTwoByteString, chars, char, kHeaderSize',
-    'SharedFunctionInfo, code, Code, kCodeOffset',
-    'SharedFunctionInfo, scope_info, ScopeInfo, kScopeInfoOffset',
+    'SharedFunctionInfo, function_token_position, int, kFunctionTokenPositionOffset',
+    'SharedFunctionInfo, start_position_and_type, int, kStartPositionAndTypeOffset',
+    'SharedFunctionInfo, end_position, int, kEndPositionOffset',
+    'SharedFunctionInfo, internal_formal_parameter_count, int, kFormalParameterCountOffset',
+    'SharedFunctionInfo, flags, int, kFlagsOffset',
+    'SharedFunctionInfo, length, int, kLengthOffset',
     'SlicedString, parent, String, kParentOffset',
     'Code, instruction_start, uintptr_t, kHeaderSize',
     'Code, instruction_size, int, kInstructionSizeOffset',
@@ -370,7 +375,7 @@ def load_objects_from_file(objfilename, checktypes):
         # do so without the embedded newlines.
         #
         for line in objfile:
-                if (line.startswith('enum InstanceType {')):
+                if (line.startswith('enum InstanceType : uint16_t {')):
                         in_insttype = True;
                         continue;
 

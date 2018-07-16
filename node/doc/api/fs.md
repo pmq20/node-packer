@@ -1,23 +1,26 @@
 # File System
 
+<!--introduced_in=v0.10.0-->
+
 > Stability: 2 - Stable
 
 <!--name=fs-->
 
-File I/O is provided by simple wrappers around standard POSIX functions.  To
-use this module do `require('fs')`. All the methods have asynchronous and
-synchronous forms.
+The `fs` module provides an API for interacting with the file system in a
+manner closely modeled around standard POSIX functions.
+
+To use this module:
+
+```js
+const fs = require('fs');
+```
+
+All file system operations have synchronous and asynchronous forms.
 
 The asynchronous form always takes a completion callback as its last argument.
 The arguments passed to the completion callback depend on the method, but the
 first argument is always reserved for an exception. If the operation was
 completed successfully, then the first argument will be `null` or `undefined`.
-
-When using the synchronous form any exceptions are immediately thrown.
-Exceptions may be handled using `try`/`catch`, or they may be allowed to
-bubble up.
-
-Here is an example of the asynchronous version:
 
 ```js
 const fs = require('fs');
@@ -28,17 +31,23 @@ fs.unlink('/tmp/hello', (err) => {
 });
 ```
 
-Here is the synchronous version:
+Exceptions that occur using synchronous operations are thrown immediately and
+may be handled using `try`/`catch`, or may be allowed to bubble up.
 
 ```js
 const fs = require('fs');
 
-fs.unlinkSync('/tmp/hello');
-console.log('successfully deleted /tmp/hello');
+try {
+  fs.unlinkSync('/tmp/hello');
+  console.log('successfully deleted /tmp/hello');
+} catch (err) {
+  // handle the error
+}
 ```
 
-With the asynchronous methods there is no guaranteed ordering. So the
-following is prone to error:
+Note that there is no guaranteed ordering when using asynchronous methods.
+So the following is prone to error because the `fs.stat()` operation may
+complete before the `fs.rename()` operation.
 
 ```js
 fs.rename('/tmp/hello', '/tmp/world', (err) => {
@@ -51,8 +60,8 @@ fs.stat('/tmp/world', (err, stats) => {
 });
 ```
 
-It could be that `fs.stat` is executed before `fs.rename`.
-The correct way to do this is to chain the callbacks.
+To correctly order the operations, move the `fs.stat()` call into the callback
+of the `fs.rename()` operation:
 
 ```js
 fs.rename('/tmp/hello', '/tmp/world', (err) => {
@@ -66,18 +75,15 @@ fs.rename('/tmp/hello', '/tmp/world', (err) => {
 
 In busy processes, the programmer is _strongly encouraged_ to use the
 asynchronous versions of these calls. The synchronous versions will block
-the entire process until they complete--halting all connections.
-
-The relative path to a filename can be used. Remember, however, that this path
-will be relative to `process.cwd()`.
+the entire process until they complete — halting all connections.
 
 While it is not recommended, most fs functions allow the callback argument to
 be omitted, in which case a default callback is used that rethrows errors. To
 get a trace to the original call site, set the `NODE_DEBUG` environment
 variable:
 
-*Note*: Omitting the callback function on asynchronous fs functions is
-deprecated and may result in an error being thrown in the future.
+Omitting the callback function on asynchronous fs functions is deprecated and
+may result in an error being thrown in the future.
 
 ```txt
 $ cat script.js
@@ -94,38 +100,84 @@ Error: EISDIR: illegal operation on a directory, read
     <stack trace.>
 ```
 
+## File paths
+
+Most `fs` operations accept filepaths that may be specified in the form of
+a string, a [`Buffer`][], or a [`URL`][] object using the `file:` protocol.
+
+String form paths are interpreted as UTF-8 character sequences identifying
+the absolute or relative filename. Relative paths will be resolved relative
+to the current working directory as specified by `process.cwd()`.
+
+Example using an absolute path on POSIX:
+
+```js
+const fs = require('fs');
+
+fs.open('/open/some/file.txt', 'r', (err, fd) => {
+  if (err) throw err;
+  fs.close(fd, (err) => {
+    if (err) throw err;
+  });
+});
+```
+
+Example using a relative path on POSIX (relative to `process.cwd()`):
+
+```js
+fs.open('file.txt', 'r', (err, fd) => {
+  if (err) throw err;
+  fs.close(fd, (err) => {
+    if (err) throw err;
+  });
+});
+```
+
+Paths specified using a [`Buffer`][] are useful primarily on certain POSIX
+operating systems that treat file paths as opaque byte sequences. On such
+systems, it is possible for a single file path to contain sub-sequences that
+use multiple character encodings. As with string paths, `Buffer` paths may
+be relative or absolute:
+
+Example using an absolute path on POSIX:
+
+```js
+fs.open(Buffer.from('/open/some/file.txt'), 'r', (err, fd) => {
+  if (err) throw err;
+  fs.close(fd, (err) => {
+    if (err) throw err;
+  });
+});
+```
+
 *Note:* On Windows Node.js follows the concept of per-drive working directory.
 This behavior can be observed when using a drive path without a backslash. For
 example `fs.readdirSync('c:\\')` can potentially return a different result than
 `fs.readdirSync('c:')`. For more information, see
 [this MSDN page][MSDN-Rel-Path].
 
-## WHATWG URL object support
+### URL object support
 <!-- YAML
 added: v7.6.0
 -->
-
-> Stability: 1 - Experimental
-
 For most `fs` module functions, the `path` or `filename` argument may be passed
 as a WHATWG [`URL`][] object. Only [`URL`][] objects using the `file:` protocol
 are supported.
 
 ```js
 const fs = require('fs');
-const { URL } = require('url');
 const fileUrl = new URL('file:///tmp/hello');
 
 fs.readFileSync(fileUrl);
 ```
 
-*Note*: `file:` URLs are always absolute paths.
+`file:` URLs are always absolute paths.
 
 Using WHATWG [`URL`][] objects might introduce platform-specific behaviors.
 
 On Windows, `file:` URLs with a hostname convert to UNC paths, while `file:`
 URLs with drive letters convert to local absolute paths. `file:` URLs without a
-hostname nor a drive letter will result in a throw :
+hostname nor a drive letter will result in a throw:
 
 ```js
 // On Windows :
@@ -144,7 +196,7 @@ fs.readFileSync(new URL('file:///c/p/a/t/h/file'));
 // TypeError [ERR_INVALID_FILE_URL_PATH]: File URL path must be absolute
 ```
 
-*Note*: `file:` URLs with drive letters must use `:` as a separator just after
+`file:` URLs with drive letters must use `:` as a separator just after
 the drive letter. Using another separator will result in a throw.
 
 On all other platforms, `file:` URLs with a hostname are unsupported and will
@@ -189,39 +241,65 @@ fs.readFileSync(new URL('file:///C:/path/%5c'));
 \ or / characters */
 ```
 
-## Buffer API
-<!-- YAML
-added: v6.0.0
--->
+## File Descriptors
 
-`fs` functions support passing and receiving paths as both strings
-and Buffers. The latter is intended to make it possible to work with
-filesystems that allow for non-UTF-8 filenames. For most typical
-uses, working with paths as Buffers will be unnecessary, as the string
-API converts to and from UTF-8 automatically.
+On POSIX systems, for every process, the kernel maintains a table of currently
+open files and resources. Each open file is assigned a simple numeric
+identifier called a *file descriptor*. At the system-level, all file system
+operations use these file descriptors to identify and track each specific
+file. Windows systems use a different but conceptually similar mechanism for
+tracking resources. To simplify things for users, Node.js abstracts away the
+specific differences between operating systems and assigns all open files a
+numeric file descriptor.
 
-*Note*: On certain file systems (such as NTFS and HFS+) filenames
-will always be encoded as UTF-8. On such file systems, passing
-non-UTF-8 encoded Buffers to `fs` functions will not work as expected.
+The `fs.open()` method is used to allocate a new file descriptor. Once
+allocated, the file descriptor may be used to read data from, write data to,
+or request information about the file.
+
+```js
+fs.open('/open/some/file.txt', 'r', (err, fd) => {
+  if (err) throw err;
+  fs.fstat(fd, (err, stat) => {
+    if (err) throw err;
+    // use stat
+
+    // always close the file descriptor!
+    fs.close(fd, (err) => {
+      if (err) throw err;
+    });
+  });
+});
+```
+
+Most operating systems limit the number of file descriptors that may be open
+at any given time so it is critical to close the descriptor when operations
+are completed. Failure to do so will result in a memory leak that will
+eventually cause an application to crash.
+
+## Threadpool Usage
+
+Note that all file system APIs except `fs.FSWatcher()` and those that are
+explicitly synchronous use libuv's threadpool, which can have surprising and
+negative performance implications for some applications, see the
+[`UV_THREADPOOL_SIZE`][] documentation for more information.
 
 ## Class: fs.FSWatcher
 <!-- YAML
 added: v0.5.8
 -->
 
-Objects returned from [`fs.watch()`][] are of this type.
+A successful call to [`fs.watch()`][] method will return a new `fs.FSWatcher`
+object.
 
-The `listener` callback provided to `fs.watch()` receives the returned FSWatcher's
-`change` events.
-
-The object itself emits these events:
+All `fs.FSWatcher` objects are [`EventEmitter`][]'s that will emit a `'change'`
+event whenever a specific watched file is modified.
 
 ### Event: 'change'
 <!-- YAML
 added: v0.5.8
 -->
 
-* `eventType` {string} The type of fs change
+* `eventType` {string} The type of change event that has occurred
 * `filename` {string|Buffer} The filename that changed (if relevant/available)
 
 Emitted when something changes in a watched directory or file.
@@ -230,10 +308,10 @@ See more details in [`fs.watch()`][].
 The `filename` argument may not be provided depending on operating system
 support. If `filename` is provided, it will be provided as a `Buffer` if
 `fs.watch()` is called with its `encoding` option set to `'buffer'`, otherwise
-`filename` will be a string.
+`filename` will be a UTF-8 string.
 
 ```js
-// Example when handled through fs.watch listener
+// Example when handled through fs.watch() listener
 fs.watch('./tmp', { encoding: 'buffer' }, (eventType, filename) => {
   if (filename) {
     console.log(filename);
@@ -242,6 +320,14 @@ fs.watch('./tmp', { encoding: 'buffer' }, (eventType, filename) => {
 });
 ```
 
+### Event: 'close'
+<!-- YAML
+added: v10.0.0
+-->
+
+Emitted when the watcher stops watching for changes. The closed
+`fs.FSWatcher` object is no longer usable in the event handler.
+
 ### Event: 'error'
 <!-- YAML
 added: v0.5.8
@@ -249,50 +335,67 @@ added: v0.5.8
 
 * `error` {Error}
 
-Emitted when an error occurs.
+Emitted when an error occurs while watching the file. The errored
+`fs.FSWatcher` object is no longer usable in the event handler.
 
 ### watcher.close()
 <!-- YAML
 added: v0.5.8
 -->
 
-Stop watching for changes on the given `fs.FSWatcher`.
+Stop watching for changes on the given `fs.FSWatcher`. Once stopped, the
+`fs.FSWatcher` object is no longer usable.
 
 ## Class: fs.ReadStream
 <!-- YAML
 added: v0.1.93
 -->
 
-`ReadStream` is a [Readable Stream][].
+A successful call to `fs.createReadStream()` will return a new `fs.ReadStream`
+object.
+
+All `fs.ReadStream` objects are [Readable Streams][].
 
 ### Event: 'close'
 <!-- YAML
 added: v0.1.93
 -->
 
-Emitted when the `ReadStream`'s underlying file descriptor has been closed
-using the `fs.close()` method.
+Emitted when the `fs.ReadStream`'s underlying file descriptor has been closed.
 
 ### Event: 'open'
 <!-- YAML
 added: v0.1.93
 -->
 
-* `fd` {integer} Integer file descriptor used by the ReadStream.
+* `fd` {integer} Integer file descriptor used by the `ReadStream`.
 
-Emitted when the ReadStream's file is opened.
+Emitted when the `fs.ReadStream`'s file descriptor has been opened.
+
+### Event: 'ready'
+<!-- YAML
+added: v9.11.0
+-->
+
+Emitted when the `fs.ReadStream` is ready to be used.
+
+Fires immediately after `'open'`.
 
 ### readStream.bytesRead
 <!-- YAML
-added: 6.4.0
+added: v6.4.0
 -->
 
-The number of bytes read so far.
+* {number}
+
+The number of bytes that have been read so far.
 
 ### readStream.path
 <!-- YAML
 added: v0.1.93
 -->
+
+* {string|Buffer}
 
 The path to the file the stream is reading from as specified in the first
 argument to `fs.createReadStream()`. If `path` is passed as a string, then
@@ -308,19 +411,12 @@ changes:
     description: Added times as numbers.
 -->
 
+A `fs.Stats` object provides information about a file.
+
 Objects returned from [`fs.stat()`][], [`fs.lstat()`][] and [`fs.fstat()`][] and
 their synchronous counterparts are of this type.
-
- - `stats.isFile()`
- - `stats.isDirectory()`
- - `stats.isBlockDevice()`
- - `stats.isCharacterDevice()`
- - `stats.isSymbolicLink()` (only valid with [`fs.lstat()`][])
- - `stats.isFIFO()`
- - `stats.isSocket()`
-
-For a regular file [`util.inspect(stats)`][] would return a string very
-similar to this:
+If `bigint` in the `options` passed to those methods is true, the numeric values
+will be `bigint` instead of `number`.
 
 ```console
 Stats {
@@ -344,28 +440,254 @@ Stats {
   birthtime: Mon, 10 Oct 2011 23:24:11 GMT }
 ```
 
-*Note*: `atimeMs`, `mtimeMs`, `ctimeMs`, `birthtimeMs` are [numbers][MDN-Number]
-that hold the corresponding times in milliseconds. Their precision is platform
-specific. `atime`, `mtime`, `ctime`, and `birthtime` are [`Date`][MDN-Date]
-object alternate representations of the various times. The `Date` and number
-values are not connected. Assigning a new number value, or mutating the `Date`
-value, will not be reflected in the corresponding alternate representation.
+`bigint` version:
 
+```console
+Stats {
+  dev: 2114n,
+  ino: 48064969n,
+  mode: 33188n,
+  nlink: 1n,
+  uid: 85n,
+  gid: 100n,
+  rdev: 0n,
+  size: 527n,
+  blksize: 4096n,
+  blocks: 8n,
+  atimeMs: 1318289051000n,
+  mtimeMs: 1318289051000n,
+  ctimeMs: 1318289051000n,
+  birthtimeMs: 1318289051000n,
+  atime: Mon, 10 Oct 2011 23:24:11 GMT,
+  mtime: Mon, 10 Oct 2011 23:24:11 GMT,
+  ctime: Mon, 10 Oct 2011 23:24:11 GMT,
+  birthtime: Mon, 10 Oct 2011 23:24:11 GMT }
+```
+
+### stats.isBlockDevice()
+<!-- YAML
+added: v0.1.10
+-->
+
+* Returns: {boolean}
+
+Returns `true` if the `fs.Stats` object describes a block device.
+
+### stats.isCharacterDevice()
+<!-- YAML
+added: v0.1.10
+-->
+
+* Returns: {boolean}
+
+Returns `true` if the `fs.Stats` object describes a character device.
+
+### stats.isDirectory()
+<!-- YAML
+added: v0.1.10
+-->
+
+* Returns: {boolean}
+
+Returns `true` if the `fs.Stats` object describes a file system directory.
+
+### stats.isFIFO()
+<!-- YAML
+added: v0.1.10
+-->
+
+* Returns: {boolean}
+
+Returns `true` if the `fs.Stats` object describes a first-in-first-out (FIFO)
+pipe.
+
+### stats.isFile()
+<!-- YAML
+added: v0.1.10
+-->
+
+* Returns: {boolean}
+
+Returns `true` if the `fs.Stats` object describes a regular file.
+
+### stats.isSocket()
+<!-- YAML
+added: v0.1.10
+-->
+
+* Returns: {boolean}
+
+Returns `true` if the `fs.Stats` object describes a socket.
+
+### stats.isSymbolicLink()
+<!-- YAML
+added: v0.1.10
+-->
+
+* Returns: {boolean}
+
+Returns `true` if the `fs.Stats` object describes a symbolic link.
+
+This method is only valid when using [`fs.lstat()`][].
+
+### stats.dev
+
+* {number|bigint}
+
+The numeric identifier of the device containing the file.
+
+### stats.ino
+
+* {number|bigint}
+
+The file system specific "Inode" number for the file.
+
+### stats.mode
+
+* {number|bigint}
+
+A bit-field describing the file type and mode.
+
+### stats.nlink
+
+* {number|bigint}
+
+The number of hard-links that exist for the file.
+
+### stats.uid
+
+* {number|bigint}
+
+The numeric user identifier of the user that owns the file (POSIX).
+
+### stats.gid
+
+* {number|bigint}
+
+The numeric group identifier of the group that owns the file (POSIX).
+
+### stats.rdev
+
+* {number|bigint}
+
+A numeric device identifier if the file is considered "special".
+
+### stats.size
+
+* {number|bigint}
+
+The size of the file in bytes.
+
+### stats.blksize
+
+* {number|bigint}
+
+The file system block size for i/o operations.
+
+### stats.blocks
+
+* {number|bigint}
+
+The number of blocks allocated for this file.
+
+### stats.atimeMs
+<!-- YAML
+added: v8.1.0
+-->
+
+* {number|bigint}
+
+The timestamp indicating the last time this file was accessed expressed in
+milliseconds since the POSIX Epoch.
+
+### stats.mtimeMs
+<!-- YAML
+added: v8.1.0
+-->
+
+* {number|bigint}
+
+The timestamp indicating the last time this file was modified expressed in
+milliseconds since the POSIX Epoch.
+
+### stats.ctimeMs
+<!-- YAML
+added: v8.1.0
+-->
+
+* {number|bigint}
+
+The timestamp indicating the last time the file status was changed expressed
+in milliseconds since the POSIX Epoch.
+
+### stats.birthtimeMs
+<!-- YAML
+added: v8.1.0
+-->
+
+* {number|bigint}
+
+The timestamp indicating the creation time of this file expressed in
+milliseconds since the POSIX Epoch.
+
+### stats.atime
+<!-- YAML
+added: v0.11.13
+-->
+
+* {Date}
+
+The timestamp indicating the last time this file was accessed.
+
+### stats.mtime
+<!-- YAML
+added: v0.11.13
+-->
+
+* {Date}
+
+The timestamp indicating the last time this file was modified.
+
+### stats.ctime
+<!-- YAML
+added: v0.11.13
+-->
+
+* {Date}
+
+The timestamp indicating the last time the file status was changed.
+
+### stats.birthtime
+<!-- YAML
+added: v0.11.13
+-->
+
+* {Date}
+
+The timestamp indicating the creation time of this file.
 
 ### Stat Time Values
 
+The `atimeMs`, `mtimeMs`, `ctimeMs`, `birthtimeMs` properties are
+[numbers][MDN-Number] that hold the corresponding times in milliseconds. Their
+precision is platform specific. `atime`, `mtime`, `ctime`, and `birthtime` are
+[`Date`][MDN-Date] object alternate representations of the various times. The
+`Date` and number values are not connected. Assigning a new number value, or
+mutating the `Date` value, will not be reflected in the corresponding alternate
+representation.
+
 The times in the stat object have the following semantics:
 
-* `atime` "Access Time" - Time when file data last accessed.  Changed
+* `atime` "Access Time" - Time when file data last accessed. Changed
   by the mknod(2), utimes(2), and read(2) system calls.
 * `mtime` "Modified Time" - Time when file data last modified.
   Changed by the mknod(2), utimes(2), and write(2) system calls.
 * `ctime` "Change Time" - Time when file status was last changed
-  (inode data modification).  Changed by the chmod(2), chown(2),
+  (inode data modification). Changed by the chmod(2), chown(2),
   link(2), mknod(2), rename(2), unlink(2), utimes(2),
   read(2), and write(2) system calls.
-* `birthtime` "Birth Time" -  Time of file creation. Set once when the
-  file is created.  On filesystems where birthtime is not available,
+* `birthtime` "Birth Time" - Time of file creation. Set once when the
+  file is created. On filesystems where birthtime is not available,
   this field may instead hold either the `ctime` or
   `1970-01-01T00:00Z` (ie, unix epoch timestamp `0`). Note that this
   value may be greater than `atime` or `mtime` in this case. On Darwin
@@ -373,8 +695,8 @@ The times in the stat object have the following semantics:
   set to an earlier value than the current `birthtime` using the
   utimes(2) system call.
 
-Prior to Node v0.12, the `ctime` held the `birthtime` on Windows
-systems.  Note that as of v0.12, `ctime` is not "creation time", and
+Prior to Node.js v0.12, the `ctime` held the `birthtime` on Windows
+systems. Note that as of v0.12, `ctime` is not "creation time", and
 on Unix systems, it never was.
 
 ## Class: fs.WriteStream
@@ -389,17 +711,25 @@ added: v0.1.93
 added: v0.1.93
 -->
 
-Emitted when the `WriteStream`'s underlying file descriptor has been closed
-using the `fs.close()` method.
+Emitted when the `WriteStream`'s underlying file descriptor has been closed.
 
 ### Event: 'open'
 <!-- YAML
 added: v0.1.93
 -->
 
-* `fd` {integer} Integer file descriptor used by the WriteStream.
+* `fd` {integer} Integer file descriptor used by the `WriteStream`.
 
-Emitted when the WriteStream's file is opened.
+Emitted when the `WriteStream`'s file is opened.
+
+### Event: 'ready'
+<!-- YAML
+added: v9.11.0
+-->
+
+Emitted when the `fs.WriteStream` is ready to be used.
+
+Fires immediately after `'open'`.
 
 ### writeStream.bytesWritten
 <!-- YAML
@@ -431,7 +761,8 @@ changes:
     pr-url: https://github.com/nodejs/node/pull/6534
     description: The constants like `fs.R_OK`, etc which were present directly
                  on `fs` were moved into `fs.constants` as a soft deprecation.
-                 Thus for Node `< v6.3.0` use `fs` to access those constants, or
+                 Thus for Node.js `< v6.3.0` use `fs`
+                 to access those constants, or
                  do something like `(fs.constants || fs).R_OK` to work with all
                  versions.
 -->
@@ -439,29 +770,45 @@ changes:
 * `path` {string|Buffer|URL}
 * `mode` {integer} **Default:** `fs.constants.F_OK`
 * `callback` {Function}
+  * `err` {Error}
 
 Tests a user's permissions for the file or directory specified by `path`.
 The `mode` argument is an optional integer that specifies the accessibility
-checks to be performed. The following constants define the possible values of
-`mode`. It is possible to create a mask consisting of the bitwise OR of two or
-more values.
-
-- `fs.constants.F_OK` - `path` is visible to the calling process. This is useful
-for determining if a file exists, but says nothing about `rwx` permissions.
-Default if no `mode` is specified.
-- `fs.constants.R_OK` - `path` can be read by the calling process.
-- `fs.constants.W_OK` - `path` can be written by the calling process.
-- `fs.constants.X_OK` - `path` can be executed by the calling process. This has
-no effect on Windows (will behave like `fs.constants.F_OK`).
+checks to be performed. Check [File Access Constants][] for possible values
+of `mode`. It is possible to create a mask consisting of the bitwise OR of
+two or more values (e.g. `fs.constants.W_OK | fs.constants.R_OK`).
 
 The final argument, `callback`, is a callback function that is invoked with
 a possible error argument. If any of the accessibility checks fail, the error
-argument will be populated. The following example checks if the file
-`/etc/passwd` can be read and written by the current process.
+argument will be an `Error` object. The following examples check if
+`package.json` exists, and if it is readable or writable.
 
 ```js
-fs.access('/etc/passwd', fs.constants.R_OK | fs.constants.W_OK, (err) => {
-  console.log(err ? 'no access!' : 'can read/write');
+const file = 'package.json';
+
+// Check if the file exists in the current directory.
+fs.access(file, fs.constants.F_OK, (err) => {
+  console.log(`${file} ${err ? 'does not exist' : 'exists'}`);
+});
+
+// Check if the file is readable.
+fs.access(file, fs.constants.R_OK, (err) => {
+  console.log(`${file} ${err ? 'is not readable' : 'is readable'}`);
+});
+
+// Check if the file is writable.
+fs.access(file, fs.constants.W_OK, (err) => {
+  console.log(`${file} ${err ? 'is not writable' : 'is writable'}`);
+});
+
+// Check if the file exists in the current directory, and if it is writable.
+fs.access(file, fs.constants.F_OK | fs.constants.W_OK, (err) => {
+  if (err) {
+    console.error(
+      `${file} ${err.code === 'ENOENT' ? 'does not exist' : 'is read-only'}`);
+  } else {
+    console.log(`${file} exists, and it is writable`);
+  }
 });
 ```
 
@@ -470,9 +817,6 @@ Using `fs.access()` to check for the accessibility of a file before calling
 so introduces a race condition, since other processes may change the file's
 state between the two calls. Instead, user code should open/read/write the
 file directly and handle the error raised if the file is not accessible.
-
-For example:
-
 
 **write (NOT RECOMMENDED)**
 
@@ -548,7 +892,7 @@ The "not recommended" examples above check for accessibility and then use the
 file; the "recommended" examples are better because they use the file directly
 and handle the error, if any.
 
-In general, check for the accessibility of a file only if the file won’t be
+In general, check for the accessibility of a file only if the file will not be
 used directly, for example when its accessibility is a signal from another
 process.
 
@@ -565,17 +909,37 @@ changes:
 * `path` {string|Buffer|URL}
 * `mode` {integer} **Default:** `fs.constants.F_OK`
 
-Synchronous version of [`fs.access()`][]. This throws if any accessibility
-checks fail, and does nothing otherwise.
+Synchronously tests a user's permissions for the file or directory specified
+by `path`. The `mode` argument is an optional integer that specifies the
+accessibility checks to be performed. Check [File Access Constants][] for
+possible values of `mode`. It is possible to create a mask consisting of
+the bitwise OR of two or more values
+(e.g. `fs.constants.W_OK | fs.constants.R_OK`).
 
-## fs.appendFile(file, data[, options], callback)
+If any of the accessibility checks fail, an `Error` will be thrown. Otherwise,
+the method will return `undefined`.
+
+```js
+try {
+  fs.accessSync('etc/passwd', fs.constants.R_OK | fs.constants.W_OK);
+  console.log('can read/write');
+} catch (err) {
+  console.error('no access!');
+}
+```
+
+## fs.appendFile(path, data[, options], callback)
 <!-- YAML
 added: v0.6.7
 changes:
+  - version: v10.0.0
+    pr-url: https://github.com/nodejs/node/pull/12562
+    description: The `callback` parameter is no longer optional. Not passing
+                 it will throw a `TypeError` at runtime.
   - version: v7.0.0
     pr-url: https://github.com/nodejs/node/pull/7897
     description: The `callback` parameter is no longer optional. Not passing
-                 it will emit a deprecation warning.
+                 it will emit a deprecation warning with id DEP0013.
   - version: v7.0.0
     pr-url: https://github.com/nodejs/node/pull/7831
     description: The passed `options` object will never be modified.
@@ -584,16 +948,17 @@ changes:
     description: The `file` parameter can be a file descriptor now.
 -->
 
-* `file` {string|Buffer|number} filename or file descriptor
+* `path` {string|Buffer|URL|number} filename or file descriptor
 * `data` {string|Buffer}
 * `options` {Object|string}
   * `encoding` {string|null} **Default:** `'utf8'`
   * `mode` {integer} **Default:** `0o666`
-  * `flag` {string} **Default:** `'a'`
+  * `flag` {string} See [support of file system `flags`][]. **Default:** `'a'`.
 * `callback` {Function}
+  * `err` {Error}
 
-Asynchronously append data to a file, creating the file if it does not yet exist.
-`data` can be a string or a buffer.
+Asynchronously append data to a file, creating the file if it does not yet
+exist. `data` can be a string or a [`Buffer`][].
 
 Example:
 
@@ -610,12 +975,23 @@ If `options` is a string, then it specifies the encoding. Example:
 fs.appendFile('message.txt', 'data to append', 'utf8', callback);
 ```
 
-Any specified file descriptor has to have been opened for appending.
+The `path` may be specified as a numeric file descriptor that has been opened
+for appending (using `fs.open()` or `fs.openSync()`). The file descriptor will
+not be closed automatically.
 
-*Note*: If a file descriptor is specified as the `file`, it will not be closed
-automatically.
+```js
+fs.open('message.txt', 'a', (err, fd) => {
+  if (err) throw err;
+  fs.appendFile(fd, 'data to append', 'utf8', (err) => {
+    fs.close(fd, (err) => {
+      if (err) throw err;
+    });
+    if (err) throw err;
+  });
+});
+```
 
-## fs.appendFileSync(file, data[, options])
+## fs.appendFileSync(path, data[, options])
 <!-- YAML
 added: v0.6.7
 changes:
@@ -627,19 +1003,59 @@ changes:
     description: The `file` parameter can be a file descriptor now.
 -->
 
-* `file` {string|Buffer|number} filename or file descriptor
+* `path` {string|Buffer|URL|number} filename or file descriptor
 * `data` {string|Buffer}
 * `options` {Object|string}
   * `encoding` {string|null} **Default:** `'utf8'`
   * `mode` {integer} **Default:** `0o666`
-  * `flag` {string} **Default:** `'a'`
+  * `flag` {string} See [support of file system `flags`][]. **Default:** `'a'`.
 
-The synchronous version of [`fs.appendFile()`][]. Returns `undefined`.
+Synchronously append data to a file, creating the file if it does not yet
+exist. `data` can be a string or a [`Buffer`][].
+
+Example:
+
+```js
+try {
+  fs.appendFileSync('message.txt', 'data to append');
+  console.log('The "data to append" was appended to file!');
+} catch (err) {
+  /* Handle the error */
+}
+```
+
+If `options` is a string, then it specifies the encoding. Example:
+
+```js
+fs.appendFileSync('message.txt', 'data to append', 'utf8');
+```
+
+The `path` may be specified as a numeric file descriptor that has been opened
+for appending (using `fs.open()` or `fs.openSync()`). The file descriptor will
+not be closed automatically.
+
+```js
+let fd;
+
+try {
+  fd = fs.openSync('message.txt', 'a');
+  fs.appendFileSync(fd, 'data to append', 'utf8');
+} catch (err) {
+  /* Handle the error */
+} finally {
+  if (fd !== undefined)
+    fs.closeSync(fd);
+}
+```
 
 ## fs.chmod(path, mode, callback)
 <!-- YAML
 added: v0.1.30
 changes:
+  - version: v10.0.0
+    pr-url: https://github.com/nodejs/node/pull/12562
+    description: The `callback` parameter is no longer optional. Not passing
+                 it will throw a `TypeError` at runtime.
   - version: v7.6.0
     pr-url: https://github.com/nodejs/node/pull/10739
     description: The `path` parameter can be a WHATWG `URL` object using `file:`
@@ -647,15 +1063,69 @@ changes:
   - version: v7.0.0
     pr-url: https://github.com/nodejs/node/pull/7897
     description: The `callback` parameter is no longer optional. Not passing
-                 it will emit a deprecation warning.
+                 it will emit a deprecation warning with id DEP0013.
 -->
 
 * `path` {string|Buffer|URL}
 * `mode` {integer}
 * `callback` {Function}
+  * `err` {Error}
 
-Asynchronous chmod(2). No arguments other than a possible exception are given
-to the completion callback.
+Asynchronously changes the permissions of a file. No arguments other than a
+possible exception are given to the completion callback.
+
+See also: chmod(2).
+
+### File modes
+
+The `mode` argument used in both the `fs.chmod()` and `fs.chmodSync()`
+methods is a numeric bitmask created using a logical OR of the following
+constants:
+
+|       Constant         |  Octal  | Description              |
+| ---------------------- | ------- | ------------------------ |
+| `fs.constants.S_IRUSR` | `0o400` | read by owner            |
+| `fs.constants.S_IWUSR` | `0o200` | write by owner           |
+| `fs.constants.S_IXUSR` | `0o100` | execute/search by owner  |
+| `fs.constants.S_IRGRP` | `0o40`  | read by group            |
+| `fs.constants.S_IWGRP` | `0o20`  | write by group           |
+| `fs.constants.S_IXGRP` | `0o10`  | execute/search by group  |
+| `fs.constants.S_IROTH` | `0o4`   | read by others           |
+| `fs.constants.S_IWOTH` | `0o2`   | write by others          |
+| `fs.constants.S_IXOTH` | `0o1`   | execute/search by others |
+
+An easier method of constructing the `mode` is to use a sequence of three
+octal digits (e.g. `765`). The left-most digit (`7` in the example), specifies
+the permissions for the file owner. The middle digit (`6` in the example),
+specifies permissions for the group. The right-most digit (`5` in the example),
+specifies the permissions for others.
+
+| Number  |       Description        |
+| ------- | ------------------------ |
+|   `7`   | read, write, and execute |
+|   `6`   | read and write           |
+|   `5`   | read and execute         |
+|   `4`   | read only                |
+|   `3`   | write and execute        |
+|   `2`   | write only               |
+|   `1`   | execute only             |
+|   `0`   | no permission            |
+
+For example, the octal value `0o765` means:
+
+* The owner may read, write and execute the file.
+* The group may read and write the file.
+* Others may read and execute the file.
+
+Note: When using raw numbers where file modes are expected,
+any value larger than `0o777` may result in platform-specific
+behaviors that are not supported to work consistently.
+Therefore constants like `S_ISVTX`, `S_ISGID` or `S_ISUID` are
+not exposed in `fs.constants`.
+
+Caveats: on Windows only the write permission can be changed, and the
+distinction among the permissions of group, owner or others is not
+implemented.
 
 ## fs.chmodSync(path, mode)
 <!-- YAML
@@ -670,12 +1140,19 @@ changes:
 * `path` {string|Buffer|URL}
 * `mode` {integer}
 
-Synchronous chmod(2). Returns `undefined`.
+Synchronously changes the permissions of a file. Returns `undefined`.
+This is the synchronous version of [`fs.chmod()`][].
+
+See also: chmod(2).
 
 ## fs.chown(path, uid, gid, callback)
 <!-- YAML
 added: v0.1.97
 changes:
+  - version: v10.0.0
+    pr-url: https://github.com/nodejs/node/pull/12562
+    description: The `callback` parameter is no longer optional. Not passing
+                 it will throw a `TypeError` at runtime.
   - version: v7.6.0
     pr-url: https://github.com/nodejs/node/pull/10739
     description: The `path` parameter can be a WHATWG `URL` object using `file:`
@@ -683,16 +1160,19 @@ changes:
   - version: v7.0.0
     pr-url: https://github.com/nodejs/node/pull/7897
     description: The `callback` parameter is no longer optional. Not passing
-                 it will emit a deprecation warning.
+                 it will emit a deprecation warning with id DEP0013.
 -->
 
 * `path` {string|Buffer|URL}
 * `uid` {integer}
 * `gid` {integer}
 * `callback` {Function}
+  * `err` {Error}
 
-Asynchronous chown(2). No arguments other than a possible exception are given
-to the completion callback.
+Asynchronously changes owner and group of a file. No arguments other than a
+possible exception are given to the completion callback.
+
+See also: chown(2).
 
 ## fs.chownSync(path, uid, gid)
 <!-- YAML
@@ -708,22 +1188,30 @@ changes:
 * `uid` {integer}
 * `gid` {integer}
 
-Synchronous chown(2). Returns `undefined`.
+Synchronously changes owner and group of a file. Returns `undefined`.
+This is the synchronous version of [`fs.chown()`][].
+
+See also: chown(2).
 
 ## fs.close(fd, callback)
 <!-- YAML
 added: v0.0.2
 changes:
+  - version: v10.0.0
+    pr-url: https://github.com/nodejs/node/pull/12562
+    description: The `callback` parameter is no longer optional. Not passing
+                 it will throw a `TypeError` at runtime.
   - version: v7.0.0
     pr-url: https://github.com/nodejs/node/pull/7897
     description: The `callback` parameter is no longer optional. Not passing
-                 it will emit a deprecation warning.
+                 it will emit a deprecation warning with id DEP0013.
 -->
 
 * `fd` {integer}
 * `callback` {Function}
+  * `err` {Error}
 
-Asynchronous close(2).  No arguments other than a possible exception are given
+Asynchronous close(2). No arguments other than a possible exception are given
 to the completion callback.
 
 ## fs.closeSync(fd)
@@ -737,9 +1225,113 @@ Synchronous close(2). Returns `undefined`.
 
 ## fs.constants
 
+* {Object}
+
 Returns an object containing commonly used constants for file system
 operations. The specific constants currently defined are described in
 [FS Constants][].
+
+## fs.copyFile(src, dest[, flags], callback)
+<!-- YAML
+added: v8.5.0
+-->
+
+* `src` {string|Buffer|URL} source filename to copy
+* `dest` {string|Buffer|URL} destination filename of the copy operation
+* `flags` {number} modifiers for copy operation. **Default:** `0`.
+* `callback` {Function}
+
+Asynchronously copies `src` to `dest`. By default, `dest` is overwritten if it
+already exists. No arguments other than a possible exception are given to the
+callback function. Node.js makes no guarantees about the atomicity of the copy
+operation. If an error occurs after the destination file has been opened for
+writing, Node.js will attempt to remove the destination.
+
+`flags` is an optional integer that specifies the behavior
+of the copy operation. It is possible to create a mask consisting of the bitwise
+OR of two or more values (e.g.
+`fs.constants.COPYFILE_EXCL | fs.constants.COPYFILE_FICLONE`).
+
+* `fs.constants.COPYFILE_EXCL` - The copy operation will fail if `dest` already
+exists.
+* `fs.constants.COPYFILE_FICLONE` - The copy operation will attempt to create a
+copy-on-write reflink. If the platform does not support copy-on-write, then a
+fallback copy mechanism is used.
+* `fs.constants.COPYFILE_FICLONE_FORCE` - The copy operation will attempt to
+create a copy-on-write reflink. If the platform does not support copy-on-write,
+then the operation will fail.
+
+Example:
+
+```js
+const fs = require('fs');
+
+// destination.txt will be created or overwritten by default.
+fs.copyFile('source.txt', 'destination.txt', (err) => {
+  if (err) throw err;
+  console.log('source.txt was copied to destination.txt');
+});
+```
+
+If the third argument is a number, then it specifies `flags`, as shown in the
+following example.
+
+```js
+const fs = require('fs');
+const { COPYFILE_EXCL } = fs.constants;
+
+// By using COPYFILE_EXCL, the operation will fail if destination.txt exists.
+fs.copyFile('source.txt', 'destination.txt', COPYFILE_EXCL, callback);
+```
+
+## fs.copyFileSync(src, dest[, flags])
+<!-- YAML
+added: v8.5.0
+-->
+
+* `src` {string|Buffer|URL} source filename to copy
+* `dest` {string|Buffer|URL} destination filename of the copy operation
+* `flags` {number} modifiers for copy operation. **Default:** `0`.
+
+Synchronously copies `src` to `dest`. By default, `dest` is overwritten if it
+already exists. Returns `undefined`. Node.js makes no guarantees about the
+atomicity of the copy operation. If an error occurs after the destination file
+has been opened for writing, Node.js will attempt to remove the destination.
+
+`flags` is an optional integer that specifies the behavior
+of the copy operation. It is possible to create a mask consisting of the bitwise
+OR of two or more values (e.g.
+`fs.constants.COPYFILE_EXCL | fs.constants.COPYFILE_FICLONE`).
+
+* `fs.constants.COPYFILE_EXCL` - The copy operation will fail if `dest` already
+exists.
+* `fs.constants.COPYFILE_FICLONE` - The copy operation will attempt to create a
+copy-on-write reflink. If the platform does not support copy-on-write, then a
+fallback copy mechanism is used.
+* `fs.constants.COPYFILE_FICLONE_FORCE` - The copy operation will attempt to
+create a copy-on-write reflink. If the platform does not support copy-on-write,
+then the operation will fail.
+
+Example:
+
+```js
+const fs = require('fs');
+
+// destination.txt will be created or overwritten by default.
+fs.copyFileSync('source.txt', 'destination.txt');
+console.log('source.txt was copied to destination.txt');
+```
+
+If the third argument is a number, then it specifies `flags`, as shown in the
+following example.
+
+```js
+const fs = require('fs');
+const { COPYFILE_EXCL } = fs.constants;
+
+// By using COPYFILE_EXCL, the operation will fail if destination.txt exists.
+fs.copyFileSync('source.txt', 'destination.txt', COPYFILE_EXCL);
+```
 
 ## fs.createReadStream(path[, options])
 <!-- YAML
@@ -759,34 +1351,22 @@ changes:
 
 * `path` {string|Buffer|URL}
 * `options` {string|Object}
-  * `flags` {string}
-  * `encoding` {string}
-  * `fd` {integer}
-  * `mode` {integer}
-  * `autoClose` {boolean}
+  * `flags` {string} See [support of file system `flags`][]. **Default:**
+  `'r'`.
+  * `encoding` {string} **Default:** `null`
+  * `fd` {integer} **Default:** `null`
+  * `mode` {integer} **Default:** `0o666`
+  * `autoClose` {boolean} **Default:** `true`
   * `start` {integer}
-  * `end` {integer}
+  * `end` {integer} **Default:** `Infinity`
+  * `highWaterMark` {integer} **Default:** `64 * 1024`
+* Returns: {fs.ReadStream} See [Readable Streams][].
 
-Returns a new [`ReadStream`][] object. (See [Readable Stream][]).
-
-Be aware that, unlike the default value set for `highWaterMark` on a
-readable stream (16 kb), the stream returned by this method has a
-default value of 64 kb for the same parameter.
-
-`options` is an object or string with the following defaults:
-
-```js
-const defaults = {
-  flags: 'r',
-  encoding: null,
-  fd: null,
-  mode: 0o666,
-  autoClose: true
-};
-```
+Unlike the 16 kb default `highWaterMark` for a readable stream, the stream
+returned by this method has a default `highWaterMark` of 64 kb.
 
 `options` can include `start` and `end` values to read a range of bytes from
-the file instead of the entire file.  Both `start` and `end` are inclusive and
+the file instead of the entire file. Both `start` and `end` are inclusive and
 start counting at 0. If `fd` is specified and `start` is omitted or `undefined`,
 `fs.createReadStream()` reads sequentially from the current file position.
 The `encoding` can be any one of those accepted by [`Buffer`][].
@@ -799,7 +1379,7 @@ to [`net.Socket`][].
 If `autoClose` is false, then the file descriptor won't be closed, even if
 there's an error. It is the application's responsibility to close it and make
 sure there's no file descriptor leak. If `autoClose` is set to true (default
-behavior), on `error` or `end` the file descriptor will be closed
+behavior), on `'error'` or `'end'` the file descriptor will be closed
 automatically.
 
 `mode` sets the file mode (permission and sticky bits), but only if the
@@ -834,40 +1414,28 @@ changes:
 
 * `path` {string|Buffer|URL}
 * `options` {string|Object}
-  * `flags` {string}
-  * `defaultEncoding` {string}
-  * `fd` {integer}
-  * `mode` {integer}
-  * `autoClose` {boolean}
+  * `flags` {string} See [support of file system `flags`][]. **Default:**
+  `'w'`.
+  * `encoding` {string} **Default:** `'utf8'`
+  * `fd` {integer} **Default:** `null`
+  * `mode` {integer} **Default:** `0o666`
+  * `autoClose` {boolean} **Default:** `true`
   * `start` {integer}
-
-Returns a new [`WriteStream`][] object. (See [Writable Stream][]).
-
-`options` is an object or string with the following defaults:
-
-```js
-const defaults = {
-  flags: 'w',
-  defaultEncoding: 'utf8',
-  fd: null,
-  mode: 0o666,
-  autoClose: true
-};
-```
+* Returns: {fs.WriteStream} See [Writable Stream][].
 
 `options` may also include a `start` option to allow writing data at
-some position past the beginning of the file.  Modifying a file rather
+some position past the beginning of the file. Modifying a file rather
 than replacing it may require a `flags` mode of `r+` rather than the
-default mode `w`. The `defaultEncoding` can be any one of those accepted by
+default mode `w`. The `encoding` can be any one of those accepted by
 [`Buffer`][].
 
-If `autoClose` is set to true (default behavior) on `error` or `end`
+If `autoClose` is set to true (default behavior) on `'error'` or `'finish'`
 the file descriptor will be closed automatically. If `autoClose` is false,
 then the file descriptor won't be closed, even if there's an error.
 It is the application's responsibility to close it and make sure there's no
 file descriptor leak.
 
-Like [`ReadStream`][], if `fd` is specified, `WriteStream` will ignore the
+Like [`ReadStream`][], if `fd` is specified, [`WriteStream`][] will ignore the
 `path` argument and will use the specified file descriptor. This means that no
 `'open'` event will be emitted. Note that `fd` should be blocking; non-blocking
 `fd`s should be passed to [`net.Socket`][].
@@ -889,9 +1457,10 @@ deprecated: v1.0.0
 
 * `path` {string|Buffer|URL}
 * `callback` {Function}
+  * `exists` {boolean}
 
 Test whether or not the given path exists by checking with the file system.
-Then call the `callback` argument with either true or false.  Example:
+Then call the `callback` argument with either true or false. Example:
 
 ```js
 fs.exists('/etc/passwd', (exists) => {
@@ -910,8 +1479,6 @@ Using `fs.exists()` to check for the existence of a file before calling
 so introduces a race condition, since other processes may change the file's
 state between the two calls. Instead, user code should open/read/write the
 file directly and handle the error raised if the file does not exist.
-
-For example:
 
 **write (NOT RECOMMENDED)**
 
@@ -951,6 +1518,7 @@ fs.open('myfile', 'wx', (err, fd) => {
 fs.exists('myfile', (exists) => {
   if (exists) {
     fs.open('myfile', 'r', (err, fd) => {
+      if (err) throw err;
       readMyData(fd);
     });
   } else {
@@ -995,9 +1563,10 @@ changes:
 -->
 
 * `path` {string|Buffer|URL}
+* Returns: {boolean}
 
 Synchronous version of [`fs.exists()`][].
-Returns `true` if the file exists, `false` otherwise.
+Returns `true` if the path exists, `false` otherwise.
 
 Note that `fs.exists()` is deprecated, but `fs.existsSync()` is not.
 (The `callback` parameter to `fs.exists()` accepts parameters that are
@@ -1008,15 +1577,20 @@ a callback.)
 <!-- YAML
 added: v0.4.7
 changes:
+  - version: v10.0.0
+    pr-url: https://github.com/nodejs/node/pull/12562
+    description: The `callback` parameter is no longer optional. Not passing
+                 it will throw a `TypeError` at runtime.
   - version: v7.0.0
     pr-url: https://github.com/nodejs/node/pull/7897
     description: The `callback` parameter is no longer optional. Not passing
-                 it will emit a deprecation warning.
+                 it will emit a deprecation warning with id DEP0013.
 -->
 
 * `fd` {integer}
 * `mode` {integer}
 * `callback` {Function}
+  * `err` {Error}
 
 Asynchronous fchmod(2). No arguments other than a possible exception
 are given to the completion callback.
@@ -1035,16 +1609,21 @@ Synchronous fchmod(2). Returns `undefined`.
 <!-- YAML
 added: v0.4.7
 changes:
+  - version: v10.0.0
+    pr-url: https://github.com/nodejs/node/pull/12562
+    description: The `callback` parameter is no longer optional. Not passing
+                 it will throw a `TypeError` at runtime.
   - version: v7.0.0
     pr-url: https://github.com/nodejs/node/pull/7897
     description: The `callback` parameter is no longer optional. Not passing
-                 it will emit a deprecation warning.
+                 it will emit a deprecation warning with id DEP0013.
 -->
 
 * `fd` {integer}
 * `uid` {integer}
 * `gid` {integer}
 * `callback` {Function}
+  * `err` {Error}
 
 Asynchronous fchown(2). No arguments other than a possible exception are given
 to the completion callback.
@@ -1064,14 +1643,19 @@ Synchronous fchown(2). Returns `undefined`.
 <!-- YAML
 added: v0.1.96
 changes:
+  - version: v10.0.0
+    pr-url: https://github.com/nodejs/node/pull/12562
+    description: The `callback` parameter is no longer optional. Not passing
+                 it will throw a `TypeError` at runtime.
   - version: v7.0.0
     pr-url: https://github.com/nodejs/node/pull/7897
     description: The `callback` parameter is no longer optional. Not passing
-                 it will emit a deprecation warning.
+                 it will emit a deprecation warning with id DEP0013.
 -->
 
 * `fd` {integer}
 * `callback` {Function}
+  * `err` {Error}
 
 Asynchronous fdatasync(2). No arguments other than a possible exception are
 given to the completion callback.
@@ -1085,44 +1669,71 @@ added: v0.1.96
 
 Synchronous fdatasync(2). Returns `undefined`.
 
-## fs.fstat(fd, callback)
+## fs.fstat(fd[, options], callback)
 <!-- YAML
 added: v0.1.95
 changes:
+  - version: v10.0.0
+    pr-url: https://github.com/nodejs/node/pull/12562
+    description: The `callback` parameter is no longer optional. Not passing
+                 it will throw a `TypeError` at runtime.
   - version: v7.0.0
     pr-url: https://github.com/nodejs/node/pull/7897
     description: The `callback` parameter is no longer optional. Not passing
-                 it will emit a deprecation warning.
+                 it will emit a deprecation warning with id DEP0013.
+  - version: v10.5.0
+    pr-url: https://github.com/nodejs/node/pull/20220
+    description: Accepts an additional `options` object to specify whether
+                 the numeric values returned should be bigint.
 -->
 
 * `fd` {integer}
+* `options` {Object}
+  * `bigint` {boolean} Whether the numeric values in the returned
+    [`fs.Stats`][] object should be `bigint`. **Default:** `false`.
 * `callback` {Function}
+  * `err` {Error}
+  * `stats` {fs.Stats}
 
 Asynchronous fstat(2). The callback gets two arguments `(err, stats)` where
 `stats` is an [`fs.Stats`][] object. `fstat()` is identical to [`stat()`][],
 except that the file to be stat-ed is specified by the file descriptor `fd`.
 
-## fs.fstatSync(fd)
+## fs.fstatSync(fd[, options])
 <!-- YAML
 added: v0.1.95
+changes:
+  - version: v10.5.0
+    pr-url: https://github.com/nodejs/node/pull/20220
+    description: Accepts an additional `options` object to specify whether
+                 the numeric values returned should be bigint.
 -->
 
 * `fd` {integer}
+* `options` {Object}
+  * `bigint` {boolean} Whether the numeric values in the returned
+    [`fs.Stats`][] object should be `bigint`. **Default:** `false`.
+* Returns: {fs.Stats}
 
-Synchronous fstat(2). Returns an instance of [`fs.Stats`][].
+Synchronous fstat(2).
 
 ## fs.fsync(fd, callback)
 <!-- YAML
 added: v0.1.96
 changes:
+  - version: v10.0.0
+    pr-url: https://github.com/nodejs/node/pull/12562
+    description: The `callback` parameter is no longer optional. Not passing
+                 it will throw a `TypeError` at runtime.
   - version: v7.0.0
     pr-url: https://github.com/nodejs/node/pull/7897
     description: The `callback` parameter is no longer optional. Not passing
-                 it will emit a deprecation warning.
+                 it will emit a deprecation warning with id DEP0013.
 -->
 
 * `fd` {integer}
 * `callback` {Function}
+  * `err` {Error}
 
 Asynchronous fsync(2). No arguments other than a possible exception are given
 to the completion callback.
@@ -1140,15 +1751,20 @@ Synchronous fsync(2). Returns `undefined`.
 <!-- YAML
 added: v0.8.6
 changes:
+  - version: v10.0.0
+    pr-url: https://github.com/nodejs/node/pull/12562
+    description: The `callback` parameter is no longer optional. Not passing
+                 it will throw a `TypeError` at runtime.
   - version: v7.0.0
     pr-url: https://github.com/nodejs/node/pull/7897
     description: The `callback` parameter is no longer optional. Not passing
-                 it will emit a deprecation warning.
+                 it will emit a deprecation warning with id DEP0013.
 -->
 
 * `fd` {integer}
 * `len` {integer} **Default:** `0`
 * `callback` {Function}
+  * `err` {Error}
 
 Asynchronous ftruncate(2). No arguments other than a possible exception are
 given to the completion callback.
@@ -1156,7 +1772,8 @@ given to the completion callback.
 If the file referred to by the file descriptor was larger than `len` bytes, only
 the first `len` bytes will be retained in the file.
 
-For example, the following program retains only the first four bytes of the file
+For example, the following program retains only the first four bytes of the
+file:
 
 ```js
 console.log(fs.readFileSync('temp.txt', 'utf8'));
@@ -1174,10 +1791,10 @@ fs.ftruncate(fd, 4, (err) => {
 ```
 
 If the file previously was shorter than `len` bytes, it is extended, and the
-extended part is filled with null bytes ('\0'). For example,
+extended part is filled with null bytes (`'\0'`). For example,
 
 ```js
-console.log(fs.readFileSync('temp.txt', 'utf-8'));
+console.log(fs.readFileSync('temp.txt', 'utf8'));
 // Prints: Node.js
 
 // get the file descriptor of the file to be truncated
@@ -1192,7 +1809,7 @@ fs.ftruncate(fd, 10, (err) => {
 // ('Node.js\0\0\0' in UTF8)
 ```
 
-The last three bytes are null bytes ('\0'), to compensate the over-truncation.
+The last three bytes are null bytes (`'\0'`), to compensate the over-truncation.
 
 ## fs.ftruncateSync(fd[, len])
 <!-- YAML
@@ -1208,10 +1825,14 @@ Synchronous ftruncate(2). Returns `undefined`.
 <!-- YAML
 added: v0.4.2
 changes:
+  - version: v10.0.0
+    pr-url: https://github.com/nodejs/node/pull/12562
+    description: The `callback` parameter is no longer optional. Not passing
+                 it will throw a `TypeError` at runtime.
   - version: v7.0.0
     pr-url: https://github.com/nodejs/node/pull/7897
     description: The `callback` parameter is no longer optional. Not passing
-                 it will emit a deprecation warning.
+                 it will emit a deprecation warning with id DEP0013.
   - version: v4.1.0
     pr-url: https://github.com/nodejs/node/pull/2387
     description: Numeric strings, `NaN` and `Infinity` are now allowed
@@ -1219,15 +1840,16 @@ changes:
 -->
 
 * `fd` {integer}
-* `atime` {integer}
-* `mtime` {integer}
+* `atime` {number|string|Date}
+* `mtime` {number|string|Date}
 * `callback` {Function}
+  * `err` {Error}
 
-Change the file timestamps of a file referenced by the supplied file
-descriptor.
+Change the file system timestamps of the object referenced by the supplied file
+descriptor. See [`fs.utimes()`][].
 
-*Note*: This function does not work on AIX versions before 7.1, it will return
-the error `UV_ENOSYS`.
+This function does not work on AIX versions before 7.1, it will return the
+error `UV_ENOSYS`.
 
 ## fs.futimesSync(fd, atime, mtime)
 <!-- YAML
@@ -1249,15 +1871,20 @@ Synchronous version of [`fs.futimes()`][]. Returns `undefined`.
 <!-- YAML
 deprecated: v0.4.7
 changes:
+  - version: v10.0.0
+    pr-url: https://github.com/nodejs/node/pull/12562
+    description: The `callback` parameter is no longer optional. Not passing
+                 it will throw a `TypeError` at runtime.
   - version: v7.0.0
     pr-url: https://github.com/nodejs/node/pull/7897
     description: The `callback` parameter is no longer optional. Not passing
-                 it will emit a deprecation warning.
+                 it will emit a deprecation warning with id DEP0013.
 -->
 
-* `path` {string|Buffer}
+* `path` {string|Buffer|URL}
 * `mode` {integer}
 * `callback` {Function}
+  * `err` {Error}
 
 Asynchronous lchmod(2). No arguments other than a possible exception
 are given to the completion callback.
@@ -1269,35 +1896,45 @@ Only available on macOS.
 deprecated: v0.4.7
 -->
 
-* `path` {string|Buffer}
+* `path` {string|Buffer|URL}
 * `mode` {integer}
 
 Synchronous lchmod(2). Returns `undefined`.
 
 ## fs.lchown(path, uid, gid, callback)
 <!-- YAML
-deprecated: v0.4.7
 changes:
+  - version: v10.6.0
+    pr-url: https://github.com/nodejs/node/pull/21498
+    description: This API is no longer deprecated.
+  - version: v10.0.0
+    pr-url: https://github.com/nodejs/node/pull/12562
+    description: The `callback` parameter is no longer optional. Not passing
+                 it will throw a `TypeError` at runtime.
   - version: v7.0.0
     pr-url: https://github.com/nodejs/node/pull/7897
     description: The `callback` parameter is no longer optional. Not passing
-                 it will emit a deprecation warning.
+                 it will emit a deprecation warning with id DEP0013.
 -->
 
-* `path` {string|Buffer}
+* `path` {string|Buffer|URL}
 * `uid` {integer}
 * `gid` {integer}
 * `callback` {Function}
+  * `err` {Error}
 
 Asynchronous lchown(2). No arguments other than a possible exception are given
 to the completion callback.
 
 ## fs.lchownSync(path, uid, gid)
 <!-- YAML
-deprecated: v0.4.7
+changes:
+  - version: v10.6.0
+    pr-url: https://github.com/nodejs/node/pull/21498
+    description: This API is no longer deprecated.
 -->
 
-* `path` {string|Buffer}
+* `path` {string|Buffer|URL}
 * `uid` {integer}
 * `gid` {integer}
 
@@ -1307,6 +1944,10 @@ Synchronous lchown(2). Returns `undefined`.
 <!-- YAML
 added: v0.1.31
 changes:
+  - version: v10.0.0
+    pr-url: https://github.com/nodejs/node/pull/12562
+    description: The `callback` parameter is no longer optional. Not passing
+                 it will throw a `TypeError` at runtime.
   - version: v7.6.0
     pr-url: https://github.com/nodejs/node/pull/10739
     description: The `existingPath` and `newPath` parameters can be WHATWG
@@ -1315,12 +1956,13 @@ changes:
   - version: v7.0.0
     pr-url: https://github.com/nodejs/node/pull/7897
     description: The `callback` parameter is no longer optional. Not passing
-                 it will emit a deprecation warning.
+                 it will emit a deprecation warning with id DEP0013.
 -->
 
 * `existingPath` {string|Buffer|URL}
 * `newPath` {string|Buffer|URL}
 * `callback` {Function}
+  * `err` {Error}
 
 Asynchronous link(2). No arguments other than a possible exception are given to
 the completion callback.
@@ -1341,10 +1983,14 @@ changes:
 
 Synchronous link(2). Returns `undefined`.
 
-## fs.lstat(path, callback)
+## fs.lstat(path[, options], callback)
 <!-- YAML
 added: v0.1.30
 changes:
+  - version: v10.0.0
+    pr-url: https://github.com/nodejs/node/pull/12562
+    description: The `callback` parameter is no longer optional. Not passing
+                 it will throw a `TypeError` at runtime.
   - version: v7.6.0
     pr-url: https://github.com/nodejs/node/pull/10739
     description: The `path` parameter can be a WHATWG `URL` object using `file:`
@@ -1352,18 +1998,27 @@ changes:
   - version: v7.0.0
     pr-url: https://github.com/nodejs/node/pull/7897
     description: The `callback` parameter is no longer optional. Not passing
-                 it will emit a deprecation warning.
+                 it will emit a deprecation warning with id DEP0013.
+  - version: v10.5.0
+    pr-url: https://github.com/nodejs/node/pull/20220
+    description: Accepts an additional `options` object to specify whether
+                 the numeric values returned should be bigint.
 -->
 
 * `path` {string|Buffer|URL}
+* `options` {Object}
+  * `bigint` {boolean} Whether the numeric values in the returned
+    [`fs.Stats`][] object should be `bigint`. **Default:** `false`.
 * `callback` {Function}
+  * `err` {Error}
+  * `stats` {fs.Stats}
 
 Asynchronous lstat(2). The callback gets two arguments `(err, stats)` where
 `stats` is a [`fs.Stats`][] object. `lstat()` is identical to `stat()`,
 except that if `path` is a symbolic link, then the link itself is stat-ed,
 not the file that it refers to.
 
-## fs.lstatSync(path)
+## fs.lstatSync(path[, options])
 <!-- YAML
 added: v0.1.30
 changes:
@@ -1371,16 +2026,28 @@ changes:
     pr-url: https://github.com/nodejs/node/pull/10739
     description: The `path` parameter can be a WHATWG `URL` object using `file:`
                  protocol. Support is currently still *experimental*.
+  - version: v10.5.0
+    pr-url: https://github.com/nodejs/node/pull/20220
+    description: Accepts an additional `options` object to specify whether
+                 the numeric values returned should be bigint.
 -->
 
 * `path` {string|Buffer|URL}
+* `options` {Object}
+  * `bigint` {boolean} Whether the numeric values in the returned
+    [`fs.Stats`][] object should be `bigint`. **Default:** `false`.
+* Returns: {fs.Stats}
 
-Synchronous lstat(2). Returns an instance of [`fs.Stats`][].
+Synchronous lstat(2).
 
 ## fs.mkdir(path[, mode], callback)
 <!-- YAML
 added: v0.1.8
 changes:
+  - version: v10.0.0
+    pr-url: https://github.com/nodejs/node/pull/12562
+    description: The `callback` parameter is no longer optional. Not passing
+                 it will throw a `TypeError` at runtime.
   - version: v7.6.0
     pr-url: https://github.com/nodejs/node/pull/10739
     description: The `path` parameter can be a WHATWG `URL` object using `file:`
@@ -1388,15 +2055,18 @@ changes:
   - version: v7.0.0
     pr-url: https://github.com/nodejs/node/pull/7897
     description: The `callback` parameter is no longer optional. Not passing
-                 it will emit a deprecation warning.
+                 it will emit a deprecation warning with id DEP0013.
 -->
 
 * `path` {string|Buffer|URL}
-* `mode` {integer} **Default:** `0o777`
+* `mode` {integer} Not supported on Windows. **Default:** `0o777`.
 * `callback` {Function}
+  * `err` {Error}
 
-Asynchronous mkdir(2). No arguments other than a possible exception are given
-to the completion callback. `mode` defaults to `0o777`.
+Asynchronously creates a directory. No arguments other than a possible exception
+are given to the completion callback.
+
+See also: mkdir(2).
 
 ## fs.mkdirSync(path[, mode])
 <!-- YAML
@@ -1409,18 +2079,25 @@ changes:
 -->
 
 * `path` {string|Buffer|URL}
-* `mode` {integer} **Default:** `0o777`
+* `mode` {integer} Not supported on Windows. **Default:** `0o777`.
 
-Synchronous mkdir(2). Returns `undefined`.
+Synchronously creates a directory. Returns `undefined`.
+This is the synchronous version of [`fs.mkdir()`][].
+
+See also: mkdir(2).
 
 ## fs.mkdtemp(prefix[, options], callback)
 <!-- YAML
 added: v5.10.0
 changes:
+  - version: v10.0.0
+    pr-url: https://github.com/nodejs/node/pull/12562
+    description: The `callback` parameter is no longer optional. Not passing
+                 it will throw a `TypeError` at runtime.
   - version: v7.0.0
     pr-url: https://github.com/nodejs/node/pull/7897
     description: The `callback` parameter is no longer optional. Not passing
-                 it will emit a deprecation warning.
+                 it will emit a deprecation warning with id DEP0013.
   - version: v6.2.1
     pr-url: https://github.com/nodejs/node/pull/6828
     description: The `callback` parameter is optional now.
@@ -1430,6 +2107,8 @@ changes:
 * `options` {string|Object}
   * `encoding` {string} **Default:** `'utf8'`
 * `callback` {Function}
+  * `err` {Error}
+  * `folder` {string}
 
 Creates a unique temporary directory.
 
@@ -1442,25 +2121,23 @@ parameter.
 The optional `options` argument can be a string specifying an encoding, or an
 object with an `encoding` property specifying the character encoding to use.
 
-Example:
-
 ```js
-fs.mkdtemp('/tmp/foo-', (err, folder) => {
+fs.mkdtemp(path.join(os.tmpdir(), 'foo-'), (err, folder) => {
   if (err) throw err;
   console.log(folder);
-  // Prints: /tmp/foo-itXde2
+  // Prints: /tmp/foo-itXde2 or C:\Users\...\AppData\Local\Temp\foo-itXde2
 });
 ```
 
-*Note*: The `fs.mkdtemp()` method will append the six randomly selected
-characters directly to the `prefix` string. For instance, given a directory
-`/tmp`, if the intention is to create a temporary directory *within* `/tmp`,
-the `prefix` *must* end with a trailing platform-specific path separator
+The `fs.mkdtemp()` method will append the six randomly selected characters
+directly to the `prefix` string. For instance, given a directory `/tmp`, if the
+intention is to create a temporary directory *within* `/tmp`, the `prefix`
+must end with a trailing platform-specific path separator
 (`require('path').sep`).
 
 ```js
 // The parent directory for the new temporary directory
-const tmpDir = '/tmp';
+const tmpDir = os.tmpdir();
 
 // This method is *INCORRECT*:
 fs.mkdtemp(tmpDir, (err, folder) => {
@@ -1491,6 +2168,7 @@ added: v5.10.0
 * `prefix` {string}
 * `options` {string|Object}
   * `encoding` {string} **Default:** `'utf8'`
+* Returns: {string}
 
 The synchronous version of [`fs.mkdtemp()`][]. Returns the created
 folder path.
@@ -1502,6 +2180,9 @@ object with an `encoding` property specifying the character encoding to use.
 <!-- YAML
 added: v0.0.2
 changes:
+  - version: v9.9.0
+    pr-url: https://github.com/nodejs/node/pull/18801
+    description: The `as` and `as+` modes are supported now.
   - version: v7.6.0
     pr-url: https://github.com/nodejs/node/pull/10739
     description: The `path` parameter can be a WHATWG `URL` object using `file:`
@@ -1509,90 +2190,26 @@ changes:
 -->
 
 * `path` {string|Buffer|URL}
-* `flags` {string|number}
-* `mode` {integer} **Default:** `0o666`
+* `flags` {string|number} See [support of file system `flags`][].
+* `mode` {integer} **Default:** `0o666` (readable and writable)
 * `callback` {Function}
+  * `err` {Error}
+  * `fd` {integer}
 
-Asynchronous file open. See open(2). `flags` can be:
-
-* `'r'` - Open file for reading.
-An exception occurs if the file does not exist.
-
-* `'r+'` - Open file for reading and writing.
-An exception occurs if the file does not exist.
-
-* `'rs+'` - Open file for reading and writing in synchronous mode. Instructs
-  the operating system to bypass the local file system cache.
-
-  This is primarily useful for opening files on NFS mounts as it allows skipping
-  the potentially stale local cache. It has a very real impact on I/O
-  performance so using this flag is not recommended unless it is needed.
-
-  Note that this doesn't turn `fs.open()` into a synchronous blocking call.
-  If synchronous operation is desired `fs.openSync()` should be used.
-
-* `'w'` - Open file for writing.
-The file is created (if it does not exist) or truncated (if it exists).
-
-* `'wx'` - Like `'w'` but fails if `path` exists.
-
-* `'w+'` - Open file for reading and writing.
-The file is created (if it does not exist) or truncated (if it exists).
-
-* `'wx+'` - Like `'w+'` but fails if `path` exists.
-
-* `'a'` - Open file for appending.
-The file is created if it does not exist.
-
-* `'ax'` - Like `'a'` but fails if `path` exists.
-
-* `'a+'` - Open file for reading and appending.
-The file is created if it does not exist.
-
-* `'ax+'` - Like `'a+'` but fails if `path` exists.
+Asynchronous file open. See open(2).
 
 `mode` sets the file mode (permission and sticky bits), but only if the file was
-created. It defaults to `0o666`, readable and writable.
+created. Note that on Windows only the write permission can be manipulated,
+see [`fs.chmod()`][].
 
 The callback gets two arguments `(err, fd)`.
-
-The exclusive flag `'x'` (`O_EXCL` flag in open(2)) ensures that `path` is newly
-created. On POSIX systems, `path` is considered to exist even if it is a symlink
-to a non-existent file. The exclusive flag may or may not work with network file
-systems.
-
-`flags` can also be a number as documented by open(2); commonly used constants
-are available from `fs.constants`.  On Windows, flags are translated to
-their equivalent ones where applicable, e.g. `O_WRONLY` to `FILE_GENERIC_WRITE`,
-or `O_EXCL|O_CREAT` to `CREATE_NEW`, as accepted by CreateFileW.
-
-On Linux, positional writes don't work when the file is opened in append mode.
-The kernel ignores the position argument and always appends the data to
-the end of the file.
-
-*Note*: The behavior of `fs.open()` is platform-specific for some flags. As
-such, opening a directory on macOS and Linux with the `'a+'` flag - see example
-below - will return an error. In contrast, on Windows and FreeBSD, a file
-descriptor will be returned.
-
-```js
-// macOS and Linux
-fs.open('<directory>', 'a+', (err, fd) => {
-  // => [Error: EISDIR: illegal operation on a directory, open <directory>]
-});
-
-// Windows and FreeBSD
-fs.open('<directory>', 'a+', (err, fd) => {
-  // => null, <fd>
-});
-```
 
 Some characters (`< > : " / \ | ? *`) are reserved under Windows as documented
 by [Naming Files, Paths, and Namespaces][]. Under NTFS, if the filename contains
 a colon, Node.js will open a file system stream, as described by
 [this MSDN page][MSDN-Using-Streams].
 
-Functions based on `fs.open()` exhibit this behavior as well. eg.
+Functions based on `fs.open()` exhibit this behavior as well:
 `fs.writeFile()`, `fs.readFile()`, etc.
 
 ## fs.openSync(path, flags[, mode])
@@ -1606,8 +2223,9 @@ changes:
 -->
 
 * `path` {string|Buffer|URL}
-* `flags` {string|number}
+* `flags` {string|number} See [support of file system `flags`][].
 * `mode` {integer} **Default:** `0o666`
+* Returns: {number}
 
 Synchronous version of [`fs.open()`][]. Returns an integer representing the file
 descriptor.
@@ -1630,6 +2248,9 @@ changes:
 * `length` {integer}
 * `position` {integer}
 * `callback` {Function}
+  * `err` {Error}
+  * `bytesRead` {integer}
+  * `buffer` {Buffer}
 
 Read data from the file specified by `fd`.
 
@@ -1647,12 +2268,16 @@ If `position` is an integer, the file position will remain unchanged.
 The callback is given the three arguments, `(err, bytesRead, buffer)`.
 
 If this method is invoked as its [`util.promisify()`][]ed version, it returns
-a Promise for an object with `bytesRead` and `buffer` properties.
+a `Promise` for an `Object` with `bytesRead` and `buffer` properties.
 
 ## fs.readdir(path[, options], callback)
 <!-- YAML
 added: v0.1.8
 changes:
+  - version: v10.0.0
+    pr-url: https://github.com/nodejs/node/pull/12562
+    description: The `callback` parameter is no longer optional. Not passing
+                 it will throw a `TypeError` at runtime.
   - version: v7.6.0
     pr-url: https://github.com/nodejs/node/pull/10739
     description: The `path` parameter can be a WHATWG `URL` object using `file:`
@@ -1660,7 +2285,7 @@ changes:
   - version: v7.0.0
     pr-url: https://github.com/nodejs/node/pull/7897
     description: The `callback` parameter is no longer optional. Not passing
-                 it will emit a deprecation warning.
+                 it will emit a deprecation warning with id DEP0013.
   - version: v6.0.0
     pr-url: https://github.com/nodejs/node/pull/5616
     description: The `options` parameter was added.
@@ -1670,8 +2295,10 @@ changes:
 * `options` {string|Object}
   * `encoding` {string} **Default:** `'utf8'`
 * `callback` {Function}
+  * `err` {Error}
+  * `files` {string[]|Buffer[]}
 
-Asynchronous readdir(3).  Reads the contents of a directory.
+Asynchronous readdir(3). Reads the contents of a directory.
 The callback gets two arguments `(err, files)` where `files` is an array of
 the names of the files in the directory excluding `'.'` and `'..'`.
 
@@ -1693,9 +2320,9 @@ changes:
 * `path` {string|Buffer|URL}
 * `options` {string|Object}
   * `encoding` {string} **Default:** `'utf8'`
+* Returns: {string[]} An array of filenames excluding `'.'` and `'..'`.
 
-Synchronous readdir(3). Returns an array of filenames excluding `'.'` and
-`'..'`.
+Synchronous readdir(3).
 
 The optional `options` argument can be a string specifying an encoding, or an
 object with an `encoding` property specifying the character encoding to use for
@@ -1706,6 +2333,10 @@ the filenames returned will be passed as `Buffer` objects.
 <!-- YAML
 added: v0.1.29
 changes:
+  - version: v10.0.0
+    pr-url: https://github.com/nodejs/node/pull/12562
+    description: The `callback` parameter is no longer optional. Not passing
+                 it will throw a `TypeError` at runtime.
   - version: v7.6.0
     pr-url: https://github.com/nodejs/node/pull/10739
     description: The `path` parameter can be a WHATWG `URL` object using `file:`
@@ -1713,7 +2344,7 @@ changes:
   - version: v7.0.0
     pr-url: https://github.com/nodejs/node/pull/7897
     description: The `callback` parameter is no longer optional. Not passing
-                 it will emit a deprecation warning.
+                 it will emit a deprecation warning with id DEP0013.
   - version: v5.1.0
     pr-url: https://github.com/nodejs/node/pull/3740
     description: The `callback` will always be called with `null` as the `error`
@@ -1726,8 +2357,10 @@ changes:
 * `path` {string|Buffer|URL|integer} filename or file descriptor
 * `options` {Object|string}
   * `encoding` {string|null} **Default:** `null`
-  * `flag` {string} **Default:** `'r'`
+  * `flag` {string} See [support of file system `flags`][]. **Default:** `'r'`.
 * `callback` {Function}
+  * `err` {Error}
+  * `data` {string|Buffer}
 
 Asynchronously reads the entire contents of a file. Example:
 
@@ -1748,13 +2381,14 @@ If `options` is a string, then it specifies the encoding. Example:
 ```js
 fs.readFile('/etc/passwd', 'utf8', callback);
 ```
-*Note*: When the path is a directory, the behavior of
-`fs.readFile()` and [`fs.readFileSync()`][] is platform-specific. On macOS,
-Linux, and Windows, an error will be returned. On FreeBSD, a representation
-of the directory's contents will be returned.
+
+When the path is a directory, the behavior of `fs.readFile()` and
+[`fs.readFileSync()`][] is platform-specific. On macOS, Linux, and Windows, an
+error will be returned. On FreeBSD, a representation of the directory's contents
+will be returned.
 
 ```js
-// macOS, Linux and Windows
+// macOS, Linux, and Windows
 fs.readFile('<directory>', (err, data) => {
   // => [Error: EISDIR: illegal operation on a directory, read <directory>]
 });
@@ -1767,8 +2401,11 @@ fs.readFile('<directory>', (err, data) => {
 
 Any specified file descriptor has to support reading.
 
-*Note*: If a file descriptor is specified as the `path`, it will not be closed
+If a file descriptor is specified as the `path`, it will not be closed
 automatically.
+
+The `fs.readFile()` function buffers the entire file. To minimize memory costs,
+when possible prefer streaming via `fs.createReadStream()`.
 
 ## fs.readFileSync(path[, options])
 <!-- YAML
@@ -1786,29 +2423,34 @@ changes:
 * `path` {string|Buffer|URL|integer} filename or file descriptor
 * `options` {Object|string}
   * `encoding` {string|null} **Default:** `null`
-  * `flag` {string} **Default:** `'r'`
+  * `flag` {string} See [support of file system `flags`][]. **Default:** `'r'`.
+* Returns: {string|Buffer}
 
 Synchronous version of [`fs.readFile()`][]. Returns the contents of the `path`.
 
 If the `encoding` option is specified then this function returns a
 string. Otherwise it returns a buffer.
 
-*Note*: Similar to [`fs.readFile()`][], when the path is a directory, the
-behavior of `fs.readFileSync()` is platform-specific.
+Similar to [`fs.readFile()`][], when the path is a directory, the behavior of
+`fs.readFileSync()` is platform-specific.
 
 ```js
-// macOS, Linux and Windows
+// macOS, Linux, and Windows
 fs.readFileSync('<directory>');
 // => [Error: EISDIR: illegal operation on a directory, read <directory>]
 
 //  FreeBSD
-fs.readFileSync('<directory>'); // => null, <data>
+fs.readFileSync('<directory>'); // => <data>
 ```
 
 ## fs.readlink(path[, options], callback)
 <!-- YAML
 added: v0.1.31
 changes:
+  - version: v10.0.0
+    pr-url: https://github.com/nodejs/node/pull/12562
+    description: The `callback` parameter is no longer optional. Not passing
+                 it will throw a `TypeError` at runtime.
   - version: v7.6.0
     pr-url: https://github.com/nodejs/node/pull/10739
     description: The `path` parameter can be a WHATWG `URL` object using `file:`
@@ -1816,13 +2458,15 @@ changes:
   - version: v7.0.0
     pr-url: https://github.com/nodejs/node/pull/7897
     description: The `callback` parameter is no longer optional. Not passing
-                 it will emit a deprecation warning.
+                 it will emit a deprecation warning with id DEP0013.
 -->
 
 * `path` {string|Buffer|URL}
 * `options` {string|Object}
   * `encoding` {string} **Default:** `'utf8'`
 * `callback` {Function}
+  * `err` {Error}
+  * `linkString` {string|Buffer}
 
 Asynchronous readlink(2). The callback gets two arguments `(err,
 linkString)`.
@@ -1845,6 +2489,7 @@ changes:
 * `path` {string|Buffer|URL}
 * `options` {string|Object}
   * `encoding` {string} **Default:** `'utf8'`
+* Returns: {string|Buffer}
 
 Synchronous readlink(2). Returns the symbolic link's string value.
 
@@ -1863,10 +2508,11 @@ changes:
 -->
 
 * `fd` {integer}
-* `buffer` {string|Buffer|Uint8Array}
+* `buffer` {Buffer|Uint8Array}
 * `offset` {integer}
 * `length` {integer}
 * `position` {integer}
+* Returns: {number}
 
 Synchronous version of [`fs.read()`][]. Returns the number of `bytesRead`.
 
@@ -1874,6 +2520,10 @@ Synchronous version of [`fs.read()`][]. Returns the number of `bytesRead`.
 <!-- YAML
 added: v0.1.31
 changes:
+  - version: v10.0.0
+    pr-url: https://github.com/nodejs/node/pull/12562
+    description: The `callback` parameter is no longer optional. Not passing
+                 it will throw a `TypeError` at runtime.
   - version: v8.0.0
     pr-url: https://github.com/nodejs/node/pull/13028
     description: Pipe/Socket resolve support was added.
@@ -1884,7 +2534,7 @@ changes:
   - version: v7.0.0
     pr-url: https://github.com/nodejs/node/pull/7897
     description: The `callback` parameter is no longer optional. Not passing
-                 it will emit a deprecation warning.
+                 it will emit a deprecation warning with id DEP0013.
   - version: v6.4.0
     pr-url: https://github.com/nodejs/node/pull/7899
     description: Calling `realpath` now works again for various edge cases
@@ -1898,9 +2548,24 @@ changes:
 * `options` {string|Object}
   * `encoding` {string} **Default:** `'utf8'`
 * `callback` {Function}
+  * `err` {Error}
+  * `resolvedPath` {string|Buffer}
 
-Asynchronous realpath(3). The `callback` gets two arguments `(err,
-resolvedPath)`. May use `process.cwd` to resolve relative paths.
+Asynchronously computes the canonical pathname by resolving `.`, `..` and
+symbolic links.
+
+A canonical pathname is not necessarily unique. Hard links and bind mounts can
+expose a file system entity through many pathnames.
+
+This function behaves like realpath(3), with some exceptions:
+
+1. No case conversion is performed on case-insensitive file systems.
+
+2. The maximum number of symbolic links is platform-independent and generally
+   (much) higher than what the native realpath(3) implementation supports.
+
+The `callback` gets two arguments `(err, resolvedPath)`. May use `process.cwd`
+to resolve relative paths.
 
 Only paths that can be converted to UTF8 strings are supported.
 
@@ -1909,8 +2574,35 @@ object with an `encoding` property specifying the character encoding to use for
 the path passed to the callback. If the `encoding` is set to `'buffer'`,
 the path returned will be passed as a `Buffer` object.
 
-*Note*: If `path` resolves to a socket or a pipe, the function will return a
-system dependent name for that object.
+If `path` resolves to a socket or a pipe, the function will return a system
+dependent name for that object.
+
+## fs.realpath.native(path[, options], callback)
+<!-- YAML
+added: v9.2.0
+-->
+
+* `path` {string|Buffer|URL}
+* `options` {string|Object}
+  * `encoding` {string} **Default:** `'utf8'`
+* `callback` {Function}
+  * `err` {Error}
+  * `resolvedPath` {string|Buffer}
+
+Asynchronous realpath(3).
+
+The `callback` gets two arguments `(err, resolvedPath)`.
+
+Only paths that can be converted to UTF8 strings are supported.
+
+The optional `options` argument can be a string specifying an encoding, or an
+object with an `encoding` property specifying the character encoding to use for
+the path passed to the callback. If the `encoding` is set to `'buffer'`,
+the path returned will be passed as a `Buffer` object.
+
+On Linux, when Node.js is linked against musl libc, the procfs file system must
+be mounted on `/proc` in order for this function to work. Glibc does not have
+this restriction.
 
 ## fs.realpathSync(path[, options])
 <!-- YAML
@@ -1935,23 +2627,41 @@ changes:
 * `path` {string|Buffer|URL}
 * `options` {string|Object}
   * `encoding` {string} **Default:** `'utf8'`
+* Returns: {string|Buffer}
 
-Synchronous realpath(3). Returns the resolved path.
+Synchronous version of [`fs.realpath()`][]. Returns the resolved pathname.
+
+## fs.realpathSync.native(path[, options])
+<!-- YAML
+added: v9.2.0
+-->
+
+* `path` {string|Buffer|URL}
+* `options` {string|Object}
+  * `encoding` {string} **Default:** `'utf8'`
+* Returns: {string|Buffer}
+
+Synchronous realpath(3).
 
 Only paths that can be converted to UTF8 strings are supported.
 
 The optional `options` argument can be a string specifying an encoding, or an
 object with an `encoding` property specifying the character encoding to use for
-the returned value. If the `encoding` is set to `'buffer'`, the path returned
-will be passed as a `Buffer` object.
+the path passed to the callback. If the `encoding` is set to `'buffer'`,
+the path returned will be passed as a `Buffer` object.
 
-*Note*: If `path` resolves to a socket or a pipe, the function will return a
-system dependent name for that object.
+On Linux, when Node.js is linked against musl libc, the procfs file system must
+be mounted on `/proc` in order for this function to work. Glibc does not have
+this restriction.
 
 ## fs.rename(oldPath, newPath, callback)
 <!-- YAML
 added: v0.0.2
 changes:
+  - version: v10.0.0
+    pr-url: https://github.com/nodejs/node/pull/12562
+    description: The `callback` parameter is no longer optional. Not passing
+                 it will throw a `TypeError` at runtime.
   - version: v7.6.0
     pr-url: https://github.com/nodejs/node/pull/10739
     description: The `oldPath` and `newPath` parameters can be WHATWG `URL`
@@ -1960,15 +2670,27 @@ changes:
   - version: v7.0.0
     pr-url: https://github.com/nodejs/node/pull/7897
     description: The `callback` parameter is no longer optional. Not passing
-                 it will emit a deprecation warning.
+                 it will emit a deprecation warning with id DEP0013.
 -->
 
 * `oldPath` {string|Buffer|URL}
 * `newPath` {string|Buffer|URL}
 * `callback` {Function}
+  * `err` {Error}
 
-Asynchronous rename(2). No arguments other than a possible exception are given
-to the completion callback.
+Asynchronously rename file at `oldPath` to the pathname provided
+as `newPath`. In the case that `newPath` already exists, it will
+be overwritten. No arguments other than a possible exception are
+given to the completion callback.
+
+See also: rename(2).
+
+```js
+fs.rename('oldFile.txt', 'newFile.txt', (err) => {
+  if (err) throw err;
+  console.log('Rename complete!');
+});
+```
 
 ## fs.renameSync(oldPath, newPath)
 <!-- YAML
@@ -1990,6 +2712,10 @@ Synchronous rename(2). Returns `undefined`.
 <!-- YAML
 added: v0.0.2
 changes:
+  - version: v10.0.0
+    pr-url: https://github.com/nodejs/node/pull/12562
+    description: The `callback` parameter is no longer optional. Not passing
+                 it will throw a `TypeError` at runtime.
   - version: v7.6.0
     pr-url: https://github.com/nodejs/node/pull/10739
     description: The `path` parameters can be a WHATWG `URL` object using
@@ -1997,17 +2723,18 @@ changes:
   - version: v7.0.0
     pr-url: https://github.com/nodejs/node/pull/7897
     description: The `callback` parameter is no longer optional. Not passing
-                 it will emit a deprecation warning.
+                 it will emit a deprecation warning with id DEP0013.
 -->
 
 * `path` {string|Buffer|URL}
 * `callback` {Function}
+  * `err` {Error}
 
 Asynchronous rmdir(2). No arguments other than a possible exception are given
 to the completion callback.
 
-*Note*: Using `fs.rmdir()` on a file (not a directory) results in an `ENOENT`
-error on Windows and an `ENOTDIR` error on POSIX.
+Using `fs.rmdir()` on a file (not a directory) results in an `ENOENT` error on
+Windows and an `ENOTDIR` error on POSIX.
 
 ## fs.rmdirSync(path)
 <!-- YAML
@@ -2023,13 +2750,17 @@ changes:
 
 Synchronous rmdir(2). Returns `undefined`.
 
-*Note*: Using `fs.rmdirSync()` on a file (not a directory) results in an `ENOENT`
-error on Windows and an `ENOTDIR` error on POSIX.
+Using `fs.rmdirSync()` on a file (not a directory) results in an `ENOENT` error
+on Windows and an `ENOTDIR` error on POSIX.
 
-## fs.stat(path, callback)
+## fs.stat(path[, options], callback)
 <!-- YAML
 added: v0.0.2
 changes:
+  - version: v10.0.0
+    pr-url: https://github.com/nodejs/node/pull/12562
+    description: The `callback` parameter is no longer optional. Not passing
+                 it will throw a `TypeError` at runtime.
   - version: v7.6.0
     pr-url: https://github.com/nodejs/node/pull/10739
     description: The `path` parameter can be a WHATWG `URL` object using `file:`
@@ -2037,11 +2768,20 @@ changes:
   - version: v7.0.0
     pr-url: https://github.com/nodejs/node/pull/7897
     description: The `callback` parameter is no longer optional. Not passing
-                 it will emit a deprecation warning.
+                 it will emit a deprecation warning with id DEP0013.
+  - version: v10.5.0
+    pr-url: https://github.com/nodejs/node/pull/20220
+    description: Accepts an additional `options` object to specify whether
+                 the numeric values returned should be bigint.
 -->
 
 * `path` {string|Buffer|URL}
+* `options` {Object}
+  * `bigint` {boolean} Whether the numeric values in the returned
+    [`fs.Stats`][] object should be `bigint`. **Default:** `false`.
 * `callback` {Function}
+  * `err` {Error}
+  * `stats` {fs.Stats}
 
 Asynchronous stat(2). The callback gets two arguments `(err, stats)` where
 `stats` is an [`fs.Stats`][] object.
@@ -2056,7 +2796,7 @@ error raised if the file is not available.
 To check if a file exists without manipulating it afterwards, [`fs.access()`]
 is recommended.
 
-## fs.statSync(path)
+## fs.statSync(path[, options])
 <!-- YAML
 added: v0.1.21
 changes:
@@ -2064,11 +2804,19 @@ changes:
     pr-url: https://github.com/nodejs/node/pull/10739
     description: The `path` parameter can be a WHATWG `URL` object using `file:`
                  protocol. Support is currently still *experimental*.
+  - version: v10.5.0
+    pr-url: https://github.com/nodejs/node/pull/20220
+    description: Accepts an additional `options` object to specify whether
+                 the numeric values returned should be bigint.
 -->
 
 * `path` {string|Buffer|URL}
+* `options` {Object}
+  * `bigint` {boolean} Whether the numeric values in the returned
+    [`fs.Stats`][] object should be `bigint`. **Default:** `false`.
+* Returns: {fs.Stats}
 
-Synchronous stat(2). Returns an instance of [`fs.Stats`][].
+Synchronous stat(2).
 
 ## fs.symlink(target, path[, type], callback)
 <!-- YAML
@@ -2085,10 +2833,11 @@ changes:
 * `path` {string|Buffer|URL}
 * `type` {string} **Default:** `'file'`
 * `callback` {Function}
+  * `err` {Error}
 
 Asynchronous symlink(2). No arguments other than a possible exception are given
 to the completion callback. The `type` argument can be set to `'dir'`,
-`'file'`, or `'junction'` (default is `'file'`) and is only available on
+`'file'`, or `'junction'` and is only available on
 Windows (ignored on other platforms). Note that Windows junction points require
 the destination path to be absolute. When using `'junction'`, the `target`
 argument will automatically be normalized to absolute path.
@@ -2122,35 +2871,50 @@ Synchronous symlink(2). Returns `undefined`.
 <!-- YAML
 added: v0.8.6
 changes:
+  - version: v10.0.0
+    pr-url: https://github.com/nodejs/node/pull/12562
+    description: The `callback` parameter is no longer optional. Not passing
+                 it will throw a `TypeError` at runtime.
   - version: v7.0.0
     pr-url: https://github.com/nodejs/node/pull/7897
     description: The `callback` parameter is no longer optional. Not passing
-                 it will emit a deprecation warning.
+                 it will emit a deprecation warning with id DEP0013.
 -->
 
-* `path` {string|Buffer}
+* `path` {string|Buffer|URL}
 * `len` {integer} **Default:** `0`
 * `callback` {Function}
+  * `err` {Error}
 
 Asynchronous truncate(2). No arguments other than a possible exception are
 given to the completion callback. A file descriptor can also be passed as the
 first argument. In this case, `fs.ftruncate()` is called.
+
+Passing a file descriptor is deprecated and may result in an error being thrown
+in the future.
 
 ## fs.truncateSync(path[, len])
 <!-- YAML
 added: v0.8.6
 -->
 
-* `path` {string|Buffer}
+* `path` {string|Buffer|URL}
 * `len` {integer} **Default:** `0`
 
 Synchronous truncate(2). Returns `undefined`. A file descriptor can also be
 passed as the first argument. In this case, `fs.ftruncateSync()` is called.
 
+Passing a file descriptor is deprecated and may result in an error being thrown
+in the future.
+
 ## fs.unlink(path, callback)
 <!-- YAML
 added: v0.0.2
 changes:
+  - version: v10.0.0
+    pr-url: https://github.com/nodejs/node/pull/12562
+    description: The `callback` parameter is no longer optional. Not passing
+                 it will throw a `TypeError` at runtime.
   - version: v7.6.0
     pr-url: https://github.com/nodejs/node/pull/10739
     description: The `path` parameter can be a WHATWG `URL` object using `file:`
@@ -2158,14 +2922,28 @@ changes:
   - version: v7.0.0
     pr-url: https://github.com/nodejs/node/pull/7897
     description: The `callback` parameter is no longer optional. Not passing
-                 it will emit a deprecation warning.
+                 it will emit a deprecation warning with id DEP0013.
 -->
 
 * `path` {string|Buffer|URL}
 * `callback` {Function}
+  * `err` {Error}
 
-Asynchronous unlink(2). No arguments other than a possible exception are given
-to the completion callback.
+Asynchronously removes a file or symbolic link. No arguments other than a
+possible exception are given to the completion callback.
+
+```js
+// Assuming that 'path/file.txt' is a regular file.
+fs.unlink('path/file.txt', (err) => {
+  if (err) throw err;
+  console.log('path/file.txt was deleted');
+});
+```
+
+`fs.unlink()` will not work on a directory, empty or otherwise. To remove a
+directory, use [`fs.rmdir()`][].
+
+See also: unlink(2).
 
 ## fs.unlinkSync(path)
 <!-- YAML
@@ -2186,8 +2964,9 @@ Synchronous unlink(2). Returns `undefined`.
 added: v0.1.31
 -->
 
-* `filename` {string|Buffer}
-* `listener` {Function|undefined} **Default:** `undefined`
+* `filename` {string|Buffer|URL}
+* `listener` {Function} Optional, a listener previously attached using
+  `fs.watchFile()`
 
 Stop watching for changes on `filename`. If `listener` is specified, only that
 particular listener is removed. Otherwise, *all* listeners are removed,
@@ -2196,14 +2975,22 @@ effectively stopping watching of `filename`.
 Calling `fs.unwatchFile()` with a filename that is not being watched is a
 no-op, not an error.
 
-*Note*: [`fs.watch()`][] is more efficient than `fs.watchFile()` and
-`fs.unwatchFile()`.  `fs.watch()` should be used instead of `fs.watchFile()`
+Using [`fs.watch()`][] is more efficient than `fs.watchFile()` and
+`fs.unwatchFile()`. `fs.watch()` should be used instead of `fs.watchFile()`
 and `fs.unwatchFile()` when possible.
 
 ## fs.utimes(path, atime, mtime, callback)
 <!-- YAML
 added: v0.4.2
 changes:
+  - version: v10.0.0
+    pr-url: https://github.com/nodejs/node/pull/12562
+    description: The `callback` parameter is no longer optional. Not passing
+                 it will throw a `TypeError` at runtime.
+  - version: v8.0.0
+    pr-url: https://github.com/nodejs/node/pull/11919
+    description: "`NaN`, `Infinity`, and `-Infinity` are no longer valid time
+                 specifiers."
   - version: v7.6.0
     pr-url: https://github.com/nodejs/node/pull/10739
     description: The `path` parameter can be a WHATWG `URL` object using `file:`
@@ -2211,7 +2998,7 @@ changes:
   - version: v7.0.0
     pr-url: https://github.com/nodejs/node/pull/7897
     description: The `callback` parameter is no longer optional. Not passing
-                 it will emit a deprecation warning.
+                 it will emit a deprecation warning with id DEP0013.
   - version: v4.1.0
     pr-url: https://github.com/nodejs/node/pull/2387
     description: Numeric strings, `NaN` and `Infinity` are now allowed
@@ -2219,25 +3006,27 @@ changes:
 -->
 
 * `path` {string|Buffer|URL}
-* `atime` {integer}
-* `mtime` {integer}
+* `atime` {number|string|Date}
+* `mtime` {number|string|Date}
 * `callback` {Function}
+  * `err` {Error}
 
-Change file timestamps of the file referenced by the supplied path.
+Change the file system timestamps of the object referenced by `path`.
 
-*Note*: The arguments `atime` and `mtime` of the following related functions
-follow these rules:
-
-- The value should be a Unix timestamp in seconds. For example, `Date.now()`
-  returns milliseconds, so it should be divided by 1000 before passing it in.
-- If the value is a numeric string like `'123456789'`, the value will get
-  converted to the corresponding number.
-- If the value is `NaN`, `Infinity` or `-Infinity`, an Error will be thrown.
+The `atime` and `mtime` arguments follow these rules:
+- Values can be either numbers representing Unix epoch time, `Date`s, or a
+  numeric string like `'123456789.0'`.
+- If the value can not be converted to a number, or is `NaN`, `Infinity` or
+  `-Infinity`, an `Error` will be thrown.
 
 ## fs.utimesSync(path, atime, mtime)
 <!-- YAML
 added: v0.4.2
 changes:
+  - version: v8.0.0
+    pr-url: https://github.com/nodejs/node/pull/11919
+    description: "`NaN`, `Infinity`, and `-Infinity` are no longer valid time
+                 specifiers."
   - version: v7.6.0
     pr-url: https://github.com/nodejs/node/pull/10739
     description: The `path` parameter can be a WHATWG `URL` object using `file:`
@@ -2270,24 +3059,27 @@ changes:
 * `filename` {string|Buffer|URL}
 * `options` {string|Object}
   * `persistent` {boolean} Indicates whether the process should continue to run
-    as long as files are being watched. **Default:** `true`
+    as long as files are being watched. **Default:** `true`.
   * `recursive` {boolean} Indicates whether all subdirectories should be
     watched, or only the current directory. This applies when a directory is
     specified, and only on supported platforms (See [Caveats][]). **Default:**
-    `false`
+    `false`.
   * `encoding` {string} Specifies the character encoding to be used for the
-     filename passed to the listener. **Default:** `'utf8'`
+     filename passed to the listener. **Default:** `'utf8'`.
 * `listener` {Function|undefined} **Default:** `undefined`
+  * `eventType` {string}
+  * `filename` {string|Buffer}
+* Returns: {fs.FSWatcher}
 
 Watch for changes on `filename`, where `filename` is either a file or a
-directory.  The returned object is a [`fs.FSWatcher`][].
+directory.
 
 The second argument is optional. If `options` is provided as a string, it
 specifies the `encoding`. Otherwise `options` should be passed as an object.
 
-The listener callback gets two arguments `(eventType, filename)`.  `eventType` is either
-`'rename'` or `'change'`, and `filename` is the name of the file which triggered
-the event.
+The listener callback gets two arguments `(eventType, filename)`. `eventType`
+is either `'rename'` or `'change'`, and `filename` is the name of the file
+which triggered the event.
 
 Note that on most platforms, `'rename'` is emitted whenever a filename appears
 or disappears in the directory.
@@ -2312,9 +3104,9 @@ The recursive option is only supported on macOS and Windows.
 This feature depends on the underlying operating system providing a way
 to be notified of filesystem changes.
 
-* On Linux systems, this uses [`inotify`]
-* On BSD systems, this uses [`kqueue`]
-* On macOS, this uses [`kqueue`] for files and [`FSEvents`] for directories.
+* On Linux systems, this uses [`inotify(7)`].
+* On BSD systems, this uses [`kqueue(2)`].
+* On macOS, this uses [`kqueue(2)`] for files and [`FSEvents`] for directories.
 * On SunOS systems (including Solaris and SmartOS), this uses [`event ports`].
 * On Windows systems, this feature depends on [`ReadDirectoryChangesW`].
 * On Aix systems, this feature depends on [`AHAFS`], which must be enabled.
@@ -2338,21 +3130,18 @@ a new inode. The watch will emit an event for the delete but will continue
 watching the *original* inode. Events for the new inode will not be emitted.
 This is expected behavior.
 
-In AIX, save and close of a file being watched causes two notifications -
-one for adding new content, and one for truncation. Moreover, save and
-close operations on some platforms cause inode changes that force watch
-operations to become invalid and ineffective. AIX retains inode for the
-lifetime of a file, that way though this is different from Linux / macOS,
-this improves the usability of file watching. This is expected behavior.
+AIX files retain the same inode for the lifetime of a file. Saving and closing a
+watched file on AIX will result in two notifications (one for adding new
+content, and one for truncation).
 
 #### Filename Argument
 
 <!--type=misc-->
 
 Providing `filename` argument in the callback is only supported on Linux,
-macOS, Windows, and AIX.  Even on supported platforms, `filename` is not always
+macOS, Windows, and AIX. Even on supported platforms, `filename` is not always
 guaranteed to be provided. Therefore, don't assume that `filename` argument is
-always provided in the callback, and have some fallback logic if it is null.
+always provided in the callback, and have some fallback logic if it is `null`.
 
 ```js
 fs.watch('somedir', (eventType, filename) => {
@@ -2380,6 +3169,8 @@ changes:
   * `persistent` {boolean} **Default:** `true`
   * `interval` {integer} **Default:** `5007`
 * `listener` {Function}
+  * `current` {fs.Stats}
+  * `previous` {fs.Stats}
 
 Watch for changes on `filename`. The callback `listener` will be called each
 time the file is accessed.
@@ -2388,8 +3179,7 @@ The `options` argument may be omitted. If provided, it should be an object. The
 `options` object may contain a boolean named `persistent` that indicates
 whether the process should continue to run as long as files are being watched.
 The `options` object may specify an `interval` property indicating how often the
-target should be polled in milliseconds. The default is
-`{ persistent: true, interval: 5007 }`.
+target should be polled in milliseconds.
 
 The `listener` gets two arguments the current stat object and the previous
 stat object:
@@ -2406,21 +3196,34 @@ These stat objects are instances of `fs.Stat`.
 To be notified when the file was modified, not just accessed, it is necessary
 to compare `curr.mtime` and `prev.mtime`.
 
-*Note*: When an `fs.watchFile` operation results in an `ENOENT` error, it
+When an `fs.watchFile` operation results in an `ENOENT` error, it
 will invoke the listener once, with all the fields zeroed (or, for dates, the
 Unix Epoch). In Windows, `blksize` and `blocks` fields will be `undefined`,
 instead of zero. If the file is created later on, the listener will be called
 again, with the latest stat objects. This is a change in functionality since
 v0.10.
 
-*Note*: [`fs.watch()`][] is more efficient than `fs.watchFile` and
+Using [`fs.watch()`][] is more efficient than `fs.watchFile` and
 `fs.unwatchFile`. `fs.watch` should be used instead of `fs.watchFile` and
 `fs.unwatchFile` when possible.
+
+When a file being watched by `fs.watchFile()` disappears and reappears,
+then the `previousStat` reported in the second callback event (the file's
+reappearance) will be the same as the `previousStat` of the first callback
+event (its disappearance).
+
+This happens when:
+- the file is deleted, followed by a restore
+- the file is renamed twice - the second time back to its original name
 
 ## fs.write(fd, buffer[, offset[, length[, position]]], callback)
 <!-- YAML
 added: v0.0.2
 changes:
+  - version: v10.0.0
+    pr-url: https://github.com/nodejs/node/pull/12562
+    description: The `callback` parameter is no longer optional. Not passing
+                 it will throw a `TypeError` at runtime.
   - version: v7.4.0
     pr-url: https://github.com/nodejs/node/pull/10382
     description: The `buffer` parameter can now be a `Uint8Array`.
@@ -2430,7 +3233,7 @@ changes:
   - version: v7.0.0
     pr-url: https://github.com/nodejs/node/pull/7897
     description: The `callback` parameter is no longer optional. Not passing
-                 it will emit a deprecation warning.
+                 it will emit a deprecation warning with id DEP0013.
 -->
 
 * `fd` {integer}
@@ -2439,6 +3242,9 @@ changes:
 * `length` {integer}
 * `position` {integer}
 * `callback` {Function}
+  * `err` {Error}
+  * `bytesWritten` {integer}
+  * `buffer` {Buffer|Uint8Array}
 
 Write `buffer` to the file specified by `fd`.
 
@@ -2453,7 +3259,7 @@ The callback will be given three arguments `(err, bytesWritten, buffer)` where
 `bytesWritten` specifies how many _bytes_ were written from `buffer`.
 
 If this method is invoked as its [`util.promisify()`][]ed version, it returns
-a Promise for an object with `bytesWritten` and `buffer` properties.
+a `Promise` for an `Object` with `bytesWritten` and `buffer` properties.
 
 Note that it is unsafe to use `fs.write` multiple times on the same file
 without waiting for the callback. For this scenario,
@@ -2467,13 +3273,17 @@ the end of the file.
 <!-- YAML
 added: v0.11.5
 changes:
+  - version: v10.0.0
+    pr-url: https://github.com/nodejs/node/pull/12562
+    description: The `callback` parameter is no longer optional. Not passing
+                 it will throw a `TypeError` at runtime.
   - version: v7.2.0
     pr-url: https://github.com/nodejs/node/pull/7856
     description: The `position` parameter is optional now.
   - version: v7.0.0
     pr-url: https://github.com/nodejs/node/pull/7897
     description: The `callback` parameter is no longer optional. Not passing
-                 it will emit a deprecation warning.
+                 it will emit a deprecation warning with id DEP0013.
 -->
 
 * `fd` {integer}
@@ -2481,8 +3291,11 @@ changes:
 * `position` {integer}
 * `encoding` {string}
 * `callback` {Function}
+  * `err` {Error}
+  * `written` {integer}
+  * `string` {string}
 
-Write `string` to the file specified by `fd`.  If `string` is not a string, then
+Write `string` to the file specified by `fd`. If `string` is not a string, then
 the value will be coerced to one.
 
 `position` refers to the offset from the beginning of the file where this data
@@ -2494,10 +3307,6 @@ the current position. See pwrite(2).
 The callback will receive the arguments `(err, written, string)` where `written`
 specifies how many _bytes_ the passed string required to be written. Note that
 bytes written is not the same as string characters. See [`Buffer.byteLength`][].
-
-Unlike when writing `buffer`, the entire string must be written. No substring
-may be specified. This is because the byte offset of the resulting data may not
-be the same as the string offset.
 
 Note that it is unsafe to use `fs.write` multiple times on the same file
 without waiting for the callback. For this scenario,
@@ -2511,31 +3320,35 @@ the end of the file.
 <!-- YAML
 added: v0.1.29
 changes:
+  - version: v10.0.0
+    pr-url: https://github.com/nodejs/node/pull/12562
+    description: The `callback` parameter is no longer optional. Not passing
+                 it will throw a `TypeError` at runtime.
   - version: v7.4.0
     pr-url: https://github.com/nodejs/node/pull/10382
     description: The `data` parameter can now be a `Uint8Array`.
   - version: v7.0.0
     pr-url: https://github.com/nodejs/node/pull/7897
     description: The `callback` parameter is no longer optional. Not passing
-                 it will emit a deprecation warning.
+                 it will emit a deprecation warning with id DEP0013.
   - version: v5.0.0
     pr-url: https://github.com/nodejs/node/pull/3163
     description: The `file` parameter can be a file descriptor now.
 -->
 
-* `file` {string|Buffer|integer} filename or file descriptor
+* `file` {string|Buffer|URL|integer} filename or file descriptor
 * `data` {string|Buffer|Uint8Array}
 * `options` {Object|string}
   * `encoding` {string|null} **Default:** `'utf8'`
   * `mode` {integer} **Default:** `0o666`
-  * `flag` {string} **Default:** `'w'`
+  * `flag` {string} See [support of file system `flags`][]. **Default:** `'w'`.
 * `callback` {Function}
+  * `err` {Error}
 
 Asynchronously writes data to a file, replacing the file if it already exists.
 `data` can be a string or a buffer.
 
-The `encoding` option is ignored if `data` is a buffer. It defaults
-to `'utf8'`.
+The `encoding` option is ignored if `data` is a buffer.
 
 Example:
 
@@ -2558,7 +3371,7 @@ Note that it is unsafe to use `fs.writeFile` multiple times on the same file
 without waiting for the callback. For this scenario,
 `fs.createWriteStream` is strongly recommended.
 
-*Note*: If a file descriptor is specified as the `file`, it will not be closed
+If a file descriptor is specified as the `file`, it will not be closed
 automatically.
 
 ## fs.writeFileSync(file, data[, options])
@@ -2573,12 +3386,12 @@ changes:
     description: The `file` parameter can be a file descriptor now.
 -->
 
-* `file` {string|Buffer|integer} filename or file descriptor
+* `file` {string|Buffer|URL|integer} filename or file descriptor
 * `data` {string|Buffer|Uint8Array}
 * `options` {Object|string}
   * `encoding` {string|null} **Default:** `'utf8'`
   * `mode` {integer} **Default:** `0o666`
-  * `flag` {string} **Default:** `'w'`
+  * `flag` {string} See [support of file system `flags`][]. **Default:** `'w'`.
 
 The synchronous version of [`fs.writeFile()`][]. Returns `undefined`.
 
@@ -2599,6 +3412,7 @@ changes:
 * `offset` {integer}
 * `length` {integer}
 * `position` {integer}
+* Returns: {number}
 
 ## fs.writeSync(fd, string[, position[, encoding]])
 <!-- YAML
@@ -2613,14 +3427,812 @@ changes:
 * `string` {string}
 * `position` {integer}
 * `encoding` {string}
+* Returns: {number}
 
 Synchronous versions of [`fs.write()`][]. Returns the number of bytes written.
+
+## fs Promises API
+
+> Stability: 1 - Experimental
+
+The `fs.promises` API provides an alternative set of asynchronous file system
+methods that return `Promise` objects rather than using callbacks. The
+API is accessible via `require('fs').promises`.
+
+### class: FileHandle
+<!-- YAML
+added: v10.0.0
+-->
+
+A `FileHandle` object is a wrapper for a numeric file descriptor.
+Instances of `FileHandle` are distinct from numeric file descriptors
+in that, if the `FileHandle` is not explicitly closed using the
+`filehandle.close()` method, they will automatically close the file descriptor
+and will emit a process warning, thereby helping to prevent memory leaks.
+
+Instances of the `FileHandle` object are created internally by the
+`fsPromises.open()` method.
+
+Unlike the callback-based API (`fs.fstat()`, `fs.fchown()`, `fs.fchmod()`, and
+so on), a numeric file descriptor is not used by the promise-based API. Instead,
+the promise-based API uses the `FileHandle` class in order to help avoid
+accidental leaking of unclosed file descriptors after a `Promise` is resolved or
+rejected.
+
+#### filehandle.appendFile(data, options)
+<!-- YAML
+added: v10.0.0
+-->
+* `data` {string|Buffer}
+* `options` {Object|string}
+  * `encoding` {string|null} **Default:** `'utf8'`
+  * `mode` {integer} **Default:** `0o666`
+  * `flag` {string} See [support of file system `flags`][]. **Default:** `'a'`.
+* Returns: {Promise}
+
+Asynchronously append data to this file, creating the file if it does not yet
+exist. `data` can be a string or a [`Buffer`][]. The `Promise` will be
+resolved with no arguments upon success.
+
+If `options` is a string, then it specifies the encoding.
+
+The `FileHandle` must have been opened for appending.
+
+#### filehandle.chmod(mode)
+<!-- YAML
+added: v10.0.0
+-->
+* `mode` {integer}
+* Returns: {Promise}
+
+Modifies the permissions on the file. The `Promise` is resolved with no
+arguments upon success.
+
+#### filehandle.chown(uid, gid)
+<!-- YAML
+added: v10.0.0
+-->
+* `uid` {integer}
+* `gid` {integer}
+* Returns: {Promise}
+
+Changes the ownership of the file then resolves the `Promise` with no arguments
+upon success.
+
+#### filehandle.close()
+<!-- YAML
+added: v10.0.0
+-->
+
+* Returns: {Promise} A `Promise` that will be resolved once the underlying
+  file descriptor is closed, or will be rejected if an error occurs while
+  closing.
+
+Closes the file descriptor.
+
+```js
+const fsPromises = require('fs').promises;
+async function openAndClose() {
+  let filehandle;
+  try {
+    filehandle = await fsPromises.open('thefile.txt', 'r');
+  } finally {
+    if (filehandle !== undefined)
+      await filehandle.close();
+  }
+}
+```
+
+#### filehandle.datasync()
+<!-- YAML
+added: v10.0.0
+-->
+* Returns: {Promise}
+
+Asynchronous fdatasync(2). The `Promise` is resolved with no arguments upon
+success.
+
+#### filehandle.fd
+<!-- YAML
+added: v10.0.0
+-->
+
+* {number} The numeric file descriptor managed by the `FileHandle` object.
+
+#### filehandle.read(buffer, offset, length, position)
+<!-- YAML
+added: v10.0.0
+-->
+* `buffer` {Buffer|Uint8Array}
+* `offset` {integer}
+* `length` {integer}
+* `position` {integer}
+* Returns: {Promise}
+
+Read data from the file.
+
+`buffer` is the buffer that the data will be written to.
+
+`offset` is the offset in the buffer to start writing at.
+
+`length` is an integer specifying the number of bytes to read.
+
+`position` is an argument specifying where to begin reading from in the file.
+If `position` is `null`, data will be read from the current file position,
+and the file position will be updated.
+If `position` is an integer, the file position will remain unchanged.
+
+Following successful read, the `Promise` is resolved with an object with a
+`bytesRead` property specifying the number of bytes read, and a `buffer`
+property that is a reference to the passed in `buffer` argument.
+
+#### filehandle.readFile(options)
+<!-- YAML
+added: v10.0.0
+-->
+* `options` {Object|string}
+  * `encoding` {string|null} **Default:** `null`
+  * `flag` {string} See [support of file system `flags`][]. **Default:** `'r'`.
+* Returns: {Promise}
+
+Asynchronously reads the entire contents of a file.
+
+The `Promise` is resolved with the contents of the file. If no encoding is
+specified (using `options.encoding`), the data is returned as a `Buffer`
+object. Otherwise, the data will be a string.
+
+If `options` is a string, then it specifies the encoding.
+
+When the `path` is a directory, the behavior of `fsPromises.readFile()` is
+platform-specific. On macOS, Linux, and Windows, the promise will be rejected
+with an error. On FreeBSD, a representation of the directory's contents will be
+returned.
+
+The `FileHandle` has to support reading.
+
+#### filehandle.stat([options])
+<!-- YAML
+added: v10.0.0
+changes:
+  - version: v10.5.0
+    pr-url: https://github.com/nodejs/node/pull/20220
+    description: Accepts an additional `options` object to specify whether
+                 the numeric values returned should be bigint.
+-->
+* `options` {Object}
+  * `bigint` {boolean} Whether the numeric values in the returned
+    [`fs.Stats`][] object should be `bigint`. **Default:** `false`.
+* Returns: {Promise}
+
+Retrieves the [`fs.Stats`][] for the file.
+
+#### filehandle.sync()
+<!-- YAML
+added: v10.0.0
+-->
+* Returns: {Promise}
+
+Asynchronous fsync(2). The `Promise` is resolved with no arguments upon
+success.
+
+#### filehandle.truncate(len)
+<!-- YAML
+added: v10.0.0
+-->
+* `len` {integer} **Default:** `0`
+* Returns: {Promise}
+
+Truncates the file then resolves the `Promise` with no arguments upon success.
+
+If the file was larger than `len` bytes, only the first `len` bytes will be
+retained in the file.
+
+For example, the following program retains only the first four bytes of the
+file:
+
+```js
+const fs = require('fs');
+const fsPromises = fs.promises;
+
+console.log(fs.readFileSync('temp.txt', 'utf8'));
+// Prints: Node.js
+
+async function doTruncate() {
+  let filehandle = null;
+  try {
+    filehandle = await fsPromises.open('temp.txt', 'r+');
+    await filehandle.truncate(4);
+  } finally {
+    if (filehandle) {
+      // close the file if it is opened.
+      await filehandle.close();
+    }
+  }
+  console.log(fs.readFileSync('temp.txt', 'utf8'));  // Prints: Node
+}
+
+doTruncate().catch(console.error);
+```
+
+If the file previously was shorter than `len` bytes, it is extended, and the
+extended part is filled with null bytes (`'\0'`). For example,
+
+```js
+const fs = require('fs');
+const fsPromises = fs.promises;
+
+console.log(fs.readFileSync('temp.txt', 'utf8'));
+// Prints: Node.js
+
+async function doTruncate() {
+  let filehandle = null;
+  try {
+    filehandle = await fsPromises.open('temp.txt', 'r+');
+    await filehandle.truncate(10);
+  } finally {
+    if (filehandle) {
+      // close the file if it is opened.
+      await filehandle.close();
+    }
+  }
+  console.log(fs.readFileSync('temp.txt', 'utf8'));  // Prints Node.js\0\0\0
+}
+
+doTruncate().catch(console.error);
+```
+
+The last three bytes are null bytes (`'\0'`), to compensate the over-truncation.
+
+#### filehandle.utimes(atime, mtime)
+<!-- YAML
+added: v10.0.0
+-->
+* `atime` {number|string|Date}
+* `mtime` {number|string|Date}
+* Returns: {Promise}
+
+Change the file system timestamps of the object referenced by the `FileHandle`
+then resolves the `Promise` with no arguments upon success.
+
+This function does not work on AIX versions before 7.1, it will resolve the
+`Promise` with an error using code `UV_ENOSYS`.
+
+#### filehandle.write(buffer, offset, length, position)
+<!-- YAML
+added: v10.0.0
+-->
+* `buffer` {Buffer|Uint8Array}
+* `offset` {integer}
+* `length` {integer}
+* `position` {integer}
+* Returns: {Promise}
+
+Write `buffer` to the file.
+
+The `Promise` is resolved with an object containing a `bytesWritten` property
+identifying the number of bytes written, and a `buffer` property containing
+a reference to the `buffer` written.
+
+`offset` determines the part of the buffer to be written, and `length` is
+an integer specifying the number of bytes to write.
+
+`position` refers to the offset from the beginning of the file where this data
+should be written. If `typeof position !== 'number'`, the data will be written
+at the current position. See pwrite(2).
+
+It is unsafe to use `filehandle.write()` multiple times on the same file
+without waiting for the `Promise` to be resolved (or rejected). For this
+scenario, `fs.createWriteStream` is strongly recommended.
+
+On Linux, positional writes do not work when the file is opened in append mode.
+The kernel ignores the position argument and always appends the data to
+the end of the file.
+
+#### filehandle.writeFile(data, options)
+<!-- YAML
+added: v10.0.0
+-->
+* `data` {string|Buffer|Uint8Array}
+* `options` {Object|string}
+  * `encoding` {string|null} **Default:** `'utf8'`
+  * `mode` {integer} **Default:** `0o666`
+  * `flag` {string} See [support of file system `flags`][]. **Default:** `'w'`.
+* Returns: {Promise}
+
+Asynchronously writes data to a file, replacing the file if it already exists.
+`data` can be a string or a buffer. The `Promise` will be resolved with no
+arguments upon success.
+
+The `encoding` option is ignored if `data` is a buffer.
+
+If `options` is a string, then it specifies the encoding.
+
+The `FileHandle` has to support writing.
+
+It is unsafe to use `filehandle.writeFile()` multiple times on the same file
+without waiting for the `Promise` to be resolved (or rejected).
+
+### fsPromises.access(path[, mode])
+<!-- YAML
+added: v10.0.0
+-->
+
+* `path` {string|Buffer|URL}
+* `mode` {integer} **Default:** `fs.constants.F_OK`
+* Returns: {Promise}
+
+Tests a user's permissions for the file or directory specified by `path`.
+The `mode` argument is an optional integer that specifies the accessibility
+checks to be performed. Check [File Access Constants][] for possible values
+of `mode`. It is possible to create a mask consisting of the bitwise OR of
+two or more values (e.g. `fs.constants.W_OK | fs.constants.R_OK`).
+
+If the accessibility check is successful, the `Promise` is resolved with no
+value. If any of the accessibility checks fail, the `Promise` is rejected
+with an `Error` object. The following example checks if the file
+`/etc/passwd` can be read and written by the current process.
+
+```js
+const fs = require('fs');
+const fsPromises = fs.promises;
+
+fsPromises.access('/etc/passwd', fs.constants.R_OK | fs.constants.W_OK)
+  .then(() => console.log('can access'))
+  .catch(() => console.error('cannot access'));
+```
+
+Using `fsPromises.access()` to check for the accessibility of a file before
+calling `fsPromises.open()` is not recommended. Doing so introduces a race
+condition, since other processes may change the file's state between the two
+calls. Instead, user code should open/read/write the file directly and handle
+the error raised if the file is not accessible.
+
+### fsPromises.appendFile(path, data[, options])
+<!-- YAML
+added: v10.0.0
+-->
+
+* `path` {string|Buffer|URL|FileHandle} filename or `FileHandle`
+* `data` {string|Buffer}
+* `options` {Object|string}
+  * `encoding` {string|null} **Default:** `'utf8'`
+  * `mode` {integer} **Default:** `0o666`
+  * `flag` {string} See [support of file system `flags`][]. **Default:** `'a'`.
+* Returns: {Promise}
+
+Asynchronously append data to a file, creating the file if it does not yet
+exist. `data` can be a string or a [`Buffer`][]. The `Promise` will be
+resolved with no arguments upon success.
+
+If `options` is a string, then it specifies the encoding.
+
+The `path` may be specified as a `FileHandle` that has been opened
+for appending (using `fsPromises.open()`).
+
+### fsPromises.chmod(path, mode)
+<!-- YAML
+added: v10.0.0
+-->
+
+* `path` {string|Buffer|URL}
+* `mode` {integer}
+* Returns: {Promise}
+
+Changes the permissions of a file then resolves the `Promise` with no
+arguments upon succces.
+
+### fsPromises.chown(path, uid, gid)
+<!-- YAML
+added: v10.0.0
+-->
+
+* `path` {string|Buffer|URL}
+* `uid` {integer}
+* `gid` {integer}
+* Returns: {Promise}
+
+Changes the ownership of a file then resolves the `Promise` with no arguments
+upon success.
+
+### fsPromises.copyFile(src, dest[, flags])
+<!-- YAML
+added: v10.0.0
+-->
+
+* `src` {string|Buffer|URL} source filename to copy
+* `dest` {string|Buffer|URL} destination filename of the copy operation
+* `flags` {number} modifiers for copy operation. **Default:** `0`.
+* Returns: {Promise}
+
+Asynchronously copies `src` to `dest`. By default, `dest` is overwritten if it
+already exists. The `Promise` will be resolved with no arguments upon success.
+
+Node.js makes no guarantees about the atomicity of the copy operation. If an
+error occurs after the destination file has been opened for writing, Node.js
+will attempt to remove the destination.
+
+`flags` is an optional integer that specifies the behavior
+of the copy operation. It is possible to create a mask consisting of the bitwise
+OR of two or more values (e.g.
+`fs.constants.COPYFILE_EXCL | fs.constants.COPYFILE_FICLONE`).
+
+* `fs.constants.COPYFILE_EXCL` - The copy operation will fail if `dest` already
+exists.
+* `fs.constants.COPYFILE_FICLONE` - The copy operation will attempt to create a
+copy-on-write reflink. If the platform does not support copy-on-write, then a
+fallback copy mechanism is used.
+* `fs.constants.COPYFILE_FICLONE_FORCE` - The copy operation will attempt to
+create a copy-on-write reflink. If the platform does not support copy-on-write,
+then the operation will fail.
+
+Example:
+
+```js
+const fsPromises = require('fs').promises;
+
+// destination.txt will be created or overwritten by default.
+fsPromises.copyFile('source.txt', 'destination.txt')
+  .then(() => console.log('source.txt was copied to destination.txt'))
+  .catch(() => console.log('The file could not be copied'));
+```
+
+If the third argument is a number, then it specifies `flags`, as shown in the
+following example.
+
+```js
+const fs = require('fs');
+const fsPromises = fs.promises;
+const { COPYFILE_EXCL } = fs.constants;
+
+// By using COPYFILE_EXCL, the operation will fail if destination.txt exists.
+fsPromises.copyFile('source.txt', 'destination.txt', COPYFILE_EXCL)
+  .then(() => console.log('source.txt was copied to destination.txt'))
+  .catch(() => console.log('The file could not be copied'));
+```
+
+### fsPromises.lchmod(path, mode)
+<!-- YAML
+deprecated: v10.0.0
+-->
+
+* `path` {string|Buffer|URL}
+* `mode` {integer}
+* Returns: {Promise}
+
+Changes the permissions on a symbolic link then resolves the `Promise` with
+no arguments upon success. This method is only implemented on macOS.
+
+### fsPromises.lchown(path, uid, gid)
+<!-- YAML
+added: v10.0.0
+changes:
+  - version: v10.6.0
+    pr-url: https://github.com/nodejs/node/pull/21498
+    description: This API is no longer deprecated.
+-->
+
+* `path` {string|Buffer|URL}
+* `uid` {integer}
+* `gid` {integer}
+* Returns: {Promise}
+
+Changes the ownership on a symbolic link then resolves the `Promise` with
+no arguments upon success.
+
+### fsPromises.link(existingPath, newPath)
+<!-- YAML
+added: v10.0.0
+-->
+
+* `existingPath` {string|Buffer|URL}
+* `newPath` {string|Buffer|URL}
+* Returns: {Promise}
+
+Asynchronous link(2). The `Promise` is resolved with no arguments upon success.
+
+### fsPromises.lstat(path[, options])
+<!-- YAML
+added: v10.0.0
+changes:
+  - version: v10.5.0
+    pr-url: https://github.com/nodejs/node/pull/20220
+    description: Accepts an additional `options` object to specify whether
+                 the numeric values returned should be bigint.
+-->
+
+* `path` {string|Buffer|URL}
+* `options` {Object}
+  * `bigint` {boolean} Whether the numeric values in the returned
+    [`fs.Stats`][] object should be `bigint`. **Default:** `false`.
+* Returns: {Promise}
+
+Asynchronous lstat(2). The `Promise` is resolved with the [`fs.Stats`][] object
+for the given symbolic link `path`.
+
+### fsPromises.mkdir(path[, mode])
+<!-- YAML
+added: v10.0.0
+-->
+
+* `path` {string|Buffer|URL}
+* `mode` {integer} **Default:** `0o777`
+* Returns: {Promise}
+
+Asynchronously creates a directory then resolves the `Promise` with no
+arguments upon success.
+
+### fsPromises.mkdtemp(prefix[, options])
+<!-- YAML
+added: v10.0.0
+-->
+
+* `prefix` {string}
+* `options` {string|Object}
+  * `encoding` {string} **Default:** `'utf8'`
+* Returns: {Promise}
+
+Creates a unique temporary directory and resolves the `Promise` with the created
+folder path. A unique directory name is generated by appending six random
+characters to the end of the provided `prefix`.
+
+The optional `options` argument can be a string specifying an encoding, or an
+object with an `encoding` property specifying the character encoding to use.
+
+```js
+fsPromises.mkdtemp(path.join(os.tmpdir(), 'foo-'))
+  .catch(console.error);
+```
+
+The `fsPromises.mkdtemp()` method will append the six randomly selected
+characters directly to the `prefix` string. For instance, given a directory
+`/tmp`, if the intention is to create a temporary directory *within* `/tmp`, the
+`prefix` must end with a trailing platform-specific path separator
+(`require('path').sep`).
+
+### fsPromises.open(path, flags[, mode])
+<!-- YAML
+added: v10.0.0
+-->
+
+* `path` {string|Buffer|URL}
+* `flags` {string|number} See [support of file system `flags`][].
+* `mode` {integer} **Default:** `0o666` (readable and writable)
+* Returns: {Promise}
+
+Asynchronous file open that returns a `Promise` that, when resolved, yields a
+`FileHandle` object. See open(2).
+
+`mode` sets the file mode (permission and sticky bits), but only if the file was
+created.
+
+Some characters (`< > : " / \ | ? *`) are reserved under Windows as documented
+by [Naming Files, Paths, and Namespaces][]. Under NTFS, if the filename contains
+a colon, Node.js will open a file system stream, as described by
+[this MSDN page][MSDN-Using-Streams].
+
+### fsPromises.readdir(path[, options])
+<!-- YAML
+added: v10.0.0
+-->
+
+* `path` {string|Buffer|URL}
+* `options` {string|Object}
+  * `encoding` {string} **Default:** `'utf8'`
+* Returns: {Promise}
+
+Reads the contents of a directory then resolves the `Promise` with an array
+of the names of the files in the directory excluding `'.'` and `'..'`.
+
+The optional `options` argument can be a string specifying an encoding, or an
+object with an `encoding` property specifying the character encoding to use for
+the filenames. If the `encoding` is set to `'buffer'`, the filenames returned
+will be passed as `Buffer` objects.
+
+### fsPromises.readFile(path[, options])
+<!-- YAML
+added: v10.0.0
+-->
+
+* `path` {string|Buffer|URL|FileHandle} filename or `FileHandle`
+* `options` {Object|string}
+  * `encoding` {string|null} **Default:** `null`
+  * `flag` {string} See [support of file system `flags`][]. **Default:** `'r'`.
+* Returns: {Promise}
+
+Asynchronously reads the entire contents of a file.
+
+The `Promise` is resolved with the contents of the file. If no encoding is
+specified (using `options.encoding`), the data is returned as a `Buffer`
+object. Otherwise, the data will be a string.
+
+If `options` is a string, then it specifies the encoding.
+
+When the `path` is a directory, the behavior of `fsPromises.readFile()` is
+platform-specific. On macOS, Linux, and Windows, the promise will be rejected
+with an error. On FreeBSD, a representation of the directory's contents will be
+returned.
+
+Any specified `FileHandle` has to support reading.
+
+### fsPromises.readlink(path[, options])
+<!-- YAML
+added: v10.0.0
+-->
+
+* `path` {string|Buffer|URL}
+* `options` {string|Object}
+  * `encoding` {string} **Default:** `'utf8'`
+* Returns: {Promise}
+
+Asynchronous readlink(2). The `Promise` is resolved with the `linkString` upon
+success.
+
+The optional `options` argument can be a string specifying an encoding, or an
+object with an `encoding` property specifying the character encoding to use for
+the link path returned. If the `encoding` is set to `'buffer'`, the link path
+returned will be passed as a `Buffer` object.
+
+### fsPromises.realpath(path[, options])
+<!-- YAML
+added: v10.0.0
+-->
+
+* `path` {string|Buffer|URL}
+* `options` {string|Object}
+  * `encoding` {string} **Default:** `'utf8'`
+* Returns: {Promise}
+
+Determines the actual location of `path` using the same semantics as the
+`fs.realpath.native()` function then resolves the `Promise` with the resolved
+path.
+
+Only paths that can be converted to UTF8 strings are supported.
+
+The optional `options` argument can be a string specifying an encoding, or an
+object with an `encoding` property specifying the character encoding to use for
+the path. If the `encoding` is set to `'buffer'`, the path returned will be
+passed as a `Buffer` object.
+
+On Linux, when Node.js is linked against musl libc, the procfs file system must
+be mounted on `/proc` in order for this function to work. Glibc does not have
+this restriction.
+
+### fsPromises.rename(oldPath, newPath)
+<!-- YAML
+added: v10.0.0
+-->
+
+* `oldPath` {string|Buffer|URL}
+* `newPath` {string|Buffer|URL}
+* Returns: {Promise}
+
+Renames `oldPath` to `newPath` and resolves the `Promise` with no arguments
+upon success.
+
+### fsPromises.rmdir(path)
+<!-- YAML
+added: v10.0.0
+-->
+
+* `path` {string|Buffer|URL}
+* Returns: {Promise}
+
+Removes the directory identified by `path` then resolves the `Promise` with
+no arguments upon success.
+
+Using `fsPromises.rmdir()` on a file (not a directory) results in the
+`Promise` being rejected with an `ENOENT` error on Windows and an `ENOTDIR`
+error on POSIX.
+
+### fsPromises.stat(path[, options])
+<!-- YAML
+added: v10.0.0
+changes:
+  - version: v10.5.0
+    pr-url: https://github.com/nodejs/node/pull/20220
+    description: Accepts an additional `options` object to specify whether
+                 the numeric values returned should be bigint.
+-->
+
+* `path` {string|Buffer|URL}
+* `options` {Object}
+  * `bigint` {boolean} Whether the numeric values in the returned
+    [`fs.Stats`][] object should be `bigint`. **Default:** `false`.
+* Returns: {Promise}
+
+The `Promise` is resolved with the [`fs.Stats`][] object for the given `path`.
+
+### fsPromises.symlink(target, path[, type])
+<!-- YAML
+added: v10.0.0
+-->
+
+* `target` {string|Buffer|URL}
+* `path` {string|Buffer|URL}
+* `type` {string} **Default:** `'file'`
+* Returns: {Promise}
+
+Creates a symbolic link then resolves the `Promise` with no arguments upon
+success.
+
+The `type` argument is only used on Windows platforms and can be one of `'dir'`,
+`'file'`, or `'junction'`. Note that Windows junction
+points require the destination path to be absolute. When using `'junction'`,
+the `target` argument will automatically be normalized to absolute path.
+
+### fsPromises.truncate(path[, len])
+<!-- YAML
+added: v10.0.0
+-->
+
+* `path` {string|Buffer|URL}
+* `len` {integer} **Default:** `0`
+* Returns: {Promise}
+
+Truncates the `path` then resolves the `Promise` with no arguments upon
+success. The `path` *must* be a string or `Buffer`.
+
+### fsPromises.unlink(path)
+<!-- YAML
+added: v10.0.0
+-->
+
+* `path` {string|Buffer|URL}
+* Returns: {Promise}
+
+Asynchronous unlink(2). The `Promise` is resolved with no arguments upon
+success.
+
+### fsPromises.utimes(path, atime, mtime)
+<!-- YAML
+added: v10.0.0
+-->
+
+* `path` {string|Buffer|URL}
+* `atime` {number|string|Date}
+* `mtime` {number|string|Date}
+* Returns: {Promise}
+
+Change the file system timestamps of the object referenced by `path` then
+resolves the `Promise` with no arguments upon success.
+
+The `atime` and `mtime` arguments follow these rules:
+- Values can be either numbers representing Unix epoch time, `Date`s, or a
+  numeric string like `'123456789.0'`.
+- If the value can not be converted to a number, or is `NaN`, `Infinity` or
+  `-Infinity`, an `Error` will be thrown.
+
+### fsPromises.writeFile(file, data[, options])
+<!-- YAML
+added: v10.0.0
+-->
+
+* `file` {string|Buffer|URL|FileHandle} filename or `FileHandle`
+* `data` {string|Buffer|Uint8Array}
+* `options` {Object|string}
+  * `encoding` {string|null} **Default:** `'utf8'`
+  * `mode` {integer} **Default:** `0o666`
+  * `flag` {string} See [support of file system `flags`][]. **Default:** `'w'`.
+* Returns: {Promise}
+
+Asynchronously writes data to a file, replacing the file if it already exists.
+`data` can be a string or a buffer. The `Promise` will be resolved with no
+arguments upon success.
+
+The `encoding` option is ignored if `data` is a buffer.
+
+If `options` is a string, then it specifies the encoding.
+
+Any specified `FileHandle` has to support writing.
+
+It is unsafe to use `fsPromises.writeFile()` multiple times on the same file
+without waiting for the `Promise` to be resolved (or rejected).
 
 ## FS Constants
 
 The following constants are exported by `fs.constants`.
 
-*Note*: Not every constant will be available on every operating system.
+Not every constant will be available on every operating system.
 
 ### File Access Constants
 
@@ -2633,7 +4245,9 @@ The following constants are meant for use with [`fs.access()`][].
   </tr>
   <tr>
     <td><code>F_OK</code></td>
-    <td>Flag indicating that the file is visible to the calling process.</td>
+    <td>Flag indicating that the file is visible to the calling process.
+     This is useful for determining if a file exists, but says nothing
+     about <code>rwx</code> permissions. Default if no mode is specified.</td>
   </tr>
   <tr>
     <td><code>R_OK</code></td>
@@ -2647,7 +4261,36 @@ The following constants are meant for use with [`fs.access()`][].
   <tr>
     <td><code>X_OK</code></td>
     <td>Flag indicating that the file can be executed by the calling
-    process.</td>
+    process. This has no effect on Windows
+    (will behave like <code>fs.constants.F_OK</code>).</td>
+  </tr>
+</table>
+
+### File Copy Constants
+
+The following constants are meant for use with [`fs.copyFile()`][].
+
+<table>
+  <tr>
+    <th>Constant</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td><code>COPYFILE_EXCL</code></td>
+    <td>If present, the copy operation will fail with an error if the
+    destination path already exists.</td>
+  </tr>
+  <tr>
+    <td><code>COPYFILE_FICLONE</code></td>
+    <td>If present, the copy operation will attempt to create a
+    copy-on-write reflink. If the underlying platform does not support
+    copy-on-write, then a fallback copy mechanism is used.</td>
+  </tr>
+  <tr>
+    <td><code>COPYFILE_FICLONE_FORCE</code></td>
+    <td>If present, the copy operation will attempt to create a
+    copy-on-write reflink. If the underlying platform does not support
+    copy-on-write, then the operation will fail with an error.</td>
   </tr>
 </table>
 
@@ -2715,7 +4358,13 @@ The following constants are meant for use with `fs.open()`.
   </tr>
   <tr>
     <td><code>O_SYNC</code></td>
-    <td>Flag indicating that the file is opened for synchronous I/O.</td>
+    <td>Flag indicating that the file is opened for synchronized I/O with write
+    operations waiting for file integrity.</td>
+  </tr>
+  <tr>
+    <td><code>O_DSYNC</code></td>
+    <td>Flag indicating that the file is opened for synchronized I/O with write
+    operations waiting for data integrity.</td>
   </tr>
   <tr>
     <td><code>O_SYMLINK</code></td>
@@ -2789,7 +4438,7 @@ The following constants are meant for use with the [`fs.Stats`][] object's
   </tr>
   <tr>
     <td><code>S_IRWXU</code></td>
-    <td>File mode indicating readable, writable and executable by owner.</td>
+    <td>File mode indicating readable, writable, and executable by owner.</td>
   </tr>
   <tr>
     <td><code>S_IRUSR</code></td>
@@ -2805,7 +4454,7 @@ The following constants are meant for use with the [`fs.Stats`][] object's
   </tr>
   <tr>
     <td><code>S_IRWXG</code></td>
-    <td>File mode indicating readable, writable and executable by group.</td>
+    <td>File mode indicating readable, writable, and executable by group.</td>
   </tr>
   <tr>
     <td><code>S_IRGRP</code></td>
@@ -2821,7 +4470,7 @@ The following constants are meant for use with the [`fs.Stats`][] object's
   </tr>
   <tr>
     <td><code>S_IRWXO</code></td>
-    <td>File mode indicating readable, writable and executable by others.</td>
+    <td>File mode indicating readable, writable, and executable by others.</td>
   </tr>
   <tr>
     <td><code>S_IROTH</code></td>
@@ -2837,48 +4486,144 @@ The following constants are meant for use with the [`fs.Stats`][] object's
   </tr>
 </table>
 
+## File System Flags
+
+The following flags are available wherever the `flag` option takes a
+string:
+
+* `'a'` - Open file for appending.
+  The file is created if it does not exist.
+
+* `'ax'` - Like `'a'` but fails if the path exists.
+
+* `'a+'` - Open file for reading and appending.
+  The file is created if it does not exist.
+
+* `'ax+'` - Like `'a+'` but fails if the path exists.
+
+* `'as'` - Open file for appending in synchronous mode.
+  The file is created if it does not exist.
+
+* `'as+'` - Open file for reading and appending in synchronous mode.
+  The file is created if it does not exist.
+
+* `'r'` - Open file for reading.
+  An exception occurs if the file does not exist.
+
+* `'r+'` - Open file for reading and writing.
+  An exception occurs if the file does not exist.
+
+* `'rs+'` - Open file for reading and writing in synchronous mode. Instructs
+  the operating system to bypass the local file system cache.
+
+  This is primarily useful for opening files on NFS mounts as it allows
+  skipping the potentially stale local cache. It has a very real impact on
+  I/O performance so using this flag is not recommended unless it is needed.
+
+  Note that this doesn't turn `fs.open()` or `fsPromises.open()` into a
+  synchronous blocking call. If synchronous operation is desired, something
+  like `fs.openSync()` should be used.
+
+* `'w'` - Open file for writing.
+  The file is created (if it does not exist) or truncated (if it exists).
+
+* `'wx'` - Like `'w'` but fails if the path exists.
+
+* `'w+'` - Open file for reading and writing.
+The file is created (if it does not exist) or truncated (if it exists).
+
+* `'wx+'` - Like `'w+'` but fails if the path exists.
+
+`flag` can also be a number as documented by open(2); commonly used constants
+are available from `fs.constants`. On Windows, flags are translated to
+their equivalent ones where applicable, e.g. `O_WRONLY` to `FILE_GENERIC_WRITE`,
+or `O_EXCL|O_CREAT` to `CREATE_NEW`, as accepted by `CreateFileW`.
+
+The exclusive flag `'x'` (`O_EXCL` flag in open(2)) ensures that path is newly
+created. On POSIX systems, path is considered to exist even if it is a symlink
+to a non-existent file. The exclusive flag may or may not work with network
+file systems.
+
+On Linux, positional writes don't work when the file is opened in append mode.
+The kernel ignores the position argument and always appends the data to
+the end of the file.
+
+Modifying a file rather than replacing it may require a flags mode of `'r+'`
+rather than the default mode `'w'`.
+
+The behavior of some flags are platform-specific. As such, opening a directory
+on macOS and Linux with the `'a+'` flag - see example below - will return an
+error. In contrast, on Windows and FreeBSD, a file descriptor or a `FileHandle`
+will be returned.
+
+```js
+// macOS and Linux
+fs.open('<directory>', 'a+', (err, fd) => {
+  // => [Error: EISDIR: illegal operation on a directory, open <directory>]
+});
+
+// Windows and FreeBSD
+fs.open('<directory>', 'a+', (err, fd) => {
+  // => null, <fd>
+});
+```
+
+On Windows, opening an existing hidden file using the `'w'` flag (either
+through `fs.open()` or `fs.writeFile()` or `fsPromises.open()`) will fail with
+`EPERM`. Existing hidden files can be opened for writing with the `'r+'` flag.
+
+A call to `fs.ftruncate()` or `fsPromises.ftruncate()` can be used to reset
+the file contents.
 
 [`AHAFS`]: https://www.ibm.com/developerworks/aix/library/au-aix_event_infrastructure/
 [`Buffer.byteLength`]: buffer.html#buffer_class_method_buffer_bytelength_string_encoding
 [`Buffer`]: buffer.html#buffer_buffer
-[`FSEvents`]: https://developer.apple.com/library/mac/documentation/Darwin/Conceptual/FSEvents_ProgGuide/Introduction/Introduction.html#//apple_ref/doc/uid/TP40005289-CH1-SW1
+[`FSEvents`]: https://developer.apple.com/documentation/coreservices/file_system_events
 [`ReadDirectoryChangesW`]: https://msdn.microsoft.com/en-us/library/windows/desktop/aa365465%28v=vs.85%29.aspx
 [`ReadStream`]: #fs_class_fs_readstream
 [`URL`]: url.html#url_the_whatwg_url_api
+[`UV_THREADPOOL_SIZE`]: cli.html#cli_uv_threadpool_size_size
 [`WriteStream`]: #fs_class_fs_writestream
+[`EventEmitter`]: events.html
 [`event ports`]: http://illumos.org/man/port_create
 [`fs.FSWatcher`]: #fs_class_fs_fswatcher
 [`fs.Stats`]: #fs_class_fs_stats
 [`fs.access()`]: #fs_fs_access_path_mode_callback
-[`fs.appendFile()`]: fs.html#fs_fs_appendfile_file_data_options_callback
+[`fs.chmod()`]: #fs_fs_chmod_path_mode_callback
+[`fs.chown()`]: #fs_fs_chown_path_uid_gid_callback
+[`fs.copyFile()`]: #fs_fs_copyfile_src_dest_flags_callback
 [`fs.exists()`]: fs.html#fs_fs_exists_path_callback
-[`fs.fstat()`]: #fs_fs_fstat_fd_callback
+[`fs.fstat()`]: #fs_fs_fstat_fd_options_callback
 [`fs.futimes()`]: #fs_fs_futimes_fd_atime_mtime_callback
-[`fs.lstat()`]: #fs_fs_lstat_path_callback
+[`fs.lstat()`]: #fs_fs_lstat_path_options_callback
+[`fs.mkdir()`]: #fs_fs_mkdir_path_mode_callback
 [`fs.mkdtemp()`]: #fs_fs_mkdtemp_prefix_options_callback
 [`fs.open()`]: #fs_fs_open_path_flags_mode_callback
 [`fs.read()`]: #fs_fs_read_fd_buffer_offset_length_position_callback
 [`fs.readFile()`]: #fs_fs_readfile_path_options_callback
 [`fs.readFileSync()`]: #fs_fs_readfilesync_path_options
-[`fs.stat()`]: #fs_fs_stat_path_callback
+[`fs.realpath()`]: #fs_fs_realpath_path_options_callback
+[`fs.rmdir()`]: #fs_fs_rmdir_path_callback
+[`fs.stat()`]: #fs_fs_stat_path_options_callback
 [`fs.utimes()`]: #fs_fs_utimes_path_atime_mtime_callback
 [`fs.watch()`]: #fs_fs_watch_filename_options_listener
 [`fs.write()`]: #fs_fs_write_fd_buffer_offset_length_position_callback
 [`fs.writeFile()`]: #fs_fs_writefile_file_data_options_callback
-[`inotify`]: http://man7.org/linux/man-pages/man7/inotify.7.html
-[`kqueue`]: https://www.freebsd.org/cgi/man.cgi?kqueue
+[`inotify(7)`]: http://man7.org/linux/man-pages/man7/inotify.7.html
+[`kqueue(2)`]: https://www.freebsd.org/cgi/man.cgi?query=kqueue&sektion=2
 [`net.Socket`]: net.html#net_class_net_socket
-[`stat()`]: fs.html#fs_fs_stat_path_callback
-[`util.inspect(stats)`]: util.html#util_util_inspect_object_options
+[`stat()`]: fs.html#fs_fs_stat_path_options_callback
 [`util.promisify()`]: util.html#util_util_promisify_original
 [Caveats]: #fs_caveats
 [Common System Errors]: errors.html#errors_common_system_errors
 [FS Constants]: #fs_fs_constants_1
-[MDN-Date]: https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Date
+[MDN-Date]: https://developer.mozilla.org/en-US/JavaScript/Reference/Global_Objects/Date
 [MDN-Number]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type
-[MSDN-Rel-Path]: https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247.aspx#fully_qualified_vs._relative_paths
-[Readable Stream]: stream.html#stream_class_stream_readable
+[MSDN-Rel-Path]: https://docs.microsoft.com/en-us/windows/desktop/FileIO/naming-a-file#fully-qualified-vs-relative-paths
+[Readable Streams]: stream.html#stream_class_stream_readable
 [Writable Stream]: stream.html#stream_class_stream_writable
 [inode]: https://en.wikipedia.org/wiki/Inode
 [Naming Files, Paths, and Namespaces]: https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
 [MSDN-Using-Streams]: https://msdn.microsoft.com/en-us/library/windows/desktop/bb540537.aspx
+[support of file system `flags`]: #fs_file_system_flags
+[File Access Constants]: #fs_file_access_constants

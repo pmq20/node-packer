@@ -21,20 +21,69 @@
 
 'use strict';
 
+const {
+  isStackOverflowError,
+  codes: {
+    ERR_CONSOLE_WRITABLE_STREAM,
+    ERR_INVALID_ARG_TYPE,
+    ERR_INVALID_ARG_VALUE,
+  },
+} = require('internal/errors');
+const { previewEntries } = process.binding('util');
+const { Buffer: { isBuffer } } = require('buffer');
 const util = require('util');
+const {
+  isTypedArray, isSet, isMap, isSetIterator, isMapIterator,
+} = util.types;
 const kCounts = Symbol('counts');
 
-function Console(stdout, stderr, ignoreErrors = true) {
+const {
+  keys: ObjectKeys,
+  values: ObjectValues,
+} = Object;
+const hasOwnProperty = Function.call.bind(Object.prototype.hasOwnProperty);
+
+const {
+  isArray: ArrayIsArray,
+  from: ArrayFrom,
+} = Array;
+
+// Lazy loaded for startup performance.
+let cliTable;
+
+// Track amount of indentation required via `console.group()`.
+const kGroupIndent = Symbol('kGroupIndent');
+
+const kFormatForStderr = Symbol('kFormatForStderr');
+const kFormatForStdout = Symbol('kFormatForStdout');
+const kGetInspectOptions = Symbol('kGetInspectOptions');
+const kColorMode = Symbol('kColorMode');
+
+function Console(options /* or: stdout, stderr, ignoreErrors = true */) {
   if (!(this instanceof Console)) {
-    return new Console(stdout, stderr, ignoreErrors);
+    return new Console(...arguments);
   }
+
+  if (!options || typeof options.write === 'function') {
+    options = {
+      stdout: options,
+      stderr: arguments[1],
+      ignoreErrors: arguments[2]
+    };
+  }
+
+  const {
+    stdout,
+    stderr = stdout,
+    ignoreErrors = true,
+    colorMode = 'auto'
+  } = options;
+
   if (!stdout || typeof stdout.write !== 'function') {
-    throw new TypeError('Console expects a writable stream instance');
+    throw new ERR_CONSOLE_WRITABLE_STREAM('stdout');
   }
-  if (!stderr) {
-    stderr = stdout;
-  } else if (typeof stderr.write !== 'function') {
-    throw new TypeError('Console expects writable stream instances');
+  if (!stderr || typeof stderr.write !== 'function') {
+    throw new ERR_CONSOLE_WRITABLE_STREAM('stderr');
   }
 
   var prop = {
@@ -46,7 +95,7 @@ function Console(stdout, stderr, ignoreErrors = true) {
   Object.defineProperty(this, '_stdout', prop);
   prop.value = stderr;
   Object.defineProperty(this, '_stderr', prop);
-  prop.value = ignoreErrors;
+  prop.value = Boolean(ignoreErrors);
   Object.defineProperty(this, '_ignoreErrors', prop);
   prop.value = new Map();
   Object.defineProperty(this, '_times', prop);
@@ -55,7 +104,14 @@ function Console(stdout, stderr, ignoreErrors = true) {
   prop.value = createWriteErrorHandler(stderr);
   Object.defineProperty(this, '_stderrErrorHandler', prop);
 
+  if (typeof colorMode !== 'boolean' && colorMode !== 'auto')
+    throw new ERR_INVALID_ARG_VALUE('colorMode', colorMode);
+
   this[kCounts] = new Map();
+  this[kColorMode] = colorMode;
+
+  Object.defineProperty(this, kGroupIndent, { writable: true });
+  this[kGroupIndent] = '';
 
   // bind the prototype functions to this Console instance
   var keys = Object.keys(Console.prototype);
@@ -71,18 +127,29 @@ function createWriteErrorHandler(stream) {
     // This conditional evaluates to true if and only if there was an error
     // that was not already emitted (which happens when the _write callback
     // is invoked asynchronously).
-    if (err && !stream._writableState.errorEmitted) {
+    if (err !== null && !stream._writableState.errorEmitted) {
       // If there was an error, it will be emitted on `stream` as
       // an `error` event. Adding a `once` listener will keep that error
       // from becoming an uncaught exception, but since the handler is
-      // removed after the event, non-console.* writes won’t be affected.
-      stream.once('error', noop);
+      // removed after the event, non-console.* writes won't be affected.
+      // we are only adding noop if there is no one else listening for 'error'
+      if (stream.listenerCount('error') === 0) {
+        stream.on('error', noop);
+      }
     }
   };
 }
 
-function write(ignoreErrors, stream, string, errorhandler) {
-  if (!ignoreErrors) return stream.write(string);
+function write(ignoreErrors, stream, string, errorhandler, groupIndent) {
+  if (groupIndent.length !== 0) {
+    if (string.indexOf('\n') !== -1) {
+      string = string.replace(/\n/g, `\n${groupIndent}`);
+    }
+    string = groupIndent + string;
+  }
+  string += '\n';
+
+  if (ignoreErrors === false) return stream.write(string);
 
   // There may be an error occurring synchronously (e.g. for files or TTYs
   // on POSIX systems) or asynchronously (e.g. pipes on POSIX systems), so
@@ -95,55 +162,77 @@ function write(ignoreErrors, stream, string, errorhandler) {
   } catch (e) {
     // console is a debugging utility, so it swallowing errors is not desirable
     // even in edge cases such as low stack space.
-    if (e.message === 'Maximum call stack size exceeded')
+    if (isStackOverflowError(e))
       throw e;
-    // Sorry, there’s no proper way to pass along the error here.
+    // Sorry, there's no proper way to pass along the error here.
   } finally {
     stream.removeListener('error', noop);
   }
 }
 
+const kColorInspectOptions = { colors: true };
+const kNoColorInspectOptions = {};
+Console.prototype[kGetInspectOptions] = function(stream) {
+  let color = this[kColorMode];
+  if (color === 'auto') {
+    color = stream.isTTY && (
+      typeof stream.getColorDepth === 'function' ?
+        stream.getColorDepth() > 2 : true);
+  }
 
-// As of v8 5.0.71.32, the combination of rest param, template string
-// and .apply(null, args) benchmarks consistently faster than using
-// the spread operator when calling util.format.
+  return color ? kColorInspectOptions : kNoColorInspectOptions;
+};
+
+Console.prototype[kFormatForStdout] = function(args) {
+  const opts = this[kGetInspectOptions](this._stdout);
+  return util.formatWithOptions(opts, ...args);
+};
+
+Console.prototype[kFormatForStderr] = function(args) {
+  const opts = this[kGetInspectOptions](this._stderr);
+  return util.formatWithOptions(opts, ...args);
+};
+
 Console.prototype.log = function log(...args) {
   write(this._ignoreErrors,
         this._stdout,
-        `${util.format.apply(null, args)}\n`,
-        this._stdoutErrorHandler);
+        this[kFormatForStdout](args),
+        this._stdoutErrorHandler,
+        this[kGroupIndent]);
 };
-
-
+Console.prototype.debug = Console.prototype.log;
 Console.prototype.info = Console.prototype.log;
-
+Console.prototype.dirxml = Console.prototype.log;
 
 Console.prototype.warn = function warn(...args) {
   write(this._ignoreErrors,
         this._stderr,
-        `${util.format.apply(null, args)}\n`,
-        this._stderrErrorHandler);
+        this[kFormatForStderr](args),
+        this._stderrErrorHandler,
+        this[kGroupIndent]);
 };
-
-
 Console.prototype.error = Console.prototype.warn;
 
-
 Console.prototype.dir = function dir(object, options) {
-  options = Object.assign({customInspect: false}, options);
+  options = Object.assign({
+    customInspect: false
+  }, this[kGetInspectOptions](this._stdout), options);
   write(this._ignoreErrors,
         this._stdout,
-        `${util.inspect(object, options)}\n`,
-        this._stdoutErrorHandler);
+        util.inspect(object, options),
+        this._stdoutErrorHandler,
+        this[kGroupIndent]);
 };
 
-
-Console.prototype.time = function time(label) {
+Console.prototype.time = function time(label = 'default') {
+  // Coerces everything other than Symbol to a string
+  label = `${label}`;
   this._times.set(label, process.hrtime());
 };
 
-
-Console.prototype.timeEnd = function timeEnd(label) {
+Console.prototype.timeEnd = function timeEnd(label = 'default') {
+  // Coerces everything other than Symbol to a string
+  label = `${label}`;
   const time = this._times.get(label);
   if (!time) {
     process.emitWarning(`No such label '${label}' for console.timeEnd()`);
@@ -155,20 +244,19 @@ Console.prototype.timeEnd = function timeEnd(label) {
   this._times.delete(label);
 };
 
-
 Console.prototype.trace = function trace(...args) {
   const err = {
     name: 'Trace',
-    message: util.format.apply(null, args)
+    message: this[kFormatForStderr](args)
   };
   Error.captureStackTrace(err, trace);
   this.error(err.stack);
 };
 
-
 Console.prototype.assert = function assert(expression, ...args) {
   if (!expression) {
-    require('assert').ok(false, util.format.apply(null, args));
+    args[0] = `Assertion failed${args.length === 0 ? '' : `: ${args[0]}`}`;
+    this.warn(this[kFormatForStderr](args));
   }
 };
 
@@ -209,7 +297,129 @@ Console.prototype.countReset = function countReset(label = 'default') {
   counts.delete(`${label}`);
 };
 
-module.exports = new Console(process.stdout, process.stderr);
+Console.prototype.group = function group(...data) {
+  if (data.length > 0) {
+    this.log(...data);
+  }
+  this[kGroupIndent] += '  ';
+};
+Console.prototype.groupCollapsed = Console.prototype.group;
+
+Console.prototype.groupEnd = function groupEnd() {
+  this[kGroupIndent] =
+    this[kGroupIndent].slice(0, this[kGroupIndent].length - 2);
+};
+
+const keyKey = 'Key';
+const valuesKey = 'Values';
+const indexKey = '(index)';
+const iterKey = '(iteration index)';
+
+
+const isArray = (v) => ArrayIsArray(v) || isTypedArray(v) || isBuffer(v);
+
+// https://console.spec.whatwg.org/#table
+Console.prototype.table = function(tabularData, properties) {
+  if (properties !== undefined && !ArrayIsArray(properties))
+    throw new ERR_INVALID_ARG_TYPE('properties', 'Array', properties);
+
+  if (tabularData == null || typeof tabularData !== 'object')
+    return this.log(tabularData);
+
+  if (cliTable === undefined) cliTable = require('internal/cli_table');
+  const final = (k, v) => this.log(cliTable(k, v));
+
+  const inspect = (v) => {
+    const opt = { depth: 0, maxArrayLength: 3 };
+    if (v !== null && typeof v === 'object' &&
+      !isArray(v) && ObjectKeys(v).length > 2)
+      opt.depth = -1;
+    Object.assign(opt, this[kGetInspectOptions](this._stdout));
+    return util.inspect(v, opt);
+  };
+  const getIndexArray = (length) => ArrayFrom({ length }, (_, i) => inspect(i));
+
+  const mapIter = isMapIterator(tabularData);
+  if (mapIter)
+    tabularData = previewEntries(tabularData);
+
+  if (mapIter || isMap(tabularData)) {
+    const keys = [];
+    const values = [];
+    let length = 0;
+    for (const [k, v] of tabularData) {
+      keys.push(inspect(k));
+      values.push(inspect(v));
+      length++;
+    }
+    return final([
+      iterKey, keyKey, valuesKey
+    ], [
+      getIndexArray(length),
+      keys,
+      values,
+    ]);
+  }
+
+  const setIter = isSetIterator(tabularData);
+  if (setIter)
+    tabularData = previewEntries(tabularData);
+
+  const setlike = setIter || isSet(tabularData);
+  if (setlike) {
+    const values = [];
+    let length = 0;
+    for (const v of tabularData) {
+      values.push(inspect(v));
+      length++;
+    }
+    return final([setlike ? iterKey : indexKey, valuesKey], [
+      getIndexArray(length),
+      values,
+    ]);
+  }
+
+  const map = {};
+  let hasPrimitives = false;
+  const valuesKeyArray = [];
+  const indexKeyArray = ObjectKeys(tabularData);
+
+  for (var i = 0; i < indexKeyArray.length; i++) {
+    const item = tabularData[indexKeyArray[i]];
+    const primitive = item === null ||
+        (typeof item !== 'function' && typeof item !== 'object');
+    if (properties === undefined && primitive) {
+      hasPrimitives = true;
+      valuesKeyArray[i] = inspect(item);
+    } else {
+      const keys = properties || ObjectKeys(item);
+      for (const key of keys) {
+        if (map[key] === undefined)
+          map[key] = [];
+        if ((primitive && properties) || !hasOwnProperty(item, key))
+          map[key][i] = '';
+        else
+          map[key][i] = item == null ? item : inspect(item[key]);
+      }
+    }
+  }
+
+  const keys = ObjectKeys(map);
+  const values = ObjectValues(map);
+  if (hasPrimitives) {
+    keys.push(valuesKey);
+    values.push(valuesKeyArray);
+  }
+  keys.unshift(indexKey);
+  values.unshift(indexKeyArray);
+
+  return final(keys, values);
+};
+
+module.exports = new Console({
+  stdout: process.stdout,
+  stderr: process.stderr
+});
 module.exports.Console = Console;
 
 function noop() {}

@@ -33,23 +33,90 @@
 
 namespace {
 size_t gNextCodeObject = 0;
+
+#ifdef DEBUG
+constexpr bool kEnableDebug = true;
+#else
+constexpr bool kEnableDebug = false;
+#endif
 }
 
 namespace v8 {
 namespace internal {
 namespace trap_handler {
 
-const size_t kInitialCodeObjectSize = 1024;
-const size_t kCodeObjectGrowthFactor = 2;
+constexpr size_t kInitialCodeObjectSize = 1024;
+constexpr size_t kCodeObjectGrowthFactor = 2;
 
 constexpr size_t HandlerDataSize(size_t num_protected_instructions) {
   return offsetof(CodeProtectionInfo, instructions) +
          num_protected_instructions * sizeof(ProtectedInstructionData);
 }
 
+namespace {
+#ifdef DEBUG
+bool IsDisjoint(const CodeProtectionInfo* a, const CodeProtectionInfo* b) {
+  if (a == nullptr || b == nullptr) {
+    return true;
+  }
+
+  const auto a_base = reinterpret_cast<uintptr_t>(a->base);
+  const auto b_base = reinterpret_cast<uintptr_t>(b->base);
+
+  return a_base >= b_base + b->size || b_base >= a_base + a->size;
+}
+#endif
+
+// Verify that the code range does not overlap any that have already been
+// registered.
+void VerifyCodeRangeIsDisjoint(const CodeProtectionInfo* code_info) {
+  for (size_t i = 0; i < gNumCodeObjects; ++i) {
+    DCHECK(IsDisjoint(code_info, gCodeObjects[i].code_info));
+  }
+}
+
+void ValidateCodeObjects() {
+  // Sanity-check the code objects
+  for (unsigned i = 0; i < gNumCodeObjects; ++i) {
+    const auto* data = gCodeObjects[i].code_info;
+
+    if (data == nullptr) continue;
+
+    // Do some sanity checks on the protected instruction data
+    for (unsigned i = 0; i < data->num_protected_instructions; ++i) {
+      DCHECK_GE(data->instructions[i].instr_offset, 0);
+      DCHECK_LT(data->instructions[i].instr_offset, data->size);
+      DCHECK_GE(data->instructions[i].landing_offset, 0);
+      DCHECK_LT(data->instructions[i].landing_offset, data->size);
+      DCHECK_GT(data->instructions[i].landing_offset,
+                data->instructions[i].instr_offset);
+    }
+  }
+
+  // Check the validity of the free list.
+  size_t free_count = 0;
+  for (size_t i = gNextCodeObject; i != gNumCodeObjects;
+       i = gCodeObjects[i].next_free) {
+    DCHECK_LT(i, gNumCodeObjects);
+    ++free_count;
+    // This check will fail if we encounter a cycle.
+    DCHECK_LE(free_count, gNumCodeObjects);
+  }
+
+  // Check that all free entries are reachable via the free list.
+  size_t free_count2 = 0;
+  for (size_t i = 0; i < gNumCodeObjects; ++i) {
+    if (gCodeObjects[i].code_info == nullptr) {
+      ++free_count2;
+    }
+  }
+  DCHECK_EQ(free_count, free_count2);
+}
+}  // namespace
+
 CodeProtectionInfo* CreateHandlerData(
     void* base, size_t size, size_t num_protected_instructions,
-    ProtectedInstructionData* protected_instructions) {
+    const ProtectedInstructionData* protected_instructions) {
   const size_t alloc_size = HandlerDataSize(num_protected_instructions);
   CodeProtectionInfo* data =
       reinterpret_cast<CodeProtectionInfo*>(malloc(alloc_size));
@@ -68,18 +135,9 @@ CodeProtectionInfo* CreateHandlerData(
   return data;
 }
 
-void UpdateHandlerDataCodePointer(int index, void* base) {
-  MetadataLock lock;
-  if (static_cast<size_t>(index) >= gNumCodeObjects) {
-    abort();
-  }
-  CodeProtectionInfo* data = gCodeObjects[index].code_info;
-  data->base = base;
-}
-
-int RegisterHandlerData(void* base, size_t size,
-                        size_t num_protected_instructions,
-                        ProtectedInstructionData* protected_instructions) {
+int RegisterHandlerData(
+    void* base, size_t size, size_t num_protected_instructions,
+    const ProtectedInstructionData* protected_instructions) {
   // TODO(eholk): in debug builds, make sure this data isn't already registered.
 
   CodeProtectionInfo* data = CreateHandlerData(
@@ -90,6 +148,10 @@ int RegisterHandlerData(void* base, size_t size,
   }
 
   MetadataLock lock;
+
+  if (kEnableDebug) {
+    VerifyCodeRangeIsDisjoint(data);
+  }
 
   size_t i = gNextCodeObject;
 
@@ -111,7 +173,8 @@ int RegisterHandlerData(void* base, size_t size,
       new_size = int_max;
     }
     if (new_size == gNumCodeObjects) {
-      return -1;
+      free(data);
+      return kInvalidIndex;
     }
 
     // Now that we know our new size is valid, we can go ahead and realloc the
@@ -125,31 +188,37 @@ int RegisterHandlerData(void* base, size_t size,
 
     memset(gCodeObjects + gNumCodeObjects, 0,
            sizeof(*gCodeObjects) * (new_size - gNumCodeObjects));
+    for (size_t j = gNumCodeObjects; j < new_size; ++j) {
+      gCodeObjects[j].next_free = j + 1;
+    }
     gNumCodeObjects = new_size;
   }
 
   DCHECK(gCodeObjects[i].code_info == nullptr);
 
   // Find out where the next entry should go.
-  if (gCodeObjects[i].next_free == 0) {
-    // if this is a fresh entry, use the next one.
-    gNextCodeObject = i + 1;
-    DCHECK(gNextCodeObject == gNumCodeObjects ||
-           (gCodeObjects[gNextCodeObject].code_info == nullptr &&
-            gCodeObjects[gNextCodeObject].next_free == 0));
-  } else {
-    gNextCodeObject = gCodeObjects[i].next_free - 1;
-  }
+  gNextCodeObject = gCodeObjects[i].next_free;
 
   if (i <= int_max) {
     gCodeObjects[i].code_info = data;
+
+    if (kEnableDebug) {
+      ValidateCodeObjects();
+    }
+
     return static_cast<int>(i);
   } else {
-    return -1;
+    free(data);
+    return kInvalidIndex;
   }
 }
 
 void ReleaseHandlerData(int index) {
+  if (index == kInvalidIndex) {
+    return;
+  }
+  DCHECK_GE(index, 0);
+
   // Remove the data from the global list if it's there.
   CodeProtectionInfo* data = nullptr;
   {
@@ -158,17 +227,23 @@ void ReleaseHandlerData(int index) {
     data = gCodeObjects[index].code_info;
     gCodeObjects[index].code_info = nullptr;
 
-    // +1 because we reserve {next_entry == 0} to indicate a fresh list entry.
-    gCodeObjects[index].next_free = gNextCodeObject + 1;
+    gCodeObjects[index].next_free = gNextCodeObject;
     gNextCodeObject = index;
+
+    if (kEnableDebug) {
+      ValidateCodeObjects();
+    }
   }
   // TODO(eholk): on debug builds, ensure there are no more copies in
   // the list.
+  DCHECK_NOT_NULL(data);  // make sure we're releasing legitimate handler data.
   free(data);
 }
 
 bool RegisterDefaultSignalHandler() {
 #if V8_TRAP_HANDLER_SUPPORTED
+  CHECK(!g_is_default_signal_handler_registered);
+
   struct sigaction action;
   action.sa_sigaction = HandleSignal;
   action.sa_flags = SA_SIGINFO;
@@ -176,14 +251,53 @@ bool RegisterDefaultSignalHandler() {
   // {sigaction} installs a new custom segfault handler. On success, it returns
   // 0. If we get a nonzero value, we report an error to the caller by returning
   // false.
-  if (sigaction(SIGSEGV, &action, nullptr) != 0) {
+  if (sigaction(SIGSEGV, &action, &g_old_handler) != 0) {
     return false;
   }
 
+// Sanitizers often prevent us from installing our own signal handler. Attempt
+// to detect this and if so, refuse to enable trap handling.
+//
+// TODO(chromium:830894): Remove this once all bots support custom signal
+// handlers.
+#if defined(ADDRESS_SANITIZER) || defined(MEMORY_SANITIZER) || \
+    defined(THREAD_SANITIZER) || defined(LEAK_SANITIZER) ||    \
+    defined(UNDEFINED_SANITIZER)
+  struct sigaction installed_handler;
+  CHECK_EQ(sigaction(SIGSEGV, NULL, &installed_handler), 0);
+  // If the installed handler does not point to HandleSignal, then
+  // allow_user_segv_handler is 0.
+  if (installed_handler.sa_sigaction != HandleSignal) {
+    printf(
+        "WARNING: sanitizers are preventing signal handler installation. "
+        "Trap handlers are disabled.");
+    return false;
+  }
+#endif
+
+  g_is_default_signal_handler_registered = true;
   return true;
 #else
   return false;
 #endif
+}
+
+size_t GetRecoveredTrapCount() {
+  return gRecoveredTrapCount.load(std::memory_order_relaxed);
+}
+
+bool g_is_trap_handler_enabled;
+
+bool EnableTrapHandler(bool use_v8_signal_handler) {
+  if (!V8_TRAP_HANDLER_SUPPORTED) {
+    return false;
+  }
+  if (use_v8_signal_handler) {
+    g_is_trap_handler_enabled = RegisterDefaultSignalHandler();
+    return g_is_trap_handler_enabled;
+  }
+  g_is_trap_handler_enabled = true;
+  return true;
 }
 
 }  // namespace trap_handler

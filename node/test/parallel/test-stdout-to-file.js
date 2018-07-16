@@ -4,13 +4,14 @@ const assert = require('assert');
 const path = require('path');
 const childProcess = require('child_process');
 const fs = require('fs');
+const fixtures = require('../common/fixtures');
+const tmpdir = require('../common/tmpdir');
 
-const scriptString = path.join(common.fixturesDir, 'print-chars.js');
-const scriptBuffer = path.join(common.fixturesDir,
-                               'print-chars-from-buffer.js');
-const tmpFile = path.join(common.tmpDir, 'stdout.txt');
+const scriptString = fixtures.path('print-chars.js');
+const scriptBuffer = fixtures.path('print-chars-from-buffer.js');
+const tmpFile = path.join(tmpdir.path, 'stdout.txt');
 
-common.refreshTmpDir();
+tmpdir.refresh();
 
 function test(size, useBuffer, cb) {
   const cmd = `"${process.argv[0]}" "${

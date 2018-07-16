@@ -29,13 +29,6 @@ FOR_EACH_INTRINSIC_RETURN_OBJECT(F)
 FOR_EACH_INTRINSIC_RETURN_PAIR(P)
 #undef P
 
-#define T(name, number_of_args, result_size)                         \
-  ObjectTriple Runtime_##name(int args_length, Object** args_object, \
-                              Isolate* isolate);
-FOR_EACH_INTRINSIC_RETURN_TRIPLE(T)
-#undef T
-
-
 #define F(name, number_of_args, result_size)                                  \
   {                                                                           \
     Runtime::k##name, Runtime::RUNTIME, #name, FUNCTION_ADDR(Runtime_##name), \
@@ -105,6 +98,39 @@ void InitializeIntrinsicFunctionNames() {
 
 }  // namespace
 
+bool Runtime::IsNonReturning(FunctionId id) {
+  switch (id) {
+    case Runtime::kThrowUnsupportedSuperError:
+    case Runtime::kThrowConstructorNonCallableError:
+    case Runtime::kThrowStaticPrototypeError:
+    case Runtime::kThrowSuperAlreadyCalledError:
+    case Runtime::kThrowSuperNotCalled:
+    case Runtime::kReThrow:
+    case Runtime::kThrow:
+    case Runtime::kThrowApplyNonFunction:
+    case Runtime::kThrowCalledNonCallable:
+    case Runtime::kThrowConstructedNonConstructable:
+    case Runtime::kThrowConstructorReturnedNonObject:
+    case Runtime::kThrowInvalidStringLength:
+    case Runtime::kThrowInvalidTypedArrayAlignment:
+    case Runtime::kThrowIteratorResultNotAnObject:
+    case Runtime::kThrowThrowMethodMissing:
+    case Runtime::kThrowSymbolIteratorInvalid:
+    case Runtime::kThrowNotConstructor:
+    case Runtime::kThrowRangeError:
+    case Runtime::kThrowReferenceError:
+    case Runtime::kThrowStackOverflow:
+    case Runtime::kThrowSymbolAsyncIteratorInvalid:
+    case Runtime::kThrowTypeError:
+    case Runtime::kThrowConstAssignError:
+    case Runtime::kThrowWasmError:
+    case Runtime::kThrowWasmStackOverflow:
+      return true;
+    default:
+      return false;
+  }
+}
+
 const Runtime::Function* Runtime::FunctionForName(const unsigned char* name,
                                                   int length) {
   base::CallOnce(&initialize_function_name_map_once,
@@ -115,7 +141,7 @@ const Runtime::Function* Runtime::FunctionForName(const unsigned char* name,
   if (entry) {
     return reinterpret_cast<Function*>(entry->value);
   }
-  return NULL;
+  return nullptr;
 }
 
 
@@ -125,7 +151,7 @@ const Runtime::Function* Runtime::FunctionForEntry(Address entry) {
       return &(kIntrinsicFunctions[i]);
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 

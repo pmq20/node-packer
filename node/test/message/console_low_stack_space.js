@@ -1,8 +1,11 @@
 'use strict';
-// copy console accessor because requiring ../common touches it
+// Copy console accessor because requiring ../common touches it
 const consoleDescriptor = Object.getOwnPropertyDescriptor(global, 'console');
-delete global.console;
-global.console = {};
+Object.defineProperty(global, 'console', {
+  configurable: true,
+  writable: true,
+  value: {}
+});
 
 require('../common');
 
@@ -16,7 +19,7 @@ function a() {
   try {
     return a();
   } catch (e) {
-    compiledConsole = consoleDescriptor.get();
+    compiledConsole = consoleDescriptor.value;
     if (compiledConsole.log) {
       // Using `console.log` itself might not succeed yet, but the code for it
       // has been compiled.

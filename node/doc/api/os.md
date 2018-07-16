@@ -1,5 +1,7 @@
 # OS
 
+<!--introduced_in=v0.10.0-->
+
 > Stability: 2 - Stable
 
 The `os` module provides a number of operating system-related utility methods.
@@ -29,11 +31,10 @@ added: v0.5.0
 * Returns: {string}
 
 The `os.arch()` method returns a string identifying the operating system CPU
-architecture *for which the Node.js binary was compiled*.
+architecture for which the Node.js binary was compiled.
 
 The current possible values are: `'arm'`, `'arm64'`, `'ia32'`, `'mips'`,
-`'mipsel'`, `'ppc'`, `'ppc64'`, `'s390'`, `'s390x'`, `'x32'`, `'x64'`,  and
-`'x86'`.
+`'mipsel'`, `'ppc'`, `'ppc64'`, `'s390'`, `'s390x'`, `'x32'`, and `'x64'`.
 
 Equivalent to [`process.arch`][].
 
@@ -46,17 +47,17 @@ added: v6.3.0
 
 Returns an object containing commonly used operating system specific constants
 for error codes, process signals, and so on. The specific constants currently
-defined are described in [OS Constants][].
+defined are described in [OS Constants](#os_os_constants_1).
 
 ## os.cpus()
 <!-- YAML
 added: v0.3.3
 -->
 
-* Returns: {Array}
+* Returns: {Object[]}
 
 The `os.cpus()` method returns an array of objects containing information about
-each CPU/core installed.
+each logical CPU core.
 
 The properties included on each object include:
 
@@ -68,8 +69,6 @@ The properties included on each object include:
   * `sys` {number} The number of milliseconds the CPU has spent in sys mode.
   * `idle` {number} The number of milliseconds the CPU has spent in idle mode.
   * `irq` {number} The number of milliseconds the CPU has spent in irq mode.
-
-For example:
 
 <!-- eslint-disable semi -->
 ```js
@@ -165,8 +164,8 @@ For example:
 ]
 ```
 
-*Note*: Because `nice` values are UNIX-specific, on Windows the `nice` values
-of all processors are always 0.
+Because `nice` values are UNIX-specific, on Windows the `nice` values of all
+processors are always 0.
 
 ## os.endianness()
 <!-- YAML
@@ -218,13 +217,13 @@ string.
 added: v0.3.3
 -->
 
-* Returns: {Array}
+* Returns: {number[]}
 
 The `os.loadavg()` method returns an array containing the 1, 5, and 15 minute
 load averages.
 
 The load average is a measure of system activity, calculated by the operating
-system and expressed as a fractional number.  As a rule of thumb, the load
+system and expressed as a fractional number. As a rule of thumb, the load
 average should ideally be less than the number of logical CPUs in the system.
 
 The load average is a UNIX-specific concept with no real equivalent on
@@ -253,6 +252,9 @@ The properties available on the assigned network address object include:
   similar interface that is not remotely accessible; otherwise `false`
 * `scopeid` {number} The numeric IPv6 scope ID (only specified when `family`
   is `IPv6`)
+* `cidr` {string} The assigned IPv4 or IPv6 address with the routing prefix
+  in CIDR notation. If the `netmask` is invalid, this property is set
+  to `null`.
 
 <!-- eslint-skip -->
 ```js
@@ -263,14 +265,16 @@ The properties available on the assigned network address object include:
       netmask: '255.0.0.0',
       family: 'IPv4',
       mac: '00:00:00:00:00:00',
-      internal: true
+      internal: true,
+      cidr: '127.0.0.1/8'
     },
     {
       address: '::1',
       netmask: 'ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff',
       family: 'IPv6',
       mac: '00:00:00:00:00:00',
-      internal: true
+      internal: true,
+      cidr: '::1/128'
     }
   ],
   eth0: [
@@ -279,14 +283,16 @@ The properties available on the assigned network address object include:
       netmask: '255.255.255.0',
       family: 'IPv4',
       mac: '01:02:03:0a:0b:0c',
-      internal: false
+      internal: false,
+      cidr: '192.168.1.108/24'
     },
     {
       address: 'fe80::a00:27ff:fe4e:66a1',
       netmask: 'ffff:ffff:ffff:ffff::',
       family: 'IPv6',
       mac: '01:02:03:0a:0b:0c',
-      internal: false
+      internal: false,
+      cidr: 'fe80::a00:27ff:fe4e:66a1/64'
     }
   ]
 }
@@ -314,9 +320,9 @@ Currently possible values are:
 
 Equivalent to [`process.platform`][].
 
-*Note*: The value `'android'` may also be returned if the Node.js is built on
-the Android operating system. However, Android support in Node.js is considered
-to be experimental at this time.
+The value `'android'` may also be returned if the Node.js is built on the
+Android operating system. However, Android support in Node.js is considered
+[to be experimental][Android building] at this time.
 
 ## os.release()
 <!-- YAML
@@ -328,8 +334,8 @@ added: v0.3.3
 The `os.release()` method returns a string identifying the operating system
 release.
 
-*Note*: On POSIX systems, the operating system release is determined by
-calling uname(3). On Windows, `GetVersionExW()` is used. Please see
+On POSIX systems, the operating system release is determined by calling
+[uname(3)][]. On Windows, `GetVersionExW()` is used. Please see
 https://en.wikipedia.org/wiki/Uname#Examples for more information.
 
 ## os.tmpdir()
@@ -365,23 +371,26 @@ added: v0.3.3
 * Returns: {string}
 
 The `os.type()` method returns a string identifying the operating system name
-as returned by uname(3). For example `'Linux'` on Linux, `'Darwin'` on macOS and
-`'Windows_NT'` on Windows.
+as returned by [uname(3)][]. For example `'Linux'` on Linux, `'Darwin'` on macOS
+and `'Windows_NT'` on Windows.
 
 Please see https://en.wikipedia.org/wiki/Uname#Examples for additional
-information about the output of running uname(3) on various operating systems.
+information about the output of running [uname(3)][] on various operating
+systems.
 
 ## os.uptime()
 <!-- YAML
 added: v0.3.3
+changes:
+  - version: v10.0.0
+    pr-url: https://github.com/nodejs/node/pull/20129
+    description: The result of this function no longer contains a fraction
+                 component on Windows.
 -->
 
 * Returns: {integer}
 
 The `os.uptime()` method returns the system uptime in number of seconds.
-
-*Note*: On Windows the returned value includes fractions of a second.
-Use `Math.floor()` to get whole seconds.
 
 ## os.userInfo([options])
 <!-- YAML
@@ -391,11 +400,11 @@ added: v6.0.0
 * `options` {Object}
   * `encoding` {string} Character encoding used to interpret resulting strings.
     If `encoding` is set to `'buffer'`, the `username`, `shell`, and `homedir`
-    values will be `Buffer` instances. (Default: 'utf8')
+    values will be `Buffer` instances. **Default:** `'utf8'`.
 * Returns: {Object}
 
 The `os.userInfo()` method returns information about the currently effective
-user -- on POSIX platforms, this is typically a subset of the password file. The
+user — on POSIX platforms, this is typically a subset of the password file. The
 returned object includes the `username`, `uid`, `gid`, `shell`, and `homedir`.
 On Windows, the `uid` and `gid` fields are `-1`, and `shell` is `null`.
 
@@ -408,7 +417,7 @@ operating system response.
 
 The following constants are exported by `os.constants`.
 
-*Note*: Not all constants will be available on every operating system.
+Not all constants will be available on every operating system.
 
 ### Signal Constants
 <!-- YAML
@@ -443,7 +452,7 @@ The following signal constants are exported by `os.constants.signals`:
   <tr>
     <td><code>SIGILL</code></td>
     <td>Sent to a process to notify that it has attempted to perform an illegal,
-    malformed, unknown or privileged instruction.</td>
+    malformed, unknown, or privileged instruction.</td>
   </tr>
   <tr>
     <td><code>SIGTRAP</code></td>
@@ -1105,7 +1114,7 @@ The following error codes are specific to the Windows operating system:
   </tr>
   <tr>
     <td><code>WSAVERNOTSUPPORTED</code></td>
-    <td>Indicates that the winsock.dll version is out of range.</td>
+    <td>Indicates that the `winsock.dll` version is out of range.</td>
   </tr>
   <tr>
     <td><code>WSANOTINITIALISED</code></td>
@@ -1161,6 +1170,43 @@ The following error codes are specific to the Windows operating system:
   </tr>
 </table>
 
+### dlopen Constants
+
+If available on the operating system, the following constants
+are exported in `os.constants.dlopen`. See dlopen(3) for detailed
+information.
+
+<table>
+  <tr>
+    <th>Constant</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td><code>RTLD_LAZY</code></td>
+    <td>Perform lazy binding. Node.js sets this flag by default.</td>
+  </tr>
+  <tr>
+    <td><code>RTLD_NOW</code></td>
+    <td>Resolve all undefined symbols in the library before dlopen(3)
+    returns.</td>
+  </tr>
+  <tr>
+    <td><code>RTLD_GLOBAL</code></td>
+    <td>Symbols defined by the library will be made available for symbol
+    resolution of subsequently loaded libraries.</td>
+  </tr>
+  <tr>
+    <td><code>RTLD_LOCAL</code></td>
+    <td>The converse of `RTLD_GLOBAL`. This is the default behavior if neither
+    flag is specified.</td>
+  </tr>
+  <tr>
+    <td><code>RTLD_DEEPBIND</code></td>
+    <td>Make a self-contained library use its own symbols in preference to
+    symbols from previously loaded libraries.</td>
+  </tr>
+</table>
+
 ### libuv Constants
 
 <table>
@@ -1176,4 +1222,5 @@ The following error codes are specific to the Windows operating system:
 
 [`process.arch`]: process.html#process_process_arch
 [`process.platform`]: process.html#process_process_platform
-[OS Constants]: #os_os_constants
+[Android building]: https://github.com/nodejs/node/blob/master/BUILDING.md#androidandroid-based-devices-eg-firefox-os
+[uname(3)]: https://linux.die.net/man/3/uname

@@ -1,26 +1,32 @@
 'use strict';
 
-const util = require('util');
-
-var _lazyConstants = null;
-
-function lazyConstants() {
-  if (!_lazyConstants) {
-    _lazyConstants = process.binding('constants').os.signals;
+const {
+  errnoException,
+  codes: {
+    ERR_ASSERTION,
+    ERR_CPU_USAGE,
+    ERR_INVALID_ARG_TYPE,
+    ERR_INVALID_ARRAY_LENGTH,
+    ERR_INVALID_OPT_VALUE,
+    ERR_UNCAUGHT_EXCEPTION_CAPTURE_ALREADY_SET,
+    ERR_UNKNOWN_SIGNAL
   }
-  return _lazyConstants;
-}
+} = require('internal/errors');
+const util = require('util');
+const constants = process.binding('constants').os.signals;
+const assert = require('assert').strict;
+const { deprecate } = require('internal/util');
+const { isMainThread } = require('internal/worker');
 
-const assert = process.assert = function(x, msg) {
-  if (!x) throw new Error(msg || 'assertion error');
-};
-
+process.assert = deprecate(
+  function(x, msg) {
+    if (!x) throw new ERR_ASSERTION(msg || 'assertion error');
+  },
+  'process.assert() is deprecated. Please use the `assert` module instead.',
+  'DEP0100');
 
 // Set up the process.cpuUsage() function.
-function setup_cpuUsage() {
-  // Get the native function, which will be replaced with a JS version.
-  const _cpuUsage = process.cpuUsage;
-
+function setup_cpuUsage(_cpuUsage) {
   // Create the argument array that will be passed to the native function.
   const cpuValues = new Float64Array(2);
 
@@ -30,18 +36,31 @@ function setup_cpuUsage() {
     // If a previous value was passed in, ensure it has the correct shape.
     if (prevValue) {
       if (!previousValueIsValid(prevValue.user)) {
-        throw new TypeError('value of user property of argument is invalid');
+        if (typeof prevValue !== 'object')
+          throw new ERR_INVALID_ARG_TYPE('prevValue', 'object', prevValue);
+
+        if (typeof prevValue.user !== 'number') {
+          throw new ERR_INVALID_ARG_TYPE('prevValue.user',
+                                         'number', prevValue.user);
+        }
+        throw new ERR_INVALID_OPT_VALUE.RangeError('prevValue.user',
+                                                   prevValue.user);
       }
 
       if (!previousValueIsValid(prevValue.system)) {
-        throw new TypeError('value of system property of argument is invalid');
+        if (typeof prevValue.system !== 'number') {
+          throw new ERR_INVALID_ARG_TYPE('prevValue.system',
+                                         'number', prevValue.system);
+        }
+        throw new ERR_INVALID_OPT_VALUE.RangeError('prevValue.system',
+                                                   prevValue.system);
       }
     }
 
     // Call the native function to get the current values.
     const errmsg = _cpuUsage(cpuValues);
     if (errmsg) {
-      throw new Error('unable to obtain CPU usage: ' + errmsg);
+      throw new ERR_CPU_USAGE(errmsg);
     }
 
     // If a previous value was passed in, return diff of current from previous.
@@ -57,36 +76,38 @@ function setup_cpuUsage() {
       user: cpuValues[0],
       system: cpuValues[1]
     };
-
-    // Ensure that a previously passed in value is valid. Currently, the native
-    // implementation always returns numbers <= Number.MAX_SAFE_INTEGER.
-    function previousValueIsValid(num) {
-      return Number.isFinite(num) &&
-          num <= Number.MAX_SAFE_INTEGER &&
-          num >= 0;
-    }
   };
+
+  // Ensure that a previously passed in value is valid. Currently, the native
+  // implementation always returns numbers <= Number.MAX_SAFE_INTEGER.
+  function previousValueIsValid(num) {
+    return Number.isFinite(num) &&
+        num <= Number.MAX_SAFE_INTEGER &&
+        num >= 0;
+  }
 }
 
 // The 3 entries filled in by the original process.hrtime contains
 // the upper/lower 32 bits of the second part of the value,
 // and the remaining nanoseconds of the value.
-function setup_hrtime() {
-  const _hrtime = process.hrtime;
+function setup_hrtime(_hrtime) {
   const hrValues = new Uint32Array(3);
 
   process.hrtime = function hrtime(time) {
     _hrtime(hrValues);
 
     if (time !== undefined) {
-      if (Array.isArray(time) && time.length === 2) {
-        const sec = (hrValues[0] * 0x100000000 + hrValues[1]) - time[0];
-        const nsec = hrValues[2] - time[1];
-        const needsBorrow = nsec < 0;
-        return [needsBorrow ? sec - 1 : sec, needsBorrow ? nsec + 1e9 : nsec];
+      if (!Array.isArray(time)) {
+        throw new ERR_INVALID_ARG_TYPE('time', 'Array', time);
+      }
+      if (time.length !== 2) {
+        throw new ERR_INVALID_ARRAY_LENGTH('time', 2, time.length);
       }
 
-      throw new TypeError('process.hrtime() only accepts an Array tuple');
+      const sec = (hrValues[0] * 0x100000000 + hrValues[1]) - time[0];
+      const nsec = hrValues[2] - time[1];
+      const needsBorrow = nsec < 0;
+      return [needsBorrow ? sec - 1 : sec, needsBorrow ? nsec + 1e9 : nsec];
     }
 
     return [
@@ -96,12 +117,11 @@ function setup_hrtime() {
   };
 }
 
-function setupMemoryUsage() {
-  const memoryUsage_ = process.memoryUsage;
+function setupMemoryUsage(_memoryUsage) {
   const memValues = new Float64Array(4);
 
   process.memoryUsage = function memoryUsage() {
-    memoryUsage_(memValues);
+    _memoryUsage(memValues);
     return {
       rss: memValues[0],
       heapTotal: memValues[1],
@@ -114,36 +134,14 @@ function setupMemoryUsage() {
 function setupConfig(_source) {
   // NativeModule._source
   // used for `process.config`, but not a real module
-  var config = _source.config;
+  const config = _source.config;
   delete _source.config;
-
-  // strip the gyp comment line at the beginning
-  config = config.split('\n')
-      .slice(1)
-      .join('\n')
-      .replace(/"/g, '\\"')
-      .replace(/'/g, '"');
 
   process.config = JSON.parse(config, function(key, value) {
     if (value === 'true') return true;
     if (value === 'false') return false;
     return value;
   });
-  const processConfig = process.binding('config');
-  if (typeof Intl !== 'undefined' && Intl.hasOwnProperty('v8BreakIterator')) {
-    const oldV8BreakIterator = Intl.v8BreakIterator;
-    const des = Object.getOwnPropertyDescriptor(Intl, 'v8BreakIterator');
-    des.value = require('internal/util').deprecate(function v8BreakIterator() {
-      if (processConfig.hasSmallICU && !processConfig.icuDataDir) {
-        // Intl.v8BreakIterator() would crash w/ fatal error, so throw instead.
-        throw new Error('v8BreakIterator: full ICU data not installed. ' +
-                        'See https://github.com/nodejs/node/wiki/Intl');
-      }
-      return Reflect.construct(oldV8BreakIterator, arguments);
-    }, 'Intl.v8BreakIterator is deprecated and will be removed soon.',
-                                                   'DEP0017');
-    Object.defineProperty(Intl, 'v8BreakIterator', des);
-  }
 }
 
 
@@ -165,23 +163,23 @@ function setupKillAndExit() {
 
     // eslint-disable-next-line eqeqeq
     if (pid != (pid | 0)) {
-      throw new TypeError('invalid pid');
+      throw new ERR_INVALID_ARG_TYPE('pid', 'number', pid);
     }
 
     // preserve null signal
-    if (0 === sig) {
-      err = process._kill(pid, 0);
+    if (sig === (sig | 0)) {
+      err = process._kill(pid, sig);
     } else {
       sig = sig || 'SIGTERM';
-      if (lazyConstants()[sig]) {
-        err = process._kill(pid, lazyConstants()[sig]);
+      if (constants[sig]) {
+        err = process._kill(pid, constants[sig]);
       } else {
-        throw new Error(`Unknown signal: ${sig}`);
+        throw new ERR_UNKNOWN_SIGNAL(sig);
       }
     }
 
     if (err)
-      throw util._errnoException(err, 'kill');
+      throw errnoException(err, 'kill');
 
     return true;
   };
@@ -189,38 +187,42 @@ function setupKillAndExit() {
 
 
 function setupSignalHandlers() {
-  // Load events module in order to access prototype elements on process like
-  // process.addListener.
-  const signalWraps = {};
+  if (!isMainThread) {
+    // Worker threads don't receive signals.
+    return;
+  }
+
+  const signalWraps = Object.create(null);
+  let Signal;
 
   function isSignal(event) {
-    return typeof event === 'string' && lazyConstants()[event] !== undefined;
+    return typeof event === 'string' && constants[event] !== undefined;
   }
 
   // Detect presence of a listener for the special signal types
-  process.on('newListener', function(type, listener) {
-    if (isSignal(type) &&
-        !signalWraps.hasOwnProperty(type)) {
-      const Signal = process.binding('signal_wrap').Signal;
+  process.on('newListener', function(type) {
+    if (isSignal(type) && signalWraps[type] === undefined) {
+      if (Signal === undefined)
+        Signal = process.binding('signal_wrap').Signal;
       const wrap = new Signal();
 
       wrap.unref();
 
-      wrap.onsignal = function() { process.emit(type); };
+      wrap.onsignal = process.emit.bind(process, type, type);
 
-      const signum = lazyConstants()[type];
+      const signum = constants[type];
       const err = wrap.start(signum);
       if (err) {
         wrap.close();
-        throw util._errnoException(err, 'uv_signal_start');
+        throw errnoException(err, 'uv_signal_start');
       }
 
       signalWraps[type] = wrap;
     }
   });
 
-  process.on('removeListener', function(type, listener) {
-    if (signalWraps.hasOwnProperty(type) && this.listenerCount(type) === 0) {
+  process.on('removeListener', function(type) {
+    if (signalWraps[type] !== undefined && this.listenerCount(type) === 0) {
       signalWraps[type].close();
       delete signalWraps[type];
     }
@@ -238,23 +240,42 @@ function setupChannel() {
     // Make sure it's not accidentally inherited by child processes.
     delete process.env.NODE_CHANNEL_FD;
 
-    const cp = require('child_process');
-
-    // Load tcp_wrap to avoid situation where we might immediately receive
-    // a message.
-    // FIXME is this really necessary?
-    process.binding('tcp_wrap');
-
-    cp._forkChild(fd);
+    require('child_process')._forkChild(fd);
     assert(process.send);
   }
 }
 
 
-function setupRawDebug() {
-  const rawDebug = process._rawDebug;
+function setupRawDebug(_rawDebug) {
   process._rawDebug = function() {
-    rawDebug(util.format.apply(null, arguments));
+    _rawDebug(util.format.apply(null, arguments));
+  };
+}
+
+
+function setupUncaughtExceptionCapture(exceptionHandlerState,
+                                       shouldAbortOnUncaughtToggle) {
+  // shouldAbortOnUncaughtToggle is a typed array for faster
+  // communication with JS.
+
+  process.setUncaughtExceptionCaptureCallback = function(fn) {
+    if (fn === null) {
+      exceptionHandlerState.captureFn = fn;
+      shouldAbortOnUncaughtToggle[0] = 1;
+      return;
+    }
+    if (typeof fn !== 'function') {
+      throw new ERR_INVALID_ARG_TYPE('fn', ['Function', 'null'], fn);
+    }
+    if (exceptionHandlerState.captureFn !== null) {
+      throw new ERR_UNCAUGHT_EXCEPTION_CAPTURE_ALREADY_SET();
+    }
+    exceptionHandlerState.captureFn = fn;
+    shouldAbortOnUncaughtToggle[0] = 0;
+  };
+
+  process.hasUncaughtExceptionCaptureCallback = function() {
+    return exceptionHandlerState.captureFn !== null;
   };
 }
 
@@ -266,5 +287,6 @@ module.exports = {
   setupKillAndExit,
   setupSignalHandlers,
   setupChannel,
-  setupRawDebug
+  setupRawDebug,
+  setupUncaughtExceptionCapture
 };

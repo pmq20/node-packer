@@ -7,7 +7,9 @@
 
 #include "include/libplatform/v8-tracing.h"
 
+#include "src/base/atomicops.h"
 #include "src/base/platform/mutex.h"
+#include "src/base/platform/time.h"
 
 namespace v8 {
 namespace platform {
@@ -40,11 +42,19 @@ v8::base::AtomicWord g_category_index = g_num_builtin_categories;
 
 TracingController::TracingController() {}
 
-TracingController::~TracingController() {}
+TracingController::~TracingController() { StopTracing(); }
 
 void TracingController::Initialize(TraceBuffer* trace_buffer) {
   trace_buffer_.reset(trace_buffer);
   mutex_.reset(new base::Mutex());
+}
+
+int64_t TracingController::CurrentTimestampMicroseconds() {
+  return base::TimeTicks::HighResolutionNow().ToInternalValue();
+}
+
+int64_t TracingController::CurrentCpuTimestampMicroseconds() {
+  return base::ThreadTicks::Now().ToInternalValue();
 }
 
 uint64_t TracingController::AddTraceEvent(
@@ -57,9 +67,28 @@ uint64_t TracingController::AddTraceEvent(
   uint64_t handle;
   TraceObject* trace_object = trace_buffer_->AddTraceEvent(&handle);
   if (trace_object) {
+    trace_object->Initialize(
+        phase, category_enabled_flag, name, scope, id, bind_id, num_args,
+        arg_names, arg_types, arg_values, arg_convertables, flags,
+        CurrentTimestampMicroseconds(), CurrentCpuTimestampMicroseconds());
+  }
+  return handle;
+}
+
+uint64_t TracingController::AddTraceEventWithTimestamp(
+    char phase, const uint8_t* category_enabled_flag, const char* name,
+    const char* scope, uint64_t id, uint64_t bind_id, int num_args,
+    const char** arg_names, const uint8_t* arg_types,
+    const uint64_t* arg_values,
+    std::unique_ptr<v8::ConvertableToTraceFormat>* arg_convertables,
+    unsigned int flags, int64_t timestamp) {
+  uint64_t handle;
+  TraceObject* trace_object = trace_buffer_->AddTraceEvent(&handle);
+  if (trace_object) {
     trace_object->Initialize(phase, category_enabled_flag, name, scope, id,
                              bind_id, num_args, arg_names, arg_types,
-                             arg_values, arg_convertables, flags);
+                             arg_values, arg_convertables, flags, timestamp,
+                             CurrentCpuTimestampMicroseconds());
   }
   return handle;
 }
@@ -68,7 +97,8 @@ void TracingController::UpdateTraceEventDuration(
     const uint8_t* category_enabled_flag, const char* name, uint64_t handle) {
   TraceObject* trace_object = trace_buffer_->GetEventByHandle(handle);
   if (!trace_object) return;
-  trace_object->UpdateDuration();
+  trace_object->UpdateDuration(CurrentTimestampMicroseconds(),
+                               CurrentCpuTimestampMicroseconds());
 }
 
 const uint8_t* TracingController::GetCategoryGroupEnabled(
@@ -98,7 +128,7 @@ const char* TracingController::GetCategoryGroupName(
 
 void TracingController::StartTracing(TraceConfig* trace_config) {
   trace_config_.reset(trace_config);
-  std::unordered_set<Platform::TraceStateObserver*> observers_copy;
+  std::unordered_set<v8::TracingController::TraceStateObserver*> observers_copy;
   {
     base::LockGuard<base::Mutex> lock(mutex_.get());
     mode_ = RECORDING_MODE;
@@ -111,9 +141,13 @@ void TracingController::StartTracing(TraceConfig* trace_config) {
 }
 
 void TracingController::StopTracing() {
+  if (mode_ == DISABLED) {
+    return;
+  }
+  DCHECK(trace_buffer_);
   mode_ = DISABLED;
   UpdateCategoryGroupEnabledFlags();
-  std::unordered_set<Platform::TraceStateObserver*> observers_copy;
+  std::unordered_set<v8::TracingController::TraceStateObserver*> observers_copy;
   {
     base::LockGuard<base::Mutex> lock(mutex_.get());
     observers_copy = observers_;
@@ -140,11 +174,13 @@ void TracingController::UpdateCategoryGroupEnabledFlag(size_t category_index) {
     enabled_flag |= ENABLED_FOR_RECORDING;
   }
 
-  g_category_group_enabled[category_index] = enabled_flag;
+  base::Relaxed_Store(reinterpret_cast<base::Atomic8*>(
+                          g_category_group_enabled + category_index),
+                      enabled_flag);
 }
 
 void TracingController::UpdateCategoryGroupEnabledFlags() {
-  size_t category_index = base::NoBarrier_Load(&g_category_index);
+  size_t category_index = base::Relaxed_Load(&g_category_index);
   for (size_t i = 0; i < category_index; i++) UpdateCategoryGroupEnabledFlag(i);
 }
 
@@ -163,7 +199,7 @@ const uint8_t* TracingController::GetCategoryGroupEnabledInternal(
     }
   }
 
-  unsigned char* category_group_enabled = NULL;
+  unsigned char* category_group_enabled = nullptr;
   size_t category_index = base::Acquire_Load(&g_category_index);
   for (size_t i = 0; i < category_index; ++i) {
     if (strcmp(g_category_groups[i], category_group) == 0) {
@@ -196,7 +232,7 @@ const uint8_t* TracingController::GetCategoryGroupEnabledInternal(
 }
 
 void TracingController::AddTraceStateObserver(
-    Platform::TraceStateObserver* observer) {
+    v8::TracingController::TraceStateObserver* observer) {
   {
     base::LockGuard<base::Mutex> lock(mutex_.get());
     observers_.insert(observer);
@@ -207,7 +243,7 @@ void TracingController::AddTraceStateObserver(
 }
 
 void TracingController::RemoveTraceStateObserver(
-    Platform::TraceStateObserver* observer) {
+    v8::TracingController::TraceStateObserver* observer) {
   base::LockGuard<base::Mutex> lock(mutex_.get());
   DCHECK(observers_.find(observer) != observers_.end());
   observers_.erase(observer);

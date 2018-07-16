@@ -1,9 +1,8 @@
 'use strict';
-require('../common');
 
 // This tests that AsyncResource throws an error if bad parameters are passed
 
-const assert = require('assert');
+const common = require('../common');
 const async_hooks = require('async_hooks');
 const { AsyncResource } = async_hooks;
 
@@ -12,18 +11,30 @@ async_hooks.createHook({
   init() {}
 }).enable();
 
-assert.throws(() => {
+common.expectsError(() => {
   return new AsyncResource();
-}, /^TypeError: type must be a string with length > 0$/);
+}, {
+  code: 'ERR_INVALID_ARG_TYPE',
+  type: TypeError,
+});
 
-assert.throws(() => {
+common.expectsError(() => {
   new AsyncResource('');
-}, /^TypeError: type must be a string with length > 0$/);
+}, {
+  code: 'ERR_ASYNC_TYPE',
+  type: TypeError,
+});
 
-assert.throws(() => {
+common.expectsError(() => {
   new AsyncResource('type', -4);
-}, /^RangeError: triggerAsyncId must be an unsigned integer$/);
+}, {
+  code: 'ERR_INVALID_ASYNC_ID',
+  type: RangeError,
+});
 
-assert.throws(() => {
+common.expectsError(() => {
   new AsyncResource('type', Math.PI);
-}, /^RangeError: triggerAsyncId must be an unsigned integer$/);
+}, {
+  code: 'ERR_INVALID_ASYNC_ID',
+  type: RangeError,
+});

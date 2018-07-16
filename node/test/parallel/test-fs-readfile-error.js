@@ -21,6 +21,10 @@
 
 'use strict';
 const common = require('../common');
+const fs = require('fs');
+
+// Test that fs.readFile fails correctly on a non-existent file.
+
 // `fs.readFile('/')` does not fail on FreeBSD, because you can open and read
 // the directory there.
 if (common.isFreeBSD)
@@ -28,12 +32,12 @@ if (common.isFreeBSD)
 
 const assert = require('assert');
 const exec = require('child_process').exec;
-const path = require('path');
+const fixtures = require('../common/fixtures');
 
 function test(env, cb) {
-  const filename = path.join(common.fixturesDir, 'test-fs-readfile-error.js');
+  const filename = fixtures.path('test-fs-readfile-error.js');
   const execPath = `"${process.execPath}" "${filename}"`;
-  const options = { env: Object.assign(process.env, env) };
+  const options = { env: Object.assign({}, process.env, env) };
   exec(execPath, options, common.mustCall((err, stdout, stderr) => {
     assert(err);
     assert.strictEqual(stdout, '');
@@ -44,10 +48,20 @@ function test(env, cb) {
 
 test({ NODE_DEBUG: '' }, common.mustCall((data) => {
   assert(/EISDIR/.test(data));
-  assert(!/test-fs-readfile-error/.test(data));
+  assert(/test-fs-readfile-error/.test(data));
 }));
 
 test({ NODE_DEBUG: 'fs' }, common.mustCall((data) => {
   assert(/EISDIR/.test(data));
   assert(/test-fs-readfile-error/.test(data));
 }));
+
+common.expectsError(
+  () => { fs.readFile(() => {}, common.mustNotCall()); },
+  {
+    code: 'ERR_INVALID_ARG_TYPE',
+    message: 'The "path" argument must be one of type string, Buffer, or URL.' +
+             ' Received type function',
+    type: TypeError
+  }
+);

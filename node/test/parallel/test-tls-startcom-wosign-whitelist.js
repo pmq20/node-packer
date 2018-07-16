@@ -4,18 +4,13 @@ if (!common.hasCrypto)
   common.skip('missing crypto');
 
 const assert = require('assert');
-const fs = require('fs');
-const path = require('path');
 const tls = require('tls');
+const fixtures = require('../common/fixtures');
 
 let finished = 0;
 
-function filenamePEM(n) {
-  return path.join(common.fixturesDir, 'keys', `${n}.pem`);
-}
-
 function loadPEM(n) {
-  return fs.readFileSync(filenamePEM(n));
+  return fixtures.readKey(`${n}.pem`);
 }
 
 const testCases = [
@@ -30,7 +25,7 @@ const testCases = [
       port: undefined,
       rejectUnauthorized: true
     },
-    errorCode: 'CERT_OK'
+    errorCode: 'CERT_REVOKED'
   },
   { // agent9 is signed by fake-startcom-root with notBefore of
     // Oct 21 00:00:01 2016 GMT. It fails StartCom/WoSign check.
@@ -74,7 +69,7 @@ function runTest(tindex) {
     client.on('secureConnect', function() {
       // agent8 can pass StartCom/WoSign check so that the secureConnect
       // is established.
-      assert.strictEqual(tcase.errorCode, 'CERT_OK');
+      assert.strictEqual(tcase.errorCode, 'CERT_REVOKED');
       client.end();
       runNextTest(server, tindex);
     });

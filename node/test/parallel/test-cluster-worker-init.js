@@ -33,16 +33,16 @@ if (cluster.isMaster) {
   const worker = cluster.fork();
 
   worker.on('message', common.mustCall((message) => {
-    assert.strictEqual(message, true, 'did not receive expected message');
+    assert.strictEqual(message, true);
     const w = worker.disconnect();
-    assert.strictEqual(worker, w, 'did not return a reference');
+    assert.strictEqual(worker, w);
   }));
 
   worker.on('online', () => {
     worker.send(msg);
   });
 } else {
-  // GH #7998
+  // https://github.com/nodejs/node-v0.x-archive/issues/7998
   cluster.worker.on('message', (message) => {
     process.send(message === msg);
   });

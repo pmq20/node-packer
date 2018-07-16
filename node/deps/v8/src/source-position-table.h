@@ -14,8 +14,6 @@
 namespace v8 {
 namespace internal {
 
-class AbstractCode;
-class BytecodeArray;
 class ByteArray;
 template <typename T>
 class Handle;
@@ -37,14 +35,13 @@ class V8_EXPORT_PRIVATE SourcePositionTableBuilder {
  public:
   enum RecordingMode { OMIT_SOURCE_POSITIONS, RECORD_SOURCE_POSITIONS };
 
-  SourcePositionTableBuilder(Zone* zone,
-                             RecordingMode mode = RECORD_SOURCE_POSITIONS);
+  explicit SourcePositionTableBuilder(
+      RecordingMode mode = RECORD_SOURCE_POSITIONS);
 
   void AddPosition(size_t code_offset, SourcePosition source_position,
                    bool is_statement);
 
-  Handle<ByteArray> ToSourcePositionTable(Isolate* isolate,
-                                          Handle<AbstractCode> code);
+  Handle<ByteArray> ToSourcePositionTable(Isolate* isolate);
 
  private:
   void AddEntry(const PositionTableEntry& entry);
@@ -52,16 +49,22 @@ class V8_EXPORT_PRIVATE SourcePositionTableBuilder {
   inline bool Omit() const { return mode_ == OMIT_SOURCE_POSITIONS; }
 
   RecordingMode mode_;
-  ZoneVector<byte> bytes_;
+  std::vector<byte> bytes_;
 #ifdef ENABLE_SLOW_DCHECKS
-  ZoneVector<PositionTableEntry> raw_entries_;
+  std::vector<PositionTableEntry> raw_entries_;
 #endif
   PositionTableEntry previous_;  // Previously written entry, to compute delta.
 };
 
 class V8_EXPORT_PRIVATE SourcePositionTableIterator {
  public:
-  // We expose two flavours of the iterator, depending on the argument passed
+  // Used for saving/restoring the iterator.
+  struct IndexAndPosition {
+    int index_;
+    PositionTableEntry position_;
+  };
+
+  // We expose three flavours of the iterator, depending on the argument passed
   // to the constructor:
 
   // Handlified iterator allows allocation, but it needs a handle (and thus
@@ -72,6 +75,10 @@ class V8_EXPORT_PRIVATE SourcePositionTableIterator {
   // allocation during its lifetime. This is useful if there is no handle
   // scope around.
   explicit SourcePositionTableIterator(ByteArray* byte_array);
+
+  // Handle-safe iterator based on an a vector located outside the garbage
+  // collected heap, allows allocation during its lifetime.
+  explicit SourcePositionTableIterator(Vector<const byte> bytes);
 
   void Advance();
 
@@ -89,10 +96,17 @@ class V8_EXPORT_PRIVATE SourcePositionTableIterator {
   }
   bool done() const { return index_ == kDone; }
 
+  IndexAndPosition GetState() const { return {index_, current_}; }
+
+  void RestoreState(const IndexAndPosition& saved_state) {
+    index_ = saved_state.index_;
+    current_ = saved_state.position_;
+  }
+
  private:
   static const int kDone = -1;
 
-  ByteArray* raw_table_ = nullptr;
+  Vector<const byte> raw_table_;
   Handle<ByteArray> table_;
   int index_ = 0;
   PositionTableEntry current_;

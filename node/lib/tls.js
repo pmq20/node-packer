@@ -21,14 +21,21 @@
 
 'use strict';
 
+const { ERR_TLS_CERT_ALTNAME_INVALID } = require('internal/errors').codes;
 const internalUtil = require('internal/util');
+const internalTLS = require('internal/tls');
 internalUtil.assertCrypto();
+const { isUint8Array } = require('internal/util/types');
 
 const net = require('net');
 const url = require('url');
 const binding = process.binding('crypto');
-const Buffer = require('buffer').Buffer;
-const { isUint8Array } = process.binding('util');
+const { Buffer } = require('buffer');
+const EventEmitter = require('events');
+const DuplexPair = require('internal/streams/duplexpair');
+const { canonicalizeIP } = process.binding('cares_wrap');
+const _tls_common = require('_tls_common');
+const _tls_wrap = require('_tls_wrap');
 
 // Allow {CLIENT_RENEG_LIMIT} client-initiated session renegotiations
 // every {CLIENT_RENEG_WINDOW} seconds. An error event is emitted if more
@@ -42,7 +49,7 @@ exports.SLAB_BUFFER_SIZE = 10 * 1024 * 1024;
 exports.DEFAULT_CIPHERS =
     process.binding('constants').crypto.defaultCipherList;
 
-exports.DEFAULT_ECDH_CURVE = 'prime256v1';
+exports.DEFAULT_ECDH_CURVE = 'auto';
 
 exports.getCiphers = internalUtil.cachedResult(
   () => internalUtil.filterDuplicateStrings(binding.getSSLCiphers(), true)
@@ -68,7 +75,7 @@ function convertProtocols(protocols) {
   return buff;
 }
 
-exports.convertNPNProtocols = function(protocols, out) {
+exports.convertNPNProtocols = internalUtil.deprecate(function(protocols, out) {
   // If protocols is Array - translate it into buffer
   if (Array.isArray(protocols)) {
     out.NPNProtocols = convertProtocols(protocols);
@@ -76,7 +83,7 @@ exports.convertNPNProtocols = function(protocols, out) {
     // Copy new buffer not to be modified by user.
     out.NPNProtocols = Buffer.from(protocols);
   }
-};
+}, 'tls.convertNPNProtocols() is deprecated.', 'DEP0107');
 
 exports.convertALPNProtocols = function(protocols, out) {
   // If protocols is Array - translate it into buffer
@@ -162,14 +169,14 @@ function check(hostParts, pattern, wildcards) {
   return true;
 }
 
-exports.checkServerIdentity = function checkServerIdentity(host, cert) {
+exports.checkServerIdentity = function checkServerIdentity(hostname, cert) {
   const subject = cert.subject;
   const altNames = cert.subjectaltname;
   const dnsNames = [];
   const uriNames = [];
   const ips = [];
 
-  host = '' + host;
+  hostname = '' + hostname;
 
   if (altNames) {
     for (const name of altNames.split(', ')) {
@@ -179,7 +186,7 @@ exports.checkServerIdentity = function checkServerIdentity(host, cert) {
         const uri = url.parse(name.slice(4));
         uriNames.push(uri.hostname);  // TODO(bnoordhuis) Also use scheme.
       } else if (name.startsWith('IP Address:')) {
-        ips.push(name.slice(11));
+        ips.push(canonicalizeIP(name.slice(11)));
       }
     }
   }
@@ -187,14 +194,14 @@ exports.checkServerIdentity = function checkServerIdentity(host, cert) {
   let valid = false;
   let reason = 'Unknown reason';
 
-  if (net.isIP(host)) {
-    valid = ips.includes(host);
+  if (net.isIP(hostname)) {
+    valid = ips.includes(canonicalizeIP(hostname));
     if (!valid)
-      reason = `IP: ${host} is not in the cert's list: ${ips.join(', ')}`;
+      reason = `IP: ${hostname} is not in the cert's list: ${ips.join(', ')}`;
     // TODO(bnoordhuis) Also check URI SANs that are IP addresses.
   } else if (subject) {
-    host = unfqdn(host);  // Remove trailing dot for error messages.
-    const hostParts = splitHost(host);
+    hostname = unfqdn(hostname);  // Remove trailing dot for error messages.
+    const hostParts = splitHost(hostname);
     const wildcard = (pattern) => check(hostParts, pattern, true);
     const noWildcard = (pattern) => check(hostParts, pattern, false);
 
@@ -208,56 +215,69 @@ exports.checkServerIdentity = function checkServerIdentity(host, cert) {
         valid = wildcard(cn);
 
       if (!valid)
-        reason = `Host: ${host}. is not cert's CN: ${cn}`;
+        reason = `Host: ${hostname}. is not cert's CN: ${cn}`;
     } else {
       valid = dnsNames.some(wildcard) || uriNames.some(noWildcard);
       if (!valid)
-        reason = `Host: ${host}. is not in the cert's altnames: ${altNames}`;
+        reason =
+          `Host: ${hostname}. is not in the cert's altnames: ${altNames}`;
     }
   } else {
     reason = 'Cert is empty';
   }
 
   if (!valid) {
-    const err = new Error(
-      `Hostname/IP doesn't match certificate's altnames: "${reason}"`);
+    const err = new ERR_TLS_CERT_ALTNAME_INVALID(reason);
     err.reason = reason;
-    err.host = host;
+    err.host = hostname;
     err.cert = cert;
     return err;
   }
 };
 
-// Example:
-// C=US\nST=CA\nL=SF\nO=Joyent\nOU=Node.js\nCN=ca1\nemailAddress=ry@clouds.org
-exports.parseCertString = function parseCertString(s) {
-  var out = {};
-  var parts = s.split('\n');
-  for (var i = 0, len = parts.length; i < len; i++) {
-    var sepIndex = parts[i].indexOf('=');
-    if (sepIndex > 0) {
-      var key = parts[i].slice(0, sepIndex);
-      var value = parts[i].slice(sepIndex + 1);
-      if (key in out) {
-        if (!Array.isArray(out[key])) {
-          out[key] = [out[key]];
-        }
-        out[key].push(value);
-      } else {
-        out[key] = value;
-      }
-    }
+
+class SecurePair extends EventEmitter {
+  constructor(secureContext = exports.createSecureContext(),
+              isServer = false,
+              requestCert = !isServer,
+              rejectUnauthorized = false,
+              options = {}) {
+    super();
+    const { socket1, socket2 } = new DuplexPair();
+
+    this.server = options.server;
+    this.credentials = secureContext;
+
+    this.encrypted = socket1;
+    this.cleartext = new exports.TLSSocket(socket2, Object.assign({
+      secureContext, isServer, requestCert, rejectUnauthorized
+    }, options));
+    this.cleartext.once('secure', () => this.emit('secure'));
   }
-  return out;
-};
 
-// Public API
-exports.createSecureContext = require('_tls_common').createSecureContext;
-exports.SecureContext = require('_tls_common').SecureContext;
-exports.TLSSocket = require('_tls_wrap').TLSSocket;
-exports.Server = require('_tls_wrap').Server;
-exports.createServer = require('_tls_wrap').createServer;
-exports.connect = require('_tls_wrap').connect;
+  destroy() {
+    this.cleartext.destroy();
+    this.encrypted.destroy();
+  }
+}
 
-// Deprecated: DEP0064
-exports.createSecurePair = require('_tls_legacy').createSecurePair;
+
+exports.parseCertString = internalUtil.deprecate(
+  internalTLS.parseCertString,
+  'tls.parseCertString() is deprecated. ' +
+  'Please use querystring.parse() instead.',
+  'DEP0076');
+
+exports.createSecureContext = _tls_common.createSecureContext;
+exports.SecureContext = _tls_common.SecureContext;
+exports.TLSSocket = _tls_wrap.TLSSocket;
+exports.Server = _tls_wrap.Server;
+exports.createServer = _tls_wrap.createServer;
+exports.connect = _tls_wrap.connect;
+
+exports.createSecurePair = internalUtil.deprecate(
+  function createSecurePair(...args) {
+    return new SecurePair(...args);
+  },
+  'tls.createSecurePair() is deprecated. Please use ' +
+  'tls.TLSSocket instead.', 'DEP0064');

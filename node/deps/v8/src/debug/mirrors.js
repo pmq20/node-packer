@@ -45,6 +45,45 @@ var SetValues = global.Set.prototype.values;
 //   - ScriptMirror
 //   - ScopeMirror
 
+macro IS_BOOLEAN(arg)
+(typeof(arg) === 'boolean')
+endmacro
+
+macro IS_DATE(arg)
+(%IsDate(arg))
+endmacro
+
+macro IS_ERROR(arg)
+(%IsJSError(arg))
+endmacro
+
+macro IS_GENERATOR(arg)
+(%IsJSGeneratorObject(arg))
+endmacro
+
+macro IS_MAP(arg)
+(%_IsJSMap(arg))
+endmacro
+
+macro IS_MAP_ITERATOR(arg)
+(%IsJSMapIterator(arg))
+endmacro
+
+macro IS_SCRIPT(arg)
+(%IsScriptWrapper(arg))
+endmacro
+
+macro IS_SET(arg)
+(%_IsJSSet(arg))
+endmacro
+
+macro IS_SET_ITERATOR(arg)
+(%IsJSSetIterator(arg))
+endmacro
+
+// Must match PropertyFilter in property-details.h
+define PROPERTY_FILTER_NONE = 0;
+
 // Type names of the different mirrors.
 var MirrorType = {
   UNDEFINED_TYPE : 'undefined',
@@ -530,7 +569,7 @@ inherits(NumberMirror, ValueMirror);
 
 
 NumberMirror.prototype.toText = function() {
-  return %NumberToString(this.value_);
+  return '' + this.value_;
 };
 
 
@@ -599,7 +638,7 @@ inherits(ObjectMirror, ValueMirror);
 
 
 ObjectMirror.prototype.className = function() {
-  return %_ClassOf(this.value_);
+  return %ClassOf(this.value_);
 };
 
 
@@ -2248,7 +2287,7 @@ ScriptMirror.prototype.value = function() {
 
 
 ScriptMirror.prototype.name = function() {
-  return this.script_.name || this.script_.nameOrSourceURL();
+  return this.script_.name || this.script_.source_url;
 };
 
 
@@ -2300,7 +2339,7 @@ ScriptMirror.prototype.lineCount = function() {
 
 ScriptMirror.prototype.locationFromPosition = function(
     position, include_resource_offset) {
-  return this.script_.locationFromPosition(position, include_resource_offset);
+  return %ScriptPositionInfo(this.script_, position, !!include_resource_offset);
 };
 
 
@@ -2364,11 +2403,8 @@ ContextMirror.prototype.data = function() {
 // ----------------------------------------------------------------------------
 // Exports
 
-utils.InstallFunctions(global, DONT_ENUM, [
-  "MakeMirror", MakeMirror,
-]);
-
 utils.InstallConstants(global, [
+  "MakeMirror", MakeMirror,
   "ScopeType", ScopeType,
   "PropertyType", PropertyType,
   "PropertyAttribute", PropertyAttribute,

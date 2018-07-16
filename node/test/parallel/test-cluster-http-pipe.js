@@ -32,7 +32,8 @@ const cluster = require('cluster');
 const http = require('http');
 
 if (cluster.isMaster) {
-  common.refreshTmpDir();
+  const tmpdir = require('../common/tmpdir');
+  tmpdir.refresh();
   const worker = cluster.fork();
   worker.on('message', common.mustCall((msg) => {
     assert.strictEqual(msg, 'DONE');
@@ -44,7 +45,6 @@ if (cluster.isMaster) {
 http.createServer(common.mustCall((req, res) => {
   assert.strictEqual(req.connection.remoteAddress, undefined);
   assert.strictEqual(req.connection.localAddress, undefined);
-  // TODO common.PIPE?
 
   res.writeHead(200);
   res.end('OK');

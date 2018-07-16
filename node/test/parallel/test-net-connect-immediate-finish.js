@@ -20,19 +20,35 @@
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 'use strict';
+
+// This tests that if the socket is still in the 'connecting' state
+// when the user calls socket.end() ('finish'), the socket would emit
+// 'connect' and defer the handling until the 'connect' event is handled.
+
 const common = require('../common');
 const assert = require('assert');
 const net = require('net');
 
-const client = net.connect({host: '***', port: common.PORT});
+const { addresses } = require('../common/internet');
+const {
+  errorLookupMock,
+  mockedErrorCode,
+  mockedSysCall
+} = require('../common/dns');
+
+const client = net.connect({
+  host: addresses.INVALID_HOST,
+  port: 80, // port number doesn't matter because host name is invalid
+  lookup: common.mustCall(errorLookupMock())
+}, common.mustNotCall());
 
 client.once('error', common.mustCall((err) => {
   assert(err);
   assert.strictEqual(err.code, err.errno);
-  assert.strictEqual(err.code, 'ENOTFOUND');
+  assert.strictEqual(err.code, mockedErrorCode);
   assert.strictEqual(err.host, err.hostname);
-  assert.strictEqual(err.host, '***');
-  assert.strictEqual(err.syscall, 'getaddrinfo');
+  assert.strictEqual(err.host, addresses.INVALID_HOST);
+  assert.strictEqual(err.syscall, mockedSysCall);
 }));
 
 client.end();

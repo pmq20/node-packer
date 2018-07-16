@@ -1,4 +1,3 @@
-// Flags: --expose-http2
 'use strict';
 
 const common = require('../common');
@@ -21,9 +20,9 @@ server.listen(0, common.mustCall(function() {
       'foo-bar': 'abc123'
     };
 
+    assert.strictEqual(request.path, undefined);
     assert.strictEqual(request.method, expected[':method']);
     assert.strictEqual(request.scheme, expected[':scheme']);
-    assert.strictEqual(request.path, expected[':path']);
     assert.strictEqual(request.url, expected[':path']);
     assert.strictEqual(request.authority, expected[':authority']);
 
@@ -41,11 +40,28 @@ server.listen(0, common.mustCall(function() {
 
     request.url = '/one';
     assert.strictEqual(request.url, '/one');
-    assert.strictEqual(request.path, '/one');
 
-    request.path = '/two';
-    assert.strictEqual(request.url, '/two');
-    assert.strictEqual(request.path, '/two');
+    // Third-party plugins for packages like express use query params to
+    // change the request method
+    request.method = 'POST';
+    assert.strictEqual(request.method, 'POST');
+    assert.throws(
+      () => request.method = '   ',
+      {
+        code: 'ERR_INVALID_ARG_VALUE',
+        name: 'TypeError [ERR_INVALID_ARG_VALUE]',
+        message: "The argument 'method' is invalid. Received '   '"
+      }
+    );
+    assert.throws(
+      () => request.method = true,
+      {
+        code: 'ERR_INVALID_ARG_TYPE',
+        name: 'TypeError [ERR_INVALID_ARG_TYPE]',
+        message: 'The "method" argument must be of type string. ' +
+                 'Received type boolean'
+      }
+    );
 
     response.on('finish', common.mustCall(function() {
       server.close();
@@ -64,7 +80,7 @@ server.listen(0, common.mustCall(function() {
     };
     const request = client.request(headers);
     request.on('end', common.mustCall(function() {
-      client.destroy();
+      client.close();
     }));
     request.end();
     request.resume();

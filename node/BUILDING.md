@@ -10,7 +10,7 @@ file a new issue.
 
 ## Supported platforms
 
-This list of supported platforms is current as of the branch / release to
+This list of supported platforms is current as of the branch/release to
 which it is attached.
 
 ### Input
@@ -33,21 +33,23 @@ Support is divided into three tiers:
 
 ### Supported platforms
 
-The community does not build or test against end of life distributions (EoL).
-Thus we do not recommend that you use Node on end of life or unsupported platforms
-in production.
+The community does not build or test against end-of-life distributions (EoL).
+Thus we do not recommend that you use Node on end-of-life or unsupported
+platforms in production.
 
 |  System      | Support type | Version                          | Architectures        | Notes            |
 |--------------|--------------|----------------------------------|----------------------|------------------|
-| GNU/Linux    | Tier 1       | kernel >= 2.6.32, glibc >= 2.12  | x86, x64, arm, arm64 |                  |
+| GNU/Linux    | Tier 1       | kernel >= 2.6.32, glibc >= 2.12  | x64, arm             |                  |
+| GNU/Linux    | Tier 1       | kernel >= 3.10, glibc >= 2.17    | arm64                |                  |
 | macOS        | Tier 1       | >= 10.10                         | x64                  |                  |
-| Windows      | Tier 1       | >= Windows 7 / 2008 R2           | x86, x64             | vs2015 or vs2017 |
+| Windows      | Tier 1       | >= Windows 7/2008 R2/2012 R2     | x86, x64             | vs2017           |
 | SmartOS      | Tier 2       | >= 15 < 16.4                     | x86, x64             | see note1        |
 | FreeBSD      | Tier 2       | >= 10                            | x64                  |                  |
 | GNU/Linux    | Tier 2       | kernel >= 3.13.0, glibc >= 2.19  | ppc64le >=power8     |                  |
 | AIX          | Tier 2       | >= 7.1 TL04                      | ppc64be >=power7     |                  |
 | GNU/Linux    | Tier 2       | kernel >= 3.10, glibc >= 2.17    | s390x                |                  |
 | macOS        | Experimental | >= 10.8 < 10.10                  | x64                  | no test coverage |
+| GNU/Linux    | Experimental | kernel >= 2.6.32, glibc >= 2.12  | x86                  | limited CI       |
 | Linux (musl) | Experimental | musl >= 1.0                      | x64                  |                  |
 
 note1 - The gcc4.8-libs package needs to be installed, because node
@@ -59,6 +61,20 @@ note1 - The gcc4.8-libs package needs to be installed, because node
   by Joyent. SmartOS images >= 16.4 are not supported because
   GCC 4.8 runtime libraries are not available in their pkgsrc repository
 
+*Note*: On Windows, running Node.js in windows terminal emulators like `mintty`
+  requires the usage of [winpty](https://github.com/rprichard/winpty) for
+  Node's tty channels to work correctly (e.g. `winpty node.exe script.js`).
+  In "Git bash" if you call the node shell alias (`node` without the `.exe`
+  extension), `winpty` is used automatically.
+
+The Windows Subsystem for Linux (WSL) is not directly supported, but the
+GNU/Linux build process and binaries should work. The community will only
+address issues that reproduce on native GNU/Linux systems. Issues that only
+reproduce on WSL should be reported in the
+[WSL issue tracker](https://github.com/Microsoft/WSL/issues). Running the
+Windows binary (`node.exe`) in WSL is not recommended, and will not work
+without adjustment (such as stdio redirection).
+
 ### Supported toolchains
 
 Depending on host platform, the selection of toolchains may vary.
@@ -68,39 +84,70 @@ Depending on host platform, the selection of toolchains may vary.
 * GCC 4.9.4 or newer
 * Clang 3.4.2 or newer
 
+#### AIX
+* GCC 6.3 or newer
+
 #### Windows
 
-* Building Node: Visual Studio 2015 or Visual C++ Build Tools 2015 or newer
-* Building native add-ons: Visual Studio 2013 or Visual C++ Build Tools 2015
-  or newer
+* Visual Studio 2017 or the Build Tools thereof
+
+#### OpenSSL asm support
+
+OpenSSL-1.1.0 requires the following asssembler version for use of asm
+support on x86_64 and ia32.
+
+* gas (GNU assembler) version 2.23 or higher
+* xcode version 5.0 or higher
+* llvm version 3.3 or higher
+* nasm version 2.10 or higher in Windows
+
+Otherwise `configure` will fail with an error. This can be avoided by
+either providing a newer assembler as per the list above or by
+using the `--openssl-no-asm` flag.
+
+*Note:* The forthcoming OpenSSL-1.1.1 will require higher
+ version. Please refer
+ https://www.openssl.org/docs/man1.1.1/man3/OPENSSL_ia32cap.html for
+ details.
 
 ## Building Node.js on supported platforms
 
-### Unix / macOS
+*Note:* All prerequisites can be easily installed by following
+[this bootstrapping guide](https://github.com/nodejs/node/blob/master/tools/bootstrap/README.md).
 
-Prerequisites:
+### Unix/macOS
+
+#### Prerequisites
 
 * `gcc` and `g++` 4.9.4 or newer, or
 * `clang` and `clang++` 3.4.2 or newer (macOS: latest Xcode Command Line Tools)
 * Python 2.6 or 2.7
 * GNU Make 3.81 or newer
 
-On macOS you will need to install the `Xcode Command Line Tools` by running
+On macOS, you will need to install the `Xcode Command Line Tools` by running
 `xcode-select --install`. Alternatively, if you already have the full Xcode
 installed, you can find them under the menu `Xcode -> Open Developer Tool ->
 More Developer Tools...`. This step will install `clang`, `clang++`, and
 `make`.
-* You may want to setup [firewall rules](tools/macosx-firewall.sh)
-to avoid popups asking to accept incoming network connections when running tests:
+
+If the path to your build directory contains a space, the build will likely
+fail.
+
+After building, setting up [firewall rules](tools/macos-firewall.sh) can avoid
+popups asking to accept incoming network connections when running tests.
+
+Running the following script on macOS will add the firewall rules for the
+executable `node` in the `out` directory and the symbolic `node` link in the
+project's root directory.
 
 ```console
-$ sudo ./tools/macosx-firewall.sh
+$ sudo ./tools/macos-firewall.sh
 ```
-Running this script will add rules for the executable `node` in the out
-directory and the symbolic `node` link in the project's root directory.
 
 On FreeBSD and OpenBSD, you may also need:
 * libexecinfo
+
+#### Building Node.js
 
 To build Node.js:
 
@@ -120,11 +167,48 @@ for more information.
 Note that the above requires that `python` resolve to Python 2.6 or 2.7
 and not a newer version.
 
-To run the tests:
+#### Running Tests
+
+To verify the build:
 
 ```console
-$ make test
+$ make test-only
 ```
+
+At this point, you are ready to make code changes and re-run the tests.
+
+If you are running tests prior to submitting a Pull Request, the recommended
+command is:
+
+```console
+$ make -j4 test
+```
+
+`make -j4 test` does a full check on the codebase, including running linters and
+documentation tests.
+
+Optionally, continue below.
+
+To run the tests and generate code coverage reports:
+
+```console
+$ ./configure --coverage
+$ make coverage
+```
+
+This will generate coverage reports for both JavaScript and C++ tests (if you
+only want to run the JavaScript tests then you do not need to run the first
+command `./configure --coverage`).
+
+The `make coverage` command downloads some tools to the project root directory
+and overwrites the `lib/` directory. To clean up after generating the coverage
+reports:
+
+```console
+$ make coverage-clean
+```
+
+#### Building the documentation
 
 To build the documentation:
 
@@ -134,7 +218,7 @@ This will build Node.js first (if necessary) and then use it to build the docs:
 $ make doc
 ```
 
-If you have an existing Node.js you can build just the docs with:
+If you have an existing Node.js build, you can build just the docs with:
 
 ```console
 $ NODE=/path/to/node make doc-only
@@ -145,6 +229,15 @@ To read the documentation:
 ```console
 $ man doc/node.1
 ```
+
+If you prefer to read the documentation in a browser,
+run the following after `make doc` is finished:
+
+```console
+$ make docopen
+```
+
+This will open a browser with the documentation.
 
 To test if Node.js was built correctly:
 
@@ -164,16 +257,22 @@ $ [sudo] make install
 Prerequisites:
 
 * [Python 2.6 or 2.7](https://www.python.org/downloads/)
-* One of:
-  * [Visual C++ Build Tools](http://landinghub.visualstudio.com/visual-cpp-build-tools)
-  * [Visual Studio 2015 Update 3](https://www.visualstudio.com/), all editions
-    including the Community edition (remember to select
-    "Common Tools for Visual C++ 2015" feature during installation).
-  * [Visual Studio 2017](https://www.visualstudio.com/downloads/), any edition (including the Build Tools SKU).
-    **Required Components:** "MSbuild", "VC++ 2017 v141 toolset" and one of the Windows SDKs (10 or 8.1).
+* The "Desktop development with C++" workload from
+  [Visual Studio 2017](https://www.visualstudio.com/downloads/) or the
+  "Visual C++ build tools" workload from the
+  [Build Tools](https://www.visualstudio.com/downloads/#build-tools-for-visual-studio-2017),
+  with the default optional components.
 * Basic Unix tools required for some tests,
   [Git for Windows](http://git-scm.com/download/win) includes Git Bash
   and tools which can be included in the global `PATH`.
+* The [NetWide Assembler](http://www.nasm.us/), for OpenSSL assembler modules.
+  If not installed in the default location, it needs to be manually added
+  to `PATH`. Build with `openssl-no-asm` option does not require this.
+* **Optional** (to build the MSI): the [WiX Toolset v3.11](http://wixtoolset.org/releases/)
+  and the [Wix Toolset Visual Studio 2017 Extension](https://marketplace.visualstudio.com/items?itemName=RobMensching.WixToolsetVisualStudio2017Extension).
+
+If the path to your build directory contains a space or a non-ASCII character,
+the build will likely fail.
 
 ```console
 > .\vcbuild
@@ -191,7 +290,7 @@ To test if Node.js was built correctly:
 > Release\node -e "console.log('Hello from Node.js', process.version)"
 ```
 
-### Android / Android-based devices (e.g. Firefox OS)
+### Android/Android-based devices (e.g. Firefox OS)
 
 Although these instructions for building on Android are provided, please note
 that Android is not an officially supported platform at this time. Patches to
@@ -212,7 +311,7 @@ $ make
 
 ### `Intl` (ECMA-402) support:
 
-[Intl](https://github.com/nodejs/node/wiki/Intl) support is
+[Intl](https://github.com/nodejs/node/blob/master/doc/api/intl.md) support is
 enabled by default, with English data only.
 
 #### Default: `small-icu` (English only) support
@@ -222,16 +321,13 @@ the full `Intl` (ECMA-402) APIs.  It does not need to download
 any dependencies to function. You can add full
 data at runtime.
 
-*Note:* more docs are on
-[the node wiki](https://github.com/nodejs/node/wiki/Intl).
-
 #### Build with full ICU support (all locales supported by ICU):
 
 With the `--download=all`, this may download ICU if you don't have an
 ICU in `deps/icu`. (The embedded `small-icu` included in the default
 Node.js source does not include all locales.)
 
-##### Unix / macOS:
+##### Unix/macOS:
 
 ```console
 $ ./configure --with-intl=full-icu --download=all
@@ -248,7 +344,7 @@ $ ./configure --with-intl=full-icu --download=all
 The `Intl` object will not be available, nor some other APIs such as
 `String.normalize`.
 
-##### Unix / macOS:
+##### Unix/macOS:
 
 ```console
 $ ./configure --without-intl
@@ -260,7 +356,7 @@ $ ./configure --without-intl
 > .\vcbuild without-intl
 ```
 
-#### Use existing installed ICU (Unix / macOS only):
+#### Use existing installed ICU (Unix/macOS only):
 
 ```console
 $ pkg-config --modversion icu-i18n && ./configure --with-intl=system-icu
@@ -276,7 +372,7 @@ You can find other ICU releases at
 Download the file named something like `icu4c-**##.#**-src.tgz` (or
 `.zip`).
 
-##### Unix / macOS
+##### Unix/macOS
 
 From an already-unpacked ICU:
 ```console
@@ -305,45 +401,28 @@ as `deps/icu` (You'll have: `deps/icu/source/...`)
 
 ## Building Node.js with FIPS-compliant OpenSSL
 
-NOTE: Windows is not yet supported
+This version of Node.js does not support FIPS.
 
-It is possible to build Node.js with
-[OpenSSL FIPS module](https://www.openssl.org/docs/fipsnotes.html).
+## Building Node.js with external core modules
 
-**Note**: building in this way does **not** allow you to claim that the
-runtime is FIPS 140-2 validated. Instead you can indicate that the runtime
-uses a validated module. See the
-[security policy](http://csrc.nist.gov/groups/STM/cmvp/documents/140-1/140sp/140sp1747.pdf)
-page 60 for more details. In addition, the validation for the underlying module
-is only valid if it is deployed in accordance with its
-[security policy](http://csrc.nist.gov/groups/STM/cmvp/documents/140-1/140sp/140sp1747.pdf).
-If you need FIPS validated cryptography it is recommended that you read both
-the [security policy](http://csrc.nist.gov/groups/STM/cmvp/documents/140-1/140sp/140sp1747.pdf)
-and [user guide](https://openssl.org/docs/fips/UserGuide-2.0.pdf).
+It is possible to specify one or more JavaScript text files to be bundled in
+the binary as builtin modules when building Node.js.
 
-### Instructions
+### Unix / macOS
 
-1. Obtain a copy of openssl-fips-x.x.x.tar.gz.
-   To comply with the security policy you must ensure the path
-   through which you get the file complies with the requirements
-   for a "secure installation" as described in section 6.6 in
-   the [user guide](https://openssl.org/docs/fips/UserGuide-2.0.pdf).
-   For evaluation/experimentation you can simply download and verify
-   `openssl-fips-x.x.x.tar.gz` from https://www.openssl.org/source/
-2. Extract source to `openssl-fips` folder and `cd openssl-fips`
-3. `./config`
-4. `make`
-5. `make install`
-   (NOTE: to comply with the security policy you must use the exact
-   commands in steps 3-5 without any additional options as per
-   Appendix A in the [security policy](http://csrc.nist.gov/groups/STM/cmvp/documents/140-1/140sp/140sp1747.pdf).
-   The only exception is that `./config no-asm` can be
-   used in place of `./config`, and the FIPSDIR environment variable
-   may be used to specify a non-standard install folder for the
-   validated module, as per User Guide sections 4.2.1, 4.2.2, and 4.2.3.
-6. Get into Node.js checkout folder
-7. `./configure --openssl-fips=/path/to/openssl-fips/installdir`
-   For example on ubuntu 12 the installation directory was
-   `/usr/local/ssl/fips-2.0`
-8. Build Node.js with `make -j`
-9. Verify with `node -p "process.versions.openssl"` (for example `1.0.2a-fips`)
+This command will make `/root/myModule.js` available via
+`require('/root/myModule')` and `./myModule2.js` available via
+`require('myModule2')`.
+
+```console
+$ ./configure --link-module '/root/myModule.js' --link-module './myModule2.js'
+```
+
+### Windows
+
+To make `./myModule.js` available via `require('myModule')` and
+`./myModule2.js` available via `require('myModule2')`:
+
+```console
+> .\vcbuild link-module './myModule.js' link-module './myModule2.js'
+```

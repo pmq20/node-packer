@@ -25,7 +25,8 @@ switch (process.argv[2]) {
     break;
   default:
     // Verify that the flag is off by default.
-    assert.strictEqual(config.pendingDeprecation, undefined);
+    const envvar = process.env.NODE_PENDING_DEPRECATION;
+    assert.strictEqual(config.pendingDeprecation, envvar && envvar[0] === '1');
 
     // Test the --pending-deprecation command line switch.
     fork(__filename, ['switch'], {
@@ -37,7 +38,7 @@ switch (process.argv[2]) {
 
     // Test the NODE_PENDING_DEPRECATION environment var.
     fork(__filename, ['env'], {
-      env: {NODE_PENDING_DEPRECATION: 1},
+      env: Object.assign({}, process.env, { NODE_PENDING_DEPRECATION: 1 }),
       silent: true
     }).on('exit', common.mustCall((code) => {
       assert.strictEqual(code, 0, message('NODE_PENDING_DEPRECATION'));

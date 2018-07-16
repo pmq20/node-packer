@@ -6,21 +6,13 @@
 
 #include "src/arguments.h"
 #include "src/elements.h"
-#include "src/factory.h"
+#include "src/heap/factory.h"
 #include "src/messages.h"
 #include "src/objects-inl.h"
 #include "src/runtime/runtime.h"
 
 namespace v8 {
 namespace internal {
-
-RUNTIME_FUNCTION(Runtime_ArrayBufferGetByteLength) {
-  SealHandleScope shs(isolate);
-  DCHECK_EQ(1, args.length());
-  CONVERT_ARG_CHECKED(JSArrayBuffer, holder, 0);
-  return holder->byte_length();
-}
-
 
 RUNTIME_FUNCTION(Runtime_ArrayBufferNeuter) {
   HandleScope scope(isolate);
@@ -33,9 +25,11 @@ RUNTIME_FUNCTION(Runtime_ArrayBufferNeuter) {
         isolate, NewTypeError(MessageTemplate::kNotTypedArray));
   }
   Handle<JSArrayBuffer> array_buffer = Handle<JSArrayBuffer>::cast(argument);
-
-  if (array_buffer->backing_store() == NULL) {
-    CHECK(Smi::kZero == array_buffer->byte_length());
+  if (!array_buffer->is_neuterable()) {
+    return isolate->heap()->undefined_value();
+  }
+  if (array_buffer->backing_store() == nullptr) {
+    CHECK_EQ(Smi::kZero, array_buffer->byte_length());
     return isolate->heap()->undefined_value();
   }
   // Shared array buffers should never be neutered.
@@ -53,32 +47,23 @@ RUNTIME_FUNCTION(Runtime_ArrayBufferNeuter) {
 RUNTIME_FUNCTION(Runtime_TypedArrayCopyElements) {
   HandleScope scope(isolate);
   DCHECK_EQ(3, args.length());
-  CONVERT_ARG_HANDLE_CHECKED(JSTypedArray, destination, 0);
-  CONVERT_ARG_HANDLE_CHECKED(JSReceiver, source, 1);
+  CONVERT_ARG_HANDLE_CHECKED(JSTypedArray, target, 0);
+  CONVERT_ARG_HANDLE_CHECKED(Object, source, 1);
   CONVERT_NUMBER_ARG_HANDLE_CHECKED(length_obj, 2);
 
   size_t length;
   CHECK(TryNumberToSize(*length_obj, &length));
 
-  Handle<JSTypedArray> destination_ta = Handle<JSTypedArray>::cast(destination);
-
-  ElementsAccessor* accessor = destination_ta->GetElementsAccessor();
-  return accessor->CopyElements(source, destination, length);
+  ElementsAccessor* accessor = target->GetElementsAccessor();
+  return accessor->CopyElements(source, target, length);
 }
 
-#define BUFFER_VIEW_GETTER(Type, getter, accessor)   \
-  RUNTIME_FUNCTION(Runtime_##Type##Get##getter) {    \
-    HandleScope scope(isolate);                      \
-    DCHECK_EQ(1, args.length());                     \
-    CONVERT_ARG_HANDLE_CHECKED(JS##Type, holder, 0); \
-    return holder->accessor();                       \
-  }
-
-BUFFER_VIEW_GETTER(ArrayBufferView, ByteLength, byte_length)
-BUFFER_VIEW_GETTER(ArrayBufferView, ByteOffset, byte_offset)
-BUFFER_VIEW_GETTER(TypedArray, Length, length)
-
-#undef BUFFER_VIEW_GETTER
+RUNTIME_FUNCTION(Runtime_TypedArrayGetLength) {
+  HandleScope scope(isolate);
+  DCHECK_EQ(1, args.length());
+  CONVERT_ARG_HANDLE_CHECKED(JSTypedArray, holder, 0);
+  return holder->length();
+}
 
 RUNTIME_FUNCTION(Runtime_ArrayBufferViewWasNeutered) {
   HandleScope scope(isolate);
@@ -93,81 +78,6 @@ RUNTIME_FUNCTION(Runtime_TypedArrayGetBuffer) {
   return *holder->GetBuffer();
 }
 
-
-// Return codes for Runtime_TypedArraySetFastCases.
-// Should be synchronized with typedarray.js natives.
-enum TypedArraySetResultCodes {
-  // Set from typed array of the same type.
-  // This is processed by TypedArraySetFastCases
-  TYPED_ARRAY_SET_TYPED_ARRAY_SAME_TYPE = 0,
-  // Set from typed array of the different type, overlapping in memory.
-  TYPED_ARRAY_SET_TYPED_ARRAY_OVERLAPPING = 1,
-  // Set from typed array of the different type, non-overlapping.
-  TYPED_ARRAY_SET_TYPED_ARRAY_NONOVERLAPPING = 2,
-  // Set from non-typed array.
-  TYPED_ARRAY_SET_NON_TYPED_ARRAY = 3
-};
-
-
-RUNTIME_FUNCTION(Runtime_TypedArraySetFastCases) {
-  HandleScope scope(isolate);
-  DCHECK_EQ(3, args.length());
-  if (!args[0]->IsJSTypedArray()) {
-    THROW_NEW_ERROR_RETURN_FAILURE(
-        isolate, NewTypeError(MessageTemplate::kNotTypedArray));
-  }
-
-  if (!args[1]->IsJSTypedArray()) {
-    return Smi::FromInt(TYPED_ARRAY_SET_NON_TYPED_ARRAY);
-  }
-
-  CONVERT_ARG_HANDLE_CHECKED(JSTypedArray, target_obj, 0);
-  CONVERT_ARG_HANDLE_CHECKED(JSTypedArray, source_obj, 1);
-  CONVERT_NUMBER_ARG_HANDLE_CHECKED(offset_obj, 2);
-
-  Handle<JSTypedArray> target(JSTypedArray::cast(*target_obj));
-  Handle<JSTypedArray> source(JSTypedArray::cast(*source_obj));
-  size_t offset = 0;
-  CHECK(TryNumberToSize(*offset_obj, &offset));
-  size_t target_length = target->length_value();
-  size_t source_length = source->length_value();
-  size_t target_byte_length = NumberToSize(target->byte_length());
-  size_t source_byte_length = NumberToSize(source->byte_length());
-  if (offset > target_length || offset + source_length > target_length ||
-      offset + source_length < offset) {  // overflow
-    THROW_NEW_ERROR_RETURN_FAILURE(
-        isolate, NewRangeError(MessageTemplate::kTypedArraySetSourceTooLarge));
-  }
-
-  size_t target_offset = NumberToSize(target->byte_offset());
-  size_t source_offset = NumberToSize(source->byte_offset());
-  uint8_t* target_base =
-      static_cast<uint8_t*>(target->GetBuffer()->backing_store()) +
-      target_offset;
-  uint8_t* source_base =
-      static_cast<uint8_t*>(source->GetBuffer()->backing_store()) +
-      source_offset;
-
-  // Typed arrays of the same type: use memmove.
-  if (target->type() == source->type()) {
-    memmove(target_base + offset * target->element_size(), source_base,
-            source_byte_length);
-    return Smi::FromInt(TYPED_ARRAY_SET_TYPED_ARRAY_SAME_TYPE);
-  }
-
-  // Typed arrays of different types over the same backing store
-  if ((source_base <= target_base &&
-       source_base + source_byte_length > target_base) ||
-      (target_base <= source_base &&
-       target_base + target_byte_length > source_base)) {
-    // We do not support overlapping ArrayBuffers
-    DCHECK(target->GetBuffer()->backing_store() ==
-           source->GetBuffer()->backing_store());
-    return Smi::FromInt(TYPED_ARRAY_SET_TYPED_ARRAY_OVERLAPPING);
-  } else {  // Non-overlapping typed arrays
-    return Smi::FromInt(TYPED_ARRAY_SET_TYPED_ARRAY_NONOVERLAPPING);
-  }
-}
 
 namespace {
 
@@ -231,70 +141,55 @@ RUNTIME_FUNCTION(Runtime_TypedArraySortFast) {
   return *array;
 }
 
-RUNTIME_FUNCTION(Runtime_TypedArrayMaxSizeInHeap) {
-  DCHECK_EQ(0, args.length());
-  DCHECK_OBJECT_SIZE(FLAG_typed_array_max_size_in_heap +
-                     FixedTypedArrayBase::kDataOffset);
-  return Smi::FromInt(FLAG_typed_array_max_size_in_heap);
-}
-
-
 RUNTIME_FUNCTION(Runtime_IsTypedArray) {
   HandleScope scope(isolate);
   DCHECK_EQ(1, args.length());
   return isolate->heap()->ToBoolean(args[0]->IsJSTypedArray());
 }
 
-RUNTIME_FUNCTION(Runtime_IsSharedTypedArray) {
+// 22.2.3.23 %TypedArray%.prototype.set ( overloaded [ , offset ] )
+RUNTIME_FUNCTION(Runtime_TypedArraySet) {
   HandleScope scope(isolate);
-  DCHECK_EQ(1, args.length());
-  return isolate->heap()->ToBoolean(
-      args[0]->IsJSTypedArray() &&
-      JSTypedArray::cast(args[0])->GetBuffer()->is_shared());
-}
+  Handle<JSTypedArray> target = args.at<JSTypedArray>(0);
+  Handle<Object> obj = args.at(1);
+  Handle<Smi> offset = args.at<Smi>(2);
 
+  DCHECK(!target->WasNeutered());  // Checked in TypedArrayPrototypeSet.
+  DCHECK(!obj->IsJSTypedArray());  // Should be handled by CSA.
+  DCHECK_LE(0, offset->value());
 
-RUNTIME_FUNCTION(Runtime_IsSharedIntegerTypedArray) {
-  HandleScope scope(isolate);
-  DCHECK_EQ(1, args.length());
-  if (!args[0]->IsJSTypedArray()) {
-    return isolate->heap()->false_value();
+  const uint32_t uint_offset = static_cast<uint32_t>(offset->value());
+
+  if (obj->IsNumber()) {
+    // For number as a first argument, throw TypeError
+    // instead of silently ignoring the call, so that
+    // users know they did something wrong.
+    // (Consistent with Firefox and Blink/WebKit)
+    THROW_NEW_ERROR_RETURN_FAILURE(
+        isolate, NewTypeError(MessageTemplate::kInvalidArgument));
   }
 
-  Handle<JSTypedArray> obj(JSTypedArray::cast(args[0]));
-  return isolate->heap()->ToBoolean(obj->GetBuffer()->is_shared() &&
-                                    obj->type() != kExternalFloat32Array &&
-                                    obj->type() != kExternalFloat64Array &&
-                                    obj->type() != kExternalUint8ClampedArray);
-}
+  ASSIGN_RETURN_FAILURE_ON_EXCEPTION(isolate, obj,
+                                     Object::ToObject(isolate, obj));
 
-
-RUNTIME_FUNCTION(Runtime_IsSharedInteger32TypedArray) {
-  HandleScope scope(isolate);
-  DCHECK_EQ(1, args.length());
-  if (!args[0]->IsJSTypedArray()) {
-    return isolate->heap()->false_value();
-  }
-
-  Handle<JSTypedArray> obj(JSTypedArray::cast(args[0]));
-  return isolate->heap()->ToBoolean(obj->GetBuffer()->is_shared() &&
-                                    obj->type() == kExternalInt32Array);
-}
-
-RUNTIME_FUNCTION(Runtime_TypedArraySpeciesCreateByLength) {
-  HandleScope scope(isolate);
-  DCHECK(args.length() == 2);
-  Handle<JSTypedArray> exemplar = args.at<JSTypedArray>(0);
-  Handle<Object> length = args.at(1);
-  int argc = 1;
-  ScopedVector<Handle<Object>> argv(argc);
-  argv[0] = length;
-  Handle<JSTypedArray> result_array;
-  // TODO(tebbi): Pass correct method name.
+  Handle<Object> len;
   ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
-      isolate, result_array,
-      JSTypedArray::SpeciesCreate(isolate, exemplar, argc, argv.start(), ""));
-  return *result_array;
+      isolate, len,
+      Object::GetProperty(obj, isolate->factory()->length_string()));
+  ASSIGN_RETURN_FAILURE_ON_EXCEPTION(isolate, len,
+                                     Object::ToLength(isolate, len));
+
+  if (uint_offset + len->Number() > target->length_value()) {
+    THROW_NEW_ERROR_RETURN_FAILURE(
+        isolate, NewRangeError(MessageTemplate::kTypedArraySetSourceTooLarge));
+  }
+
+  uint32_t int_l;
+  CHECK(DoubleToUint32IfEqualToSelf(len->Number(), &int_l));
+
+  Handle<JSReceiver> source = Handle<JSReceiver>::cast(obj);
+  ElementsAccessor* accessor = target->GetElementsAccessor();
+  return accessor->CopyElements(source, target, int_l, uint_offset);
 }
 
 }  // namespace internal

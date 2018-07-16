@@ -33,6 +33,7 @@ def try_unlink(path):
 def try_symlink(source_path, link_path):
   print 'symlinking %s -> %s' % (source_path, link_path)
   try_unlink(link_path)
+  try_mkdir_r(os.path.dirname(link_path))
   os.symlink(source_path, link_path)
 
 def try_mkdir_r(path):
@@ -133,7 +134,10 @@ def files(action):
       if sys.platform != 'darwin':
         output_prefix += 'lib.target/'
 
-  action([output_prefix + output_file], 'bin/' + output_file)
+  if 'false' == variables.get('node_shared'):
+    action([output_prefix + output_file], 'bin/' + output_file)
+  else:
+    action([output_prefix + output_file], 'lib/' + output_file)
 
   if 'true' == variables.get('node_use_dtrace'):
     action(['out/Release/node.d'], 'lib/dtrace/node.d')
@@ -179,7 +183,7 @@ def headers(action):
      'false' == variables.get('node_shared_openssl'):
     subdir_files('deps/openssl/openssl/include/openssl', 'include/node/openssl/', action)
     subdir_files('deps/openssl/config/archs', 'include/node/openssl/archs', action)
-    action(['deps/openssl/config/opensslconf.h'], 'include/node/openssl/')
+    subdir_files('deps/openssl/config', 'include/node/openssl', action)
 
   if 'false' == variables.get('node_shared_zlib'):
     action([

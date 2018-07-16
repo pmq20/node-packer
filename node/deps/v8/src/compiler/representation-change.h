@@ -53,11 +53,11 @@ class Truncation final {
   bool IsUsedAsFloat64() const {
     return LessGeneral(kind_, TruncationKind::kFloat64);
   }
-  bool IdentifiesNaNAndZero() {
+  bool IdentifiesUndefinedAndZero() {
     return LessGeneral(kind_, TruncationKind::kWord32) ||
            LessGeneral(kind_, TruncationKind::kBool);
   }
-  bool IdentifiesUndefinedAndNaNAndZero() {
+  bool IdentifiesUndefinedAndNaN() {
     return LessGeneral(kind_, TruncationKind::kFloat64) ||
            LessGeneral(kind_, TruncationKind::kWord64);
   }
@@ -132,7 +132,6 @@ inline std::ostream& operator<<(std::ostream& os, TypeCheckKind type_check) {
       return os << "HeapObject";
   }
   UNREACHABLE();
-  return os;
 }
 
 // The {UseInfo} class is used to describe a use of an input of a node.
@@ -148,13 +147,18 @@ inline std::ostream& operator<<(std::ostream& os, TypeCheckKind type_check) {
 //    to the preferred representation. The preferred representation might be
 //    insufficient to do the conversion (e.g. word32->float64 conv), so we also
 //    need the signedness information to produce the correct value.
+//    Additionally, use info may contain {CheckParameters} which contains
+//    information for the deoptimizer such as a CallIC on which speculation
+//    should be disallowed if the check fails.
 class UseInfo {
  public:
   UseInfo(MachineRepresentation representation, Truncation truncation,
-          TypeCheckKind type_check = TypeCheckKind::kNone)
+          TypeCheckKind type_check = TypeCheckKind::kNone,
+          const VectorSlotPair& feedback = VectorSlotPair())
       : representation_(representation),
         truncation_(truncation),
-        type_check_(type_check) {}
+        type_check_(type_check),
+        feedback_(feedback) {}
   static UseInfo TruncatingWord32() {
     return UseInfo(MachineRepresentation::kWord32, Truncation::Word32());
   }
@@ -188,34 +192,40 @@ class UseInfo {
     return UseInfo(MachineRepresentation::kTaggedPointer, Truncation::Any(),
                    TypeCheckKind::kHeapObject);
   }
-  static UseInfo CheckedSignedSmallAsTaggedSigned() {
+  static UseInfo CheckedSignedSmallAsTaggedSigned(
+      const VectorSlotPair& feedback) {
     return UseInfo(MachineRepresentation::kTaggedSigned, Truncation::Any(),
-                   TypeCheckKind::kSignedSmall);
+                   TypeCheckKind::kSignedSmall, feedback);
   }
-  static UseInfo CheckedSignedSmallAsWord32(IdentifyZeros identify_zeros) {
+  static UseInfo CheckedSignedSmallAsWord32(IdentifyZeros identify_zeros,
+                                            const VectorSlotPair& feedback) {
     return UseInfo(MachineRepresentation::kWord32,
-                   Truncation::Any(identify_zeros),
-                   TypeCheckKind::kSignedSmall);
+                   Truncation::Any(identify_zeros), TypeCheckKind::kSignedSmall,
+                   feedback);
   }
-  static UseInfo CheckedSigned32AsWord32(IdentifyZeros identify_zeros) {
+  static UseInfo CheckedSigned32AsWord32(IdentifyZeros identify_zeros,
+                                         const VectorSlotPair& feedback) {
     return UseInfo(MachineRepresentation::kWord32,
-                   Truncation::Any(identify_zeros), TypeCheckKind::kSigned32);
+                   Truncation::Any(identify_zeros), TypeCheckKind::kSigned32,
+                   feedback);
   }
-  static UseInfo CheckedNumberAsFloat64() {
-    return UseInfo(MachineRepresentation::kFloat64, Truncation::Float64(),
-                   TypeCheckKind::kNumber);
-  }
-  static UseInfo CheckedNumberAsWord32() {
-    return UseInfo(MachineRepresentation::kWord32, Truncation::Word32(),
-                   TypeCheckKind::kNumber);
-  }
-  static UseInfo CheckedNumberOrOddballAsFloat64() {
+  static UseInfo CheckedNumberAsFloat64(const VectorSlotPair& feedback) {
     return UseInfo(MachineRepresentation::kFloat64, Truncation::Any(),
-                   TypeCheckKind::kNumberOrOddball);
+                   TypeCheckKind::kNumber, feedback);
   }
-  static UseInfo CheckedNumberOrOddballAsWord32() {
+  static UseInfo CheckedNumberAsWord32(const VectorSlotPair& feedback) {
     return UseInfo(MachineRepresentation::kWord32, Truncation::Word32(),
-                   TypeCheckKind::kNumberOrOddball);
+                   TypeCheckKind::kNumber, feedback);
+  }
+  static UseInfo CheckedNumberOrOddballAsFloat64(
+      const VectorSlotPair& feedback) {
+    return UseInfo(MachineRepresentation::kFloat64, Truncation::Any(),
+                   TypeCheckKind::kNumberOrOddball, feedback);
+  }
+  static UseInfo CheckedNumberOrOddballAsWord32(
+      const VectorSlotPair& feedback) {
+    return UseInfo(MachineRepresentation::kWord32, Truncation::Word32(),
+                   TypeCheckKind::kNumberOrOddball, feedback);
   }
 
   // Undetermined representation.
@@ -239,11 +249,13 @@ class UseInfo {
                ? CheckForMinusZeroMode::kDontCheckForMinusZero
                : CheckForMinusZeroMode::kCheckForMinusZero;
   }
+  const VectorSlotPair& feedback() const { return feedback_; }
 
  private:
   MachineRepresentation representation_;
   Truncation truncation_;
   TypeCheckKind type_check_;
+  VectorSlotPair feedback_;
 };
 
 // Contains logic related to changing the representation of values for constants
@@ -325,8 +337,8 @@ class RepresentationChanger final {
   Node* InsertChangeTaggedSignedToInt32(Node* node);
   Node* InsertChangeTaggedToFloat64(Node* node);
   Node* InsertChangeUint32ToFloat64(Node* node);
-
   Node* InsertConversion(Node* node, const Operator* op, Node* use_node);
+  void InsertUnconditionalDeopt(Node* node, DeoptimizeReason reason);
 
   JSGraph* jsgraph() const { return jsgraph_; }
   Isolate* isolate() const { return isolate_; }

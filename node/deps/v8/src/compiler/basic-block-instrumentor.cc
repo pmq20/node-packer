@@ -6,7 +6,6 @@
 
 #include <sstream>
 
-#include "src/compilation-info.h"
 #include "src/compiler/common-operator.h"
 #include "src/compiler/graph.h"
 #include "src/compiler/machine-operator.h"
@@ -14,6 +13,7 @@
 #include "src/compiler/operator-properties.h"
 #include "src/compiler/schedule.h"
 #include "src/objects-inl.h"
+#include "src/optimized-compilation-info.h"
 
 namespace v8 {
 namespace internal {
@@ -47,18 +47,18 @@ static const Operator* PointerConstant(CommonOperatorBuilder* common,
                    static_cast<int32_t>(reinterpret_cast<intptr_t>(ptr)));
 }
 
-
 BasicBlockProfiler::Data* BasicBlockInstrumentor::Instrument(
-    CompilationInfo* info, Graph* graph, Schedule* schedule) {
+    OptimizedCompilationInfo* info, Graph* graph, Schedule* schedule,
+    Isolate* isolate) {
   // Skip the exit block in profiles, since the register allocator can't handle
   // it and entry into it means falling off the end of the function anyway.
   size_t n_blocks = static_cast<size_t>(schedule->RpoBlockCount()) - 1;
   BasicBlockProfiler::Data* data =
-      info->isolate()->GetOrCreateBasicBlockProfiler()->NewData(n_blocks);
+      isolate->GetOrCreateBasicBlockProfiler()->NewData(n_blocks);
   // Set the function name.
-  if (info->has_shared_info() && info->shared_info()->name()->IsString()) {
+  if (info->has_shared_info()) {
     std::ostringstream os;
-    String::cast(info->shared_info()->name())->PrintUC16(os);
+    info->shared_info()->Name()->PrintUC16(os);
     data->SetFunctionName(&os);
   }
   // Capture the schedule string before instrumentation.

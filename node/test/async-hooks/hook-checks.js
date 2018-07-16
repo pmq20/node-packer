@@ -11,7 +11,7 @@ require('../common');
  * @param {Object} activity including timestamps for each life time event,
  *                 i.e. init, before ...
  * @param {Object} hooks the expected life time event invocations with a count
- *                       indicating how oftn they should have been invoked,
+ *                       indicating how often they should have been invoked,
  *                       i.e. `{ init: 1, before: 2, after: 2 }`
  * @param {String} stage the name of the stage in the test at which we are
  *                       checking the invocations
@@ -25,7 +25,7 @@ exports.checkInvocations = function checkInvocations(activity, hooks, stage) {
   );
 
   // Check that actual invocations for all hooks match the expected invocations
-  [ 'init', 'before', 'after', 'destroy' ].forEach(checkHook);
+  [ 'init', 'before', 'after', 'destroy', 'promiseResolve' ].forEach(checkHook);
 
   function checkHook(k) {
     const val = hooks[k];

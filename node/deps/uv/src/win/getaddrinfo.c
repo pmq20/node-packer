@@ -28,6 +28,8 @@
 /* EAI_* constants. */
 #include <winsock2.h>
 
+/* Needed for ConvertInterfaceIndexToLuid and ConvertInterfaceLuidToNameA */
+#include <iphlpapi.h>
 
 int uv__getaddrinfo_translate_error(int sys_err) {
   switch (sys_err) {
@@ -69,10 +71,13 @@ int uv__getaddrinfo_translate_error(int sys_err) {
 #endif
 
 
-/* adjust size value to be multiple of 4. Use to keep pointer aligned */
-/* Do we need different versions of this for different architectures? */
+/* Adjust size value to be multiple of 4. Use to keep pointer aligned.
+ * Do we need different versions of this for different architectures? */
 #define ALIGNED_SIZE(X)     ((((X) + 3) >> 2) << 2)
 
+#ifndef NDIS_IF_MAX_STRING_SIZE
+#define NDIS_IF_MAX_STRING_SIZE IF_MAX_STRING_SIZE
+#endif
 
 static void uv__getaddrinfo_work(struct uv__work* w) {
   uv_getaddrinfo_t* req;
@@ -119,8 +124,7 @@ static void uv__getaddrinfo_done(struct uv__work* w, int status) {
   }
 
   if (req->retcode == 0) {
-    /* convert addrinfoW to addrinfo */
-    /* first calculate required length */
+    /* Convert addrinfoW to addrinfo. First calculate required length. */
     addrinfow_ptr = req->addrinfow;
     while (addrinfow_ptr != NULL) {
       addrinfo_len += addrinfo_struct_len +
@@ -308,8 +312,8 @@ int uv_getaddrinfo(uv_loop_t* loop,
   /* save alloc_ptr now so we can free if error */
   req->alloc = (void*)alloc_ptr;
 
-  /* convert node string to UTF16 into allocated memory and save pointer in */
-  /* the request. */
+  /* Convert node string to UTF16 into allocated memory and save pointer in the
+   * request. */
   if (node != NULL) {
     req->node = (WCHAR*)alloc_ptr;
     if (MultiByteToWideChar(CP_UTF8,
@@ -326,8 +330,8 @@ int uv_getaddrinfo(uv_loop_t* loop,
     req->node = NULL;
   }
 
-  /* convert service string to UTF16 into allocated memory and save pointer */
-  /* in the req. */
+  /* Convert service string to UTF16 into allocated memory and save pointer in
+   * the req. */
   if (service != NULL) {
     req->service = (WCHAR*)alloc_ptr;
     if (MultiByteToWideChar(CP_UTF8,
@@ -379,4 +383,70 @@ error:
     req->alloc = NULL;
   }
   return uv_translate_sys_error(err);
+}
+
+int uv_if_indextoname(unsigned int ifindex, char* buffer, size_t* size) {
+  NET_LUID luid;
+  wchar_t wname[NDIS_IF_MAX_STRING_SIZE + 1]; /* Add one for the NUL. */
+  DWORD bufsize;
+  int r;
+
+  if (buffer == NULL || size == NULL || *size == 0)
+    return UV_EINVAL;
+
+  r = ConvertInterfaceIndexToLuid(ifindex, &luid);
+
+  if (r != 0)
+    return uv_translate_sys_error(r);
+
+  r = ConvertInterfaceLuidToNameW(&luid, wname, ARRAY_SIZE(wname));
+
+  if (r != 0)
+    return uv_translate_sys_error(r);
+
+  /* Check how much space we need */
+  bufsize = WideCharToMultiByte(CP_UTF8, 0, wname, -1, NULL, 0, NULL, NULL);
+
+  if (bufsize == 0) {
+    return uv_translate_sys_error(GetLastError());
+  } else if (bufsize > *size) {
+    *size = bufsize;
+    return UV_ENOBUFS;
+  }
+
+  /* Convert to UTF-8 */
+  bufsize = WideCharToMultiByte(CP_UTF8,
+                                0,
+                                wname,
+                                -1,
+                                buffer,
+                                *size,
+                                NULL,
+                                NULL);
+
+  if (bufsize == 0)
+    return uv_translate_sys_error(GetLastError());
+
+  *size = bufsize - 1;
+  return 0;
+}
+
+int uv_if_indextoiid(unsigned int ifindex, char* buffer, size_t* size) {
+  int r;
+
+  if (buffer == NULL || size == NULL || *size == 0)
+    return UV_EINVAL;
+
+  r = snprintf(buffer, *size, "%d", ifindex);
+
+  if (r < 0)
+    return uv_translate_sys_error(r);
+
+  if (r >= (int) *size) {
+    *size = r + 1;
+    return UV_ENOBUFS;
+  }
+
+  *size = r;
+  return 0;
 }

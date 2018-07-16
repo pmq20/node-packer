@@ -1,12 +1,15 @@
 # C++ Addons
 
+<!--introduced_in=v0.10.0-->
+<!-- type=misc -->
+
 Node.js Addons are dynamically-linked shared objects, written in C++, that
 can be loaded into Node.js using the [`require()`][require] function, and used
 just as if they were an ordinary Node.js module. They are used primarily to
 provide an interface between JavaScript running in Node.js and C/C++ libraries.
 
 At the moment, the method for implementing Addons is rather complicated,
-involving knowledge of several components and APIs :
+involving knowledge of several components and APIs:
 
  - V8: the C++ library Node.js currently uses to provide the
    JavaScript implementation. V8 provides the mechanisms for creating objects,
@@ -18,7 +21,7 @@ involving knowledge of several components and APIs :
    threads and all of the asynchronous behaviors of the platform. It also
    serves as a cross-platform abstraction library, giving easy, POSIX-like
    access across all major operating systems to many common system tasks, such
-   as interacting with the filesystem, sockets, timers and system events. libuv
+   as interacting with the filesystem, sockets, timers, and system events. libuv
    also provides a pthreads-like threading abstraction that may be used to
    power more sophisticated asynchronous Addons that need to move beyond the
    standard event loop. Addon authors are encouraged to think about how to
@@ -32,8 +35,9 @@ involving knowledge of several components and APIs :
 
  - Node.js includes a number of other statically linked libraries including
    OpenSSL. These other libraries are located in the `deps/` directory in the
-   Node.js source tree. Only the V8 and OpenSSL symbols are purposefully
-   re-exported by Node.js and may be used to various extents by Addons.
+   Node.js source tree. Only the libuv, OpenSSL, V8 and zlib symbols are
+   purposefully re-exported by Node.js and may be used to various extents by
+   Addons.
    See [Linking to Node.js' own dependencies][] for additional information.
 
 All of the following examples are available for [download][] and may
@@ -68,11 +72,11 @@ void Method(const FunctionCallbackInfo<Value>& args) {
   args.GetReturnValue().Set(String::NewFromUtf8(isolate, "world"));
 }
 
-void init(Local<Object> exports) {
+void Initialize(Local<Object> exports) {
   NODE_SET_METHOD(exports, "hello", Method);
 }
 
-NODE_MODULE(addon, init)
+NODE_MODULE(NODE_GYP_MODULE_NAME, Initialize)
 
 }  // namespace demo
 ```
@@ -82,24 +86,24 @@ the pattern:
 
 ```cpp
 void Initialize(Local<Object> exports);
-NODE_MODULE(module_name, Initialize)
+NODE_MODULE(NODE_GYP_MODULE_NAME, Initialize)
 ```
 
 There is no semi-colon after `NODE_MODULE` as it's not a function (see
 `node.h`).
 
 The `module_name` must match the filename of the final binary (excluding
-the .node suffix).
+the `.node` suffix).
 
-In the `hello.cc` example, then, the initialization function is `init` and the
-Addon module name is `addon`.
+In the `hello.cc` example, then, the initialization function is `Initialize`
+and the addon module name is `addon`.
 
 ### Building
 
 Once the source code has been written, it must be compiled into the binary
 `addon.node` file. To do so, create a file called `binding.gyp` in the
 top-level of the project describing the build configuration of the module
-using a JSON-like format. This file is used by [node-gyp][] -- a tool written
+using a JSON-like format. This file is used by [node-gyp][] — a tool written
 specifically to compile Node.js Addons.
 
 ```json
@@ -113,7 +117,7 @@ specifically to compile Node.js Addons.
 }
 ```
 
-*Note*: A version of the `node-gyp` utility is bundled and distributed with
+A version of the `node-gyp` utility is bundled and distributed with
 Node.js as part of `npm`. This version is not made directly available for
 developers to use and is intended only to support the ability to use the
 `npm install` command to compile and install Addons. Developers who wish to
@@ -213,15 +217,14 @@ Addon developers are recommended to use to keep compatibility between past and
 future releases of V8 and Node.js. See the `nan` [examples][] for an
 illustration of how it can be used.
 
-
 ## N-API
 
-> Stability: 1 - Experimental
+> Stability: 2 - Stable
 
 N-API is an API for building native Addons. It is independent from
-the underlying JavaScript runtime (ex V8) and is maintained as part of
+the underlying JavaScript runtime (e.g. V8) and is maintained as part of
 Node.js itself. This API will be Application Binary Interface (ABI) stable
-across version of Node.js. It is intended to insulate Addons from
+across versions of Node.js. It is intended to insulate Addons from
 changes in the underlying JavaScript engine and allow modules
 compiled for one version to run on later versions of Node.js without
 recompilation. Addons are built/packaged with the same approach/tools
@@ -229,6 +232,41 @@ outlined in this document (node-gyp, etc.). The only difference is the
 set of APIs that are used by the native code. Instead of using the V8
 or [Native Abstractions for Node.js][] APIs, the functions available
 in the N-API are used.
+
+To use N-API in the above "Hello world" example, replace the content of
+`hello.cc` with the following. All other instructions remain the same.
+
+```cpp
+// hello.cc using N-API
+#include <node_api.h>
+
+namespace demo {
+
+napi_value Method(napi_env env, napi_callback_info args) {
+  napi_value greeting;
+  napi_status status;
+
+  status = napi_create_string_utf8(env, "hello", NAPI_AUTO_LENGTH, &greeting);
+  if (status != napi_ok) return nullptr;
+  return greeting;
+}
+
+napi_value init(napi_env env, napi_value exports) {
+  napi_status status;
+  napi_value fn;
+
+  status = napi_create_function(env, nullptr, 0, Method, nullptr, &fn);
+  if (status != napi_ok) return nullptr;
+
+  status = napi_set_named_property(env, exports, "hello", fn);
+  if (status != napi_ok) return nullptr;
+  return exports;
+}
+
+NAPI_MODULE(NODE_GYP_MODULE_NAME, init)
+
+}  // namespace demo
+```
 
 The functions available and how to use them are documented in the
 section titled [C/C++ Addons - N-API](n-api.html).
@@ -255,7 +293,7 @@ Each of these examples using the following `binding.gyp` file:
 ```
 
 In cases where there is more than one `.cc` file, simply add the additional
-filename to the `sources` array. For example:
+filename to the `sources` array:
 
 ```json
 "sources": ["addon.cc", "myexample.cc"]
@@ -267,7 +305,6 @@ built using `node-gyp`:
 ```console
 $ node-gyp configure build
 ```
-
 
 ### Function arguments
 
@@ -328,7 +365,7 @@ void Init(Local<Object> exports) {
   NODE_SET_METHOD(exports, "add", Add);
 }
 
-NODE_MODULE(addon, Init)
+NODE_MODULE(NODE_GYP_MODULE_NAME, Init)
 
 }  // namespace demo
 ```
@@ -341,7 +378,6 @@ const addon = require('./build/Release/addon');
 
 console.log('This should be eight:', addon.add(3, 5));
 ```
-
 
 ### Callbacks
 
@@ -376,7 +412,7 @@ void Init(Local<Object> exports, Local<Object> module) {
   NODE_SET_METHOD(module, "exports", RunCallback);
 }
 
-NODE_MODULE(addon, Init)
+NODE_MODULE(NODE_GYP_MODULE_NAME, Init)
 
 }  // namespace demo
 ```
@@ -432,7 +468,7 @@ void Init(Local<Object> exports, Local<Object> module) {
   NODE_SET_METHOD(module, "exports", CreateObject);
 }
 
-NODE_MODULE(addon, Init)
+NODE_MODULE(NODE_GYP_MODULE_NAME, Init)
 
 }  // namespace demo
 ```
@@ -448,7 +484,6 @@ const obj2 = addon('world');
 console.log(obj1.msg, obj2.msg);
 // Prints: 'hello world'
 ```
-
 
 ### Function factory
 
@@ -491,7 +526,7 @@ void Init(Local<Object> exports, Local<Object> module) {
   NODE_SET_METHOD(module, "exports", CreateFunction);
 }
 
-NODE_MODULE(addon, Init)
+NODE_MODULE(NODE_GYP_MODULE_NAME, Init)
 
 }  // namespace demo
 ```
@@ -506,7 +541,6 @@ const fn = addon();
 console.log(fn());
 // Prints: 'hello world'
 ```
-
 
 ### Wrapping C++ objects
 
@@ -527,7 +561,7 @@ void InitAll(Local<Object> exports) {
   MyObject::Init(exports);
 }
 
-NODE_MODULE(addon, InitAll)
+NODE_MODULE(NODE_GYP_MODULE_NAME, InitAll)
 
 }  // namespace demo
 ```
@@ -711,7 +745,7 @@ void InitAll(Local<Object> exports, Local<Object> module) {
   NODE_SET_METHOD(module, "exports", CreateObject);
 }
 
-NODE_MODULE(addon, InitAll)
+NODE_MODULE(NODE_GYP_MODULE_NAME, InitAll)
 
 }  // namespace demo
 ```
@@ -877,7 +911,6 @@ console.log(obj2.plusOne());
 // Prints: 23
 ```
 
-
 ### Passing wrapped objects around
 
 In addition to wrapping and returning C++ objects, it is possible to pass
@@ -924,7 +957,7 @@ void InitAll(Local<Object> exports) {
   NODE_SET_METHOD(exports, "add", Add);
 }
 
-NODE_MODULE(addon, InitAll)
+NODE_MODULE(NODE_GYP_MODULE_NAME, InitAll)
 
 }  // namespace demo
 ```
@@ -1052,24 +1085,26 @@ console.log(result);
 
 ### AtExit hooks
 
-An "AtExit" hook is a function that is invoked after the Node.js event loop
+An `AtExit` hook is a function that is invoked after the Node.js event loop
 has ended but before the JavaScript VM is terminated and Node.js shuts down.
-"AtExit" hooks are registered using the `node::AtExit` API.
+`AtExit` hooks are registered using the `node::AtExit` API.
 
 #### void AtExit(callback, args)
 
-* `callback`: `void (*)(void*)` - A pointer to the function to call at exit.
-* `args`: `void*` - A pointer to pass to the callback at exit.
+* `callback` <span class="type">&lt;void (\*)(void\*)&gt;</span>
+  A pointer to the function to call at exit.
+* `args` <span class="type">&lt;void\*&gt;</span>
+  A pointer to pass to the callback at exit.
 
 Registers exit hooks that run after the event loop has ended but before the VM
 is killed.
 
-AtExit takes two parameters: a pointer to a callback function to run at exit,
+`AtExit` takes two parameters: a pointer to a callback function to run at exit,
 and a pointer to untyped context data to be passed to that callback.
 
 Callbacks are run in last-in first-out order.
 
-The following `addon.cc` implements AtExit:
+The following `addon.cc` implements `AtExit`:
 
 ```cpp
 // addon.cc
@@ -1093,7 +1128,7 @@ static void at_exit_cb1(void* arg) {
   Isolate* isolate = static_cast<Isolate*>(arg);
   HandleScope scope(isolate);
   Local<Object> obj = Object::New(isolate);
-  assert(!obj.IsEmpty()); // assert VM is still alive
+  assert(!obj.IsEmpty());  // assert VM is still alive
   assert(obj->IsObject());
   at_exit_cb1_called++;
 }
@@ -1115,7 +1150,7 @@ void init(Local<Object> exports) {
   AtExit(sanity_check);
 }
 
-NODE_MODULE(addon, init)
+NODE_MODULE(NODE_GYP_MODULE_NAME, init)
 
 }  // namespace demo
 ```

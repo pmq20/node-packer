@@ -56,20 +56,9 @@ function IcProcessor() {
       'KeyedStoreIC': {
         parsers : propertyICParser,
         processor: this.processPropertyIC.bind(this, "KeyedStoreIC") },
-      'CompareIC': {
-        parsers : [parseInt, parseInt, parseInt, parseInt, null, null, null,
-                   null, null, null, null],
-        processor: this.processCompareIC },
-      'BinaryOpIC': {
-        parsers : [parseInt, parseInt, parseInt, parseInt, null, null,
-                   parseInt],
-        processor: this.processBinaryOpIC },
-      'ToBooleanIC': {
-        parsers : [parseInt, parseInt, parseInt, parseInt, null, null],
-        processor: this.processToBooleanIC },
-      'PatchIC': {
-        parsers : [parseInt, parseInt, parseInt],
-        processor: this.processPatchIC },
+      'StoreInArrayLiteralIC': {
+        parsers : propertyICParser,
+        processor: this.processPropertyIC.bind(this, "StoreInArrayLiteralIC") },
       });
   this.deserializedEntriesNames_ = [];
   this.profile_ = new Profile();
@@ -78,10 +67,7 @@ function IcProcessor() {
   this.StoreIC = 0;
   this.KeyedLoadIC = 0;
   this.KeyedStoreIC = 0;
-  this.CompareIC = 0;
-  this.BinaryOpIC = 0;
-  this.ToBooleanIC = 0;
-  this.PatchIC = 0;
+  this.StoreInArrayLiteralIC = 0;
 }
 inherits(IcProcessor, LogReader);
 
@@ -122,10 +108,7 @@ IcProcessor.prototype.processLogFile = function(fileName) {
   print("Store: " + this.StoreIC);
   print("KeyedLoad: " + this.KeyedLoadIC);
   print("KeyedStore: " + this.KeyedStoreIC);
-  print("CompareIC: " + this.CompareIC);
-  print("BinaryOpIC: " + this.BinaryOpIC);
-  print("ToBooleanIC: " + this.ToBooleanIC);
-  print("PatchIC: " + this.PatchIC);
+  print("StoreInArrayLiteral: " + this.StoreInArrayLiteralIC);
 };
 
 IcProcessor.prototype.addEntry = function(entry) {
@@ -178,128 +161,24 @@ IcProcessor.prototype.processPropertyIC = function (
   var entry = this.profile_.findEntry(pc);
   print(type + " (" + old_state + "->" + new_state + modifier + ") at " +
         this.formatName(entry) + ":" + line + ":" + column + " " + name +
-        " (map 0x" + map.toString(16) + ")");
+        " (map 0x" + map.toString(16) + ")" +
+        (slow_reason ? " " + slow_reason : ""));
 }
 
-IcProcessor.prototype.processCompareIC = function (
-    pc, line, column, stub, op, old_left, old_right, old_state, new_left,
-    new_right, new_state) {
-  var entry = this.profile_.findEntry(pc);
-  this.CompareIC++;
-  print("CompareIC[" + op + "] ((" +
-        old_left + "+" + old_right + "=" + old_state + ")->(" +
-        new_left + "+" + new_right + "=" + new_state + ")) at " +
-        this.formatName(entry) + ":" + line + ":" + column);
-}
 
-IcProcessor.prototype.processBinaryOpIC = function (
-    pc, line, column, stub, old_state, new_state, allocation_site) {
-  var entry = this.profile_.findEntry(pc);
-  this.BinaryOpIC++;
-  print("BinaryOpIC (" + old_state + "->" + new_state + ") at " +
-        this.formatName(entry) + ":" + line + ":" + column);
-}
-
-IcProcessor.prototype.processToBooleanIC = function (
-    pc, line, column, stub, old_state, new_state) {
-  var entry = this.profile_.findEntry(pc);
-  this.ToBooleanIC++;
-  print("ToBooleanIC (" + old_state + "->" + new_state + ") at " +
-        this.formatName(entry) + ":" + line + ":" + column);
-}
-
-IcProcessor.prototype.processPatchIC = function (pc, test, delta) {
-  var entry = this.profile_.findEntry(pc);
-  this.PatchIC++;
-  print("PatchIC (0x" + test.toString(16) + ", " + delta + ") at " +
-        this.formatName(entry));
-}
-
-function padLeft(s, len) {
-  s = s.toString();
-  if (s.length < len) {
-    var padLength = len - s.length;
-    if (!(padLength in padLeft)) {
-      padLeft[padLength] = new Array(padLength + 1).join(' ');
-    }
-    s = padLeft[padLength] + s;
+class ArgumentsProcessor extends BaseArgumentsProcessor {
+  getArgsDispatch() {
+    return {
+      '--range': ['range', 'auto,auto',
+          'Specify the range limit as [start],[end]'],
+      '--source-map': ['sourceMap', null,
+          'Specify the source map that should be used for output']
+    };
   }
-  return s;
-};
-
-
-function ArgumentsProcessor(args) {
-  this.args_ = args;
-  this.result_ = ArgumentsProcessor.DEFAULTS;
-
-  this.argsDispatch_ = {
-    '--range': ['range', 'auto,auto',
-        'Specify the range limit as [start],[end]'],
-    '--source-map': ['sourceMap', null,
-        'Specify the source map that should be used for output']
-  };
-};
-
-
-ArgumentsProcessor.DEFAULTS = {
-  logFileName: 'v8.log',
-  range: 'auto,auto',
-};
-
-
-ArgumentsProcessor.prototype.parse = function() {
-  while (this.args_.length) {
-    var arg = this.args_.shift();
-    if (arg.charAt(0) != '-') {
-      this.result_.logFileName = arg;
-      continue;
-    }
-    var userValue = null;
-    var eqPos = arg.indexOf('=');
-    if (eqPos != -1) {
-      userValue = arg.substr(eqPos + 1);
-      arg = arg.substr(0, eqPos);
-    }
-    if (arg in this.argsDispatch_) {
-      var dispatch = this.argsDispatch_[arg];
-      this.result_[dispatch[0]] = userValue == null ? dispatch[1] : userValue;
-    } else {
-      return false;
-    }
+  getDefaultResults() {
+   return {
+      logFileName: 'v8.log',
+      range: 'auto,auto',
+    };
   }
-  return true;
-};
-
-
-ArgumentsProcessor.prototype.result = function() {
-  return this.result_;
-};
-
-
-ArgumentsProcessor.prototype.printUsageAndExit = function() {
-
-  function padRight(s, len) {
-    s = s.toString();
-    if (s.length < len) {
-      s = s + (new Array(len - s.length + 1).join(' '));
-    }
-    return s;
-  }
-
-  print('Cmdline args: [options] [log-file-name]\n' +
-        'Default log file name is "' +
-        ArgumentsProcessor.DEFAULTS.logFileName + '".\n');
-  print('Options:');
-  for (var arg in this.argsDispatch_) {
-    var synonyms = [arg];
-    var dispatch = this.argsDispatch_[arg];
-    for (var synArg in this.argsDispatch_) {
-      if (arg !== synArg && dispatch === this.argsDispatch_[synArg]) {
-        synonyms.push(synArg);
-        delete this.argsDispatch_[synArg];
-      }
-    }
-    print('  ' + padRight(synonyms.join(', '), 20) + " " + dispatch[2]);
-  }
-  quit(2);
-};
+}

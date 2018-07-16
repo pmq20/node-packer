@@ -26,8 +26,8 @@ SPARSE_FLAGS=${SPARSE_FLAGS:-"
 "}
 
 SOURCES="
-include/tree.h
-include/uv-unix.h
+include/uv/tree.h
+include/uv/unix.h
 include/uv.h
 src/fs-poll.c
 src/inet.c
@@ -53,6 +53,7 @@ src/unix/tty.c
 src/unix/udp.c
 src/uv-common.c
 src/uv-common.h
+src/uv-data-getter-setters.c
 "
 
 TESTS="
@@ -96,9 +97,11 @@ test/test-embed.c
 test/test-env-vars.c
 test/test-error.c
 test/test-fail-always.c
+test/test-fs-copyfile.c
 test/test-fs-event.c
 test/test-fs-poll.c
 test/test-fs.c
+test/test-getters-setters.c
 test/test-get-currentexe.c
 test/test-get-loadavg.c
 test/test-get-memory.c
@@ -110,6 +113,7 @@ test/test-homedir.c
 test/test-hrtime.c
 test/test-idle.c
 test/test-ip6-addr.c
+test/test-ipc-heavy-traffic-deadlock-bug.c
 test/test-ipc-send-recv.c
 test/test-ipc.c
 test/test-loop-handles.c
@@ -125,6 +129,7 @@ test/test-platform-output.c
 test/test-poll-close.c
 test/test-poll.c
 test/test-process-title.c
+test/test-process-title-threadsafe.c
 test/test-ref.c
 test/test-run-nowait.c
 test/test-run-once.c
@@ -176,12 +181,22 @@ case `uname -s` in
 AIX)
   SPARSE_FLAGS="$SPARSE_FLAGS -D_AIX=1"
   SOURCES="$SOURCES
+           src/unix/aix-common.c
            src/unix/aix.c"
+  ;;
+OS400)
+  SPARSE_FLAGS="$SPARSE_FLAGS -D__PASE__=1"
+  SOURCES="$SOURCES
+           src/unix/aix-common.c
+           src/unix/ibmi.c
+           src/unix/posix-poll.c
+           src/unix/no-fsevents.c
+           src/unix/no-proctitle.c"
   ;;
 Darwin)
   SPARSE_FLAGS="$SPARSE_FLAGS -D__APPLE__=1"
   SOURCES="$SOURCES
-           include/uv-bsd.h
+           include/uv/bsd.h
            src/unix/darwin.c
            src/unix/kqueue.c
            src/unix/fsevents.c"
@@ -189,21 +204,21 @@ Darwin)
 DragonFly)
   SPARSE_FLAGS="$SPARSE_FLAGS -D__DragonFly__=1"
   SOURCES="$SOURCES
-           include/uv-bsd.h
+           include/uv/bsd.h
            src/unix/kqueue.c
            src/unix/freebsd.c"
   ;;
 FreeBSD)
   SPARSE_FLAGS="$SPARSE_FLAGS -D__FreeBSD__=1"
   SOURCES="$SOURCES
-           include/uv-bsd.h
+           include/uv/bsd.h
            src/unix/kqueue.c
            src/unix/freebsd.c"
   ;;
 Linux)
   SPARSE_FLAGS="$SPARSE_FLAGS -D__linux__=1"
   SOURCES="$SOURCES
-           include/uv-linux.h
+           include/uv/linux.h
            src/unix/linux-inotify.c
            src/unix/linux-core.c
            src/unix/linux-syscalls.c
@@ -212,21 +227,21 @@ Linux)
 NetBSD)
   SPARSE_FLAGS="$SPARSE_FLAGS -D__NetBSD__=1"
   SOURCES="$SOURCES
-           include/uv-bsd.h
+           include/uv/bsd.h
            src/unix/kqueue.c
            src/unix/netbsd.c"
   ;;
 OpenBSD)
   SPARSE_FLAGS="$SPARSE_FLAGS -D__OpenBSD__=1"
   SOURCES="$SOURCES
-           include/uv-bsd.h
+           include/uv/bsd.h
            src/unix/kqueue.c
            src/unix/openbsd.c"
   ;;
 SunOS)
   SPARSE_FLAGS="$SPARSE_FLAGS -D__sun=1"
   SOURCES="$SOURCES
-           include/uv-sunos.h
+           include/uv/sunos.h
            src/unix/sunos.c"
   ;;
 esac

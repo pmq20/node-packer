@@ -3,87 +3,143 @@ const common = require('../common');
 const assert = require('assert');
 const cares = process.binding('cares_wrap');
 const dns = require('dns');
+const dnsPromises = dns.promises;
+
+common.crashOnUnhandledRejection();
 
 // Stub `getaddrinfo` to *always* error.
 cares.getaddrinfo = () => process.binding('uv').UV_ENOENT;
 
-assert.throws(() => {
-  dns.lookup(1, {});
-}, /^TypeError: Invalid arguments: hostname must be a string or falsey$/);
+{
+  const err = {
+    code: 'ERR_INVALID_ARG_TYPE',
+    type: TypeError,
+    message: /^The "hostname" argument must be one of type string or falsy/
+  };
 
-assert.throws(() => {
+  common.expectsError(() => dns.lookup(1, {}), err);
+  common.expectsError(() => dnsPromises.lookup(1, {}), err);
+}
+
+common.expectsError(() => {
   dns.lookup(false, 'cb');
-}, /^TypeError: Invalid arguments: callback must be passed$/);
+}, {
+  code: 'ERR_INVALID_CALLBACK',
+  type: TypeError
+});
 
-assert.throws(() => {
+common.expectsError(() => {
   dns.lookup(false, 'options', 'cb');
-}, /^TypeError: Invalid arguments: callback must be passed$/);
+}, {
+  code: 'ERR_INVALID_CALLBACK',
+  type: TypeError
+});
 
-assert.throws(() => {
-  dns.lookup(false, {
+{
+  const err = {
+    code: 'ERR_INVALID_OPT_VALUE',
+    type: TypeError,
+    message: 'The value "100" is invalid for option "hints"'
+  };
+  const options = {
     hints: 100,
     family: 0,
     all: false
-  }, common.mustNotCall());
-}, /^TypeError: Invalid argument: hints must use valid flags$/);
+  };
 
-assert.throws(() => {
-  dns.lookup(false, {
+  common.expectsError(() => { dnsPromises.lookup(false, options); }, err);
+  common.expectsError(() => {
+    dns.lookup(false, options, common.mustNotCall());
+  }, err);
+}
+
+{
+  const err = {
+    code: 'ERR_INVALID_OPT_VALUE',
+    type: TypeError,
+    message: 'The value "20" is invalid for option "family"'
+  };
+  const options = {
     hints: 0,
     family: 20,
     all: false
-  }, common.mustNotCall());
-}, /^TypeError: Invalid argument: family must be 4 or 6$/);
+  };
 
-assert.doesNotThrow(() => {
-  dns.lookup(false, {
+  common.expectsError(() => { dnsPromises.lookup(false, options); }, err);
+  common.expectsError(() => {
+    dns.lookup(false, options, common.mustNotCall());
+  }, err);
+}
+
+(async function() {
+  let res;
+
+  res = await dnsPromises.lookup(false, {
     hints: 0,
     family: 0,
     all: true
-  }, common.mustCall((error, result, addressType) => {
-    assert.ifError(error);
-    assert.deepStrictEqual(result, []);
-    assert.strictEqual(addressType, undefined);
-  }));
-});
+  });
+  assert.deepStrictEqual(res, []);
 
-assert.doesNotThrow(() => {
-  dns.lookup('127.0.0.1', {
+  res = await dnsPromises.lookup('127.0.0.1', {
     hints: 0,
     family: 4,
     all: true
-  }, common.mustCall((error, result, addressType) => {
-    assert.ifError(error);
-    assert.deepStrictEqual(result, [{
-      address: '127.0.0.1',
-      family: 4
-    }]);
-    assert.strictEqual(addressType, undefined);
-  }));
-});
+  });
+  assert.deepStrictEqual(res, [{ address: '127.0.0.1', family: 4 }]);
 
-assert.doesNotThrow(() => {
-  dns.lookup('127.0.0.1', {
+  res = await dnsPromises.lookup('127.0.0.1', {
     hints: 0,
     family: 4,
     all: false
-  }, common.mustCall((error, result, addressType) => {
-    assert.ifError(error);
-    assert.deepStrictEqual(result, '127.0.0.1');
-    assert.strictEqual(addressType, 4);
-  }));
-});
+  });
+  assert.deepStrictEqual(res, { address: '127.0.0.1', family: 4 });
+})();
 
-assert.doesNotThrow(() => {
-  let tickValue = 0;
+dns.lookup(false, {
+  hints: 0,
+  family: 0,
+  all: true
+}, common.mustCall((error, result, addressType) => {
+  assert.ifError(error);
+  assert.deepStrictEqual(result, []);
+  assert.strictEqual(addressType, undefined);
+}));
 
-  dns.lookup('example.com', common.mustCall((error, result, addressType) => {
-    assert(error);
-    assert.strictEqual(tickValue, 1);
-    assert.strictEqual(error.code, 'ENOENT');
-  }));
+dns.lookup('127.0.0.1', {
+  hints: 0,
+  family: 4,
+  all: true
+}, common.mustCall((error, result, addressType) => {
+  assert.ifError(error);
+  assert.deepStrictEqual(result, [{
+    address: '127.0.0.1',
+    family: 4
+  }]);
+  assert.strictEqual(addressType, undefined);
+}));
 
-  // Make sure that the error callback is called
-  // on next tick.
-  tickValue = 1;
-});
+dns.lookup('127.0.0.1', {
+  hints: 0,
+  family: 4,
+  all: false
+}, common.mustCall((error, result, addressType) => {
+  assert.ifError(error);
+  assert.deepStrictEqual(result, '127.0.0.1');
+  assert.strictEqual(addressType, 4);
+}));
+
+let tickValue = 0;
+
+dns.lookup('example.com', common.mustCall((error, result, addressType) => {
+  assert(error);
+  assert.strictEqual(tickValue, 1);
+  assert.strictEqual(error.code, 'ENOENT');
+  const descriptor = Object.getOwnPropertyDescriptor(error, 'message');
+  assert.strictEqual(descriptor.enumerable,
+                     false, 'The error message should be non-enumerable');
+}));
+
+// Make sure that the error callback is called
+// on next tick.
+tickValue = 1;

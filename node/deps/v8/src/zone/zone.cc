@@ -42,7 +42,8 @@ const size_t kASanRedzoneBytes = 0;
 
 }  // namespace
 
-Zone::Zone(AccountingAllocator* allocator, const char* name)
+Zone::Zone(AccountingAllocator* allocator, const char* name,
+           SegmentSize segment_size)
     : allocation_size_(0),
       segment_bytes_allocated_(0),
       position_(0),
@@ -50,7 +51,8 @@ Zone::Zone(AccountingAllocator* allocator, const char* name)
       allocator_(allocator),
       segment_head_(nullptr),
       name_(name),
-      sealed_(false) {
+      sealed_(false),
+      segment_size_(segment_size) {
   allocator_->ZoneCreation(this);
 }
 
@@ -59,7 +61,7 @@ Zone::~Zone() {
 
   DeleteAll();
 
-  DCHECK(segment_bytes_allocated_ == 0);
+  DCHECK_EQ(segment_bytes_allocated_, 0);
 }
 
 void* Zone::New(size_t size) {
@@ -145,8 +147,11 @@ Address Zone::NewExpand(size_t size) {
   const size_t min_new_size = kSegmentOverhead + size;
   // Guard against integer overflow.
   if (new_size_no_overhead < size || new_size < kSegmentOverhead) {
-    V8::FatalProcessOutOfMemory("Zone");
+    V8::FatalProcessOutOfMemory(nullptr, "Zone");
     return nullptr;
+  }
+  if (segment_size_ == SegmentSize::kLarge) {
+    new_size = kMaximumSegmentSize;
   }
   if (new_size < kMinimumSegmentSize) {
     new_size = kMinimumSegmentSize;
@@ -158,12 +163,12 @@ Address Zone::NewExpand(size_t size) {
     new_size = Max(min_new_size, kMaximumSegmentSize);
   }
   if (new_size > INT_MAX) {
-    V8::FatalProcessOutOfMemory("Zone");
+    V8::FatalProcessOutOfMemory(nullptr, "Zone");
     return nullptr;
   }
   Segment* segment = NewSegment(new_size);
   if (segment == nullptr) {
-    V8::FatalProcessOutOfMemory("Zone");
+    V8::FatalProcessOutOfMemory(nullptr, "Zone");
     return nullptr;
   }
 
@@ -171,7 +176,7 @@ Address Zone::NewExpand(size_t size) {
   Address result = RoundUp(segment->start(), kAlignmentInBytes);
   position_ = result + size;
   // Check for address overflow.
-  // (Should not happen since the segment is guaranteed to accomodate
+  // (Should not happen since the segment is guaranteed to accommodate
   // size bytes + header and alignment padding)
   DCHECK(reinterpret_cast<uintptr_t>(position_) >=
          reinterpret_cast<uintptr_t>(result));

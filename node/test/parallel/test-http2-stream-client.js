@@ -1,4 +1,3 @@
-// Flags: --expose-http2
 'use strict';
 
 const common = require('../common');
@@ -22,8 +21,8 @@ server.listen(0, common.mustCall(() => {
   const client = http2.connect(`http://localhost:${server.address().port}`);
   const req = client.request();
   req.resume();
-  req.on('streamClosed', common.mustCall(() => {
-    client.destroy();
+  req.on('close', common.mustCall(() => {
+    client.close();
     server.close();
   }));
 }));

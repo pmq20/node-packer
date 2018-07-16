@@ -11,27 +11,24 @@
 // -------------------------------------------------------------------
 // Imports
 
-var GetIterator;
-var GetMethod;
 var GlobalArray = global.Array;
 var InternalArray = utils.InternalArray;
-var InternalPackedArray = utils.InternalPackedArray;
-var MaxSimple;
-var MinSimple;
+var MathMax = global.Math.max;
+var MathMin = global.Math.min;
 var ObjectHasOwnProperty = global.Object.prototype.hasOwnProperty;
 var ObjectToString = global.Object.prototype.toString;
 var iteratorSymbol = utils.ImportNow("iterator_symbol");
 var unscopablesSymbol = utils.ImportNow("unscopables_symbol");
 
-utils.Import(function(from) {
-  GetIterator = from.GetIterator;
-  GetMethod = from.GetMethod;
-  MaxSimple = from.MaxSimple;
-  MinSimple = from.MinSimple;
-});
-
 // -------------------------------------------------------------------
 
+macro IS_PROXY(arg)
+(%_IsJSProxy(arg))
+endmacro
+
+macro INVERT_NEG_ZERO(arg)
+((arg) + 0)
+endmacro
 
 function ArraySpeciesCreate(array, length) {
   length = INVERT_NEG_ZERO(length);
@@ -227,7 +224,7 @@ function SparseMove(array, start_i, del_count, len, num_additional_args) {
   // Move data to new array.
   var new_array = new InternalArray(
       // Clamp array length to 2^32-1 to avoid early RangeError.
-      MinSimple(len - del_count + num_additional_args, 0xffffffff));
+      MathMin(len - del_count + num_additional_args, 0xffffffff));
   var big_indices;
   var indices = %GetArrayKeys(array, len);
   if (IS_NUMBER(indices)) {
@@ -327,37 +324,42 @@ function SimpleMove(array, start_i, del_count, len, num_additional_args) {
 
 // -------------------------------------------------------------------
 
-
-function ArrayToString() {
-  var array;
-  var func;
-  if (IS_ARRAY(this)) {
-    func = this.join;
-    if (func === ArrayJoin) {
-      return Join(this, this.length, ',', false);
+var ArrayJoin;
+DEFINE_METHOD(
+  GlobalArray.prototype,
+  toString() {
+    var array;
+    var func;
+    if (IS_ARRAY(this)) {
+      func = this.join;
+      if (func === ArrayJoin) {
+        return Join(this, this.length, ',', false);
+      }
+      array = this;
+    } else {
+      array = TO_OBJECT(this);
+      func = array.join;
     }
-    array = this;
-  } else {
-    array = TO_OBJECT(this);
-    func = array.join;
+    if (!IS_CALLABLE(func)) {
+      return %_Call(ObjectToString, array);
+    }
+    return %_Call(func, array);
   }
-  if (!IS_CALLABLE(func)) {
-    return %_Call(ObjectToString, array);
-  }
-  return %_Call(func, array);
-}
-
+);
 
 function InnerArrayToLocaleString(array, length) {
   return Join(array, TO_LENGTH(length), ',', true);
 }
 
 
-function ArrayToLocaleString() {
-  var array = TO_OBJECT(this);
-  var arrayLen = array.length;
-  return InnerArrayToLocaleString(array, arrayLen);
-}
+DEFINE_METHOD(
+  GlobalArray.prototype,
+  toLocaleString() {
+    var array = TO_OBJECT(this);
+    var arrayLen = array.length;
+    return InnerArrayToLocaleString(array, arrayLen);
+  }
+);
 
 
 function InnerArrayJoin(separator, array, length) {
@@ -378,21 +380,20 @@ function InnerArrayJoin(separator, array, length) {
 }
 
 
-function ArrayJoin(separator) {
-  CHECK_OBJECT_COERCIBLE(this, "Array.prototype.join");
+DEFINE_METHOD(
+  GlobalArray.prototype,
+  join(separator) {
+    var array = TO_OBJECT(this);
+    var length = TO_LENGTH(array.length);
 
-  var array = TO_OBJECT(this);
-  var length = TO_LENGTH(array.length);
-
-  return InnerArrayJoin(separator, array, length);
-}
+    return InnerArrayJoin(separator, array, length);
+  }
+);
 
 
 // Removes the last element from the array and returns it. See
 // ECMA-262, section 15.4.4.6.
-function ArrayPop() {
-  CHECK_OBJECT_COERCIBLE(this, "Array.prototype.pop");
-
+function ArrayPopFallback() {
   var array = TO_OBJECT(this);
   var n = TO_LENGTH(array.length);
   if (n == 0) {
@@ -410,9 +411,7 @@ function ArrayPop() {
 
 // Appends the arguments to the end of the array and returns the new
 // length of the array. See ECMA-262, section 15.4.4.7.
-function ArrayPush() {
-  CHECK_OBJECT_COERCIBLE(this, "Array.prototype.push");
-
+function ArrayPushFallback() {
   var array = TO_OBJECT(this);
   var n = TO_LENGTH(array.length);
   var m = arguments.length;
@@ -512,28 +511,27 @@ function GenericArrayReverse(array, len) {
 }
 
 
-function ArrayReverse() {
-  CHECK_OBJECT_COERCIBLE(this, "Array.prototype.reverse");
+DEFINE_METHOD(
+  GlobalArray.prototype,
+  reverse() {
+    var array = TO_OBJECT(this);
+    var len = TO_LENGTH(array.length);
+    var isArray = IS_ARRAY(array);
 
-  var array = TO_OBJECT(this);
-  var len = TO_LENGTH(array.length);
-  var isArray = IS_ARRAY(array);
-
-  if (UseSparseVariant(array, len, isArray, len)) {
-    %NormalizeElements(array);
-    SparseReverse(array, len);
-    return array;
-  } else if (isArray && %_HasFastPackedElements(array)) {
-    return PackedArrayReverse(array, len);
-  } else {
-    return GenericArrayReverse(array, len);
+    if (UseSparseVariant(array, len, isArray, len)) {
+      %NormalizeElements(array);
+      SparseReverse(array, len);
+      return array;
+    } else if (isArray && %_HasFastPackedElements(array)) {
+      return PackedArrayReverse(array, len);
+    } else {
+      return GenericArrayReverse(array, len);
+    }
   }
-}
+);
 
 
-function ArrayShift() {
-  CHECK_OBJECT_COERCIBLE(this, "Array.prototype.shift");
-
+function ArrayShiftFallback() {
   var array = TO_OBJECT(this);
   var len = TO_LENGTH(array.length);
 
@@ -558,9 +556,7 @@ function ArrayShift() {
 }
 
 
-function ArrayUnshift(arg1) {  // length == 1
-  CHECK_OBJECT_COERCIBLE(this, "Array.prototype.unshift");
-
+function ArrayUnshiftFallback(arg1) {  // length == 1
   var array = TO_OBJECT(this);
   var len = TO_LENGTH(array.length);
   var num_arguments = arguments.length;
@@ -582,47 +578,13 @@ function ArrayUnshift(arg1) {  // length == 1
 }
 
 
-function ArraySlice(start, end) {
-  CHECK_OBJECT_COERCIBLE(this, "Array.prototype.slice");
-
-  var array = TO_OBJECT(this);
-  var len = TO_LENGTH(array.length);
-  var start_i = TO_INTEGER(start);
-  var end_i = len;
-
-  if (!IS_UNDEFINED(end)) end_i = TO_INTEGER(end);
-
-  if (start_i < 0) {
-    start_i += len;
-    if (start_i < 0) start_i = 0;
-  } else {
-    if (start_i > len) start_i = len;
-  }
-
-  if (end_i < 0) {
-    end_i += len;
-    if (end_i < 0) end_i = 0;
-  } else {
-    if (end_i > len) end_i = len;
-  }
-
-  var result = ArraySpeciesCreate(array, MaxSimple(end_i - start_i, 0));
-
-  if (end_i < start_i) return result;
-
-  if (UseSparseVariant(array, len, IS_ARRAY(array), end_i - start_i)) {
-    %NormalizeElements(array);
-    if (IS_ARRAY(result)) %NormalizeElements(result);
-    SparseSlice(array, start_i, end_i - start_i, len, result);
-  } else {
-    SimpleSlice(array, start_i, end_i - start_i, len, result);
-  }
-
-  result.length = end_i - start_i;
-
-  return result;
+// Oh the humanity... don't remove the following function because js2c for some
+// reason gets symbol minifiation wrong if it's not there. Instead of spending
+// the time fixing js2c (which will go away when all of the internal .js runtime
+// files are gone), just keep this work-around.
+function ArraySliceFallback(start, end) {
+  return null;
 }
-
 
 function ComputeSpliceStartIndex(start_i, len) {
   if (start_i < 0) {
@@ -655,9 +617,7 @@ function ComputeSpliceDeleteCount(delete_count, num_arguments, len, start_i) {
 }
 
 
-function ArraySplice(start, delete_count) {
-  CHECK_OBJECT_COERCIBLE(this, "Array.prototype.splice");
-
+function ArraySpliceFallback(start, delete_count) {
   var num_arguments = arguments.length;
   var array = TO_OBJECT(this);
   var len = TO_LENGTH(array.length);
@@ -942,7 +902,7 @@ function InnerArraySort(array, length, comparefn) {
       obj[i] = UNDEFINED;
     }
     for (i = length - num_holes; i < length; i++) {
-      // For compatability with Webkit, do not expose elements in the prototype.
+      // For compatibility with Webkit, do not expose elements in the prototype.
       if (i in %object_get_prototype_of(obj)) {
         obj[i] = UNDEFINED;
       } else {
@@ -992,283 +952,167 @@ function InnerArraySort(array, length, comparefn) {
 }
 
 
-function ArraySort(comparefn) {
-  CHECK_OBJECT_COERCIBLE(this, "Array.prototype.sort");
+DEFINE_METHOD(
+  GlobalArray.prototype,
+  sort(comparefn) {
+    if (!IS_UNDEFINED(comparefn) && !IS_CALLABLE(comparefn)) {
+      throw %make_type_error(kBadSortComparisonFunction, comparefn);
+    }
 
-  var array = TO_OBJECT(this);
-  var length = TO_LENGTH(array.length);
-  return InnerArraySort(array, length, comparefn);
-}
-
-function ArrayLastIndexOf(element, index) {
-  CHECK_OBJECT_COERCIBLE(this, "Array.prototype.lastIndexOf");
-
-  var array = this;
-  var length = TO_LENGTH(this.length);
-
-  if (length == 0) return -1;
-  if (arguments.length < 2) {
-    index = length - 1;
-  } else {
-    index = INVERT_NEG_ZERO(TO_INTEGER(index));
-    // If index is negative, index from end of the array.
-    if (index < 0) index += length;
-    // If index is still negative, do not search the array.
-    if (index < 0) return -1;
-    else if (index >= length) index = length - 1;
+    var array = TO_OBJECT(this);
+    var length = TO_LENGTH(array.length);
+    return InnerArraySort(array, length, comparefn);
   }
-  var min = 0;
-  var max = index;
-  if (UseSparseVariant(array, length, IS_ARRAY(array), index)) {
-    %NormalizeElements(array);
-    var indices = %GetArrayKeys(array, index + 1);
-    if (IS_NUMBER(indices)) {
-      // It's an interval.
-      max = indices;  // Capped by index already.
-      // Fall through to loop below.
+);
+
+DEFINE_METHOD_LEN(
+  GlobalArray.prototype,
+  lastIndexOf(element, index) {
+    var array = TO_OBJECT(this);
+    var length = TO_LENGTH(this.length);
+
+    if (length == 0) return -1;
+    if (arguments.length < 2) {
+      index = length - 1;
     } else {
-      if (indices.length == 0) return -1;
-      // Get all the keys in sorted order.
-      var sortedKeys = GetSortedArrayKeys(array, indices);
-      var i = sortedKeys.length - 1;
-      while (i >= 0) {
-        var key = sortedKeys[i];
-        if (array[key] === element) return key;
-        i--;
+      index = INVERT_NEG_ZERO(TO_INTEGER(index));
+      // If index is negative, index from end of the array.
+      if (index < 0) index += length;
+      // If index is still negative, do not search the array.
+      if (index < 0) return -1;
+      else if (index >= length) index = length - 1;
+    }
+    var min = 0;
+    var max = index;
+    if (UseSparseVariant(array, length, IS_ARRAY(array), index)) {
+      %NormalizeElements(array);
+      var indices = %GetArrayKeys(array, index + 1);
+      if (IS_NUMBER(indices)) {
+        // It's an interval.
+        max = indices;  // Capped by index already.
+        // Fall through to loop below.
+      } else {
+        if (indices.length == 0) return -1;
+        // Get all the keys in sorted order.
+        var sortedKeys = GetSortedArrayKeys(array, indices);
+        var i = sortedKeys.length - 1;
+        while (i >= 0) {
+          var key = sortedKeys[i];
+          if (array[key] === element) return key;
+          i--;
+        }
+        return -1;
+      }
+    }
+    // Lookup through the array.
+    if (!IS_UNDEFINED(element)) {
+      for (var i = max; i >= min; i--) {
+        if (array[i] === element) return i;
       }
       return -1;
     }
-  }
-  // Lookup through the array.
-  if (!IS_UNDEFINED(element)) {
     for (var i = max; i >= min; i--) {
-      if (array[i] === element) return i;
+      if (IS_UNDEFINED(array[i]) && i in array) {
+        return i;
+      }
     }
     return -1;
-  }
-  for (var i = max; i >= min; i--) {
-    if (IS_UNDEFINED(array[i]) && i in array) {
-      return i;
-    }
-  }
-  return -1;
-}
+  },
+  1  /* Set function length */
+);
+
 
 // ES#sec-array.prototype.copywithin
 // (Array.prototype.copyWithin ( target, start [ , end ] )
-function ArrayCopyWithin(target, start, end) {
-  CHECK_OBJECT_COERCIBLE(this, "Array.prototype.copyWithin");
+DEFINE_METHOD_LEN(
+  GlobalArray.prototype,
+  copyWithin(target, start, end) {
+    var array = TO_OBJECT(this);
+    var length = TO_LENGTH(array.length);
 
-  var array = TO_OBJECT(this);
-  var length = TO_LENGTH(array.length);
-
-  target = TO_INTEGER(target);
-  var to;
-  if (target < 0) {
-    to = MaxSimple(length + target, 0);
-  } else {
-    to = MinSimple(target, length);
-  }
-
-  start = TO_INTEGER(start);
-  var from;
-  if (start < 0) {
-    from = MaxSimple(length + start, 0);
-  } else {
-    from = MinSimple(start, length);
-  }
-
-  end = IS_UNDEFINED(end) ? length : TO_INTEGER(end);
-  var final;
-  if (end < 0) {
-    final = MaxSimple(length + end, 0);
-  } else {
-    final = MinSimple(end, length);
-  }
-
-  var count = MinSimple(final - from, length - to);
-  var direction = 1;
-  if (from < to && to < (from + count)) {
-    direction = -1;
-    from = from + count - 1;
-    to = to + count - 1;
-  }
-
-  while (count > 0) {
-    if (from in array) {
-      array[to] = array[from];
+    target = TO_INTEGER(target);
+    var to;
+    if (target < 0) {
+      to = MathMax(length + target, 0);
     } else {
-      delete array[to];
+      to = MathMin(target, length);
     }
-    from = from + direction;
-    to = to + direction;
-    count--;
-  }
 
-  return array;
-}
-
-
-function InnerArrayFind(predicate, thisArg, array, length) {
-  if (!IS_CALLABLE(predicate)) {
-    throw %make_type_error(kCalledNonCallable, predicate);
-  }
-
-  for (var i = 0; i < length; i++) {
-    var element = array[i];
-    if (%_Call(predicate, thisArg, element, i, array)) {
-      return element;
+    start = TO_INTEGER(start);
+    var from;
+    if (start < 0) {
+      from = MathMax(length + start, 0);
+    } else {
+      from = MathMin(start, length);
     }
-  }
 
-  return;
-}
-
-
-// ES6 draft 07-15-13, section 15.4.3.23
-function ArrayFind(predicate, thisArg) {
-  CHECK_OBJECT_COERCIBLE(this, "Array.prototype.find");
-
-  var array = TO_OBJECT(this);
-  var length = TO_INTEGER(array.length);
-
-  return InnerArrayFind(predicate, thisArg, array, length);
-}
-
-
-function InnerArrayFindIndex(predicate, thisArg, array, length) {
-  if (!IS_CALLABLE(predicate)) {
-    throw %make_type_error(kCalledNonCallable, predicate);
-  }
-
-  for (var i = 0; i < length; i++) {
-    var element = array[i];
-    if (%_Call(predicate, thisArg, element, i, array)) {
-      return i;
+    end = IS_UNDEFINED(end) ? length : TO_INTEGER(end);
+    var final;
+    if (end < 0) {
+      final = MathMax(length + end, 0);
+    } else {
+      final = MathMin(end, length);
     }
-  }
 
-  return -1;
-}
+    var count = MathMin(final - from, length - to);
+    var direction = 1;
+    if (from < to && to < (from + count)) {
+      direction = -1;
+      from = from + count - 1;
+      to = to + count - 1;
+    }
 
+    while (count > 0) {
+      if (from in array) {
+        array[to] = array[from];
+      } else {
+        delete array[to];
+      }
+      from = from + direction;
+      to = to + direction;
+      count--;
+    }
 
-// ES6 draft 07-15-13, section 15.4.3.24
-function ArrayFindIndex(predicate, thisArg) {
-  CHECK_OBJECT_COERCIBLE(this, "Array.prototype.findIndex");
-
-  var array = TO_OBJECT(this);
-  var length = TO_INTEGER(array.length);
-
-  return InnerArrayFindIndex(predicate, thisArg, array, length);
-}
+    return array;
+  },
+  2  /* Set function length */
+);
 
 
 // ES6, draft 04-05-14, section 22.1.3.6
-function ArrayFill(value, start, end) {
-  CHECK_OBJECT_COERCIBLE(this, "Array.prototype.fill");
+DEFINE_METHOD_LEN(
+  GlobalArray.prototype,
+  fill(value, start, end) {
+    var array = TO_OBJECT(this);
+    var length = TO_LENGTH(array.length);
 
-  var array = TO_OBJECT(this);
-  var length = TO_LENGTH(array.length);
+    var i = IS_UNDEFINED(start) ? 0 : TO_INTEGER(start);
+    var end = IS_UNDEFINED(end) ? length : TO_INTEGER(end);
 
-  var i = IS_UNDEFINED(start) ? 0 : TO_INTEGER(start);
-  var end = IS_UNDEFINED(end) ? length : TO_INTEGER(end);
-
-  if (i < 0) {
-    i += length;
-    if (i < 0) i = 0;
-  } else {
-    if (i > length) i = length;
-  }
-
-  if (end < 0) {
-    end += length;
-    if (end < 0) end = 0;
-  } else {
-    if (end > length) end = length;
-  }
-
-  if ((end - i) > 0 && %object_is_frozen(array)) {
-    throw %make_type_error(kArrayFunctionsOnFrozen);
-  }
-
-  for (; i < end; i++)
-    array[i] = value;
-  return array;
-}
-
-
-// ES6, draft 10-14-14, section 22.1.2.1
-function ArrayFrom(arrayLike, mapfn, receiver) {
-  var items = TO_OBJECT(arrayLike);
-  var mapping = !IS_UNDEFINED(mapfn);
-
-  if (mapping) {
-    if (!IS_CALLABLE(mapfn)) {
-      throw %make_type_error(kCalledNonCallable, mapfn);
-    }
-  }
-
-  var iterable = GetMethod(items, iteratorSymbol);
-  var k;
-  var result;
-  var mappedValue;
-  var nextValue;
-
-  if (!IS_UNDEFINED(iterable)) {
-    result = %IsConstructor(this) ? new this() : [];
-    k = 0;
-
-    for (nextValue of
-         { [iteratorSymbol]() { return GetIterator(items, iterable) } }) {
-      if (mapping) {
-        mappedValue = %_Call(mapfn, receiver, nextValue, k);
-      } else {
-        mappedValue = nextValue;
-      }
-      %CreateDataProperty(result, k, mappedValue);
-      k++;
-    }
-    result.length = k;
-    return result;
-  } else {
-    var len = TO_LENGTH(items.length);
-    result = %IsConstructor(this) ? new this(len) : new GlobalArray(len);
-
-    for (k = 0; k < len; ++k) {
-      nextValue = items[k];
-      if (mapping) {
-        mappedValue = %_Call(mapfn, receiver, nextValue, k);
-      } else {
-        mappedValue = nextValue;
-      }
-      %CreateDataProperty(result, k, mappedValue);
+    if (i < 0) {
+      i += length;
+      if (i < 0) i = 0;
+    } else {
+      if (i > length) i = length;
     }
 
-    result.length = k;
-    return result;
-  }
-}
+    if (end < 0) {
+      end += length;
+      if (end < 0) end = 0;
+    } else {
+      if (end > length) end = length;
+    }
 
+    if ((end - i) > 0 && %object_is_frozen(array)) {
+      throw %make_type_error(kArrayFunctionsOnFrozen);
+    }
 
-// ES6, draft 05-22-14, section 22.1.2.3
-function ArrayOf(...args) {
-  var length = args.length;
-  var constructor = this;
-  // TODO: Implement IsConstructor (ES6 section 7.2.5)
-  var array = %IsConstructor(constructor) ? new constructor(length) : [];
-  for (var i = 0; i < length; i++) {
-    %CreateDataProperty(array, i, args[i]);
-  }
-  array.length = length;
-  return array;
-}
-
-// -------------------------------------------------------------------
-
-// Set up non-enumerable constructor property on the Array.prototype
-// object.
-%AddNamedProperty(GlobalArray.prototype, "constructor", GlobalArray,
-                  DONT_ENUM);
+    for (; i < end; i++)
+      array[i] = value;
+    return array;
+  },
+  1  /* Set function length */
+);
 
 // Set up unscopable properties on the Array.prototype object.
 var unscopables = {
@@ -1287,124 +1131,73 @@ var unscopables = {
 %AddNamedProperty(GlobalArray.prototype, unscopablesSymbol, unscopables,
                   DONT_ENUM | READ_ONLY);
 
-%FunctionSetLength(ArrayFrom, 1);
-
-// Set up non-enumerable functions on the Array object.
-utils.InstallFunctions(GlobalArray, DONT_ENUM, [
-  "from", ArrayFrom,
-  "of", ArrayOf
-]);
-
-var specialFunctions = %SpecialArrayFunctions();
-
-function getFunction(name, jsBuiltin, len) {
-  var f = jsBuiltin;
-  if (specialFunctions.hasOwnProperty(name)) {
-    f = specialFunctions[name];
-  }
-  if (!IS_UNDEFINED(len)) {
-    %FunctionSetLength(f, len);
-  }
-  return f;
-};
+var ArrayIndexOf = GlobalArray.prototype.indexOf;
+var ArrayJoin = GlobalArray.prototype.join;
+var ArrayPop = GlobalArray.prototype.pop;
+var ArrayPush = GlobalArray.prototype.push;
+var ArraySlice = GlobalArray.prototype.slice;
+var ArrayShift = GlobalArray.prototype.shift;
+var ArraySort = GlobalArray.prototype.sort;
+var ArraySplice = GlobalArray.prototype.splice;
+var ArrayToString = GlobalArray.prototype.toString;
+var ArrayUnshift = GlobalArray.prototype.unshift;
 
 // Array prototype functions that return iterators. They are exposed to the
 // public API via Template::SetIntrinsicDataProperty().
-var IteratorFunctions = {
-    "entries": getFunction("entries", null, 0),
-    "keys": getFunction("keys", null, 0),
-    "values": getFunction("values", null, 0)
-}
+var ArrayEntries = GlobalArray.prototype.entries;
+var ArrayForEach = GlobalArray.prototype.forEach;
+var ArrayKeys = GlobalArray.prototype.keys;
+var ArrayValues = GlobalArray.prototype[iteratorSymbol];
 
-// Set up non-enumerable functions of the Array.prototype object and
-// set their names.
-// Manipulate the length of some of the functions to meet
-// expectations set by ECMA-262 or Mozilla.
-utils.InstallFunctions(GlobalArray.prototype, DONT_ENUM, [
-  "toString", getFunction("toString", ArrayToString),
-  "toLocaleString", getFunction("toLocaleString", ArrayToLocaleString),
-  "join", getFunction("join", ArrayJoin),
-  "pop", getFunction("pop", ArrayPop),
-  "push", getFunction("push", ArrayPush, 1),
-  "reverse", getFunction("reverse", ArrayReverse),
-  "shift", getFunction("shift", ArrayShift),
-  "unshift", getFunction("unshift", ArrayUnshift, 1),
-  "slice", getFunction("slice", ArraySlice, 2),
-  "splice", getFunction("splice", ArraySplice, 2),
-  "sort", getFunction("sort", ArraySort),
-  "indexOf", getFunction("indexOf", null, 1),
-  "lastIndexOf", getFunction("lastIndexOf", ArrayLastIndexOf, 1),
-  "copyWithin", getFunction("copyWithin", ArrayCopyWithin, 2),
-  "find", getFunction("find", ArrayFind, 1),
-  "findIndex", getFunction("findIndex", ArrayFindIndex, 1),
-  "fill", getFunction("fill", ArrayFill, 1),
-  "includes", getFunction("includes", null, 1),
-  "entries", IteratorFunctions.entries,
-  "keys", IteratorFunctions.keys,
-  iteratorSymbol, IteratorFunctions.values
-]);
-
-%FunctionSetName(IteratorFunctions.entries, "entries");
-%FunctionSetName(IteratorFunctions.keys, "keys");
-%FunctionSetName(IteratorFunctions.values, "values");
 
 // The internal Array prototype doesn't need to be fancy, since it's never
 // exposed to user code.
 // Adding only the functions that are actually used.
 utils.SetUpLockedPrototype(InternalArray, GlobalArray(), [
-  "indexOf", getFunction("indexOf", null),
-  "join", getFunction("join", ArrayJoin),
-  "pop", getFunction("pop", ArrayPop),
-  "push", getFunction("push", ArrayPush),
-  "shift", getFunction("shift", ArrayShift),
-  "sort", getFunction("sort", ArraySort),
-  "splice", getFunction("splice", ArraySplice)
-]);
-
-utils.SetUpLockedPrototype(InternalPackedArray, GlobalArray(), [
-  "join", getFunction("join", ArrayJoin),
-  "pop", getFunction("pop", ArrayPop),
-  "push", getFunction("push", ArrayPush),
-  "shift", getFunction("shift", ArrayShift)
+  "indexOf", ArrayIndexOf,
+  "join", ArrayJoin,
+  "pop", ArrayPop,
+  "push", ArrayPush,
+  "shift", ArrayShift,
+  "sort", ArraySort,
+  "splice", ArraySplice
 ]);
 
 // V8 extras get a separate copy of InternalPackedArray. We give them the basic
 // manipulation methods.
 utils.SetUpLockedPrototype(extrasUtils.InternalPackedArray, GlobalArray(), [
-  "push", getFunction("push", ArrayPush),
-  "pop", getFunction("pop", ArrayPop),
-  "shift", getFunction("shift", ArrayShift),
-  "unshift", getFunction("unshift", ArrayUnshift),
-  "splice", getFunction("splice", ArraySplice),
-  "slice", getFunction("slice", ArraySlice)
+  "push", ArrayPush,
+  "pop", ArrayPop,
+  "shift", ArrayShift,
+  "unshift", ArrayUnshift,
+  "splice", ArraySplice,
+  "slice", ArraySlice
 ]);
 
 // -------------------------------------------------------------------
 // Exports
 
 utils.Export(function(to) {
-  to.ArrayFrom = ArrayFrom;
   to.ArrayJoin = ArrayJoin;
   to.ArrayPush = ArrayPush;
   to.ArrayToString = ArrayToString;
-  to.ArrayValues = IteratorFunctions.values,
-  to.InnerArrayFind = InnerArrayFind;
-  to.InnerArrayFindIndex = InnerArrayFindIndex;
+  to.ArrayValues = ArrayValues;
   to.InnerArrayJoin = InnerArrayJoin;
   to.InnerArraySort = InnerArraySort;
   to.InnerArrayToLocaleString = InnerArrayToLocaleString;
 });
 
 %InstallToContext([
-  "array_entries_iterator", IteratorFunctions.entries,
-  "array_keys_iterator", IteratorFunctions.keys,
-  "array_pop", ArrayPop,
-  "array_push", ArrayPush,
-  "array_shift", ArrayShift,
-  "array_splice", ArraySplice,
-  "array_slice", ArraySlice,
-  "array_unshift", ArrayUnshift,
-  "array_values_iterator", IteratorFunctions.values,
+  "array_entries_iterator", ArrayEntries,
+  "array_for_each_iterator", ArrayForEach,
+  "array_keys_iterator", ArrayKeys,
+  "array_values_iterator", ArrayValues,
+  // Fallback implementations of Array builtins.
+  "array_pop", ArrayPopFallback,
+  "array_push", ArrayPushFallback,
+  "array_shift", ArrayShiftFallback,
+  "array_splice", ArraySpliceFallback,
+  "array_unshift", ArrayUnshiftFallback,
 ]);
 
 });

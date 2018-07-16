@@ -15,6 +15,7 @@
 'use strict';
 
 const { Buffer } = require('buffer');
+const { ERR_INVALID_ARG_TYPE } = require('internal/errors').codes;
 const {
   Serializer: _Serializer,
   Deserializer: _Deserializer
@@ -32,7 +33,7 @@ class Deserializer extends _Deserializer { }
 
 const {
   cachedDataVersionTag,
-  setFlagsFromString,
+  setFlagsFromString: _setFlagsFromString,
   heapStatisticsArrayBuffer,
   heapSpaceStatisticsArrayBuffer,
   updateHeapStatisticsArrayBuffer,
@@ -63,6 +64,12 @@ const heapStatisticsBuffer =
 
 const heapSpaceStatisticsBuffer =
     new Float64Array(heapSpaceStatisticsArrayBuffer);
+
+function setFlagsFromString(flags) {
+  if (typeof flags !== 'string')
+    throw new ERR_INVALID_ARG_TYPE('flags', 'string', flags);
+  _setFlagsFromString(flags);
+}
 
 function getHeapStatistics() {
   const buffer = heapStatisticsBuffer;
@@ -136,7 +143,7 @@ const arrayBufferViewTypeToIndex = new Map();
   }
 }
 
-const bufferConstructorIndex = arrayBufferViewTypes.push(Buffer) - 1;
+const bufferConstructorIndex = arrayBufferViewTypes.push(FastBuffer) - 1;
 
 class DefaultSerializer extends Serializer {
   constructor() {
@@ -154,7 +161,7 @@ class DefaultSerializer extends Serializer {
       i = arrayBufferViewTypeToIndex.get(tag);
 
       if (i === undefined) {
-        throw this._getDataCloneError(`Unknown host object type: ${tag}`);
+        throw new this._getDataCloneError(`Unknown host object type: ${tag}`);
       }
     }
     this.writeUint32(i);
@@ -206,7 +213,7 @@ function deserialize(buffer) {
   return der.readValue();
 }
 
-module.exports = exports = {
+module.exports = {
   cachedDataVersionTag,
   getHeapStatistics,
   getHeapSpaceStatistics,

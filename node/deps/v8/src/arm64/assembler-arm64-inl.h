@@ -13,10 +13,9 @@
 namespace v8 {
 namespace internal {
 
+bool CpuFeatures::SupportsOptimizer() { return true; }
 
-bool CpuFeatures::SupportsCrankshaft() { return true; }
-
-bool CpuFeatures::SupportsWasmSimd128() { return false; }
+bool CpuFeatures::SupportsWasmSimd128() { return true; }
 
 void RelocInfo::apply(intptr_t delta) {
   // On arm64 only internal references need extra work.
@@ -27,124 +26,21 @@ void RelocInfo::apply(intptr_t delta) {
   *p += delta;  // Relocate entry.
 }
 
-inline int CPURegister::code() const {
-  DCHECK(IsValid());
-  return reg_code;
-}
-
-
-inline CPURegister::RegisterType CPURegister::type() const {
-  DCHECK(IsValidOrNone());
-  return reg_type;
-}
-
-
-inline RegList CPURegister::Bit() const {
-  DCHECK(static_cast<size_t>(reg_code) < (sizeof(RegList) * kBitsPerByte));
-  return IsValid() ? 1UL << reg_code : 0;
-}
-
-
-inline int CPURegister::SizeInBits() const {
-  DCHECK(IsValid());
-  return reg_size;
-}
-
-
-inline int CPURegister::SizeInBytes() const {
-  DCHECK(IsValid());
-  DCHECK(SizeInBits() % 8 == 0);
-  return reg_size / 8;
-}
-
-
-inline bool CPURegister::Is32Bits() const {
-  DCHECK(IsValid());
-  return reg_size == 32;
-}
-
-
-inline bool CPURegister::Is64Bits() const {
-  DCHECK(IsValid());
-  return reg_size == 64;
-}
-
-
-inline bool CPURegister::IsValid() const {
-  if (IsValidRegister() || IsValidFPRegister()) {
-    DCHECK(!IsNone());
-    return true;
-  } else {
-    DCHECK(IsNone());
-    return false;
-  }
-}
-
-
-inline bool CPURegister::IsValidRegister() const {
-  return IsRegister() &&
-         ((reg_size == kWRegSizeInBits) || (reg_size == kXRegSizeInBits)) &&
-         ((reg_code < kNumberOfRegisters) || (reg_code == kSPRegInternalCode));
-}
-
-
-inline bool CPURegister::IsValidFPRegister() const {
-  return IsFPRegister() &&
-         ((reg_size == kSRegSizeInBits) || (reg_size == kDRegSizeInBits)) &&
-         (reg_code < kNumberOfFPRegisters);
-}
-
-
-inline bool CPURegister::IsNone() const {
-  // kNoRegister types should always have size 0 and code 0.
-  DCHECK((reg_type != kNoRegister) || (reg_code == 0));
-  DCHECK((reg_type != kNoRegister) || (reg_size == 0));
-
-  return reg_type == kNoRegister;
-}
-
-
-inline bool CPURegister::Is(const CPURegister& other) const {
-  DCHECK(IsValidOrNone() && other.IsValidOrNone());
-  return Aliases(other) && (reg_size == other.reg_size);
-}
-
-
-inline bool CPURegister::Aliases(const CPURegister& other) const {
-  DCHECK(IsValidOrNone() && other.IsValidOrNone());
-  return (reg_code == other.reg_code) && (reg_type == other.reg_type);
-}
-
-
-inline bool CPURegister::IsRegister() const {
-  return reg_type == kRegister;
-}
-
-
-inline bool CPURegister::IsFPRegister() const {
-  return reg_type == kFPRegister;
-}
-
 
 inline bool CPURegister::IsSameSizeAndType(const CPURegister& other) const {
-  return (reg_size == other.reg_size) && (reg_type == other.reg_type);
-}
-
-
-inline bool CPURegister::IsValidOrNone() const {
-  return IsValid() || IsNone();
+  return (reg_size_ == other.reg_size_) && (reg_type_ == other.reg_type_);
 }
 
 
 inline bool CPURegister::IsZero() const {
   DCHECK(IsValid());
-  return IsRegister() && (reg_code == kZeroRegCode);
+  return IsRegister() && (reg_code_ == kZeroRegCode);
 }
 
 
 inline bool CPURegister::IsSP() const {
   DCHECK(IsValid());
-  return IsRegister() && (reg_code == kSPRegInternalCode);
+  return IsRegister() && (reg_code_ == kSPRegInternalCode);
 }
 
 
@@ -198,9 +94,9 @@ inline void CPURegList::Remove(int code) {
 
 inline Register Register::XRegFromCode(unsigned code) {
   if (code == kSPRegInternalCode) {
-    return csp;
+    return sp;
   } else {
-    DCHECK(code < kNumberOfRegisters);
+    DCHECK_LT(code, static_cast<unsigned>(kNumberOfRegisters));
     return Register::Create(code, kXRegSizeInBits);
   }
 }
@@ -208,47 +104,91 @@ inline Register Register::XRegFromCode(unsigned code) {
 
 inline Register Register::WRegFromCode(unsigned code) {
   if (code == kSPRegInternalCode) {
-    return wcsp;
+    return wsp;
   } else {
-    DCHECK(code < kNumberOfRegisters);
+    DCHECK_LT(code, static_cast<unsigned>(kNumberOfRegisters));
     return Register::Create(code, kWRegSizeInBits);
   }
 }
 
-
-inline FPRegister FPRegister::SRegFromCode(unsigned code) {
-  DCHECK(code < kNumberOfFPRegisters);
-  return FPRegister::Create(code, kSRegSizeInBits);
+inline VRegister VRegister::BRegFromCode(unsigned code) {
+  DCHECK_LT(code, static_cast<unsigned>(kNumberOfVRegisters));
+  return VRegister::Create(code, kBRegSizeInBits);
 }
 
-
-inline FPRegister FPRegister::DRegFromCode(unsigned code) {
-  DCHECK(code < kNumberOfFPRegisters);
-  return FPRegister::Create(code, kDRegSizeInBits);
+inline VRegister VRegister::HRegFromCode(unsigned code) {
+  DCHECK_LT(code, static_cast<unsigned>(kNumberOfVRegisters));
+  return VRegister::Create(code, kHRegSizeInBits);
 }
 
+inline VRegister VRegister::SRegFromCode(unsigned code) {
+  DCHECK_LT(code, static_cast<unsigned>(kNumberOfVRegisters));
+  return VRegister::Create(code, kSRegSizeInBits);
+}
+
+inline VRegister VRegister::DRegFromCode(unsigned code) {
+  DCHECK_LT(code, static_cast<unsigned>(kNumberOfVRegisters));
+  return VRegister::Create(code, kDRegSizeInBits);
+}
+
+inline VRegister VRegister::QRegFromCode(unsigned code) {
+  DCHECK_LT(code, static_cast<unsigned>(kNumberOfVRegisters));
+  return VRegister::Create(code, kQRegSizeInBits);
+}
+
+inline VRegister VRegister::VRegFromCode(unsigned code) {
+  DCHECK_LT(code, static_cast<unsigned>(kNumberOfVRegisters));
+  return VRegister::Create(code, kVRegSizeInBits);
+}
 
 inline Register CPURegister::W() const {
-  DCHECK(IsValidRegister());
-  return Register::WRegFromCode(reg_code);
+  DCHECK(IsRegister());
+  return Register::WRegFromCode(reg_code_);
 }
 
+inline Register CPURegister::Reg() const {
+  DCHECK(IsRegister());
+  return Register::Create(reg_code_, reg_size_);
+}
+
+inline VRegister CPURegister::VReg() const {
+  DCHECK(IsVRegister());
+  return VRegister::Create(reg_code_, reg_size_);
+}
 
 inline Register CPURegister::X() const {
-  DCHECK(IsValidRegister());
-  return Register::XRegFromCode(reg_code);
+  DCHECK(IsRegister());
+  return Register::XRegFromCode(reg_code_);
 }
 
-
-inline FPRegister CPURegister::S() const {
-  DCHECK(IsValidFPRegister());
-  return FPRegister::SRegFromCode(reg_code);
+inline VRegister CPURegister::V() const {
+  DCHECK(IsVRegister());
+  return VRegister::VRegFromCode(reg_code_);
 }
 
+inline VRegister CPURegister::B() const {
+  DCHECK(IsVRegister());
+  return VRegister::BRegFromCode(reg_code_);
+}
 
-inline FPRegister CPURegister::D() const {
-  DCHECK(IsValidFPRegister());
-  return FPRegister::DRegFromCode(reg_code);
+inline VRegister CPURegister::H() const {
+  DCHECK(IsVRegister());
+  return VRegister::HRegFromCode(reg_code_);
+}
+
+inline VRegister CPURegister::S() const {
+  DCHECK(IsVRegister());
+  return VRegister::SRegFromCode(reg_code_);
+}
+
+inline VRegister CPURegister::D() const {
+  DCHECK(IsVRegister());
+  return VRegister::DRegFromCode(reg_code_);
+}
+
+inline VRegister CPURegister::Q() const {
+  DCHECK(IsVRegister());
+  return VRegister::QRegFromCode(reg_code_);
 }
 
 
@@ -257,9 +197,7 @@ inline FPRegister CPURegister::D() const {
 template<typename T>
 struct ImmediateInitializer {
   static const bool kIsIntType = true;
-  static inline RelocInfo::Mode rmode_for(T) {
-    return sizeof(T) == 8 ? RelocInfo::NONE64 : RelocInfo::NONE32;
-  }
+  static inline RelocInfo::Mode rmode_for(T) { return RelocInfo::NONE; }
   static inline int64_t immediate_for(T t) {
     STATIC_ASSERT(sizeof(T) <= 8);
     return t;
@@ -270,9 +208,7 @@ struct ImmediateInitializer {
 template<>
 struct ImmediateInitializer<Smi*> {
   static const bool kIsIntType = false;
-  static inline RelocInfo::Mode rmode_for(Smi* t) {
-    return RelocInfo::NONE64;
-  }
+  static inline RelocInfo::Mode rmode_for(Smi* t) { return RelocInfo::NONE; }
   static inline int64_t immediate_for(Smi* t) {;
     return reinterpret_cast<int64_t>(t);
   }
@@ -310,7 +246,6 @@ Immediate::Immediate(T t, RelocInfo::Mode rmode)
   STATIC_ASSERT(ImmediateInitializer<T>::kIsIntType);
 }
 
-
 // Operand.
 template<typename T>
 Operand::Operand(Handle<T> value) : immediate_(value), reg_(NoReg) {}
@@ -324,7 +259,6 @@ template<typename T>
 Operand::Operand(T t, RelocInfo::Mode rmode)
     : immediate_(t, rmode),
       reg_(NoReg) {}
-
 
 Operand::Operand(Register reg, Shift shift, unsigned shift_amount)
     : immediate_(0),
@@ -345,16 +279,28 @@ Operand::Operand(Register reg, Extend extend, unsigned shift_amount)
       extend_(extend),
       shift_amount_(shift_amount) {
   DCHECK(reg.IsValid());
-  DCHECK(shift_amount <= 4);
+  DCHECK_LE(shift_amount, 4);
   DCHECK(!reg.IsSP());
 
   // Extend modes SXTX and UXTX require a 64-bit register.
   DCHECK(reg.Is64Bits() || ((extend != SXTX) && (extend != UXTX)));
 }
 
+bool Operand::IsHeapObjectRequest() const {
+  DCHECK_IMPLIES(heap_object_request_.has_value(), reg_.Is(NoReg));
+  DCHECK_IMPLIES(heap_object_request_.has_value(),
+                 immediate_.rmode() == RelocInfo::EMBEDDED_OBJECT ||
+                     immediate_.rmode() == RelocInfo::CODE_TARGET);
+  return heap_object_request_.has_value();
+}
+
+HeapObjectRequest Operand::heap_object_request() const {
+  DCHECK(IsHeapObjectRequest());
+  return *heap_object_request_;
+}
 
 bool Operand::IsImmediate() const {
-  return reg_.Is(NoReg);
+  return reg_.Is(NoReg) && !IsHeapObjectRequest();
 }
 
 
@@ -383,6 +329,13 @@ Operand Operand::ToExtendedRegister() const {
   return Operand(reg_, reg_.Is64Bits() ? UXTX : UXTW, shift_amount_);
 }
 
+Immediate Operand::immediate_for_heap_object_request() const {
+  DCHECK((heap_object_request().kind() == HeapObjectRequest::kHeapNumber &&
+          immediate_.rmode() == RelocInfo::EMBEDDED_OBJECT) ||
+         (heap_object_request().kind() == HeapObjectRequest::kCodeStub &&
+          immediate_.rmode() == RelocInfo::CODE_TARGET));
+  return immediate_;
+}
 
 Immediate Operand::immediate() const {
   DCHECK(IsImmediate());
@@ -481,17 +434,14 @@ MemOperand::MemOperand(Register base,
   DCHECK(shift == LSL);
 }
 
-
 MemOperand::MemOperand(Register base, const Operand& offset, AddrMode addrmode)
-  : base_(base), addrmode_(addrmode) {
+    : base_(base), regoffset_(NoReg), addrmode_(addrmode) {
   DCHECK(base.Is64Bits() && !base.IsZero());
 
   if (offset.IsImmediate()) {
     offset_ = offset.ImmediateValue();
-
-    regoffset_ = NoReg;
   } else if (offset.IsShiftedRegister()) {
-    DCHECK(addrmode == Offset);
+    DCHECK((addrmode == Offset) || (addrmode == PostIndex));
 
     regoffset_ = offset.reg();
     shift_ = offset.shift();
@@ -577,12 +527,6 @@ Address Assembler::target_address_at(Address pc, Address constant_pool) {
 }
 
 
-Address Assembler::target_address_at(Address pc, Code* code) {
-  Address constant_pool = code ? code->constant_pool() : NULL;
-  return target_address_at(pc, constant_pool);
-}
-
-
 Address Assembler::target_address_from_return_address(Address pc) {
   // Returns the address of the call target from the return address that will
   // be returned to after a call.
@@ -632,39 +576,28 @@ Address Assembler::return_address_from_call_start(Address pc) {
   }
 }
 
-
 void Assembler::deserialization_set_special_target_at(
-    Isolate* isolate, Address constant_pool_entry, Code* code, Address target) {
+    Address constant_pool_entry, Code* code, Address target) {
   Memory::Address_at(constant_pool_entry) = target;
 }
 
-
 void Assembler::deserialization_set_target_internal_reference_at(
-    Isolate* isolate, Address pc, Address target, RelocInfo::Mode mode) {
+    Address pc, Address target, RelocInfo::Mode mode) {
   Memory::Address_at(pc) = target;
 }
 
-
-void Assembler::set_target_address_at(Isolate* isolate, Address pc,
-                                      Address constant_pool, Address target,
+void Assembler::set_target_address_at(Address pc, Address constant_pool,
+                                      Address target,
                                       ICacheFlushMode icache_flush_mode) {
   Memory::Address_at(target_pointer_address_at(pc)) = target;
   // Intuitively, we would think it is necessary to always flush the
   // instruction cache after patching a target address in the code as follows:
-  //   Assembler::FlushICache(isolate(), pc, sizeof(target));
+  //   Assembler::FlushICache(pc, sizeof(target));
   // However, on ARM, an instruction is actually patched in the case of
   // embedded constants of the form:
   // ldr   ip, [pc, #...]
   // since the instruction accessing this address in the constant pool remains
   // unchanged, a flush is not required.
-}
-
-
-void Assembler::set_target_address_at(Isolate* isolate, Address pc, Code* code,
-                                      Address target,
-                                      ICacheFlushMode icache_flush_mode) {
-  Address constant_pool = code ? code->constant_pool() : NULL;
-  set_target_address_at(isolate, pc, constant_pool, target, icache_flush_mode);
 }
 
 
@@ -674,14 +607,14 @@ int RelocInfo::target_address_size() {
 
 
 Address RelocInfo::target_address() {
-  DCHECK(IsCodeTarget(rmode_) || IsRuntimeEntry(rmode_));
-  return Assembler::target_address_at(pc_, host_);
+  DCHECK(IsCodeTarget(rmode_) || IsRuntimeEntry(rmode_) || IsWasmCall(rmode_));
+  return Assembler::target_address_at(pc_, constant_pool_);
 }
 
 Address RelocInfo::target_address_address() {
-  DCHECK(IsCodeTarget(rmode_) || IsRuntimeEntry(rmode_)
-                              || rmode_ == EMBEDDED_OBJECT
-                              || rmode_ == EXTERNAL_REFERENCE);
+  DCHECK(IsCodeTarget(rmode_) || IsRuntimeEntry(rmode_) || IsWasmCall(rmode_) ||
+         IsEmbeddedObject(rmode_) || IsExternalReference(rmode_) ||
+         IsOffHeapTarget(rmode_));
   return Assembler::target_pointer_address_at(pc_);
 }
 
@@ -693,24 +626,24 @@ Address RelocInfo::constant_pool_entry_address() {
 
 HeapObject* RelocInfo::target_object() {
   DCHECK(IsCodeTarget(rmode_) || rmode_ == EMBEDDED_OBJECT);
-  return HeapObject::cast(
-      reinterpret_cast<Object*>(Assembler::target_address_at(pc_, host_)));
+  return HeapObject::cast(reinterpret_cast<Object*>(
+      Assembler::target_address_at(pc_, constant_pool_)));
 }
 
 Handle<HeapObject> RelocInfo::target_object_handle(Assembler* origin) {
   DCHECK(IsCodeTarget(rmode_) || rmode_ == EMBEDDED_OBJECT);
-  return Handle<HeapObject>(
-      reinterpret_cast<HeapObject**>(Assembler::target_address_at(pc_, host_)));
+  return Handle<HeapObject>(reinterpret_cast<HeapObject**>(
+      Assembler::target_address_at(pc_, constant_pool_)));
 }
 
 void RelocInfo::set_target_object(HeapObject* target,
                                   WriteBarrierMode write_barrier_mode,
                                   ICacheFlushMode icache_flush_mode) {
   DCHECK(IsCodeTarget(rmode_) || rmode_ == EMBEDDED_OBJECT);
-  Assembler::set_target_address_at(target->GetIsolate(), pc_, host_,
+  Assembler::set_target_address_at(pc_, constant_pool_,
                                    reinterpret_cast<Address>(target),
                                    icache_flush_mode);
-  if (write_barrier_mode == UPDATE_WRITE_BARRIER && host() != NULL) {
+  if (write_barrier_mode == UPDATE_WRITE_BARRIER && host() != nullptr) {
     host()->GetHeap()->incremental_marking()->RecordWriteIntoCode(host(), this,
                                                                   target);
     host()->GetHeap()->RecordWriteIntoCode(host(), this, target);
@@ -720,9 +653,15 @@ void RelocInfo::set_target_object(HeapObject* target,
 
 Address RelocInfo::target_external_reference() {
   DCHECK(rmode_ == EXTERNAL_REFERENCE);
-  return Assembler::target_address_at(pc_, host_);
+  return Assembler::target_address_at(pc_, constant_pool_);
 }
 
+void RelocInfo::set_target_external_reference(
+    Address target, ICacheFlushMode icache_flush_mode) {
+  DCHECK(rmode_ == RelocInfo::EXTERNAL_REFERENCE);
+  Assembler::set_target_address_at(pc_, constant_pool_, target,
+                                   icache_flush_mode);
+}
 
 Address RelocInfo::target_internal_reference() {
   DCHECK(rmode_ == INTERNAL_REFERENCE);
@@ -735,163 +674,80 @@ Address RelocInfo::target_internal_reference_address() {
   return reinterpret_cast<Address>(pc_);
 }
 
+void RelocInfo::set_wasm_code_table_entry(Address target,
+                                          ICacheFlushMode icache_flush_mode) {
+  DCHECK(rmode_ == RelocInfo::WASM_CODE_TABLE_ENTRY);
+  Assembler::set_target_address_at(pc_, constant_pool_, target,
+                                   icache_flush_mode);
+}
 
 Address RelocInfo::target_runtime_entry(Assembler* origin) {
   DCHECK(IsRuntimeEntry(rmode_));
   return target_address();
 }
 
-void RelocInfo::set_target_runtime_entry(Isolate* isolate, Address target,
+void RelocInfo::set_target_runtime_entry(Address target,
                                          WriteBarrierMode write_barrier_mode,
                                          ICacheFlushMode icache_flush_mode) {
   DCHECK(IsRuntimeEntry(rmode_));
   if (target_address() != target) {
-    set_target_address(isolate, target, write_barrier_mode, icache_flush_mode);
+    set_target_address(target, write_barrier_mode, icache_flush_mode);
   }
 }
 
-
-Handle<Cell> RelocInfo::target_cell_handle() {
-  UNIMPLEMENTED();
-  Cell *null_cell = NULL;
-  return Handle<Cell>(null_cell);
+Address RelocInfo::target_off_heap_target() {
+  DCHECK(IsOffHeapTarget(rmode_));
+  return Assembler::target_address_at(pc_, constant_pool_);
 }
 
-
-Cell* RelocInfo::target_cell() {
-  DCHECK(rmode_ == RelocInfo::CELL);
-  return Cell::FromValueAddress(Memory::Address_at(pc_));
-}
-
-
-void RelocInfo::set_target_cell(Cell* cell,
-                                WriteBarrierMode write_barrier_mode,
-                                ICacheFlushMode icache_flush_mode) {
-  UNIMPLEMENTED();
-}
-
-
-static const int kCodeAgeStubEntryOffset = 3 * kInstructionSize;
-
-Handle<Code> RelocInfo::code_age_stub_handle(Assembler* origin) {
-  UNREACHABLE();  // This should never be reached on ARM64.
-  return Handle<Code>();
-}
-
-
-Code* RelocInfo::code_age_stub() {
-  DCHECK(rmode_ == RelocInfo::CODE_AGE_SEQUENCE);
-  // Read the stub entry point from the code age sequence.
-  Address stub_entry_address = pc_ + kCodeAgeStubEntryOffset;
-  return Code::GetCodeFromTargetAddress(Memory::Address_at(stub_entry_address));
-}
-
-
-void RelocInfo::set_code_age_stub(Code* stub,
-                                  ICacheFlushMode icache_flush_mode) {
-  DCHECK(rmode_ == RelocInfo::CODE_AGE_SEQUENCE);
-  DCHECK(!Code::IsYoungSequence(stub->GetIsolate(), pc_));
-  // Overwrite the stub entry point in the code age sequence. This is loaded as
-  // a literal so there is no need to call FlushICache here.
-  Address stub_entry_address = pc_ + kCodeAgeStubEntryOffset;
-  Memory::Address_at(stub_entry_address) = stub->instruction_start();
-}
-
-
-Address RelocInfo::debug_call_address() {
-  DCHECK(IsDebugBreakSlot(rmode()) && IsPatchedDebugBreakSlotSequence());
-  // For the above sequences the Relocinfo points to the load literal loading
-  // the call address.
-  STATIC_ASSERT(Assembler::kPatchDebugBreakSlotAddressOffset == 0);
-  return Assembler::target_address_at(pc_, host_);
-}
-
-void RelocInfo::set_debug_call_address(Isolate* isolate, Address target) {
-  DCHECK(IsDebugBreakSlot(rmode()) && IsPatchedDebugBreakSlotSequence());
-  STATIC_ASSERT(Assembler::kPatchDebugBreakSlotAddressOffset == 0);
-  Assembler::set_target_address_at(isolate, pc_, host_, target);
-  if (host() != NULL) {
-    Code* target_code = Code::GetCodeFromTargetAddress(target);
-    host()->GetHeap()->incremental_marking()->RecordWriteIntoCode(host(), this,
-                                                                  target_code);
-  }
-}
-
-void RelocInfo::WipeOut(Isolate* isolate) {
+void RelocInfo::WipeOut() {
   DCHECK(IsEmbeddedObject(rmode_) || IsCodeTarget(rmode_) ||
          IsRuntimeEntry(rmode_) || IsExternalReference(rmode_) ||
          IsInternalReference(rmode_));
   if (IsInternalReference(rmode_)) {
-    Memory::Address_at(pc_) = NULL;
+    Memory::Address_at(pc_) = nullptr;
   } else {
-    Assembler::set_target_address_at(isolate, pc_, host_, NULL);
+    Assembler::set_target_address_at(pc_, constant_pool_, nullptr);
   }
 }
 
 template <typename ObjectVisitor>
-void RelocInfo::Visit(Isolate* isolate, ObjectVisitor* visitor) {
+void RelocInfo::Visit(ObjectVisitor* visitor) {
   RelocInfo::Mode mode = rmode();
   if (mode == RelocInfo::EMBEDDED_OBJECT) {
     visitor->VisitEmbeddedPointer(host(), this);
   } else if (RelocInfo::IsCodeTarget(mode)) {
     visitor->VisitCodeTarget(host(), this);
-  } else if (mode == RelocInfo::CELL) {
-    visitor->VisitCellPointer(host(), this);
   } else if (mode == RelocInfo::EXTERNAL_REFERENCE) {
     visitor->VisitExternalReference(host(), this);
   } else if (mode == RelocInfo::INTERNAL_REFERENCE) {
     visitor->VisitInternalReference(host(), this);
-  } else if (RelocInfo::IsDebugBreakSlot(mode) &&
-             IsPatchedDebugBreakSlotSequence()) {
-    visitor->VisitDebugTarget(host(), this);
   } else if (RelocInfo::IsRuntimeEntry(mode)) {
     visitor->VisitRuntimeEntry(host(), this);
+  } else if (RelocInfo::IsOffHeapTarget(mode)) {
+    visitor->VisitOffHeapTarget(host(), this);
   }
 }
-
-
-template<typename StaticVisitor>
-void RelocInfo::Visit(Heap* heap) {
-  RelocInfo::Mode mode = rmode();
-  if (mode == RelocInfo::EMBEDDED_OBJECT) {
-    StaticVisitor::VisitEmbeddedPointer(heap, this);
-  } else if (RelocInfo::IsCodeTarget(mode)) {
-    StaticVisitor::VisitCodeTarget(heap, this);
-  } else if (mode == RelocInfo::CELL) {
-    StaticVisitor::VisitCell(heap, this);
-  } else if (mode == RelocInfo::EXTERNAL_REFERENCE) {
-    StaticVisitor::VisitExternalReference(this);
-  } else if (mode == RelocInfo::INTERNAL_REFERENCE) {
-    StaticVisitor::VisitInternalReference(this);
-  } else if (RelocInfo::IsDebugBreakSlot(mode) &&
-             IsPatchedDebugBreakSlotSequence()) {
-    StaticVisitor::VisitDebugTarget(heap, this);
-  } else if (RelocInfo::IsRuntimeEntry(mode)) {
-    StaticVisitor::VisitRuntimeEntry(this);
-  }
-}
-
 
 LoadStoreOp Assembler::LoadOpFor(const CPURegister& rt) {
   DCHECK(rt.IsValid());
   if (rt.IsRegister()) {
     return rt.Is64Bits() ? LDR_x : LDR_w;
   } else {
-    DCHECK(rt.IsFPRegister());
-    return rt.Is64Bits() ? LDR_d : LDR_s;
-  }
-}
-
-
-LoadStorePairOp Assembler::LoadPairOpFor(const CPURegister& rt,
-                                         const CPURegister& rt2) {
-  DCHECK(AreSameSizeAndType(rt, rt2));
-  USE(rt2);
-  if (rt.IsRegister()) {
-    return rt.Is64Bits() ? LDP_x : LDP_w;
-  } else {
-    DCHECK(rt.IsFPRegister());
-    return rt.Is64Bits() ? LDP_d : LDP_s;
+    DCHECK(rt.IsVRegister());
+    switch (rt.SizeInBits()) {
+      case kBRegSizeInBits:
+        return LDR_b;
+      case kHRegSizeInBits:
+        return LDR_h;
+      case kSRegSizeInBits:
+        return LDR_s;
+      case kDRegSizeInBits:
+        return LDR_d;
+      default:
+        DCHECK(rt.IsQ());
+        return LDR_q;
+    }
   }
 }
 
@@ -901,11 +757,29 @@ LoadStoreOp Assembler::StoreOpFor(const CPURegister& rt) {
   if (rt.IsRegister()) {
     return rt.Is64Bits() ? STR_x : STR_w;
   } else {
-    DCHECK(rt.IsFPRegister());
-    return rt.Is64Bits() ? STR_d : STR_s;
+    DCHECK(rt.IsVRegister());
+    switch (rt.SizeInBits()) {
+      case kBRegSizeInBits:
+        return STR_b;
+      case kHRegSizeInBits:
+        return STR_h;
+      case kSRegSizeInBits:
+        return STR_s;
+      case kDRegSizeInBits:
+        return STR_d;
+      default:
+        DCHECK(rt.IsQ());
+        return STR_q;
+    }
   }
 }
 
+LoadStorePairOp Assembler::LoadPairOpFor(const CPURegister& rt,
+                                         const CPURegister& rt2) {
+  DCHECK_EQ(STP_w | LoadStorePairLBit, LDP_w);
+  return static_cast<LoadStorePairOp>(StorePairOpFor(rt, rt2) |
+                                      LoadStorePairLBit);
+}
 
 LoadStorePairOp Assembler::StorePairOpFor(const CPURegister& rt,
                                           const CPURegister& rt2) {
@@ -914,8 +788,16 @@ LoadStorePairOp Assembler::StorePairOpFor(const CPURegister& rt,
   if (rt.IsRegister()) {
     return rt.Is64Bits() ? STP_x : STP_w;
   } else {
-    DCHECK(rt.IsFPRegister());
-    return rt.Is64Bits() ? STP_d : STP_s;
+    DCHECK(rt.IsVRegister());
+    switch (rt.SizeInBits()) {
+      case kSRegSizeInBits:
+        return STP_s;
+      case kDRegSizeInBits:
+        return STP_d;
+      default:
+        DCHECK(rt.IsQ());
+        return STP_q;
+    }
   }
 }
 
@@ -924,14 +806,14 @@ LoadLiteralOp Assembler::LoadLiteralOpFor(const CPURegister& rt) {
   if (rt.IsRegister()) {
     return rt.Is64Bits() ? LDR_x_lit : LDR_w_lit;
   } else {
-    DCHECK(rt.IsFPRegister());
+    DCHECK(rt.IsVRegister());
     return rt.Is64Bits() ? LDR_d_lit : LDR_s_lit;
   }
 }
 
 
 int Assembler::LinkAndGetInstructionOffsetTo(Label* label) {
-  DCHECK(kStartOfLabelLinkChain == 0);
+  DCHECK_EQ(kStartOfLabelLinkChain, 0);
   int offset = LinkAndGetByteOffsetTo(label);
   DCHECK(IsAligned(offset, kInstructionSize));
   return offset >> kInstructionSizeLog2;
@@ -945,7 +827,6 @@ Instr Assembler::Flags(FlagsUpdate S) {
     return 0 << FlagsUpdate_offset;
   }
   UNREACHABLE();
-  return 0;
 }
 
 
@@ -1081,7 +962,7 @@ Instr Assembler::ExtendMode(Extend extend) {
 
 
 Instr Assembler::ImmExtendShift(unsigned left_shift) {
-  DCHECK(left_shift <= 4);
+  DCHECK_LE(left_shift, 4);
   return left_shift << ImmExtendShift_offset;
 }
 
@@ -1108,9 +989,8 @@ Instr Assembler::ImmLS(int imm9) {
   return truncate_to_int9(imm9) << ImmLS_offset;
 }
 
-
-Instr Assembler::ImmLSPair(int imm7, LSDataSize size) {
-  DCHECK(((imm7 >> size) << size) == imm7);
+Instr Assembler::ImmLSPair(int imm7, unsigned size) {
+  DCHECK_EQ((imm7 >> size) << size, imm7);
   int scaled_imm7 = imm7 >> size;
   DCHECK(is_int7(scaled_imm7));
   return truncate_to_int7(scaled_imm7) << ImmLSPair_offset;
@@ -1152,10 +1032,17 @@ Instr Assembler::ImmBarrierType(int imm2) {
   return imm2 << ImmBarrierType_offset;
 }
 
-
-LSDataSize Assembler::CalcLSDataSize(LoadStoreOp op) {
-  DCHECK((SizeLS_offset + SizeLS_width) == (kInstructionSize * 8));
-  return static_cast<LSDataSize>(op >> SizeLS_offset);
+unsigned Assembler::CalcLSDataSize(LoadStoreOp op) {
+  DCHECK((LSSize_offset + LSSize_width) == (kInstructionSize * 8));
+  unsigned size = static_cast<Instr>(op >> LSSize_offset);
+  if ((op & LSVector_mask) != 0) {
+    // Vector register memory operations encode the access size in the "size"
+    // and "opc" fields.
+    if ((size == 0) && ((op & LSOpc_mask) >> LSOpc_offset) >= 2) {
+      size = kQRegSizeLog2;
+    }
+  }
+  return size;
 }
 
 
@@ -1170,11 +1057,7 @@ Instr Assembler::ShiftMoveWide(int shift) {
   return shift << ShiftMoveWide_offset;
 }
 
-
-Instr Assembler::FPType(FPRegister fd) {
-  return fd.Is64Bits() ? FP64 : FP32;
-}
-
+Instr Assembler::FPType(VRegister fd) { return fd.Is64Bits() ? FP64 : FP32; }
 
 Instr Assembler::FPScale(unsigned scale) {
   DCHECK(is_uint6(scale));
@@ -1204,18 +1087,6 @@ inline void Assembler::CheckBuffer() {
     CheckConstPool(false, true);
   }
 }
-
-
-TypeFeedbackId Assembler::RecordedAstId() {
-  DCHECK(!recorded_ast_id_.IsNone());
-  return recorded_ast_id_;
-}
-
-
-void Assembler::ClearRecordedAstId() {
-  recorded_ast_id_ = TypeFeedbackId::None();
-}
-
 
 }  // namespace internal
 }  // namespace v8

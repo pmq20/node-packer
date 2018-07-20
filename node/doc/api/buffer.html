@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Buffer | Node.js v10.6.0 Documentation</title>
+  <title>Buffer | Node.js v10.7.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -17,8 +17,7 @@
           Node.js
         </a>
       </div>
-      <!--introduced_in=v0.10.0-->
-<ul>
+      <ul>
 <li><a class="nav-documentation" href="documentation.html">About these Docs</a></li>
 <li><a class="nav-synopsis" href="synopsis.html">Usage &amp; Example</a></li>
 </ul>
@@ -77,14 +76,14 @@
 
 <ul>
 <li><a class="nav-https-github-com-nodejs-node" href="https://github.com/nodejs/node">GitHub Repo &amp; Issue Tracker</a></li>
-<li><a class="nav-https-groups-google-com-group-nodejs" href="https://groups.google.com/group/nodejs">Mailing List</a></li>
+<li><a class="nav-https-groups-google-com-forum-forum-nodejs" href="https://groups.google.com/forum/#!forum/nodejs">Mailing List</a></li>
 </ul>
 
     </div>
 
     <div id="column1" data-id="buffer" class="interior">
       <header>
-        <h1>Node.js v10.6.0 Documentation</h1>
+        <h1>Node.js v10.7.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -110,6 +109,7 @@
 <li><a href="https://nodejs.org/docs/latest-v0.10.x/api/buffer.html">0.10.x</a></li></ol>
     </li>
   
+            <li class="edit_on_github"><a href="https://github.com/nodejs/node/edit/master/doc/api/buffer.md"><span class="github_icon"><svg height="16" width="16" viewBox="0 0 16.1 16.1" fill="currentColor"><path d="M8 0a8 8 0 0 0-2.5 15.6c.4 0 .5-.2.5-.4v-1.5c-2 .4-2.5-.5-2.7-1 0-.1-.5-.9-.8-1-.3-.2-.7-.6 0-.6.6 0 1 .6 1.2.8.7 1.2 1.9 1 2.4.7 0-.5.2-.9.5-1-1.8-.3-3.7-1-3.7-4 0-.9.3-1.6.8-2.2 0-.2-.3-1 .1-2 0 0 .7-.3 2.2.7a7.4 7.4 0 0 1 4 0c1.5-1 2.2-.8 2.2-.8.5 1.1.2 2 .1 2.1.5.6.8 1.3.8 2.2 0 3-1.9 3.7-3.6 4 .3.2.5.7.5 1.4v2.2c0 .2.1.5.5.4A8 8 0 0 0 16 8a8 8 0 0 0-8-8z"/></svg></span>Edit on GitHub</a></li>
           </ul>
         </div>
         <hr>
@@ -149,6 +149,7 @@
 <li><a href="#buffer_class_property_buffer_poolsize">Class Property: Buffer.poolSize</a></li>
 <li><a href="#buffer_buf_index">buf[index]</a></li>
 <li><a href="#buffer_buf_buffer">buf.buffer</a></li>
+<li><a href="#buffer_buf_byteoffset">buf.byteOffset</a></li>
 <li><a href="#buffer_buf_compare_target_targetstart_targetend_sourcestart_sourceend">buf.compare(target[, targetStart[, targetEnd[, sourceStart[, sourceEnd]]]])</a></li>
 <li><a href="#buffer_buf_copy_target_targetstart_sourcestart_sourceend">buf.copy(target[, targetStart[, sourceStart[, sourceEnd]]])</a></li>
 <li><a href="#buffer_buf_entries">buf.entries()</a></li>
@@ -1108,6 +1109,26 @@ const buffer = Buffer.from(arrayBuffer);
 
 console.log(buffer.buffer === arrayBuffer);
 // Prints: true
+</code></pre>
+<h3>buf.byteOffset<span><a class="mark" href="#buffer_buf_byteoffset" id="buffer_buf_byteoffset">#</a></span></h3>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> The <code>byteOffset</code> on the underlying <code>ArrayBuffer</code> object based on
+which this <code>Buffer</code> object is created.</li>
+</ul>
+<p>When setting <code>byteOffset</code> in <code>Buffer.from(ArrayBuffer, byteOffset, length)</code>
+or sometimes when allocating a buffer smaller than <code>Buffer.poolSize</code> the
+buffer doesn&#39;t start from a zero offset on the underlying <code>ArrayBuffer</code>.</p>
+<p>This can cause problems when accessing the underlying <code>ArrayBuffer</code> directly
+using <code>buf.buffer</code>, as the first bytes in this <code>ArrayBuffer</code> may be unrelated
+to the <code>buf</code> object itself.</p>
+<p>A common issue is when casting a <code>Buffer</code> object to a <code>TypedArray</code> object,
+in this case one needs to specify the <code>byteOffset</code> correctly:</p>
+<pre><code class="lang-js">// Create a buffer smaller than `Buffer.poolSize`.
+const nodeBuffer = new Buffer.from([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+// When casting the Node.js Buffer to an Int8 TypedArray remember to use the
+// byteOffset.
+new Int8Array(nodeBuffer.buffer, nodeBuffer.byteOffset, nodeBuffer.length);
 </code></pre>
 <h3>buf.compare(target[, targetStart[, targetEnd[, sourceStart[, sourceEnd]]]])<span><a class="mark" href="#buffer_buf_compare_target_targetstart_targetend_sourcestart_sourceend" id="buffer_buf_compare_target_targetstart_targetend_sourcestart_sourceend">#</a></span></h3>
 <div class="api_metadata">

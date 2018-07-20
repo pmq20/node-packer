@@ -233,16 +233,34 @@ Console.prototype.time = function time(label = 'default') {
 Console.prototype.timeEnd = function timeEnd(label = 'default') {
   // Coerces everything other than Symbol to a string
   label = `${label}`;
-  const time = this._times.get(label);
+  const hasWarned = timeLogImpl(this, 'timeEnd', label);
+  if (!hasWarned) {
+    this._times.delete(label);
+  }
+};
+
+Console.prototype.timeLog = function timeLog(label, ...data) {
+  // Coerces everything other than Symbol to a string
+  label = `${label}`;
+  timeLogImpl(this, 'timeLog', label, data);
+};
+
+// Returns true if label was not found
+function timeLogImpl(self, name, label = 'default', data) {
+  const time = self._times.get(label);
   if (!time) {
-    process.emitWarning(`No such label '${label}' for console.timeEnd()`);
-    return;
+    process.emitWarning(`No such label '${label}' for console.${name}()`);
+    return true;
   }
   const duration = process.hrtime(time);
   const ms = duration[0] * 1000 + duration[1] / 1e6;
-  this.log('%s: %sms', label, ms.toFixed(3));
-  this._times.delete(label);
-};
+  if (data === undefined) {
+    self.log('%s: %sms', label, ms.toFixed(3));
+  } else {
+    self.log('%s: %sms', label, ms.toFixed(3), ...data);
+  }
+  return false;
+}
 
 Console.prototype.trace = function trace(...args) {
   const err = {
@@ -340,17 +358,27 @@ Console.prototype.table = function(tabularData, properties) {
   const getIndexArray = (length) => ArrayFrom({ length }, (_, i) => inspect(i));
 
   const mapIter = isMapIterator(tabularData);
+  let isKeyValue = false;
+  let i = 0;
   if (mapIter)
-    tabularData = previewEntries(tabularData);
+    [ tabularData, isKeyValue ] = previewEntries(tabularData);
 
-  if (mapIter || isMap(tabularData)) {
+  if (isKeyValue || isMap(tabularData)) {
     const keys = [];
     const values = [];
     let length = 0;
-    for (const [k, v] of tabularData) {
-      keys.push(inspect(k));
-      values.push(inspect(v));
-      length++;
+    if (mapIter) {
+      for (; i < tabularData.length / 2; ++i) {
+        keys.push(inspect(tabularData[i * 2]));
+        values.push(inspect(tabularData[i * 2 + 1]));
+        length++;
+      }
+    } else {
+      for (const [k, v] of tabularData) {
+        keys.push(inspect(k));
+        values.push(inspect(v));
+        length++;
+      }
     }
     return final([
       iterKey, keyKey, valuesKey
@@ -363,9 +391,9 @@ Console.prototype.table = function(tabularData, properties) {
 
   const setIter = isSetIterator(tabularData);
   if (setIter)
-    tabularData = previewEntries(tabularData);
+    [ tabularData ] = previewEntries(tabularData);
 
-  const setlike = setIter || isSet(tabularData);
+  const setlike = setIter || (mapIter && !isKeyValue) || isSet(tabularData);
   if (setlike) {
     const values = [];
     let length = 0;
@@ -384,7 +412,7 @@ Console.prototype.table = function(tabularData, properties) {
   const valuesKeyArray = [];
   const indexKeyArray = ObjectKeys(tabularData);
 
-  for (var i = 0; i < indexKeyArray.length; i++) {
+  for (; i < indexKeyArray.length; i++) {
     const item = tabularData[indexKeyArray[i]];
     const primitive = item === null ||
         (typeof item !== 'function' && typeof item !== 'object');

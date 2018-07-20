@@ -926,7 +926,8 @@ const char* error_messages[] = {nullptr,
                                 "Invalid handle scope usage",
                                 "Invalid callback scope usage",
                                 "Thread-safe function queue is full",
-                                "Thread-safe function handle is closing"
+                                "Thread-safe function handle is closing",
+                                "A bigint was expected",
 };
 
 static inline napi_status napi_clear_last_error(napi_env env) {
@@ -958,7 +959,7 @@ napi_status napi_get_last_error_info(napi_env env,
   // We don't have a napi_status_last as this would result in an ABI
   // change each time a message was added.
   static_assert(
-      node::arraysize(error_messages) == napi_closing + 1,
+      node::arraysize(error_messages) == napi_bigint_expected + 1,
       "Count of error messages must match count of error values");
   CHECK_LE(env->last_error.error_code, napi_callback_scope_mismatch);
 
@@ -1025,11 +1026,11 @@ napi_status napi_create_function(napi_env env,
 
   RETURN_STATUS_IF_FALSE(env, !cbdata.IsEmpty(), napi_generic_failure);
 
-  v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(
-      isolate, v8impl::FunctionCallbackWrapper::Invoke, cbdata);
-
   v8::Local<v8::Context> context = isolate->GetCurrentContext();
-  v8::MaybeLocal<v8::Function> maybe_function = tpl->GetFunction(context);
+  v8::MaybeLocal<v8::Function> maybe_function =
+      v8::Function::New(context,
+                        v8impl::FunctionCallbackWrapper::Invoke,
+                        cbdata);
   CHECK_MAYBE_EMPTY(env, maybe_function, napi_generic_failure);
 
   return_value = scope.Escape(maybe_function.ToLocalChecked());
@@ -1491,13 +1492,17 @@ napi_status napi_define_properties(napi_env env,
       v8::Local<v8::Value> cbdata =
           v8impl::CreateFunctionCallbackData(env, p->method, p->data);
 
-      RETURN_STATUS_IF_FALSE(env, !cbdata.IsEmpty(), napi_generic_failure);
+      CHECK_MAYBE_EMPTY(env, cbdata, napi_generic_failure);
 
-      v8::Local<v8::FunctionTemplate> t = v8::FunctionTemplate::New(
-          isolate, v8impl::FunctionCallbackWrapper::Invoke, cbdata);
+      v8::MaybeLocal<v8::Function> maybe_fn =
+          v8::Function::New(context,
+                            v8impl::FunctionCallbackWrapper::Invoke,
+                            cbdata);
+
+      CHECK_MAYBE_EMPTY(env, maybe_fn, napi_generic_failure);
 
       auto define_maybe = obj->DefineOwnProperty(
-        context, property_name, t->GetFunction(), attributes);
+        context, property_name, maybe_fn.ToLocalChecked(), attributes);
 
       if (!define_maybe.FromMaybe(false)) {
         return napi_set_last_error(env, napi_generic_failure);
@@ -1709,6 +1714,58 @@ napi_status napi_create_int64(napi_env env,
   return napi_clear_last_error(env);
 }
 
+napi_status napi_create_bigint_int64(napi_env env,
+                                     int64_t value,
+                                     napi_value* result) {
+  CHECK_ENV(env);
+  CHECK_ARG(env, result);
+
+  *result = v8impl::JsValueFromV8LocalValue(
+      v8::BigInt::New(env->isolate, value));
+
+  return napi_clear_last_error(env);
+}
+
+napi_status napi_create_bigint_uint64(napi_env env,
+                                      uint64_t value,
+                                      napi_value* result) {
+  CHECK_ENV(env);
+  CHECK_ARG(env, result);
+
+  *result = v8impl::JsValueFromV8LocalValue(
+      v8::BigInt::NewFromUnsigned(env->isolate, value));
+
+  return napi_clear_last_error(env);
+}
+
+napi_status napi_create_bigint_words(napi_env env,
+                                     int sign_bit,
+                                     size_t word_count,
+                                     const uint64_t* words,
+                                     napi_value* result) {
+  NAPI_PREAMBLE(env);
+  CHECK_ARG(env, words);
+  CHECK_ARG(env, result);
+
+  v8::Local<v8::Context> context = env->isolate->GetCurrentContext();
+
+  if (word_count > INT_MAX) {
+    napi_throw_range_error(env, nullptr, "Maximum BigInt size exceeded");
+    return napi_set_last_error(env, napi_pending_exception);
+  }
+
+  v8::MaybeLocal<v8::BigInt> b = v8::BigInt::NewFromWords(
+      context, sign_bit, word_count, words);
+
+  if (try_catch.HasCaught()) {
+    return napi_set_last_error(env, napi_pending_exception);
+  } else {
+    CHECK_MAYBE_EMPTY(env, b, napi_generic_failure);
+    *result = v8impl::JsValueFromV8LocalValue(b.ToLocalChecked());
+    return napi_clear_last_error(env);
+  }
+}
+
 napi_status napi_get_boolean(napi_env env, bool value, napi_value* result) {
   CHECK_ENV(env);
   CHECK_ARG(env, result);
@@ -1874,6 +1931,8 @@ napi_status napi_typeof(napi_env env,
 
   if (v->IsNumber()) {
     *result = napi_number;
+  } else if (v->IsBigInt()) {
+    *result = napi_bigint;
   } else if (v->IsString()) {
     *result = napi_string;
   } else if (v->IsFunction()) {
@@ -2193,6 +2252,72 @@ napi_status napi_get_value_int64(napi_env env,
   } else {
     *result = 0;
   }
+
+  return napi_clear_last_error(env);
+}
+
+napi_status napi_get_value_bigint_int64(napi_env env,
+                                        napi_value value,
+                                        int64_t* result,
+                                        bool* lossless) {
+  CHECK_ENV(env);
+  CHECK_ARG(env, value);
+  CHECK_ARG(env, result);
+  CHECK_ARG(env, lossless);
+
+  v8::Local<v8::Value> val = v8impl::V8LocalValueFromJsValue(value);
+
+  RETURN_STATUS_IF_FALSE(env, val->IsBigInt(), napi_bigint_expected);
+
+  *result = val.As<v8::BigInt>()->Int64Value(lossless);
+
+  return napi_clear_last_error(env);
+}
+
+napi_status napi_get_value_bigint_uint64(napi_env env,
+                                         napi_value value,
+                                         uint64_t* result,
+                                         bool* lossless) {
+  CHECK_ENV(env);
+  CHECK_ARG(env, value);
+  CHECK_ARG(env, result);
+  CHECK_ARG(env, lossless);
+
+  v8::Local<v8::Value> val = v8impl::V8LocalValueFromJsValue(value);
+
+  RETURN_STATUS_IF_FALSE(env, val->IsBigInt(), napi_bigint_expected);
+
+  *result = val.As<v8::BigInt>()->Uint64Value(lossless);
+
+  return napi_clear_last_error(env);
+}
+
+napi_status napi_get_value_bigint_words(napi_env env,
+                                        napi_value value,
+                                        int* sign_bit,
+                                        size_t* word_count,
+                                        uint64_t* words) {
+  CHECK_ENV(env);
+  CHECK_ARG(env, value);
+  CHECK_ARG(env, word_count);
+
+  v8::Local<v8::Value> val = v8impl::V8LocalValueFromJsValue(value);
+
+  RETURN_STATUS_IF_FALSE(env, val->IsBigInt(), napi_bigint_expected);
+
+  v8::Local<v8::BigInt> big = val.As<v8::BigInt>();
+
+  int word_count_int = *word_count;
+
+  if (sign_bit == nullptr && words == nullptr) {
+    word_count_int = big->WordCount();
+  } else {
+    CHECK_ARG(env, sign_bit);
+    CHECK_ARG(env, words);
+    big->ToWordsArray(sign_bit, &word_count_int, words);
+  }
+
+  *word_count = word_count_int;
 
   return napi_clear_last_error(env);
 }
@@ -3135,6 +3260,14 @@ napi_status napi_create_typedarray(napi_env env,
       CREATE_TYPED_ARRAY(
           env, Float64Array, 8, buffer, byte_offset, length, typedArray);
       break;
+    case napi_bigint64_array:
+      CREATE_TYPED_ARRAY(
+          env, BigInt64Array, 8, buffer, byte_offset, length, typedArray);
+      break;
+    case napi_biguint64_array:
+      CREATE_TYPED_ARRAY(
+          env, BigUint64Array, 8, buffer, byte_offset, length, typedArray);
+      break;
     default:
       return napi_set_last_error(env, napi_invalid_arg);
   }
@@ -3177,6 +3310,10 @@ napi_status napi_get_typedarray_info(napi_env env,
       *type = napi_float32_array;
     } else if (value->IsFloat64Array()) {
       *type = napi_float64_array;
+    } else if (value->IsBigInt64Array()) {
+      *type = napi_bigint64_array;
+    } else if (value->IsBigUint64Array()) {
+      *type = napi_biguint64_array;
     }
   }
 

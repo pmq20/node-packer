@@ -18,7 +18,8 @@
                               // object.
                               { _setupProcessObject, _setupNextTick,
                                 _setupPromises, _chdir, _cpuUsage,
-                                _hrtime, _memoryUsage, _rawDebug,
+                                _hrtime, _hrtimeBigInt,
+                                _memoryUsage, _rawDebug,
                                 _umask, _initgroups, _setegid, _seteuid,
                                 _setgid, _setuid, _setgroups,
                                 _shouldAbortOnUncaughtToggle },
@@ -43,33 +44,57 @@
 
     setupGlobalVariables();
 
-    const _process = NativeModule.require('internal/process');
-    _process.setupConfig(NativeModule._source);
-    _process.setupSignalHandlers();
-    _process.setupUncaughtExceptionCapture(exceptionHandlerState,
-                                           _shouldAbortOnUncaughtToggle);
+    // Bootstrappers for all threads, including worker threads and main thread
+    const perThreadSetup = NativeModule.require('internal/process/per_thread');
+    // Bootstrappers for the main thread only
+    let mainThreadSetup;
+    // Bootstrappers for the worker threads only
+    let workerThreadSetup;
+    if (isMainThread) {
+      mainThreadSetup = NativeModule.require(
+        'internal/process/main_thread_only'
+      );
+    } else {
+      workerThreadSetup = NativeModule.require(
+        'internal/process/worker_thread_only'
+      );
+    }
+
+    perThreadSetup.setupAssert();
+    perThreadSetup.setupConfig(NativeModule._source);
+
+    if (isMainThread) {
+      mainThreadSetup.setupSignalHandlers();
+    }
+
+    perThreadSetup.setupUncaughtExceptionCapture(exceptionHandlerState,
+                                                 _shouldAbortOnUncaughtToggle);
+
     NativeModule.require('internal/process/warning').setup();
     NativeModule.require('internal/process/next_tick').setup(_setupNextTick,
                                                              _setupPromises);
-    NativeModule.require('internal/process/stdio').setup();
-    NativeModule.require('internal/process/methods').setup(_chdir,
-                                                           _umask,
-                                                           _initgroups,
-                                                           _setegid,
-                                                           _seteuid,
-                                                           _setgid,
-                                                           _setuid,
-                                                           _setgroups);
+
+    if (isMainThread) {
+      mainThreadSetup.setupStdio();
+      mainThreadSetup.setupProcessMethods(
+        _chdir, _umask, _initgroups, _setegid, _seteuid,
+        _setgid, _setuid, _setgroups
+      );
+    } else {
+      workerThreadSetup.setupStdio();
+    }
 
     const perf = process.binding('performance');
     const {
       NODE_PERFORMANCE_MILESTONE_BOOTSTRAP_COMPLETE,
     } = perf.constants;
 
-    _process.setup_hrtime(_hrtime);
-    _process.setup_cpuUsage(_cpuUsage);
-    _process.setupMemoryUsage(_memoryUsage);
-    _process.setupKillAndExit();
+    perThreadSetup.setupRawDebug(_rawDebug);
+    perThreadSetup.setupHrtime(_hrtime, _hrtimeBigInt);
+    perThreadSetup.setupCpuUsage(_cpuUsage);
+    perThreadSetup.setupMemoryUsage(_memoryUsage);
+    perThreadSetup.setupKillAndExit();
+
     if (global.__coverage__)
       NativeModule.require('internal/process/write-coverage').setup();
 
@@ -89,16 +114,21 @@
       NativeModule.require('internal/inspector_async_hook').setup();
     }
 
-    if (isMainThread)
-      _process.setupChannel();
-
-    _process.setupRawDebug(_rawDebug);
+    if (isMainThread) {
+      mainThreadSetup.setupChildProcessIpcChannel();
+    }
 
     const browserGlobals = !process._noBrowserGlobals;
     if (browserGlobals) {
+      // we are setting this here to foward it to the inspector later
+      perThreadSetup.originalConsole = global.console;
       setupGlobalTimeouts();
       setupGlobalConsole();
       setupGlobalURL();
+    }
+
+    if (process.binding('config').experimentalWorker) {
+      setupDOMException();
     }
 
     // On OpenBSD process.execPath will be relative unless we
@@ -381,6 +411,11 @@
     });
   }
 
+  function setupDOMException() {
+    // Registers the constructor with C++.
+    NativeModule.require('internal/domexception');
+  }
+
   function setupInspector(originalConsole, wrappedConsole, CJSModule) {
     if (!process.config.variables.v8_enable_inspector) {
       return;
@@ -440,6 +475,7 @@
         try {
           if (!process._exiting) {
             process._exiting = true;
+            process.exitCode = 1;
             process.emit('exit', 1);
           }
         } catch {

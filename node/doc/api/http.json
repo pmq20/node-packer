@@ -311,6 +311,12 @@
                       "type": "number",
                       "default": "`256`",
                       "desc": "Maximum number of sockets to leave open in a free state. Only relevant if `keepAlive` is set to `true`."
+                    },
+                    {
+                      "textRaw": "`timeout` {number} Socket timeout in milliseconds. This will set the timeout after the socket is connected. ",
+                      "name": "timeout",
+                      "type": "number",
+                      "desc": "Socket timeout in milliseconds. This will set the timeout after the socket is connected."
                     }
                   ],
                   "name": "options",
@@ -1191,7 +1197,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Emitted when the response has been sent. More specifically, this event is\nemitted when the last segment of the response headers and body have been\nhanded off to the operating system for transmission over the network. It\ndoes not imply that the client has received anything yet.</p>\n<p>After this event, no more events will be emitted on the response object.</p>\n",
+              "desc": "<p>Emitted when the response has been sent. More specifically, this event is\nemitted when the last segment of the response headers and body have been\nhanded off to the operating system for transmission over the network. It\ndoes not imply that the client has received anything yet.</p>\n",
               "params": []
             }
           ],

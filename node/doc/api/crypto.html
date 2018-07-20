@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Crypto | Node.js v10.6.0 Documentation</title>
+  <title>Crypto | Node.js v10.7.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -17,8 +17,7 @@
           Node.js
         </a>
       </div>
-      <!--introduced_in=v0.10.0-->
-<ul>
+      <ul>
 <li><a class="nav-documentation" href="documentation.html">About these Docs</a></li>
 <li><a class="nav-synopsis" href="synopsis.html">Usage &amp; Example</a></li>
 </ul>
@@ -77,14 +76,14 @@
 
 <ul>
 <li><a class="nav-https-github-com-nodejs-node" href="https://github.com/nodejs/node">GitHub Repo &amp; Issue Tracker</a></li>
-<li><a class="nav-https-groups-google-com-group-nodejs" href="https://groups.google.com/group/nodejs">Mailing List</a></li>
+<li><a class="nav-https-groups-google-com-forum-forum-nodejs" href="https://groups.google.com/forum/#!forum/nodejs">Mailing List</a></li>
 </ul>
 
     </div>
 
     <div id="column1" data-id="crypto" class="interior">
       <header>
-        <h1>Node.js v10.6.0 Documentation</h1>
+        <h1>Node.js v10.7.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -110,6 +109,7 @@
 <li><a href="https://nodejs.org/docs/latest-v0.10.x/api/crypto.html">0.10.x</a></li></ol>
     </li>
   
+            <li class="edit_on_github"><a href="https://github.com/nodejs/node/edit/master/doc/api/crypto.md"><span class="github_icon"><svg height="16" width="16" viewBox="0 0 16.1 16.1" fill="currentColor"><path d="M8 0a8 8 0 0 0-2.5 15.6c.4 0 .5-.2.5-.4v-1.5c-2 .4-2.5-.5-2.7-1 0-.1-.5-.9-.8-1-.3-.2-.7-.6 0-.6.6 0 1 .6 1.2.8.7 1.2 1.9 1 2.4.7 0-.5.2-.9.5-1-1.8-.3-3.7-1-3.7-4 0-.9.3-1.6.8-2.2 0-.2-.3-1 .1-2 0 0 .7-.3 2.2.7a7.4 7.4 0 0 1 4 0c1.5-1 2.2-.8 2.2-.8.5 1.1.2 2 .1 2.1.5.6.8 1.3.8 2.2 0 3-1.9 3.7-3.6 4 .3.2.5.7.5 1.4v2.2c0 .2.1.5.5.4A8 8 0 0 0 16 8a8 8 0 0 0-8-8z"/></svg></span>Edit on GitHub</a></li>
           </ul>
         </div>
         <hr>
@@ -643,7 +643,7 @@ authenticity of the encrypted data, otherwise, an attacker can use an
 arbitrarily short authentication tag to increase the chances of successfully
 passing authentication (up to 0.39%). It is highly recommended to associate one
 of the values 16, 15, 14, 13, 12, 8 or 4 bytes with each key, and to only permit
-authentication tags of that length, see <a href="http://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf">NIST SP 800-38D</a>.</p>
+authentication tags of that length, see <a href="https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf">NIST SP 800-38D</a>.</p>
 <p>The <code>decipher.setAuthTag()</code> method must be called before
 <a href="#crypto_decipher_final_outputencoding"><code>decipher.final()</code></a>.</p>
 <h3>decipher.setAutoPadding([autoPadding])<span><a class="mark" href="#crypto_decipher_setautopadding_autopadding" id="crypto_decipher_setautopadding_autopadding">#</a></span></h3>
@@ -1877,7 +1877,7 @@ thrown if any of the input arguments specify invalid values or types.</p>
 higher the number of iterations, the more secure the derived key will be,
 but will take a longer amount of time to complete.</p>
 <p>The <code>salt</code> should be as unique as possible. It is recommended that a salt is
-random and at least 16 bytes long. See <a href="http://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-132.pdf">NIST SP 800-132</a> for details.</p>
+random and at least 16 bytes long. See <a href="https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-132.pdf">NIST SP 800-132</a> for details.</p>
 <p>Example:</p>
 <pre><code class="lang-js">const crypto = require(&#39;crypto&#39;);
 crypto.pbkdf2(&#39;secret&#39;, &#39;salt&#39;, 100000, 64, &#39;sha512&#39;, (err, derivedKey) =&gt; {
@@ -1934,7 +1934,7 @@ returned as a <a href="buffer.html"><code>Buffer</code></a>.</p>
 higher the number of iterations, the more secure the derived key will be,
 but will take a longer amount of time to complete.</p>
 <p>The <code>salt</code> should be as unique as possible. It is recommended that a salt is
-random and at least 16 bytes long. See <a href="http://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-132.pdf">NIST SP 800-132</a> for details.</p>
+random and at least 16 bytes long. See <a href="https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-132.pdf">NIST SP 800-132</a> for details.</p>
 <p>Example:</p>
 <pre><code class="lang-js">const crypto = require(&#39;crypto&#39;);
 const key = crypto.pbkdf2Sync(&#39;secret&#39;, &#39;salt&#39;, 100000, 64, &#39;sha512&#39;);
@@ -2216,7 +2216,7 @@ than one. <strong>Default:</strong> <code>16384</code>.</li>
 key derivation function that is designed to be expensive computationally and
 memory-wise in order to make brute-force attacks unrewarding.</p>
 <p>The <code>salt</code> should be as unique as possible. It is recommended that a salt is
-random and at least 16 bytes long. See <a href="http://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-132.pdf">NIST SP 800-132</a> for details.</p>
+random and at least 16 bytes long. See <a href="https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-132.pdf">NIST SP 800-132</a> for details.</p>
 <p>The <code>callback</code> function is called with two arguments: <code>err</code> and <code>derivedKey</code>.
 <code>err</code> is an exception object when key derivation fails, otherwise <code>err</code> is
 <code>null</code>. <code>derivedKey</code> is passed to the callback as a <a href="buffer.html"><code>Buffer</code></a>.</p>
@@ -2256,7 +2256,7 @@ than one. <strong>Default:</strong> <code>16384</code>.</li>
 key derivation function that is designed to be expensive computationally and
 memory-wise in order to make brute-force attacks unrewarding.</p>
 <p>The <code>salt</code> should be as unique as possible. It is recommended that a salt is
-random and at least 16 bytes long. See <a href="http://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-132.pdf">NIST SP 800-132</a> for details.</p>
+random and at least 16 bytes long. See <a href="https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-132.pdf">NIST SP 800-132</a> for details.</p>
 <p>An exception is thrown when key derivation fails, otherwise the derived key is
 returned as a <a href="buffer.html"><code>Buffer</code></a>.</p>
 <p>An exception is thrown when any of the input arguments specify invalid values
@@ -2355,7 +2355,7 @@ the use of ciphers and hashes with a small key size that are considered to be
 too weak for safe use.</p>
 <p>Users should take full responsibility for selecting the crypto
 algorithm and key size according to their security requirements.</p>
-<p>Based on the recommendations of <a href="http://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-131Ar1.pdf">NIST SP 800-131A</a>:</p>
+<p>Based on the recommendations of <a href="https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-131Ar1.pdf">NIST SP 800-131A</a>:</p>
 <ul>
 <li>MD5 and SHA-1 are no longer acceptable where collision resistance is
 required such as digital signatures.</li>
@@ -2432,6 +2432,7 @@ console.log(receivedPlaintext);
 <p>The following constants exported by <code>crypto.constants</code> apply to various uses of
 the <code>crypto</code>, <code>tls</code>, and <code>https</code> modules and are generally specific to OpenSSL.</p>
 <h3>OpenSSL Options<span><a class="mark" href="#crypto_openssl_options" id="crypto_openssl_options">#</a></span></h3>
+<!--lint disable maximum-line-length-->
 <table>
   <tr>
     <th>Constant</th>
@@ -2440,8 +2441,8 @@ the <code>crypto</code>, <code>tls</code>, and <code>https</code> modules and ar
   <tr>
     <td><code>SSL_OP_ALL</code></td>
     <td>Applies multiple bug workarounds within OpenSSL. See
-    <a href="https://www.openssl.org/docs/man1.0.2/ssl/SSL_CTX_set_options.html">https://www.openssl.org/docs/man1.0.2/ssl/SSL_CTX_set_options.html</a> for
-    detail.</td>
+    <a href="https://www.openssl.org/docs/man1.0.2/ssl/SSL_CTX_set_options.html">https://www.openssl.org/docs/man1.0.2/ssl/SSL_CTX_set_options.html</a>
+    for detail.</td>
   </tr>
   <tr>
     <td><code>SSL_OP_ALLOW_UNSAFE_LEGACY_RENEGOTIATION</code></td>
@@ -2587,6 +2588,7 @@ the <code>crypto</code>, <code>tls</code>, and <code>https</code> modules and ar
 </table>
 
 <h3>OpenSSL Engine Constants<span><a class="mark" href="#crypto_openssl_engine_constants" id="crypto_openssl_engine_constants">#</a></span></h3>
+<!--lint enable maximum-line-length remark-lint-->
 <table>
   <tr>
     <th>Constant</th>
@@ -2690,18 +2692,18 @@ the <code>crypto</code>, <code>tls</code>, and <code>https</code> modules and ar
   </tr>
   <tr>
     <td><code>RSA_PSS_SALTLEN_DIGEST</code></td>
-    <td>Sets the salt length for <code>RSA_PKCS1_PSS_PADDING</code> to the digest size
-        when signing or verifying.</td>
+    <td>Sets the salt length for <code>RSA_PKCS1_PSS_PADDING</code> to the
+        digest size when signing or verifying.</td>
   </tr>
   <tr>
     <td><code>RSA_PSS_SALTLEN_MAX_SIGN</code></td>
-    <td>Sets the salt length for <code>RSA_PKCS1_PSS_PADDING</code> to the maximum
-        permissible value when signing data.</td>
+    <td>Sets the salt length for <code>RSA_PKCS1_PSS_PADDING</code> to the
+        maximum permissible value when signing data.</td>
   </tr>
   <tr>
     <td><code>RSA_PSS_SALTLEN_AUTO</code></td>
-    <td>Causes the salt length for <code>RSA_PKCS1_PSS_PADDING</code> to be determined
-        automatically when verifying a signature.</td>
+    <td>Causes the salt length for <code>RSA_PKCS1_PSS_PADDING</code> to be
+        determined automatically when verifying a signature.</td>
   </tr>
   <tr>
     <td><code>POINT_CONVERSION_COMPRESSED</code></td>

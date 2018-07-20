@@ -4,6 +4,7 @@
 #include "node_buffer.h"
 #include "node_platform.h"
 #include "node_file.h"
+#include "node_context_data.h"
 #include "node_worker.h"
 #include "tracing/agent.h"
 
@@ -27,6 +28,10 @@ using v8::String;
 using v8::Symbol;
 using v8::Value;
 using worker::Worker;
+
+int const Environment::kNodeContextTag = 0x6e6f64;
+void* Environment::kNodeContextTagPtr = const_cast<void*>(
+    static_cast<const void*>(&Environment::kNodeContextTag));
 
 IsolateData::IsolateData(Isolate* isolate,
                          uv_loop_t* event_loop,
@@ -142,9 +147,15 @@ Environment::Environment(IsolateData* isolate_data,
   std::string debug_cats;
   SafeGetenv("NODE_DEBUG_NATIVE", &debug_cats);
   set_debug_categories(debug_cats, true);
+
+  isolate()->GetHeapProfiler()->AddBuildEmbedderGraphCallback(
+      BuildEmbedderGraph, this);
 }
 
 Environment::~Environment() {
+  isolate()->GetHeapProfiler()->RemoveBuildEmbedderGraphCallback(
+      BuildEmbedderGraph, this);
+
   // Make sure there are no re-used libuv wrapper objects.
   // CleanupHandles() should have removed all of them.
   CHECK(file_handle_read_wrap_freelist_.empty());
@@ -212,7 +223,6 @@ void Environment::Start(int argc,
   set_process_object(process_object);
 
   SetupProcessObject(this, argc, argv, exec_argc, exec_argv);
-  LoadAsyncWrapperInfo(this);
 
   static uv_once_t init_once = UV_ONCE_INIT;
   uv_once(&init_once, InitThreadLocalOnce);
@@ -425,7 +435,20 @@ bool Environment::RemovePromiseHook(promise_hook_func fn, void* arg) {
 void Environment::EnvPromiseHook(v8::PromiseHookType type,
                                  v8::Local<v8::Promise> promise,
                                  v8::Local<v8::Value> parent) {
-  Environment* env = Environment::GetCurrent(promise->CreationContext());
+  Local<v8::Context> context = promise->CreationContext();
+
+  // Grow the embedder data if necessary to make sure we are not out of bounds
+  // when reading the magic number.
+  context->SetAlignedPointerInEmbedderData(
+      ContextEmbedderIndex::kContextTagBoundary, nullptr);
+  int* magicNumberPtr = reinterpret_cast<int*>(
+      context->GetAlignedPointerFromEmbedderData(
+          ContextEmbedderIndex::kContextTag));
+  if (magicNumberPtr != Environment::kNodeContextTagPtr) {
+    return;
+  }
+
+  Environment* env = Environment::GetCurrent(context);
   for (const PromiseHookCallback& hook : env->promise_hooks_) {
     hook.cb_(type, promise, parent, hook.arg_);
   }
@@ -653,9 +676,28 @@ void Environment::stop_sub_worker_contexts() {
   }
 }
 
-bool Environment::is_stopping_worker() const {
-  CHECK(!is_main_thread());
-  return worker_context_->is_stopped();
+void Environment::BuildEmbedderGraph(v8::Isolate* isolate,
+                                     v8::EmbedderGraph* graph,
+                                     void* data) {
+  MemoryTracker tracker(isolate, graph);
+  static_cast<Environment*>(data)->ForEachBaseObject([&](BaseObject* obj) {
+    tracker.Track(obj);
+  });
+}
+
+
+// Not really any better place than env.cc at this moment.
+void BaseObject::DeleteMe(void* data) {
+  BaseObject* self = static_cast<BaseObject*>(data);
+  delete self;
+}
+
+Local<Object> BaseObject::WrappedObject() const {
+  return object();
+}
+
+bool BaseObject::IsRootNode() const {
+  return !persistent_handle_.IsWeak();
 }
 
 }  // namespace node

@@ -126,6 +126,8 @@ added: v0.3.4
   * `maxFreeSockets` {number} Maximum number of sockets to leave open
     in a free state. Only relevant if `keepAlive` is set to `true`.
     **Default:** `256`.
+  * `timeout` {number} Socket timeout in milliseconds.
+    This will set the timeout after the socket is connected.
 
 The default [`http.globalAgent`][] that is used by [`http.request()`][] has all
 of these values set to their respective defaults.
@@ -1025,8 +1027,6 @@ emitted when the last segment of the response headers and body have been
 handed off to the operating system for transmission over the network. It
 does not imply that the client has received anything yet.
 
-After this event, no more events will be emitted on the response object.
-
 ### response.addTrailers(headers)
 <!-- YAML
 added: v0.3.0
@@ -1896,9 +1896,9 @@ changes:
     Authorization header.
   * `agent` {http.Agent | boolean} Controls [`Agent`][] behavior. Possible
     values:
-   * `undefined` (default): use [`http.globalAgent`][] for this host and port.
-   * `Agent` object: explicitly use the passed in `Agent`.
-   * `false`: causes a new `Agent` with default values to be used.
+    * `undefined` (default): use [`http.globalAgent`][] for this host and port.
+    * `Agent` object: explicitly use the passed in `Agent`.
+    * `false`: causes a new `Agent` with default values to be used.
   * `createConnection` {Function} A function that produces a socket/stream to
     use for the request when the `agent` option is not used. This can be used to
     avoid creating a custom `Agent` class just to override the default

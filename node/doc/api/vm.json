@@ -778,7 +778,7 @@
           "desc": "<p>The <code>vm.runInContext()</code> method compiles <code>code</code>, runs it within the context of\nthe <code>contextifiedSandbox</code>, then returns the result. Running code does not have\naccess to the local scope. The <code>contextifiedSandbox</code> object <em>must</em> have been\npreviously <a href=\"#vm_what_does_it_mean_to_contextify_an_object\">contextified</a> using the <a href=\"#vm_vm_createcontext_sandbox_options\"><code>vm.createContext()</code></a> method.</p>\n<p>If <code>options</code> is a string, then it specifies the filename.</p>\n<p>The following example compiles and executes different scripts using a single\n<a href=\"#vm_what_does_it_mean_to_contextify_an_object\">contextified</a> object:</p>\n<pre><code class=\"lang-js\">const util = require(&#39;util&#39;);\nconst vm = require(&#39;vm&#39;);\n\nconst sandbox = { globalVar: 1 };\nvm.createContext(sandbox);\n\nfor (let i = 0; i &lt; 10; ++i) {\n  vm.runInContext(&#39;globalVar *= 2;&#39;, sandbox);\n}\nconsole.log(util.inspect(sandbox));\n\n// { globalVar: 1024 }\n</code></pre>\n"
         },
         {
-          "textRaw": "vm.runInNewContext(code[, sandbox][, options])",
+          "textRaw": "vm.runInNewContext(code[, sandbox[, options]])",
           "type": "method",
           "name": "runInNewContext",
           "meta": {

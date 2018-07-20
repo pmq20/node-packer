@@ -28,7 +28,7 @@
 
     # Reset this number to 0 on major V8 upgrades.
     # Increment by one for each non-official patch applied to deps/v8.
-    'v8_embedder_string': '-node.13',
+    'v8_embedder_string': '-node.15',
 
     # Enable disassembler for `--print-code` v8 options
     'v8_enable_disassembler': 1,
@@ -176,6 +176,17 @@
           ['OS!="mac" and OS!="win"', {
             'cflags': [ '-fno-omit-frame-pointer' ],
           }],
+          ['OS=="linux"', {
+            'variables': {
+              'lto': ' -flto=4 -fuse-linker-plugin -ffat-lto-objects ',
+            },
+            'conditions': [
+              ['enable_lto=="true"', {
+                'cflags': ['<(lto)'],
+                'ldflags': ['<(lto)'],
+              },],
+            ],
+          },],
           ['OS == "android"', {
             'cflags': [ '-fPIE' ],
             'ldflags': [ '-fPIE', '-pie' ]

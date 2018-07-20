@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>C++ Addons | Node.js v10.6.0 Documentation</title>
+  <title>C++ Addons | Node.js v10.7.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -17,8 +17,7 @@
           Node.js
         </a>
       </div>
-      <!--introduced_in=v0.10.0-->
-<ul>
+      <ul>
 <li><a class="nav-documentation" href="documentation.html">About these Docs</a></li>
 <li><a class="nav-synopsis" href="synopsis.html">Usage &amp; Example</a></li>
 </ul>
@@ -77,14 +76,14 @@
 
 <ul>
 <li><a class="nav-https-github-com-nodejs-node" href="https://github.com/nodejs/node">GitHub Repo &amp; Issue Tracker</a></li>
-<li><a class="nav-https-groups-google-com-group-nodejs" href="https://groups.google.com/group/nodejs">Mailing List</a></li>
+<li><a class="nav-https-groups-google-com-forum-forum-nodejs" href="https://groups.google.com/forum/#!forum/nodejs">Mailing List</a></li>
 </ul>
 
     </div>
 
     <div id="column1" data-id="addons" class="interior">
       <header>
-        <h1>Node.js v10.6.0 Documentation</h1>
+        <h1>Node.js v10.7.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -110,6 +109,7 @@
 <li><a href="https://nodejs.org/docs/latest-v0.10.x/api/addons.html">0.10.x</a></li></ol>
     </li>
   
+            <li class="edit_on_github"><a href="https://github.com/nodejs/node/edit/master/doc/api/addons.md"><span class="github_icon"><svg height="16" width="16" viewBox="0 0 16.1 16.1" fill="currentColor"><path d="M8 0a8 8 0 0 0-2.5 15.6c.4 0 .5-.2.5-.4v-1.5c-2 .4-2.5-.5-2.7-1 0-.1-.5-.9-.8-1-.3-.2-.7-.6 0-.6.6 0 1 .6 1.2.8.7 1.2 1.9 1 2.4.7 0-.5.2-.9.5-1-1.8-.3-3.7-1-3.7-4 0-.9.3-1.6.8-2.2 0-.2-.3-1 .1-2 0 0 .7-.3 2.2.7a7.4 7.4 0 0 1 4 0c1.5-1 2.2-.8 2.2-.8.5 1.1.2 2 .1 2.1.5.6.8 1.3.8 2.2 0 3-1.9 3.7-3.6 4 .3.2.5.7.5 1.4v2.2c0 .2.1.5.5.4A8 8 0 0 0 16 8a8 8 0 0 0-8-8z"/></svg></span>Edit on GitHub</a></li>
           </ul>
         </div>
         <hr>
@@ -120,6 +120,7 @@
         <ul>
 <li><a href="#addons_c_addons">C++ Addons</a><ul>
 <li><a href="#addons_hello_world">Hello world</a><ul>
+<li><a href="#addons_context_aware_addons">Context-aware addons</a></li>
 <li><a href="#addons_building">Building</a></li>
 <li><a href="#addons_linking_to_node_js_own_dependencies">Linking to Node.js&#39; own dependencies</a></li>
 <li><a href="#addons_loading_addons_using_require">Loading Addons using require()</a></li>
@@ -232,6 +233,130 @@ NODE_MODULE(NODE_GYP_MODULE_NAME, Initialize)
 the <code>.node</code> suffix).</p>
 <p>In the <code>hello.cc</code> example, then, the initialization function is <code>Initialize</code>
 and the addon module name is <code>addon</code>.</p>
+<p>When building addons with <code>node-gyp</code>, using the macro <code>NODE_GYP_MODULE_NAME</code> as
+the first parameter of <code>NODE_MODULE()</code> will ensure that the name of the final
+binary will be passed to <code>NODE_MODULE()</code>.</p>
+<h3>Context-aware addons<span><a class="mark" href="#addons_context_aware_addons" id="addons_context_aware_addons">#</a></span></h3>
+<p>There are environments in which Node.js addons may need to be loaded multiple
+times in multiple contexts. For example, the <a href="https://electronjs.org/">Electron</a> runtime runs multiple
+instances of Node.js in a single process. Each instance will have its own
+<code>require()</code> cache, and thus each instance will need a native addon to behave
+correctly when loaded via <code>require()</code>. From the addon&#39;s perspective, this means
+that it must support multiple initializations.</p>
+<p>A context-aware addon can be constructed by using the macro
+<code>NODE_MODULE_INITIALIZER</code>, which expands to the name of a function which Node.js
+will expect to find when it loads an addon. An addon can thus be initialized as
+in the following example:</p>
+<pre><code class="lang-cpp">using namespace v8;
+
+extern &quot;C&quot; NODE_MODULE_EXPORT void
+NODE_MODULE_INITIALIZER(Local&lt;Object&gt; exports,
+                        Local&lt;Value&gt; module,
+                        Local&lt;Context&gt; context) {
+  /* Perform addon initialization steps here. */
+}
+</code></pre>
+<p>Another option is to use the macro <code>NODE_MODULE_INIT()</code>, which will also
+construct a context-aware addon. Unlike <code>NODE_MODULE()</code>, which is used to
+construct an addon around a given addon initializer function,
+<code>NODE_MODULE_INIT()</code> serves as the declaration of such an initializer to be
+followed by a function body.</p>
+<p>The following three variables may be used inside the function body following an
+invocation of <code>NODE_MODULE_INIT()</code>:</p>
+<ul>
+<li><code>Local&lt;Object&gt; exports</code>,</li>
+<li><code>Local&lt;Value&gt; module</code>, and</li>
+<li><code>Local&lt;Context&gt; context</code></li>
+</ul>
+<p>The choice to build a context-aware addon carries with it the responsibility of
+carefully managing global static data. Since the addon may be loaded multiple
+times, potentially even from different threads, any global static data stored
+in the addon must be properly protected, and must not contain any persistent
+references to JavaScript objects. The reason for this is that JavaScript
+objects are only valid in one context, and will likely cause a crash when
+accessed from the wrong context or from a different thread than the one on which
+they were created.</p>
+<p>The context-aware addon can be structured to avoid global static data by
+performing the following steps:</p>
+<ul>
+<li>defining a class which will hold per-addon-instance data. Such
+a class should include a <code>v8::Persistent&lt;v8::Object&gt;</code> which will hold a weak
+reference to the addon&#39;s <code>exports</code> object. The callback associated with the weak
+reference will then destroy the instance of the class.</li>
+<li>constructing an instance of this class in the addon initializer such that the
+<code>v8::Persistent&lt;v8::Object&gt;</code> is set to the <code>exports</code> object.</li>
+<li>storing the instance of the class in a <code>v8::External</code>, and</li>
+<li>passing the <code>v8::External</code> to all methods exposed to JavaScript by passing it
+to the <code>v8::FunctionTemplate</code> constructor which creates the native-backed
+JavaScript functions. The <code>v8::FunctionTemplate</code> constructor&#39;s third parameter
+accepts the <code>v8::External</code>.</li>
+</ul>
+<p>This will ensure that the per-addon-instance data reaches each binding that can
+be called from JavaScript. The per-addon-instance data must also be passed into
+any asynchronous callbacks the addon may create.</p>
+<p>The following example illustrates the implementation of a context-aware addon:</p>
+<pre><code class="lang-cpp">#include &lt;node.h&gt;
+
+using namespace v8;
+
+class AddonData {
+ public:
+  AddonData(Isolate* isolate, Local&lt;Object&gt; exports):
+      call_count(0) {
+    // Link the existence of this object instance to the existence of exports.
+    exports_.Reset(isolate, exports);
+    exports_.SetWeak(this, DeleteMe, WeakCallbackType::kParameter);
+  }
+
+  ~AddonData() {
+    if (!exports_.IsEmpty()) {
+      // Reset the reference to avoid leaking data.
+      exports_.ClearWeak();
+      exports_.Reset();
+    }
+  }
+
+  // Per-addon data.
+  int call_count;
+
+ private:
+  // Method to call when &quot;exports&quot; is about to be garbage-collected.
+  static void DeleteMe(const WeakCallbackInfo&lt;AddonData&gt;&amp; info) {
+    delete info.GetParameter();
+  }
+
+  // Weak handle to the &quot;exports&quot; object. An instance of this class will be
+  // destroyed along with the exports object to which it is weakly bound.
+  v8::Persistent&lt;v8::Object&gt; exports_;
+};
+
+static void Method(const v8::FunctionCallbackInfo&lt;v8::Value&gt;&amp; info) {
+  // Retrieve the per-addon-instance data.
+  AddonData* data =
+      reinterpret_cast&lt;AddonData*&gt;(info.Data().As&lt;External&gt;()-&gt;Value());
+  data-&gt;call_count++;
+  info.GetReturnValue().Set((double)data-&gt;call_count);
+}
+
+// Initialize this addon to be context-aware.
+NODE_MODULE_INIT(/* exports, module, context */) {
+  Isolate* isolate = context-&gt;GetIsolate();
+
+  // Create a new instance of AddonData for this instance of the addon.
+  AddonData* data = new AddonData(isolate, exports);
+  // Wrap the data in a v8::External so we can pass it to the method we expose.
+  Local&lt;External&gt; external = External::New(isolate, data);
+
+  // Expose the method &quot;Method&quot; to JavaScript, and make sure it receives the
+  // per-addon-instance data we created above by passing `external` as the
+  // third parameter to the FunctionTemplate constructor.
+  exports-&gt;Set(context,
+               String::NewFromUtf8(isolate, &quot;method&quot;, NewStringType::kNormal)
+                  .ToLocalChecked(),
+               FunctionTemplate::New(isolate, Method, external)
+                  -&gt;GetFunction(context).ToLocalChecked()).FromJust();
+}
+</code></pre>
 <h3>Building<span><a class="mark" href="#addons_building" id="addons_building">#</a></span></h3>
 <p>Once the source code has been written, it must be compiled into the binary
 <code>addon.node</code> file. To do so, create a file called <code>binding.gyp</code> in the

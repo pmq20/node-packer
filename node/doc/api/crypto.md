@@ -2412,7 +2412,7 @@ The following constants exported by `crypto.constants` apply to various uses of
 the `crypto`, `tls`, and `https` modules and are generally specific to OpenSSL.
 
 ### OpenSSL Options
-
+<!--lint disable maximum-line-length-->
 <table>
   <tr>
     <th>Constant</th>
@@ -2421,20 +2421,20 @@ the `crypto`, `tls`, and `https` modules and are generally specific to OpenSSL.
   <tr>
     <td><code>SSL_OP_ALL</code></td>
     <td>Applies multiple bug workarounds within OpenSSL. See
-    https://www.openssl.org/docs/man1.0.2/ssl/SSL_CTX_set_options.html for
-    detail.</td>
+    <a href="https://www.openssl.org/docs/man1.0.2/ssl/SSL_CTX_set_options.html">https://www.openssl.org/docs/man1.0.2/ssl/SSL_CTX_set_options.html</a>
+    for detail.</td>
   </tr>
   <tr>
     <td><code>SSL_OP_ALLOW_UNSAFE_LEGACY_RENEGOTIATION</code></td>
     <td>Allows legacy insecure renegotiation between OpenSSL and unpatched
     clients or servers. See
-    https://www.openssl.org/docs/man1.0.2/ssl/SSL_CTX_set_options.html.</td>
+    <a href="https://www.openssl.org/docs/man1.0.2/ssl/SSL_CTX_set_options.html">https://www.openssl.org/docs/man1.0.2/ssl/SSL_CTX_set_options.html</a>.</td>
   </tr>
   <tr>
     <td><code>SSL_OP_CIPHER_SERVER_PREFERENCE</code></td>
     <td>Attempts to use the server's preferences instead of the client's when
     selecting a cipher. Behavior depends on protocol version. See
-    https://www.openssl.org/docs/man1.0.2/ssl/SSL_CTX_set_options.html.</td>
+    <a href="https://www.openssl.org/docs/man1.0.2/ssl/SSL_CTX_set_options.html">https://www.openssl.org/docs/man1.0.2/ssl/SSL_CTX_set_options.html</a>.</td>
   </tr>
   <tr>
     <td><code>SSL_OP_CISCO_ANYCONNECT</code></td>
@@ -2568,6 +2568,7 @@ the `crypto`, `tls`, and `https` modules and are generally specific to OpenSSL.
 </table>
 
 ### OpenSSL Engine Constants
+<!--lint enable maximum-line-length remark-lint-->
 
 <table>
   <tr>
@@ -2673,18 +2674,18 @@ the `crypto`, `tls`, and `https` modules and are generally specific to OpenSSL.
   </tr>
   <tr>
     <td><code>RSA_PSS_SALTLEN_DIGEST</code></td>
-    <td>Sets the salt length for `RSA_PKCS1_PSS_PADDING` to the digest size
-        when signing or verifying.</td>
+    <td>Sets the salt length for <code>RSA_PKCS1_PSS_PADDING</code> to the
+        digest size when signing or verifying.</td>
   </tr>
   <tr>
     <td><code>RSA_PSS_SALTLEN_MAX_SIGN</code></td>
-    <td>Sets the salt length for `RSA_PKCS1_PSS_PADDING` to the maximum
-        permissible value when signing data.</td>
+    <td>Sets the salt length for <code>RSA_PKCS1_PSS_PADDING</code> to the
+        maximum permissible value when signing data.</td>
   </tr>
   <tr>
     <td><code>RSA_PSS_SALTLEN_AUTO</code></td>
-    <td>Causes the salt length for `RSA_PKCS1_PSS_PADDING` to be determined
-        automatically when verifying a signature.</td>
+    <td>Causes the salt length for <code>RSA_PKCS1_PSS_PADDING</code> to be
+        determined automatically when verifying a signature.</td>
   </tr>
   <tr>
     <td><code>POINT_CONVERSION_COMPRESSED</code></td>
@@ -2761,9 +2762,9 @@ the `crypto`, `tls`, and `https` modules and are generally specific to OpenSSL.
 [Crypto Constants]: #crypto_crypto_constants_1
 [HTML 5.2]: https://www.w3.org/TR/html52/changes.html#features-removed
 [HTML5's `keygen` element]: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/keygen
-[NIST SP 800-131A]: http://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-131Ar1.pdf
-[NIST SP 800-132]: http://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-132.pdf
-[NIST SP 800-38D]: http://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf
+[NIST SP 800-131A]: https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-131Ar1.pdf
+[NIST SP 800-132]: https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-132.pdf
+[NIST SP 800-38D]: https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf
 [Nonce-Disrespecting Adversaries]: https://github.com/nonce-disrespect/nonce-disrespect
 [OpenSSL's SPKAC implementation]: https://www.openssl.org/docs/man1.1.0/apps/openssl-spkac.html
 [RFC 2412]: https://www.rfc-editor.org/rfc/rfc2412.txt

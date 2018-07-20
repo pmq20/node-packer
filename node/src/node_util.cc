@@ -53,29 +53,16 @@ static void PreviewEntries(const FunctionCallbackInfo<Value>& args) {
   if (!args[0]->IsObject())
     return;
 
+  Environment* env = Environment::GetCurrent(args);
   bool is_key_value;
   Local<Array> entries;
   if (!args[0].As<Object>()->PreviewEntries(&is_key_value).ToLocal(&entries))
     return;
-  if (!is_key_value)
-    return args.GetReturnValue().Set(entries);
-
-  uint32_t length = entries->Length();
-  CHECK_EQ(length % 2, 0);
-
-  Environment* env = Environment::GetCurrent(args);
-  Local<Context> context = env->context();
-
-  Local<Array> pairs = Array::New(env->isolate(), length / 2);
-  for (uint32_t i = 0; i < length / 2; i++) {
-    Local<Array> pair = Array::New(env->isolate(), 2);
-    pair->Set(context, 0, entries->Get(context, i * 2).ToLocalChecked())
-        .FromJust();
-    pair->Set(context, 1, entries->Get(context, i * 2 + 1).ToLocalChecked())
-        .FromJust();
-    pairs->Set(context, i, pair).FromJust();
-  }
-  args.GetReturnValue().Set(pairs);
+  Local<Array> ret = Array::New(env->isolate(), 2);
+  ret->Set(env->context(), 0, entries).FromJust();
+  ret->Set(env->context(), 1, v8::Boolean::New(env->isolate(), is_key_value))
+      .FromJust();
+  return args.GetReturnValue().Set(ret);
 }
 
 // Side effect-free stringification that will never throw exceptions.
@@ -212,18 +199,19 @@ void Initialize(Local<Object> target,
   V(kRejected);
 #undef V
 
-  env->SetMethod(target, "getHiddenValue", GetHiddenValue);
+  env->SetMethodNoSideEffect(target, "getHiddenValue", GetHiddenValue);
   env->SetMethod(target, "setHiddenValue", SetHiddenValue);
-  env->SetMethod(target, "getPromiseDetails", GetPromiseDetails);
-  env->SetMethod(target, "getProxyDetails", GetProxyDetails);
-  env->SetMethod(target, "safeToString", SafeToString);
-  env->SetMethod(target, "previewEntries", PreviewEntries);
+  env->SetMethodNoSideEffect(target, "getPromiseDetails", GetPromiseDetails);
+  env->SetMethodNoSideEffect(target, "getProxyDetails", GetProxyDetails);
+  env->SetMethodNoSideEffect(target, "safeToString", SafeToString);
+  env->SetMethodNoSideEffect(target, "previewEntries", PreviewEntries);
 
   env->SetMethod(target, "startSigintWatchdog", StartSigintWatchdog);
   env->SetMethod(target, "stopSigintWatchdog", StopSigintWatchdog);
-  env->SetMethod(target, "watchdogHasPendingSigint", WatchdogHasPendingSigint);
+  env->SetMethodNoSideEffect(target, "watchdogHasPendingSigint",
+                             WatchdogHasPendingSigint);
 
-  env->SetMethod(target, "createPromise", CreatePromise);
+  env->SetMethodNoSideEffect(target, "createPromise", CreatePromise);
   env->SetMethod(target, "promiseResolve", PromiseResolve);
   env->SetMethod(target, "promiseReject", PromiseReject);
 

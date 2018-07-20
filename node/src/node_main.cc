@@ -36,7 +36,6 @@ extern "C" {
 
 int wmain(int argc, wchar_t *wargv[]) {
   // --------- [Enclose.IO Hack start] ---------
-  int autoupdate_result;
   sqfs_err enclose_io_ret;
   int new_argc;
   wchar_t **new_argv;

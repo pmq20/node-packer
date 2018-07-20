@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Inspector | Node.js v10.6.0 Documentation</title>
+  <title>Inspector | Node.js v10.7.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -17,8 +17,7 @@
           Node.js
         </a>
       </div>
-      <!--introduced_in=v0.10.0-->
-<ul>
+      <ul>
 <li><a class="nav-documentation" href="documentation.html">About these Docs</a></li>
 <li><a class="nav-synopsis" href="synopsis.html">Usage &amp; Example</a></li>
 </ul>
@@ -77,14 +76,14 @@
 
 <ul>
 <li><a class="nav-https-github-com-nodejs-node" href="https://github.com/nodejs/node">GitHub Repo &amp; Issue Tracker</a></li>
-<li><a class="nav-https-groups-google-com-group-nodejs" href="https://groups.google.com/group/nodejs">Mailing List</a></li>
+<li><a class="nav-https-groups-google-com-forum-forum-nodejs" href="https://groups.google.com/forum/#!forum/nodejs">Mailing List</a></li>
 </ul>
 
     </div>
 
     <div id="column1" data-id="inspector" class="interior">
       <header>
-        <h1>Node.js v10.6.0 Documentation</h1>
+        <h1>Node.js v10.7.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -103,6 +102,7 @@
 <li><a href="https://nodejs.org/docs/latest-v9.x/api/inspector.html">9.x</a></li></ol>
     </li>
   
+            <li class="edit_on_github"><a href="https://github.com/nodejs/node/edit/master/doc/api/inspector.md"><span class="github_icon"><svg height="16" width="16" viewBox="0 0 16.1 16.1" fill="currentColor"><path d="M8 0a8 8 0 0 0-2.5 15.6c.4 0 .5-.2.5-.4v-1.5c-2 .4-2.5-.5-2.7-1 0-.1-.5-.9-.8-1-.3-.2-.7-.6 0-.6.6 0 1 .6 1.2.8.7 1.2 1.9 1 2.4.7 0-.5.2-.9.5-1-1.8-.3-3.7-1-3.7-4 0-.9.3-1.6.8-2.2 0-.2-.3-1 .1-2 0 0 .7-.3 2.2.7a7.4 7.4 0 0 1 4 0c1.5-1 2.2-.8 2.2-.8.5 1.1.2 2 .1 2.1.5.6.8 1.3.8 2.2 0 3-1.9 3.7-3.6 4 .3.2.5.7.5 1.4v2.2c0 .2.1.5.5.4A8 8 0 0 0 16 8a8 8 0 0 0-8-8z"/></svg></span>Edit on GitHub</a></li>
           </ul>
         </div>
         <hr>
@@ -112,18 +112,17 @@
         <h2>Table of Contents</h2>
         <ul>
 <li><span class="stability_1"><a href="#inspector_inspector">Inspector</a></span><ul>
-<li><a href="#inspector_inspector_open_port_host_wait">inspector.open([port[, host[, wait]]])</a><ul>
 <li><a href="#inspector_inspector_close">inspector.close()</a></li>
+<li><a href="#inspector_inspector_console">inspector.console</a></li>
+<li><a href="#inspector_inspector_open_port_host_wait">inspector.open([port[, host[, wait]]])</a></li>
 <li><a href="#inspector_inspector_url">inspector.url()</a></li>
-</ul>
-</li>
 <li><a href="#inspector_class_inspector_session">Class: inspector.Session</a><ul>
 <li><a href="#inspector_constructor_new_inspector_session">Constructor: new inspector.Session()</a></li>
 <li><a href="#inspector_event_inspectornotification">Event: &#39;inspectorNotification&#39;</a></li>
 <li><a href="#inspector_event_lt_inspector_protocol_method_gt">Event: &lt;inspector-protocol-method&gt;</a></li>
 <li><a href="#inspector_session_connect">session.connect()</a></li>
-<li><a href="#inspector_session_post_method_params_callback">session.post(method[, params][, callback])</a></li>
 <li><a href="#inspector_session_disconnect">session.disconnect()</a></li>
+<li><a href="#inspector_session_post_method_params_callback">session.post(method[, params][, callback])</a></li>
 </ul>
 </li>
 <li><a href="#inspector_example_usage">Example usage</a><ul>
@@ -143,6 +142,16 @@
 <p>It can be accessed using:</p>
 <pre><code class="lang-js">const inspector = require(&#39;inspector&#39;);
 </code></pre>
+<h2>inspector.close()<span><a class="mark" href="#inspector_inspector_close" id="inspector_inspector_close">#</a></span></h2>
+<p>Deactivate the inspector. Blocks until there are no active connections.</p>
+<h2>inspector.console<span><a class="mark" href="#inspector_inspector_console" id="inspector_inspector_console">#</a></span></h2>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> An object to send messages to the remote inspector console.</li>
+</ul>
+<pre><code class="lang-js">require(&#39;inspector&#39;).console.log(&#39;a message&#39;);
+</code></pre>
+<p>The inspector console does not have API parity with Node.js
+console.</p>
 <h2>inspector.open([port[, host[, wait]]])<span><a class="mark" href="#inspector_inspector_open_port_host_wait" id="inspector_inspector_open_port_host_wait">#</a></span></h2>
 <ul>
 <li><code>port</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Port to listen on for inspector connections. Optional.
@@ -157,9 +166,7 @@
 started.</p>
 <p>If wait is <code>true</code>, will block until a client has connected to the inspect port
 and flow control has been passed to the debugger client.</p>
-<h3>inspector.close()<span><a class="mark" href="#inspector_inspector_close" id="inspector_inspector_close">#</a></span></h3>
-<p>Deactivate the inspector. Blocks until there are no active connections.</p>
-<h3>inspector.url()<span><a class="mark" href="#inspector_inspector_url" id="inspector_inspector_url">#</a></span></h3>
+<h2>inspector.url()<span><a class="mark" href="#inspector_inspector_url" id="inspector_inspector_url">#</a></span></h2>
 <ul>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Undefined_type" class="type">&lt;undefined&gt;</a></li>
 </ul>
@@ -208,6 +215,13 @@ execution is suspended (through breakpoints, for example):</p>
 </div><p>Connects a session to the inspector back-end. An exception will be thrown
 if there is already a connected session established either through the API or by
 a front-end connected to the Inspector WebSocket port.</p>
+<h3>session.disconnect()<span><a class="mark" href="#inspector_session_disconnect" id="inspector_session_disconnect">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.0.0</span>
+</div><p>Immediately close the session. All pending message callbacks will be called
+with an error. <a href="#inspector_session_connect"><code>session.connect()</code></a> will need to be called to be able to send
+messages again. Reconnected session will lose all inspector state, such as
+enabled agents or configured breakpoints.</p>
 <h3>session.post(method[, params][, callback])<span><a class="mark" href="#inspector_session_post_method_params_callback" id="inspector_session_post_method_params_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
@@ -229,13 +243,6 @@ arguments - error and message-specific result.</p>
 by V8. Chrome DevTools Protocol domain provides an interface for interacting
 with one of the runtime agents used to inspect the application state and listen
 to the run-time events.</p>
-<h3>session.disconnect()<span><a class="mark" href="#inspector_session_disconnect" id="inspector_session_disconnect">#</a></span></h3>
-<div class="api_metadata">
-<span>Added in: v8.0.0</span>
-</div><p>Immediately close the session. All pending message callbacks will be called
-with an error. <a href="#inspector_session_connect"><code>session.connect()</code></a> will need to be called to be able to send
-messages again. Reconnected session will lose all inspector state, such as
-enabled agents or configured breakpoints.</p>
 <h2>Example usage<span><a class="mark" href="#inspector_example_usage" id="inspector_example_usage">#</a></span></h2>
 <h3>CPU Profiler<span><a class="mark" href="#inspector_cpu_profiler" id="inspector_cpu_profiler">#</a></span></h3>
 <p>Apart from the debugger, various V8 Profilers are available through the DevTools

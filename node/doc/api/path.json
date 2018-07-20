@@ -477,7 +477,7 @@
               ]
             }
           ],
-          "desc": "<p>On Windows systems only, returns an equivalent <a href=\"https://msdn.microsoft.com/library/windows/desktop/aa365247(v=vs.85).aspx#namespaces\">namespace-prefixed path</a> for\nthe given <code>path</code>. If <code>path</code> is not a string, <code>path</code> will be returned without\nmodifications.</p>\n<p>This method is meaningful only on Windows system. On posix systems, the\nmethod is non-operational and always returns <code>path</code> without modifications.</p>\n"
+          "desc": "<p>On Windows systems only, returns an equivalent <a href=\"https://docs.microsoft.com/en-us/windows/desktop/FileIO/naming-a-file#namespaces\">namespace-prefixed path</a> for\nthe given <code>path</code>. If <code>path</code> is not a string, <code>path</code> will be returned without\nmodifications.</p>\n<p>This method is meaningful only on Windows system. On posix systems, the\nmethod is non-operational and always returns <code>path</code> without modifications.</p>\n"
         }
       ],
       "properties": [

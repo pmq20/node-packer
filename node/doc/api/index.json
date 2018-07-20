@@ -4,10 +4,7 @@
     {
       "type": "html",
       "pre": false,
-      "text": "<!-- [start-include:_toc.md] -->\n"
-    },
-    {
-      "type": "space"
+      "text": "<!--\n  NB(chrisdickinson): if you move this file, be sure to update\n  tools/doc/html.js to point at the new location.\n-->\n"
     },
     {
       "type": "list_start",
@@ -548,21 +545,13 @@
     },
     {
       "type": "text",
-      "text": "[Mailing List](https://groups.google.com/group/nodejs)"
-    },
-    {
-      "type": "space"
+      "text": "[Mailing List](https://groups.google.com/forum/#!forum/nodejs)"
     },
     {
       "type": "list_item_end"
     },
     {
       "type": "list_end"
-    },
-    {
-      "type": "html",
-      "pre": false,
-      "text": "<!-- [end-include:_toc.md] -->\n"
     }
   ],
   "introduced_in": "v0.10.0"

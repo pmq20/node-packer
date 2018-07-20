@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>File System | Node.js v10.6.0 Documentation</title>
+  <title>File System | Node.js v10.7.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -17,8 +17,7 @@
           Node.js
         </a>
       </div>
-      <!--introduced_in=v0.10.0-->
-<ul>
+      <ul>
 <li><a class="nav-documentation" href="documentation.html">About these Docs</a></li>
 <li><a class="nav-synopsis" href="synopsis.html">Usage &amp; Example</a></li>
 </ul>
@@ -77,14 +76,14 @@
 
 <ul>
 <li><a class="nav-https-github-com-nodejs-node" href="https://github.com/nodejs/node">GitHub Repo &amp; Issue Tracker</a></li>
-<li><a class="nav-https-groups-google-com-group-nodejs" href="https://groups.google.com/group/nodejs">Mailing List</a></li>
+<li><a class="nav-https-groups-google-com-forum-forum-nodejs" href="https://groups.google.com/forum/#!forum/nodejs">Mailing List</a></li>
 </ul>
 
     </div>
 
     <div id="column1" data-id="fs" class="interior">
       <header>
-        <h1>Node.js v10.6.0 Documentation</h1>
+        <h1>Node.js v10.7.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -110,6 +109,7 @@
 <li><a href="https://nodejs.org/docs/latest-v0.10.x/api/fs.html">0.10.x</a></li></ol>
     </li>
   
+            <li class="edit_on_github"><a href="https://github.com/nodejs/node/edit/master/doc/api/fs.md"><span class="github_icon"><svg height="16" width="16" viewBox="0 0 16.1 16.1" fill="currentColor"><path d="M8 0a8 8 0 0 0-2.5 15.6c.4 0 .5-.2.5-.4v-1.5c-2 .4-2.5-.5-2.7-1 0-.1-.5-.9-.8-1-.3-.2-.7-.6 0-.6.6 0 1 .6 1.2.8.7 1.2 1.9 1 2.4.7 0-.5.2-.9.5-1-1.8-.3-3.7-1-3.7-4 0-.9.3-1.6.8-2.2 0-.2-.3-1 .1-2 0 0 .7-.3 2.2.7a7.4 7.4 0 0 1 4 0c1.5-1 2.2-.8 2.2-.8.5 1.1.2 2 .1 2.1.5.6.8 1.3.8 2.2 0 3-1.9 3.7-3.6 4 .3.2.5.7.5 1.4v2.2c0 .2.1.5.5.4A8 8 0 0 0 16 8a8 8 0 0 0-8-8z"/></svg></span>Edit on GitHub</a></li>
           </ul>
         </div>
         <hr>
@@ -359,9 +359,9 @@ try {
   // handle the error
 }
 </code></pre>
-<p>Note that there is no guaranteed ordering when using asynchronous methods.
-So the following is prone to error because the <code>fs.stat()</code> operation may
-complete before the <code>fs.rename()</code> operation.</p>
+<p>There is no guaranteed ordering when using asynchronous methods. So the
+following is prone to error because the <code>fs.stat()</code> operation may complete
+before the <code>fs.rename()</code> operation:</p>
 <pre><code class="lang-js">fs.rename(&#39;/tmp/hello&#39;, &#39;/tmp/world&#39;, (err) =&gt; {
   if (err) throw err;
   console.log(&#39;renamed complete&#39;);
@@ -440,8 +440,8 @@ be relative or absolute:</p>
   });
 });
 </code></pre>
-<p><em>Note:</em> On Windows Node.js follows the concept of per-drive working directory.
-This behavior can be observed when using a drive path without a backslash. For
+<p>On Windows, Node.js follows the concept of per-drive working directory. This
+behavior can be observed when using a drive path without a backslash. For
 example <code>fs.readdirSync(&#39;c:\\&#39;)</code> can potentially return a different result than
 <code>fs.readdirSync(&#39;c:&#39;)</code>. For more information, see
 <a href="https://docs.microsoft.com/en-us/windows/desktop/FileIO/naming-a-file#fully-qualified-vs-relative-paths">this MSDN page</a>.</p>
@@ -542,9 +542,9 @@ at any given time so it is critical to close the descriptor when operations
 are completed. Failure to do so will result in a memory leak that will
 eventually cause an application to crash.</p>
 <h2>Threadpool Usage<span><a class="mark" href="#fs_threadpool_usage" id="fs_threadpool_usage">#</a></span></h2>
-<p>Note that all file system APIs except <code>fs.FSWatcher()</code> and those that are
-explicitly synchronous use libuv&#39;s threadpool, which can have surprising and
-negative performance implications for some applications, see the
+<p>All file system APIs except <code>fs.FSWatcher()</code> and those that are explicitly
+synchronous use libuv&#39;s threadpool, which can have surprising and negative
+performance implications for some applications. See the
 <a href="cli.html#cli_uv_threadpool_size_size"><code>UV_THREADPOOL_SIZE</code></a> documentation for more information.</p>
 <h2>Class: fs.FSWatcher<span><a class="mark" href="#fs_class_fs_fswatcher" id="fs_class_fs_fswatcher">#</a></span></h2>
 <div class="api_metadata">
@@ -855,7 +855,7 @@ milliseconds since the POSIX Epoch.</p>
 <p>The <code>atimeMs</code>, <code>mtimeMs</code>, <code>ctimeMs</code>, <code>birthtimeMs</code> properties are
 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type">numbers</a> that hold the corresponding times in milliseconds. Their
 precision is platform specific. <code>atime</code>, <code>mtime</code>, <code>ctime</code>, and <code>birthtime</code> are
-<a href="https://developer.mozilla.org/en-US/JavaScript/Reference/Global_Objects/Date"><code>Date</code></a> object alternate representations of the various times. The
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date"><code>Date</code></a> object alternate representations of the various times. The
 <code>Date</code> and number values are not connected. Assigning a new number value, or
 mutating the <code>Date</code> value, will not be reflected in the corresponding alternate
 representation.</p>
@@ -872,15 +872,13 @@ Changed by the <a href="http://man7.org/linux/man-pages/man2/mknod.2.html"><code
 <li><code>birthtime</code> &quot;Birth Time&quot; - Time of file creation. Set once when the
 file is created. On filesystems where birthtime is not available,
 this field may instead hold either the <code>ctime</code> or
-<code>1970-01-01T00:00Z</code> (ie, unix epoch timestamp <code>0</code>). Note that this
-value may be greater than <code>atime</code> or <code>mtime</code> in this case. On Darwin
-and other FreeBSD variants, also set if the <code>atime</code> is explicitly
-set to an earlier value than the current <code>birthtime</code> using the
-<a href="http://man7.org/linux/man-pages/man2/utimes.2.html"><code>utimes(2)</code></a> system call.</li>
+<code>1970-01-01T00:00Z</code> (ie, unix epoch timestamp <code>0</code>). This value may be greater
+than <code>atime</code> or <code>mtime</code> in this case. On Darwin and other FreeBSD variants,
+also set if the <code>atime</code> is explicitly set to an earlier value than the current
+<code>birthtime</code> using the <a href="http://man7.org/linux/man-pages/man2/utimes.2.html"><code>utimes(2)</code></a> system call.</li>
 </ul>
-<p>Prior to Node.js v0.12, the <code>ctime</code> held the <code>birthtime</code> on Windows
-systems. Note that as of v0.12, <code>ctime</code> is not &quot;creation time&quot;, and
-on Unix systems, it never was.</p>
+<p>Prior to Node.js 0.12, the <code>ctime</code> held the <code>birthtime</code> on Windows systems. As
+of 0.12, <code>ctime</code> is not &quot;creation time&quot;, and on Unix systems, it never was.</p>
 <h2>Class: fs.WriteStream<span><a class="mark" href="#fs_class_fs_writestream" id="fs_class_fs_writestream">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.93</span>
@@ -1331,11 +1329,10 @@ specifies the permissions for others.</p>
 <li>The group may read and write the file.</li>
 <li>Others may read and execute the file.</li>
 </ul>
-<p>Note: When using raw numbers where file modes are expected,
-any value larger than <code>0o777</code> may result in platform-specific
-behaviors that are not supported to work consistently.
-Therefore constants like <code>S_ISVTX</code>, <code>S_ISGID</code> or <code>S_ISUID</code> are
-not exposed in <code>fs.constants</code>.</p>
+<p>When using raw numbers where file modes are expected, any value larger than
+<code>0o777</code> may result in platform-specific behaviors that are not supported to work
+consistently. Therefore constants like <code>S_ISVTX</code>, <code>S_ISGID</code> or <code>S_ISUID</code> are not
+exposed in <code>fs.constants</code>.</p>
 <p>Caveats: on Windows only the write permission can be changed, and the
 distinction among the permissions of group, owner or others is not
 implemented.</p>
@@ -1356,8 +1353,8 @@ implemented.</p>
 <li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 <li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
-<p>Synchronously changes the permissions of a file. Returns <code>undefined</code>.
-This is the synchronous version of <a href="#fs_fs_chmod_path_mode_callback"><code>fs.chmod()</code></a>.</p>
+<p>For detailed information, see the documentation of the asynchronous version of
+this API: <a href="#fs_fs_chmod_path_mode_callback"><code>fs.chmod()</code></a>.</p>
 <p>See also: <a href="http://man7.org/linux/man-pages/man2/chmod.2.html"><code>chmod(2)</code></a>.</p>
 <h2>fs.chown(path, uid, gid, callback)<span><a class="mark" href="#fs_fs_chown_path_uid_gid_callback" id="fs_fs_chown_path_uid_gid_callback">#</a></span></h2>
 <div class="api_metadata">
@@ -1580,8 +1577,8 @@ start counting at 0. If <code>fd</code> is specified and <code>start</code> is o
 The <code>encoding</code> can be any one of those accepted by <a href="buffer.html#buffer_buffer"><code>Buffer</code></a>.</p>
 <p>If <code>fd</code> is specified, <code>ReadStream</code> will ignore the <code>path</code> argument and will use
 the specified file descriptor. This means that no <code>&#39;open&#39;</code> event will be
-emitted. Note that <code>fd</code> should be blocking; non-blocking <code>fd</code>s should be passed
-to <a href="net.html#net_class_net_socket"><code>net.Socket</code></a>.</p>
+emitted. <code>fd</code> should be blocking; non-blocking <code>fd</code>s should be passed to
+<a href="net.html#net_class_net_socket"><code>net.Socket</code></a>.</p>
 <p>If <code>autoClose</code> is false, then the file descriptor won&#39;t be closed, even if
 there&#39;s an error. It is the application&#39;s responsibility to close it and make
 sure there&#39;s no file descriptor leak. If <code>autoClose</code> is set to true (default
@@ -1641,8 +1638,8 @@ It is the application&#39;s responsibility to close it and make sure there&#39;s
 file descriptor leak.</p>
 <p>Like <a href="#fs_class_fs_readstream"><code>ReadStream</code></a>, if <code>fd</code> is specified, <a href="#fs_class_fs_writestream"><code>WriteStream</code></a> will ignore the
 <code>path</code> argument and will use the specified file descriptor. This means that no
-<code>&#39;open&#39;</code> event will be emitted. Note that <code>fd</code> should be blocking; non-blocking
-<code>fd</code>s should be passed to <a href="net.html#net_class_net_socket"><code>net.Socket</code></a>.</p>
+<code>&#39;open&#39;</code> event will be emitted. <code>fd</code> should be blocking; non-blocking <code>fd</code>s
+should be passed to <a href="net.html#net_class_net_socket"><code>net.Socket</code></a>.</p>
 <p>If <code>options</code> is a string, then it specifies the encoding.</p>
 <h2>fs.exists(path, callback)<span><a class="mark" href="#fs_fs_exists_path_callback" id="fs_fs_exists_path_callback">#</a></span></h2>
 <div class="api_metadata">
@@ -1673,11 +1670,11 @@ Then call the <code>callback</code> argument with either true or false. Example:
   console.log(exists ? &#39;it\&#39;s there&#39; : &#39;no passwd!&#39;);
 });
 </code></pre>
-<p><strong>Note that the parameter to this callback is not consistent with other
-Node.js callbacks.</strong> Normally, the first parameter to a Node.js callback is
-an <code>err</code> parameter, optionally followed by other parameters. The
-<code>fs.exists()</code> callback has only one boolean parameter. This is one reason
-<code>fs.access()</code> is recommended instead of <code>fs.exists()</code>.</p>
+<p><strong>The parameters for this callback are not consistent with other Node.js
+callbacks.</strong> Normally, the first parameter to a Node.js callback is an <code>err</code>
+parameter, optionally followed by other parameters. The <code>fs.exists()</code> callback
+has only one boolean parameter. This is one reason <code>fs.access()</code> is recommended
+instead of <code>fs.exists()</code>.</p>
 <p>Using <code>fs.exists()</code> to check for the existence of a file before calling
 <code>fs.open()</code>, <code>fs.readFile()</code> or <code>fs.writeFile()</code> is not recommended. Doing
 so introduces a race condition, since other processes may change the file&#39;s
@@ -1758,12 +1755,12 @@ process.</p>
 <li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
 </ul>
-<p>Synchronous version of <a href="fs.html#fs_fs_exists_path_callback"><code>fs.exists()</code></a>.
-Returns <code>true</code> if the path exists, <code>false</code> otherwise.</p>
-<p>Note that <code>fs.exists()</code> is deprecated, but <code>fs.existsSync()</code> is not.
-(The <code>callback</code> parameter to <code>fs.exists()</code> accepts parameters that are
-inconsistent with other Node.js callbacks. <code>fs.existsSync()</code> does not use
-a callback.)</p>
+<p>Returns <code>true</code> if the path exists, <code>false</code> otherwise.</p>
+<p>For detailed information, see the documentation of the asynchronous version of
+this API: <a href="fs.html#fs_fs_exists_path_callback"><code>fs.exists()</code></a>.</p>
+<p><code>fs.exists()</code> is deprecated, but <code>fs.existsSync()</code> is not. The <code>callback</code>
+parameter to <code>fs.exists()</code> accepts parameters that are inconsistent with other
+Node.js callbacks. <code>fs.existsSync()</code> does not use a callback.</p>
 <h2>fs.fchmod(fd, mode, callback)<span><a class="mark" href="#fs_fs_fchmod_fd_mode_callback" id="fs_fs_fchmod_fd_mode_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -2023,7 +2020,9 @@ fs.ftruncate(fd, 10, (err) =&gt; {
 <li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 <li><code>len</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <strong>Default:</strong> <code>0</code></li>
 </ul>
-<p>Synchronous <a href="http://man7.org/linux/man-pages/man2/ftruncate.2.html"><code>ftruncate(2)</code></a>. Returns <code>undefined</code>.</p>
+<p>Returns <code>undefined</code>.</p>
+<p>For detailed information, see the documentation of the asynchronous version of
+this API: <a href="#fs_fs_ftruncate_fd_len_callback"><code>fs.ftruncate()</code></a>.</p>
 <h2>fs.futimes(fd, atime, mtime, callback)<span><a class="mark" href="#fs_fs_futimes_fd_atime_mtime_callback" id="fs_fs_futimes_fd_atime_mtime_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -2372,9 +2371,8 @@ fs.mkdtemp(tmpDir, (err, folder) =&gt; {
   if (err) throw err;
   console.log(folder);
   // Will print something similar to `/tmpabc123`.
-  // Note that a new temporary directory is created
-  // at the file system root rather than *within*
-  // the /tmp directory.
+  // A new temporary directory is created at the file system root
+  // rather than *within* the /tmp directory.
 });
 
 // This method is *CORRECT*:
@@ -2398,8 +2396,9 @@ fs.mkdtemp(`${tmpDir}${sep}`, (err, folder) =&gt; {
 </li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
-<p>The synchronous version of <a href="#fs_fs_mkdtemp_prefix_options_callback"><code>fs.mkdtemp()</code></a>. Returns the created
-folder path.</p>
+<p>Returns the created folder path.</p>
+<p>For detailed information, see the documentation of the asynchronous version of
+this API: <a href="#fs_fs_mkdtemp_prefix_options_callback"><code>fs.mkdtemp()</code></a>.</p>
 <p>The optional <code>options</code> argument can be a string specifying an encoding, or an
 object with an <code>encoding</code> property specifying the character encoding to use.</p>
 <h2>fs.open(path, flags[, mode], callback)<span><a class="mark" href="#fs_fs_open_path_flags_mode_callback" id="fs_fs_open_path_flags_mode_callback">#</a></span></h2>
@@ -2430,13 +2429,13 @@ object with an <code>encoding</code> property specifying the character encoding 
 </ul>
 <p>Asynchronous file open. See <a href="http://man7.org/linux/man-pages/man2/open.2.html"><code>open(2)</code></a>.</p>
 <p><code>mode</code> sets the file mode (permission and sticky bits), but only if the file was
-created. Note that on Windows only the write permission can be manipulated,
-see <a href="#fs_fs_chmod_path_mode_callback"><code>fs.chmod()</code></a>.</p>
+created. On Windows, only the write permission can be manipulated; see
+<a href="#fs_fs_chmod_path_mode_callback"><code>fs.chmod()</code></a>.</p>
 <p>The callback gets two arguments <code>(err, fd)</code>.</p>
 <p>Some characters (<code>&lt; &gt; : &quot; / \ | ? *</code>) are reserved under Windows as documented
-by <a href="https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx">Naming Files, Paths, and Namespaces</a>. Under NTFS, if the filename contains
+by <a href="https://docs.microsoft.com/en-us/windows/desktop/FileIO/naming-a-file">Naming Files, Paths, and Namespaces</a>. Under NTFS, if the filename contains
 a colon, Node.js will open a file system stream, as described by
-<a href="https://msdn.microsoft.com/en-us/library/windows/desktop/bb540537.aspx">this MSDN page</a>.</p>
+<a href="https://docs.microsoft.com/en-us/windows/desktop/FileIO/using-streams">this MSDN page</a>.</p>
 <p>Functions based on <code>fs.open()</code> exhibit this behavior as well:
 <code>fs.writeFile()</code>, <code>fs.readFile()</code>, etc.</p>
 <h2>fs.openSync(path, flags[, mode])<span><a class="mark" href="#fs_fs_opensync_path_flags_mode" id="fs_fs_opensync_path_flags_mode">#</a></span></h2>
@@ -2458,8 +2457,9 @@ a colon, Node.js will open a file system stream, as described by
 <li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <strong>Default:</strong> <code>0o666</code></li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
 </ul>
-<p>Synchronous version of <a href="#fs_fs_open_path_flags_mode_callback"><code>fs.open()</code></a>. Returns an integer representing the file
-descriptor.</p>
+<p>Returns an integer representing the file descriptor.</p>
+<p>For detailed information, see the documentation of the asynchronous version of
+this API: <a href="#fs_fs_open_path_flags_mode_callback"><code>fs.open()</code></a>.</p>
 <h2>fs.read(fd, buffer, offset, length, position, callback)<span><a class="mark" href="#fs_fs_read_fd_buffer_offset_length_position_callback" id="fs_fs_read_fd_buffer_offset_length_position_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -2661,7 +2661,9 @@ when possible prefer streaming via <code>fs.createReadStream()</code>.</p>
 </li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
 </ul>
-<p>Synchronous version of <a href="#fs_fs_readfile_path_options_callback"><code>fs.readFile()</code></a>. Returns the contents of the <code>path</code>.</p>
+<p>Returns the contents of the <code>path</code>.</p>
+<p>For detailed information, see the documentation of the asynchronous version of
+this API: <a href="#fs_fs_readfile_path_options_callback"><code>fs.readFile()</code></a>.</p>
 <p>If the <code>encoding</code> option is specified then this function returns a
 string. Otherwise it returns a buffer.</p>
 <p>Similar to <a href="#fs_fs_readfile_path_options_callback"><code>fs.readFile()</code></a>, when the path is a directory, the behavior of
@@ -2757,7 +2759,9 @@ the link path returned will be passed as a <code>Buffer</code> object.</p>
 <li><code>position</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
 </ul>
-<p>Synchronous version of <a href="#fs_fs_read_fd_buffer_offset_length_position_callback"><code>fs.read()</code></a>. Returns the number of <code>bytesRead</code>.</p>
+<p>Returns the number of <code>bytesRead</code>.</p>
+<p>For detailed information, see the documentation of the asynchronous version of
+this API: <a href="#fs_fs_read_fd_buffer_offset_length_position_callback"><code>fs.read()</code></a>.</p>
 <h2>fs.realpath(path[, options], callback)<span><a class="mark" href="#fs_fs_realpath_path_options_callback" id="fs_fs_realpath_path_options_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -2874,7 +2878,9 @@ this restriction.</p>
 </li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
 </ul>
-<p>Synchronous version of <a href="#fs_fs_realpath_path_options_callback"><code>fs.realpath()</code></a>. Returns the resolved pathname.</p>
+<p>Returns the resolved pathname.</p>
+<p>For detailed information, see the documentation of the asynchronous version of
+this API: <a href="#fs_fs_realpath_path_options_callback"><code>fs.realpath()</code></a>.</p>
 <h2>fs.realpathSync.native(path[, options])<span><a class="mark" href="#fs_fs_realpathsync_native_path_options" id="fs_fs_realpathsync_native_path_options">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v9.2.0</span>
@@ -3094,9 +3100,9 @@ is recommended.</p>
 <p>Asynchronous <a href="http://man7.org/linux/man-pages/man2/symlink.2.html"><code>symlink(2)</code></a>. No arguments other than a possible exception are given
 to the completion callback. The <code>type</code> argument can be set to <code>&#39;dir&#39;</code>,
 <code>&#39;file&#39;</code>, or <code>&#39;junction&#39;</code> and is only available on
-Windows (ignored on other platforms). Note that Windows junction points require
-the destination path to be absolute. When using <code>&#39;junction&#39;</code>, the <code>target</code>
-argument will automatically be normalized to absolute path.</p>
+Windows (ignored on other platforms). Windows junction points require the
+destination path to be absolute. When using <code>&#39;junction&#39;</code>, the <code>target</code> argument
+will automatically be normalized to absolute path.</p>
 <p>Here is an example below:</p>
 <pre><code class="lang-js">fs.symlink(&#39;./foo&#39;, &#39;./new-port&#39;, callback);
 </code></pre>
@@ -3119,7 +3125,9 @@ argument will automatically be normalized to absolute path.</p>
 <li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 <li><code>type</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> <strong>Default:</strong> <code>&#39;file&#39;</code></li>
 </ul>
-<p>Synchronous <a href="http://man7.org/linux/man-pages/man2/symlink.2.html"><code>symlink(2)</code></a>. Returns <code>undefined</code>.</p>
+<p>Returns <code>undefined</code>.</p>
+<p>For detailed information, see the documentation of the asynchronous version of
+this API: <a href="#fs_fs_symlink_target_path_type_callback"><code>fs.symlink()</code></a>.</p>
 <h2>fs.truncate(path[, len], callback)<span><a class="mark" href="#fs_fs_truncate_path_len_callback" id="fs_fs_truncate_path_len_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -3296,7 +3304,9 @@ numeric string like <code>&#39;123456789.0&#39;</code>.</li>
 <li><code>atime</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 <li><code>mtime</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
-<p>Synchronous version of <a href="#fs_fs_utimes_path_atime_mtime_callback"><code>fs.utimes()</code></a>. Returns <code>undefined</code>.</p>
+<p>Returns <code>undefined</code>.</p>
+<p>For detailed information, see the documentation of the asynchronous version of
+this API: <a href="#fs_fs_utimes_path_atime_mtime_callback"><code>fs.utimes()</code></a>.</p>
 <h2>fs.watch(filename[, options][, listener])<span><a class="mark" href="#fs_fs_watch_filename_options_listener" id="fs_fs_watch_filename_options_listener">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -3340,9 +3350,9 @@ specifies the <code>encoding</code>. Otherwise <code>options</code> should be pa
 <p>The listener callback gets two arguments <code>(eventType, filename)</code>. <code>eventType</code>
 is either <code>&#39;rename&#39;</code> or <code>&#39;change&#39;</code>, and <code>filename</code> is the name of the file
 which triggered the event.</p>
-<p>Note that on most platforms, <code>&#39;rename&#39;</code> is emitted whenever a filename appears
-or disappears in the directory.</p>
-<p>Also note the listener callback is attached to the <code>&#39;change&#39;</code> event fired by
+<p>On most platforms, <code>&#39;rename&#39;</code> is emitted whenever a filename appears or
+disappears in the directory.</p>
+<p>The listener callback is attached to the <code>&#39;change&#39;</code> event fired by
 <a href="#fs_class_fs_fswatcher"><code>fs.FSWatcher</code></a>, but it is not the same thing as the <code>&#39;change&#39;</code> value of
 <code>eventType</code>.</p>
 <h3>Caveats<span><a class="mark" href="#fs_caveats" id="fs_caveats">#</a></span></h3>
@@ -3359,7 +3369,7 @@ to be notified of filesystem changes.</p>
 <li>On BSD systems, this uses <a href="https://www.freebsd.org/cgi/man.cgi?query=kqueue&amp;sektion=2"><code>kqueue(2)</code></a>.</li>
 <li>On macOS, this uses <a href="https://www.freebsd.org/cgi/man.cgi?query=kqueue&amp;sektion=2"><code>kqueue(2)</code></a> for files and <a href="https://developer.apple.com/documentation/coreservices/file_system_events"><code>FSEvents</code></a> for directories.</li>
 <li>On SunOS systems (including Solaris and SmartOS), this uses <a href="http://illumos.org/man/port_create"><code>event ports</code></a>.</li>
-<li>On Windows systems, this feature depends on <a href="https://msdn.microsoft.com/en-us/library/windows/desktop/aa365465%28v=vs.85%29.aspx"><code>ReadDirectoryChangesW</code></a>.</li>
+<li>On Windows systems, this feature depends on <a href="https://docs.microsoft.com/en-us/windows/desktop/api/winbase/nf-winbase-readdirectorychangesw"><code>ReadDirectoryChangesW</code></a>.</li>
 <li>On Aix systems, this feature depends on <a href="https://www.ibm.com/developerworks/aix/library/au-aix_event_infrastructure/"><code>AHAFS</code></a>, which must be enabled.</li>
 </ul>
 <p>If the underlying functionality is not available for some reason, then
@@ -3500,9 +3510,8 @@ at the current position. See <a href="http://man7.org/linux/man-pages/man2/pwrit
 <code>bytesWritten</code> specifies how many <em>bytes</em> were written from <code>buffer</code>.</p>
 <p>If this method is invoked as its <a href="util.html#util_util_promisify_original"><code>util.promisify()</code></a>ed version, it returns
 a <code>Promise</code> for an <code>Object</code> with <code>bytesWritten</code> and <code>buffer</code> properties.</p>
-<p>Note that it is unsafe to use <code>fs.write</code> multiple times on the same file
-without waiting for the callback. For this scenario,
-<code>fs.createWriteStream</code> is strongly recommended.</p>
+<p>It is unsafe to use <code>fs.write()</code> multiple times on the same file without waiting
+for the callback. For this scenario, <code>fs.createWriteStream()</code> is recommended.</p>
 <p>On Linux, positional writes don&#39;t work when the file is opened in append mode.
 The kernel ignores the position argument and always appends the data to
 the end of the file.</p>
@@ -3544,11 +3553,11 @@ should be written. If <code>typeof position !== &#39;number&#39;</code> the data
 the current position. See <a href="http://man7.org/linux/man-pages/man2/pwrite.2.html"><code>pwrite(2)</code></a>.</p>
 <p><code>encoding</code> is the expected string encoding.</p>
 <p>The callback will receive the arguments <code>(err, written, string)</code> where <code>written</code>
-specifies how many <em>bytes</em> the passed string required to be written. Note that
-bytes written is not the same as string characters. See <a href="buffer.html#buffer_class_method_buffer_bytelength_string_encoding"><code>Buffer.byteLength</code></a>.</p>
-<p>Note that it is unsafe to use <code>fs.write</code> multiple times on the same file
-without waiting for the callback. For this scenario,
-<code>fs.createWriteStream</code> is strongly recommended.</p>
+specifies how many <em>bytes</em> the passed string required to be written. Bytes
+written is not necessarily the same as string characters written. See
+<a href="buffer.html#buffer_class_method_buffer_bytelength_string_encoding"><code>Buffer.byteLength</code></a>.</p>
+<p>It is unsafe to use <code>fs.write()</code> multiple times on the same file without waiting
+for the callback. For this scenario, <code>fs.createWriteStream()</code> is recommended.</p>
 <p>On Linux, positional writes don&#39;t work when the file is opened in append mode.
 The kernel ignores the position argument and always appends the data to
 the end of the file.</p>
@@ -3601,9 +3610,9 @@ the end of the file.</p>
 <pre><code class="lang-js">fs.writeFile(&#39;message.txt&#39;, &#39;Hello Node.js&#39;, &#39;utf8&#39;, callback);
 </code></pre>
 <p>Any specified file descriptor has to support writing.</p>
-<p>Note that it is unsafe to use <code>fs.writeFile</code> multiple times on the same file
-without waiting for the callback. For this scenario,
-<code>fs.createWriteStream</code> is strongly recommended.</p>
+<p>It is unsafe to use <code>fs.writeFile()</code> multiple times on the same file without
+waiting for the callback. For this scenario, <code>fs.createWriteStream()</code> is
+recommended.</p>
 <p>If a file descriptor is specified as the <code>file</code>, it will not be closed
 automatically.</p>
 <h2>fs.writeFileSync(file, data[, options])<span><a class="mark" href="#fs_fs_writefilesync_file_data_options" id="fs_fs_writefilesync_file_data_options">#</a></span></h2>
@@ -3632,7 +3641,9 @@ automatically.</p>
 </ul>
 </li>
 </ul>
-<p>The synchronous version of <a href="#fs_fs_writefile_file_data_options_callback"><code>fs.writeFile()</code></a>. Returns <code>undefined</code>.</p>
+<p>Returns <code>undefined</code>.</p>
+<p>For detailed information, see the documentation of the asynchronous version of
+this API: <a href="#fs_fs_writefile_file_data_options_callback"><code>fs.writeFile()</code></a>.</p>
 <h2>fs.writeSync(fd, buffer[, offset[, length[, position]]])<span><a class="mark" href="#fs_fs_writesync_fd_buffer_offset_length_position" id="fs_fs_writesync_fd_buffer_offset_length_position">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -3677,7 +3688,9 @@ automatically.</p>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
 </ul>
-<p>Synchronous versions of <a href="#fs_fs_write_fd_buffer_offset_length_position_callback"><code>fs.write()</code></a>. Returns the number of bytes written.</p>
+<p>Returns the number of bytes written.</p>
+<p>For detailed information, see the documentation of the asynchronous version of
+this API: <a href="#fs_fs_write_fd_buffer_offset_length_position_callback"><code>fs.write()</code></a>.</p>
 <h2>fs Promises API<span><a class="mark" href="#fs_fs_promises_api" id="fs_fs_promises_api">#</a></span></h2>
 <div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p>The <code>fs.promises</code> API provides an alternative set of asynchronous file system
 methods that return <code>Promise</code> objects rather than using callbacks. The
@@ -4186,9 +4199,9 @@ characters directly to the <code>prefix</code> string. For instance, given a dir
 <p><code>mode</code> sets the file mode (permission and sticky bits), but only if the file was
 created.</p>
 <p>Some characters (<code>&lt; &gt; : &quot; / \ | ? *</code>) are reserved under Windows as documented
-by <a href="https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx">Naming Files, Paths, and Namespaces</a>. Under NTFS, if the filename contains
+by <a href="https://docs.microsoft.com/en-us/windows/desktop/FileIO/naming-a-file">Naming Files, Paths, and Namespaces</a>. Under NTFS, if the filename contains
 a colon, Node.js will open a file system stream, as described by
-<a href="https://msdn.microsoft.com/en-us/library/windows/desktop/bb540537.aspx">this MSDN page</a>.</p>
+<a href="https://docs.microsoft.com/en-us/windows/desktop/FileIO/using-streams">this MSDN page</a>.</p>
 <h3>fsPromises.readdir(path[, options])<span><a class="mark" href="#fs_fspromises_readdir_path_options" id="fs_fspromises_readdir_path_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v10.0.0</span>
@@ -4324,9 +4337,9 @@ error on POSIX.</p>
 <p>Creates a symbolic link then resolves the <code>Promise</code> with no arguments upon
 success.</p>
 <p>The <code>type</code> argument is only used on Windows platforms and can be one of <code>&#39;dir&#39;</code>,
-<code>&#39;file&#39;</code>, or <code>&#39;junction&#39;</code>. Note that Windows junction
-points require the destination path to be absolute. When using <code>&#39;junction&#39;</code>,
-the <code>target</code> argument will automatically be normalized to absolute path.</p>
+<code>&#39;file&#39;</code>, or <code>&#39;junction&#39;</code>. Windows junction points require the destination path
+to be absolute. When using <code>&#39;junction&#39;</code>, the <code>target</code> argument will
+automatically be normalized to absolute path.</p>
 <h3>fsPromises.truncate(path[, len])<span><a class="mark" href="#fs_fspromises_truncate_path_len" id="fs_fspromises_truncate_path_len">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v10.0.0</span>
@@ -4497,8 +4510,8 @@ without waiting for the <code>Promise</code> to be resolved (or rejected).</p>
   <tr>
   <td><code>O_NOATIME</code></td>
     <td>Flag indicating reading accesses to the file system will no longer
-    result in an update to the <code>atime</code> information associated with the file.
-    This flag is available on Linux operating systems only.</td>
+    result in an update to the <code>atime</code> information associated with
+    the file.  This flag is available on Linux operating systems only.</td>
   </tr>
   <tr>
     <td><code>O_NOFOLLOW</code></td>
@@ -4662,9 +4675,9 @@ the operating system to bypass the local file system cache.</p>
 <p>This is primarily useful for opening files on NFS mounts as it allows
 skipping the potentially stale local cache. It has a very real impact on
 I/O performance so using this flag is not recommended unless it is needed.</p>
-<p>Note that this doesn&#39;t turn <code>fs.open()</code> or <code>fsPromises.open()</code> into a
-synchronous blocking call. If synchronous operation is desired, something
-like <code>fs.openSync()</code> should be used.</p>
+<p>This doesn&#39;t turn <code>fs.open()</code> or <code>fsPromises.open()</code> into a synchronous
+blocking call. If synchronous operation is desired, something like
+<code>fs.openSync()</code> should be used.</p>
 </li>
 <li><p><code>&#39;w&#39;</code> - Open file for writing.
 The file is created (if it does not exist) or truncated (if it exists).</p>

@@ -10,6 +10,17 @@
       "desc": "<p>The <code>inspector</code> module provides an API for interacting with the V8 inspector.</p>\n<p>It can be accessed using:</p>\n<pre><code class=\"lang-js\">const inspector = require(&#39;inspector&#39;);\n</code></pre>\n",
       "methods": [
         {
+          "textRaw": "inspector.close()",
+          "type": "method",
+          "name": "close",
+          "desc": "<p>Deactivate the inspector. Blocks until there are no active connections.</p>\n",
+          "signatures": [
+            {
+              "params": []
+            }
+          ]
+        },
+        {
           "textRaw": "inspector.open([port[, host[, wait]]])",
           "type": "method",
           "name": "open",
@@ -59,39 +70,35 @@
               ]
             }
           ],
-          "desc": "<p>Activate inspector on host and port. Equivalent to <code>node\n--inspect=[[host:]port]</code>, but can be done programmatically after node has\nstarted.</p>\n<p>If wait is <code>true</code>, will block until a client has connected to the inspect port\nand flow control has been passed to the debugger client.</p>\n",
-          "methods": [
+          "desc": "<p>Activate inspector on host and port. Equivalent to <code>node\n--inspect=[[host:]port]</code>, but can be done programmatically after node has\nstarted.</p>\n<p>If wait is <code>true</code>, will block until a client has connected to the inspect port\nand flow control has been passed to the debugger client.</p>\n"
+        },
+        {
+          "textRaw": "inspector.url()",
+          "type": "method",
+          "name": "url",
+          "signatures": [
             {
-              "textRaw": "inspector.close()",
-              "type": "method",
-              "name": "close",
-              "desc": "<p>Deactivate the inspector. Blocks until there are no active connections.</p>\n",
-              "signatures": [
-                {
-                  "params": []
-                }
-              ]
+              "return": {
+                "textRaw": "Returns: {string|undefined} ",
+                "name": "return",
+                "type": "string|undefined"
+              },
+              "params": []
             },
             {
-              "textRaw": "inspector.url()",
-              "type": "method",
-              "name": "url",
-              "signatures": [
-                {
-                  "return": {
-                    "textRaw": "Returns: {string|undefined} ",
-                    "name": "return",
-                    "type": "string|undefined"
-                  },
-                  "params": []
-                },
-                {
-                  "params": []
-                }
-              ],
-              "desc": "<p>Return the URL of the active inspector, or <code>undefined</code> if there is none.</p>\n"
+              "params": []
             }
-          ]
+          ],
+          "desc": "<p>Return the URL of the active inspector, or <code>undefined</code> if there is none.</p>\n"
+        }
+      ],
+      "properties": [
+        {
+          "textRaw": "`console` {Object} An object to send messages to the remote inspector console. ",
+          "type": "Object",
+          "name": "console",
+          "desc": "<pre><code class=\"lang-js\">require(&#39;inspector&#39;).console.log(&#39;a message&#39;);\n</code></pre>\n<p>The inspector console does not have API parity with Node.js\nconsole.</p>\n",
+          "shortDesc": "An object to send messages to the remote inspector console."
         }
       ],
       "classes": [
@@ -147,6 +154,23 @@
               ]
             },
             {
+              "textRaw": "session.disconnect()",
+              "type": "method",
+              "name": "disconnect",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Immediately close the session. All pending message callbacks will be called\nwith an error. <a href=\"#inspector_session_connect\"><code>session.connect()</code></a> will need to be called to be able to send\nmessages again. Reconnected session will lose all inspector state, such as\nenabled agents or configured breakpoints.</p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
               "textRaw": "session.post(method[, params][, callback])",
               "type": "method",
               "name": "post",
@@ -194,24 +218,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Posts a message to the inspector back-end. <code>callback</code> will be notified when\na response is received. <code>callback</code> is a function that accepts two optional\narguments - error and message-specific result.</p>\n<pre><code class=\"lang-js\">session.post(&#39;Runtime.evaluate&#39;, { expression: &#39;2 + 2&#39; },\n             (error, { result }) =&gt; console.log(result));\n// Output: { type: &#39;number&#39;, value: 4, description: &#39;4&#39; }\n</code></pre>\n<p>The latest version of the V8 inspector protocol is published on the\n<a href=\"https://chromedevtools.github.io/devtools-protocol/v8/\">Chrome DevTools Protocol Viewer</a>.</p>\n<p>Node inspector supports all the Chrome DevTools Protocol domains declared\nby V8. Chrome DevTools Protocol domain provides an interface for interacting\nwith one of the runtime agents used to inspect the application state and listen\nto the run-time events.</p>\n"
-            },
-            {
-              "textRaw": "session.disconnect()",
-              "type": "method",
-              "name": "disconnect",
-              "meta": {
-                "added": [
-                  "v8.0.0"
-                ],
-                "changes": []
-              },
-              "desc": "<p>Immediately close the session. All pending message callbacks will be called\nwith an error. <a href=\"#inspector_session_connect\"><code>session.connect()</code></a> will need to be called to be able to send\nmessages again. Reconnected session will lose all inspector state, such as\nenabled agents or configured breakpoints.</p>\n<h2>Example usage</h2>\n",
-              "signatures": [
-                {
-                  "params": []
-                }
-              ]
+              "desc": "<p>Posts a message to the inspector back-end. <code>callback</code> will be notified when\na response is received. <code>callback</code> is a function that accepts two optional\narguments - error and message-specific result.</p>\n<pre><code class=\"lang-js\">session.post(&#39;Runtime.evaluate&#39;, { expression: &#39;2 + 2&#39; },\n             (error, { result }) =&gt; console.log(result));\n// Output: { type: &#39;number&#39;, value: 4, description: &#39;4&#39; }\n</code></pre>\n<p>The latest version of the V8 inspector protocol is published on the\n<a href=\"https://chromedevtools.github.io/devtools-protocol/v8/\">Chrome DevTools Protocol Viewer</a>.</p>\n<p>Node inspector supports all the Chrome DevTools Protocol domains declared\nby V8. Chrome DevTools Protocol domain provides an interface for interacting\nwith one of the runtime agents used to inspect the application state and listen\nto the run-time events.</p>\n<h2>Example usage</h2>\n"
             }
           ],
           "modules": [

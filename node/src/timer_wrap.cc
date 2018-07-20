@@ -55,11 +55,7 @@ class TimerWrap : public HandleWrap {
     env->SetTemplateMethod(constructor, "now", Now);
 
     AsyncWrap::AddWrapMethods(env, constructor);
-
-    env->SetProtoMethod(constructor, "close", HandleWrap::Close);
-    env->SetProtoMethod(constructor, "ref", HandleWrap::Ref);
-    env->SetProtoMethod(constructor, "unref", HandleWrap::Unref);
-    env->SetProtoMethod(constructor, "hasRef", HandleWrap::HasRef);
+    HandleWrap::AddWrapMethods(env, constructor);
 
     env->SetProtoMethod(constructor, "start", Start);
     env->SetProtoMethod(constructor, "stop", Stop);
@@ -72,7 +68,9 @@ class TimerWrap : public HandleWrap {
                    ->GetFunction(env->context()).ToLocalChecked()).FromJust();
   }
 
-  size_t self_size() const override { return sizeof(*this); }
+  void MemoryInfo(MemoryTracker* tracker) const override {
+    tracker->TrackThis(this);
+  }
 
  private:
   static void SetupTimers(const FunctionCallbackInfo<Value>& args) {

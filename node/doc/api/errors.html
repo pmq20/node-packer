@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Errors | Node.js v10.6.0 Documentation</title>
+  <title>Errors | Node.js v10.7.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -17,8 +17,7 @@
           Node.js
         </a>
       </div>
-      <!--introduced_in=v0.10.0-->
-<ul>
+      <ul>
 <li><a class="nav-documentation" href="documentation.html">About these Docs</a></li>
 <li><a class="nav-synopsis" href="synopsis.html">Usage &amp; Example</a></li>
 </ul>
@@ -77,14 +76,14 @@
 
 <ul>
 <li><a class="nav-https-github-com-nodejs-node" href="https://github.com/nodejs/node">GitHub Repo &amp; Issue Tracker</a></li>
-<li><a class="nav-https-groups-google-com-group-nodejs" href="https://groups.google.com/group/nodejs">Mailing List</a></li>
+<li><a class="nav-https-groups-google-com-forum-forum-nodejs" href="https://groups.google.com/forum/#!forum/nodejs">Mailing List</a></li>
 </ul>
 
     </div>
 
     <div id="column1" data-id="errors" class="interior">
       <header>
-        <h1>Node.js v10.6.0 Documentation</h1>
+        <h1>Node.js v10.7.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -107,6 +106,7 @@
 <li><a href="https://nodejs.org/docs/latest-v5.x/api/errors.html">5.x</a></li></ol>
     </li>
   
+            <li class="edit_on_github"><a href="https://github.com/nodejs/node/edit/master/doc/api/errors.md"><span class="github_icon"><svg height="16" width="16" viewBox="0 0 16.1 16.1" fill="currentColor"><path d="M8 0a8 8 0 0 0-2.5 15.6c.4 0 .5-.2.5-.4v-1.5c-2 .4-2.5-.5-2.7-1 0-.1-.5-.9-.8-1-.3-.2-.7-.6 0-.6.6 0 1 .6 1.2.8.7 1.2 1.9 1 2.4.7 0-.5.2-.9.5-1-1.8-.3-3.7-1-3.7-4 0-.9.3-1.6.8-2.2 0-.2-.3-1 .1-2 0 0 .7-.3 2.2.7a7.4 7.4 0 0 1 4 0c1.5-1 2.2-.8 2.2-.8.5 1.1.2 2 .1 2.1.5.6.8 1.3.8 2.2 0 3-1.9 3.7-3.6 4 .3.2.5.7.5 1.4v2.2c0 .2.1.5.5.4A8 8 0 0 0 16 8a8 8 0 0 0-8-8z"/></svg></span>Edit on GitHub</a></li>
           </ul>
         </div>
         <hr>
@@ -224,6 +224,7 @@
 <li><a href="#errors_err_http2_send_file">ERR_HTTP2_SEND_FILE</a></li>
 <li><a href="#errors_err_http2_send_file_noseek">ERR_HTTP2_SEND_FILE_NOSEEK</a></li>
 <li><a href="#errors_err_http2_session_error">ERR_HTTP2_SESSION_ERROR</a></li>
+<li><a href="#errors_err_http2_settings_cancel">ERR_HTTP2_SETTINGS_CANCEL</a></li>
 <li><a href="#errors_err_http2_socket_bound">ERR_HTTP2_SOCKET_BOUND</a></li>
 <li><a href="#errors_err_http2_status_101">ERR_HTTP2_STATUS_101</a></li>
 <li><a href="#errors_err_http2_status_invalid">ERR_HTTP2_STATUS_INVALID</a></li>
@@ -323,6 +324,7 @@
 <li><a href="#errors_err_tls_cert_altname_invalid">ERR_TLS_CERT_ALTNAME_INVALID</a></li>
 <li><a href="#errors_err_tls_dh_param_size">ERR_TLS_DH_PARAM_SIZE</a></li>
 <li><a href="#errors_err_tls_handshake_timeout">ERR_TLS_HANDSHAKE_TIMEOUT</a></li>
+<li><a href="#errors_err_tls_renegotiate">ERR_TLS_RENEGOTIATE</a></li>
 <li><a href="#errors_err_tls_renegotiation_disabled">ERR_TLS_RENEGOTIATION_DISABLED</a></li>
 <li><a href="#errors_err_tls_required_server_name">ERR_TLS_REQUIRED_SERVER_NAME</a></li>
 <li><a href="#errors_err_tls_session_attack">ERR_TLS_SESSION_ATTACK</a></li>
@@ -473,12 +475,11 @@ exactly how errors raised by those methods are propagated.</p>
 <h3>Error-first callbacks<span><a class="mark" href="#errors_error_first_callbacks" id="errors_error_first_callbacks">#</a></span></h3>
 <!--type=misc-->
 <p>Most asynchronous methods exposed by the Node.js core API follow an idiomatic
-pattern referred to as an <em>error-first callback</em> (sometimes referred to as
-a <em>Node.js style callback</em>). With this pattern, a callback function is passed
-to the method as an argument. When the operation either completes or an error
-is raised, the callback function is called with
-the <code>Error</code> object (if any) passed as the first argument. If no error was
-raised, the first argument will be passed as <code>null</code>.</p>
+pattern referred to as an <em>error-first callback</em>. With this pattern, a callback
+function is passed to the method as an argument. When the operation either
+completes or an error is raised, the callback function is called with the
+<code>Error</code> object (if any) passed as the first argument. If no error was raised,
+the first argument will be passed as <code>null</code>.</p>
 <pre><code class="lang-js">const fs = require(&#39;fs&#39;);
 
 function errorFirstCallback(err, data) {
@@ -1133,6 +1134,9 @@ provided.</p>
 <p><a id="ERR_HTTP2_SESSION_ERROR"></a></p>
 <h3>ERR_HTTP2_SESSION_ERROR<span><a class="mark" href="#errors_err_http2_session_error" id="errors_err_http2_session_error">#</a></span><span><a class="mark" href="#ERR_HTTP2_SESSION_ERROR" id="ERR_HTTP2_SESSION_ERROR">#</a></span></h3>
 <p>The <code>Http2Session</code> closed with a non-zero error code.</p>
+<p><a id="ERR_HTTP2_SETTINGS_CANCEL"></a></p>
+<h3>ERR_HTTP2_SETTINGS_CANCEL<span><a class="mark" href="#errors_err_http2_settings_cancel" id="errors_err_http2_settings_cancel">#</a></span><span><a class="mark" href="#ERR_HTTP2_SETTINGS_CANCEL" id="ERR_HTTP2_SETTINGS_CANCEL">#</a></span></h3>
+<p>The <code>Http2Session</code> settings canceled.</p>
 <p><a id="ERR_HTTP2_SOCKET_BOUND"></a></p>
 <h3>ERR_HTTP2_SOCKET_BOUND<span><a class="mark" href="#errors_err_http2_socket_bound" id="errors_err_http2_socket_bound">#</a></span><span><a class="mark" href="#ERR_HTTP2_SOCKET_BOUND" id="ERR_HTTP2_SOCKET_BOUND">#</a></span></h3>
 <p>An attempt was made to connect a <code>Http2Session</code> object to a <code>net.Socket</code> or
@@ -1536,6 +1540,9 @@ recommended to use 2048 bits or larger for stronger security.</p>
 <h3>ERR_TLS_HANDSHAKE_TIMEOUT<span><a class="mark" href="#errors_err_tls_handshake_timeout" id="errors_err_tls_handshake_timeout">#</a></span><span><a class="mark" href="#ERR_TLS_HANDSHAKE_TIMEOUT" id="ERR_TLS_HANDSHAKE_TIMEOUT">#</a></span></h3>
 <p>A TLS/SSL handshake timed out. In this case, the server must also abort the
 connection.</p>
+<p><a id="ERR_TLS_RENEGOTIATE"></a></p>
+<h3>ERR_TLS_RENEGOTIATE<span><a class="mark" href="#errors_err_tls_renegotiate" id="errors_err_tls_renegotiate">#</a></span><span><a class="mark" href="#ERR_TLS_RENEGOTIATE" id="ERR_TLS_RENEGOTIATE">#</a></span></h3>
+<p>An attempt to renegotiate the TLS session failed.</p>
 <p><a id="ERR_TLS_RENEGOTIATION_DISABLED"></a></p>
 <h3>ERR_TLS_RENEGOTIATION_DISABLED<span><a class="mark" href="#errors_err_tls_renegotiation_disabled" id="errors_err_tls_renegotiation_disabled">#</a></span><span><a class="mark" href="#ERR_TLS_RENEGOTIATION_DISABLED" id="ERR_TLS_RENEGOTIATION_DISABLED">#</a></span></h3>
 <p>An attempt was made to renegotiate TLS on a socket instance with TLS disabled.</p>

@@ -125,6 +125,10 @@ async function writeFileHandle(filehandle, data, options) {
   } while (remaining > 0);
 }
 
+// Note: This is different from kReadFileBufferLength used for non-promisified
+// fs.readFile.
+const kReadFileMaxChunkSize = 16384;
+
 async function readFileHandle(filehandle, options) {
   const statFields = await binding.fstat(filehandle.fd, false, kUsePromises);
 
@@ -135,22 +139,19 @@ async function readFileHandle(filehandle, options) {
     size = 0;
   }
 
-  if (size === 0)
-    return options.encoding ? '' : Buffer.alloc(0);
-
   if (size > kMaxLength)
     throw new ERR_FS_FILE_TOO_LARGE(size);
 
   const chunks = [];
-  const chunkSize = Math.min(size, 16384);
-  let totalRead = 0;
+  const chunkSize = size === 0 ?
+    kReadFileMaxChunkSize :
+    Math.min(size, kReadFileMaxChunkSize);
   let endOfFile = false;
   do {
     const buf = Buffer.alloc(chunkSize);
     const { bytesRead, buffer } =
-      await read(filehandle, buf, 0, chunkSize, totalRead);
-    totalRead += bytesRead;
-    endOfFile = bytesRead !== chunkSize;
+      await read(filehandle, buf, 0, chunkSize, -1);
+    endOfFile = bytesRead === 0;
     if (bytesRead > 0)
       chunks.push(buffer.slice(0, bytesRead));
   } while (!endOfFile);
@@ -370,7 +371,7 @@ async function chmod(path, mode) {
 
 async function lchmod(path, mode) {
   if (O_SYMLINK === undefined)
-    throw new ERR_METHOD_NOT_IMPLEMENTED();
+    throw new ERR_METHOD_NOT_IMPLEMENTED('lchmod()');
 
   const fd = await open(path, O_WRONLY | O_SYMLINK);
   return fchmod(fd, mode).finally(fd.close.bind(fd));

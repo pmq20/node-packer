@@ -345,7 +345,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>The module objects required by this one.</p>\n"
+              "desc": "<p>The module objects required for the first time by this one.</p>\n"
             },
             {
               "textRaw": "`exports` {Object} ",

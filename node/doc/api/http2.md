@@ -2130,8 +2130,7 @@ For incoming headers:
 `proxy-authorization`, `range`, `referer`,`retry-after`, `tk`,
 `upgrade-insecure-requests`, `user-agent` or `x-content-type-options` are
 discarded.
-* `set-cookie` is a string if present once or an array in case duplicates
-are present.
+* `set-cookie` is always an array. Duplicates are added to the array.
 * `cookie`: the values are joined together with '; '.
 * For all other headers, the values are joined together with ', '.
 
@@ -3144,7 +3143,7 @@ added: v8.4.0
 Call [`http2stream.pushStream()`][] with the given headers, and wraps the
 given newly created [`Http2Stream`] on `Http2ServerResponse`.
 
-The callback will be called with an error with code `ERR_HTTP2_STREAM_CLOSED`
+The callback will be called with an error with code `ERR_HTTP2_INVALID_STREAM`
 if the stream is closed.
 
 ## Collecting HTTP/2 Performance Metrics

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Async Hooks | Node.js v10.6.0 Documentation</title>
+  <title>Async Hooks | Node.js v10.7.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -17,8 +17,7 @@
           Node.js
         </a>
       </div>
-      <!--introduced_in=v0.10.0-->
-<ul>
+      <ul>
 <li><a class="nav-documentation" href="documentation.html">About these Docs</a></li>
 <li><a class="nav-synopsis" href="synopsis.html">Usage &amp; Example</a></li>
 </ul>
@@ -77,14 +76,14 @@
 
 <ul>
 <li><a class="nav-https-github-com-nodejs-node" href="https://github.com/nodejs/node">GitHub Repo &amp; Issue Tracker</a></li>
-<li><a class="nav-https-groups-google-com-group-nodejs" href="https://groups.google.com/group/nodejs">Mailing List</a></li>
+<li><a class="nav-https-groups-google-com-forum-forum-nodejs" href="https://groups.google.com/forum/#!forum/nodejs">Mailing List</a></li>
 </ul>
 
     </div>
 
     <div id="column1" data-id="async_hooks" class="interior">
       <header>
-        <h1>Node.js v10.6.0 Documentation</h1>
+        <h1>Node.js v10.7.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -103,6 +102,7 @@
 <li><a href="https://nodejs.org/docs/latest-v9.x/api/async_hooks.html">9.x</a></li></ol>
     </li>
   
+            <li class="edit_on_github"><a href="https://github.com/nodejs/node/edit/master/doc/api/async_hooks.md"><span class="github_icon"><svg height="16" width="16" viewBox="0 0 16.1 16.1" fill="currentColor"><path d="M8 0a8 8 0 0 0-2.5 15.6c.4 0 .5-.2.5-.4v-1.5c-2 .4-2.5-.5-2.7-1 0-.1-.5-.9-.8-1-.3-.2-.7-.6 0-.6.6 0 1 .6 1.2.8.7 1.2 1.9 1 2.4.7 0-.5.2-.9.5-1-1.8-.3-3.7-1-3.7-4 0-.9.3-1.6.8-2.2 0-.2-.3-1 .1-2 0 0 .7-.3 2.2.7a7.4 7.4 0 0 1 4 0c1.5-1 2.2-.8 2.2-.8.5 1.1.2 2 .1 2.1.5.6.8 1.3.8 2.2 0 3-1.9 3.7-3.6 4 .3.2.5.7.5 1.4v2.2c0 .2.1.5.5.4A8 8 0 0 0 16 8a8 8 0 0 0-8-8z"/></svg></span>Edit on GitHub</a></li>
           </ul>
         </div>
         <hr>
@@ -597,7 +597,7 @@ that is currently being executed.</li>
 the section on <a href="#async_hooks_promise_execution_tracking">promise execution tracking</a>.</p>
 <h2>Promise execution tracking<span><a class="mark" href="#async_hooks_promise_execution_tracking" id="async_hooks_promise_execution_tracking">#</a></span></h2>
 <p>By default, promise executions are not assigned <code>asyncId</code>s due to the relatively
-expensive nature of the <a href="https://docs.google.com/document/d/1rda3yKGHimKIhg5YeoAmCOtyURgsbTH_qaYR79FELlk">promise introspection API</a> provided by
+expensive nature of the <a href="https://docs.google.com/document/d/1rda3yKGHimKIhg5YeoAmCOtyURgsbTH_qaYR79FELlk/edit">promise introspection API</a> provided by
 V8. This means that programs using promises or <code>async</code>/<code>await</code> will not get
 correct execution and trigger ids for promise callback contexts by default.</p>
 <p>Here&#39;s an example:</p>
@@ -632,7 +632,7 @@ async resource <code>6</code>.</p>
 <p>Another subtlety with promises is that <code>before</code> and <code>after</code> callbacks are run
 only on chained promises. That means promises not created by <code>then()</code>/<code>catch()</code>
 will not have the <code>before</code> and <code>after</code> callbacks fired on them. For more details
-see the details of the V8 <a href="https://docs.google.com/document/d/1rda3yKGHimKIhg5YeoAmCOtyURgsbTH_qaYR79FELlk">PromiseHooks</a> API.</p>
+see the details of the V8 <a href="https://docs.google.com/document/d/1rda3yKGHimKIhg5YeoAmCOtyURgsbTH_qaYR79FELlk/edit">PromiseHooks</a> API.</p>
 <h2>JavaScript Embedder API<span><a class="mark" href="#async_hooks_javascript_embedder_api" id="async_hooks_javascript_embedder_api">#</a></span></h2>
 <p>Library developers that handle their own asynchronous resources performing tasks
 like I/O, connection pooling, or managing callback queues may use the

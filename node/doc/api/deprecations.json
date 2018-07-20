@@ -619,7 +619,7 @@
             {
               "textRaw": "DEP0090: Invalid GCM authentication tag lengths",
               "name": "dep0090:_invalid_gcm_authentication_tag_lengths",
-              "desc": "<p>Type: Runtime</p>\n<p>Node.js supports all GCM authentication tag lengths which are accepted by\nOpenSSL when calling <a href=\"crypto.html#crypto_decipher_setauthtag_buffer\"><code>decipher.setAuthTag()</code></a>. This behavior will change in\na future version at which point only authentication tag lengths of 128, 120,\n112, 104, 96, 64, and 32 bits will be allowed. Authentication tags whose length\nis not included in this list will be considered invalid in compliance with\n<a href=\"http://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf\">NIST SP 800-38D</a>.</p>\n<p><a id=\"DEP0091\"></a></p>\n",
+              "desc": "<p>Type: Runtime</p>\n<p>Node.js supports all GCM authentication tag lengths which are accepted by\nOpenSSL when calling <a href=\"crypto.html#crypto_decipher_setauthtag_buffer\"><code>decipher.setAuthTag()</code></a>. This behavior will change in\na future version at which point only authentication tag lengths of 128, 120,\n112, 104, 96, 64, and 32 bits will be allowed. Authentication tags whose length\nis not included in this list will be considered invalid in compliance with\n<a href=\"https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf\">NIST SP 800-38D</a>.</p>\n<p><a id=\"DEP0091\"></a></p>\n",
               "type": "module",
               "displayName": "DEP0090: Invalid GCM authentication tag lengths"
             },

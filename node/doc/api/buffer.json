@@ -750,6 +750,13 @@
               "shortDesc": "The underlying `ArrayBuffer` object based on which this `Buffer` object is created."
             },
             {
+              "textRaw": "`byteOffset` {integer} The `byteOffset` on the underlying `ArrayBuffer` object based on which this `Buffer` object is created. ",
+              "type": "integer",
+              "name": "byteOffset",
+              "desc": "<p>When setting <code>byteOffset</code> in <code>Buffer.from(ArrayBuffer, byteOffset, length)</code>\nor sometimes when allocating a buffer smaller than <code>Buffer.poolSize</code> the\nbuffer doesn&#39;t start from a zero offset on the underlying <code>ArrayBuffer</code>.</p>\n<p>This can cause problems when accessing the underlying <code>ArrayBuffer</code> directly\nusing <code>buf.buffer</code>, as the first bytes in this <code>ArrayBuffer</code> may be unrelated\nto the <code>buf</code> object itself.</p>\n<p>A common issue is when casting a <code>Buffer</code> object to a <code>TypedArray</code> object,\nin this case one needs to specify the <code>byteOffset</code> correctly:</p>\n<pre><code class=\"lang-js\">// Create a buffer smaller than `Buffer.poolSize`.\nconst nodeBuffer = new Buffer.from([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);\n\n// When casting the Node.js Buffer to an Int8 TypedArray remember to use the\n// byteOffset.\nnew Int8Array(nodeBuffer.buffer, nodeBuffer.byteOffset, nodeBuffer.length);\n</code></pre>\n",
+              "shortDesc": "The `byteOffset` on the underlying `ArrayBuffer` object based on which this `Buffer` object is created."
+            },
+            {
               "textRaw": "`length` {integer} ",
               "type": "integer",
               "name": "length",

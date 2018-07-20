@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Node.js v10.6.0 Documentation</title>
+  <title>Node.js v10.7.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -17,8 +17,7 @@
           Node.js
         </a>
       </div>
-      <!--introduced_in=v0.10.0-->
-<ul>
+      <ul>
 <li><a class="nav-documentation" href="documentation.html">About these Docs</a></li>
 <li><a class="nav-synopsis" href="synopsis.html">Usage &amp; Example</a></li>
 </ul>
@@ -77,14 +76,14 @@
 
 <ul>
 <li><a class="nav-https-github-com-nodejs-node" href="https://github.com/nodejs/node">GitHub Repo &amp; Issue Tracker</a></li>
-<li><a class="nav-https-groups-google-com-group-nodejs" href="https://groups.google.com/group/nodejs">Mailing List</a></li>
+<li><a class="nav-https-groups-google-com-forum-forum-nodejs" href="https://groups.google.com/forum/#!forum/nodejs">Mailing List</a></li>
 </ul>
 
     </div>
 
     <div id="column1" data-id="all" class="interior">
       <header>
-        <h1>Node.js v10.6.0 Documentation</h1>
+        <h1>Node.js v10.7.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -110,6 +109,7 @@
 <li><a href="https://nodejs.org/docs/latest-v0.10.x/api/all.html">0.10.x</a></li></ol>
     </li>
   
+            
           </ul>
         </div>
         <hr>
@@ -237,6 +237,7 @@
 <li><a href="#buffer_class_property_buffer_poolsize">Class Property: Buffer.poolSize</a></li>
 <li><a href="#buffer_buf_index">buf[index]</a></li>
 <li><a href="#buffer_buf_buffer">buf.buffer</a></li>
+<li><a href="#buffer_buf_byteoffset">buf.byteOffset</a></li>
 <li><a href="#buffer_buf_compare_target_targetstart_targetend_sourcestart_sourceend">buf.compare(target[, targetStart[, targetEnd[, sourceStart[, sourceEnd]]]])</a></li>
 <li><a href="#buffer_buf_copy_target_targetstart_sourcestart_sourceend">buf.copy(target[, targetStart[, sourceStart[, sourceEnd]]])</a></li>
 <li><a href="#buffer_buf_entries">buf.entries()</a></li>
@@ -310,6 +311,7 @@
 </li>
 <li><a href="#addons_c_addons">C++ Addons</a><ul>
 <li><a href="#addons_hello_world">Hello world</a><ul>
+<li><a href="#addons_context_aware_addons">Context-aware addons</a></li>
 <li><a href="#addons_building">Building</a></li>
 <li><a href="#addons_linking_to_node_js_own_dependencies">Linking to Node.js&#39; own dependencies</a></li>
 <li><a href="#addons_loading_addons_using_require">Loading Addons using require()</a></li>
@@ -334,6 +336,8 @@
 </ul>
 </li>
 <li><a href="#n_api_n_api">N-API</a><ul>
+<li><a href="#n_api_usage">Usage</a></li>
+<li><a href="#n_api_n_api_version_matrix">N-API Version Matrix</a></li>
 <li><a href="#n_api_basic_n_api_data_types">Basic N-API Data Types</a><ul>
 <li><a href="#n_api_napi_status">napi_status</a></li>
 <li><a href="#n_api_napi_extended_error_info">napi_extended_error_info</a></li>
@@ -424,7 +428,6 @@
 <li><a href="#n_api_napi_create_external">napi_create_external</a></li>
 <li><a href="#n_api_napi_create_external_arraybuffer">napi_create_external_arraybuffer</a></li>
 <li><a href="#n_api_napi_create_external_buffer">napi_create_external_buffer</a></li>
-<li><a href="#n_api_napi_create_function">napi_create_function</a></li>
 <li><a href="#n_api_napi_create_object">napi_create_object</a></li>
 <li><a href="#n_api_napi_create_symbol">napi_create_symbol</a></li>
 <li><a href="#n_api_napi_create_typedarray">napi_create_typedarray</a></li>
@@ -436,6 +439,9 @@
 <li><a href="#n_api_napi_create_uint32">napi_create_uint32</a></li>
 <li><a href="#n_api_napi_create_int64">napi_create_int64</a></li>
 <li><a href="#n_api_napi_create_double">napi_create_double</a></li>
+<li><span class="stability_1"><a href="#n_api_napi_create_bigint_int64">napi_create_bigint_int64</a></span></li>
+<li><span class="stability_1"><a href="#n_api_napi_create_bigint_uint64">napi_create_bigint_uint64</a></span></li>
+<li><span class="stability_1"><a href="#n_api_napi_create_bigint_words">napi_create_bigint_words</a></span></li>
 <li><a href="#n_api_napi_create_string_latin1">napi_create_string_latin1</a></li>
 <li><a href="#n_api_napi_create_string_utf16">napi_create_string_utf16</a></li>
 <li><a href="#n_api_napi_create_string_utf8">napi_create_string_utf8</a></li>
@@ -450,6 +456,9 @@
 <li><a href="#n_api_napi_get_dataview_info">napi_get_dataview_info</a></li>
 <li><a href="#n_api_napi_get_value_bool">napi_get_value_bool</a></li>
 <li><a href="#n_api_napi_get_value_double">napi_get_value_double</a></li>
+<li><span class="stability_1"><a href="#n_api_napi_get_value_bigint_int64">napi_get_value_bigint_int64</a></span></li>
+<li><span class="stability_1"><a href="#n_api_napi_get_value_bigint_uint64">napi_get_value_bigint_uint64</a></span></li>
+<li><span class="stability_1"><a href="#n_api_napi_get_value_bigint_words">napi_get_value_bigint_words</a></span></li>
 <li><a href="#n_api_napi_get_value_external">napi_get_value_external</a></li>
 <li><a href="#n_api_napi_get_value_int32">napi_get_value_int32</a></li>
 <li><a href="#n_api_napi_get_value_int64">napi_get_value_int64</a></li>
@@ -511,7 +520,7 @@
 </li>
 <li><a href="#n_api_working_with_javascript_functions">Working with JavaScript Functions</a><ul>
 <li><a href="#n_api_napi_call_function">napi_call_function</a></li>
-<li><a href="#n_api_napi_create_function_1">napi_create_function</a></li>
+<li><a href="#n_api_napi_create_function">napi_create_function</a></li>
 <li><a href="#n_api_napi_get_cb_info">napi_get_cb_info</a></li>
 <li><a href="#n_api_napi_get_new_target">napi_get_new_target</a></li>
 <li><a href="#n_api_napi_new_instance">napi_new_instance</a></li>
@@ -687,6 +696,7 @@
 <li><a href="#cli_prof_process"><code>--prof-process</code></a></li>
 <li><a href="#cli_redirect_warnings_file"><code>--redirect-warnings=file</code></a></li>
 <li><a href="#cli_throw_deprecation"><code>--throw-deprecation</code></a></li>
+<li><a href="#cli_title_title"><code>--title=title</code></a></li>
 <li><a href="#cli_tls_cipher_list_list"><code>--tls-cipher-list=list</code></a></li>
 <li><a href="#cli_trace_deprecation"><code>--trace-deprecation</code></a></li>
 <li><a href="#cli_trace_event_categories"><code>--trace-event-categories</code></a></li>
@@ -748,6 +758,7 @@
 <li><a href="#console_console_table_tabulardata_properties">console.table(tabularData[, properties])</a></li>
 <li><a href="#console_console_time_label">console.time([label])</a></li>
 <li><a href="#console_console_timeend_label">console.timeEnd([label])</a></li>
+<li><a href="#console_console_timelog_label_data">console.timeLog([label][, ...data])</a></li>
 <li><a href="#console_console_trace_message_args">console.trace([message][, ...args])</a></li>
 <li><a href="#console_console_warn_data_args">console.warn([data][, ...args])</a></li>
 </ul>
@@ -1231,6 +1242,7 @@
 <li><a href="#errors_err_http2_send_file">ERR_HTTP2_SEND_FILE</a></li>
 <li><a href="#errors_err_http2_send_file_noseek">ERR_HTTP2_SEND_FILE_NOSEEK</a></li>
 <li><a href="#errors_err_http2_session_error">ERR_HTTP2_SESSION_ERROR</a></li>
+<li><a href="#errors_err_http2_settings_cancel">ERR_HTTP2_SETTINGS_CANCEL</a></li>
 <li><a href="#errors_err_http2_socket_bound">ERR_HTTP2_SOCKET_BOUND</a></li>
 <li><a href="#errors_err_http2_status_101">ERR_HTTP2_STATUS_101</a></li>
 <li><a href="#errors_err_http2_status_invalid">ERR_HTTP2_STATUS_INVALID</a></li>
@@ -1330,6 +1342,7 @@
 <li><a href="#errors_err_tls_cert_altname_invalid">ERR_TLS_CERT_ALTNAME_INVALID</a></li>
 <li><a href="#errors_err_tls_dh_param_size">ERR_TLS_DH_PARAM_SIZE</a></li>
 <li><a href="#errors_err_tls_handshake_timeout">ERR_TLS_HANDSHAKE_TIMEOUT</a></li>
+<li><a href="#errors_err_tls_renegotiate">ERR_TLS_RENEGOTIATE</a></li>
 <li><a href="#errors_err_tls_renegotiation_disabled">ERR_TLS_RENEGOTIATION_DISABLED</a></li>
 <li><a href="#errors_err_tls_required_server_name">ERR_TLS_REQUIRED_SERVER_NAME</a></li>
 <li><a href="#errors_err_tls_session_attack">ERR_TLS_SESSION_ATTACK</a></li>
@@ -1931,18 +1944,17 @@
 </ul>
 </li>
 <li><span class="stability_1"><a href="#inspector_inspector">Inspector</a></span><ul>
-<li><a href="#inspector_inspector_open_port_host_wait">inspector.open([port[, host[, wait]]])</a><ul>
 <li><a href="#inspector_inspector_close">inspector.close()</a></li>
+<li><a href="#inspector_inspector_console">inspector.console</a></li>
+<li><a href="#inspector_inspector_open_port_host_wait">inspector.open([port[, host[, wait]]])</a></li>
 <li><a href="#inspector_inspector_url">inspector.url()</a></li>
-</ul>
-</li>
 <li><a href="#inspector_class_inspector_session">Class: inspector.Session</a><ul>
 <li><a href="#inspector_constructor_new_inspector_session">Constructor: new inspector.Session()</a></li>
 <li><a href="#inspector_event_inspectornotification">Event: &#39;inspectorNotification&#39;</a></li>
 <li><a href="#inspector_event_lt_inspector_protocol_method_gt">Event: &lt;inspector-protocol-method&gt;</a></li>
 <li><a href="#inspector_session_connect">session.connect()</a></li>
-<li><a href="#inspector_session_post_method_params_callback">session.post(method[, params][, callback])</a></li>
 <li><a href="#inspector_session_disconnect">session.disconnect()</a></li>
+<li><a href="#inspector_session_post_method_params_callback">session.post(method[, params][, callback])</a></li>
 </ul>
 </li>
 <li><a href="#inspector_example_usage">Example usage</a><ul>
@@ -2247,6 +2259,7 @@
 <li><a href="#process_process_getuid">process.getuid()</a></li>
 <li><a href="#process_process_hasuncaughtexceptioncapturecallback">process.hasUncaughtExceptionCaptureCallback()</a></li>
 <li><a href="#process_process_hrtime_time">process.hrtime([time])</a></li>
+<li><a href="#process_process_hrtime_bigint">process.hrtime.bigint()</a></li>
 <li><a href="#process_process_initgroups_user_extragroup">process.initgroups(user, extraGroup)</a></li>
 <li><a href="#process_process_kill_pid_signal">process.kill(pid[, signal])</a></li>
 <li><a href="#process_process_mainmodule">process.mainModule</a></li>
@@ -2910,7 +2923,7 @@
 <li><a href="#vm_vm_createcontext_sandbox_options">vm.createContext([sandbox[, options]])</a></li>
 <li><a href="#vm_vm_iscontext_sandbox">vm.isContext(sandbox)</a></li>
 <li><a href="#vm_vm_runincontext_code_contextifiedsandbox_options">vm.runInContext(code, contextifiedSandbox[, options])</a></li>
-<li><a href="#vm_vm_runinnewcontext_code_sandbox_options">vm.runInNewContext(code[, sandbox][, options])</a></li>
+<li><a href="#vm_vm_runinnewcontext_code_sandbox_options">vm.runInNewContext(code[, sandbox[, options]])</a></li>
 <li><a href="#vm_vm_runinthiscontext_code_options">vm.runInThisContext(code[, options])</a></li>
 <li><a href="#vm_example_running_an_http_server_within_a_vm">Example: Running an HTTP Server within a VM</a></li>
 <li><a href="#vm_what_does_it_mean_to_contextify_an_object">What does it mean to &quot;contextify&quot; an object?</a></li>
@@ -4693,7 +4706,7 @@ that is currently being executed.</li>
 the section on <a href="#async_hooks_promise_execution_tracking">promise execution tracking</a>.</p>
 <h2>Promise execution tracking<span><a class="mark" href="#async_hooks_promise_execution_tracking" id="async_hooks_promise_execution_tracking">#</a></span></h2>
 <p>By default, promise executions are not assigned <code>asyncId</code>s due to the relatively
-expensive nature of the <a href="https://docs.google.com/document/d/1rda3yKGHimKIhg5YeoAmCOtyURgsbTH_qaYR79FELlk">promise introspection API</a> provided by
+expensive nature of the <a href="https://docs.google.com/document/d/1rda3yKGHimKIhg5YeoAmCOtyURgsbTH_qaYR79FELlk/edit">promise introspection API</a> provided by
 V8. This means that programs using promises or <code>async</code>/<code>await</code> will not get
 correct execution and trigger ids for promise callback contexts by default.</p>
 <p>Here&#39;s an example:</p>
@@ -4728,7 +4741,7 @@ async resource <code>6</code>.</p>
 <p>Another subtlety with promises is that <code>before</code> and <code>after</code> callbacks are run
 only on chained promises. That means promises not created by <code>then()</code>/<code>catch()</code>
 will not have the <code>before</code> and <code>after</code> callbacks fired on them. For more details
-see the details of the V8 <a href="https://docs.google.com/document/d/1rda3yKGHimKIhg5YeoAmCOtyURgsbTH_qaYR79FELlk">PromiseHooks</a> API.</p>
+see the details of the V8 <a href="https://docs.google.com/document/d/1rda3yKGHimKIhg5YeoAmCOtyURgsbTH_qaYR79FELlk/edit">PromiseHooks</a> API.</p>
 <h2>JavaScript Embedder API<span><a class="mark" href="#async_hooks_javascript_embedder_api" id="async_hooks_javascript_embedder_api">#</a></span></h2>
 <p>Library developers that handle their own asynchronous resources performing tasks
 like I/O, connection pooling, or managing callback queues may use the
@@ -5732,6 +5745,26 @@ const buffer = Buffer.from(arrayBuffer);
 
 console.log(buffer.buffer === arrayBuffer);
 // Prints: true
+</code></pre>
+<h3>buf.byteOffset<span><a class="mark" href="#buffer_buf_byteoffset" id="buffer_buf_byteoffset">#</a></span></h3>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> The <code>byteOffset</code> on the underlying <code>ArrayBuffer</code> object based on
+which this <code>Buffer</code> object is created.</li>
+</ul>
+<p>When setting <code>byteOffset</code> in <code>Buffer.from(ArrayBuffer, byteOffset, length)</code>
+or sometimes when allocating a buffer smaller than <code>Buffer.poolSize</code> the
+buffer doesn&#39;t start from a zero offset on the underlying <code>ArrayBuffer</code>.</p>
+<p>This can cause problems when accessing the underlying <code>ArrayBuffer</code> directly
+using <code>buf.buffer</code>, as the first bytes in this <code>ArrayBuffer</code> may be unrelated
+to the <code>buf</code> object itself.</p>
+<p>A common issue is when casting a <code>Buffer</code> object to a <code>TypedArray</code> object,
+in this case one needs to specify the <code>byteOffset</code> correctly:</p>
+<pre><code class="lang-js">// Create a buffer smaller than `Buffer.poolSize`.
+const nodeBuffer = new Buffer.from([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+// When casting the Node.js Buffer to an Int8 TypedArray remember to use the
+// byteOffset.
+new Int8Array(nodeBuffer.buffer, nodeBuffer.byteOffset, nodeBuffer.length);
 </code></pre>
 <h3>buf.compare(target[, targetStart[, targetEnd[, sourceStart[, sourceEnd]]]])<span><a class="mark" href="#buffer_buf_compare_target_targetstart_targetend_sourcestart_sourceend" id="buffer_buf_compare_target_targetstart_targetend_sourcestart_sourceend">#</a></span></h3>
 <div class="api_metadata">
@@ -7329,6 +7362,130 @@ NODE_MODULE(NODE_GYP_MODULE_NAME, Initialize)
 the <code>.node</code> suffix).</p>
 <p>In the <code>hello.cc</code> example, then, the initialization function is <code>Initialize</code>
 and the addon module name is <code>addon</code>.</p>
+<p>When building addons with <code>node-gyp</code>, using the macro <code>NODE_GYP_MODULE_NAME</code> as
+the first parameter of <code>NODE_MODULE()</code> will ensure that the name of the final
+binary will be passed to <code>NODE_MODULE()</code>.</p>
+<h3>Context-aware addons<span><a class="mark" href="#addons_context_aware_addons" id="addons_context_aware_addons">#</a></span></h3>
+<p>There are environments in which Node.js addons may need to be loaded multiple
+times in multiple contexts. For example, the <a href="https://electronjs.org/">Electron</a> runtime runs multiple
+instances of Node.js in a single process. Each instance will have its own
+<code>require()</code> cache, and thus each instance will need a native addon to behave
+correctly when loaded via <code>require()</code>. From the addon&#39;s perspective, this means
+that it must support multiple initializations.</p>
+<p>A context-aware addon can be constructed by using the macro
+<code>NODE_MODULE_INITIALIZER</code>, which expands to the name of a function which Node.js
+will expect to find when it loads an addon. An addon can thus be initialized as
+in the following example:</p>
+<pre><code class="lang-cpp">using namespace v8;
+
+extern &quot;C&quot; NODE_MODULE_EXPORT void
+NODE_MODULE_INITIALIZER(Local&lt;Object&gt; exports,
+                        Local&lt;Value&gt; module,
+                        Local&lt;Context&gt; context) {
+  /* Perform addon initialization steps here. */
+}
+</code></pre>
+<p>Another option is to use the macro <code>NODE_MODULE_INIT()</code>, which will also
+construct a context-aware addon. Unlike <code>NODE_MODULE()</code>, which is used to
+construct an addon around a given addon initializer function,
+<code>NODE_MODULE_INIT()</code> serves as the declaration of such an initializer to be
+followed by a function body.</p>
+<p>The following three variables may be used inside the function body following an
+invocation of <code>NODE_MODULE_INIT()</code>:</p>
+<ul>
+<li><code>Local&lt;Object&gt; exports</code>,</li>
+<li><code>Local&lt;Value&gt; module</code>, and</li>
+<li><code>Local&lt;Context&gt; context</code></li>
+</ul>
+<p>The choice to build a context-aware addon carries with it the responsibility of
+carefully managing global static data. Since the addon may be loaded multiple
+times, potentially even from different threads, any global static data stored
+in the addon must be properly protected, and must not contain any persistent
+references to JavaScript objects. The reason for this is that JavaScript
+objects are only valid in one context, and will likely cause a crash when
+accessed from the wrong context or from a different thread than the one on which
+they were created.</p>
+<p>The context-aware addon can be structured to avoid global static data by
+performing the following steps:</p>
+<ul>
+<li>defining a class which will hold per-addon-instance data. Such
+a class should include a <code>v8::Persistent&lt;v8::Object&gt;</code> which will hold a weak
+reference to the addon&#39;s <code>exports</code> object. The callback associated with the weak
+reference will then destroy the instance of the class.</li>
+<li>constructing an instance of this class in the addon initializer such that the
+<code>v8::Persistent&lt;v8::Object&gt;</code> is set to the <code>exports</code> object.</li>
+<li>storing the instance of the class in a <code>v8::External</code>, and</li>
+<li>passing the <code>v8::External</code> to all methods exposed to JavaScript by passing it
+to the <code>v8::FunctionTemplate</code> constructor which creates the native-backed
+JavaScript functions. The <code>v8::FunctionTemplate</code> constructor&#39;s third parameter
+accepts the <code>v8::External</code>.</li>
+</ul>
+<p>This will ensure that the per-addon-instance data reaches each binding that can
+be called from JavaScript. The per-addon-instance data must also be passed into
+any asynchronous callbacks the addon may create.</p>
+<p>The following example illustrates the implementation of a context-aware addon:</p>
+<pre><code class="lang-cpp">#include &lt;node.h&gt;
+
+using namespace v8;
+
+class AddonData {
+ public:
+  AddonData(Isolate* isolate, Local&lt;Object&gt; exports):
+      call_count(0) {
+    // Link the existence of this object instance to the existence of exports.
+    exports_.Reset(isolate, exports);
+    exports_.SetWeak(this, DeleteMe, WeakCallbackType::kParameter);
+  }
+
+  ~AddonData() {
+    if (!exports_.IsEmpty()) {
+      // Reset the reference to avoid leaking data.
+      exports_.ClearWeak();
+      exports_.Reset();
+    }
+  }
+
+  // Per-addon data.
+  int call_count;
+
+ private:
+  // Method to call when &quot;exports&quot; is about to be garbage-collected.
+  static void DeleteMe(const WeakCallbackInfo&lt;AddonData&gt;&amp; info) {
+    delete info.GetParameter();
+  }
+
+  // Weak handle to the &quot;exports&quot; object. An instance of this class will be
+  // destroyed along with the exports object to which it is weakly bound.
+  v8::Persistent&lt;v8::Object&gt; exports_;
+};
+
+static void Method(const v8::FunctionCallbackInfo&lt;v8::Value&gt;&amp; info) {
+  // Retrieve the per-addon-instance data.
+  AddonData* data =
+      reinterpret_cast&lt;AddonData*&gt;(info.Data().As&lt;External&gt;()-&gt;Value());
+  data-&gt;call_count++;
+  info.GetReturnValue().Set((double)data-&gt;call_count);
+}
+
+// Initialize this addon to be context-aware.
+NODE_MODULE_INIT(/* exports, module, context */) {
+  Isolate* isolate = context-&gt;GetIsolate();
+
+  // Create a new instance of AddonData for this instance of the addon.
+  AddonData* data = new AddonData(isolate, exports);
+  // Wrap the data in a v8::External so we can pass it to the method we expose.
+  Local&lt;External&gt; external = External::New(isolate, data);
+
+  // Expose the method &quot;Method&quot; to JavaScript, and make sure it receives the
+  // per-addon-instance data we created above by passing `external` as the
+  // third parameter to the FunctionTemplate constructor.
+  exports-&gt;Set(context,
+               String::NewFromUtf8(isolate, &quot;method&quot;, NewStringType::kNormal)
+                  .ToLocalChecked(),
+               FunctionTemplate::New(isolate, Method, external)
+                  -&gt;GetFunction(context).ToLocalChecked()).FromJust();
+}
+</code></pre>
 <h3>Building<span><a class="mark" href="#addons_building" id="addons_building">#</a></span></h3>
 <p>Once the source code has been written, it must be compiled into the binary
 <code>addon.node</code> file. To do so, create a file called <code>binding.gyp</code> in the
@@ -8300,11 +8457,71 @@ API. Binaries built with these wrapper modules will depend on the symbols
 for the N-API C based functions exported by Node.js. These wrappers are not
 part of N-API, nor will they be maintained as part of Node.js. One such
 example is: <a href="https://github.com/nodejs/node-addon-api">node-addon-api</a>.</p>
+<h2>Usage<span><a class="mark" href="#n_api_usage" id="n_api_usage">#</a></span></h2>
 <p>In order to use the N-API functions, include the file
 <a href="https://github.com/nodejs/node/blob/master/src/node_api.h"><code>node_api.h</code></a>
 which is located in the src directory in the node development tree:</p>
 <pre><code class="lang-C">#include &lt;node_api.h&gt;
 </code></pre>
+<p>This will opt into the default <code>NAPI_VERSION</code> for the given release of Node.js.
+In order to ensure compatibility with specific versions of N-API, the version
+can be specified explicitly when including the header:</p>
+<pre><code class="lang-C">#define NAPI_VERSION 3
+#include &lt;node_api.h&gt;
+</code></pre>
+<p>This restricts the N-API surface to just the functionality that was available in
+the specified (and earlier) versions.</p>
+<p>Some of the N-API surface is considered experimental and requires explicit
+opt-in to access those APIs:</p>
+<pre><code class="lang-C">#define NAPI_EXPERIMENTAL
+#include &lt;node_api.h&gt;
+</code></pre>
+<p>In this case the entire API surface, including any experimental APIs, will be
+available to the module code.</p>
+<h2>N-API Version Matrix<span><a class="mark" href="#n_api_n_api_version_matrix" id="n_api_n_api_version_matrix">#</a></span></h2>
+<table>
+<thead>
+<tr>
+<th style="text-align:center"></th>
+<th style="text-align:center">1</th>
+<th style="text-align:center">2</th>
+<th style="text-align:center">3</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">v4.x</td>
+<td style="text-align:center"></td>
+<td style="text-align:center"></td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td style="text-align:center">v6.x</td>
+<td style="text-align:center"></td>
+<td style="text-align:center"></td>
+<td style="text-align:center">v6.14.2*</td>
+</tr>
+<tr>
+<td style="text-align:center">v8.x</td>
+<td style="text-align:center">v8.0.0*</td>
+<td style="text-align:center">v8.10.0*</td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td style="text-align:center">v9.x</td>
+<td style="text-align:center">v9.0.0*</td>
+<td style="text-align:center">v9.3.0*</td>
+<td style="text-align:center">v9.11.0*</td>
+</tr>
+<tr>
+<td style="text-align:center">v10.x</td>
+<td style="text-align:center"></td>
+<td style="text-align:center"></td>
+<td style="text-align:center">v10.0.0</td>
+</tr>
+</tbody>
+</table>
+<p>* Indicates that the N-API version was released as experimental</p>
 <h2>Basic N-API Data Types<span><a class="mark" href="#n_api_basic_n_api_data_types" id="n_api_basic_n_api_data_types">#</a></span></h2>
 <p>N-API exposes the following fundamental datatypes as abstractions that are
 consumed by the various APIs. These APIs should be treated as opaque,
@@ -8328,10 +8545,9 @@ Currently, the following status codes are supported.</p>
   napi_escape_called_twice,
   napi_handle_scope_mismatch,
   napi_callback_scope_mismatch,
-#ifdef NAPI_EXPERIMENTAL
   napi_queue_full,
   napi_closing,
-#endif  // NAPI_EXPERIMENTAL
+  napi_bigint_expected,
 } napi_status;
 </code></pre>
 <p>If additional information is required upon an API returning a failed status,
@@ -8525,6 +8741,7 @@ logging purposes.</p>
 <h4>napi_get_last_error_info<span><a class="mark" href="#n_api_napi_get_last_error_info" id="n_api_napi_get_last_error_info">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status
 napi_get_last_error_info(napi_env env,
                          const napi_extended_error_info** result);
@@ -8604,6 +8821,7 @@ is <code>&#39;ERR_ERROR_1&#39;</code> and a <code>TypeError</code> is being crea
 <h4>napi_throw<span><a class="mark" href="#n_api_napi_throw" id="n_api_napi_throw">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">NAPI_EXTERN napi_status napi_throw(napi_env env, napi_value error);
 </code></pre>
 <ul>
@@ -8615,6 +8833,7 @@ is <code>&#39;ERR_ERROR_1&#39;</code> and a <code>TypeError</code> is being crea
 <h4>napi_throw_error<span><a class="mark" href="#n_api_napi_throw_error" id="n_api_napi_throw_error">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">NAPI_EXTERN napi_status napi_throw_error(napi_env env,
                                          const char* code,
                                          const char* msg);
@@ -8630,6 +8849,7 @@ the error.</li>
 <h4>napi_throw_type_error<span><a class="mark" href="#n_api_napi_throw_type_error" id="n_api_napi_throw_type_error">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">NAPI_EXTERN napi_status napi_throw_type_error(napi_env env,
                                               const char* code,
                                               const char* msg);
@@ -8645,6 +8865,7 @@ the error.</li>
 <h4>napi_throw_range_error<span><a class="mark" href="#n_api_napi_throw_range_error" id="n_api_napi_throw_range_error">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">NAPI_EXTERN napi_status napi_throw_range_error(napi_env env,
                                                const char* code,
                                                const char* msg);
@@ -8660,6 +8881,7 @@ the error.</li>
 <h4>napi_is_error<span><a class="mark" href="#n_api_napi_is_error" id="n_api_napi_is_error">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">NAPI_EXTERN napi_status napi_is_error(napi_env env,
                                       napi_value value,
                                       bool* result);
@@ -8675,6 +8897,7 @@ an error, false otherwise.</li>
 <h4>napi_create_error<span><a class="mark" href="#n_api_napi_create_error" id="n_api_napi_create_error">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">NAPI_EXTERN napi_status napi_create_error(napi_env env,
                                           napi_value code,
                                           napi_value msg,
@@ -8693,6 +8916,7 @@ used as the message for the <code>Error</code>.</li>
 <h4>napi_create_type_error<span><a class="mark" href="#n_api_napi_create_type_error" id="n_api_napi_create_type_error">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">NAPI_EXTERN napi_status napi_create_type_error(napi_env env,
                                                napi_value code,
                                                napi_value msg,
@@ -8711,6 +8935,7 @@ used as the message for the <code>Error</code>.</li>
 <h4>napi_create_range_error<span><a class="mark" href="#n_api_napi_create_range_error" id="n_api_napi_create_range_error">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">NAPI_EXTERN napi_status napi_create_range_error(napi_env env,
                                                 napi_value code,
                                                 napi_value msg,
@@ -8729,6 +8954,7 @@ used as the message for the <code>Error</code>.</li>
 <h4>napi_get_and_clear_last_exception<span><a class="mark" href="#n_api_napi_get_and_clear_last_exception" id="n_api_napi_get_and_clear_last_exception">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_get_and_clear_last_exception(napi_env env,
                                               napi_value* result);
 </code></pre>
@@ -8742,6 +8968,7 @@ used as the message for the <code>Error</code>.</li>
 <h4>napi_is_exception_pending<span><a class="mark" href="#n_api_napi_is_exception_pending" id="n_api_napi_is_exception_pending">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_is_exception_pending(napi_env env, bool* result);
 </code></pre>
 <ul>
@@ -8754,6 +8981,7 @@ used as the message for the <code>Error</code>.</li>
 <h4>napi_fatal_exception<span><a class="mark" href="#n_api_napi_fatal_exception" id="n_api_napi_fatal_exception">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v9.10.0</span>
+<span>N-API version: 3</span>
 </div><pre><code class="lang-C">napi_status napi_fatal_exception(napi_env env, napi_value err);
 </code></pre>
 <ul>
@@ -8768,6 +8996,7 @@ thrown to immediately terminate the process.</p>
 <h4>napi_fatal_error<span><a class="mark" href="#n_api_napi_fatal_error" id="n_api_napi_fatal_error">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.2.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">NAPI_NO_RETURN void napi_fatal_error(const char* location,
                                                  size_t location_len,
                                                  const char* message,
@@ -8861,6 +9090,7 @@ can only be called once.</p>
 <h4>napi_open_handle_scope<span><a class="mark" href="#n_api_napi_open_handle_scope" id="n_api_napi_open_handle_scope">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">NAPI_EXTERN napi_status napi_open_handle_scope(napi_env env,
                                                napi_handle_scope* result);
 </code></pre>
@@ -8873,6 +9103,7 @@ can only be called once.</p>
 <h4>napi_close_handle_scope<span><a class="mark" href="#n_api_napi_close_handle_scope" id="n_api_napi_close_handle_scope">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">NAPI_EXTERN napi_status napi_close_handle_scope(napi_env env,
                                                 napi_handle_scope scope);
 </code></pre>
@@ -8887,6 +9118,7 @@ reverse order from which they were created.</p>
 <h4>napi_open_escapable_handle_scope<span><a class="mark" href="#n_api_napi_open_escapable_handle_scope" id="n_api_napi_open_escapable_handle_scope">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">NAPI_EXTERN napi_status
     napi_open_escapable_handle_scope(napi_env env,
                                      napi_handle_scope* result);
@@ -8901,6 +9133,7 @@ to the outer scope.</p>
 <h4>napi_close_escapable_handle_scope<span><a class="mark" href="#n_api_napi_close_escapable_handle_scope" id="n_api_napi_close_escapable_handle_scope">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">NAPI_EXTERN napi_status
     napi_close_escapable_handle_scope(napi_env env,
                                       napi_handle_scope scope);
@@ -8916,6 +9149,7 @@ reverse order from which they were created.</p>
 <h4>napi_escape_handle<span><a class="mark" href="#n_api_napi_escape_handle" id="n_api_napi_escape_handle">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_escape_handle(napi_env env,
                                napi_escapable_handle_scope scope,
                                napi_value escapee,
@@ -8970,6 +9204,7 @@ individual count.</p>
 <h4>napi_create_reference<span><a class="mark" href="#n_api_napi_create_reference" id="n_api_napi_create_reference">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">NAPI_EXTERN napi_status napi_create_reference(napi_env env,
                                               napi_value value,
                                               int initial_refcount,
@@ -8988,6 +9223,7 @@ to the <code>Object</code> passed in.</p>
 <h4>napi_delete_reference<span><a class="mark" href="#n_api_napi_delete_reference" id="n_api_napi_delete_reference">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">NAPI_EXTERN napi_status napi_delete_reference(napi_env env, napi_ref ref);
 </code></pre>
 <ul>
@@ -9000,6 +9236,7 @@ to the <code>Object</code> passed in.</p>
 <h4>napi_reference_ref<span><a class="mark" href="#n_api_napi_reference_ref" id="n_api_napi_reference_ref">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">NAPI_EXTERN napi_status napi_reference_ref(napi_env env,
                                            napi_ref ref,
                                            int* result);
@@ -9015,6 +9252,7 @@ passed in and returns the resulting reference count.</p>
 <h4>napi_reference_unref<span><a class="mark" href="#n_api_napi_reference_unref" id="n_api_napi_reference_unref">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">NAPI_EXTERN napi_status napi_reference_unref(napi_env env,
                                              napi_ref ref,
                                              int* result);
@@ -9030,6 +9268,7 @@ passed in and returns the resulting reference count.</p>
 <h4>napi_get_reference_value<span><a class="mark" href="#n_api_napi_get_reference_value" id="n_api_napi_get_reference_value">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">NAPI_EXTERN napi_status napi_get_reference_value(napi_env env,
                                                  napi_ref ref,
                                                  napi_value* result);
@@ -9056,6 +9295,7 @@ should be freed up.</p>
 <h4>napi_add_env_cleanup_hook<span><a class="mark" href="#n_api_napi_add_env_cleanup_hook" id="n_api_napi_add_env_cleanup_hook">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v10.2.0</span>
+<span>N-API version: 3</span>
 </div><pre><code class="lang-C">NODE_EXTERN napi_status napi_add_env_cleanup_hook(napi_env env,
                                                   void (*fun)(void* arg),
                                                   void* arg);
@@ -9074,6 +9314,7 @@ is being torn down anyway.</p>
 <h4>napi_remove_env_cleanup_hook<span><a class="mark" href="#n_api_napi_remove_env_cleanup_hook" id="n_api_napi_remove_env_cleanup_hook">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v10.2.0</span>
+<span>N-API version: 3</span>
 </div><pre><code class="lang-C">NAPI_EXTERN napi_status napi_remove_env_cleanup_hook(napi_env env,
                                                      void (*fun)(void* arg),
                                                      void* arg);
@@ -9197,6 +9438,7 @@ the <code>napi_value</code> in question is of the JavaScript type expected by th
   napi_object,
   napi_function,
   napi_external,
+  napi_bigint,
 } napi_valuetype;
 </code></pre>
 <p>Describes the type of a <code>napi_value</code>. This generally corresponds to the types
@@ -9218,6 +9460,8 @@ object such that no properties can be set on it, and no prototype.</p>
   napi_uint32_array,
   napi_float32_array,
   napi_float64_array,
+  napi_bigint64_array,
+  napi_biguint64_array,
 } napi_typedarray_type;
 </code></pre>
 <p>This represents the underlying binary scalar datatype of the <code>TypedArray</code>.
@@ -9227,6 +9471,7 @@ Elements of this enum correspond to
 <h4>napi_create_array<span><a class="mark" href="#n_api_napi_create_array" id="n_api_napi_create_array">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_create_array(napi_env env, napi_value* result)
 </code></pre>
 <ul>
@@ -9240,6 +9485,7 @@ JavaScript arrays are described in
 <h4>napi_create_array_with_length<span><a class="mark" href="#n_api_napi_create_array_with_length" id="n_api_napi_create_array_with_length">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_create_array_with_length(napi_env env,
                                           size_t length,
                                           napi_value* result)
@@ -9263,6 +9509,7 @@ directly read and/or written via C, consider using
 <h4>napi_create_arraybuffer<span><a class="mark" href="#n_api_napi_create_arraybuffer" id="n_api_napi_create_arraybuffer">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_create_arraybuffer(napi_env env,
                                     size_t byte_length,
                                     void** data,
@@ -9289,6 +9536,7 @@ a typed array or <code>DataView</code> object would need to be created.</p>
 <h4>napi_create_buffer<span><a class="mark" href="#n_api_napi_create_buffer" id="n_api_napi_create_buffer">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_create_buffer(napi_env env,
                                size_t size,
                                void** data,
@@ -9306,6 +9554,7 @@ fully-supported data structure, in most cases using a <code>TypedArray</code> wi
 <h4>napi_create_buffer_copy<span><a class="mark" href="#n_api_napi_create_buffer_copy" id="n_api_napi_create_buffer_copy">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_create_buffer_copy(napi_env env,
                                     size_t length,
                                     const void* data,
@@ -9327,6 +9576,7 @@ structure, in most cases using a <code>TypedArray</code> will suffice.</p>
 <h4>napi_create_external<span><a class="mark" href="#n_api_napi_create_external" id="n_api_napi_create_external">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_create_external(napi_env env,
                                  void* data,
                                  napi_finalize finalize_cb,
@@ -9354,6 +9604,7 @@ an external value yields <code>napi_external</code>.</p>
 <h4>napi_create_external_arraybuffer<span><a class="mark" href="#n_api_napi_create_external_arraybuffer" id="n_api_napi_create_external_arraybuffer">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status
 napi_create_external_arraybuffer(napi_env env,
                                  void* external_data,
@@ -9383,6 +9634,7 @@ finalize callback is called.</p>
 <h4>napi_create_external_buffer<span><a class="mark" href="#n_api_napi_create_external_buffer" id="n_api_napi_create_external_buffer">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_create_external_buffer(napi_env env,
                                         size_t length,
                                         void* data,
@@ -9406,37 +9658,10 @@ during collection.</li>
 backed by the passed in buffer. While this is still a fully-supported data
 structure, in most cases using a <code>TypedArray</code> will suffice.</p>
 <p>For Node.js &gt;=4 <code>Buffers</code> are <code>Uint8Array</code>s.</p>
-<h4>napi_create_function<span><a class="mark" href="#n_api_napi_create_function" id="n_api_napi_create_function">#</a></span></h4>
-<div class="api_metadata">
-<span>Added in: v8.0.0</span>
-</div><pre><code class="lang-C">napi_status napi_create_function(napi_env env,
-                                 const char* utf8name,
-                                 size_t length,
-                                 napi_callback cb,
-                                 void* data,
-                                 napi_value* result)
-</code></pre>
-<ul>
-<li><code>[in] env</code>: The environment that the API is invoked under.</li>
-<li><code>[in] utf8name</code>: A string representing the name of the function encoded as
-UTF8.</li>
-<li><code>[in] length</code>: The length of the <code>utf8name</code> in bytes, or
-<code>NAPI_AUTO_LENGTH</code> if it is null-terminated.</li>
-<li><code>[in] cb</code>: A function pointer to the native function to be invoked when the
-created function is invoked from JavaScript.</li>
-<li><code>[in] data</code>: Optional arbitrary context data to be passed into the native
-function when it is invoked.</li>
-<li><code>[out] result</code>: A <code>napi_value</code> representing a JavaScript function.</li>
-</ul>
-<p>Returns <code>napi_ok</code> if the API succeeded.</p>
-<p>This API returns an N-API value corresponding to a JavaScript <code>Function</code> object.
-It&#39;s used to wrap native functions so that they can be invoked from JavaScript.</p>
-<p>JavaScript <code>Function</code>s are described in
-<a href="https://tc39.github.io/ecma262/#sec-function-objects">Section 19.2</a>
-of the ECMAScript Language Specification.</p>
 <h4>napi_create_object<span><a class="mark" href="#n_api_napi_create_object" id="n_api_napi_create_object">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_create_object(napi_env env, napi_value* result)
 </code></pre>
 <ul>
@@ -9452,6 +9677,7 @@ ECMAScript Language Specification.</p>
 <h4>napi_create_symbol<span><a class="mark" href="#n_api_napi_create_symbol" id="n_api_napi_create_symbol">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_create_symbol(napi_env env,
                                napi_value description,
                                napi_value* result)
@@ -9470,6 +9696,7 @@ of the ECMAScript Language Specification.</p>
 <h4>napi_create_typedarray<span><a class="mark" href="#n_api_napi_create_typedarray" id="n_api_napi_create_typedarray">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_create_typedarray(napi_env env,
                                    napi_typedarray_type type,
                                    size_t length,
@@ -9499,6 +9726,7 @@ is raised.</p>
 <h4>napi_create_dataview<span><a class="mark" href="#n_api_napi_create_dataview" id="n_api_napi_create_dataview">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.3.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_create_dataview(napi_env env,
                                  size_t byte_length,
                                  napi_value arraybuffer,
@@ -9526,6 +9754,7 @@ raised.</p>
 <h4>napi_create_int32<span><a class="mark" href="#n_api_napi_create_int32" id="n_api_napi_create_int32">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_create_int32(napi_env env, int32_t value, napi_value* result)
 </code></pre>
 <ul>
@@ -9541,6 +9770,7 @@ raised.</p>
 <h4>napi_create_uint32<span><a class="mark" href="#n_api_napi_create_uint32" id="n_api_napi_create_uint32">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_create_uint32(napi_env env, uint32_t value, napi_value* result)
 </code></pre>
 <ul>
@@ -9556,6 +9786,7 @@ raised.</p>
 <h4>napi_create_int64<span><a class="mark" href="#n_api_napi_create_int64" id="n_api_napi_create_int64">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_create_int64(napi_env env, int64_t value, napi_value* result)
 </code></pre>
 <ul>
@@ -9577,6 +9808,7 @@ outside the range of
 <h4>napi_create_double<span><a class="mark" href="#n_api_napi_create_double" id="n_api_napi_create_double">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_create_double(napi_env env, double value, napi_value* result)
 </code></pre>
 <ul>
@@ -9589,9 +9821,60 @@ outside the range of
 <code>Number</code> type.</p>
 <p>The JavaScript <code>Number</code> type is described in
 <a href="https://tc39.github.io/ecma262/#sec-ecmascript-language-types-number-type">Section 6.1.6</a> of the ECMAScript Language Specification.</p>
+<h4>napi_create_bigint_int64<span><a class="mark" href="#n_api_napi_create_bigint_int64" id="n_api_napi_create_bigint_int64">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v10.7.0</span>
+</div><div class="api_stability api_stability_1"><a href="#documentation_stability_index">Stability: 1</a> - Experimental</div><pre><code class="lang-C">napi_status napi_create_bigint_int64(napi_env env,
+                                     int64_t value,
+                                     napi_value* result);
+</code></pre>
+<ul>
+<li><code>[in] env</code>: The environment that the API is invoked under.</li>
+<li><code>[in] value</code>: Integer value to be represented in JavaScript.</li>
+<li><code>[out] result</code>: A <code>napi_value</code> representing a JavaScript <code>BigInt</code>.</li>
+</ul>
+<p>Returns <code>napi_ok</code> if the API succeeded.</p>
+<p>This API converts the C <code>int64_t</code> type to the JavaScript <code>BigInt</code> type.</p>
+<h4>napi_create_bigint_uint64<span><a class="mark" href="#n_api_napi_create_bigint_uint64" id="n_api_napi_create_bigint_uint64">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v10.7.0</span>
+</div><div class="api_stability api_stability_1"><a href="#documentation_stability_index">Stability: 1</a> - Experimental</div><pre><code class="lang-C">napi_status napi_create_bigint_uint64(napi_env env,
+                                      uint64_t vaue,
+                                      napi_value* result);
+</code></pre>
+<ul>
+<li><code>[in] env</code>: The environment that the API is invoked under.</li>
+<li><code>[in] value</code>: Unsigned integer value to be represented in JavaScript.</li>
+<li><code>[out] result</code>: A <code>napi_value</code> representing a JavaScript <code>BigInt</code>.</li>
+</ul>
+<p>Returns <code>napi_ok</code> if the API succeeded.</p>
+<p>This API converts the C <code>uint64_t</code> type to the JavaScript <code>BigInt</code> type.</p>
+<h4>napi_create_bigint_words<span><a class="mark" href="#n_api_napi_create_bigint_words" id="n_api_napi_create_bigint_words">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v10.7.0</span>
+</div><div class="api_stability api_stability_1"><a href="#documentation_stability_index">Stability: 1</a> - Experimental</div><pre><code class="lang-C">napi_status napi_create_bigint_words(napi_env env,
+                                     int sign_bit,
+                                     size_t word_count,
+                                     const uint64_t* words,
+                                     napi_value* result);
+</code></pre>
+<ul>
+<li><code>[in] env</code>: The environment that the API is invoked under.</li>
+<li><code>[in] sign_bit</code>: Determines if the resulting <code>BigInt</code> will be positive or
+negative.</li>
+<li><code>[in] word_count</code>: The length of the <code>words</code> array.</li>
+<li><code>[in] words</code>: An array of <code>uint64_t</code> little-endian 64-bit words.</li>
+<li><code>[out] result</code>: A <code>napi_value</code> representing a JavaScript <code>BigInt</code>.</li>
+</ul>
+<p>Returns <code>napi_ok</code> if the API succeeded.</p>
+<p>This API converts an array of unsigned 64-bit words into a single <code>BigInt</code>
+value.</p>
+<p>The resulting <code>BigInt</code> is calculated as: (–1)<sup><code>sign_bit</code></sup> (<code>words[0]</code>
+× (2<sup>64</sup>)<sup>0</sup> + <code>words[1]</code> × (2<sup>64</sup>)<sup>1</sup> + …)</p>
 <h4>napi_create_string_latin1<span><a class="mark" href="#n_api_napi_create_string_latin1" id="n_api_napi_create_string_latin1">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_create_string_latin1(napi_env env,
                                       const char* str,
                                       size_t length,
@@ -9612,6 +9895,7 @@ string. The native string is copied.</p>
 <h4>napi_create_string_utf16<span><a class="mark" href="#n_api_napi_create_string_utf16" id="n_api_napi_create_string_utf16">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_create_string_utf16(napi_env env,
                                      const char16_t* str,
                                      size_t length,
@@ -9632,6 +9916,7 @@ The native string is copied.</p>
 <h4>napi_create_string_utf8<span><a class="mark" href="#n_api_napi_create_string_utf8" id="n_api_napi_create_string_utf8">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_create_string_utf8(napi_env env,
                                     const char* str,
                                     size_t length,
@@ -9653,6 +9938,7 @@ The native string is copied.</p>
 <h4>napi_get_array_length<span><a class="mark" href="#n_api_napi_get_array_length" id="n_api_napi_get_array_length">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_get_array_length(napi_env env,
                                   napi_value value,
                                   uint32_t* result)
@@ -9671,6 +9957,7 @@ of the ECMAScript Language Specification.</p>
 <h4>napi_get_arraybuffer_info<span><a class="mark" href="#n_api_napi_get_arraybuffer_info" id="n_api_napi_get_arraybuffer_info">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_get_arraybuffer_info(napi_env env,
                                       napi_value arraybuffer,
                                       void** data,
@@ -9695,6 +9982,7 @@ trigger a GC.</p>
 <h4>napi_get_buffer_info<span><a class="mark" href="#n_api_napi_get_buffer_info" id="n_api_napi_get_buffer_info">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_get_buffer_info(napi_env env,
                                  napi_value value,
                                  void** data,
@@ -9714,6 +10002,7 @@ lifetime is not guaranteed if it&#39;s managed by the VM.</p>
 <h4>napi_get_prototype<span><a class="mark" href="#n_api_napi_get_prototype" id="n_api_napi_get_prototype">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_get_prototype(napi_env env,
                                napi_value object,
                                napi_value* result)
@@ -9729,6 +10018,7 @@ not the same as the function&#39;s <code>prototype</code> property).</li>
 <h4>napi_get_typedarray_info<span><a class="mark" href="#n_api_napi_get_typedarray_info" id="n_api_napi_get_typedarray_info">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_get_typedarray_info(napi_env env,
                                      napi_value typedarray,
                                      napi_typedarray_type* type,
@@ -9760,6 +10050,7 @@ is managed by the VM.</p>
 <h4>napi_get_dataview_info<span><a class="mark" href="#n_api_napi_get_dataview_info" id="n_api_napi_get_dataview_info">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.3.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_get_dataview_info(napi_env env,
                                    napi_value dataview,
                                    size_t* byte_length,
@@ -9782,6 +10073,7 @@ to start projecting the <code>DataView</code>.</li>
 <h4>napi_get_value_bool<span><a class="mark" href="#n_api_napi_get_value_bool" id="n_api_napi_get_value_bool">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_get_value_bool(napi_env env, napi_value value, bool* result)
 </code></pre>
 <ul>
@@ -9797,6 +10089,7 @@ passed in it returns <code>napi_boolean_expected</code>.</p>
 <h4>napi_get_value_double<span><a class="mark" href="#n_api_napi_get_value_double" id="n_api_napi_get_value_double">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_get_value_double(napi_env env,
                                   napi_value value,
                                   double* result)
@@ -9811,9 +10104,73 @@ passed in it returns <code>napi_boolean_expected</code>.</p>
 in it returns <code>napi_number_expected</code>.</p>
 <p>This API returns the C double primitive equivalent of the given JavaScript
 <code>Number</code>.</p>
+<h4>napi_get_value_bigint_int64<span><a class="mark" href="#n_api_napi_get_value_bigint_int64" id="n_api_napi_get_value_bigint_int64">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v10.7.0</span>
+</div><div class="api_stability api_stability_1"><a href="#documentation_stability_index">Stability: 1</a> - Experimental</div><pre><code class="lang-C">napi_status napi_get_value_bigint_int64(napi_env env,
+                                        napi_value value,
+                                        int64_t* result,
+                                        bool* lossless);
+</code></pre>
+<ul>
+<li><code>[in] env</code>: The environment that the API is invoked under</li>
+<li><code>[in] value</code>: <code>napi_value</code> representing JavaScript <code>BigInt</code>.</li>
+<li><code>[out] result</code>: C <code>int64_t</code> primitive equivalent of the given JavaScript
+<code>BigInt</code>.</li>
+<li><code>[out] lossless</code>: Indicates whether the <code>BigInt</code> value was converted
+losslessly.</li>
+</ul>
+<p>Returns <code>napi_ok</code> if the API succeeded. If a non-<code>BigInt</code> is passed in it
+returns <code>napi_bigint_expected</code>.</p>
+<p>This API returns the C <code>int64_t</code> primitive equivalent of the given JavaScript
+<code>BigInt</code>. If needed it will truncate the value, setting <code>lossless</code> to <code>false</code>.</p>
+<h4>napi_get_value_bigint_uint64<span><a class="mark" href="#n_api_napi_get_value_bigint_uint64" id="n_api_napi_get_value_bigint_uint64">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v10.7.0</span>
+</div><div class="api_stability api_stability_1"><a href="#documentation_stability_index">Stability: 1</a> - Experimental</div><pre><code class="lang-C">napi_status napi_get_value_bigint_uint64(napi_env env,
+                                        napi_value value,
+                                        uint64_t* result,
+                                        bool* lossless);
+</code></pre>
+<ul>
+<li><code>[in] env</code>: The environment that the API is invoked under.</li>
+<li><code>[in] value</code>: <code>napi_value</code> representing JavaScript <code>BigInt</code>.</li>
+<li><code>[out] result</code>: C <code>uint64_t</code> primitive equivalent of the given JavaScript
+<code>BigInt</code>.</li>
+<li><code>[out] lossless</code>: Indicates whether the <code>BigInt</code> value was converted
+losslessly.</li>
+</ul>
+<p>Returns <code>napi_ok</code> if the API succeeded. If a non-<code>BigInt</code> is passed in it
+returns <code>napi_bigint_expected</code>.</p>
+<p>This API returns the C <code>uint64_t</code> primitive equivalent of the given JavaScript
+<code>BigInt</code>. If needed it will truncate the value, setting <code>lossless</code> to <code>false</code>.</p>
+<h4>napi_get_value_bigint_words<span><a class="mark" href="#n_api_napi_get_value_bigint_words" id="n_api_napi_get_value_bigint_words">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v10.7.0</span>
+</div><div class="api_stability api_stability_1"><a href="#documentation_stability_index">Stability: 1</a> - Experimental</div><pre><code class="lang-C">napi_status napi_get_value_bigint_words(napi_env env,
+                                        napi_value value,
+                                        size_t* word_count,
+                                        int* sign_bit,
+                                        uint64_t* words);
+</code></pre>
+<ul>
+<li><code>[in] env</code>: The environment that the API is invoked under.</li>
+<li><code>[in] value</code>: <code>napi_value</code> representing JavaScript <code>BigInt</code>.</li>
+<li><code>[out] sign_bit</code>: Integer representing if the JavaScript <code>BigInt</code> is positive
+ or negative.</li>
+<li><code>[in/out] word_count</code>: Must be initialized to the length of the <code>words</code>
+ array. Upon return, it will be set to the actual number of words that
+ would be needed to store this <code>BigInt</code>.</li>
+<li><code>[out] words</code>: Pointer to a pre-allocated 64-bit word array.</li>
+</ul>
+<p>Returns <code>napi_ok</code> if the API succeeded.</p>
+<p>This API converts a single <code>BigInt</code> value into a sign bit, 64-bit little-endian
+array, and the number of elements in the array. <code>sign_bit</code> and <code>words</code> may be
+both set to <code>NULL</code>, in order to get only <code>word_count</code>.</p>
 <h4>napi_get_value_external<span><a class="mark" href="#n_api_napi_get_value_external" id="n_api_napi_get_value_external">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_get_value_external(napi_env env,
                                     napi_value value,
                                     void** result)
@@ -9830,6 +10187,7 @@ passed in it returns <code>napi_invalid_arg</code>.</p>
 <h4>napi_get_value_int32<span><a class="mark" href="#n_api_napi_get_value_int32" id="n_api_napi_get_value_int32">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_get_value_int32(napi_env env,
                                  napi_value value,
                                  int32_t* result)
@@ -9852,6 +10210,7 @@ result to zero.</p>
 <h4>napi_get_value_int64<span><a class="mark" href="#n_api_napi_get_value_int64" id="n_api_napi_get_value_int64">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_get_value_int64(napi_env env,
                                  napi_value value,
                                  int64_t* result)
@@ -9876,6 +10235,7 @@ result to zero.</p>
 <h4>napi_get_value_string_latin1<span><a class="mark" href="#n_api_napi_get_value_string_latin1" id="n_api_napi_get_value_string_latin1">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_get_value_string_latin1(napi_env env,
                                          napi_value value,
                                          char* buf,
@@ -9899,6 +10259,7 @@ in.</p>
 <h4>napi_get_value_string_utf8<span><a class="mark" href="#n_api_napi_get_value_string_utf8" id="n_api_napi_get_value_string_utf8">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_get_value_string_utf8(napi_env env,
                                        napi_value value,
                                        char* buf,
@@ -9921,6 +10282,7 @@ is passed in it returns <code>napi_string_expected</code>.</p>
 <h4>napi_get_value_string_utf16<span><a class="mark" href="#n_api_napi_get_value_string_utf16" id="n_api_napi_get_value_string_utf16">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_get_value_string_utf16(napi_env env,
                                         napi_value value,
                                         char16_t* buf,
@@ -9943,6 +10305,7 @@ is passed in it returns <code>napi_string_expected</code>.</p>
 <h4>napi_get_value_uint32<span><a class="mark" href="#n_api_napi_get_value_uint32" id="n_api_napi_get_value_uint32">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_get_value_uint32(napi_env env,
                                   napi_value value,
                                   uint32_t* result)
@@ -9961,6 +10324,7 @@ is passed in it returns <code>napi_number_expected</code>.</p>
 <h4>napi_get_boolean<span><a class="mark" href="#n_api_napi_get_boolean" id="n_api_napi_get_boolean">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_get_boolean(napi_env env, bool value, napi_value* result)
 </code></pre>
 <ul>
@@ -9975,6 +10339,7 @@ represent the given boolean value.</p>
 <h4>napi_get_global<span><a class="mark" href="#n_api_napi_get_global" id="n_api_napi_get_global">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_get_global(napi_env env, napi_value* result)
 </code></pre>
 <ul>
@@ -9986,6 +10351,7 @@ represent the given boolean value.</p>
 <h4>napi_get_null<span><a class="mark" href="#n_api_napi_get_null" id="n_api_napi_get_null">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_get_null(napi_env env, napi_value* result)
 </code></pre>
 <ul>
@@ -9997,6 +10363,7 @@ represent the given boolean value.</p>
 <h4>napi_get_undefined<span><a class="mark" href="#n_api_napi_get_undefined" id="n_api_napi_get_undefined">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_get_undefined(napi_env env, napi_value* result)
 </code></pre>
 <ul>
@@ -10020,6 +10387,7 @@ of the <a href="https://tc39.github.io/ecma262/">ECMAScript Language Specificati
 <h3>napi_coerce_to_bool<span><a class="mark" href="#n_api_napi_coerce_to_bool" id="n_api_napi_coerce_to_bool">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_coerce_to_bool(napi_env env,
                                 napi_value value,
                                 napi_value* result)
@@ -10037,6 +10405,7 @@ This API can be re-entrant if getters are defined on the passed-in <code>Object<
 <h3>napi_coerce_to_number<span><a class="mark" href="#n_api_napi_coerce_to_number" id="n_api_napi_coerce_to_number">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_coerce_to_number(napi_env env,
                                   napi_value value,
                                   napi_value* result)
@@ -10054,6 +10423,7 @@ This API can be re-entrant if getters are defined on the passed-in <code>Object<
 <h3>napi_coerce_to_object<span><a class="mark" href="#n_api_napi_coerce_to_object" id="n_api_napi_coerce_to_object">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_coerce_to_object(napi_env env,
                                   napi_value value,
                                   napi_value* result)
@@ -10071,6 +10441,7 @@ This API can be re-entrant if getters are defined on the passed-in <code>Object<
 <h3>napi_coerce_to_string<span><a class="mark" href="#n_api_napi_coerce_to_string" id="n_api_napi_coerce_to_string">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_coerce_to_string(napi_env env,
                                   napi_value value,
                                   napi_value* result)
@@ -10088,6 +10459,7 @@ This API can be re-entrant if getters are defined on the passed-in <code>Object<
 <h3>napi_typeof<span><a class="mark" href="#n_api_napi_typeof" id="n_api_napi_typeof">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_typeof(napi_env env, napi_value value, napi_valuetype* result)
 </code></pre>
 <ul>
@@ -10107,6 +10479,7 @@ If <code>value</code> has a type that is invalid, an error is returned.</p>
 <h3>napi_instanceof<span><a class="mark" href="#n_api_napi_instanceof" id="n_api_napi_instanceof">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_instanceof(napi_env env,
                             napi_value object,
                             napi_value constructor,
@@ -10128,6 +10501,7 @@ of the ECMAScript Language Specification.</p>
 <h3>napi_is_array<span><a class="mark" href="#n_api_napi_is_array" id="n_api_napi_is_array">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_is_array(napi_env env, napi_value value, bool* result)
 </code></pre>
 <ul>
@@ -10142,6 +10516,7 @@ of the ECMAScript Language Specification.</p>
 <h3>napi_is_arraybuffer<span><a class="mark" href="#n_api_napi_is_arraybuffer" id="n_api_napi_is_arraybuffer">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_is_arraybuffer(napi_env env, napi_value value, bool* result)
 </code></pre>
 <ul>
@@ -10154,6 +10529,7 @@ of the ECMAScript Language Specification.</p>
 <h3>napi_is_buffer<span><a class="mark" href="#n_api_napi_is_buffer" id="n_api_napi_is_buffer">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_is_buffer(napi_env env, napi_value value, bool* result)
 </code></pre>
 <ul>
@@ -10167,6 +10543,7 @@ object.</li>
 <h3>napi_is_error<span><a class="mark" href="#n_api_napi_is_error_1" id="n_api_napi_is_error_1">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_is_error(napi_env env, napi_value value, bool* result)
 </code></pre>
 <ul>
@@ -10179,6 +10556,7 @@ object.</li>
 <h3>napi_is_typedarray<span><a class="mark" href="#n_api_napi_is_typedarray" id="n_api_napi_is_typedarray">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_is_typedarray(napi_env env, napi_value value, bool* result)
 </code></pre>
 <ul>
@@ -10191,6 +10569,7 @@ object.</li>
 <h3>napi_is_dataview<span><a class="mark" href="#n_api_napi_is_dataview" id="n_api_napi_is_dataview">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.3.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_is_dataview(napi_env env, napi_value value, bool* result)
 </code></pre>
 <ul>
@@ -10203,6 +10582,7 @@ object.</li>
 <h3>napi_strict_equals<span><a class="mark" href="#n_api_napi_strict_equals" id="n_api_napi_strict_equals">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_strict_equals(napi_env env,
                                napi_value lhs,
                                napi_value rhs,
@@ -10411,6 +10791,7 @@ this function is invoked.</li>
 <h4>napi_get_property_names<span><a class="mark" href="#n_api_napi_get_property_names" id="n_api_napi_get_property_names">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_get_property_names(napi_env env,
                                     napi_value object,
                                     napi_value* result);
@@ -10430,6 +10811,7 @@ included.</p>
 <h4>napi_set_property<span><a class="mark" href="#n_api_napi_set_property" id="n_api_napi_set_property">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_set_property(napi_env env,
                               napi_value object,
                               napi_value key,
@@ -10446,6 +10828,7 @@ included.</p>
 <h4>napi_get_property<span><a class="mark" href="#n_api_napi_get_property" id="n_api_napi_get_property">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_get_property(napi_env env,
                               napi_value object,
                               napi_value key,
@@ -10462,6 +10845,7 @@ included.</p>
 <h4>napi_has_property<span><a class="mark" href="#n_api_napi_has_property" id="n_api_napi_has_property">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_has_property(napi_env env,
                               napi_value object,
                               napi_value key,
@@ -10478,6 +10862,7 @@ included.</p>
 <h4>napi_delete_property<span><a class="mark" href="#n_api_napi_delete_property" id="n_api_napi_delete_property">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.2.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_delete_property(napi_env env,
                                  napi_value object,
                                  napi_value key,
@@ -10495,6 +10880,7 @@ optionally be ignored by passing <code>NULL</code>.</li>
 <h4>napi_has_own_property<span><a class="mark" href="#n_api_napi_has_own_property" id="n_api_napi_has_own_property">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.2.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_has_own_property(napi_env env,
                                   napi_value object,
                                   napi_value key,
@@ -10513,6 +10899,7 @@ any conversion between data types.</p>
 <h4>napi_set_named_property<span><a class="mark" href="#n_api_napi_set_named_property" id="n_api_napi_set_named_property">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_set_named_property(napi_env env,
                                     napi_value object,
                                     const char* utf8Name,
@@ -10530,6 +10917,7 @@ created from the string passed in as <code>utf8Name</code>.</p>
 <h4>napi_get_named_property<span><a class="mark" href="#n_api_napi_get_named_property" id="n_api_napi_get_named_property">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_get_named_property(napi_env env,
                                     napi_value object,
                                     const char* utf8Name,
@@ -10547,6 +10935,7 @@ created from the string passed in as <code>utf8Name</code>.</p>
 <h4>napi_has_named_property<span><a class="mark" href="#n_api_napi_has_named_property" id="n_api_napi_has_named_property">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_has_named_property(napi_env env,
                                     napi_value object,
                                     const char* utf8Name,
@@ -10564,6 +10953,7 @@ created from the string passed in as <code>utf8Name</code>.</p>
 <h4>napi_set_element<span><a class="mark" href="#n_api_napi_set_element" id="n_api_napi_set_element">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_set_element(napi_env env,
                              napi_value object,
                              uint32_t index,
@@ -10580,6 +10970,7 @@ created from the string passed in as <code>utf8Name</code>.</p>
 <h4>napi_get_element<span><a class="mark" href="#n_api_napi_get_element" id="n_api_napi_get_element">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_get_element(napi_env env,
                              napi_value object,
                              uint32_t index,
@@ -10596,6 +10987,7 @@ created from the string passed in as <code>utf8Name</code>.</p>
 <h4>napi_has_element<span><a class="mark" href="#n_api_napi_has_element" id="n_api_napi_has_element">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_has_element(napi_env env,
                              napi_value object,
                              uint32_t index,
@@ -10613,6 +11005,7 @@ requested index.</p>
 <h4>napi_delete_element<span><a class="mark" href="#n_api_napi_delete_element" id="n_api_napi_delete_element">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.2.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_delete_element(napi_env env,
                                 napi_value object,
                                 uint32_t index,
@@ -10630,6 +11023,7 @@ optionally be ignored by passing <code>NULL</code>.</li>
 <h4>napi_define_properties<span><a class="mark" href="#n_api_napi_define_properties" id="n_api_napi_define_properties">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_define_properties(napi_env env,
                                    napi_value object,
                                    size_t property_count,
@@ -10668,6 +11062,7 @@ function.</p>
 <h3>napi_call_function<span><a class="mark" href="#n_api_napi_call_function" id="n_api_napi_call_function">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_call_function(napi_env env,
                                napi_value recv,
                                napi_value func,
@@ -10723,11 +11118,13 @@ int32_t result;
 status = napi_get_value_int32(env, return_val, &amp;result);
 if (status != napi_ok) return;
 </code></pre>
-<h3>napi_create_function<span><a class="mark" href="#n_api_napi_create_function_1" id="n_api_napi_create_function_1">#</a></span></h3>
+<h3>napi_create_function<span><a class="mark" href="#n_api_napi_create_function" id="n_api_napi_create_function">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_create_function(napi_env env,
                                  const char* utf8name,
+                                 size_t length,
                                  napi_callback cb,
                                  void* data,
                                  napi_value* result);
@@ -10736,6 +11133,8 @@ if (status != napi_ok) return;
 <li><code>[in] env</code>: The environment that the API is invoked under.</li>
 <li><code>[in] utf8Name</code>: The name of the function encoded as UTF8. This is visible
 within JavaScript as the new function object&#39;s <code>name</code> property.</li>
+<li><code>[in] length</code>: The length of the <code>utf8name</code> in bytes, or
+<code>NAPI_AUTO_LENGTH</code> if it is null-terminated.</li>
 <li><code>[in] cb</code>: The native function which should be called when this function
 object is invoked.</li>
 <li><code>[in] data</code>: User-provided data context. This will be passed back into the
@@ -10777,12 +11176,15 @@ NAPI_MODULE(NODE_GYP_MODULE_NAME, Init)
 <pre><code class="lang-js">const myaddon = require(&#39;./addon&#39;);
 myaddon.sayHello();
 </code></pre>
-<p>The string passed to require is not necessarily the name passed into
-<code>NAPI_MODULE</code> in the earlier snippet but the name of the target in <code>binding.gyp</code>
+<p>The string passed to <code>require()</code> is the name of the target in <code>binding.gyp</code>
 responsible for creating the <code>.node</code> file.</p>
+<p>JavaScript <code>Function</code>s are described in
+<a href="https://tc39.github.io/ecma262/#sec-function-objects">Section 19.2</a>
+of the ECMAScript Language Specification.</p>
 <h3>napi_get_cb_info<span><a class="mark" href="#n_api_napi_get_cb_info" id="n_api_napi_get_cb_info">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_get_cb_info(napi_env env,
                              napi_callback_info cbinfo,
                              size_t* argc,
@@ -10809,6 +11211,7 @@ call like the arguments and the <code>this</code> pointer from a given callback 
 <h3>napi_get_new_target<span><a class="mark" href="#n_api_napi_get_new_target" id="n_api_napi_get_new_target">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.6.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_get_new_target(napi_env env,
                                 napi_callback_info cbinfo,
                                 napi_value* result)
@@ -10824,6 +11227,7 @@ callback is not a constructor call, the result is <code>NULL</code>.</p>
 <h3>napi_new_instance<span><a class="mark" href="#n_api_napi_new_instance" id="n_api_napi_new_instance">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_new_instance(napi_env env,
                               napi_value cons,
                               size_t argc,
@@ -10906,6 +11310,7 @@ if (is_instance) {
 <h3>napi_define_class<span><a class="mark" href="#n_api_napi_define_class" id="n_api_napi_define_class">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_define_class(napi_env env,
                               const char* utf8name,
                               size_t length,
@@ -10958,6 +11363,7 @@ reference count is kept &gt;= 1.</p>
 <h3>napi_wrap<span><a class="mark" href="#n_api_napi_wrap" id="n_api_napi_wrap">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_wrap(napi_env env,
                       napi_value js_object,
                       void* native_object,
@@ -11008,6 +11414,7 @@ first.</p>
 <h3>napi_unwrap<span><a class="mark" href="#n_api_napi_unwrap" id="n_api_napi_unwrap">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_unwrap(napi_env env,
                         napi_value js_object,
                         void** result);
@@ -11028,6 +11435,7 @@ then by calling <code>napi_unwrap()</code> on the wrapper object.</p>
 <h3>napi_remove_wrap<span><a class="mark" href="#n_api_napi_remove_wrap" id="n_api_napi_remove_wrap">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.5.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_remove_wrap(napi_env env,
                              napi_value js_object,
                              void** result);
@@ -11095,6 +11503,7 @@ callback invocation, even when it was cancelled.</p>
 </td></tr>
 </table>
 </details>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_create_async_work(napi_env env,
                                    napi_value async_resource,
                                    napi_value async_resource_name,
@@ -11132,6 +11541,7 @@ the <a href="#async_hooks_type"><code>async_hooks</code> documentation</a> for m
 <h3>napi_delete_async_work<span><a class="mark" href="#n_api_napi_delete_async_work" id="n_api_napi_delete_async_work">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_delete_async_work(napi_env env,
                                    napi_async_work work);
 </code></pre>
@@ -11145,6 +11555,7 @@ the <a href="#async_hooks_type"><code>async_hooks</code> documentation</a> for m
 <h3>napi_queue_async_work<span><a class="mark" href="#n_api_napi_queue_async_work" id="n_api_napi_queue_async_work">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_queue_async_work(napi_env env,
                                   napi_async_work work);
 </code></pre>
@@ -11158,6 +11569,7 @@ for execution.</p>
 <h3>napi_cancel_async_work<span><a class="mark" href="#n_api_napi_cancel_async_work" id="n_api_napi_cancel_async_work">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_cancel_async_work(napi_env env,
                                    napi_async_work work);
 </code></pre>
@@ -11181,6 +11593,7 @@ the runtime.</p>
 <h3>napi_async_init<span><a class="mark" href="#n_api_napi_async_init" id="n_api_napi_async_init">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.6.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_async_init(napi_env env,
                             napi_value async_resource,
                             napi_value async_resource_name,
@@ -11199,6 +11612,7 @@ that is being provided for diagnostic information exposed by the
 <h3>napi_async_destroy<span><a class="mark" href="#n_api_napi_async_destroy" id="n_api_napi_async_destroy">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.6.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_async_destroy(napi_env env,
                                napi_async_context async_context);
 </code></pre>
@@ -11221,6 +11635,7 @@ that is being provided for diagnostic information exposed by the
 </td></tr>
 </table>
 </details>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_make_callback(napi_env env,
                                napi_async_context async_context,
                                napi_value recv,
@@ -11259,6 +11674,7 @@ may be required when implementing custom async behavior that does not use
 <h3>napi_open_callback_scope<span><a class="mark" href="#n_api_napi_open_callback_scope" id="n_api_napi_open_callback_scope">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v9.6.0</span>
+<span>N-API version: 3</span>
 </div><pre><code class="lang-C">NAPI_EXTERN napi_status napi_open_callback_scope(napi_env env,
                                                  napi_value resource_object,
                                                  napi_async_context context,
@@ -11282,6 +11698,7 @@ the required scope.</p>
 <h3>napi_close_callback_scope<span><a class="mark" href="#n_api_napi_close_callback_scope" id="n_api_napi_close_callback_scope">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v9.6.0</span>
+<span>N-API version: 3</span>
 </div><pre><code class="lang-C">NAPI_EXTERN napi_status napi_close_callback_scope(napi_env env,
                                                   napi_callback_scope scope)
 </code></pre>
@@ -11294,6 +11711,7 @@ the required scope.</p>
 <h3>napi_get_node_version<span><a class="mark" href="#n_api_napi_get_node_version" id="n_api_napi_get_node_version">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">typedef struct {
   uint32_t major;
   uint32_t minor;
@@ -11316,6 +11734,7 @@ value of <a href="#process_process_release"><code>process.release.name</code></a
 <h3>napi_get_version<span><a class="mark" href="#n_api_napi_get_version" id="n_api_napi_get_version">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_get_version(napi_env env,
                              uint32_t* result);
 </code></pre>
@@ -11342,6 +11761,7 @@ that does not use the function.</li>
 <h3>napi_adjust_external_memory<span><a class="mark" href="#n_api_napi_adjust_external_memory" id="n_api_napi_adjust_external_memory">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.5.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">NAPI_EXTERN napi_status napi_adjust_external_memory(napi_env env,
                                                     int64_t change_in_bytes,
                                                     int64_t* result);
@@ -11411,6 +11831,7 @@ deferred = NULL;
 <h3>napi_create_promise<span><a class="mark" href="#n_api_napi_create_promise" id="n_api_napi_create_promise">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.5.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_create_promise(napi_env env,
                                 napi_deferred* deferred,
                                 napi_value* promise);
@@ -11427,6 +11848,7 @@ the associated promise.</li>
 <h3>napi_resolve_deferred<span><a class="mark" href="#n_api_napi_resolve_deferred" id="n_api_napi_resolve_deferred">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.5.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_resolve_deferred(napi_env env,
                                   napi_deferred deferred,
                                   napi_value resolution);
@@ -11446,6 +11868,7 @@ have been retained in order to be passed to this API.</p>
 <h3>napi_reject_deferred<span><a class="mark" href="#n_api_napi_reject_deferred" id="n_api_napi_reject_deferred">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.5.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_reject_deferred(napi_env env,
                                  napi_deferred deferred,
                                  napi_value rejection);
@@ -11465,6 +11888,7 @@ have been retained in order to be passed to this API.</p>
 <h3>napi_is_promise<span><a class="mark" href="#n_api_napi_is_promise" id="n_api_napi_is_promise">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.5.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">napi_status napi_is_promise(napi_env env,
                             napi_value promise,
                             bool* is_promise);
@@ -11481,6 +11905,7 @@ underlying JavaScript engine.</p>
 <h3>napi_run_script<span><a class="mark" href="#n_api_napi_run_script" id="n_api_napi_run_script">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.5.0</span>
+<span>N-API version: 1</span>
 </div><pre><code class="lang-C">NAPI_EXTERN napi_status napi_run_script(napi_env env,
                                         napi_value script,
                                         napi_value* result);
@@ -11495,7 +11920,8 @@ underlying JavaScript engine.</p>
 a specific <code>napi_env</code>.</p>
 <h3>napi_get_uv_event_loop<span><a class="mark" href="#n_api_napi_get_uv_event_loop" id="n_api_napi_get_uv_event_loop">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v9.3.0</span>
+<span>Added in: v8.10.0, v9.3.0</span>
+<span>N-API version: 2</span>
 </div><pre><code class="lang-C">NAPI_EXTERN napi_status napi_get_uv_event_loop(napi_env env,
                                                uv_loop_t** loop);
 </code></pre>
@@ -13850,6 +14276,10 @@ warning will be written to stderr instead.</p>
 <div class="api_metadata">
 <span>Added in: v0.11.14</span>
 </div><p>Throw errors for deprecations.</p>
+<h3><code>--title=title</code><span><a class="mark" href="#cli_title_title" id="cli_title_title">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v10.7.0</span>
+</div><p>Set <code>process.title</code> on startup.</p>
 <h3><code>--tls-cipher-list=list</code><span><a class="mark" href="#cli_tls_cipher_list_list" id="cli_tls_cipher_list_list">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v4.0.0</span>
@@ -14042,6 +14472,7 @@ that is not allowed in the environment is used, such as <code>-p</code> or a scr
 <li><code>--redirect-warnings</code></li>
 <li><code>--require</code>, <code>-r</code></li>
 <li><code>--throw-deprecation</code></li>
+<li><code>--title</code></li>
 <li><code>--tls-cipher-list</code></li>
 <li><code>--trace-deprecation</code></li>
 <li><code>--trace-event-categories</code></li>
@@ -14516,6 +14947,22 @@ prints the result to <code>stdout</code>:</p>
 for (let i = 0; i &lt; 100; i++) {}
 console.timeEnd(&#39;100-elements&#39;);
 // prints 100-elements: 225.438ms
+</code></pre>
+<h3>console.timeLog([label][, ...data])<span><a class="mark" href="#console_console_timelog_label_data" id="console_console_timelog_label_data">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v10.7.0</span>
+</div><ul>
+<li><code>label</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> <strong>Default:</strong> <code>&#39;default&#39;</code></li>
+<li><code>...data</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Data_types" class="type">&lt;any&gt;</a></li>
+</ul>
+<p>For a timer that was previously started by calling <a href="#console_console_time_label"><code>console.time()</code></a>, prints
+the elapsed time and other <code>data</code> arguments to <code>stdout</code>:</p>
+<pre><code class="lang-js">console.time(&#39;process&#39;);
+const value = expensiveProcess1(); // Returns 42
+console.timeLog(&#39;process&#39;, value);
+// Prints &quot;process: 365.227ms 42&quot;.
+doExpensiveProcess2(value);
+console.timeEnd(&#39;process&#39;);
 </code></pre>
 <h3>console.trace([message][, ...args])<span><a class="mark" href="#console_console_trace_message_args" id="console_console_trace_message_args">#</a></span></h3>
 <div class="api_metadata">
@@ -15005,7 +15452,7 @@ authenticity of the encrypted data, otherwise, an attacker can use an
 arbitrarily short authentication tag to increase the chances of successfully
 passing authentication (up to 0.39%). It is highly recommended to associate one
 of the values 16, 15, 14, 13, 12, 8 or 4 bytes with each key, and to only permit
-authentication tags of that length, see <a href="http://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf">NIST SP 800-38D</a>.</p>
+authentication tags of that length, see <a href="https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf">NIST SP 800-38D</a>.</p>
 <p>The <code>decipher.setAuthTag()</code> method must be called before
 <a href="#crypto_decipher_final_outputencoding"><code>decipher.final()</code></a>.</p>
 <h3>decipher.setAutoPadding([autoPadding])<span><a class="mark" href="#crypto_decipher_setautopadding_autopadding" id="crypto_decipher_setautopadding_autopadding">#</a></span></h3>
@@ -16239,7 +16686,7 @@ thrown if any of the input arguments specify invalid values or types.</p>
 higher the number of iterations, the more secure the derived key will be,
 but will take a longer amount of time to complete.</p>
 <p>The <code>salt</code> should be as unique as possible. It is recommended that a salt is
-random and at least 16 bytes long. See <a href="http://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-132.pdf">NIST SP 800-132</a> for details.</p>
+random and at least 16 bytes long. See <a href="https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-132.pdf">NIST SP 800-132</a> for details.</p>
 <p>Example:</p>
 <pre><code class="lang-js">const crypto = require(&#39;crypto&#39;);
 crypto.pbkdf2(&#39;secret&#39;, &#39;salt&#39;, 100000, 64, &#39;sha512&#39;, (err, derivedKey) =&gt; {
@@ -16296,7 +16743,7 @@ returned as a <a href="buffer.html"><code>Buffer</code></a>.</p>
 higher the number of iterations, the more secure the derived key will be,
 but will take a longer amount of time to complete.</p>
 <p>The <code>salt</code> should be as unique as possible. It is recommended that a salt is
-random and at least 16 bytes long. See <a href="http://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-132.pdf">NIST SP 800-132</a> for details.</p>
+random and at least 16 bytes long. See <a href="https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-132.pdf">NIST SP 800-132</a> for details.</p>
 <p>Example:</p>
 <pre><code class="lang-js">const crypto = require(&#39;crypto&#39;);
 const key = crypto.pbkdf2Sync(&#39;secret&#39;, &#39;salt&#39;, 100000, 64, &#39;sha512&#39;);
@@ -16578,7 +17025,7 @@ than one. <strong>Default:</strong> <code>16384</code>.</li>
 key derivation function that is designed to be expensive computationally and
 memory-wise in order to make brute-force attacks unrewarding.</p>
 <p>The <code>salt</code> should be as unique as possible. It is recommended that a salt is
-random and at least 16 bytes long. See <a href="http://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-132.pdf">NIST SP 800-132</a> for details.</p>
+random and at least 16 bytes long. See <a href="https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-132.pdf">NIST SP 800-132</a> for details.</p>
 <p>The <code>callback</code> function is called with two arguments: <code>err</code> and <code>derivedKey</code>.
 <code>err</code> is an exception object when key derivation fails, otherwise <code>err</code> is
 <code>null</code>. <code>derivedKey</code> is passed to the callback as a <a href="buffer.html"><code>Buffer</code></a>.</p>
@@ -16618,7 +17065,7 @@ than one. <strong>Default:</strong> <code>16384</code>.</li>
 key derivation function that is designed to be expensive computationally and
 memory-wise in order to make brute-force attacks unrewarding.</p>
 <p>The <code>salt</code> should be as unique as possible. It is recommended that a salt is
-random and at least 16 bytes long. See <a href="http://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-132.pdf">NIST SP 800-132</a> for details.</p>
+random and at least 16 bytes long. See <a href="https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-132.pdf">NIST SP 800-132</a> for details.</p>
 <p>An exception is thrown when key derivation fails, otherwise the derived key is
 returned as a <a href="buffer.html"><code>Buffer</code></a>.</p>
 <p>An exception is thrown when any of the input arguments specify invalid values
@@ -16717,7 +17164,7 @@ the use of ciphers and hashes with a small key size that are considered to be
 too weak for safe use.</p>
 <p>Users should take full responsibility for selecting the crypto
 algorithm and key size according to their security requirements.</p>
-<p>Based on the recommendations of <a href="http://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-131Ar1.pdf">NIST SP 800-131A</a>:</p>
+<p>Based on the recommendations of <a href="https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-131Ar1.pdf">NIST SP 800-131A</a>:</p>
 <ul>
 <li>MD5 and SHA-1 are no longer acceptable where collision resistance is
 required such as digital signatures.</li>
@@ -16794,6 +17241,7 @@ console.log(receivedPlaintext);
 <p>The following constants exported by <code>crypto.constants</code> apply to various uses of
 the <code>crypto</code>, <code>tls</code>, and <code>https</code> modules and are generally specific to OpenSSL.</p>
 <h3>OpenSSL Options<span><a class="mark" href="#crypto_openssl_options" id="crypto_openssl_options">#</a></span></h3>
+<!--lint disable maximum-line-length-->
 <table>
   <tr>
     <th>Constant</th>
@@ -16802,8 +17250,8 @@ the <code>crypto</code>, <code>tls</code>, and <code>https</code> modules and ar
   <tr>
     <td><code>SSL_OP_ALL</code></td>
     <td>Applies multiple bug workarounds within OpenSSL. See
-    <a href="https://www.openssl.org/docs/man1.0.2/ssl/SSL_CTX_set_options.html">https://www.openssl.org/docs/man1.0.2/ssl/SSL_CTX_set_options.html</a> for
-    detail.</td>
+    <a href="https://www.openssl.org/docs/man1.0.2/ssl/SSL_CTX_set_options.html">https://www.openssl.org/docs/man1.0.2/ssl/SSL_CTX_set_options.html</a>
+    for detail.</td>
   </tr>
   <tr>
     <td><code>SSL_OP_ALLOW_UNSAFE_LEGACY_RENEGOTIATION</code></td>
@@ -16949,6 +17397,7 @@ the <code>crypto</code>, <code>tls</code>, and <code>https</code> modules and ar
 </table>
 
 <h3>OpenSSL Engine Constants<span><a class="mark" href="#crypto_openssl_engine_constants" id="crypto_openssl_engine_constants">#</a></span></h3>
+<!--lint enable maximum-line-length remark-lint-->
 <table>
   <tr>
     <th>Constant</th>
@@ -17052,18 +17501,18 @@ the <code>crypto</code>, <code>tls</code>, and <code>https</code> modules and ar
   </tr>
   <tr>
     <td><code>RSA_PSS_SALTLEN_DIGEST</code></td>
-    <td>Sets the salt length for <code>RSA_PKCS1_PSS_PADDING</code> to the digest size
-        when signing or verifying.</td>
+    <td>Sets the salt length for <code>RSA_PKCS1_PSS_PADDING</code> to the
+        digest size when signing or verifying.</td>
   </tr>
   <tr>
     <td><code>RSA_PSS_SALTLEN_MAX_SIGN</code></td>
-    <td>Sets the salt length for <code>RSA_PKCS1_PSS_PADDING</code> to the maximum
-        permissible value when signing data.</td>
+    <td>Sets the salt length for <code>RSA_PKCS1_PSS_PADDING</code> to the
+        maximum permissible value when signing data.</td>
   </tr>
   <tr>
     <td><code>RSA_PSS_SALTLEN_AUTO</code></td>
-    <td>Causes the salt length for <code>RSA_PKCS1_PSS_PADDING</code> to be determined
-        automatically when verifying a signature.</td>
+    <td>Causes the salt length for <code>RSA_PKCS1_PSS_PADDING</code> to be
+        determined automatically when verifying a signature.</td>
   </tr>
   <tr>
     <td><code>POINT_CONVERSION_COMPRESSED</code></td>
@@ -17794,7 +18243,7 @@ OpenSSL when calling <a href="#crypto_decipher_setauthtag_buffer"><code>decipher
 a future version at which point only authentication tag lengths of 128, 120,
 112, 104, 96, 64, and 32 bits will be allowed. Authentication tags whose length
 is not included in this list will be considered invalid in compliance with
-<a href="http://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf">NIST SP 800-38D</a>.</p>
+<a href="https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf">NIST SP 800-38D</a>.</p>
 <p><a id="DEP0091"></a></p>
 <h3>DEP0091: crypto.DEFAULT_ENCODING<span><a class="mark" href="#deprecations_dep0091_crypto_default_encoding" id="deprecations_dep0091_crypto_default_encoding">#</a></span></h3>
 <p>Type: Runtime</p>
@@ -19875,12 +20324,11 @@ exactly how errors raised by those methods are propagated.</p>
 <h3>Error-first callbacks<span><a class="mark" href="#errors_error_first_callbacks" id="errors_error_first_callbacks">#</a></span></h3>
 <!--type=misc-->
 <p>Most asynchronous methods exposed by the Node.js core API follow an idiomatic
-pattern referred to as an <em>error-first callback</em> (sometimes referred to as
-a <em>Node.js style callback</em>). With this pattern, a callback function is passed
-to the method as an argument. When the operation either completes or an error
-is raised, the callback function is called with
-the <code>Error</code> object (if any) passed as the first argument. If no error was
-raised, the first argument will be passed as <code>null</code>.</p>
+pattern referred to as an <em>error-first callback</em>. With this pattern, a callback
+function is passed to the method as an argument. When the operation either
+completes or an error is raised, the callback function is called with the
+<code>Error</code> object (if any) passed as the first argument. If no error was raised,
+the first argument will be passed as <code>null</code>.</p>
 <pre><code class="lang-js">const fs = require(&#39;fs&#39;);
 
 function errorFirstCallback(err, data) {
@@ -20535,6 +20983,9 @@ provided.</p>
 <p><a id="ERR_HTTP2_SESSION_ERROR"></a></p>
 <h3>ERR_HTTP2_SESSION_ERROR<span><a class="mark" href="#errors_err_http2_session_error" id="errors_err_http2_session_error">#</a></span><span><a class="mark" href="#ERR_HTTP2_SESSION_ERROR" id="ERR_HTTP2_SESSION_ERROR">#</a></span></h3>
 <p>The <code>Http2Session</code> closed with a non-zero error code.</p>
+<p><a id="ERR_HTTP2_SETTINGS_CANCEL"></a></p>
+<h3>ERR_HTTP2_SETTINGS_CANCEL<span><a class="mark" href="#errors_err_http2_settings_cancel" id="errors_err_http2_settings_cancel">#</a></span><span><a class="mark" href="#ERR_HTTP2_SETTINGS_CANCEL" id="ERR_HTTP2_SETTINGS_CANCEL">#</a></span></h3>
+<p>The <code>Http2Session</code> settings canceled.</p>
 <p><a id="ERR_HTTP2_SOCKET_BOUND"></a></p>
 <h3>ERR_HTTP2_SOCKET_BOUND<span><a class="mark" href="#errors_err_http2_socket_bound" id="errors_err_http2_socket_bound">#</a></span><span><a class="mark" href="#ERR_HTTP2_SOCKET_BOUND" id="ERR_HTTP2_SOCKET_BOUND">#</a></span></h3>
 <p>An attempt was made to connect a <code>Http2Session</code> object to a <code>net.Socket</code> or
@@ -20938,6 +21389,9 @@ recommended to use 2048 bits or larger for stronger security.</p>
 <h3>ERR_TLS_HANDSHAKE_TIMEOUT<span><a class="mark" href="#errors_err_tls_handshake_timeout" id="errors_err_tls_handshake_timeout">#</a></span><span><a class="mark" href="#ERR_TLS_HANDSHAKE_TIMEOUT" id="ERR_TLS_HANDSHAKE_TIMEOUT">#</a></span></h3>
 <p>A TLS/SSL handshake timed out. In this case, the server must also abort the
 connection.</p>
+<p><a id="ERR_TLS_RENEGOTIATE"></a></p>
+<h3>ERR_TLS_RENEGOTIATE<span><a class="mark" href="#errors_err_tls_renegotiate" id="errors_err_tls_renegotiate">#</a></span><span><a class="mark" href="#ERR_TLS_RENEGOTIATE" id="ERR_TLS_RENEGOTIATE">#</a></span></h3>
+<p>An attempt to renegotiate the TLS session failed.</p>
 <p><a id="ERR_TLS_RENEGOTIATION_DISABLED"></a></p>
 <h3>ERR_TLS_RENEGOTIATION_DISABLED<span><a class="mark" href="#errors_err_tls_renegotiation_disabled" id="errors_err_tls_renegotiation_disabled">#</a></span><span><a class="mark" href="#ERR_TLS_RENEGOTIATION_DISABLED" id="ERR_TLS_RENEGOTIATION_DISABLED">#</a></span></h3>
 <p>An attempt was made to renegotiate TLS on a socket instance with TLS disabled.</p>
@@ -21607,9 +22061,9 @@ try {
   // handle the error
 }
 </code></pre>
-<p>Note that there is no guaranteed ordering when using asynchronous methods.
-So the following is prone to error because the <code>fs.stat()</code> operation may
-complete before the <code>fs.rename()</code> operation.</p>
+<p>There is no guaranteed ordering when using asynchronous methods. So the
+following is prone to error because the <code>fs.stat()</code> operation may complete
+before the <code>fs.rename()</code> operation:</p>
 <pre><code class="lang-js">fs.rename(&#39;/tmp/hello&#39;, &#39;/tmp/world&#39;, (err) =&gt; {
   if (err) throw err;
   console.log(&#39;renamed complete&#39;);
@@ -21688,8 +22142,8 @@ be relative or absolute:</p>
   });
 });
 </code></pre>
-<p><em>Note:</em> On Windows Node.js follows the concept of per-drive working directory.
-This behavior can be observed when using a drive path without a backslash. For
+<p>On Windows, Node.js follows the concept of per-drive working directory. This
+behavior can be observed when using a drive path without a backslash. For
 example <code>fs.readdirSync(&#39;c:\\&#39;)</code> can potentially return a different result than
 <code>fs.readdirSync(&#39;c:&#39;)</code>. For more information, see
 <a href="https://docs.microsoft.com/en-us/windows/desktop/FileIO/naming-a-file#fully-qualified-vs-relative-paths">this MSDN page</a>.</p>
@@ -21790,9 +22244,9 @@ at any given time so it is critical to close the descriptor when operations
 are completed. Failure to do so will result in a memory leak that will
 eventually cause an application to crash.</p>
 <h2>Threadpool Usage<span><a class="mark" href="#fs_threadpool_usage" id="fs_threadpool_usage">#</a></span></h2>
-<p>Note that all file system APIs except <code>fs.FSWatcher()</code> and those that are
-explicitly synchronous use libuv&#39;s threadpool, which can have surprising and
-negative performance implications for some applications, see the
+<p>All file system APIs except <code>fs.FSWatcher()</code> and those that are explicitly
+synchronous use libuv&#39;s threadpool, which can have surprising and negative
+performance implications for some applications. See the
 <a href="#cli_uv_threadpool_size_size"><code>UV_THREADPOOL_SIZE</code></a> documentation for more information.</p>
 <h2>Class: fs.FSWatcher<span><a class="mark" href="#fs_class_fs_fswatcher" id="fs_class_fs_fswatcher">#</a></span></h2>
 <div class="api_metadata">
@@ -22103,7 +22557,7 @@ milliseconds since the POSIX Epoch.</p>
 <p>The <code>atimeMs</code>, <code>mtimeMs</code>, <code>ctimeMs</code>, <code>birthtimeMs</code> properties are
 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type">numbers</a> that hold the corresponding times in milliseconds. Their
 precision is platform specific. <code>atime</code>, <code>mtime</code>, <code>ctime</code>, and <code>birthtime</code> are
-<a href="https://developer.mozilla.org/en-US/JavaScript/Reference/Global_Objects/Date"><code>Date</code></a> object alternate representations of the various times. The
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date"><code>Date</code></a> object alternate representations of the various times. The
 <code>Date</code> and number values are not connected. Assigning a new number value, or
 mutating the <code>Date</code> value, will not be reflected in the corresponding alternate
 representation.</p>
@@ -22120,15 +22574,13 @@ Changed by the <a href="http://man7.org/linux/man-pages/man2/mknod.2.html"><code
 <li><code>birthtime</code> &quot;Birth Time&quot; - Time of file creation. Set once when the
 file is created. On filesystems where birthtime is not available,
 this field may instead hold either the <code>ctime</code> or
-<code>1970-01-01T00:00Z</code> (ie, unix epoch timestamp <code>0</code>). Note that this
-value may be greater than <code>atime</code> or <code>mtime</code> in this case. On Darwin
-and other FreeBSD variants, also set if the <code>atime</code> is explicitly
-set to an earlier value than the current <code>birthtime</code> using the
-<a href="http://man7.org/linux/man-pages/man2/utimes.2.html"><code>utimes(2)</code></a> system call.</li>
+<code>1970-01-01T00:00Z</code> (ie, unix epoch timestamp <code>0</code>). This value may be greater
+than <code>atime</code> or <code>mtime</code> in this case. On Darwin and other FreeBSD variants,
+also set if the <code>atime</code> is explicitly set to an earlier value than the current
+<code>birthtime</code> using the <a href="http://man7.org/linux/man-pages/man2/utimes.2.html"><code>utimes(2)</code></a> system call.</li>
 </ul>
-<p>Prior to Node.js v0.12, the <code>ctime</code> held the <code>birthtime</code> on Windows
-systems. Note that as of v0.12, <code>ctime</code> is not &quot;creation time&quot;, and
-on Unix systems, it never was.</p>
+<p>Prior to Node.js 0.12, the <code>ctime</code> held the <code>birthtime</code> on Windows systems. As
+of 0.12, <code>ctime</code> is not &quot;creation time&quot;, and on Unix systems, it never was.</p>
 <h2>Class: fs.WriteStream<span><a class="mark" href="#fs_class_fs_writestream" id="fs_class_fs_writestream">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.93</span>
@@ -22579,11 +23031,10 @@ specifies the permissions for others.</p>
 <li>The group may read and write the file.</li>
 <li>Others may read and execute the file.</li>
 </ul>
-<p>Note: When using raw numbers where file modes are expected,
-any value larger than <code>0o777</code> may result in platform-specific
-behaviors that are not supported to work consistently.
-Therefore constants like <code>S_ISVTX</code>, <code>S_ISGID</code> or <code>S_ISUID</code> are
-not exposed in <code>fs.constants</code>.</p>
+<p>When using raw numbers where file modes are expected, any value larger than
+<code>0o777</code> may result in platform-specific behaviors that are not supported to work
+consistently. Therefore constants like <code>S_ISVTX</code>, <code>S_ISGID</code> or <code>S_ISUID</code> are not
+exposed in <code>fs.constants</code>.</p>
 <p>Caveats: on Windows only the write permission can be changed, and the
 distinction among the permissions of group, owner or others is not
 implemented.</p>
@@ -22604,8 +23055,8 @@ implemented.</p>
 <li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 <li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
-<p>Synchronously changes the permissions of a file. Returns <code>undefined</code>.
-This is the synchronous version of <a href="#fs_fs_chmod_path_mode_callback"><code>fs.chmod()</code></a>.</p>
+<p>For detailed information, see the documentation of the asynchronous version of
+this API: <a href="#fs_fs_chmod_path_mode_callback"><code>fs.chmod()</code></a>.</p>
 <p>See also: <a href="http://man7.org/linux/man-pages/man2/chmod.2.html"><code>chmod(2)</code></a>.</p>
 <h2>fs.chown(path, uid, gid, callback)<span><a class="mark" href="#fs_fs_chown_path_uid_gid_callback" id="fs_fs_chown_path_uid_gid_callback">#</a></span></h2>
 <div class="api_metadata">
@@ -22828,8 +23279,8 @@ start counting at 0. If <code>fd</code> is specified and <code>start</code> is o
 The <code>encoding</code> can be any one of those accepted by <a href="#buffer_buffer"><code>Buffer</code></a>.</p>
 <p>If <code>fd</code> is specified, <code>ReadStream</code> will ignore the <code>path</code> argument and will use
 the specified file descriptor. This means that no <code>&#39;open&#39;</code> event will be
-emitted. Note that <code>fd</code> should be blocking; non-blocking <code>fd</code>s should be passed
-to <a href="#net_class_net_socket"><code>net.Socket</code></a>.</p>
+emitted. <code>fd</code> should be blocking; non-blocking <code>fd</code>s should be passed to
+<a href="#net_class_net_socket"><code>net.Socket</code></a>.</p>
 <p>If <code>autoClose</code> is false, then the file descriptor won&#39;t be closed, even if
 there&#39;s an error. It is the application&#39;s responsibility to close it and make
 sure there&#39;s no file descriptor leak. If <code>autoClose</code> is set to true (default
@@ -22889,8 +23340,8 @@ It is the application&#39;s responsibility to close it and make sure there&#39;s
 file descriptor leak.</p>
 <p>Like <a href="#fs_class_fs_readstream"><code>ReadStream</code></a>, if <code>fd</code> is specified, <a href="#fs_class_fs_writestream"><code>WriteStream</code></a> will ignore the
 <code>path</code> argument and will use the specified file descriptor. This means that no
-<code>&#39;open&#39;</code> event will be emitted. Note that <code>fd</code> should be blocking; non-blocking
-<code>fd</code>s should be passed to <a href="#net_class_net_socket"><code>net.Socket</code></a>.</p>
+<code>&#39;open&#39;</code> event will be emitted. <code>fd</code> should be blocking; non-blocking <code>fd</code>s
+should be passed to <a href="#net_class_net_socket"><code>net.Socket</code></a>.</p>
 <p>If <code>options</code> is a string, then it specifies the encoding.</p>
 <h2>fs.exists(path, callback)<span><a class="mark" href="#fs_fs_exists_path_callback" id="fs_fs_exists_path_callback">#</a></span></h2>
 <div class="api_metadata">
@@ -22921,11 +23372,11 @@ Then call the <code>callback</code> argument with either true or false. Example:
   console.log(exists ? &#39;it\&#39;s there&#39; : &#39;no passwd!&#39;);
 });
 </code></pre>
-<p><strong>Note that the parameter to this callback is not consistent with other
-Node.js callbacks.</strong> Normally, the first parameter to a Node.js callback is
-an <code>err</code> parameter, optionally followed by other parameters. The
-<code>fs.exists()</code> callback has only one boolean parameter. This is one reason
-<code>fs.access()</code> is recommended instead of <code>fs.exists()</code>.</p>
+<p><strong>The parameters for this callback are not consistent with other Node.js
+callbacks.</strong> Normally, the first parameter to a Node.js callback is an <code>err</code>
+parameter, optionally followed by other parameters. The <code>fs.exists()</code> callback
+has only one boolean parameter. This is one reason <code>fs.access()</code> is recommended
+instead of <code>fs.exists()</code>.</p>
 <p>Using <code>fs.exists()</code> to check for the existence of a file before calling
 <code>fs.open()</code>, <code>fs.readFile()</code> or <code>fs.writeFile()</code> is not recommended. Doing
 so introduces a race condition, since other processes may change the file&#39;s
@@ -23006,12 +23457,12 @@ process.</p>
 <li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
 </ul>
-<p>Synchronous version of <a href="#fs_fs_exists_path_callback"><code>fs.exists()</code></a>.
-Returns <code>true</code> if the path exists, <code>false</code> otherwise.</p>
-<p>Note that <code>fs.exists()</code> is deprecated, but <code>fs.existsSync()</code> is not.
-(The <code>callback</code> parameter to <code>fs.exists()</code> accepts parameters that are
-inconsistent with other Node.js callbacks. <code>fs.existsSync()</code> does not use
-a callback.)</p>
+<p>Returns <code>true</code> if the path exists, <code>false</code> otherwise.</p>
+<p>For detailed information, see the documentation of the asynchronous version of
+this API: <a href="#fs_fs_exists_path_callback"><code>fs.exists()</code></a>.</p>
+<p><code>fs.exists()</code> is deprecated, but <code>fs.existsSync()</code> is not. The <code>callback</code>
+parameter to <code>fs.exists()</code> accepts parameters that are inconsistent with other
+Node.js callbacks. <code>fs.existsSync()</code> does not use a callback.</p>
 <h2>fs.fchmod(fd, mode, callback)<span><a class="mark" href="#fs_fs_fchmod_fd_mode_callback" id="fs_fs_fchmod_fd_mode_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -23271,7 +23722,9 @@ fs.ftruncate(fd, 10, (err) =&gt; {
 <li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 <li><code>len</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <strong>Default:</strong> <code>0</code></li>
 </ul>
-<p>Synchronous <a href="http://man7.org/linux/man-pages/man2/ftruncate.2.html"><code>ftruncate(2)</code></a>. Returns <code>undefined</code>.</p>
+<p>Returns <code>undefined</code>.</p>
+<p>For detailed information, see the documentation of the asynchronous version of
+this API: <a href="#fs_fs_ftruncate_fd_len_callback"><code>fs.ftruncate()</code></a>.</p>
 <h2>fs.futimes(fd, atime, mtime, callback)<span><a class="mark" href="#fs_fs_futimes_fd_atime_mtime_callback" id="fs_fs_futimes_fd_atime_mtime_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -23620,9 +24073,8 @@ fs.mkdtemp(tmpDir, (err, folder) =&gt; {
   if (err) throw err;
   console.log(folder);
   // Will print something similar to `/tmpabc123`.
-  // Note that a new temporary directory is created
-  // at the file system root rather than *within*
-  // the /tmp directory.
+  // A new temporary directory is created at the file system root
+  // rather than *within* the /tmp directory.
 });
 
 // This method is *CORRECT*:
@@ -23646,8 +24098,9 @@ fs.mkdtemp(`${tmpDir}${sep}`, (err, folder) =&gt; {
 </li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
-<p>The synchronous version of <a href="#fs_fs_mkdtemp_prefix_options_callback"><code>fs.mkdtemp()</code></a>. Returns the created
-folder path.</p>
+<p>Returns the created folder path.</p>
+<p>For detailed information, see the documentation of the asynchronous version of
+this API: <a href="#fs_fs_mkdtemp_prefix_options_callback"><code>fs.mkdtemp()</code></a>.</p>
 <p>The optional <code>options</code> argument can be a string specifying an encoding, or an
 object with an <code>encoding</code> property specifying the character encoding to use.</p>
 <h2>fs.open(path, flags[, mode], callback)<span><a class="mark" href="#fs_fs_open_path_flags_mode_callback" id="fs_fs_open_path_flags_mode_callback">#</a></span></h2>
@@ -23678,13 +24131,13 @@ object with an <code>encoding</code> property specifying the character encoding 
 </ul>
 <p>Asynchronous file open. See <a href="http://man7.org/linux/man-pages/man2/open.2.html"><code>open(2)</code></a>.</p>
 <p><code>mode</code> sets the file mode (permission and sticky bits), but only if the file was
-created. Note that on Windows only the write permission can be manipulated,
-see <a href="#fs_fs_chmod_path_mode_callback"><code>fs.chmod()</code></a>.</p>
+created. On Windows, only the write permission can be manipulated; see
+<a href="#fs_fs_chmod_path_mode_callback"><code>fs.chmod()</code></a>.</p>
 <p>The callback gets two arguments <code>(err, fd)</code>.</p>
 <p>Some characters (<code>&lt; &gt; : &quot; / \ | ? *</code>) are reserved under Windows as documented
-by <a href="https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx">Naming Files, Paths, and Namespaces</a>. Under NTFS, if the filename contains
+by <a href="https://docs.microsoft.com/en-us/windows/desktop/FileIO/naming-a-file">Naming Files, Paths, and Namespaces</a>. Under NTFS, if the filename contains
 a colon, Node.js will open a file system stream, as described by
-<a href="https://msdn.microsoft.com/en-us/library/windows/desktop/bb540537.aspx">this MSDN page</a>.</p>
+<a href="https://docs.microsoft.com/en-us/windows/desktop/FileIO/using-streams">this MSDN page</a>.</p>
 <p>Functions based on <code>fs.open()</code> exhibit this behavior as well:
 <code>fs.writeFile()</code>, <code>fs.readFile()</code>, etc.</p>
 <h2>fs.openSync(path, flags[, mode])<span><a class="mark" href="#fs_fs_opensync_path_flags_mode" id="fs_fs_opensync_path_flags_mode">#</a></span></h2>
@@ -23706,8 +24159,9 @@ a colon, Node.js will open a file system stream, as described by
 <li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> <strong>Default:</strong> <code>0o666</code></li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
 </ul>
-<p>Synchronous version of <a href="#fs_fs_open_path_flags_mode_callback"><code>fs.open()</code></a>. Returns an integer representing the file
-descriptor.</p>
+<p>Returns an integer representing the file descriptor.</p>
+<p>For detailed information, see the documentation of the asynchronous version of
+this API: <a href="#fs_fs_open_path_flags_mode_callback"><code>fs.open()</code></a>.</p>
 <h2>fs.read(fd, buffer, offset, length, position, callback)<span><a class="mark" href="#fs_fs_read_fd_buffer_offset_length_position_callback" id="fs_fs_read_fd_buffer_offset_length_position_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -23909,7 +24363,9 @@ when possible prefer streaming via <code>fs.createReadStream()</code>.</p>
 </li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
 </ul>
-<p>Synchronous version of <a href="#fs_fs_readfile_path_options_callback"><code>fs.readFile()</code></a>. Returns the contents of the <code>path</code>.</p>
+<p>Returns the contents of the <code>path</code>.</p>
+<p>For detailed information, see the documentation of the asynchronous version of
+this API: <a href="#fs_fs_readfile_path_options_callback"><code>fs.readFile()</code></a>.</p>
 <p>If the <code>encoding</code> option is specified then this function returns a
 string. Otherwise it returns a buffer.</p>
 <p>Similar to <a href="#fs_fs_readfile_path_options_callback"><code>fs.readFile()</code></a>, when the path is a directory, the behavior of
@@ -24005,7 +24461,9 @@ the link path returned will be passed as a <code>Buffer</code> object.</p>
 <li><code>position</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
 </ul>
-<p>Synchronous version of <a href="#fs_fs_read_fd_buffer_offset_length_position_callback"><code>fs.read()</code></a>. Returns the number of <code>bytesRead</code>.</p>
+<p>Returns the number of <code>bytesRead</code>.</p>
+<p>For detailed information, see the documentation of the asynchronous version of
+this API: <a href="#fs_fs_read_fd_buffer_offset_length_position_callback"><code>fs.read()</code></a>.</p>
 <h2>fs.realpath(path[, options], callback)<span><a class="mark" href="#fs_fs_realpath_path_options_callback" id="fs_fs_realpath_path_options_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -24122,7 +24580,9 @@ this restriction.</p>
 </li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
 </ul>
-<p>Synchronous version of <a href="#fs_fs_realpath_path_options_callback"><code>fs.realpath()</code></a>. Returns the resolved pathname.</p>
+<p>Returns the resolved pathname.</p>
+<p>For detailed information, see the documentation of the asynchronous version of
+this API: <a href="#fs_fs_realpath_path_options_callback"><code>fs.realpath()</code></a>.</p>
 <h2>fs.realpathSync.native(path[, options])<span><a class="mark" href="#fs_fs_realpathsync_native_path_options" id="fs_fs_realpathsync_native_path_options">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v9.2.0</span>
@@ -24342,9 +24802,9 @@ is recommended.</p>
 <p>Asynchronous <a href="http://man7.org/linux/man-pages/man2/symlink.2.html"><code>symlink(2)</code></a>. No arguments other than a possible exception are given
 to the completion callback. The <code>type</code> argument can be set to <code>&#39;dir&#39;</code>,
 <code>&#39;file&#39;</code>, or <code>&#39;junction&#39;</code> and is only available on
-Windows (ignored on other platforms). Note that Windows junction points require
-the destination path to be absolute. When using <code>&#39;junction&#39;</code>, the <code>target</code>
-argument will automatically be normalized to absolute path.</p>
+Windows (ignored on other platforms). Windows junction points require the
+destination path to be absolute. When using <code>&#39;junction&#39;</code>, the <code>target</code> argument
+will automatically be normalized to absolute path.</p>
 <p>Here is an example below:</p>
 <pre><code class="lang-js">fs.symlink(&#39;./foo&#39;, &#39;./new-port&#39;, callback);
 </code></pre>
@@ -24367,7 +24827,9 @@ argument will automatically be normalized to absolute path.</p>
 <li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a></li>
 <li><code>type</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> <strong>Default:</strong> <code>&#39;file&#39;</code></li>
 </ul>
-<p>Synchronous <a href="http://man7.org/linux/man-pages/man2/symlink.2.html"><code>symlink(2)</code></a>. Returns <code>undefined</code>.</p>
+<p>Returns <code>undefined</code>.</p>
+<p>For detailed information, see the documentation of the asynchronous version of
+this API: <a href="#fs_fs_symlink_target_path_type_callback"><code>fs.symlink()</code></a>.</p>
 <h2>fs.truncate(path[, len], callback)<span><a class="mark" href="#fs_fs_truncate_path_len_callback" id="fs_fs_truncate_path_len_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -24544,7 +25006,9 @@ numeric string like <code>&#39;123456789.0&#39;</code>.</li>
 <li><code>atime</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 <li><code>mtime</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
-<p>Synchronous version of <a href="#fs_fs_utimes_path_atime_mtime_callback"><code>fs.utimes()</code></a>. Returns <code>undefined</code>.</p>
+<p>Returns <code>undefined</code>.</p>
+<p>For detailed information, see the documentation of the asynchronous version of
+this API: <a href="#fs_fs_utimes_path_atime_mtime_callback"><code>fs.utimes()</code></a>.</p>
 <h2>fs.watch(filename[, options][, listener])<span><a class="mark" href="#fs_fs_watch_filename_options_listener" id="fs_fs_watch_filename_options_listener">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -24588,9 +25052,9 @@ specifies the <code>encoding</code>. Otherwise <code>options</code> should be pa
 <p>The listener callback gets two arguments <code>(eventType, filename)</code>. <code>eventType</code>
 is either <code>&#39;rename&#39;</code> or <code>&#39;change&#39;</code>, and <code>filename</code> is the name of the file
 which triggered the event.</p>
-<p>Note that on most platforms, <code>&#39;rename&#39;</code> is emitted whenever a filename appears
-or disappears in the directory.</p>
-<p>Also note the listener callback is attached to the <code>&#39;change&#39;</code> event fired by
+<p>On most platforms, <code>&#39;rename&#39;</code> is emitted whenever a filename appears or
+disappears in the directory.</p>
+<p>The listener callback is attached to the <code>&#39;change&#39;</code> event fired by
 <a href="#fs_class_fs_fswatcher"><code>fs.FSWatcher</code></a>, but it is not the same thing as the <code>&#39;change&#39;</code> value of
 <code>eventType</code>.</p>
 <h3>Caveats<span><a class="mark" href="#fs_caveats" id="fs_caveats">#</a></span></h3>
@@ -24607,7 +25071,7 @@ to be notified of filesystem changes.</p>
 <li>On BSD systems, this uses <a href="https://www.freebsd.org/cgi/man.cgi?query=kqueue&amp;sektion=2"><code>kqueue(2)</code></a>.</li>
 <li>On macOS, this uses <a href="https://www.freebsd.org/cgi/man.cgi?query=kqueue&amp;sektion=2"><code>kqueue(2)</code></a> for files and <a href="https://developer.apple.com/documentation/coreservices/file_system_events"><code>FSEvents</code></a> for directories.</li>
 <li>On SunOS systems (including Solaris and SmartOS), this uses <a href="http://illumos.org/man/port_create"><code>event ports</code></a>.</li>
-<li>On Windows systems, this feature depends on <a href="https://msdn.microsoft.com/en-us/library/windows/desktop/aa365465%28v=vs.85%29.aspx"><code>ReadDirectoryChangesW</code></a>.</li>
+<li>On Windows systems, this feature depends on <a href="https://docs.microsoft.com/en-us/windows/desktop/api/winbase/nf-winbase-readdirectorychangesw"><code>ReadDirectoryChangesW</code></a>.</li>
 <li>On Aix systems, this feature depends on <a href="https://www.ibm.com/developerworks/aix/library/au-aix_event_infrastructure/"><code>AHAFS</code></a>, which must be enabled.</li>
 </ul>
 <p>If the underlying functionality is not available for some reason, then
@@ -24748,9 +25212,8 @@ at the current position. See <a href="http://man7.org/linux/man-pages/man2/pwrit
 <code>bytesWritten</code> specifies how many <em>bytes</em> were written from <code>buffer</code>.</p>
 <p>If this method is invoked as its <a href="#util_util_promisify_original"><code>util.promisify()</code></a>ed version, it returns
 a <code>Promise</code> for an <code>Object</code> with <code>bytesWritten</code> and <code>buffer</code> properties.</p>
-<p>Note that it is unsafe to use <code>fs.write</code> multiple times on the same file
-without waiting for the callback. For this scenario,
-<code>fs.createWriteStream</code> is strongly recommended.</p>
+<p>It is unsafe to use <code>fs.write()</code> multiple times on the same file without waiting
+for the callback. For this scenario, <code>fs.createWriteStream()</code> is recommended.</p>
 <p>On Linux, positional writes don&#39;t work when the file is opened in append mode.
 The kernel ignores the position argument and always appends the data to
 the end of the file.</p>
@@ -24792,11 +25255,11 @@ should be written. If <code>typeof position !== &#39;number&#39;</code> the data
 the current position. See <a href="http://man7.org/linux/man-pages/man2/pwrite.2.html"><code>pwrite(2)</code></a>.</p>
 <p><code>encoding</code> is the expected string encoding.</p>
 <p>The callback will receive the arguments <code>(err, written, string)</code> where <code>written</code>
-specifies how many <em>bytes</em> the passed string required to be written. Note that
-bytes written is not the same as string characters. See <a href="#buffer_class_method_buffer_bytelength_string_encoding"><code>Buffer.byteLength</code></a>.</p>
-<p>Note that it is unsafe to use <code>fs.write</code> multiple times on the same file
-without waiting for the callback. For this scenario,
-<code>fs.createWriteStream</code> is strongly recommended.</p>
+specifies how many <em>bytes</em> the passed string required to be written. Bytes
+written is not necessarily the same as string characters written. See
+<a href="#buffer_class_method_buffer_bytelength_string_encoding"><code>Buffer.byteLength</code></a>.</p>
+<p>It is unsafe to use <code>fs.write()</code> multiple times on the same file without waiting
+for the callback. For this scenario, <code>fs.createWriteStream()</code> is recommended.</p>
 <p>On Linux, positional writes don&#39;t work when the file is opened in append mode.
 The kernel ignores the position argument and always appends the data to
 the end of the file.</p>
@@ -24849,9 +25312,9 @@ the end of the file.</p>
 <pre><code class="lang-js">fs.writeFile(&#39;message.txt&#39;, &#39;Hello Node.js&#39;, &#39;utf8&#39;, callback);
 </code></pre>
 <p>Any specified file descriptor has to support writing.</p>
-<p>Note that it is unsafe to use <code>fs.writeFile</code> multiple times on the same file
-without waiting for the callback. For this scenario,
-<code>fs.createWriteStream</code> is strongly recommended.</p>
+<p>It is unsafe to use <code>fs.writeFile()</code> multiple times on the same file without
+waiting for the callback. For this scenario, <code>fs.createWriteStream()</code> is
+recommended.</p>
 <p>If a file descriptor is specified as the <code>file</code>, it will not be closed
 automatically.</p>
 <h2>fs.writeFileSync(file, data[, options])<span><a class="mark" href="#fs_fs_writefilesync_file_data_options" id="fs_fs_writefilesync_file_data_options">#</a></span></h2>
@@ -24880,7 +25343,9 @@ automatically.</p>
 </ul>
 </li>
 </ul>
-<p>The synchronous version of <a href="#fs_fs_writefile_file_data_options_callback"><code>fs.writeFile()</code></a>. Returns <code>undefined</code>.</p>
+<p>Returns <code>undefined</code>.</p>
+<p>For detailed information, see the documentation of the asynchronous version of
+this API: <a href="#fs_fs_writefile_file_data_options_callback"><code>fs.writeFile()</code></a>.</p>
 <h2>fs.writeSync(fd, buffer[, offset[, length[, position]]])<span><a class="mark" href="#fs_fs_writesync_fd_buffer_offset_length_position" id="fs_fs_writesync_fd_buffer_offset_length_position">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -24925,7 +25390,9 @@ automatically.</p>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
 </ul>
-<p>Synchronous versions of <a href="#fs_fs_write_fd_buffer_offset_length_position_callback"><code>fs.write()</code></a>. Returns the number of bytes written.</p>
+<p>Returns the number of bytes written.</p>
+<p>For detailed information, see the documentation of the asynchronous version of
+this API: <a href="#fs_fs_write_fd_buffer_offset_length_position_callback"><code>fs.write()</code></a>.</p>
 <h2>fs Promises API<span><a class="mark" href="#fs_fs_promises_api" id="fs_fs_promises_api">#</a></span></h2>
 <div class="api_stability api_stability_1"><a href="#documentation_stability_index">Stability: 1</a> - Experimental</div><p>The <code>fs.promises</code> API provides an alternative set of asynchronous file system
 methods that return <code>Promise</code> objects rather than using callbacks. The
@@ -25434,9 +25901,9 @@ characters directly to the <code>prefix</code> string. For instance, given a dir
 <p><code>mode</code> sets the file mode (permission and sticky bits), but only if the file was
 created.</p>
 <p>Some characters (<code>&lt; &gt; : &quot; / \ | ? *</code>) are reserved under Windows as documented
-by <a href="https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx">Naming Files, Paths, and Namespaces</a>. Under NTFS, if the filename contains
+by <a href="https://docs.microsoft.com/en-us/windows/desktop/FileIO/naming-a-file">Naming Files, Paths, and Namespaces</a>. Under NTFS, if the filename contains
 a colon, Node.js will open a file system stream, as described by
-<a href="https://msdn.microsoft.com/en-us/library/windows/desktop/bb540537.aspx">this MSDN page</a>.</p>
+<a href="https://docs.microsoft.com/en-us/windows/desktop/FileIO/using-streams">this MSDN page</a>.</p>
 <h3>fsPromises.readdir(path[, options])<span><a class="mark" href="#fs_fspromises_readdir_path_options" id="fs_fspromises_readdir_path_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v10.0.0</span>
@@ -25572,9 +26039,9 @@ error on POSIX.</p>
 <p>Creates a symbolic link then resolves the <code>Promise</code> with no arguments upon
 success.</p>
 <p>The <code>type</code> argument is only used on Windows platforms and can be one of <code>&#39;dir&#39;</code>,
-<code>&#39;file&#39;</code>, or <code>&#39;junction&#39;</code>. Note that Windows junction
-points require the destination path to be absolute. When using <code>&#39;junction&#39;</code>,
-the <code>target</code> argument will automatically be normalized to absolute path.</p>
+<code>&#39;file&#39;</code>, or <code>&#39;junction&#39;</code>. Windows junction points require the destination path
+to be absolute. When using <code>&#39;junction&#39;</code>, the <code>target</code> argument will
+automatically be normalized to absolute path.</p>
 <h3>fsPromises.truncate(path[, len])<span><a class="mark" href="#fs_fspromises_truncate_path_len" id="fs_fspromises_truncate_path_len">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v10.0.0</span>
@@ -25745,8 +26212,8 @@ without waiting for the <code>Promise</code> to be resolved (or rejected).</p>
   <tr>
   <td><code>O_NOATIME</code></td>
     <td>Flag indicating reading accesses to the file system will no longer
-    result in an update to the <code>atime</code> information associated with the file.
-    This flag is available on Linux operating systems only.</td>
+    result in an update to the <code>atime</code> information associated with
+    the file.  This flag is available on Linux operating systems only.</td>
   </tr>
   <tr>
     <td><code>O_NOFOLLOW</code></td>
@@ -25910,9 +26377,9 @@ the operating system to bypass the local file system cache.</p>
 <p>This is primarily useful for opening files on NFS mounts as it allows
 skipping the potentially stale local cache. It has a very real impact on
 I/O performance so using this flag is not recommended unless it is needed.</p>
-<p>Note that this doesn&#39;t turn <code>fs.open()</code> or <code>fsPromises.open()</code> into a
-synchronous blocking call. If synchronous operation is desired, something
-like <code>fs.openSync()</code> should be used.</p>
+<p>This doesn&#39;t turn <code>fs.open()</code> or <code>fsPromises.open()</code> into a synchronous
+blocking call. If synchronous operation is desired, something like
+<code>fs.openSync()</code> should be used.</p>
 </li>
 <li><p><code>&#39;w&#39;</code> - Open file for writing.
 The file is created (if it does not exist) or truncated (if it exists).</p>
@@ -26157,6 +26624,8 @@ host. <strong>Default:</strong> <code>Infinity</code>.</li>
 <li><code>maxFreeSockets</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Maximum number of sockets to leave open
 in a free state. Only relevant if <code>keepAlive</code> is set to <code>true</code>.
 <strong>Default:</strong> <code>256</code>.</li>
+<li><code>timeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Socket timeout in milliseconds.
+This will set the timeout after the socket is connected.</li>
 </ul>
 </li>
 </ul>
@@ -26891,7 +27360,6 @@ interface. This is an <a href="#events_class_eventemitter"><code>EventEmitter</c
 emitted when the last segment of the response headers and body have been
 handed off to the operating system for transmission over the network. It
 does not imply that the client has received anything yet.</p>
-<p>After this event, no more events will be emitted on the response object.</p>
 <h3>response.addTrailers(headers)<span><a class="mark" href="#http_response_addtrailers_headers" id="http_response_addtrailers_headers">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.3.0</span>
@@ -29632,8 +30100,7 @@ not work.</p>
 <code>proxy-authorization</code>, <code>range</code>, <code>referer</code>,<code>retry-after</code>, <code>tk</code>,
 <code>upgrade-insecure-requests</code>, <code>user-agent</code> or <code>x-content-type-options</code> are
 discarded.</li>
-<li><code>set-cookie</code> is a string if present once or an array in case duplicates
-are present.</li>
+<li><code>set-cookie</code> is always an array. Duplicates are added to the array.</li>
 <li><code>cookie</code>: the values are joined together with &#39;; &#39;.</li>
 <li>For all other headers, the values are joined together with &#39;, &#39;.</li>
 </ul>
@@ -30429,7 +30896,7 @@ will result in a <a href="#errors_class_typeerror"><code>TypeError</code></a> be
 <span>Added in: v8.4.0</span>
 </div><p>Call <a href="#http2_http2stream_pushstream_headers_options_callback"><code>http2stream.pushStream()</code></a> with the given headers, and wraps the
 given newly created <a href="#http2_class_http2stream"><code>Http2Stream</code></a> on <code>Http2ServerResponse</code>.</p>
-<p>The callback will be called with an error with code <code>ERR_HTTP2_STREAM_CLOSED</code>
+<p>The callback will be called with an error with code <code>ERR_HTTP2_INVALID_STREAM</code>
 if the stream is closed.</p>
 <h2>Collecting HTTP/2 Performance Metrics<span><a class="mark" href="#http2_collecting_http_2_performance_metrics" id="http2_collecting_http_2_performance_metrics">#</a></span></h2>
 <p>The <a href="perf_hooks.html">Performance Observer</a> API can be used to collect basic performance
@@ -30804,6 +31271,16 @@ headers: max-age=0; pin-sha256=&quot;WoiWRyIOVNa9ihaBciRSC7XHjliYS9VwUGOIud4PB18
 <p>It can be accessed using:</p>
 <pre><code class="lang-js">const inspector = require(&#39;inspector&#39;);
 </code></pre>
+<h2>inspector.close()<span><a class="mark" href="#inspector_inspector_close" id="inspector_inspector_close">#</a></span></h2>
+<p>Deactivate the inspector. Blocks until there are no active connections.</p>
+<h2>inspector.console<span><a class="mark" href="#inspector_inspector_console" id="inspector_inspector_console">#</a></span></h2>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> An object to send messages to the remote inspector console.</li>
+</ul>
+<pre><code class="lang-js">require(&#39;inspector&#39;).console.log(&#39;a message&#39;);
+</code></pre>
+<p>The inspector console does not have API parity with Node.js
+console.</p>
 <h2>inspector.open([port[, host[, wait]]])<span><a class="mark" href="#inspector_inspector_open_port_host_wait" id="inspector_inspector_open_port_host_wait">#</a></span></h2>
 <ul>
 <li><code>port</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Port to listen on for inspector connections. Optional.
@@ -30818,9 +31295,7 @@ headers: max-age=0; pin-sha256=&quot;WoiWRyIOVNa9ihaBciRSC7XHjliYS9VwUGOIud4PB18
 started.</p>
 <p>If wait is <code>true</code>, will block until a client has connected to the inspect port
 and flow control has been passed to the debugger client.</p>
-<h3>inspector.close()<span><a class="mark" href="#inspector_inspector_close" id="inspector_inspector_close">#</a></span></h3>
-<p>Deactivate the inspector. Blocks until there are no active connections.</p>
-<h3>inspector.url()<span><a class="mark" href="#inspector_inspector_url" id="inspector_inspector_url">#</a></span></h3>
+<h2>inspector.url()<span><a class="mark" href="#inspector_inspector_url" id="inspector_inspector_url">#</a></span></h2>
 <ul>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Undefined_type" class="type">&lt;undefined&gt;</a></li>
 </ul>
@@ -30869,6 +31344,13 @@ execution is suspended (through breakpoints, for example):</p>
 </div><p>Connects a session to the inspector back-end. An exception will be thrown
 if there is already a connected session established either through the API or by
 a front-end connected to the Inspector WebSocket port.</p>
+<h3>session.disconnect()<span><a class="mark" href="#inspector_session_disconnect" id="inspector_session_disconnect">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.0.0</span>
+</div><p>Immediately close the session. All pending message callbacks will be called
+with an error. <a href="#inspector_session_connect"><code>session.connect()</code></a> will need to be called to be able to send
+messages again. Reconnected session will lose all inspector state, such as
+enabled agents or configured breakpoints.</p>
 <h3>session.post(method[, params][, callback])<span><a class="mark" href="#inspector_session_post_method_params_callback" id="inspector_session_post_method_params_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
@@ -30890,13 +31372,6 @@ arguments - error and message-specific result.</p>
 by V8. Chrome DevTools Protocol domain provides an interface for interacting
 with one of the runtime agents used to inspect the application state and listen
 to the run-time events.</p>
-<h3>session.disconnect()<span><a class="mark" href="#inspector_session_disconnect" id="inspector_session_disconnect">#</a></span></h3>
-<div class="api_metadata">
-<span>Added in: v8.0.0</span>
-</div><p>Immediately close the session. All pending message callbacks will be called
-with an error. <a href="#inspector_session_connect"><code>session.connect()</code></a> will need to be called to be able to send
-messages again. Reconnected session will lose all inspector state, such as
-enabled agents or configured breakpoints.</p>
 <h2>Example usage<span><a class="mark" href="#inspector_example_usage" id="inspector_example_usage">#</a></span></h2>
 <h3>CPU Profiler<span><a class="mark" href="#inspector_cpu_profiler" id="inspector_cpu_profiler">#</a></span></h3>
 <p>Apart from the debugger, various V8 Profilers are available through the DevTools
@@ -30946,7 +31421,7 @@ Specification</a> (aka ECMA-402):<ul>
 <li><a href="#util_class_util_textdecoder"><code>require(&#39;util&#39;).TextDecoder</code></a></li>
 <li><a href="https://github.com/tc39/proposal-regexp-unicode-property-escapes"><code>RegExp</code> Unicode Property Escapes</a></li>
 </ul>
-<p>Node.js (and its underlying V8 engine) uses <a href="http://icu-project.org/">ICU</a> to implement these features
+<p>Node.js (and its underlying V8 engine) uses <a href="http://site.icu-project.org/">ICU</a> to implement these features
 in native C/C++ code. However, some of them require a very large ICU data file
 in order to support all locales of the world. Because it is expected that most
 Node.js users will make use of only a small portion of ICU functionality, only
@@ -31696,7 +32171,7 @@ a global but rather local to each module.</p>
 </div><ul>
 <li><a href="#modules_the_module_object" class="type">&lt;module[]&gt;</a></li>
 </ul>
-<p>The module objects required by this one.</p>
+<p>The module objects required for the first time by this one.</p>
 <h3>module.exports<span><a class="mark" href="#modules_module_exports" id="modules_module_exports">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.16</span>
@@ -33540,9 +34015,9 @@ operating system response.</p>
   </tr>
   <tr>
     <td><code>EOPNOTSUPP</code></td>
-    <td>Indicates that an operation is not supported on the socket.
-    Note that while <code>ENOTSUP</code> and <code>EOPNOTSUPP</code> have the same value on Linux,
-    according to POSIX.1 these error values should be distinct.)</td>
+    <td>Indicates that an operation is not supported on the socket.  Note that
+    while <code>ENOTSUP</code> and <code>EOPNOTSUPP</code> have the same value
+    on Linux, according to POSIX.1 these error values should be distinct.)</td>
   </tr>
   <tr>
     <td><code>EOVERFLOW</code></td>
@@ -33797,7 +34272,8 @@ operating system response.</p>
   </tr>
   <tr>
     <td><code>WSAVERNOTSUPPORTED</code></td>
-    <td>Indicates that the <code>winsock.dll</code> version is out of range.</td>
+    <td>Indicates that the <code>winsock.dll</code> version is out of
+    range.</td>
   </tr>
   <tr>
     <td><code>WSANOTINITIALISED</code></td>
@@ -33878,8 +34354,8 @@ information.</p>
   </tr>
   <tr>
     <td><code>RTLD_LOCAL</code></td>
-    <td>The converse of <code>RTLD_GLOBAL</code>. This is the default behavior if neither
-    flag is specified.</td>
+    <td>The converse of <code>RTLD_GLOBAL</code>. This is the default behavior
+    if neither flag is specified.</td>
   </tr>
   <tr>
     <td><code>RTLD_DEEPBIND</code></td>
@@ -34338,7 +34814,7 @@ slashes (<code>\</code>).</p>
 <li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
-<p>On Windows systems only, returns an equivalent <a href="https://msdn.microsoft.com/library/windows/desktop/aa365247(v=vs.85).aspx#namespaces">namespace-prefixed path</a> for
+<p>On Windows systems only, returns an equivalent <a href="https://docs.microsoft.com/en-us/windows/desktop/FileIO/naming-a-file#namespaces">namespace-prefixed path</a> for
 the given <code>path</code>. If <code>path</code> is not a string, <code>path</code> will be returned without
 modifications.</p>
 <p>This method is meaningful only on Windows system. On posix systems, the
@@ -34866,9 +35342,13 @@ most convenient for scripts).</p>
 <span>Added in: v0.1.18</span>
 </div><p>The <code>&#39;uncaughtException&#39;</code> event is emitted when an uncaught JavaScript
 exception bubbles all the way back to the event loop. By default, Node.js
-handles such exceptions by printing the stack trace to <code>stderr</code> and exiting.
+handles such exceptions by printing the stack trace to <code>stderr</code> and exiting
+with code 1, overriding any previously set <a href="#process_process_exitcode"><code>process.exitCode</code></a>.
 Adding a handler for the <code>&#39;uncaughtException&#39;</code> event overrides this default
-behavior.</p>
+behavior. You may also change the <a href="#process_process_exitcode"><code>process.exitCode</code></a> in
+<code>&#39;uncaughtException&#39;</code> handler which will result in process exiting with
+provided exit code, otherwise in the presence of such handler the process will
+exit with 0.</p>
 <p>The listener function is called with the <code>Error</code> object passed as the only
 argument.</p>
 <pre><code class="lang-js">process.on(&#39;uncaughtException&#39;, (err) =&gt; {
@@ -35676,6 +36156,8 @@ Android).</p>
 <li><code>time</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer[]&gt;</a> The result of a previous call to <code>process.hrtime()</code></li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer[]&gt;</a></li>
 </ul>
+<p>This is the legacy version of <a href="#process_process_hrtime_bigint"><code>process.hrtime.bigint()</code></a>
+before <code>bigint</code> was introduced in JavaScript.</p>
 <p>The <code>process.hrtime()</code> method returns the current high-resolution real time
 in a <code>[seconds, nanoseconds]</code> tuple <code>Array</code>, where <code>nanoseconds</code> is the
 remaining part of the real time that can&#39;t be represented in second precision.</p>
@@ -35697,6 +36179,28 @@ setTimeout(() =&gt; {
 
   console.log(`Benchmark took ${diff[0] * NS_PER_SEC + diff[1]} nanoseconds`);
   // benchmark took 1000000552 nanoseconds
+}, 1000);
+</code></pre>
+<h2>process.hrtime.bigint()<span><a class="mark" href="#process_process_hrtime_bigint" id="process_process_hrtime_bigint">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v10.7.0</span>
+</div><ul>
+<li>Returns: <a href="https://github.com/tc39/proposal-bigint" class="type">&lt;bigint&gt;</a></li>
+</ul>
+<p>The <code>bigint</code> version of the <a href="#process_process_hrtime_time"><code>process.hrtime()</code></a> method returning the
+current high-resolution real time in a <code>bigint</code>.</p>
+<p>Unlike <a href="#process_process_hrtime_time"><code>process.hrtime()</code></a>, it does not support an additional <code>time</code>
+argument since the difference can just be computed directly
+by subtraction of the two <code>bigint</code>s.</p>
+<pre><code class="lang-js">const start = process.hrtime.bigint();
+// 191051479007711n
+
+setTimeout(() =&gt; {
+  const end = process.hrtime.bigint();
+  // 191052633396993n
+
+  console.log(`Benchmark took ${end - start} nanoseconds`);
+  // Benchmark took 1154389282 nanoseconds
 }, 1000);
 </code></pre>
 <h2>process.initgroups(user, extraGroup)<span><a class="mark" href="#process_process_initgroups_user_extragroup" id="process_process_initgroups_user_extragroup">#</a></span></h2>
@@ -35981,7 +36485,7 @@ Node.js native add-ons.</li>
 architecture and version of the current release. This file is used for
 compiling Node.js native add-ons. <em>This property is only present on Windows
 builds of Node.js and will be missing on all other platforms.</em></li>
-<li><code>lts</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> a string label identifying the <a href="https://github.com/nodejs/LTS/">LTS</a> label for this release.
+<li><code>lts</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> a string label identifying the <a href="https://github.com/nodejs/Release">LTS</a> label for this release.
 This property only exists for LTS releases and is <code>undefined</code> for all other
 release types, including <em>Current</em> releases. Currently the valid values are:<ul>
 <li><code>&#39;Argon&#39;</code> for the 4.x LTS line beginning with 4.2.0.</li>
@@ -36413,8 +36917,8 @@ code will be <code>128</code> + <code>6</code>, or <code>134</code>.</li>
 <div class="api_stability api_stability_0"><a href="#documentation_stability_index">Stability: 0</a> - Deprecated</div><p><strong>The version of the punycode module bundled in Node.js is being deprecated</strong>.
 In a future major version of Node.js this module will be removed. Users
 currently depending on the <code>punycode</code> module should switch to using the
-userland-provided <a href="https://mths.be/punycode">Punycode.js</a> module instead.</p>
-<p>The <code>punycode</code> module is a bundled version of the <a href="https://mths.be/punycode">Punycode.js</a> module. It
+userland-provided <a href="https://github.com/bestiejs/punycode.js">Punycode.js</a> module instead.</p>
+<p>The <code>punycode</code> module is a bundled version of the <a href="https://github.com/bestiejs/punycode.js">Punycode.js</a> module. It
 can be accessed using:</p>
 <pre><code class="lang-js">const punycode = require(&#39;punycode&#39;);
 </code></pre>
@@ -36429,7 +36933,7 @@ to <code>&#39;example.com&#39;</code>) is represented by Punycode as the ASCII s
 <p>The <code>punycode</code> module provides a simple implementation of the Punycode standard.</p>
 <p>The <code>punycode</code> module is a third-party dependency used by Node.js and
 made available to developers as a convenience. Fixes or other modifications to
-the module must be directed to the <a href="https://mths.be/punycode">Punycode.js</a> project.</p>
+the module must be directed to the <a href="https://github.com/bestiejs/punycode.js">Punycode.js</a> project.</p>
 <h2>punycode.decode(string)<span><a class="mark" href="#punycode_punycode_decode_string" id="punycode_punycode_decode_string">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.5.1</span>
@@ -36513,7 +37017,7 @@ punycode.ucs2.encode([0x1D306]); // &#39;\uD834\uDF06&#39;
 </div><ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
-<p>Returns a string identifying the current <a href="https://mths.be/punycode">Punycode.js</a> version number.</p>
+<p>Returns a string identifying the current <a href="https://github.com/bestiejs/punycode.js">Punycode.js</a> version number.</p>
 <h1>Query String<span><a class="mark" href="#querystring_query_string" id="querystring_query_string">#</a></span></h1>
 <!--introduced_in=v0.10.0-->
 <div class="api_stability api_stability_2"><a href="#documentation_stability_index">Stability: 2</a> - Stable</div><!--name=querystring-->
@@ -37566,9 +38070,9 @@ to connect to both Unix and TCP sockets.</p>
 possible to connect to a long-running Node.js process without restarting it.</p>
 <p>For an example of running a &quot;full-featured&quot; (<code>terminal</code>) REPL over
 a <code>net.Server</code> and <code>net.Socket</code> instance, see:
-<a href="https://gist.github.com/2209310">https://gist.github.com/2209310</a>.</p>
+<a href="https://gist.github.com/TooTallNate/2209310">https://gist.github.com/TooTallNate/2209310</a>.</p>
 <p>For an example of running a REPL instance over <a href="https://curl.haxx.se/docs/manpage.html">curl(1)</a>, see:
-<a href="https://gist.github.com/2053342">https://gist.github.com/2053342</a>.</p>
+<a href="https://gist.github.com/TooTallNate/2053342">https://gist.github.com/TooTallNate/2053342</a>.</p>
 <h1>Stream<span><a class="mark" href="#stream_stream" id="stream_stream">#</a></span></h1>
 <!--introduced_in=v0.10.0-->
 <div class="api_stability api_stability_2"><a href="#documentation_stability_index">Stability: 2</a> - Stable</div><p>A stream is an abstract interface for working with streaming data in Node.js.
@@ -38100,7 +38604,7 @@ state, attaching a listener for the <code>&#39;data&#39;</code> event, calling t
 <code>readable.pipe()</code> method, or calling the <code>readable.resume()</code> method will switch
 <code>readable.readableFlowing</code> to <code>true</code>, causing the <code>Readable</code> to begin
 actively emitting events as data is generated.</p>
-<p>Calling <code>readable.pause()</code>, <code>readable.unpipe()</code>, or receiving &quot;back pressure&quot;
+<p>Calling <code>readable.pause()</code>, <code>readable.unpipe()</code>, or receiving backpressure
 will cause the <code>readable.readableFlowing</code> to be set as <code>false</code>,
 temporarily halting the flowing of events but <em>not</em> halting the generation of
 data. While in this state, attaching a listener for the <code>&#39;data&#39;</code> event
@@ -38754,77 +39258,36 @@ class MyWritable extends Writable {
 <p>The new stream class must then implement one or more specific methods, depending
 on the type of stream being created, as detailed in the chart below:</p>
 <table>
-  <thead>
-    <tr>
-      <th>
-        <p>Use-case</p>
-      </th>
-      <th>
-        <p>Class</p>
-      </th>
-      <th>
-        <p>Method(s) to implement</p>
-      </th>
-    </tr>
-  </thead>
-  <tr>
-    <td>
-      <p>Reading only</p>
-    </td>
-    <td>
-      <p><a href="#stream_class_stream_readable"><code>Readable</code></a></p>
-    </td>
-    <td>
-      <p><code><a href="#stream_readable_read_size_1">_read</a></code></p>
-    </td>
-  </tr>
-  <tr>
-    <td>
-      <p>Writing only</p>
-    </td>
-    <td>
-      <p><a href="#stream_class_stream_writable"><code>Writable</code></a></p>
-    </td>
-    <td>
-      <p>
-        <code><a href="#stream_writable_write_chunk_encoding_callback_1">_write</a></code>,
-        <code><a href="#stream_writable_writev_chunks_callback">_writev</a></code>,
-        <code><a href="#stream_writable_final_callback">_final</a></code>
-      </p>
-    </td>
-  </tr>
-  <tr>
-    <td>
-      <p>Reading and writing</p>
-    </td>
-    <td>
-      <p><a href="#stream_class_stream_duplex"><code>Duplex</code></a></p>
-    </td>
-    <td>
-      <p>
-        <code><a href="#stream_readable_read_size_1">_read</a></code>,
-        <code><a href="#stream_writable_write_chunk_encoding_callback_1">_write</a></code>,
-        <code><a href="#stream_writable_writev_chunks_callback">_writev</a></code>,
-        <code><a href="#stream_writable_final_callback">_final</a></code></p>
-    </td>
-  </tr>
-  <tr>
-    <td>
-      <p>Operate on written data, then read the result</p>
-    </td>
-    <td>
-      <p><a href="#stream_class_stream_transform"><code>Transform</code></a></p>
-    </td>
-    <td>
-      <p>
-        <code><a href="#stream_transform_transform_chunk_encoding_callback">_transform</a></code>,
-        <code><a href="#stream_transform_flush_callback">_flush</a></code>,
-        <code><a href="#stream_writable_final_callback">_final</a></code>
-      </p>
-    </td>
-  </tr>
+<thead>
+<tr>
+<th>Use-case</th>
+<th>Class</th>
+<th>Method(s) to implement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Reading only</td>
+<td><a href="#stream_class_stream_readable"><code>Readable</code></a></td>
+<td><code><a href="#stream_readable_read_size_1">_read</a></code></td>
+</tr>
+<tr>
+<td>Writing only</td>
+<td><a href="#stream_class_stream_writable"><code>Writable</code></a></td>
+<td><code><a href="#stream_writable_write_chunk_encoding_callback_1">_write</a></code>, <code><a href="#stream_writable_writev_chunks_callback">_writev</a></code>, <code><a href="#stream_writable_final_callback">_final</a></code></td>
+</tr>
+<tr>
+<td>Reading and writing</td>
+<td><a href="#stream_class_stream_duplex"><code>Duplex</code></a></td>
+<td><code><a href="#stream_readable_read_size_1">_read</a></code>, <code><a href="#stream_writable_write_chunk_encoding_callback_1">_write</a></code>, <code><a href="#stream_writable_writev_chunks_callback">_writev</a></code>, <code><a href="#stream_writable_final_callback">_final</a></code></td>
+</tr>
+<tr>
+<td>Operate on written data, then read the result</td>
+<td><a href="#stream_class_stream_transform"><code>Transform</code></a></td>
+<td><code><a href="#stream_transform_transform_chunk_encoding_callback">_transform</a></code>, <code><a href="#stream_transform_flush_callback">_flush</a></code>, <code><a href="#stream_writable_final_callback">_final</a></code></td>
+</tr>
+</tbody>
 </table>
-
 <p>The implementation code for a stream should <em>never</em> call the &quot;public&quot; methods
 of a stream that are intended for use by consumers (as described in the
 <a href="#stream_api_for_stream_consumers">API for Stream Consumers</a> section). Doing so may lead to adverse side effects
@@ -39733,7 +40196,7 @@ be called at some future period of time. Because the timer functions are
 globals, there is no need to call <code>require(&#39;timers&#39;)</code> to use the API.</p>
 <p>The timer functions within Node.js implement a similar API as the timers API
 provided by Web Browsers but use a different internal implementation that is
-built around <a href="https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick">the Node.js Event Loop</a>.</p>
+built around <a href="https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick/">the Node.js Event Loop</a>.</p>
 <h2>Class: Immediate<span><a class="mark" href="#timers_class_immediate" id="timers_class_immediate">#</a></span></h2>
 <p>This object is created internally and is returned from <a href="#timers_setimmediate_callback_args"><code>setImmediate()</code></a>. It
 can be passed to <a href="#timers_clearimmediate_immediate"><code>clearImmediate()</code></a> in order to cancel the scheduled
@@ -39817,7 +40280,7 @@ event loop is doing.</p>
 <span>Added in: v0.9.1</span>
 </div><ul>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The function to call at the end of this turn of
-<a href="https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick">the Node.js Event Loop</a></li>
+<a href="https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick/">the Node.js Event Loop</a></li>
 <li><code>...args</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Data_types" class="type">&lt;any&gt;</a> Optional arguments to pass when the <code>callback</code> is called.</li>
 <li>Returns: <a href="#timers_class_immediate" class="type">&lt;Immediate&gt;</a> for use with <a href="#timers_clearimmediate_immediate"><code>clearImmediate()</code></a></li>
 </ul>
@@ -40127,7 +40590,7 @@ issuer is not in the root certificates list. (An issuer may be provided
 via the <code>ca</code> option when establishing the TLS connection.)</p>
 <p>Listening for this event will have an effect only on connections established
 after the addition of the event listener.</p>
-<p>An npm module like <a href="https://npmjs.org/package/asn1.js">asn1.js</a> may be used to parse the certificates.</p>
+<p>An npm module like <a href="https://www.npmjs.com/package/asn1.js">asn1.js</a> may be used to parse the certificates.</p>
 <h3>Event: &#39;resumeSession&#39;<span><a class="mark" href="#tls_event_resumesession" id="tls_event_resumesession">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.9.2</span>
@@ -43102,7 +43565,7 @@ that the two styles are <a href="https://github.com/nodejs/node/issues/4179">sem
 <li><code>constructor</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
 <li><code>superConstructor</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
 </ul>
-<p>Inherit the prototype methods from one <a href="https://developer.mozilla.org/en-US/JavaScript/Reference/Global_Objects/Object/constructor">constructor</a> into another. The
+<p>Inherit the prototype methods from one <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/constructor">constructor</a> into another. The
 prototype of <code>constructor</code> will be set to a new object created from
 <code>superConstructor</code>.</p>
 <p>As an additional convenience, <code>superConstructor</code> will be accessible
@@ -44634,7 +45097,7 @@ of V8.</p>
 <p>Returns statistics about the V8 heap spaces, i.e. the segments which make up
 the V8 heap. Neither the ordering of heap spaces, nor the availability of a
 heap space can be guaranteed as the statistics are provided via the V8
-<a href="https://v8docs.nodesource.com/node-8.0/d5/dda/classv8_1_1_isolate.html#ac673576f24fdc7a33378f8f57e1d13a4"><code>GetHeapSpaceStatistics</code></a> function and may change from one V8 version to the
+<a href="https://v8docs.nodesource.com/node-8.9/d5/dda/classv8_1_1_isolate.html#ac673576f24fdc7a33378f8f57e1d13a4"><code>GetHeapSpaceStatistics</code></a> function and may change from one V8 version to the
 next.</p>
 <p>The value returned is an array of objects containing the following properties:</p>
 <ul>
@@ -45648,7 +46111,7 @@ console.log(util.inspect(sandbox));
 
 // { globalVar: 1024 }
 </code></pre>
-<h2>vm.runInNewContext(code[, sandbox][, options])<span><a class="mark" href="#vm_vm_runinnewcontext_code_sandbox_options" id="vm_vm_runinnewcontext_code_sandbox_options">#</a></span></h2>
+<h2>vm.runInNewContext(code[, sandbox[, options]])<span><a class="mark" href="#vm_vm_runinnewcontext_code_sandbox_options" id="vm_vm_runinnewcontext_code_sandbox_options">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.3.1</span>
 </div><ul>
@@ -46010,7 +46473,7 @@ the thread barrier.</p>
 <p>For example:</p>
 <pre><code class="lang-js">const assert = require(&#39;assert&#39;);
 const {
-  Worker, MessageChannel, MessagePort, isMainThread
+  Worker, MessageChannel, MessagePort, isMainThread, parentPort
 } = require(&#39;worker_threads&#39;);
 if (isMainThread) {
   const worker = new Worker(__filename);
@@ -46020,7 +46483,7 @@ if (isMainThread) {
     console.log(&#39;received:&#39;, value);
   });
 } else {
-  require(&#39;worker_threads&#39;).once(&#39;message&#39;, (value) =&gt; {
+  parentPort.once(&#39;message&#39;, (value) =&gt; {
     assert(value.hereIsYourPort instanceof MessagePort);
     value.hereIsYourPort.postMessage(&#39;the worker is sending this&#39;);
     value.hereIsYourPort.close();

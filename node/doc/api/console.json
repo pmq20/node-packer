@@ -608,6 +608,49 @@
               "desc": "<p>Stops a timer that was previously started by calling <a href=\"#console_console_time_label\"><code>console.time()</code></a> and\nprints the result to <code>stdout</code>:</p>\n<pre><code class=\"lang-js\">console.time(&#39;100-elements&#39;);\nfor (let i = 0; i &lt; 100; i++) {}\nconsole.timeEnd(&#39;100-elements&#39;);\n// prints 100-elements: 225.438ms\n</code></pre>\n"
             },
             {
+              "textRaw": "console.timeLog([label][, ...data])",
+              "type": "method",
+              "name": "timeLog",
+              "meta": {
+                "added": [
+                  "v10.7.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`label` {string} **Default:** `'default'` ",
+                      "name": "label",
+                      "type": "string",
+                      "default": "`'default'`",
+                      "optional": true
+                    },
+                    {
+                      "textRaw": "`...data` {any} ",
+                      "name": "...data",
+                      "type": "any",
+                      "optional": true
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "label",
+                      "optional": true
+                    },
+                    {
+                      "name": "...data",
+                      "optional": true
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>For a timer that was previously started by calling <a href=\"#console_console_time_label\"><code>console.time()</code></a>, prints\nthe elapsed time and other <code>data</code> arguments to <code>stdout</code>:</p>\n<pre><code class=\"lang-js\">console.time(&#39;process&#39;);\nconst value = expensiveProcess1(); // Returns 42\nconsole.timeLog(&#39;process&#39;, value);\n// Prints &quot;process: 365.227ms 42&quot;.\ndoExpensiveProcess2(value);\nconsole.timeEnd(&#39;process&#39;);\n</code></pre>\n"
+            },
+            {
               "textRaw": "console.trace([message][, ...args])",
               "type": "method",
               "name": "trace",

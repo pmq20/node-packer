@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Timers | Node.js v10.6.0 Documentation</title>
+  <title>Timers | Node.js v10.7.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -17,8 +17,7 @@
           Node.js
         </a>
       </div>
-      <!--introduced_in=v0.10.0-->
-<ul>
+      <ul>
 <li><a class="nav-documentation" href="documentation.html">About these Docs</a></li>
 <li><a class="nav-synopsis" href="synopsis.html">Usage &amp; Example</a></li>
 </ul>
@@ -77,14 +76,14 @@
 
 <ul>
 <li><a class="nav-https-github-com-nodejs-node" href="https://github.com/nodejs/node">GitHub Repo &amp; Issue Tracker</a></li>
-<li><a class="nav-https-groups-google-com-group-nodejs" href="https://groups.google.com/group/nodejs">Mailing List</a></li>
+<li><a class="nav-https-groups-google-com-forum-forum-nodejs" href="https://groups.google.com/forum/#!forum/nodejs">Mailing List</a></li>
 </ul>
 
     </div>
 
     <div id="column1" data-id="timers" class="interior">
       <header>
-        <h1>Node.js v10.6.0 Documentation</h1>
+        <h1>Node.js v10.7.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -110,6 +109,7 @@
 <li><a href="https://nodejs.org/docs/latest-v0.10.x/api/timers.html">0.10.x</a></li></ol>
     </li>
   
+            <li class="edit_on_github"><a href="https://github.com/nodejs/node/edit/master/doc/api/timers.md"><span class="github_icon"><svg height="16" width="16" viewBox="0 0 16.1 16.1" fill="currentColor"><path d="M8 0a8 8 0 0 0-2.5 15.6c.4 0 .5-.2.5-.4v-1.5c-2 .4-2.5-.5-2.7-1 0-.1-.5-.9-.8-1-.3-.2-.7-.6 0-.6.6 0 1 .6 1.2.8.7 1.2 1.9 1 2.4.7 0-.5.2-.9.5-1-1.8-.3-3.7-1-3.7-4 0-.9.3-1.6.8-2.2 0-.2-.3-1 .1-2 0 0 .7-.3 2.2.7a7.4 7.4 0 0 1 4 0c1.5-1 2.2-.8 2.2-.8.5 1.1.2 2 .1 2.1.5.6.8 1.3.8 2.2 0 3-1.9 3.7-3.6 4 .3.2.5.7.5 1.4v2.2c0 .2.1.5.5.4A8 8 0 0 0 16 8a8 8 0 0 0-8-8z"/></svg></span>Edit on GitHub</a></li>
           </ul>
         </div>
         <hr>
@@ -156,7 +156,7 @@ be called at some future period of time. Because the timer functions are
 globals, there is no need to call <code>require(&#39;timers&#39;)</code> to use the API.</p>
 <p>The timer functions within Node.js implement a similar API as the timers API
 provided by Web Browsers but use a different internal implementation that is
-built around <a href="https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick">the Node.js Event Loop</a>.</p>
+built around <a href="https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick/">the Node.js Event Loop</a>.</p>
 <h2>Class: Immediate<span><a class="mark" href="#timers_class_immediate" id="timers_class_immediate">#</a></span></h2>
 <p>This object is created internally and is returned from <a href="timers.html#timers_setimmediate_callback_args"><code>setImmediate()</code></a>. It
 can be passed to <a href="timers.html#timers_clearimmediate_immediate"><code>clearImmediate()</code></a> in order to cancel the scheduled
@@ -240,7 +240,7 @@ event loop is doing.</p>
 <span>Added in: v0.9.1</span>
 </div><ul>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The function to call at the end of this turn of
-<a href="https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick">the Node.js Event Loop</a></li>
+<a href="https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick/">the Node.js Event Loop</a></li>
 <li><code>...args</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Data_types" class="type">&lt;any&gt;</a> Optional arguments to pass when the <code>callback</code> is called.</li>
 <li>Returns: <a href="timers.html#timers_class_immediate" class="type">&lt;Immediate&gt;</a> for use with <a href="timers.html#timers_clearimmediate_immediate"><code>clearImmediate()</code></a></li>
 </ul>

@@ -1,0 +1,53 @@
+How to setup nodec
+
+nodec is used to compile node application into a single exe binary for deployment.
+nodec was originally published at github repo https://github.com/pmq20/node-packer.
+But the official release did not get updated to latest node version.
+So we did a local fork and updated it to 8.11.4 as of 2018-08-21.
+
+This guide is currenly only for windows, although nodec shall be able to compile nodejs for linux environment as well (not tested yet with our own fork, official release tested previously to be working).
+
+---------
+
+1) to install nodec, just do a git clone.
+recommended to put it under c:\workspace\nodec, as currently the build scripts assume nodec is located at this location.
+
+by git clone:
+C:\> cd c:\workspace
+C:\> git clone git@gitlab.sft.asia:high-assurance-guard/nodec.git
+
+by download:
+Download as zip from gitlab page directly (select the correct branch you want to download)
+
+2) there are some dependencies you need to install
+NOTE: 
+- install x64 (64 bit) versions
+- install portable version if available/where possible (just unzip to c:\bin)
+
+nodejs - https://nodejs.org/dist/v8.11.4/node-v8.11.4-win-x64.zip
+install the same version as what nodec supports (8.11.4 currently)
+
+Ruby - https://rubyinstaller.org/downloads/
+Just download latest stable version for windows x64 shall be fine.
+
+Python 2.7 - https://www.python.org/ftp/python/2.7.15/python-2.7.15.amd64.msi
+Python 3 may not work for now
+
+squashfs - https://github.com/pmq20/squashfuse/files/691217/sqfs43-win32.zip
+Reference: https://github.com/pmq20/node-packer/issues/43
+
+visual studio community edition https://visualstudio.microsoft.com/downloads/
+VS Community edition 2017 tested fine. VS in this context is mainly to provide the compilation toolchain.
+But of course you can use it for other development as well like .NET app.
+
+3) test nodec
+once all installed, you can goto respective project folder, eg c:\sft\app
+then run nodec_build.bat
+if there is any error, then troubleshoot one by one
+
+---------
+
+Updating nodec
+
+We need to update nodec where there is newer version of nodejs released.
+Follow the instruction in C:\workspace\nodec\HACKERS_GUIDE.md from the cloned repo.

@@ -2,14 +2,14 @@
 'use strict';
 const common = require('../common');
 const { recordState } = require('../common/heap');
-const http2 = require('http2');
 if (!common.hasCrypto)
   common.skip('missing crypto');
+const http2 = require('http2');
 
 {
   const state = recordState();
-  state.validateSnapshotNodes('HTTP2SESSION', []);
-  state.validateSnapshotNodes('HTTP2STREAM', []);
+  state.validateSnapshotNodes('Http2Session', []);
+  state.validateSnapshotNodes('Http2Stream', []);
 }
 
 const server = http2.createServer();
@@ -22,42 +22,48 @@ server.listen(0, () => {
 
   req.on('response', common.mustCall(() => {
     const state = recordState();
-    state.validateSnapshotNodes('HTTP2STREAM', [
+
+    // `Node / Http2Stream` (C++) -> Http2Stream (JS)
+    state.validateSnapshotNodes('Http2Stream', [
       {
         children: [
           { name: 'Http2Stream' }
         ]
       },
     ], { loose: true });
-    state.validateSnapshotNodes('FILEHANDLE', [
+
+    // `Node / FileHandle` (C++) -> FileHandle (JS)
+    state.validateSnapshotNodes('FileHandle', [
       {
         children: [
           { name: 'FileHandle' }
         ]
       }
     ]);
-    state.validateSnapshotNodes('TCPWRAP', [
+    state.validateSnapshotNodes('TCPSocketWrap', [
       {
         children: [
           { name: 'TCP' }
         ]
       }
     ], { loose: true });
-    state.validateSnapshotNodes('TCPSERVERWRAP', [
+    state.validateSnapshotNodes('TCPServerWrap', [
       {
         children: [
           { name: 'TCP' }
         ]
       }
     ], { loose: true });
-    state.validateSnapshotNodes('STREAMPIPE', [
+    // `Node / StreamPipe` (C++) -> StreamPipe (JS)
+    state.validateSnapshotNodes('StreamPipe', [
       {
         children: [
           { name: 'StreamPipe' }
         ]
       }
     ]);
-    state.validateSnapshotNodes('HTTP2SESSION', [
+    // `Node / Http2Session` (C++) -> Http2Session (JS)
+    state.validateSnapshotNodes('Http2Session', [
       {
         children: [
           { name: 'Http2Session' },

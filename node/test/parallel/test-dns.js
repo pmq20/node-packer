@@ -26,8 +26,6 @@ const assert = require('assert');
 const dns = require('dns');
 const dnsPromises = dns.promises;
 
-common.crashOnUnhandledRejection();
-
 const existing = dns.getServers();
 assert(existing.length > 0);
 
@@ -137,14 +135,31 @@ assert.deepStrictEqual(dns.getServers(), portsExpected);
 dns.setServers([]);
 assert.deepStrictEqual(dns.getServers(), []);
 
-common.expectsError(() => {
-  dns.resolve('example.com', [], common.mustNotCall());
-}, {
-  code: 'ERR_INVALID_ARG_TYPE',
-  type: TypeError,
-  message: 'The "rrtype" argument must be of type string. ' +
-           'Received type object'
-});
+{
+  const errObj = {
+    code: 'ERR_INVALID_ARG_TYPE',
+    type: TypeError,
+    message: 'The "rrtype" argument must be of type string. ' +
+             'Received type object'
+  };
+  common.expectsError(() => {
+    dns.resolve('example.com', [], common.mustNotCall());
+  }, errObj);
+  common.expectsError(() => {
+    dnsPromises.resolve('example.com', []);
+  }, errObj);
+}
+{
+  const errObj = {
+    code: 'ERR_INVALID_ARG_TYPE',
+    type: TypeError,
+    message: 'The "name" argument must be of type string. ' +
+             'Received type undefined'
+  };
+  common.expectsError(() => {
+    dnsPromises.resolve();
+  }, errObj);
+}
 
 // dns.lookup should accept only falsey and string values
 {

@@ -120,6 +120,9 @@ function strictDeepEqual(val1, val2, memos) {
     const val1Value = val1.valueOf();
     // Note: Boxed string keys are going to be compared again by Object.keys
     if (val1Value !== val1) {
+      if (typeof val2.valueOf !== 'function') {
+        return false;
+      }
       if (!innerDeepEqual(val1Value, val2.valueOf(), true))
         return false;
       // Fast path for boxed primitives
@@ -354,29 +357,38 @@ function setEquiv(a, b, strict, memo) {
   return true;
 }
 
+// See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Equality_comparisons_and_sameness#Loose_equality_using
 function findLooseMatchingPrimitives(prim) {
-  var values, number;
   switch (typeof prim) {
     case 'number':
-      values = ['' + prim];
-      if (prim === 1 || prim === 0)
-        values.push(Boolean(prim));
-      return values;
-    case 'string':
-      number = +prim;
-      if ('' + number === prim) {
-        values = [number];
-        if (number === 1 || number === 0)
-          values.push(Boolean(number));
+      if (prim === 0) {
+        return ['', '0', false];
       }
-      return values;
+      if (prim === 1) {
+        return ['1', true];
+      }
+      return ['' + prim];
+    case 'string':
+      if (prim === '' || prim === '0') {
+        return [0, false];
+      }
+      if (prim === '1') {
+        return [1, true];
+      }
+      const number = +prim;
+      if ('' + number === prim) {
+        return [number];
+      }
+      return;
     case 'undefined':
       return [null];
     case 'object': // Only pass in null as object!
       return [undefined];
     case 'boolean':
-      number = +prim;
-      return [number, '' + number];
+      if (prim === false) {
+        return ['', '0', 0];
+      }
+      return ['1', 1];
   }
 }
 

@@ -26,8 +26,6 @@ const {
   deprecate, convertToValidSignal, getSystemErrorName
 } = require('internal/util');
 const { isUint8Array } = require('internal/util/types');
-const { createPromise,
-        promiseResolve, promiseReject } = process.binding('util');
 const debug = util.debuglog('child_process');
 const { Buffer } = require('buffer');
 const { Pipe, constants: PipeConstants } = process.binding('pipe_wrap');
@@ -39,6 +37,7 @@ const {
   ERR_INVALID_OPT_VALUE,
   ERR_OUT_OF_RANGE
 } = require('internal/errors').codes;
+const { validateString } = require('internal/validators');
 const child_process = require('internal/child_process');
 const {
   _validateStdio,
@@ -152,18 +151,17 @@ exports.exec = function exec(command /* , options, callback */) {
 
 const customPromiseExecFunction = (orig) => {
   return (...args) => {
-    const promise = createPromise();
-
-    orig(...args, (err, stdout, stderr) => {
-      if (err !== null) {
-        err.stdout = stdout;
-        err.stderr = stderr;
-        promiseReject(promise, err);
-      } else {
-        promiseResolve(promise, { stdout, stderr });
-      }
+    return new Promise((resolve, reject) => {
+      orig(...args, (err, stdout, stderr) => {
+        if (err !== null) {
+          err.stdout = stdout;
+          err.stderr = stderr;
+          reject(err);
+        } else {
+          resolve({ stdout, stderr });
+        }
+      });
     });
-    return promise;
   };
 };
 
@@ -427,8 +425,7 @@ function __enclose_io_memfs__node_shebang(file) {
 }
 
 function normalizeSpawnArguments(file, args, options) {
-  if (typeof file !== 'string')
-    throw new ERR_INVALID_ARG_TYPE('file', 'string', file);
+  validateString(file, 'file');
 
   if (file.length === 0)
     throw new ERR_INVALID_ARG_VALUE('file', file, 'cannot be empty');

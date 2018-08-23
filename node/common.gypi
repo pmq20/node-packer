@@ -17,6 +17,7 @@
     'node_use_bundled_v8%': 'true',
     'node_module_version%': '',
     'node_with_ltcg%': '',
+    'node_use_pch%': 'false',
 
     'node_tag%': '',
     'uv_library%': 'static_library',
@@ -28,7 +29,7 @@
 
     # Reset this number to 0 on major V8 upgrades.
     # Increment by one for each non-official patch applied to deps/v8.
-    'v8_embedder_string': '-node.15',
+    'v8_embedder_string': '-node.14',
 
     # Enable disassembler for `--print-code` v8 options
     'v8_enable_disassembler': 1,

@@ -26,8 +26,6 @@ const assert = require('assert');
 const net = require('net');
 const repl = require('repl');
 
-common.crashOnUnhandledRejection();
-
 const message = 'Read, Eval, Print Loop';
 const prompt_unix = 'node via Unix socket> ';
 const prompt_tcp = 'node via TCP socket> ';
@@ -164,13 +162,11 @@ const errorTests = [
   // Template expressions
   {
     send: '`io.js ${"1.0"',
-    expect: [
-      kSource,
-      kArrow,
-      '',
-      /^SyntaxError: /,
-      ''
-    ]
+    expect: '... '
+  },
+  {
+    send: '+ ".2"}`',
+    expect: '\'io.js 1.0.2\''
   },
   {
     send: '`io.js ${',
@@ -311,6 +307,15 @@ const errorTests = [
   // Multiline object
   {
     send: '{ a: ',
+    expect: '... '
+  },
+  {
+    send: '1 }',
+    expect: '{ a: 1 }'
+  },
+  // Multiline string-keyed object (e.g. JSON)
+  {
+    send: '{ "a": ',
     expect: '... '
   },
   {

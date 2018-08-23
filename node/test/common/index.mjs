@@ -3,7 +3,6 @@
 import common from './index.js';
 
 const {
-  PORT,
   isMainThread,
   isWindows,
   isWOW64,
@@ -34,7 +33,6 @@ const {
   mustCallAtLeast,
   mustCallAsync,
   hasMultiLocalhost,
-  fileExists,
   skipIfEslintMissing,
   canCreateSymLink,
   getCallSite,
@@ -52,7 +50,7 @@ const {
   skipIf32Bits,
   getArrayBufferViews,
   getBufferSources,
-  crashOnUnhandledRejection,
+  disableCrashOnUnhandledRejection,
   getTTYfd,
   runWithInvalidFD,
   hijackStdout,
@@ -63,7 +61,6 @@ const {
 } = common;
 
 export {
-  PORT,
   isMainThread,
   isWindows,
   isWOW64,
@@ -94,7 +91,6 @@ export {
   mustCallAtLeast,
   mustCallAsync,
   hasMultiLocalhost,
-  fileExists,
   skipIfEslintMissing,
   canCreateSymLink,
   getCallSite,
@@ -112,7 +108,7 @@ export {
   skipIf32Bits,
   getArrayBufferViews,
   getBufferSources,
-  crashOnUnhandledRejection,
+  disableCrashOnUnhandledRejection,
   getTTYfd,
   runWithInvalidFD,
   hijackStdout,

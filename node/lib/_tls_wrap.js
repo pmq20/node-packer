@@ -50,6 +50,7 @@ const {
   ERR_TLS_SESSION_ATTACK,
   ERR_TLS_SNI_FROM_SERVER
 } = require('internal/errors').codes;
+const { validateString } = require('internal/validators');
 const kConnectOptions = Symbol('connect-options');
 const kDisableRenegotiation = Symbol('disable-renegotiation');
 const kErrorEmitted = Symbol('error-emitted');
@@ -645,9 +646,7 @@ TLSSocket.prototype._start = function() {
 };
 
 TLSSocket.prototype.setServername = function(name) {
-  if (typeof name !== 'string') {
-    throw new ERR_INVALID_ARG_TYPE('name', 'string', name);
-  }
+  validateString(name, 'name');
 
   if (this._tlsOptions.isServer) {
     throw new ERR_TLS_SNI_FROM_SERVER();
@@ -907,7 +906,7 @@ function Server(options, listener) {
 
 util.inherits(Server, net.Server);
 exports.Server = Server;
-exports.createServer = function(options, listener) {
+exports.createServer = function createServer(options, listener) {
   return new Server(options, listener);
 };
 
@@ -1093,7 +1092,8 @@ function onConnectEnd() {
   }
 }
 
-exports.connect = function(...args /* [port,] [host,] [options,] [cb] */) {
+// Arguments: [port,] [host,] [options,] [cb]
+exports.connect = function connect(...args) {
   args = normalizeConnectArgs(args);
   var options = args[0];
   var cb = args[1];

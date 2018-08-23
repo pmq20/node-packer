@@ -44,8 +44,6 @@ const _tls_wrap = require('_tls_wrap');
 exports.CLIENT_RENEG_LIMIT = 3;
 exports.CLIENT_RENEG_WINDOW = 600;
 
-exports.SLAB_BUFFER_SIZE = 10 * 1024 * 1024;
-
 exports.DEFAULT_CIPHERS =
     process.binding('constants').crypto.defaultCipherList;
 
@@ -85,7 +83,7 @@ exports.convertNPNProtocols = internalUtil.deprecate(function(protocols, out) {
   }
 }, 'tls.convertNPNProtocols() is deprecated.', 'DEP0107');
 
-exports.convertALPNProtocols = function(protocols, out) {
+exports.convertALPNProtocols = function convertALPNProtocols(protocols, out) {
   // If protocols is Array - translate it into buffer
   if (Array.isArray(protocols)) {
     out.ALPNProtocols = convertProtocols(protocols);

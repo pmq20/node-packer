@@ -326,58 +326,6 @@ enum padding_strategy_type {
   PADDING_STRATEGY_CALLBACK
 };
 
-// These are the error codes provided by the underlying nghttp2 implementation.
-#define NGHTTP2_ERROR_CODES(V)                                                 \
-  V(NGHTTP2_ERR_INVALID_ARGUMENT)                                              \
-  V(NGHTTP2_ERR_BUFFER_ERROR)                                                  \
-  V(NGHTTP2_ERR_UNSUPPORTED_VERSION)                                           \
-  V(NGHTTP2_ERR_WOULDBLOCK)                                                    \
-  V(NGHTTP2_ERR_PROTO)                                                         \
-  V(NGHTTP2_ERR_INVALID_FRAME)                                                 \
-  V(NGHTTP2_ERR_EOF)                                                           \
-  V(NGHTTP2_ERR_DEFERRED)                                                      \
-  V(NGHTTP2_ERR_STREAM_ID_NOT_AVAILABLE)                                       \
-  V(NGHTTP2_ERR_STREAM_CLOSED)                                                 \
-  V(NGHTTP2_ERR_STREAM_CLOSING)                                                \
-  V(NGHTTP2_ERR_STREAM_SHUT_WR)                                                \
-  V(NGHTTP2_ERR_INVALID_STREAM_ID)                                             \
-  V(NGHTTP2_ERR_INVALID_STREAM_STATE)                                          \
-  V(NGHTTP2_ERR_DEFERRED_DATA_EXIST)                                           \
-  V(NGHTTP2_ERR_START_STREAM_NOT_ALLOWED)                                      \
-  V(NGHTTP2_ERR_GOAWAY_ALREADY_SENT)                                           \
-  V(NGHTTP2_ERR_INVALID_HEADER_BLOCK)                                          \
-  V(NGHTTP2_ERR_INVALID_STATE)                                                 \
-  V(NGHTTP2_ERR_TEMPORAL_CALLBACK_FAILURE)                                     \
-  V(NGHTTP2_ERR_FRAME_SIZE_ERROR)                                              \
-  V(NGHTTP2_ERR_HEADER_COMP)                                                   \
-  V(NGHTTP2_ERR_FLOW_CONTROL)                                                  \
-  V(NGHTTP2_ERR_INSUFF_BUFSIZE)                                                \
-  V(NGHTTP2_ERR_PAUSE)                                                         \
-  V(NGHTTP2_ERR_TOO_MANY_INFLIGHT_SETTINGS)                                    \
-  V(NGHTTP2_ERR_PUSH_DISABLED)                                                 \
-  V(NGHTTP2_ERR_DATA_EXIST)                                                    \
-  V(NGHTTP2_ERR_SESSION_CLOSING)                                               \
-  V(NGHTTP2_ERR_HTTP_HEADER)                                                   \
-  V(NGHTTP2_ERR_HTTP_MESSAGING)                                                \
-  V(NGHTTP2_ERR_REFUSED_STREAM)                                                \
-  V(NGHTTP2_ERR_INTERNAL)                                                      \
-  V(NGHTTP2_ERR_CANCEL)                                                        \
-  V(NGHTTP2_ERR_FATAL)                                                         \
-  V(NGHTTP2_ERR_NOMEM)                                                         \
-  V(NGHTTP2_ERR_CALLBACK_FAILURE)                                              \
-  V(NGHTTP2_ERR_BAD_CLIENT_MAGIC)                                              \
-  V(NGHTTP2_ERR_FLOODED)
-
-const char* nghttp2_errname(int rv) {
-  switch (rv) {
-#define V(code) case code: return #code;
-  NGHTTP2_ERROR_CODES(V)
-#undef V
-    default:
-      return "NGHTTP2_UNKNOWN_ERROR";
-  }
-}
-
 enum session_state_flags {
   SESSION_STATE_NONE = 0x0,
   SESSION_STATE_HAS_SCOPE = 0x1,
@@ -627,6 +575,8 @@ class Http2Stream : public AsyncWrap,
     tracker->TrackField("queue", queue_);
   }
 
+  ADD_MEMORY_INFO_NAME(Http2Stream)
+
   std::string diagnostic_name() const override;
 
   // JavaScript API
@@ -812,6 +762,8 @@ class Http2Session : public AsyncWrap, public StreamListener {
     tracker->TrackFieldWithSize("pending_rst_streams",
                                 pending_rst_streams_.size() * sizeof(int32_t));
   }
+
+  ADD_MEMORY_INFO_NAME(Http2Session)
 
   std::string diagnostic_name() const override;
 
@@ -1133,6 +1085,8 @@ class Http2Session::Http2Ping : public AsyncWrap {
     tracker->TrackField("session", session_);
   }
 
+  ADD_MEMORY_INFO_NAME(Http2Ping)
+
   void Send(uint8_t* payload);
   void Done(bool ack, const uint8_t* payload = nullptr);
 
@@ -1155,6 +1109,8 @@ class Http2Session::Http2Settings : public AsyncWrap {
     tracker->TrackThis(this);
     tracker->TrackField("session", session_);
   }
+
+  ADD_MEMORY_INFO_NAME(Http2Settings)
 
   void Send();
   void Done(bool ack);

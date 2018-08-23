@@ -1,4 +1,5 @@
 {
+  "type": "module",
   "source": "doc/api/tty.md",
   "modules": [
     {
@@ -7,7 +8,7 @@
       "introduced_in": "v0.10.0",
       "stability": 2,
       "stabilityText": "Stable",
-      "desc": "<p>The <code>tty</code> module provides the <code>tty.ReadStream</code> and <code>tty.WriteStream</code> classes.\nIn most cases, it will not be necessary or possible to use this module directly.\nHowever, it can be accessed using:</p>\n<pre><code class=\"lang-js\">const tty = require(&#39;tty&#39;);\n</code></pre>\n<p>When Node.js detects that it is being run with a text terminal (&quot;TTY&quot;)\nattached, <a href=\"process.html#process_process_stdin\"><code>process.stdin</code></a> will, by default, be initialized as an instance of\n<code>tty.ReadStream</code> and both <a href=\"process.html#process_process_stdout\"><code>process.stdout</code></a> and <a href=\"process.html#process_process_stderr\"><code>process.stderr</code></a> will, by\ndefault be instances of <code>tty.WriteStream</code>. The preferred method of determining\nwhether Node.js is being run within a TTY context is to check that the value of\nthe <code>process.stdout.isTTY</code> property is <code>true</code>:</p>\n<pre><code class=\"lang-sh\">$ node -p -e &quot;Boolean(process.stdout.isTTY)&quot;\ntrue\n$ node -p -e &quot;Boolean(process.stdout.isTTY)&quot; | cat\nfalse\n</code></pre>\n<p>In most cases, there should be little to no reason for an application to\nmanually create instances of the <code>tty.ReadStream</code> and <code>tty.WriteStream</code>\nclasses.</p>\n",
+      "desc": "<p>The <code>tty</code> module provides the <code>tty.ReadStream</code> and <code>tty.WriteStream</code> classes.\nIn most cases, it will not be necessary or possible to use this module directly.\nHowever, it can be accessed using:</p>\n<pre><code class=\"language-js\">const tty = require('tty');\n</code></pre>\n<p>When Node.js detects that it is being run with a text terminal (\"TTY\")\nattached, <a href=\"process.html#process_process_stdin\"><code>process.stdin</code></a> will, by default, be initialized as an instance of\n<code>tty.ReadStream</code> and both <a href=\"process.html#process_process_stdout\"><code>process.stdout</code></a> and <a href=\"process.html#process_process_stderr\"><code>process.stderr</code></a> will, by\ndefault be instances of <code>tty.WriteStream</code>. The preferred method of determining\nwhether Node.js is being run within a TTY context is to check that the value of\nthe <code>process.stdout.isTTY</code> property is <code>true</code>:</p>\n<pre><code class=\"language-sh\">$ node -p -e \"Boolean(process.stdout.isTTY)\"\ntrue\n$ node -p -e \"Boolean(process.stdout.isTTY)\" | cat\nfalse\n</code></pre>\n<p>In most cases, there should be little to no reason for an application to\nmanually create instances of the <code>tty.ReadStream</code> and <code>tty.WriteStream</code>\nclasses.</p>",
       "classes": [
         {
           "textRaw": "Class: tty.ReadStream",
@@ -19,7 +20,7 @@
             ],
             "changes": []
           },
-          "desc": "<p>The <code>tty.ReadStream</code> class is a subclass of <a href=\"net.html#net_class_net_socket\"><code>net.Socket</code></a> that represents the\nreadable side of a TTY. In normal circumstances <a href=\"process.html#process_process_stdin\"><code>process.stdin</code></a> will be the\nonly <code>tty.ReadStream</code> instance in a Node.js process and there should be no\nreason to create additional instances.</p>\n",
+          "desc": "<p>The <code>tty.ReadStream</code> class is a subclass of <a href=\"net.html#net_class_net_socket\"><code>net.Socket</code></a> that represents the\nreadable side of a TTY. In normal circumstances <a href=\"process.html#process_process_stdin\"><code>process.stdin</code></a> will be the\nonly <code>tty.ReadStream</code> instance in a Node.js process and there should be no\nreason to create additional instances.</p>",
           "properties": [
             {
               "textRaw": "readStream.isRaw",
@@ -30,7 +31,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>A <code>boolean</code> that is <code>true</code> if the TTY is currently configured to operate as a\nraw device. Defaults to <code>false</code>.</p>\n"
+              "desc": "<p>A <code>boolean</code> that is <code>true</code> if the TTY is currently configured to operate as a\nraw device. Defaults to <code>false</code>.</p>"
             },
             {
               "textRaw": "readStream.isTTY",
@@ -41,7 +42,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>A <code>boolean</code> that is always <code>true</code> for <code>tty.ReadStream</code> instances.</p>\n"
+              "desc": "<p>A <code>boolean</code> that is always <code>true</code> for <code>tty.ReadStream</code> instances.</p>"
             }
           ],
           "methods": [
@@ -55,16 +56,19 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Allows configuration of <code>tty.ReadStream</code> so that it operates as a raw device.</p>\n<p>When in raw mode, input is always available character-by-character, not\nincluding modifiers. Additionally, all special processing of characters by the\nterminal is disabled, including echoing input characters.\nNote that <code>CTRL</code>+<code>C</code> will no longer cause a <code>SIGINT</code> when in this mode.</p>\n<ul>\n<li><code>mode</code> {boolean} If <code>true</code>, configures the <code>tty.ReadStream</code> to operate as a\nraw device. If <code>false</code>, configures the <code>tty.ReadStream</code> to operate in its\ndefault mode. The <code>readStream.isRaw</code> property will be set to the resulting\nmode.</li>\n</ul>\n",
               "signatures": [
                 {
                   "params": [
                     {
-                      "name": "mode"
+                      "textRaw": "`mode` {boolean} If `true`, configures the `tty.ReadStream` to operate as a raw device. If `false`, configures the `tty.ReadStream` to operate in its default mode. The `readStream.isRaw` property will be set to the resulting mode.",
+                      "name": "mode",
+                      "type": "boolean",
+                      "desc": "If `true`, configures the `tty.ReadStream` to operate as a raw device. If `false`, configures the `tty.ReadStream` to operate in its default mode. The `readStream.isRaw` property will be set to the resulting mode."
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Allows configuration of <code>tty.ReadStream</code> so that it operates as a raw device.</p>\n<p>When in raw mode, input is always available character-by-character, not\nincluding modifiers. Additionally, all special processing of characters by the\nterminal is disabled, including echoing input characters.\nNote that <code>CTRL</code>+<code>C</code> will no longer cause a <code>SIGINT</code> when in this mode.</p>"
             }
           ]
         },
@@ -78,7 +82,7 @@
             ],
             "changes": []
           },
-          "desc": "<p>The <code>tty.WriteStream</code> class is a subclass of <a href=\"net.html#net_class_net_socket\"><code>net.Socket</code></a> that represents\nthe writable side of a TTY. In normal circumstances, <a href=\"process.html#process_process_stdout\"><code>process.stdout</code></a> and\n<a href=\"process.html#process_process_stderr\"><code>process.stderr</code></a> will be the only <code>tty.WriteStream</code> instances created for a\nNode.js process and there should be no reason to create additional instances.</p>\n",
+          "desc": "<p>The <code>tty.WriteStream</code> class is a subclass of <a href=\"net.html#net_class_net_socket\"><code>net.Socket</code></a> that represents\nthe writable side of a TTY. In normal circumstances, <a href=\"process.html#process_process_stdout\"><code>process.stdout</code></a> and\n<a href=\"process.html#process_process_stderr\"><code>process.stderr</code></a> will be the only <code>tty.WriteStream</code> instances created for a\nNode.js process and there should be no reason to create additional instances.</p>",
           "events": [
             {
               "textRaw": "Event: 'resize'",
@@ -90,8 +94,8 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>The <code>&#39;resize&#39;</code> event is emitted whenever either of the <code>writeStream.columns</code>\nor <code>writeStream.rows</code> properties have changed. No arguments are passed to the\nlistener callback when called.</p>\n<pre><code class=\"lang-js\">process.stdout.on(&#39;resize&#39;, () =&gt; {\n  console.log(&#39;screen size has changed!&#39;);\n  console.log(`${process.stdout.columns}x${process.stdout.rows}`);\n});\n</code></pre>\n",
-              "params": []
+              "params": [],
+              "desc": "<p>The <code>'resize'</code> event is emitted whenever either of the <code>writeStream.columns</code>\nor <code>writeStream.rows</code> properties have changed. No arguments are passed to the\nlistener callback when called.</p>\n<pre><code class=\"language-js\">process.stdout.on('resize', () => {\n  console.log('screen size has changed!');\n  console.log(`${process.stdout.columns}x${process.stdout.rows}`);\n});\n</code></pre>"
             }
           ],
           "properties": [
@@ -104,7 +108,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>A <code>number</code> specifying the number of columns the TTY currently has. This property\nis updated whenever the <code>&#39;resize&#39;</code> event is emitted.</p>\n"
+              "desc": "<p>A <code>number</code> specifying the number of columns the TTY currently has. This property\nis updated whenever the <code>'resize'</code> event is emitted.</p>"
             },
             {
               "textRaw": "writeStream.isTTY",
@@ -115,7 +119,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>A <code>boolean</code> that is always <code>true</code>.</p>\n"
+              "desc": "<p>A <code>boolean</code> that is always <code>true</code>.</p>"
             },
             {
               "textRaw": "writeStream.rows",
@@ -126,7 +130,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>A <code>number</code> specifying the number of rows the TTY currently has. This property\nis updated whenever the <code>&#39;resize&#39;</code> event is emitted.</p>\n"
+              "desc": "<p>A <code>number</code> specifying the number of rows the TTY currently has. This property\nis updated whenever the <code>'resize'</code> event is emitted.</p>"
             }
           ],
           "methods": [
@@ -143,13 +147,13 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns: {number} ",
+                    "textRaw": "Returns: {number}",
                     "name": "return",
                     "type": "number"
                   },
                   "params": [
                     {
-                      "textRaw": "`env` {Object} An object containing the environment variables to check. **Default:** `process.env`. ",
+                      "textRaw": "`env` {Object} An object containing the environment variables to check. **Default:** `process.env`.",
                       "name": "env",
                       "type": "Object",
                       "default": "`process.env`",
@@ -157,17 +161,9 @@
                       "optional": true
                     }
                   ]
-                },
-                {
-                  "params": [
-                    {
-                      "name": "env",
-                      "optional": true
-                    }
-                  ]
                 }
               ],
-              "desc": "<p>Returns:</p>\n<ul>\n<li><code>1</code> for 2,</li>\n<li><code>4</code> for 16,</li>\n<li><code>8</code> for 256,</li>\n<li><code>24</code> for 16,777,216\ncolors supported.</li>\n</ul>\n<p>Use this to determine what colors the terminal supports. Due to the nature of\ncolors in terminals it is possible to either have false positives or false\nnegatives. It depends on process information and the environment variables that\nmay lie about what terminal is used.\nTo enforce a specific behavior without relying on <code>process.env</code> it is possible\nto pass in an object with different settings.</p>\n<p>Use the <code>NODE_DISABLE_COLORS</code> environment variable to enforce this function to\nalways return 1.</p>\n"
+              "desc": "<p>Returns:</p>\n<ul>\n<li><code>1</code> for 2,</li>\n<li><code>4</code> for 16,</li>\n<li><code>8</code> for 256,</li>\n<li><code>24</code> for 16,777,216\ncolors supported.</li>\n</ul>\n<p>Use this to determine what colors the terminal supports. Due to the nature of\ncolors in terminals it is possible to either have false positives or false\nnegatives. It depends on process information and the environment variables that\nmay lie about what terminal is used.\nTo enforce a specific behavior without relying on <code>process.env</code> it is possible\nto pass in an object with different settings.</p>\n<p>Use the <code>NODE_DISABLE_COLORS</code> environment variable to enforce this function to\nalways return 1.</p>"
             }
           ]
         }
@@ -187,22 +183,15 @@
             {
               "params": [
                 {
-                  "textRaw": "`fd` {number} A numeric file descriptor ",
+                  "textRaw": "`fd` {number} A numeric file descriptor",
                   "name": "fd",
                   "type": "number",
                   "desc": "A numeric file descriptor"
                 }
               ]
-            },
-            {
-              "params": [
-                {
-                  "name": "fd"
-                }
-              ]
             }
           ],
-          "desc": "<p>The <code>tty.isatty()</code> method returns <code>true</code> if the given <code>fd</code> is associated with\na TTY and <code>false</code> if it is not, including whenever <code>fd</code> is not a non-negative\ninteger.</p>\n"
+          "desc": "<p>The <code>tty.isatty()</code> method returns <code>true</code> if the given <code>fd</code> is associated with\na TTY and <code>false</code> if it is not, including whenever <code>fd</code> is not a non-negative\ninteger.</p>"
         }
       ],
       "type": "module",

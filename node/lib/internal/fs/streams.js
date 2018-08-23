@@ -8,7 +8,6 @@ const {
   ERR_INVALID_ARG_TYPE,
   ERR_OUT_OF_RANGE
 } = require('internal/errors').codes;
-const fs = require('fs');
 const { Buffer } = require('buffer');
 const {
   copyObject,
@@ -18,12 +17,28 @@ const { Readable, Writable } = require('stream');
 const { getPathFromURL } = require('internal/url');
 const util = require('util');
 
+let fs;
+function lazyFs() {
+  if (fs === undefined)
+    fs = require('fs');
+  return fs;
+}
+
 const kMinPoolSpace = 128;
 
 let pool;
+// It can happen that we expect to read a large chunk of data, and reserve
+// a large chunk of the pool accordingly, but the read() call only filled
+// a portion of it. If a concurrently executing read() then uses the same pool,
+// the "reserved" portion cannot be used, so we allow it to be re-used as a
+// new pool later.
+const poolFragments = [];
 
 function allocNewPool(poolSize) {
-  pool = Buffer.allocUnsafe(poolSize);
+  if (poolFragments.length > 0)
+    pool = poolFragments.pop();
+  else
+    pool = Buffer.allocUnsafe(poolSize);
   pool.used = 0;
 }
 
@@ -92,7 +107,7 @@ function ReadStream(path, options) {
 util.inherits(ReadStream, Readable);
 
 ReadStream.prototype.open = function() {
-  fs.open(this.path, this.flags, this.mode, (er, fd) => {
+  lazyFs().open(this.path, this.flags, this.mode, (er, fd) => {
     if (er) {
       if (this.autoClose) {
         this.destroy();
@@ -142,7 +157,7 @@ ReadStream.prototype._read = function(n) {
     return this.push(null);
 
   // the actual read.
-  fs.read(this.fd, pool, pool.used, toRead, this.pos, (er, bytesRead) => {
+  lazyFs().read(this.fd, pool, pool.used, toRead, this.pos, (er, bytesRead) => {
     if (er) {
       if (this.autoClose) {
         this.destroy();
@@ -150,6 +165,14 @@ ReadStream.prototype._read = function(n) {
       this.emit('error', er);
     } else {
       let b = null;
+      // Now that we know how much data we have actually read, re-wind the
+      // 'used' field if we can, and otherwise allow the remainder of our
+      // reservation to be used as a new pool later.
+      if (start + toRead === thisPool.used && thisPool === pool)
+        thisPool.used += bytesRead - toRead;
+      else if (toRead - bytesRead > kMinPoolSpace)
+        poolFragments.push(thisPool.slice(start + bytesRead, start + toRead));
+
       if (bytesRead > 0) {
         this.bytesRead += bytesRead;
         b = thisPool.slice(start, start + bytesRead);
@@ -177,7 +200,7 @@ ReadStream.prototype._destroy = function(err, cb) {
 };
 
 function closeFsStream(stream, cb, err) {
-  fs.close(stream.fd, (er) => {
+  lazyFs().close(stream.fd, (er) => {
     er = er || err;
     cb(er);
     stream.closed = true;
@@ -242,7 +265,7 @@ WriteStream.prototype._final = function(callback) {
 };
 
 WriteStream.prototype.open = function() {
-  fs.open(this.path, this.flags, this.mode, (er, fd) => {
+  lazyFs().open(this.path, this.flags, this.mode, (er, fd) => {
     if (er) {
       if (this.autoClose) {
         this.destroy();
@@ -270,7 +293,7 @@ WriteStream.prototype._write = function(data, encoding, cb) {
     });
   }
 
-  fs.write(this.fd, data, 0, data.length, this.pos, (er, bytes) => {
+  lazyFs().write(this.fd, data, 0, data.length, this.pos, (er, bytes) => {
     if (er) {
       if (this.autoClose) {
         this.destroy();

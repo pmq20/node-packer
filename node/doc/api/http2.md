@@ -108,7 +108,12 @@ have occasion to work with the `Http2Session` object directly, with most
 actions typically taken through interactions with either the `Http2Server` or
 `Http2Stream` objects.
 
-#### `Http2Session` and Sockets
+User code will not create `Http2Session` instances directly. Server-side
+`Http2Session` instances are created by the `Http2Server` instance when a
+new HTTP/2 connection is received. Client-side `Http2Session` instances are
+created using the `http2.connect()` method.
+
+#### Http2Session and Sockets
 
 Every `Http2Session` instance is associated with exactly one [`net.Socket`][] or
 [`tls.TLSSocket`][] when it is created. When either the `Socket` or the
@@ -271,11 +276,16 @@ server.on('stream', (stream, headers) => {
     'content-type': 'text/html',
     ':status': 200
   });
+  stream.on('error', (error) => console.error(error));
   stream.end('<h1>Hello World</h1>');
 });
 
 server.listen(80);
 ```
+
+Even though HTTP/2 streams and network sockets are not in a 1:1 correspondence,
+a network error will destroy each individual stream and must be handled on the
+stream level, as shown above.
 
 #### Event: 'timeout'
 <!-- YAML
@@ -1246,6 +1256,9 @@ Setting the weight of a push stream is not allowed in the `HEADERS` frame. Pass
 a `weight` value to `http2stream.priority` with the `silent` option set to
 `true` to enable server-side bandwidth balancing between concurrent streams.
 
+Calling `http2stream.pushStream()` from within a pushed stream is not permitted
+and will throw an error.
+
 #### http2stream.respond([headers[, options]])
 <!-- YAML
 added: v8.4.0
@@ -1505,9 +1518,9 @@ added: v8.4.0
 
 * Extends: {net.Server}
 
-In `Http2Server`, there are no `'clientError'` events as there are in
-HTTP1. However, there are `'sessionError'`, and `'streamError'` events for
-errors emitted on the socket, or from `Http2Session` or `Http2Stream` instances.
+Instances of `Http2Server` are created using the `http2.createServer()`
+function. The `Http2Server` class is not exported directly by the `http2`
+module.
 
 #### Event: 'checkContinue'
 <!-- YAML
@@ -1558,14 +1571,6 @@ added: v8.4.0
 The `'sessionError'` event is emitted when an `'error'` event is emitted by
 an `Http2Session` object associated with the `Http2Server`.
 
-#### Event: 'streamError'
-<!-- YAML
-added: v8.5.0
--->
-
-If a `ServerHttp2Stream` emits an `'error'` event, it will be forwarded here.
-The stream will already be destroyed when this event is triggered.
-
 #### Event: 'stream'
 <!-- YAML
 added: v8.4.0
@@ -1609,7 +1614,7 @@ a given number of milliseconds set using `http2server.setTimeout()`.
 <!-- YAML
 added: v8.4.0
 -->
-- `callback` {Function}
+* `callback` {Function}
 
 Stops the server from accepting new connections.  See [`net.Server.close()`][].
 
@@ -1623,6 +1628,10 @@ added: v8.4.0
 -->
 
 * Extends: {tls.Server}
+
+Instances of `Http2SecureServer` are created using the
+`http2.createSecureServer()` function. The `Http2SecureServer` class is not
+exported directly by the `http2` module.
 
 #### Event: 'checkContinue'
 <!-- YAML
@@ -1728,7 +1737,7 @@ the connection is terminated. See the [Compatibility API][].
 <!-- YAML
 added: v8.4.0
 -->
-- `callback` {Function}
+* `callback` {Function}
 
 Stops the server from accepting new connections.  See [`tls.Server.close()`][].
 
@@ -1921,6 +1930,7 @@ instances.
 
 ```js
 const http2 = require('http2');
+const fs = require('fs');
 
 const options = {
   key: fs.readFileSync('server-key.pem'),
@@ -3139,6 +3149,8 @@ will result in a [`TypeError`][] being thrown.
 <!-- YAML
 added: v8.4.0
 -->
+* `headers` {HTTP/2 Headers Object} An object describing the headers
+* `callback` {Function}
 
 Call [`http2stream.pushStream()`][] with the given headers, and wraps the
 given newly created [`Http2Stream`] on `Http2ServerResponse`.

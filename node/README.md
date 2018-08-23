@@ -240,7 +240,7 @@ For more information about the governance of the Node.js project, see
 * [ChALkeR](https://github.com/ChALkeR) -
 **Сковорода Никита Андреевич** &lt;chalkerx@gmail.com&gt; (he/him)
 * [cjihrig](https://github.com/cjihrig) -
-**Colin Ihrig** &lt;cjihrig@gmail.com&gt;
+**Colin Ihrig** &lt;cjihrig@gmail.com&gt; (he/him)
 * [danbev](https://github.com/danbev) -
 **Daniel Bevenius** &lt;daniel.bevenius@gmail.com&gt;
 * [fhinkel](https://github.com/fhinkel) -
@@ -342,7 +342,7 @@ For more information about the governance of the Node.js project, see
 * [chrisdickinson](https://github.com/chrisdickinson) -
 **Chris Dickinson** &lt;christopher.s.dickinson@gmail.com&gt;
 * [cjihrig](https://github.com/cjihrig) -
-**Colin Ihrig** &lt;cjihrig@gmail.com&gt;
+**Colin Ihrig** &lt;cjihrig@gmail.com&gt; (he/him)
 * [claudiorodriguez](https://github.com/claudiorodriguez) -
 **Claudio Rodriguez** &lt;cjrodr@yahoo.com&gt;
 * [codebytere](https://github.com/codebytere) -
@@ -373,6 +373,8 @@ For more information about the governance of the Node.js project, see
 **Jeremiah Senkpiel** &lt;fishrock123@rocketmail.com&gt;
 * [gabrielschulhof](https://github.com/gabrielschulhof) -
 **Gabriel Schulhof** &lt;gabriel.schulhof@intel.com&gt;
+* [gdams](https://github.com/gdams) -
+**George Adams** &lt;george.adams@uk.ibm.com&gt; (he/him)
 * [geek](https://github.com/geek) -
 **Wyatt Preul** &lt;wpreul@gmail.com&gt;
 * [gibfahn](https://github.com/gibfahn) -
@@ -448,7 +450,7 @@ For more information about the governance of the Node.js project, see
 * [MylesBorins](https://github.com/MylesBorins) -
 **Myles Borins** &lt;myles.borins@gmail.com&gt; (he/him)
 * [not-an-aardvark](https://github.com/not-an-aardvark) -
-**Teddy Katz** &lt;teddy.katz@gmail.com&gt;
+**Teddy Katz** &lt;teddy.katz@gmail.com&gt; (he/him)
 * [ofrobots](https://github.com/ofrobots) -
 **Ali Ijaz Sheikh** &lt;ofrobots@google.com&gt; (he/him)
 * [orangemocha](https://github.com/orangemocha) -
@@ -471,6 +473,8 @@ For more information about the governance of the Node.js project, see
 **Ron Korving** &lt;ron@ronkorving.nl&gt;
 * [RReverser](https://github.com/RReverser) -
 **Ingvar Stepanyan** &lt;me@rreverser.com&gt;
+* [rubys](https://github.com/rubys) -
+**Sam Ruby** &lt;rubys@intertwingly.net&gt;
 * [rvagg](https://github.com/rvagg) -
 **Rod Vagg** &lt;rod@vagg.org&gt;
 * [ryzokuken](https://github.com/ryzokuken) -

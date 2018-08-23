@@ -389,6 +389,46 @@ console.log(myURL.href);
 
 Invalid URL protocol values assigned to the `protocol` property are ignored.
 
+##### Special Schemes
+
+The [WHATWG URL Standard][] considers a handful of URL protocol schemes to be
+_special_ in terms of how they are parsed and serialized. When a URL is
+parsed using one of these special protocols, the `url.protocol` property
+may be changed to another special protocol but cannot be changed to a
+non-special protocol, and vice versa.
+
+For instance, changing from `http` to `https` works:
+
+```js
+const u = new URL('http://example.org');
+u.protocol = 'https';
+console.log(u.href);
+// https://example.org
+```
+
+However, changing from `http` to a hypothetical `fish` protocol does not
+because the new protocol is not special.
+
+```js
+const u = new URL('http://example.org');
+u.protocol = 'fish';
+console.log(u.href);
+// http://example.org
+```
+
+Likewise, changing from a non-special protocol to a special protocol is also
+not permitted:
+
+```js
+const u = new URL('fish://example.org');
+u.protocol = 'http';
+console.log(u.href);
+// fish://example.org
+```
+
+The protocol schemes considered to be special by the WHATWG URL Standard
+include: `ftp`, `file`, `gopher`, `http`, `https`, `ws`, and `wss`.
+
 #### url.search
 
 * {string}
@@ -879,17 +919,17 @@ The legacy `urlObject` (`require('url').Url`) is created and returned by the
 #### urlObject.auth
 
 The `auth` property is the username and password portion of the URL, also
-referred to as "userinfo". This string subset follows the `protocol` and
-double slashes (if present) and precedes the `host` component, delimited by an
-ASCII "at sign" (`@`). The format of the string is `{username}[:{password}]`,
-with the `[:{password}]` portion being optional.
+referred to as _userinfo_. This string subset follows the `protocol` and
+double slashes (if present) and precedes the `host` component, delimited by `@`.
+The string is either the username, or it is the username and password separated
+by `:`.
 
 For example: `'user:pass'`.
 
 #### urlObject.hash
 
-The `hash` property consists of the "fragment" portion of the URL including
-the leading ASCII hash (`#`) character.
+The `hash` property is the fragment identifier portion of the URL including the
+leading `#` character.
 
 For example: `'#hash'`.
 

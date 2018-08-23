@@ -1,4 +1,5 @@
 {
+  "type": "module",
   "source": "doc/api/zlib.md",
   "modules": [
     {
@@ -7,26 +8,26 @@
       "introduced_in": "v0.10.0",
       "stability": 2,
       "stabilityText": "Stable",
-      "desc": "<p>The <code>zlib</code> module provides compression functionality implemented using Gzip and\nDeflate/Inflate. It can be accessed using:</p>\n<pre><code class=\"lang-js\">const zlib = require(&#39;zlib&#39;);\n</code></pre>\n<p>Compressing or decompressing a stream (such as a file) can be accomplished by\npiping the source stream data through a <code>zlib</code> stream into a destination stream:</p>\n<pre><code class=\"lang-js\">const gzip = zlib.createGzip();\nconst fs = require(&#39;fs&#39;);\nconst inp = fs.createReadStream(&#39;input.txt&#39;);\nconst out = fs.createWriteStream(&#39;input.txt.gz&#39;);\n\ninp.pipe(gzip).pipe(out);\n</code></pre>\n<p>It is also possible to compress or decompress data in a single step:</p>\n<pre><code class=\"lang-js\">const input = &#39;.................................&#39;;\nzlib.deflate(input, (err, buffer) =&gt; {\n  if (!err) {\n    console.log(buffer.toString(&#39;base64&#39;));\n  } else {\n    // handle error\n  }\n});\n\nconst buffer = Buffer.from(&#39;eJzT0yMAAGTvBe8=&#39;, &#39;base64&#39;);\nzlib.unzip(buffer, (err, buffer) =&gt; {\n  if (!err) {\n    console.log(buffer.toString());\n  } else {\n    // handle error\n  }\n});\n</code></pre>\n",
+      "desc": "<p>The <code>zlib</code> module provides compression functionality implemented using Gzip and\nDeflate/Inflate. It can be accessed using:</p>\n<pre><code class=\"language-js\">const zlib = require('zlib');\n</code></pre>\n<p>Compressing or decompressing a stream (such as a file) can be accomplished by\npiping the source stream data through a <code>zlib</code> stream into a destination stream:</p>\n<pre><code class=\"language-js\">const gzip = zlib.createGzip();\nconst fs = require('fs');\nconst inp = fs.createReadStream('input.txt');\nconst out = fs.createWriteStream('input.txt.gz');\n\ninp.pipe(gzip).pipe(out);\n</code></pre>\n<p>It is also possible to compress or decompress data in a single step:</p>\n<pre><code class=\"language-js\">const input = '.................................';\nzlib.deflate(input, (err, buffer) => {\n  if (!err) {\n    console.log(buffer.toString('base64'));\n  } else {\n    // handle error\n  }\n});\n\nconst buffer = Buffer.from('eJzT0yMAAGTvBe8=', 'base64');\nzlib.unzip(buffer, (err, buffer) => {\n  if (!err) {\n    console.log(buffer.toString());\n  } else {\n    // handle error\n  }\n});\n</code></pre>",
       "modules": [
         {
           "textRaw": "Threadpool Usage",
           "name": "threadpool_usage",
-          "desc": "<p>Note that all zlib APIs except those that are explicitly synchronous use libuv&#39;s\nthreadpool. This can lead to surprising effects in some applications, such as\nsubpar performance (which can be mitigated by adjusting the <a href=\"cli.html#cli_uv_threadpool_size_size\">pool size</a>)\nand/or unrecoverable and catastrophic memory fragmentation.</p>\n",
+          "desc": "<p>Note that all zlib APIs except those that are explicitly synchronous use libuv's\nthreadpool. This can lead to surprising effects in some applications, such as\nsubpar performance (which can be mitigated by adjusting the <a href=\"cli.html#cli_uv_threadpool_size_size\">pool size</a>)\nand/or unrecoverable and catastrophic memory fragmentation.</p>",
           "type": "module",
           "displayName": "Threadpool Usage"
         },
         {
           "textRaw": "Compressing HTTP requests and responses",
           "name": "compressing_http_requests_and_responses",
-          "desc": "<p>The <code>zlib</code> module can be used to implement support for the <code>gzip</code> and <code>deflate</code>\ncontent-encoding mechanisms defined by\n<a href=\"https://tools.ietf.org/html/rfc7230#section-4.2\">HTTP</a>.</p>\n<p>The HTTP <a href=\"https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.3\"><code>Accept-Encoding</code></a> header is used within an http request to identify\nthe compression encodings accepted by the client. The <a href=\"https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.11\"><code>Content-Encoding</code></a>\nheader is used to identify the compression encodings actually applied to a\nmessage.</p>\n<p>The examples given below are drastically simplified to show the basic concept.\nUsing <code>zlib</code> encoding can be expensive, and the results ought to be cached.\nSee <a href=\"#zlib_memory_usage_tuning\">Memory Usage Tuning</a> for more information on the speed/memory/compression\ntradeoffs involved in <code>zlib</code> usage.</p>\n<pre><code class=\"lang-js\">// client request example\nconst zlib = require(&#39;zlib&#39;);\nconst http = require(&#39;http&#39;);\nconst fs = require(&#39;fs&#39;);\nconst request = http.get({ host: &#39;example.com&#39;,\n                           path: &#39;/&#39;,\n                           port: 80,\n                           headers: { &#39;Accept-Encoding&#39;: &#39;gzip,deflate&#39; } });\nrequest.on(&#39;response&#39;, (response) =&gt; {\n  const output = fs.createWriteStream(&#39;example.com_index.html&#39;);\n\n  switch (response.headers[&#39;content-encoding&#39;]) {\n    // or, just use zlib.createUnzip() to handle both cases\n    case &#39;gzip&#39;:\n      response.pipe(zlib.createGunzip()).pipe(output);\n      break;\n    case &#39;deflate&#39;:\n      response.pipe(zlib.createInflate()).pipe(output);\n      break;\n    default:\n      response.pipe(output);\n      break;\n  }\n});\n</code></pre>\n<pre><code class=\"lang-js\">// server example\n// Running a gzip operation on every request is quite expensive.\n// It would be much more efficient to cache the compressed buffer.\nconst zlib = require(&#39;zlib&#39;);\nconst http = require(&#39;http&#39;);\nconst fs = require(&#39;fs&#39;);\nhttp.createServer((request, response) =&gt; {\n  const raw = fs.createReadStream(&#39;index.html&#39;);\n  let acceptEncoding = request.headers[&#39;accept-encoding&#39;];\n  if (!acceptEncoding) {\n    acceptEncoding = &#39;&#39;;\n  }\n\n  // Note: This is not a conformant accept-encoding parser.\n  // See https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.3\n  if (/\\bdeflate\\b/.test(acceptEncoding)) {\n    response.writeHead(200, { &#39;Content-Encoding&#39;: &#39;deflate&#39; });\n    raw.pipe(zlib.createDeflate()).pipe(response);\n  } else if (/\\bgzip\\b/.test(acceptEncoding)) {\n    response.writeHead(200, { &#39;Content-Encoding&#39;: &#39;gzip&#39; });\n    raw.pipe(zlib.createGzip()).pipe(response);\n  } else {\n    response.writeHead(200, {});\n    raw.pipe(response);\n  }\n}).listen(1337);\n</code></pre>\n<p>By default, the <code>zlib</code> methods will throw an error when decompressing\ntruncated data. However, if it is known that the data is incomplete, or\nthe desire is to inspect only the beginning of a compressed file, it is\npossible to suppress the default error handling by changing the flushing\nmethod that is used to decompress the last chunk of input data:</p>\n<pre><code class=\"lang-js\">// This is a truncated version of the buffer from the above examples\nconst buffer = Buffer.from(&#39;eJzT0yMA&#39;, &#39;base64&#39;);\n\nzlib.unzip(\n  buffer,\n  { finishFlush: zlib.constants.Z_SYNC_FLUSH },\n  (err, buffer) =&gt; {\n    if (!err) {\n      console.log(buffer.toString());\n    } else {\n      // handle error\n    }\n  });\n</code></pre>\n<p>This will not change the behavior in other error-throwing situations, e.g.\nwhen the input data has an invalid format. Using this method, it will not be\npossible to determine whether the input ended prematurely or lacks the\nintegrity checks, making it necessary to manually check that the\ndecompressed result is valid.</p>\n",
+          "desc": "<p>The <code>zlib</code> module can be used to implement support for the <code>gzip</code> and <code>deflate</code>\ncontent-encoding mechanisms defined by\n<a href=\"https://tools.ietf.org/html/rfc7230#section-4.2\">HTTP</a>.</p>\n<p>The HTTP <a href=\"https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.3\"><code>Accept-Encoding</code></a> header is used within an http request to identify\nthe compression encodings accepted by the client. The <a href=\"https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.11\"><code>Content-Encoding</code></a>\nheader is used to identify the compression encodings actually applied to a\nmessage.</p>\n<p>The examples given below are drastically simplified to show the basic concept.\nUsing <code>zlib</code> encoding can be expensive, and the results ought to be cached.\nSee <a href=\"#zlib_memory_usage_tuning\">Memory Usage Tuning</a> for more information on the speed/memory/compression\ntradeoffs involved in <code>zlib</code> usage.</p>\n<pre><code class=\"language-js\">// client request example\nconst zlib = require('zlib');\nconst http = require('http');\nconst fs = require('fs');\nconst request = http.get({ host: 'example.com',\n                           path: '/',\n                           port: 80,\n                           headers: { 'Accept-Encoding': 'gzip,deflate' } });\nrequest.on('response', (response) => {\n  const output = fs.createWriteStream('example.com_index.html');\n\n  switch (response.headers['content-encoding']) {\n    // or, just use zlib.createUnzip() to handle both cases\n    case 'gzip':\n      response.pipe(zlib.createGunzip()).pipe(output);\n      break;\n    case 'deflate':\n      response.pipe(zlib.createInflate()).pipe(output);\n      break;\n    default:\n      response.pipe(output);\n      break;\n  }\n});\n</code></pre>\n<pre><code class=\"language-js\">// server example\n// Running a gzip operation on every request is quite expensive.\n// It would be much more efficient to cache the compressed buffer.\nconst zlib = require('zlib');\nconst http = require('http');\nconst fs = require('fs');\nhttp.createServer((request, response) => {\n  const raw = fs.createReadStream('index.html');\n  let acceptEncoding = request.headers['accept-encoding'];\n  if (!acceptEncoding) {\n    acceptEncoding = '';\n  }\n\n  // Note: This is not a conformant accept-encoding parser.\n  // See https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.3\n  if (/\\bdeflate\\b/.test(acceptEncoding)) {\n    response.writeHead(200, { 'Content-Encoding': 'deflate' });\n    raw.pipe(zlib.createDeflate()).pipe(response);\n  } else if (/\\bgzip\\b/.test(acceptEncoding)) {\n    response.writeHead(200, { 'Content-Encoding': 'gzip' });\n    raw.pipe(zlib.createGzip()).pipe(response);\n  } else {\n    response.writeHead(200, {});\n    raw.pipe(response);\n  }\n}).listen(1337);\n</code></pre>\n<p>By default, the <code>zlib</code> methods will throw an error when decompressing\ntruncated data. However, if it is known that the data is incomplete, or\nthe desire is to inspect only the beginning of a compressed file, it is\npossible to suppress the default error handling by changing the flushing\nmethod that is used to decompress the last chunk of input data:</p>\n<pre><code class=\"language-js\">// This is a truncated version of the buffer from the above examples\nconst buffer = Buffer.from('eJzT0yMA', 'base64');\n\nzlib.unzip(\n  buffer,\n  { finishFlush: zlib.constants.Z_SYNC_FLUSH },\n  (err, buffer) => {\n    if (!err) {\n      console.log(buffer.toString());\n    } else {\n      // handle error\n    }\n  });\n</code></pre>\n<p>This will not change the behavior in other error-throwing situations, e.g.\nwhen the input data has an invalid format. Using this method, it will not be\npossible to determine whether the input ended prematurely or lacks the\nintegrity checks, making it necessary to manually check that the\ndecompressed result is valid.</p>",
           "type": "module",
           "displayName": "Compressing HTTP requests and responses"
         },
         {
           "textRaw": "Flushing",
           "name": "flushing",
-          "desc": "<p>Calling <a href=\"#zlib_zlib_flush_kind_callback\"><code>.flush()</code></a> on a compression stream will make <code>zlib</code> return as much\noutput as currently possible. This may come at the cost of degraded compression\nquality, but can be useful when data needs to be available as soon as possible.</p>\n<p>In the following example, <code>flush()</code> is used to write a compressed partial\nHTTP response to the client:</p>\n<pre><code class=\"lang-js\">const zlib = require(&#39;zlib&#39;);\nconst http = require(&#39;http&#39;);\n\nhttp.createServer((request, response) =&gt; {\n  // For the sake of simplicity, the Accept-Encoding checks are omitted.\n  response.writeHead(200, { &#39;content-encoding&#39;: &#39;gzip&#39; });\n  const output = zlib.createGzip();\n  output.pipe(response);\n\n  setInterval(() =&gt; {\n    output.write(`The current time is ${Date()}\\n`, () =&gt; {\n      // The data has been passed to zlib, but the compression algorithm may\n      // have decided to buffer the data for more efficient compression.\n      // Calling .flush() will make the data available as soon as the client\n      // is ready to receive it.\n      output.flush();\n    });\n  }, 1000);\n}).listen(1337);\n</code></pre>\n",
+          "desc": "<p>Calling <a href=\"#zlib_zlib_flush_kind_callback\"><code>.flush()</code></a> on a compression stream will make <code>zlib</code> return as much\noutput as currently possible. This may come at the cost of degraded compression\nquality, but can be useful when data needs to be available as soon as possible.</p>\n<p>In the following example, <code>flush()</code> is used to write a compressed partial\nHTTP response to the client:</p>\n<pre><code class=\"language-js\">const zlib = require('zlib');\nconst http = require('http');\n\nhttp.createServer((request, response) => {\n  // For the sake of simplicity, the Accept-Encoding checks are omitted.\n  response.writeHead(200, { 'content-encoding': 'gzip' });\n  const output = zlib.createGzip();\n  output.pipe(response);\n\n  setInterval(() => {\n    output.write(`The current time is ${Date()}\\n`, () => {\n      // The data has been passed to zlib, but the compression algorithm may\n      // have decided to buffer the data for more efficient compression.\n      // Calling .flush() will make the data available as soon as the client\n      // is ready to receive it.\n      output.flush();\n    });\n  }, 1000);\n}).listen(1337);\n</code></pre>",
           "type": "module",
           "displayName": "Flushing"
         }
@@ -36,7 +37,7 @@
           "textRaw": "Memory Usage Tuning",
           "name": "Memory Usage Tuning",
           "type": "misc",
-          "desc": "<p>From <code>zlib/zconf.h</code>, modified to Node.js&#39;s usage:</p>\n<p>The memory requirements for deflate are (in bytes):</p>\n<!-- eslint-disable semi -->\n<pre><code class=\"lang-js\">(1 &lt;&lt; (windowBits + 2)) + (1 &lt;&lt; (memLevel + 9))\n</code></pre>\n<p>That is: 128K for <code>windowBits</code> = 15 + 128K for <code>memLevel</code> = 8\n(default values) plus a few kilobytes for small objects.</p>\n<p>For example, to reduce the default memory requirements from 256K to 128K, the\noptions should be set to:</p>\n<pre><code class=\"lang-js\">const options = { windowBits: 14, memLevel: 7 };\n</code></pre>\n<p>This will, however, generally degrade compression.</p>\n<p>The memory requirements for inflate are (in bytes) <code>1 &lt;&lt; windowBits</code>.\nThat is, 32K for <code>windowBits</code> = 15 (default value) plus a few kilobytes\nfor small objects.</p>\n<p>This is in addition to a single internal output slab buffer of size\n<code>chunkSize</code>, which defaults to 16K.</p>\n<p>The speed of <code>zlib</code> compression is affected most dramatically by the\n<code>level</code> setting. A higher level will result in better compression, but\nwill take longer to complete. A lower level will result in less\ncompression, but will be much faster.</p>\n<p>In general, greater memory usage options will mean that Node.js has to make\nfewer calls to <code>zlib</code> because it will be able to process more data on\neach <code>write</code> operation. So, this is another factor that affects the\nspeed, at the cost of memory usage.</p>\n"
+          "desc": "<p>From <code>zlib/zconf.h</code>, modified to Node.js's usage:</p>\n<p>The memory requirements for deflate are (in bytes):</p>\n<!-- eslint-disable semi -->\n<pre><code class=\"language-js\">(1 &#x3C;&#x3C; (windowBits + 2)) + (1 &#x3C;&#x3C; (memLevel + 9))\n</code></pre>\n<p>That is: 128K for <code>windowBits</code> = 15 + 128K for <code>memLevel</code> = 8\n(default values) plus a few kilobytes for small objects.</p>\n<p>For example, to reduce the default memory requirements from 256K to 128K, the\noptions should be set to:</p>\n<pre><code class=\"language-js\">const options = { windowBits: 14, memLevel: 7 };\n</code></pre>\n<p>This will, however, generally degrade compression.</p>\n<p>The memory requirements for inflate are (in bytes) <code>1 &#x3C;&#x3C; windowBits</code>.\nThat is, 32K for <code>windowBits</code> = 15 (default value) plus a few kilobytes\nfor small objects.</p>\n<p>This is in addition to a single internal output slab buffer of size\n<code>chunkSize</code>, which defaults to 16K.</p>\n<p>The speed of <code>zlib</code> compression is affected most dramatically by the\n<code>level</code> setting. A higher level will result in better compression, but\nwill take longer to complete. A lower level will result in less\ncompression, but will be much faster.</p>\n<p>In general, greater memory usage options will mean that Node.js has to make\nfewer calls to <code>zlib</code> because it will be able to process more data on\neach <code>write</code> operation. So, this is another factor that affects the\nspeed, at the cost of memory usage.</p>"
         },
         {
           "textRaw": "Constants",
@@ -48,7 +49,7 @@
             "changes": []
           },
           "type": "misc",
-          "desc": "<p>All of the constants defined in <code>zlib.h</code> are also defined on\n<code>require(&#39;zlib&#39;).constants</code>. In the normal course of operations, it will not be\nnecessary to use these constants. They are documented so that their presence is\nnot surprising. This section is taken almost directly from the\n<a href=\"https://zlib.net/manual.html#Constants\">zlib documentation</a>. See <a href=\"https://zlib.net/manual.html#Constants\">https://zlib.net/manual.html#Constants</a> for more\ndetails.</p>\n<p>Previously, the constants were available directly from <code>require(&#39;zlib&#39;)</code>, for\ninstance <code>zlib.Z_NO_FLUSH</code>. Accessing the constants directly from the module is\ncurrently still possible but is deprecated.</p>\n<p>Allowed flush values.</p>\n<ul>\n<li><code>zlib.constants.Z_NO_FLUSH</code></li>\n<li><code>zlib.constants.Z_PARTIAL_FLUSH</code></li>\n<li><code>zlib.constants.Z_SYNC_FLUSH</code></li>\n<li><code>zlib.constants.Z_FULL_FLUSH</code></li>\n<li><code>zlib.constants.Z_FINISH</code></li>\n<li><code>zlib.constants.Z_BLOCK</code></li>\n<li><code>zlib.constants.Z_TREES</code></li>\n</ul>\n<p>Return codes for the compression/decompression functions. Negative\nvalues are errors, positive values are used for special but normal\nevents.</p>\n<ul>\n<li><code>zlib.constants.Z_OK</code></li>\n<li><code>zlib.constants.Z_STREAM_END</code></li>\n<li><code>zlib.constants.Z_NEED_DICT</code></li>\n<li><code>zlib.constants.Z_ERRNO</code></li>\n<li><code>zlib.constants.Z_STREAM_ERROR</code></li>\n<li><code>zlib.constants.Z_DATA_ERROR</code></li>\n<li><code>zlib.constants.Z_MEM_ERROR</code></li>\n<li><code>zlib.constants.Z_BUF_ERROR</code></li>\n<li><code>zlib.constants.Z_VERSION_ERROR</code></li>\n</ul>\n<p>Compression levels.</p>\n<ul>\n<li><code>zlib.constants.Z_NO_COMPRESSION</code></li>\n<li><code>zlib.constants.Z_BEST_SPEED</code></li>\n<li><code>zlib.constants.Z_BEST_COMPRESSION</code></li>\n<li><code>zlib.constants.Z_DEFAULT_COMPRESSION</code></li>\n</ul>\n<p>Compression strategy.</p>\n<ul>\n<li><code>zlib.constants.Z_FILTERED</code></li>\n<li><code>zlib.constants.Z_HUFFMAN_ONLY</code></li>\n<li><code>zlib.constants.Z_RLE</code></li>\n<li><code>zlib.constants.Z_FIXED</code></li>\n<li><code>zlib.constants.Z_DEFAULT_STRATEGY</code></li>\n</ul>\n"
+          "desc": "<p>All of the constants defined in <code>zlib.h</code> are also defined on\n<code>require('zlib').constants</code>. In the normal course of operations, it will not be\nnecessary to use these constants. They are documented so that their presence is\nnot surprising. This section is taken almost directly from the\n<a href=\"https://zlib.net/manual.html#Constants\">zlib documentation</a>. See <a href=\"https://zlib.net/manual.html#Constants\">https://zlib.net/manual.html#Constants</a> for more\ndetails.</p>\n<p>Previously, the constants were available directly from <code>require('zlib')</code>, for\ninstance <code>zlib.Z_NO_FLUSH</code>. Accessing the constants directly from the module is\ncurrently still possible but is deprecated.</p>\n<p>Allowed flush values.</p>\n<ul>\n<li><code>zlib.constants.Z_NO_FLUSH</code></li>\n<li><code>zlib.constants.Z_PARTIAL_FLUSH</code></li>\n<li><code>zlib.constants.Z_SYNC_FLUSH</code></li>\n<li><code>zlib.constants.Z_FULL_FLUSH</code></li>\n<li><code>zlib.constants.Z_FINISH</code></li>\n<li><code>zlib.constants.Z_BLOCK</code></li>\n<li><code>zlib.constants.Z_TREES</code></li>\n</ul>\n<p>Return codes for the compression/decompression functions. Negative\nvalues are errors, positive values are used for special but normal\nevents.</p>\n<ul>\n<li><code>zlib.constants.Z_OK</code></li>\n<li><code>zlib.constants.Z_STREAM_END</code></li>\n<li><code>zlib.constants.Z_NEED_DICT</code></li>\n<li><code>zlib.constants.Z_ERRNO</code></li>\n<li><code>zlib.constants.Z_STREAM_ERROR</code></li>\n<li><code>zlib.constants.Z_DATA_ERROR</code></li>\n<li><code>zlib.constants.Z_MEM_ERROR</code></li>\n<li><code>zlib.constants.Z_BUF_ERROR</code></li>\n<li><code>zlib.constants.Z_VERSION_ERROR</code></li>\n</ul>\n<p>Compression levels.</p>\n<ul>\n<li><code>zlib.constants.Z_NO_COMPRESSION</code></li>\n<li><code>zlib.constants.Z_BEST_SPEED</code></li>\n<li><code>zlib.constants.Z_BEST_COMPRESSION</code></li>\n<li><code>zlib.constants.Z_DEFAULT_COMPRESSION</code></li>\n</ul>\n<p>Compression strategy.</p>\n<ul>\n<li><code>zlib.constants.Z_FILTERED</code></li>\n<li><code>zlib.constants.Z_HUFFMAN_ONLY</code></li>\n<li><code>zlib.constants.Z_RLE</code></li>\n<li><code>zlib.constants.Z_FIXED</code></li>\n<li><code>zlib.constants.Z_DEFAULT_STRATEGY</code></li>\n</ul>"
         },
         {
           "textRaw": "Class: Options",
@@ -76,13 +77,13 @@
               }
             ]
           },
-          "desc": "<p>Each class takes an <code>options</code> object. All options are optional.</p>\n<p>Note that some options are only relevant when compressing, and are\nignored by the decompression classes.</p>\n<ul>\n<li><code>flush</code> {integer} <strong>Default:</strong> <code>zlib.constants.Z_NO_FLUSH</code></li>\n<li><code>finishFlush</code> {integer} <strong>Default:</strong> <code>zlib.constants.Z_FINISH</code></li>\n<li><code>chunkSize</code> {integer} <strong>Default:</strong> <code>16 * 1024</code></li>\n<li><code>windowBits</code> {integer}</li>\n<li><code>level</code> {integer} (compression only)</li>\n<li><code>memLevel</code> {integer} (compression only)</li>\n<li><code>strategy</code> {integer} (compression only)</li>\n<li><code>dictionary</code> {Buffer|TypedArray|DataView|ArrayBuffer} (deflate/inflate only,\nempty dictionary by default)</li>\n<li><code>info</code> {boolean} (If <code>true</code>, returns an object with <code>buffer</code> and <code>engine</code>.)</li>\n</ul>\n<p>See the description of <code>deflateInit2</code> and <code>inflateInit2</code> at\n<a href=\"https://zlib.net/manual.html#Advanced\">https://zlib.net/manual.html#Advanced</a> for more information on these.</p>\n"
+          "desc": "<p>Each class takes an <code>options</code> object. All options are optional.</p>\n<p>Note that some options are only relevant when compressing, and are\nignored by the decompression classes.</p>\n<ul>\n<li><code>flush</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;integer&gt;</a> <strong>Default:</strong> <code>zlib.constants.Z_NO_FLUSH</code></li>\n<li><code>finishFlush</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;integer&gt;</a> <strong>Default:</strong> <code>zlib.constants.Z_FINISH</code></li>\n<li><code>chunkSize</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;integer&gt;</a> <strong>Default:</strong> <code>16 * 1024</code></li>\n<li><code>windowBits</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;integer&gt;</a></li>\n<li><code>level</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;integer&gt;</a> (compression only)</li>\n<li><code>memLevel</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;integer&gt;</a> (compression only)</li>\n<li><code>strategy</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;integer&gt;</a> (compression only)</li>\n<li><code>dictionary</code> <a href=\"buffer.html#buffer_class_buffer\" class=\"type\">&lt;Buffer&gt;</a> | <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray\" class=\"type\">&lt;TypedArray&gt;</a> | <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView\" class=\"type\">&lt;DataView&gt;</a> | <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer\" class=\"type\">&lt;ArrayBuffer&gt;</a> (deflate/inflate only,\nempty dictionary by default)</li>\n<li><code>info</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type\" class=\"type\">&lt;boolean&gt;</a> (If <code>true</code>, returns an object with <code>buffer</code> and <code>engine</code>.)</li>\n</ul>\n<p>See the description of <code>deflateInit2</code> and <code>inflateInit2</code> at\n<a href=\"https://zlib.net/manual.html#Advanced\">https://zlib.net/manual.html#Advanced</a> for more information on these.</p>"
         },
         {
           "textRaw": "Convenience Methods",
           "name": "Convenience Methods",
           "type": "misc",
-          "desc": "<p>All of these take a <a href=\"buffer.html#buffer_class_buffer\"><code>Buffer</code></a>, <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray\"><code>TypedArray</code></a>, <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView\"><code>DataView</code></a>,\n<a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer\"><code>ArrayBuffer</code></a> or string as the first argument, an optional second argument\nto supply options to the <code>zlib</code> classes and will call the supplied callback\nwith <code>callback(error, result)</code>.</p>\n<p>Every method has a <code>*Sync</code> counterpart, which accept the same arguments, but\nwithout a callback.</p>\n",
+          "desc": "<p>All of these take a <a href=\"buffer.html#buffer_class_buffer\"><code>Buffer</code></a>, <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray\"><code>TypedArray</code></a>, <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView\"><code>DataView</code></a>,\n<a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer\"><code>ArrayBuffer</code></a> or string as the first argument, an optional second argument\nto supply options to the <code>zlib</code> classes and will call the supplied callback\nwith <code>callback(error, result)</code>.</p>\n<p>Every method has a <code>*Sync</code> counterpart, which accept the same arguments, but\nwithout a callback.</p>",
           "methods": [
             {
               "textRaw": "zlib.deflate(buffer[, options], callback)",
@@ -114,43 +115,24 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string} ",
+                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
                       "name": "buffer",
                       "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
                     },
                     {
+                      "textRaw": "`options` {Object}",
                       "name": "options",
-                      "optional": true
-                    }
-                  ]
-                },
-                {
-                  "params": [
-                    {
-                      "name": "buffer"
-                    },
-                    {
-                      "name": "options",
-                      "optional": true
-                    }
-                  ]
-                },
-                {
-                  "params": [
-                    {
-                      "name": "buffer"
-                    },
-                    {
-                      "name": "options",
+                      "type": "Object",
                       "optional": true
                     },
                     {
-                      "name": "callback"
+                      "textRaw": "`callback` {Function}",
+                      "name": "callback",
+                      "type": "Function"
                     }
                   ]
                 }
-              ],
-              "desc": "<p>Compress a chunk of data with <a href=\"#zlib_class_zlib_deflate\"><code>Deflate</code></a>.</p>\n"
+              ]
             },
             {
               "textRaw": "zlib.deflateSync(buffer[, options])",
@@ -182,29 +164,20 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string} ",
+                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
                       "name": "buffer",
                       "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
                     },
                     {
+                      "textRaw": "`options` {Object}",
                       "name": "options",
-                      "optional": true
-                    }
-                  ]
-                },
-                {
-                  "params": [
-                    {
-                      "name": "buffer"
-                    },
-                    {
-                      "name": "options",
+                      "type": "Object",
                       "optional": true
                     }
                   ]
                 }
               ],
-              "desc": "<p>Compress a chunk of data with <a href=\"#zlib_class_zlib_deflate\"><code>Deflate</code></a>.</p>\n"
+              "desc": "<p>Compress a chunk of data with <a href=\"#zlib_class_zlib_deflate\"><code>Deflate</code></a>.</p>"
             },
             {
               "textRaw": "zlib.deflateRaw(buffer[, options], callback)",
@@ -231,43 +204,24 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string} ",
+                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
                       "name": "buffer",
                       "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
                     },
                     {
+                      "textRaw": "`options` {Object}",
                       "name": "options",
-                      "optional": true
-                    }
-                  ]
-                },
-                {
-                  "params": [
-                    {
-                      "name": "buffer"
-                    },
-                    {
-                      "name": "options",
-                      "optional": true
-                    }
-                  ]
-                },
-                {
-                  "params": [
-                    {
-                      "name": "buffer"
-                    },
-                    {
-                      "name": "options",
+                      "type": "Object",
                       "optional": true
                     },
                     {
-                      "name": "callback"
+                      "textRaw": "`callback` {Function}",
+                      "name": "callback",
+                      "type": "Function"
                     }
                   ]
                 }
-              ],
-              "desc": "<p>Compress a chunk of data with <a href=\"#zlib_class_zlib_deflateraw\"><code>DeflateRaw</code></a>.</p>\n"
+              ]
             },
             {
               "textRaw": "zlib.deflateRawSync(buffer[, options])",
@@ -299,29 +253,20 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string} ",
+                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
                       "name": "buffer",
                       "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
                     },
                     {
+                      "textRaw": "`options` {Object}",
                       "name": "options",
-                      "optional": true
-                    }
-                  ]
-                },
-                {
-                  "params": [
-                    {
-                      "name": "buffer"
-                    },
-                    {
-                      "name": "options",
+                      "type": "Object",
                       "optional": true
                     }
                   ]
                 }
               ],
-              "desc": "<p>Compress a chunk of data with <a href=\"#zlib_class_zlib_deflateraw\"><code>DeflateRaw</code></a>.</p>\n"
+              "desc": "<p>Compress a chunk of data with <a href=\"#zlib_class_zlib_deflateraw\"><code>DeflateRaw</code></a>.</p>"
             },
             {
               "textRaw": "zlib.gunzip(buffer[, options], callback)",
@@ -353,43 +298,24 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string} ",
+                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
                       "name": "buffer",
                       "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
                     },
                     {
+                      "textRaw": "`options` {Object}",
                       "name": "options",
-                      "optional": true
-                    }
-                  ]
-                },
-                {
-                  "params": [
-                    {
-                      "name": "buffer"
-                    },
-                    {
-                      "name": "options",
-                      "optional": true
-                    }
-                  ]
-                },
-                {
-                  "params": [
-                    {
-                      "name": "buffer"
-                    },
-                    {
-                      "name": "options",
+                      "type": "Object",
                       "optional": true
                     },
                     {
-                      "name": "callback"
+                      "textRaw": "`callback` {Function}",
+                      "name": "callback",
+                      "type": "Function"
                     }
                   ]
                 }
-              ],
-              "desc": "<p>Decompress a chunk of data with <a href=\"#zlib_class_zlib_gunzip\"><code>Gunzip</code></a>.</p>\n"
+              ]
             },
             {
               "textRaw": "zlib.gunzipSync(buffer[, options])",
@@ -421,29 +347,20 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string} ",
+                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
                       "name": "buffer",
                       "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
                     },
                     {
+                      "textRaw": "`options` {Object}",
                       "name": "options",
-                      "optional": true
-                    }
-                  ]
-                },
-                {
-                  "params": [
-                    {
-                      "name": "buffer"
-                    },
-                    {
-                      "name": "options",
+                      "type": "Object",
                       "optional": true
                     }
                   ]
                 }
               ],
-              "desc": "<p>Decompress a chunk of data with <a href=\"#zlib_class_zlib_gunzip\"><code>Gunzip</code></a>.</p>\n"
+              "desc": "<p>Decompress a chunk of data with <a href=\"#zlib_class_zlib_gunzip\"><code>Gunzip</code></a>.</p>"
             },
             {
               "textRaw": "zlib.gzip(buffer[, options], callback)",
@@ -475,43 +392,24 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string} ",
+                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
                       "name": "buffer",
                       "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
                     },
                     {
+                      "textRaw": "`options` {Object}",
                       "name": "options",
-                      "optional": true
-                    }
-                  ]
-                },
-                {
-                  "params": [
-                    {
-                      "name": "buffer"
-                    },
-                    {
-                      "name": "options",
-                      "optional": true
-                    }
-                  ]
-                },
-                {
-                  "params": [
-                    {
-                      "name": "buffer"
-                    },
-                    {
-                      "name": "options",
+                      "type": "Object",
                       "optional": true
                     },
                     {
-                      "name": "callback"
+                      "textRaw": "`callback` {Function}",
+                      "name": "callback",
+                      "type": "Function"
                     }
                   ]
                 }
-              ],
-              "desc": "<p>Compress a chunk of data with <a href=\"#zlib_class_zlib_gzip\"><code>Gzip</code></a>.</p>\n"
+              ]
             },
             {
               "textRaw": "zlib.gzipSync(buffer[, options])",
@@ -543,29 +441,20 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string} ",
+                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
                       "name": "buffer",
                       "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
                     },
                     {
+                      "textRaw": "`options` {Object}",
                       "name": "options",
-                      "optional": true
-                    }
-                  ]
-                },
-                {
-                  "params": [
-                    {
-                      "name": "buffer"
-                    },
-                    {
-                      "name": "options",
+                      "type": "Object",
                       "optional": true
                     }
                   ]
                 }
               ],
-              "desc": "<p>Compress a chunk of data with <a href=\"#zlib_class_zlib_gzip\"><code>Gzip</code></a>.</p>\n"
+              "desc": "<p>Compress a chunk of data with <a href=\"#zlib_class_zlib_gzip\"><code>Gzip</code></a>.</p>"
             },
             {
               "textRaw": "zlib.inflate(buffer[, options], callback)",
@@ -597,43 +486,24 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string} ",
+                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
                       "name": "buffer",
                       "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
                     },
                     {
+                      "textRaw": "`options` {Object}",
                       "name": "options",
-                      "optional": true
-                    }
-                  ]
-                },
-                {
-                  "params": [
-                    {
-                      "name": "buffer"
-                    },
-                    {
-                      "name": "options",
-                      "optional": true
-                    }
-                  ]
-                },
-                {
-                  "params": [
-                    {
-                      "name": "buffer"
-                    },
-                    {
-                      "name": "options",
+                      "type": "Object",
                       "optional": true
                     },
                     {
-                      "name": "callback"
+                      "textRaw": "`callback` {Function}",
+                      "name": "callback",
+                      "type": "Function"
                     }
                   ]
                 }
-              ],
-              "desc": "<p>Decompress a chunk of data with <a href=\"#zlib_class_zlib_inflate\"><code>Inflate</code></a>.</p>\n"
+              ]
             },
             {
               "textRaw": "zlib.inflateSync(buffer[, options])",
@@ -665,29 +535,20 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string} ",
+                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
                       "name": "buffer",
                       "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
                     },
                     {
+                      "textRaw": "`options` {Object}",
                       "name": "options",
-                      "optional": true
-                    }
-                  ]
-                },
-                {
-                  "params": [
-                    {
-                      "name": "buffer"
-                    },
-                    {
-                      "name": "options",
+                      "type": "Object",
                       "optional": true
                     }
                   ]
                 }
               ],
-              "desc": "<p>Decompress a chunk of data with <a href=\"#zlib_class_zlib_inflate\"><code>Inflate</code></a>.</p>\n"
+              "desc": "<p>Decompress a chunk of data with <a href=\"#zlib_class_zlib_inflate\"><code>Inflate</code></a>.</p>"
             },
             {
               "textRaw": "zlib.inflateRaw(buffer[, options], callback)",
@@ -719,43 +580,24 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string} ",
+                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
                       "name": "buffer",
                       "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
                     },
                     {
+                      "textRaw": "`options` {Object}",
                       "name": "options",
-                      "optional": true
-                    }
-                  ]
-                },
-                {
-                  "params": [
-                    {
-                      "name": "buffer"
-                    },
-                    {
-                      "name": "options",
-                      "optional": true
-                    }
-                  ]
-                },
-                {
-                  "params": [
-                    {
-                      "name": "buffer"
-                    },
-                    {
-                      "name": "options",
+                      "type": "Object",
                       "optional": true
                     },
                     {
-                      "name": "callback"
+                      "textRaw": "`callback` {Function}",
+                      "name": "callback",
+                      "type": "Function"
                     }
                   ]
                 }
-              ],
-              "desc": "<p>Decompress a chunk of data with <a href=\"#zlib_class_zlib_inflateraw\"><code>InflateRaw</code></a>.</p>\n"
+              ]
             },
             {
               "textRaw": "zlib.inflateRawSync(buffer[, options])",
@@ -787,29 +629,20 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string} ",
+                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
                       "name": "buffer",
                       "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
                     },
                     {
+                      "textRaw": "`options` {Object}",
                       "name": "options",
-                      "optional": true
-                    }
-                  ]
-                },
-                {
-                  "params": [
-                    {
-                      "name": "buffer"
-                    },
-                    {
-                      "name": "options",
+                      "type": "Object",
                       "optional": true
                     }
                   ]
                 }
               ],
-              "desc": "<p>Decompress a chunk of data with <a href=\"#zlib_class_zlib_inflateraw\"><code>InflateRaw</code></a>.</p>\n"
+              "desc": "<p>Decompress a chunk of data with <a href=\"#zlib_class_zlib_inflateraw\"><code>InflateRaw</code></a>.</p>"
             },
             {
               "textRaw": "zlib.unzip(buffer[, options], callback)",
@@ -841,43 +674,24 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string} ",
+                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
                       "name": "buffer",
                       "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
                     },
                     {
+                      "textRaw": "`options` {Object}",
                       "name": "options",
-                      "optional": true
-                    }
-                  ]
-                },
-                {
-                  "params": [
-                    {
-                      "name": "buffer"
-                    },
-                    {
-                      "name": "options",
-                      "optional": true
-                    }
-                  ]
-                },
-                {
-                  "params": [
-                    {
-                      "name": "buffer"
-                    },
-                    {
-                      "name": "options",
+                      "type": "Object",
                       "optional": true
                     },
                     {
-                      "name": "callback"
+                      "textRaw": "`callback` {Function}",
+                      "name": "callback",
+                      "type": "Function"
                     }
                   ]
                 }
-              ],
-              "desc": "<p>Decompress a chunk of data with <a href=\"#zlib_class_zlib_unzip\"><code>Unzip</code></a>.</p>\n"
+              ]
             },
             {
               "textRaw": "zlib.unzipSync(buffer[, options])",
@@ -909,29 +723,20 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string} ",
+                      "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
                       "name": "buffer",
                       "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
                     },
                     {
+                      "textRaw": "`options` {Object}",
                       "name": "options",
-                      "optional": true
-                    }
-                  ]
-                },
-                {
-                  "params": [
-                    {
-                      "name": "buffer"
-                    },
-                    {
-                      "name": "options",
+                      "type": "Object",
                       "optional": true
                     }
                   ]
                 }
               ],
-              "desc": "<p>Decompress a chunk of data with <a href=\"#zlib_class_zlib_unzip\"><code>Unzip</code></a>.</p>\n"
+              "desc": "<p>Decompress a chunk of data with <a href=\"#zlib_class_zlib_unzip\"><code>Unzip</code></a>.</p>"
             }
           ]
         }
@@ -953,7 +758,7 @@
             ],
             "changes": []
           },
-          "desc": "<p>Compress data using deflate.</p>\n"
+          "desc": "<p>Compress data using deflate.</p>"
         },
         {
           "textRaw": "Class: zlib.DeflateRaw",
@@ -965,7 +770,7 @@
             ],
             "changes": []
           },
-          "desc": "<p>Compress data using deflate, and do not append a <code>zlib</code> header.</p>\n"
+          "desc": "<p>Compress data using deflate, and do not append a <code>zlib</code> header.</p>"
         },
         {
           "textRaw": "Class: zlib.Gunzip",
@@ -993,7 +798,7 @@
               }
             ]
           },
-          "desc": "<p>Decompress a gzip stream.</p>\n"
+          "desc": "<p>Decompress a gzip stream.</p>"
         },
         {
           "textRaw": "Class: zlib.Gzip",
@@ -1005,7 +810,7 @@
             ],
             "changes": []
           },
-          "desc": "<p>Compress data using gzip.</p>\n"
+          "desc": "<p>Compress data using gzip.</p>"
         },
         {
           "textRaw": "Class: zlib.Inflate",
@@ -1023,7 +828,7 @@
               }
             ]
           },
-          "desc": "<p>Decompress a deflate stream.</p>\n"
+          "desc": "<p>Decompress a deflate stream.</p>"
         },
         {
           "textRaw": "Class: zlib.InflateRaw",
@@ -1046,7 +851,7 @@
               }
             ]
           },
-          "desc": "<p>Decompress a raw deflate stream.</p>\n"
+          "desc": "<p>Decompress a raw deflate stream.</p>"
         },
         {
           "textRaw": "Class: zlib.Unzip",
@@ -1058,7 +863,7 @@
             ],
             "changes": []
           },
-          "desc": "<p>Decompress either a Gzip- or Deflate-compressed stream by auto-detecting\nthe header.</p>\n"
+          "desc": "<p>Decompress either a Gzip- or Deflate-compressed stream by auto-detecting\nthe header.</p>"
         },
         {
           "textRaw": "Class: zlib.Zlib",
@@ -1070,10 +875,10 @@
             ],
             "changes": []
           },
-          "desc": "<p>Not exported by the <code>zlib</code> module. It is documented here because it is the base\nclass of the compressor/decompressor classes.</p>\n",
+          "desc": "<p>Not exported by the <code>zlib</code> module. It is documented here because it is the base\nclass of the compressor/decompressor classes.</p>",
           "properties": [
             {
-              "textRaw": "`bytesRead` {number} ",
+              "textRaw": "`bytesRead` {number}",
               "type": "number",
               "name": "bytesRead",
               "meta": {
@@ -1087,10 +892,10 @@
               },
               "stability": 0,
               "stabilityText": "Deprecated: Use [`zlib.bytesWritten`][] instead.",
-              "desc": "<p>Deprecated alias for <a href=\"#zlib_zlib_byteswritten\"><code>zlib.bytesWritten</code></a>. This original name was chosen\nbecause it also made sense to interpret the value as the number of bytes\nread by the engine, but is inconsistent with other streams in Node.js that\nexpose values under these names.</p>\n"
+              "desc": "<p>Deprecated alias for <a href=\"#zlib_zlib_byteswritten\"><code>zlib.bytesWritten</code></a>. This original name was chosen\nbecause it also made sense to interpret the value as the number of bytes\nread by the engine, but is inconsistent with other streams in Node.js that\nexpose values under these names.</p>"
             },
             {
-              "textRaw": "`bytesWritten` {number} ",
+              "textRaw": "`bytesWritten` {number}",
               "type": "number",
               "name": "bytesWritten",
               "meta": {
@@ -1099,7 +904,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>The <code>zlib.bytesWritten</code> property specifies the number of bytes written to\nthe engine, before the bytes are processed (compressed or decompressed,\nas appropriate for the derived class).</p>\n"
+              "desc": "<p>The <code>zlib.bytesWritten</code> property specifies the number of bytes written to\nthe engine, before the bytes are processed (compressed or decompressed,\nas appropriate for the derived class).</p>"
             }
           ],
           "methods": [
@@ -1113,17 +918,19 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Close the underlying handle.</p>\n",
               "signatures": [
                 {
                   "params": [
                     {
+                      "textRaw": "`callback` {Function}",
                       "name": "callback",
+                      "type": "Function",
                       "optional": true
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Close the underlying handle.</p>"
             },
             {
               "textRaw": "zlib.flush([kind], callback)",
@@ -1139,29 +946,20 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`kind` **Default:** `zlib.constants.Z_FULL_FLUSH` ",
+                      "textRaw": "`kind` **Default:** `zlib.constants.Z_FULL_FLUSH`",
                       "name": "kind",
                       "default": "`zlib.constants.Z_FULL_FLUSH`",
                       "optional": true
                     },
                     {
-                      "name": "callback"
-                    }
-                  ]
-                },
-                {
-                  "params": [
-                    {
-                      "name": "kind",
-                      "optional": true
-                    },
-                    {
-                      "name": "callback"
+                      "textRaw": "`callback` {Function}",
+                      "name": "callback",
+                      "type": "Function"
                     }
                   ]
                 }
               ],
-              "desc": "<p>Flush pending data. Don&#39;t call this frivolously, premature flushes negatively\nimpact the effectiveness of the compression algorithm.</p>\n<p>Calling this only flushes data from the internal <code>zlib</code> state, and does not\nperform flushing of any kind on the streams level. Rather, it behaves like a\nnormal call to <code>.write()</code>, i.e. it will be queued up behind other pending\nwrites and will only produce output when data is being read from the stream.</p>\n"
+              "desc": "<p>Flush pending data. Don't call this frivolously, premature flushes negatively\nimpact the effectiveness of the compression algorithm.</p>\n<p>Calling this only flushes data from the internal <code>zlib</code> state, and does not\nperform flushing of any kind on the streams level. Rather, it behaves like a\nnormal call to <code>.write()</code>, i.e. it will be queued up behind other pending\nwrites and will only produce output when data is being read from the stream.</p>"
             },
             {
               "textRaw": "zlib.params(level, strategy, callback)",
@@ -1173,22 +971,28 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Dynamically update the compression level and compression strategy.\nOnly applicable to deflate algorithm.</p>\n",
               "signatures": [
                 {
                   "params": [
                     {
-                      "name": "level"
+                      "textRaw": "`level` {integer}",
+                      "name": "level",
+                      "type": "integer"
                     },
                     {
-                      "name": "strategy"
+                      "textRaw": "`strategy` {integer}",
+                      "name": "strategy",
+                      "type": "integer"
                     },
                     {
-                      "name": "callback"
+                      "textRaw": "`callback` {Function}",
+                      "name": "callback",
+                      "type": "Function"
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Dynamically update the compression level and compression strategy.\nOnly applicable to deflate algorithm.</p>"
             },
             {
               "textRaw": "zlib.reset()",
@@ -1200,12 +1004,12 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Reset the compressor/decompressor to factory defaults. Only applicable to\nthe inflate and deflate algorithms.</p>\n",
               "signatures": [
                 {
                   "params": []
                 }
-              ]
+              ],
+              "desc": "<p>Reset the compressor/decompressor to factory defaults. Only applicable to\nthe inflate and deflate algorithms.</p>"
             }
           ]
         }
@@ -1220,7 +1024,7 @@
             ],
             "changes": []
           },
-          "desc": "<p>Provides an object enumerating Zlib-related constants.</p>\n"
+          "desc": "<p>Provides an object enumerating Zlib-related constants.</p>"
         }
       ],
       "methods": [
@@ -1234,17 +1038,19 @@
             ],
             "changes": []
           },
-          "desc": "<p>Creates and returns a new <a href=\"#zlib_class_zlib_deflate\"><code>Deflate</code></a> object with the given <a href=\"#zlib_class_options\"><code>options</code></a>.</p>\n",
           "signatures": [
             {
               "params": [
                 {
+                  "textRaw": "`options` {Object}",
                   "name": "options",
+                  "type": "Object",
                   "optional": true
                 }
               ]
             }
-          ]
+          ],
+          "desc": "<p>Creates and returns a new <a href=\"#zlib_class_zlib_deflate\"><code>Deflate</code></a> object.</p>"
         },
         {
           "textRaw": "zlib.createDeflateRaw([options])",
@@ -1256,17 +1062,19 @@
             ],
             "changes": []
           },
-          "desc": "<p>Creates and returns a new <a href=\"#zlib_class_zlib_deflateraw\"><code>DeflateRaw</code></a> object with the given <a href=\"#zlib_class_options\"><code>options</code></a>.</p>\n<p>An upgrade of zlib from 1.2.8 to 1.2.11 changed behavior when <code>windowBits</code>\nis set to 8 for raw deflate streams. zlib would automatically set <code>windowBits</code>\nto 9 if was initially set to 8. Newer versions of zlib will throw an exception,\nso Node.js restored the original behavior of upgrading a value of 8 to 9,\nsince passing <code>windowBits = 9</code> to zlib actually results in a compressed stream\nthat effectively uses an 8-bit window only.</p>\n",
           "signatures": [
             {
               "params": [
                 {
+                  "textRaw": "`options` {Object}",
                   "name": "options",
+                  "type": "Object",
                   "optional": true
                 }
               ]
             }
-          ]
+          ],
+          "desc": "<p>Creates and returns a new <a href=\"#zlib_class_zlib_deflateraw\"><code>DeflateRaw</code></a> object.</p>\n<p>An upgrade of zlib from 1.2.8 to 1.2.11 changed behavior when <code>windowBits</code>\nis set to 8 for raw deflate streams. zlib would automatically set <code>windowBits</code>\nto 9 if was initially set to 8. Newer versions of zlib will throw an exception,\nso Node.js restored the original behavior of upgrading a value of 8 to 9,\nsince passing <code>windowBits = 9</code> to zlib actually results in a compressed stream\nthat effectively uses an 8-bit window only.</p>"
         },
         {
           "textRaw": "zlib.createGunzip([options])",
@@ -1278,17 +1086,19 @@
             ],
             "changes": []
           },
-          "desc": "<p>Creates and returns a new <a href=\"#zlib_class_zlib_gunzip\"><code>Gunzip</code></a> object with the given <a href=\"#zlib_class_options\"><code>options</code></a>.</p>\n",
           "signatures": [
             {
               "params": [
                 {
+                  "textRaw": "`options` {Object}",
                   "name": "options",
+                  "type": "Object",
                   "optional": true
                 }
               ]
             }
-          ]
+          ],
+          "desc": "<p>Creates and returns a new <a href=\"#zlib_class_zlib_gunzip\"><code>Gunzip</code></a> object.</p>"
         },
         {
           "textRaw": "zlib.createGzip([options])",
@@ -1300,17 +1110,19 @@
             ],
             "changes": []
           },
-          "desc": "<p>Creates and returns a new <a href=\"#zlib_class_zlib_gzip\"><code>Gzip</code></a> object with the given <a href=\"#zlib_class_options\"><code>options</code></a>.</p>\n",
           "signatures": [
             {
               "params": [
                 {
+                  "textRaw": "`options` {Object}",
                   "name": "options",
+                  "type": "Object",
                   "optional": true
                 }
               ]
             }
-          ]
+          ],
+          "desc": "<p>Creates and returns a new <a href=\"#zlib_class_zlib_gzip\"><code>Gzip</code></a> object.</p>"
         },
         {
           "textRaw": "zlib.createInflate([options])",
@@ -1322,17 +1134,19 @@
             ],
             "changes": []
           },
-          "desc": "<p>Creates and returns a new <a href=\"#zlib_class_zlib_inflate\"><code>Inflate</code></a> object with the given <a href=\"#zlib_class_options\"><code>options</code></a>.</p>\n",
           "signatures": [
             {
               "params": [
                 {
+                  "textRaw": "`options` {Object}",
                   "name": "options",
+                  "type": "Object",
                   "optional": true
                 }
               ]
             }
-          ]
+          ],
+          "desc": "<p>Creates and returns a new <a href=\"#zlib_class_zlib_inflate\"><code>Inflate</code></a> object.</p>"
         },
         {
           "textRaw": "zlib.createInflateRaw([options])",
@@ -1344,17 +1158,19 @@
             ],
             "changes": []
           },
-          "desc": "<p>Creates and returns a new <a href=\"#zlib_class_zlib_inflateraw\"><code>InflateRaw</code></a> object with the given <a href=\"#zlib_class_options\"><code>options</code></a>.</p>\n",
           "signatures": [
             {
               "params": [
                 {
+                  "textRaw": "`options` {Object}",
                   "name": "options",
+                  "type": "Object",
                   "optional": true
                 }
               ]
             }
-          ]
+          ],
+          "desc": "<p>Creates and returns a new <a href=\"#zlib_class_zlib_inflateraw\"><code>InflateRaw</code></a> object.</p>"
         },
         {
           "textRaw": "zlib.createUnzip([options])",
@@ -1366,17 +1182,19 @@
             ],
             "changes": []
           },
-          "desc": "<p>Creates and returns a new <a href=\"#zlib_class_zlib_unzip\"><code>Unzip</code></a> object with the given <a href=\"#zlib_class_options\"><code>options</code></a>.</p>\n",
           "signatures": [
             {
               "params": [
                 {
+                  "textRaw": "`options` {Object}",
                   "name": "options",
+                  "type": "Object",
                   "optional": true
                 }
               ]
             }
-          ]
+          ],
+          "desc": "<p>Creates and returns a new <a href=\"#zlib_class_zlib_unzip\"><code>Unzip</code></a> object.</p>"
         },
         {
           "textRaw": "zlib.deflate(buffer[, options], callback)",
@@ -1408,43 +1226,24 @@
             {
               "params": [
                 {
-                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string} ",
+                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
                   "name": "buffer",
                   "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
                 },
                 {
+                  "textRaw": "`options` {Object}",
                   "name": "options",
-                  "optional": true
-                }
-              ]
-            },
-            {
-              "params": [
-                {
-                  "name": "buffer"
-                },
-                {
-                  "name": "options",
-                  "optional": true
-                }
-              ]
-            },
-            {
-              "params": [
-                {
-                  "name": "buffer"
-                },
-                {
-                  "name": "options",
+                  "type": "Object",
                   "optional": true
                 },
                 {
-                  "name": "callback"
+                  "textRaw": "`callback` {Function}",
+                  "name": "callback",
+                  "type": "Function"
                 }
               ]
             }
-          ],
-          "desc": "<p>Compress a chunk of data with <a href=\"#zlib_class_zlib_deflate\"><code>Deflate</code></a>.</p>\n"
+          ]
         },
         {
           "textRaw": "zlib.deflateSync(buffer[, options])",
@@ -1476,29 +1275,20 @@
             {
               "params": [
                 {
-                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string} ",
+                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
                   "name": "buffer",
                   "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
                 },
                 {
+                  "textRaw": "`options` {Object}",
                   "name": "options",
-                  "optional": true
-                }
-              ]
-            },
-            {
-              "params": [
-                {
-                  "name": "buffer"
-                },
-                {
-                  "name": "options",
+                  "type": "Object",
                   "optional": true
                 }
               ]
             }
           ],
-          "desc": "<p>Compress a chunk of data with <a href=\"#zlib_class_zlib_deflate\"><code>Deflate</code></a>.</p>\n"
+          "desc": "<p>Compress a chunk of data with <a href=\"#zlib_class_zlib_deflate\"><code>Deflate</code></a>.</p>"
         },
         {
           "textRaw": "zlib.deflateRaw(buffer[, options], callback)",
@@ -1525,43 +1315,24 @@
             {
               "params": [
                 {
-                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string} ",
+                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
                   "name": "buffer",
                   "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
                 },
                 {
+                  "textRaw": "`options` {Object}",
                   "name": "options",
-                  "optional": true
-                }
-              ]
-            },
-            {
-              "params": [
-                {
-                  "name": "buffer"
-                },
-                {
-                  "name": "options",
-                  "optional": true
-                }
-              ]
-            },
-            {
-              "params": [
-                {
-                  "name": "buffer"
-                },
-                {
-                  "name": "options",
+                  "type": "Object",
                   "optional": true
                 },
                 {
-                  "name": "callback"
+                  "textRaw": "`callback` {Function}",
+                  "name": "callback",
+                  "type": "Function"
                 }
               ]
             }
-          ],
-          "desc": "<p>Compress a chunk of data with <a href=\"#zlib_class_zlib_deflateraw\"><code>DeflateRaw</code></a>.</p>\n"
+          ]
         },
         {
           "textRaw": "zlib.deflateRawSync(buffer[, options])",
@@ -1593,29 +1364,20 @@
             {
               "params": [
                 {
-                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string} ",
+                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
                   "name": "buffer",
                   "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
                 },
                 {
+                  "textRaw": "`options` {Object}",
                   "name": "options",
-                  "optional": true
-                }
-              ]
-            },
-            {
-              "params": [
-                {
-                  "name": "buffer"
-                },
-                {
-                  "name": "options",
+                  "type": "Object",
                   "optional": true
                 }
               ]
             }
           ],
-          "desc": "<p>Compress a chunk of data with <a href=\"#zlib_class_zlib_deflateraw\"><code>DeflateRaw</code></a>.</p>\n"
+          "desc": "<p>Compress a chunk of data with <a href=\"#zlib_class_zlib_deflateraw\"><code>DeflateRaw</code></a>.</p>"
         },
         {
           "textRaw": "zlib.gunzip(buffer[, options], callback)",
@@ -1647,43 +1409,24 @@
             {
               "params": [
                 {
-                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string} ",
+                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
                   "name": "buffer",
                   "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
                 },
                 {
+                  "textRaw": "`options` {Object}",
                   "name": "options",
-                  "optional": true
-                }
-              ]
-            },
-            {
-              "params": [
-                {
-                  "name": "buffer"
-                },
-                {
-                  "name": "options",
-                  "optional": true
-                }
-              ]
-            },
-            {
-              "params": [
-                {
-                  "name": "buffer"
-                },
-                {
-                  "name": "options",
+                  "type": "Object",
                   "optional": true
                 },
                 {
-                  "name": "callback"
+                  "textRaw": "`callback` {Function}",
+                  "name": "callback",
+                  "type": "Function"
                 }
               ]
             }
-          ],
-          "desc": "<p>Decompress a chunk of data with <a href=\"#zlib_class_zlib_gunzip\"><code>Gunzip</code></a>.</p>\n"
+          ]
         },
         {
           "textRaw": "zlib.gunzipSync(buffer[, options])",
@@ -1715,29 +1458,20 @@
             {
               "params": [
                 {
-                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string} ",
+                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
                   "name": "buffer",
                   "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
                 },
                 {
+                  "textRaw": "`options` {Object}",
                   "name": "options",
-                  "optional": true
-                }
-              ]
-            },
-            {
-              "params": [
-                {
-                  "name": "buffer"
-                },
-                {
-                  "name": "options",
+                  "type": "Object",
                   "optional": true
                 }
               ]
             }
           ],
-          "desc": "<p>Decompress a chunk of data with <a href=\"#zlib_class_zlib_gunzip\"><code>Gunzip</code></a>.</p>\n"
+          "desc": "<p>Decompress a chunk of data with <a href=\"#zlib_class_zlib_gunzip\"><code>Gunzip</code></a>.</p>"
         },
         {
           "textRaw": "zlib.gzip(buffer[, options], callback)",
@@ -1769,43 +1503,24 @@
             {
               "params": [
                 {
-                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string} ",
+                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
                   "name": "buffer",
                   "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
                 },
                 {
+                  "textRaw": "`options` {Object}",
                   "name": "options",
-                  "optional": true
-                }
-              ]
-            },
-            {
-              "params": [
-                {
-                  "name": "buffer"
-                },
-                {
-                  "name": "options",
-                  "optional": true
-                }
-              ]
-            },
-            {
-              "params": [
-                {
-                  "name": "buffer"
-                },
-                {
-                  "name": "options",
+                  "type": "Object",
                   "optional": true
                 },
                 {
-                  "name": "callback"
+                  "textRaw": "`callback` {Function}",
+                  "name": "callback",
+                  "type": "Function"
                 }
               ]
             }
-          ],
-          "desc": "<p>Compress a chunk of data with <a href=\"#zlib_class_zlib_gzip\"><code>Gzip</code></a>.</p>\n"
+          ]
         },
         {
           "textRaw": "zlib.gzipSync(buffer[, options])",
@@ -1837,29 +1552,20 @@
             {
               "params": [
                 {
-                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string} ",
+                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
                   "name": "buffer",
                   "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
                 },
                 {
+                  "textRaw": "`options` {Object}",
                   "name": "options",
-                  "optional": true
-                }
-              ]
-            },
-            {
-              "params": [
-                {
-                  "name": "buffer"
-                },
-                {
-                  "name": "options",
+                  "type": "Object",
                   "optional": true
                 }
               ]
             }
           ],
-          "desc": "<p>Compress a chunk of data with <a href=\"#zlib_class_zlib_gzip\"><code>Gzip</code></a>.</p>\n"
+          "desc": "<p>Compress a chunk of data with <a href=\"#zlib_class_zlib_gzip\"><code>Gzip</code></a>.</p>"
         },
         {
           "textRaw": "zlib.inflate(buffer[, options], callback)",
@@ -1891,43 +1597,24 @@
             {
               "params": [
                 {
-                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string} ",
+                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
                   "name": "buffer",
                   "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
                 },
                 {
+                  "textRaw": "`options` {Object}",
                   "name": "options",
-                  "optional": true
-                }
-              ]
-            },
-            {
-              "params": [
-                {
-                  "name": "buffer"
-                },
-                {
-                  "name": "options",
-                  "optional": true
-                }
-              ]
-            },
-            {
-              "params": [
-                {
-                  "name": "buffer"
-                },
-                {
-                  "name": "options",
+                  "type": "Object",
                   "optional": true
                 },
                 {
-                  "name": "callback"
+                  "textRaw": "`callback` {Function}",
+                  "name": "callback",
+                  "type": "Function"
                 }
               ]
             }
-          ],
-          "desc": "<p>Decompress a chunk of data with <a href=\"#zlib_class_zlib_inflate\"><code>Inflate</code></a>.</p>\n"
+          ]
         },
         {
           "textRaw": "zlib.inflateSync(buffer[, options])",
@@ -1959,29 +1646,20 @@
             {
               "params": [
                 {
-                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string} ",
+                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
                   "name": "buffer",
                   "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
                 },
                 {
+                  "textRaw": "`options` {Object}",
                   "name": "options",
-                  "optional": true
-                }
-              ]
-            },
-            {
-              "params": [
-                {
-                  "name": "buffer"
-                },
-                {
-                  "name": "options",
+                  "type": "Object",
                   "optional": true
                 }
               ]
             }
           ],
-          "desc": "<p>Decompress a chunk of data with <a href=\"#zlib_class_zlib_inflate\"><code>Inflate</code></a>.</p>\n"
+          "desc": "<p>Decompress a chunk of data with <a href=\"#zlib_class_zlib_inflate\"><code>Inflate</code></a>.</p>"
         },
         {
           "textRaw": "zlib.inflateRaw(buffer[, options], callback)",
@@ -2013,43 +1691,24 @@
             {
               "params": [
                 {
-                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string} ",
+                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
                   "name": "buffer",
                   "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
                 },
                 {
+                  "textRaw": "`options` {Object}",
                   "name": "options",
-                  "optional": true
-                }
-              ]
-            },
-            {
-              "params": [
-                {
-                  "name": "buffer"
-                },
-                {
-                  "name": "options",
-                  "optional": true
-                }
-              ]
-            },
-            {
-              "params": [
-                {
-                  "name": "buffer"
-                },
-                {
-                  "name": "options",
+                  "type": "Object",
                   "optional": true
                 },
                 {
-                  "name": "callback"
+                  "textRaw": "`callback` {Function}",
+                  "name": "callback",
+                  "type": "Function"
                 }
               ]
             }
-          ],
-          "desc": "<p>Decompress a chunk of data with <a href=\"#zlib_class_zlib_inflateraw\"><code>InflateRaw</code></a>.</p>\n"
+          ]
         },
         {
           "textRaw": "zlib.inflateRawSync(buffer[, options])",
@@ -2081,29 +1740,20 @@
             {
               "params": [
                 {
-                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string} ",
+                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
                   "name": "buffer",
                   "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
                 },
                 {
+                  "textRaw": "`options` {Object}",
                   "name": "options",
-                  "optional": true
-                }
-              ]
-            },
-            {
-              "params": [
-                {
-                  "name": "buffer"
-                },
-                {
-                  "name": "options",
+                  "type": "Object",
                   "optional": true
                 }
               ]
             }
           ],
-          "desc": "<p>Decompress a chunk of data with <a href=\"#zlib_class_zlib_inflateraw\"><code>InflateRaw</code></a>.</p>\n"
+          "desc": "<p>Decompress a chunk of data with <a href=\"#zlib_class_zlib_inflateraw\"><code>InflateRaw</code></a>.</p>"
         },
         {
           "textRaw": "zlib.unzip(buffer[, options], callback)",
@@ -2135,43 +1785,24 @@
             {
               "params": [
                 {
-                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string} ",
+                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
                   "name": "buffer",
                   "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
                 },
                 {
+                  "textRaw": "`options` {Object}",
                   "name": "options",
-                  "optional": true
-                }
-              ]
-            },
-            {
-              "params": [
-                {
-                  "name": "buffer"
-                },
-                {
-                  "name": "options",
-                  "optional": true
-                }
-              ]
-            },
-            {
-              "params": [
-                {
-                  "name": "buffer"
-                },
-                {
-                  "name": "options",
+                  "type": "Object",
                   "optional": true
                 },
                 {
-                  "name": "callback"
+                  "textRaw": "`callback` {Function}",
+                  "name": "callback",
+                  "type": "Function"
                 }
               ]
             }
-          ],
-          "desc": "<p>Decompress a chunk of data with <a href=\"#zlib_class_zlib_unzip\"><code>Unzip</code></a>.</p>\n"
+          ]
         },
         {
           "textRaw": "zlib.unzipSync(buffer[, options])",
@@ -2203,29 +1834,20 @@
             {
               "params": [
                 {
-                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string} ",
+                  "textRaw": "`buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}",
                   "name": "buffer",
                   "type": "Buffer|TypedArray|DataView|ArrayBuffer|string"
                 },
                 {
+                  "textRaw": "`options` {Object}",
                   "name": "options",
-                  "optional": true
-                }
-              ]
-            },
-            {
-              "params": [
-                {
-                  "name": "buffer"
-                },
-                {
-                  "name": "options",
+                  "type": "Object",
                   "optional": true
                 }
               ]
             }
           ],
-          "desc": "<p>Decompress a chunk of data with <a href=\"#zlib_class_zlib_unzip\"><code>Unzip</code></a>.</p>\n"
+          "desc": "<p>Decompress a chunk of data with <a href=\"#zlib_class_zlib_unzip\"><code>Unzip</code></a>.</p>"
         }
       ],
       "type": "module",

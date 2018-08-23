@@ -94,13 +94,17 @@ $(NODE_G_EXE): config.gypi out/Makefile
 CODE_CACHE_DIR ?= out/$(BUILDTYPE)/obj/gen
 CODE_CACHE_FILE ?= $(CODE_CACHE_DIR)/node_code_cache.cc
 
+ifeq ($(BUILDTYPE),Debug)
+CONFIG_FLAGS += --debug
+endif
 .PHONY: with-code-cache
 with-code-cache:
-	$(PYTHON) ./configure
+	@echo $(CONFIG_FLAGS)
+	$(PYTHON) ./configure $(CONFIG_FLAGS)
 	$(MAKE)
 	mkdir -p $(CODE_CACHE_DIR)
 	out/$(BUILDTYPE)/$(NODE_EXE) --expose-internals tools/generate_code_cache.js $(CODE_CACHE_FILE)
-	$(PYTHON) ./configure --code-cache-path $(CODE_CACHE_FILE)
+	$(PYTHON) ./configure --code-cache-path $(CODE_CACHE_FILE) $(CONFIG_FLAGS)
 	$(MAKE)
 
 .PHONY: test-code-cache
@@ -141,6 +145,7 @@ clean: ## Remove build artifacts.
 	$(RM) -r test/tmp*
 	$(RM) -r test/.tmp*
 	$(MAKE) test-addons-clean
+	$(MAKE) bench-addons-clean
 
 .PHONY: distclean
 distclean:
@@ -265,7 +270,6 @@ test: all ## Runs default tests, linters, and builds docs.
 	# can be displayed together
 	$(MAKE) -s build-addons
 	$(MAKE) -s build-addons-napi
-	$(MAKE) -s test-doc
 	$(MAKE) -s cctest
 	$(MAKE) -s jstest
 
@@ -314,25 +318,22 @@ benchmark/napi/function_args/build/Release/binding.node: all \
 		--directory="$(shell pwd)/benchmark/napi/function_args" \
 		--nodedir="$(shell pwd)"
 
-# Implicitly depends on $(NODE_EXE).  We don't depend on it explicitly because
-# it always triggers a rebuild due to it being a .PHONY rule.  See the comment
-# near the build-addons rule for more background.
-test/gc/build/Release/binding.node: test/gc/binding.cc test/gc/binding.gyp
-	$(NODE) deps/npm/node_modules/node-gyp/bin/node-gyp rebuild \
-		--python="$(PYTHON)" \
-		--directory="$(shell pwd)/test/gc" \
-		--nodedir="$(shell pwd)"
-
 DOCBUILDSTAMP_PREREQS = tools/doc/addon-verify.js doc/api/addons.md
 
 ifeq ($(OSTYPE),aix)
 DOCBUILDSTAMP_PREREQS := $(DOCBUILDSTAMP_PREREQS) out/$(BUILDTYPE)/node.exp
 endif
 
-test/addons/.docbuildstamp: $(DOCBUILDSTAMP_PREREQS)
+node_use_openssl = $(shell $(call available-node,"-p" \
+		   "process.versions.openssl != undefined"))
+test/addons/.docbuildstamp: $(DOCBUILDSTAMP_PREREQS) tools/doc/node_modules
+ifeq ($(node_use_openssl),true)
 	$(RM) -r test/addons/??_*/
 	[ -x $(NODE) ] && $(NODE) $< || node $<
 	touch $@
+else
+	@echo "Skipping .docbuildstamp (no crypto)"
+endif
 
 ADDONS_BINDING_GYPS := \
 	$(filter-out test/addons/??_*/binding.gyp, \
@@ -342,19 +343,26 @@ ADDONS_BINDING_SOURCES := \
 	$(filter-out test/addons/??_*/*.cc, $(wildcard test/addons/*/*.cc)) \
 	$(filter-out test/addons/??_*/*.h, $(wildcard test/addons/*/*.h))
 
+ADDONS_PREREQS := config.gypi \
+	deps/npm/node_modules/node-gyp/package.json tools/build-addons.js \
+	deps/uv/include/*.h deps/v8/include/*.h \
+	src/node.h src/node_buffer.h src/node_object_wrap.h src/node_version.h
+
+define run_build_addons
+env npm_config_loglevel=$(LOGLEVEL) npm_config_nodedir="$$PWD" \
+  npm_config_python="$(PYTHON)" $(NODE) "$$PWD/tools/build-addons" \
+  "$$PWD/deps/npm/node_modules/node-gyp/bin/node-gyp.js" \
+  $1
+touch $2
+endef
+
 # Implicitly depends on $(NODE_EXE), see the build-addons rule for rationale.
 # Depends on node-gyp package.json so that build-addons is (re)executed when
 # node-gyp is updated as part of an npm update.
-test/addons/.buildstamp: config.gypi \
-	deps/npm/node_modules/node-gyp/package.json tools/build-addons.js \
+test/addons/.buildstamp: $(ADDONS_PREREQS) \
 	$(ADDONS_BINDING_GYPS) $(ADDONS_BINDING_SOURCES) \
-	deps/uv/include/*.h deps/v8/include/*.h \
-	src/node.h src/node_buffer.h src/node_object_wrap.h src/node_version.h \
 	test/addons/.docbuildstamp
-	env npm_config_loglevel=$(LOGLEVEL) npm_config_nodedir="$$PWD" \
-		npm_config_python="$(PYTHON)" $(NODE) "$$PWD/tools/build-addons" \
-		"$$PWD/deps/npm/node_modules/node-gyp/bin/node-gyp.js" "$$PWD/test/addons"
-	touch $@
+	@$(call run_build_addons,"$$PWD/test/addons",$@)
 
 .PHONY: build-addons
 # .buildstamp needs $(NODE_EXE) but cannot depend on it
@@ -375,17 +383,10 @@ ADDONS_NAPI_BINDING_SOURCES := \
 	$(filter-out test/addons-napi/??_*/*.h, $(wildcard test/addons-napi/*/*.h))
 
 # Implicitly depends on $(NODE_EXE), see the build-addons-napi rule for rationale.
-test/addons-napi/.buildstamp: config.gypi \
-	deps/npm/node_modules/node-gyp/package.json tools/build-addons.js \
+test/addons-napi/.buildstamp: $(ADDONS_PREREQS) \
 	$(ADDONS_NAPI_BINDING_GYPS) $(ADDONS_NAPI_BINDING_SOURCES) \
-	deps/uv/include/*.h deps/v8/include/*.h \
-	src/node.h src/node_buffer.h src/node_object_wrap.h src/node_version.h \
 	src/node_api.h src/node_api_types.h
-	env npm_config_loglevel=$(LOGLEVEL) npm_config_nodedir="$$PWD" \
-		npm_config_python="$(PYTHON)" $(NODE) "$$PWD/tools/build-addons" \
-		"$$PWD/deps/npm/node_modules/node-gyp/bin/node-gyp.js" \
-		"$$PWD/test/addons-napi"
-	touch $@
+	@$(call run_build_addons,"$$PWD/test/addons-napi",$@)
 
 .PHONY: build-addons-napi
 # .buildstamp needs $(NODE_EXE) but cannot depend on it
@@ -405,20 +406,12 @@ clear-stalled:
 		echo $${PS_OUT} | xargs kill -9; \
 	fi
 
-.PHONY: test-gc
-test-gc: all test/gc/build/Release/binding.node
-	$(PYTHON) tools/test.py $(PARALLEL_ARGS) --mode=$(BUILDTYPE_LOWER) gc
-
-.PHONY: test-gc-clean
-test-gc-clean:
-	$(RM) -r test/gc/build
-
 test-build: | all build-addons build-addons-napi
 
 test-build-addons-napi: all build-addons-napi
 
 .PHONY: test-all
-test-all: test-build test/gc/build/Release/binding.node ## Run everything in test/.
+test-all: test-build ## Run everything in test/.
 	$(PYTHON) tools/test.py $(PARALLEL_ARGS) --mode=debug,release
 
 test-all-valgrind: test-build
@@ -548,13 +541,6 @@ test-addons-clean:
 	$(RM) test/addons/.buildstamp test/addons/.docbuildstamp
 	$(MAKE) test-addons-napi-clean
 
-test-timers:
-	$(MAKE) --directory=tools faketime
-	$(PYTHON) tools/test.py $(PARALLEL_ARGS) --mode=$(BUILDTYPE_LOWER) timers
-
-test-timers-clean:
-	$(MAKE) --directory=tools clean
-
 test-async-hooks:
 	$(PYTHON) tools/test.py $(PARALLEL_ARGS) --mode=$(BUILDTYPE_LOWER) async-hooks
 
@@ -617,12 +603,8 @@ apidocs_json = $(addprefix out/,$(apidoc_sources:.md=.json))
 apiassets = $(subst api_assets,api/assets,$(addprefix out/,$(wildcard doc/api_assets/*)))
 
 .PHONY: doc-only
-doc-only: $(apidoc_dirs) $(apiassets)  ## Builds the docs with the local or the global Node.js binary.
-# If it's a source tarball, assets are already in doc/api/assets,
-# no need to install anything, we have already copied the docs over
-	if [ ! -d doc/api/assets ]; then \
-		$(MAKE) tools/doc/node_modules/js-yaml/package.json; \
-	fi;
+doc-only: tools/doc/node_modules \
+	$(apidoc_dirs) $(apiassets)  ## Builds the docs with the local or the global Node.js binary.
 	@$(MAKE) out/doc/api/all.html out/doc/api/all.json
 
 .PHONY: doc
@@ -659,19 +641,17 @@ available-node = \
 	fi;
 
 run-npm-install = $(PWD)/$(NPM) install --production --no-package-lock
+run-npm-ci = $(PWD)/$(NPM) ci
 
 tools/doc/node_modules/js-yaml/package.json:
 	cd tools/doc && $(call available-node,$(run-npm-install))
 
-gen-json = tools/doc/generate.js --format=json $< > $@
-gen-html = tools/doc/generate.js --node-version=$(FULLVERSION) --format=html \
-			--analytics=$(DOCS_ANALYTICS) $< > $@
+gen-api = tools/doc/generate.js --node-version=$(FULLVERSION) \
+		--analytics=$(DOCS_ANALYTICS) $< --output-directory=out/doc/api
 
-out/doc/api/%.json: doc/api/%.md tools/doc/generate.js tools/doc/json.js
-	$(call available-node, $(gen-json))
-
-out/doc/api/%.html: doc/api/%.md tools/doc/generate.js tools/doc/html.js
-	$(call available-node, $(gen-html))
+out/doc/api/%.json out/doc/api/%.html: doc/api/%.md tools/doc/generate.js \
+	tools/doc/html.js tools/doc/json.js
+	$(call available-node, $(gen-api))
 
 out/doc/api/all.html: $(apidocs_html) tools/doc/allhtml.js
 	$(call available-node, tools/doc/allhtml.js)
@@ -1053,12 +1033,22 @@ ifeq ($(XZ), 0)
 endif
 
 .PHONY: bench-all
-bench-all:
+bench-all: bench-addons-build
 	@echo "Please use benchmark/run.js or benchmark/compare.js to run the benchmarks."
 
 .PHONY: bench
-bench:
+bench: bench-addons-build
 	@echo "Please use benchmark/run.js or benchmark/compare.js to run the benchmarks."
+
+# Build required addons for benchmark before running it.
+.PHONY: bench-addons-build
+bench-addons-build: benchmark/napi/function_call/build/Release/binding.node \
+	benchmark/napi/function_args/build/Release/binding.node
+
+.PHONY: bench-addons-clean
+bench-addons-clean:
+	$(RM) -r benchmark/napi/function_call/build
+	$(RM) -r benchmark/napi/function_args/build
 
 .PHONY: lint-md-clean
 lint-md-clean:
@@ -1068,24 +1058,30 @@ lint-md-clean:
 
 tools/remark-cli/node_modules: tools/remark-cli/package.json
 	@echo "Markdown linter: installing remark-cli into tools/"
-	@cd tools/remark-cli && $(call available-node,$(run-npm-install))
+	@cd tools/remark-cli && $(call available-node,$(run-npm-ci))
 
 tools/remark-preset-lint-node/node_modules: \
 	tools/remark-preset-lint-node/package.json
 	@echo "Markdown linter: installing remark-preset-lint-node into tools/"
-	@cd tools/remark-preset-lint-node && $(call available-node,$(run-npm-install))
+	@cd tools/remark-preset-lint-node && $(call available-node,$(run-npm-ci))
 
 .PHONY: lint-md-build
 lint-md-build: tools/remark-cli/node_modules \
+	tools/doc/node_modules \
 	tools/remark-preset-lint-node/node_modules
+
+tools/doc/node_modules: tools/doc/package.json
+ifeq ($(node_use_openssl),true)
+	cd tools/doc && $(call available-node,$(run-npm-install))
+else
+	@echo "Skipping tools/doc/node_modules (no crypto)"
+endif
 
 .PHONY: lint-md
 ifneq ("","$(wildcard tools/remark-cli/node_modules/)")
 
 LINT_MD_DOC_FILES = $(shell ls doc/*.md doc/**/*.md)
 run-lint-doc-md = tools/remark-cli/cli.js -q -f $(LINT_MD_DOC_FILES)
-node_use_openssl = $(shell $(call available-node,"-p" \
-		   "process.versions.openssl != undefined"))
 # Lint all changed markdown files under doc/
 tools/.docmdlintstamp: $(LINT_MD_DOC_FILES)
 ifeq ($(node_use_openssl),true)
@@ -1096,7 +1092,7 @@ else
 	@echo "Skipping Markdown linter on docs (no crypto)"
 endif
 
-LINT_MD_TARGETS = src lib benchmark tools/doc tools/icu
+LINT_MD_TARGETS = src lib benchmark test tools/doc tools/icu
 LINT_MD_ROOT_DOCS := $(wildcard *.md)
 LINT_MD_MISC_FILES := $(shell find $(LINT_MD_TARGETS) -type f \
   -not -path '*node_modules*' -name '*.md') $(LINT_MD_ROOT_DOCS)
@@ -1176,7 +1172,6 @@ LINT_CPP_FILES = $(filter-out $(LINT_CPP_EXCLUDE), $(wildcard \
 	test/cctest/*.h \
 	test/addons-napi/*/*.cc \
 	test/addons-napi/*/*.h \
-	test/gc/binding.cc \
 	tools/icu/*.cc \
 	tools/icu/*.h \
 	))
@@ -1184,6 +1179,33 @@ LINT_CPP_FILES = $(filter-out $(LINT_CPP_EXCLUDE), $(wildcard \
 # Code blocks don't have newline at the end,
 # and the actual filename is generated so it won't match header guards
 ADDON_DOC_LINT_FLAGS=-whitespace/ending_newline,-build/header_guard
+
+format-cpp-build:
+	cd tools/clang-format && $(call available-node,$(run-npm-install))
+
+format-cpp-clean:
+	$(RM) -r tools/clang-format/node_modules
+
+CLANG_FORMAT_START ?= HEAD
+.PHONY: format-cpp
+# To format staged changes:
+#  $ make format-cpp
+# To format HEAD~1...HEAD (latest commit):
+#  $ CLANG_FORMAT_START=`git rev-parse HEAD~1` make format-cpp
+# To format diff between master and current branch head (master...HEAD):
+#  $ CLANG_FORMAT_START=master make format-cpp
+format-cpp: ## Format C++ diff from $CLANG_FORMAT_START to current changes
+ifneq ("","$(wildcard tools/clang-format/node_modules/)")
+	@echo "Formatting C++ diff from $(CLANG_FORMAT_START).."
+	@$(PYTHON) tools/clang-format/node_modules/.bin/git-clang-format \
+		--binary=tools/clang-format/node_modules/.bin/clang-format \
+		--style=file \
+		$(CLANG_FORMAT_START) -- \
+		$(LINT_CPP_FILES)
+else
+	@echo "clang-format is not installed."
+	@echo "To install (requires internet access) run: $ make format-cpp-build"
+endif
 
 .PHONY: lint-cpp
 # Lints the C++ code with cpplint.py and check-imports.py.

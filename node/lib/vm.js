@@ -23,16 +23,15 @@
 
 const {
   ContextifyScript,
-  kParsingContext,
   makeContext,
   isContext: _isContext,
 } = process.binding('contextify');
-
 const {
   ERR_INVALID_ARG_TYPE,
   ERR_OUT_OF_RANGE
 } = require('internal/errors').codes;
 const { isUint8Array } = require('internal/util/types');
+const kParsingContext = Symbol('script parsing context');
 
 class Script extends ContextifyScript {
   constructor(code, options = {}) {
@@ -308,5 +307,7 @@ module.exports = {
   isContext,
 };
 
-if (process.binding('config').experimentalVMModules)
-  module.exports.Module = require('internal/vm/module').Module;
+if (process.binding('config').experimentalVMModules) {
+  const { SourceTextModule } = require('internal/vm/source_text_module');
+  module.exports.SourceTextModule = SourceTextModule;
+}

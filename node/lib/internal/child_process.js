@@ -14,6 +14,7 @@ const {
     ERR_MISSING_ARGS
   }
 } = require('internal/errors');
+const { validateString } = require('internal/validators');
 const EventEmitter = require('events');
 const net = require('net');
 const dgram = require('dgram');
@@ -32,6 +33,7 @@ const { isUint8Array } = require('internal/util/types');
 const spawn_sync = process.binding('spawn_sync');
 const { HTTPParser } = process.binding('http_parser');
 const { freeParser } = require('_http_common');
+const { kStateSymbol } = require('internal/dgram');
 
 const {
   UV_EACCES,
@@ -181,7 +183,7 @@ const handleConversion = {
     send: function(message, socket, options) {
       message.dgramType = socket.type;
 
-      return socket._handle;
+      return socket[kStateSymbol].handle;
     },
 
     got: function(message, handle, emit) {
@@ -316,9 +318,7 @@ ChildProcess.prototype.spawn = function(options) {
     options.envPairs.push('NODE_CHANNEL_FD=' + ipcFd);
   }
 
-  if (typeof options.file !== 'string') {
-    throw new ERR_INVALID_ARG_TYPE('options.file', 'string', options.file);
-  }
+  validateString(options.file, 'options.file');
   this.spawnfile = options.file;
 
   if (Array.isArray(options.args))

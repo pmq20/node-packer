@@ -69,6 +69,7 @@ const {
   ERR_NO_LONGER_SUPPORTED,
   ERR_UNKNOWN_ENCODING
 } = require('internal/errors').codes;
+const { validateString } = require('internal/validators');
 
 const internalBuffer = require('internal/buffer');
 
@@ -276,8 +277,9 @@ function assertSize(size) {
  */
 Buffer.alloc = function alloc(size, fill, encoding) {
   assertSize(size);
-  if (fill !== undefined && size > 0) {
-    return _fill(createUnsafeBuffer(size), fill, encoding);
+  if (fill !== undefined && fill !== 0 && size > 0) {
+    const buf = createUnsafeBuffer(size);
+    return _fill(buf, fill, 0, buf.length, encoding);
   }
   return new FastBuffer(size);
 };
@@ -841,9 +843,7 @@ function _fill(buf, val, start, end, encoding) {
 
     const normalizedEncoding = normalizeEncoding(encoding);
     if (normalizedEncoding === undefined) {
-      if (typeof encoding !== 'string') {
-        throw new ERR_INVALID_ARG_TYPE('encoding', 'string', encoding);
-      }
+      validateString(encoding, 'encoding');
       throw new ERR_UNKNOWN_ENCODING(encoding);
     }
 

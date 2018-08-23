@@ -45,6 +45,7 @@ const {
   ERR_STREAM_CANNOT_PIPE,
   ERR_STREAM_WRITE_AFTER_END
 } = require('internal/errors').codes;
+const { validateString } = require('internal/validators');
 
 const { CRLF, debug } = common;
 
@@ -183,7 +184,7 @@ OutgoingMessage.prototype.setTimeout = function setTimeout(msecs, callback) {
   }
 
   if (!this.socket) {
-    this.once('socket', function(socket) {
+    this.once('socket', function socketSetTimeoutOnConnect(socket) {
       socket.setTimeout(msecs);
     });
   } else {
@@ -200,7 +201,7 @@ OutgoingMessage.prototype.destroy = function destroy(error) {
   if (this.socket) {
     this.socket.destroy(error);
   } else {
-    this.once('socket', function(socket) {
+    this.once('socket', function socketDestroyOnConnect(socket) {
       socket.destroy(error);
     });
   }
@@ -480,9 +481,7 @@ OutgoingMessage.prototype.setHeader = function setHeader(name, value) {
 
 
 OutgoingMessage.prototype.getHeader = function getHeader(name) {
-  if (typeof name !== 'string') {
-    throw new ERR_INVALID_ARG_TYPE('name', 'string', name);
-  }
+  validateString(name, 'name');
 
   const headers = this[outHeadersKey];
   if (headers === null)
@@ -516,19 +515,14 @@ OutgoingMessage.prototype.getHeaders = function getHeaders() {
 
 
 OutgoingMessage.prototype.hasHeader = function hasHeader(name) {
-  if (typeof name !== 'string') {
-    throw new ERR_INVALID_ARG_TYPE('name', 'string', name);
-  }
-
+  validateString(name, 'name');
   return this[outHeadersKey] !== null &&
     !!this[outHeadersKey][name.toLowerCase()];
 };
 
 
 OutgoingMessage.prototype.removeHeader = function removeHeader(name) {
-  if (typeof name !== 'string') {
-    throw new ERR_INVALID_ARG_TYPE('name', 'string', name);
-  }
+  validateString(name, 'name');
 
   if (this._header) {
     throw new ERR_HTTP_HEADERS_SENT('remove');

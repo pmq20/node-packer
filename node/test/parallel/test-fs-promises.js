@@ -10,7 +10,9 @@ const fsPromises = fs.promises;
 const {
   access,
   chmod,
+  chown,
   copyFile,
+  lchown,
   link,
   lchmod,
   lstat,
@@ -32,16 +34,13 @@ const {
 
 const tmpDir = tmpdir.path;
 
-common.crashOnUnhandledRejection();
-
 // fs.promises should not be enumerable as long as it causes a warning to be
 // emitted.
 assert.strictEqual(Object.keys(fs).includes('promises'), false);
 
 {
   access(__filename, 'r')
-    .then(common.mustCall())
-    .catch(common.mustNotCall());
+    .then(common.mustCall());
 
   access('this file does not exist', 'r')
     .then(common.mustNotCall())
@@ -110,6 +109,33 @@ function verifyStatObject(stat) {
     await chmod(dest, (0o10777));
     await handle.chmod(0o10777);
 
+    if (!common.isWindows) {
+      await chown(dest, process.getuid(), process.getgid());
+      await handle.chown(process.getuid(), process.getgid());
+    }
+
+    assert.rejects(
+      async () => {
+        await chown(dest, 1, -1);
+      },
+      {
+        code: 'ERR_OUT_OF_RANGE',
+        name: 'RangeError [ERR_OUT_OF_RANGE]',
+        message: 'The value of "gid" is out of range. ' +
+                 'It must be >= 0 && < 4294967296. Received -1'
+      });
+
+    assert.rejects(
+      async () => {
+        await handle.chown(1, -1);
+      },
+      {
+        code: 'ERR_OUT_OF_RANGE',
+        name: 'RangeError [ERR_OUT_OF_RANGE]',
+        message: 'The value of "gid" is out of range. ' +
+                  'It must be >= 0 && < 4294967296. Received -1'
+      });
+
     await utimes(dest, new Date(), new Date());
 
     try {
@@ -133,6 +159,9 @@ function verifyStatObject(stat) {
     if (common.canCreateSymLink()) {
       const newLink = path.resolve(tmpDir, 'baz3.js');
       await symlink(newPath, newLink);
+      if (!common.isWindows) {
+        await lchown(newLink, process.getuid(), process.getgid());
+      }
       stats = await lstat(newLink);
       verifyStatObject(stats);
 

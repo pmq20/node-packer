@@ -47,6 +47,7 @@ const {
     ERR_HTTP2_INVALID_SETTING_VALUE,
     ERR_HTTP2_INVALID_STREAM,
     ERR_HTTP2_MAX_PENDING_SETTINGS_ACK,
+    ERR_HTTP2_NESTED_PUSH,
     ERR_HTTP2_NO_SOCKET_MANIPULATION,
     ERR_HTTP2_OUT_OF_STREAMS,
     ERR_HTTP2_PAYLOAD_FORBIDDEN,
@@ -113,7 +114,6 @@ const { isArrayBufferView } = require('internal/util/types');
 const { FileHandle } = process.binding('fs');
 const binding = process.binding('http2');
 const { ShutdownWrap } = process.binding('stream_wrap');
-const { createPromise, promiseResolve } = process.binding('util');
 const { UV_EOF } = process.binding('uv');
 
 const { StreamPipe } = internalBinding('stream_pipe');
@@ -1427,7 +1427,7 @@ class ClientHttp2Session extends Http2Session {
 
     const onConnect = requestOnConnect.bind(stream, headersList, options);
     if (this.connecting) {
-      this.on('connect', onConnect);
+      this.once('connect', onConnect);
     } else {
       onConnect();
     }
@@ -2159,6 +2159,8 @@ class ServerHttp2Stream extends Http2Stream {
   pushStream(headers, options, callback) {
     if (!this.pushAllowed)
       throw new ERR_HTTP2_PUSH_DISABLED();
+    if (this[kID] % 2 === 0)
+      throw new ERR_HTTP2_NESTED_PUSH();
 
     const session = this[kSession];
 
@@ -2747,11 +2749,9 @@ function connect(authority, options, listener) {
 // Support util.promisify
 Object.defineProperty(connect, promisify.custom, {
   value: (authority, options) => {
-    const promise = createPromise();
-    const server = connect(authority,
-                           options,
-                           () => promiseResolve(promise, server));
-    return promise;
+    return new Promise((resolve) => {
+      const server = connect(authority, options, () => resolve(server));
+    });
   }
 });
 

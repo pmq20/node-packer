@@ -483,7 +483,7 @@ void SecureContext::Init(const FunctionCallbackInfo<Value>& args) {
 
 // Takes a string or buffer and loads it into a BIO.
 // Caller responsible for BIO_free_all-ing the returned object.
-static BIO* LoadBIO(Environment* env, Local<Value> v) {
+static BIOPointer LoadBIO(Environment* env, Local<Value> v) {
   HandleScope scope(env->isolate());
 
   if (v->IsString()) {
@@ -738,9 +738,12 @@ static X509_STORE* NewRootCertStore() {
 
   if (root_certs_vector.empty()) {
     for (size_t i = 0; i < arraysize(root_certs); i++) {
-      BIO* bp = NodeBIO::NewFixed(root_certs[i], strlen(root_certs[i]));
-      X509* x509 = PEM_read_bio_X509(bp, nullptr, NoPasswordCallback, nullptr);
-      BIO_free(bp);
+      X509* x509 =
+          PEM_read_bio_X509(NodeBIO::NewFixed(root_certs[i],
+                                              strlen(root_certs[i])).get(),
+                            nullptr,   // no re-use of X509 structure
+                            NoPasswordCallback,
+                            nullptr);  // no callback data
 
       // Parse errors from the built-in roots are fatal.
       CHECK_NOT_NULL(x509);
@@ -1375,13 +1378,11 @@ void SSLWrap<Base>::AddMethods(Environment* env, Local<FunctionTemplate> t) {
   env->SetProtoMethod(t, "setSession", SetSession);
   env->SetProtoMethod(t, "loadSession", LoadSession);
   env->SetProtoMethodNoSideEffect(t, "isSessionReused", IsSessionReused);
-  env->SetProtoMethodNoSideEffect(t, "isInitFinished", IsInitFinished);
   env->SetProtoMethodNoSideEffect(t, "verifyError", VerifyError);
   env->SetProtoMethodNoSideEffect(t, "getCurrentCipher", GetCurrentCipher);
   env->SetProtoMethod(t, "endParser", EndParser);
   env->SetProtoMethod(t, "certCbDone", CertCbDone);
   env->SetProtoMethod(t, "renegotiate", Renegotiate);
-  env->SetProtoMethod(t, "shutdownSSL", Shutdown);
   env->SetProtoMethodNoSideEffect(t, "getTLSTicket", GetTLSTicket);
   env->SetProtoMethod(t, "newSessionDone", NewSessionDone);
   env->SetProtoMethod(t, "setOCSPResponse", SetOCSPResponse);
@@ -1563,8 +1564,8 @@ static Local<Object> X509ToObject(Environment* env, X509* cert) {
     BIO_get_mem_ptr(bio.get(), &mem);
     info->Set(context, env->subject_string(),
               String::NewFromUtf8(env->isolate(), mem->data,
-                                  String::kNormalString,
-                                  mem->length)).FromJust();
+                                  NewStringType::kNormal,
+                                  mem->length).ToLocalChecked()).FromJust();
   }
   USE(BIO_reset(bio.get()));
 
@@ -1573,8 +1574,8 @@ static Local<Object> X509ToObject(Environment* env, X509* cert) {
     BIO_get_mem_ptr(bio.get(), &mem);
     info->Set(context, env->issuer_string(),
               String::NewFromUtf8(env->isolate(), mem->data,
-                                  String::kNormalString,
-                                  mem->length)).FromJust();
+                                  NewStringType::kNormal,
+                                  mem->length).ToLocalChecked()).FromJust();
   }
   USE(BIO_reset(bio.get()));
 
@@ -1601,8 +1602,8 @@ static Local<Object> X509ToObject(Environment* env, X509* cert) {
     BIO_get_mem_ptr(bio.get(), &mem);
     info->Set(context, keys[i],
               String::NewFromUtf8(env->isolate(), mem->data,
-                                  String::kNormalString,
-                                  mem->length)).FromJust();
+                                  NewStringType::kNormal,
+                                  mem->length).ToLocalChecked()).FromJust();
 
     USE(BIO_reset(bio.get()));
   }
@@ -1620,8 +1621,8 @@ static Local<Object> X509ToObject(Environment* env, X509* cert) {
     BIO_get_mem_ptr(bio.get(), &mem);
     info->Set(context, env->modulus_string(),
               String::NewFromUtf8(env->isolate(), mem->data,
-                                  String::kNormalString,
-                                  mem->length)).FromJust();
+                                  NewStringType::kNormal,
+                                  mem->length).ToLocalChecked()).FromJust();
     USE(BIO_reset(bio.get()));
 
     uint64_t exponent_word = static_cast<uint64_t>(BN_get_word(e));
@@ -1635,8 +1636,8 @@ static Local<Object> X509ToObject(Environment* env, X509* cert) {
     BIO_get_mem_ptr(bio.get(), &mem);
     info->Set(context, env->exponent_string(),
               String::NewFromUtf8(env->isolate(), mem->data,
-                                  String::kNormalString,
-                                  mem->length)).FromJust();
+                                  NewStringType::kNormal,
+                                  mem->length).ToLocalChecked()).FromJust();
     USE(BIO_reset(bio.get()));
 
     int size = i2d_RSA_PUBKEY(rsa.get(), nullptr);
@@ -1655,16 +1656,16 @@ static Local<Object> X509ToObject(Environment* env, X509* cert) {
   BIO_get_mem_ptr(bio.get(), &mem);
   info->Set(context, env->valid_from_string(),
             String::NewFromUtf8(env->isolate(), mem->data,
-                                String::kNormalString,
-                                mem->length)).FromJust();
+                                NewStringType::kNormal,
+                                mem->length).ToLocalChecked()).FromJust();
   USE(BIO_reset(bio.get()));
 
   ASN1_TIME_print(bio.get(), X509_get_notAfter(cert));
   BIO_get_mem_ptr(bio.get(), &mem);
   info->Set(context, env->valid_to_string(),
             String::NewFromUtf8(env->isolate(), mem->data,
-                                String::kNormalString,
-                                mem->length)).FromJust();
+                                NewStringType::kNormal,
+                                mem->length).ToLocalChecked()).FromJust();
   bio.reset();
 
   unsigned char md[EVP_MAX_MD_SIZE];
@@ -1988,16 +1989,6 @@ void SSLWrap<Base>::Renegotiate(const FunctionCallbackInfo<Value>& args) {
 
 
 template <class Base>
-void SSLWrap<Base>::Shutdown(const FunctionCallbackInfo<Value>& args) {
-  Base* w;
-  ASSIGN_OR_RETURN_UNWRAP(&w, args.Holder());
-
-  int rv = SSL_shutdown(w->ssl_.get());
-  args.GetReturnValue().Set(rv);
-}
-
-
-template <class Base>
 void SSLWrap<Base>::GetTLSTicket(const FunctionCallbackInfo<Value>& args) {
   Base* w;
   ASSIGN_OR_RETURN_UNWRAP(&w, args.Holder());
@@ -2128,15 +2119,6 @@ void SSLWrap<Base>::SetMaxSendFragment(
   args.GetReturnValue().Set(rv);
 }
 #endif  // SSL_set_max_send_fragment
-
-
-template <class Base>
-void SSLWrap<Base>::IsInitFinished(const FunctionCallbackInfo<Value>& args) {
-  Base* w;
-  ASSIGN_OR_RETURN_UNWRAP(&w, args.Holder());
-  bool yes = SSL_is_init_finished(w->ssl_.get());
-  args.GetReturnValue().Set(yes);
-}
 
 
 template <class Base>
@@ -2926,6 +2908,8 @@ void CipherBase::SetAuthTag(const FunctionCallbackInfo<Value>& args) {
 
   memset(cipher->auth_tag_, 0, sizeof(cipher->auth_tag_));
   memcpy(cipher->auth_tag_, Buffer::Data(args[0]), cipher->auth_tag_len_);
+
+  args.GetReturnValue().Set(true);
 }
 
 
@@ -2980,9 +2964,9 @@ void CipherBase::SetAAD(const FunctionCallbackInfo<Value>& args) {
   CHECK(args[1]->IsInt32());
   int plaintext_len = args[1].As<Int32>()->Value();
 
-  if (!cipher->SetAAD(Buffer::Data(args[0]), Buffer::Length(args[0]),
-                      plaintext_len))
-    args.GetReturnValue().Set(false);  // Report invalid state failure
+  bool b = cipher->SetAAD(Buffer::Data(args[0]), Buffer::Length(args[0]),
+                          plaintext_len);
+  args.GetReturnValue().Set(b);  // Possibly report invalid state failure
 }
 
 
@@ -3094,8 +3078,8 @@ void CipherBase::SetAutoPadding(const FunctionCallbackInfo<Value>& args) {
   CipherBase* cipher;
   ASSIGN_OR_RETURN_UNWRAP(&cipher, args.Holder());
 
-  if (!cipher->SetAutoPadding(args.Length() < 1 || args[0]->BooleanValue()))
-    args.GetReturnValue().Set(false);  // Report invalid state failure
+  bool b = cipher->SetAutoPadding(args.Length() < 1 || args[0]->BooleanValue());
+  args.GetReturnValue().Set(b);  // Possibly report invalid state failure
 }
 
 
@@ -3237,15 +3221,14 @@ void Hmac::HmacUpdate(const FunctionCallbackInfo<Value>& args) {
   ASSIGN_OR_RETURN_UNWRAP(&hmac, args.Holder());
 
   // Only copy the data if we have to, because it's a string
-  bool r = true;
+  bool r = false;
   if (args[0]->IsString()) {
     StringBytes::InlineDecoder decoder;
-    if (!decoder.Decode(env, args[0].As<String>(), args[1], UTF8)) {
-      args.GetReturnValue().Set(false);
-      return;
+    if (decoder.Decode(env, args[0].As<String>(), args[1], UTF8)) {
+      r = hmac->HmacUpdate(decoder.out(), decoder.size());
     }
-    r = hmac->HmacUpdate(decoder.out(), decoder.size());
-  } else if (args[0]->IsArrayBufferView()) {
+  } else {
+    CHECK(args[0]->IsArrayBufferView());
     char* buf = Buffer::Data(args[0]);
     size_t buflen = Buffer::Length(args[0]);
     r = hmac->HmacUpdate(buf, buflen);
@@ -4834,10 +4817,11 @@ void GetSSLCiphers(const FunctionCallbackInfo<Value>& args) {
   SSLPointer ssl(SSL_new(ctx.get()));
   CHECK(ssl);
 
-  Local<Array> arr = Array::New(env->isolate());
   STACK_OF(SSL_CIPHER)* ciphers = SSL_get_ciphers(ssl.get());
+  int n = sk_SSL_CIPHER_num(ciphers);
+  Local<Array> arr = Array::New(env->isolate(), n);
 
-  for (int i = 0; i < sk_SSL_CIPHER_num(ciphers); ++i) {
+  for (int i = 0; i < n; ++i) {
     const SSL_CIPHER* cipher = sk_SSL_CIPHER_value(ciphers, i);
     arr->Set(env->context(),
              i,
@@ -5142,6 +5126,8 @@ void InitCryptoOnce() {
   ERR_load_ENGINE_strings();
   ENGINE_load_builtin_engines();
 #endif  // !OPENSSL_NO_ENGINE
+
+  NodeBIO::GetMethod();
 }
 
 

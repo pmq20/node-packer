@@ -383,7 +383,10 @@ Readable.prototype.read = function(n) {
   // the 'readable' event and move on.
   if (n === 0 &&
       state.needReadable &&
-      (state.length >= state.highWaterMark || state.ended)) {
+      ((state.highWaterMark !== 0 ?
+        state.length >= state.highWaterMark :
+        state.length > 0) ||
+       state.ended)) {
     debug('read: emitReadable', state.length, state.ended);
     if (state.length === 0 && state.ended)
       endReadable(this);
@@ -721,7 +724,7 @@ Readable.prototype.pipe = function(dest, pipeOpts) {
 };
 
 function pipeOnDrain(src) {
-  return function() {
+  return function pipeOnDrainFunctionResult() {
     var state = src._readableState;
     debug('pipeOnDrain', state.awaitDrain);
     if (state.awaitDrain)
@@ -808,6 +811,7 @@ Readable.prototype.on = function(ev, fn) {
     if (!state.endEmitted && !state.readableListening) {
       state.readableListening = state.needReadable = true;
       state.emittedReadable = false;
+      debug('on readable', state.length, state.reading);
       if (state.length) {
         emitReadable(this);
       } else if (!state.reading) {
@@ -951,8 +955,8 @@ Readable.prototype.wrap = function(stream) {
   // important when wrapping filters and duplexes.
   for (var i in stream) {
     if (this[i] === undefined && typeof stream[i] === 'function') {
-      this[i] = function(method) {
-        return function() {
+      this[i] = function methodWrap(method) {
+        return function methodWrapReturnFunction() {
           return stream[method].apply(stream, arguments);
         };
       }(i);

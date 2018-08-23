@@ -10,6 +10,7 @@ const {
   ERR_INVALID_ARG_TYPE,
   ERR_INVALID_OPT_VALUE
 } = require('internal/errors').codes;
+const { validateString } = require('internal/validators');
 
 const {
   getDefaultEncoding,
@@ -83,9 +84,7 @@ function createCipherBase(cipher, credential, options, decipher, iv) {
 }
 
 function createCipher(cipher, password, options, decipher) {
-  if (typeof cipher !== 'string')
-    throw new ERR_INVALID_ARG_TYPE('cipher', 'string', cipher);
-
+  validateString(cipher, 'cipher');
   password = toBuf(password);
   if (!isArrayBufferView(password)) {
     throw new ERR_INVALID_ARG_TYPE(
@@ -99,9 +98,7 @@ function createCipher(cipher, password, options, decipher) {
 }
 
 function createCipherWithIV(cipher, key, options, decipher, iv) {
-  if (typeof cipher !== 'string')
-    throw new ERR_INVALID_ARG_TYPE('cipher', 'string', cipher);
-
+  validateString(cipher, 'cipher');
   key = toBuf(key);
   if (!isArrayBufferView(key)) {
     throw new ERR_INVALID_ARG_TYPE(
@@ -184,7 +181,7 @@ Cipher.prototype.final = function final(outputEncoding) {
 
 
 Cipher.prototype.setAutoPadding = function setAutoPadding(ap) {
-  if (this._handle.setAutoPadding(ap) === false)
+  if (!this._handle.setAutoPadding(ap))
     throw new ERR_CRYPTO_INVALID_STATE('setAutoPadding');
   return this;
 };
@@ -203,10 +200,7 @@ Cipher.prototype.setAuthTag = function setAuthTag(tagbuf) {
                                    ['Buffer', 'TypedArray', 'DataView'],
                                    tagbuf);
   }
-  // Do not do a normal falsy check because the method returns
-  // undefined if it succeeds. Returns false specifically if it
-  // errored
-  if (this._handle.setAuthTag(tagbuf) === false)
+  if (!this._handle.setAuthTag(tagbuf))
     throw new ERR_CRYPTO_INVALID_STATE('setAuthTag');
   return this;
 };
@@ -219,7 +213,7 @@ Cipher.prototype.setAAD = function setAAD(aadbuf, options) {
   }
 
   const plaintextLength = getUIntOption(options, 'plaintextLength');
-  if (this._handle.setAAD(aadbuf, plaintextLength) === false)
+  if (!this._handle.setAAD(aadbuf, plaintextLength))
     throw new ERR_CRYPTO_INVALID_STATE('setAAD');
   return this;
 };

@@ -72,9 +72,11 @@ struct sockaddr;
   do {                                                                        \
     v8::Isolate* isolate = target->GetIsolate();                              \
     v8::Local<v8::String> constant_name =                                     \
-        v8::String::NewFromUtf8(isolate, name);                               \
+        v8::String::NewFromUtf8(isolate, name, v8::NewStringType::kNormal)    \
+            .ToLocalChecked();                                                \
     v8::Local<v8::String> constant_value =                                    \
-        v8::String::NewFromUtf8(isolate, constant);                           \
+        v8::String::NewFromUtf8(isolate, constant, v8::NewStringType::kNormal)\
+            .ToLocalChecked();                                                \
     v8::PropertyAttribute constant_attributes =                               \
         static_cast<v8::PropertyAttribute>(v8::ReadOnly | v8::DontDelete);    \
     target->DefineOwnProperty(isolate->GetCurrentContext(),                   \
@@ -193,9 +195,9 @@ extern bool config_experimental_modules;
 // that is used by lib/vm.js
 extern bool config_experimental_vm_modules;
 
-// Set in node.cc by ParseArgs when --experimental-vm-modules is used.
+// Set in node.cc by ParseArgs when --experimental-worker is used.
 // Used in node_config.cc to set a constant on process.binding('config')
-// that is used by lib/vm.js
+// that is used by the module loader.
 extern bool config_experimental_worker;
 
 // Set in node.cc by ParseArgs when --experimental-repl-await is used.

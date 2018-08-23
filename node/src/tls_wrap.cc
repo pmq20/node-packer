@@ -60,8 +60,6 @@ TLSWrap::TLSWrap(Environment* env,
       SSLWrap<TLSWrap>(env, sc, kind),
       StreamBase(env),
       sc_(sc),
-      enc_in_(nullptr),
-      enc_out_(nullptr),
       write_size_(0),
       started_(false),
       established_(false),
@@ -86,8 +84,6 @@ TLSWrap::TLSWrap(Environment* env,
 
 
 TLSWrap::~TLSWrap() {
-  enc_in_ = nullptr;
-  enc_out_ = nullptr;
   sc_ = nullptr;
 }
 
@@ -112,11 +108,9 @@ void TLSWrap::NewSessionDoneCb() {
 
 
 void TLSWrap::InitSSL() {
-  // Initialize SSL
-  enc_in_ = crypto::NodeBIO::New();
-  enc_out_ = crypto::NodeBIO::New();
-  crypto::NodeBIO::FromBIO(enc_in_)->AssignEnvironment(env());
-  crypto::NodeBIO::FromBIO(enc_out_)->AssignEnvironment(env());
+  // Initialize SSL – OpenSSL takes ownership of these.
+  enc_in_ = crypto::NodeBIO::New(env()).release();
+  enc_out_ = crypto::NodeBIO::New(env()).release();
 
   SSL_set_bio(ssl_.get(), enc_in_, enc_out_);
 

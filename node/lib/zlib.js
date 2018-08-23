@@ -198,12 +198,12 @@ function checkFiniteNumber(number, name) {
   throw err;
 }
 
-// 1. Returns def for undefined and NaN
+// 1. Returns def for number when it's undefined or NaN
 // 2. Returns number for finite numbers >= lower and <= upper
 // 3. Throws ERR_INVALID_ARG_TYPE for non-numbers
 // 4. Throws ERR_OUT_OF_RANGE for infinite numbers or numbers > upper or < lower
 function checkRangesOrGetDefault(number, name, lower, upper, def) {
-  if (!checkFiniteNumber(number, name, lower, upper)) {
+  if (!checkFiniteNumber(number, name)) {
     return def;
   }
   if (number < lower || number > upper) {
@@ -473,7 +473,7 @@ function processChunkSync(self, chunk, flushFlag) {
   var chunkSize = self._chunkSize;
 
   var error;
-  self.on('error', function(er) {
+  self.on('error', function onError(er) {
     error = er;
   });
 
@@ -691,11 +691,11 @@ inherits(Unzip, Zlib);
 
 function createConvenienceMethod(ctor, sync) {
   if (sync) {
-    return function(buffer, opts) {
+    return function syncBufferWrapper(buffer, opts) {
       return zlibBufferSync(new ctor(opts), buffer);
     };
   } else {
-    return function(buffer, opts, callback) {
+    return function asyncBufferWrapper(buffer, opts, callback) {
       if (typeof opts === 'function') {
         callback = opts;
         opts = {};

@@ -14,12 +14,12 @@ const inspector = require('inspector');
 
 ## inspector.open([port[, host[, wait]]])
 
-* port {number} Port to listen on for inspector connections. Optional,
-  defaults to what was specified on the CLI.
-* host {string} Host to listen on for inspector connections. Optional,
-  defaults to what was specified on the CLI.
-* wait {boolean} Block until a client has connected. Optional, defaults
-  to false.
+* `port` {number} Port to listen on for inspector connections. Optional.
+  **Default:** what was specified on the CLI.
+* `host` {string} Host to listen on for inspector connections. Optional.
+  **Default:** what was specified on the CLI.
+* `wait` {boolean} Block until a client has connected. Optional.
+  **Default:** `false`.
 
 Activate inspector on host and port. Equivalent to `node
 --inspect=[[host:]port]`, but can be done programmatically after node has
@@ -136,8 +136,34 @@ with an error. [`session.connect()`] will need to be called to be able to send
 messages again. Reconnected session will lose all inspector state, such as
 enabled agents or configured breakpoints.
 
+## Example usage
+
+### CPU Profiler
+
+Apart from the debugger, various V8 Profilers are available through the DevTools
+protocol. Here's a simple example showing how to use the [CPU profiler][]:
+
+```js
+const inspector = require('inspector');
+
+const session = new inspector.Session();
+session.connect();
+
+session.post('Profiler.enable', () => {
+  session.post('Profiler.start', () => {
+    // invoke business logic under measurement here...
+
+    // some time later...
+    session.post('Profiler.stop', ({ profile }) => {
+      // write profile to disk, upload, etc.
+    });
+  });
+});
+```
+
 
 [`session.connect()`]: #inspector_session_connect
 [`Debugger.paused`]: https://chromedevtools.github.io/devtools-protocol/v8/Debugger/#event-paused
 [`EventEmitter`]: events.html#events_class_eventemitter
 [Chrome DevTools Protocol Viewer]: https://chromedevtools.github.io/devtools-protocol/v8/
+[CPU Profiler]: https://chromedevtools.github.io/devtools-protocol/v8/Profiler

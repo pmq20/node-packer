@@ -33,6 +33,7 @@ const {
   continueExpression,
   chunkExpression,
   httpSocketSetup,
+  kIncomingMessage,
   _checkInvalidHeaderChar: checkInvalidHeaderChar
 } = require('_http_common');
 const { OutgoingMessage } = require('_http_outgoing');
@@ -41,11 +42,15 @@ const {
   defaultTriggerAsyncIdScope,
   getOrSetAsyncId
 } = require('internal/async_hooks');
+const { IncomingMessage } = require('_http_incoming');
+
+const kServerResponse = Symbol('ServerResponse');
 
 const STATUS_CODES = {
   100: 'Continue',
   101: 'Switching Protocols',
   102: 'Processing',                 // RFC 2518, obsoleted by RFC 4918
+  103: 'Early Hints',
   200: 'OK',
   201: 'Created',
   202: 'Accepted',
@@ -260,9 +265,19 @@ function writeHead(statusCode, reason, obj) {
 // Docs-only deprecated: DEP0063
 ServerResponse.prototype.writeHeader = ServerResponse.prototype.writeHead;
 
+function Server(options, requestListener) {
+  if (!(this instanceof Server)) return new Server(options, requestListener);
 
-function Server(requestListener) {
-  if (!(this instanceof Server)) return new Server(requestListener);
+  if (typeof options === 'function') {
+    requestListener = options;
+    options = {};
+  } else if (options == null || typeof options === 'object') {
+    options = util._extend({}, options);
+  }
+
+  this[kIncomingMessage] = options.IncomingMessage || IncomingMessage;
+  this[kServerResponse] = options.ServerResponse || ServerResponse;
+
   net.Server.call(this, { allowHalfOpen: true });
 
   if (requestListener) {
@@ -578,7 +593,7 @@ function parserOnIncoming(server, socket, state, req, keepAlive) {
     }
   }
 
-  var res = new ServerResponse(req);
+  var res = new server[kServerResponse](req);
   res._onPendingData = updateOutgoingData.bind(undefined, socket, state);
 
   res.shouldKeepAlive = keepAlive;
@@ -681,5 +696,6 @@ module.exports = {
   STATUS_CODES,
   Server,
   ServerResponse,
-  _connectionListener: connectionListener
+  _connectionListener: connectionListener,
+  kServerResponse
 };

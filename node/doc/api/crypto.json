@@ -112,7 +112,13 @@
                 "added": [
                   "v0.1.94"
                 ],
-                "changes": []
+                "changes": [
+                  {
+                    "version": "v8.12.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/18644",
+                    "description": "The `iv` parameter may now be `null` for ciphers which do not need an initialization vector."
+                  }
+                ]
               },
               "signatures": [
                 {
@@ -159,7 +165,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Creates and returns a <code>Cipher</code> object, with the given <code>algorithm</code>, <code>key</code> and\ninitialization vector (<code>iv</code>). Optional <code>options</code> argument controls stream behavior.</p>\n<p>The <code>algorithm</code> is dependent on OpenSSL, examples are <code>&#39;aes192&#39;</code>, etc. On\nrecent OpenSSL releases, <code>openssl list-cipher-algorithms</code> will display the\navailable cipher algorithms.</p>\n<p>The <code>key</code> is the raw key used by the <code>algorithm</code> and <code>iv</code> is an\n<a href=\"https://en.wikipedia.org/wiki/Initialization_vector\">initialization vector</a>. Both arguments must be <code>&#39;utf8&#39;</code> encoded strings,\n<a href=\"buffer.html\">Buffers</a>, <code>TypedArray</code>, or <code>DataView</code>s.</p>\n"
+              "desc": "<p>Creates and returns a <code>Cipher</code> object, with the given <code>algorithm</code>, <code>key</code> and\ninitialization vector (<code>iv</code>). Optional <code>options</code> argument controls stream behavior.</p>\n<p>The <code>algorithm</code> is dependent on OpenSSL, examples are <code>&#39;aes192&#39;</code>, etc. On\nrecent OpenSSL releases, <code>openssl list-cipher-algorithms</code> will display the\navailable cipher algorithms.</p>\n<p>The <code>key</code> is the raw key used by the <code>algorithm</code> and <code>iv</code> is an\n<a href=\"https://en.wikipedia.org/wiki/Initialization_vector\">initialization vector</a>. Both arguments must be <code>&#39;utf8&#39;</code> encoded strings,\n<a href=\"buffer.html\">Buffers</a>, <code>TypedArray</code>, or <code>DataView</code>s. If the cipher does not need\nan initialization vector, <code>iv</code> may be <code>null</code>.</p>\n"
             },
             {
               "textRaw": "crypto.createCredentials(details)",
@@ -254,7 +260,13 @@
                 "added": [
                   "v0.1.94"
                 ],
-                "changes": []
+                "changes": [
+                  {
+                    "version": "v8.12.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/18644",
+                    "description": "The `iv` parameter may now be `null` for ciphers which do not need an initialization vector."
+                  }
+                ]
               },
               "signatures": [
                 {
@@ -301,7 +313,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Creates and returns a <code>Decipher</code> object that uses the given <code>algorithm</code>, <code>key</code>\nand initialization vector (<code>iv</code>). Optional <code>options</code> argument controls stream\nbehavior.</p>\n<p>The <code>algorithm</code> is dependent on OpenSSL, examples are <code>&#39;aes192&#39;</code>, etc. On\nrecent OpenSSL releases, <code>openssl list-cipher-algorithms</code> will display the\navailable cipher algorithms.</p>\n<p>The <code>key</code> is the raw key used by the <code>algorithm</code> and <code>iv</code> is an\n<a href=\"https://en.wikipedia.org/wiki/Initialization_vector\">initialization vector</a>. Both arguments must be <code>&#39;utf8&#39;</code> encoded strings,\n<a href=\"buffer.html\">Buffers</a>, <code>TypedArray</code>, or <code>DataView</code>s.</p>\n"
+              "desc": "<p>Creates and returns a <code>Decipher</code> object that uses the given <code>algorithm</code>, <code>key</code>\nand initialization vector (<code>iv</code>). Optional <code>options</code> argument controls stream\nbehavior.</p>\n<p>The <code>algorithm</code> is dependent on OpenSSL, examples are <code>&#39;aes192&#39;</code>, etc. On\nrecent OpenSSL releases, <code>openssl list-cipher-algorithms</code> will display the\navailable cipher algorithms.</p>\n<p>The <code>key</code> is the raw key used by the <code>algorithm</code> and <code>iv</code> is an\n<a href=\"https://en.wikipedia.org/wiki/Initialization_vector\">initialization vector</a>. Both arguments must be <code>&#39;utf8&#39;</code> encoded strings,\n<a href=\"buffer.html\">Buffers</a>, <code>TypedArray</code>, or <code>DataView</code>s. If the cipher does not need\nan initialization vector, <code>iv</code> may be <code>null</code>.</p>\n"
             },
             {
               "textRaw": "crypto.createDiffieHellman(prime[, primeEncoding][, generator][, generatorEncoding])",
@@ -344,10 +356,10 @@
                       "optional": true
                     },
                     {
-                      "textRaw": "`generator` {number | string | Buffer | TypedArray | DataView} Defaults to `2`. ",
+                      "textRaw": "`generator` {number | string | Buffer | TypedArray | DataView} **Default:** `2` ",
                       "name": "generator",
+                      "default": "`2`",
                       "type": "number | string | Buffer | TypedArray | DataView",
-                      "desc": "Defaults to `2`.",
                       "optional": true
                     },
                     {
@@ -399,10 +411,10 @@
                       "type": "number"
                     },
                     {
-                      "textRaw": "`generator` {number | string | Buffer | TypedArray | DataView} Defaults to `2`. ",
+                      "textRaw": "`generator` {number | string | Buffer | TypedArray | DataView} **Default:** `2` ",
                       "name": "generator",
+                      "default": "`2`",
                       "type": "number | string | Buffer | TypedArray | DataView",
-                      "desc": "Defaults to `2`.",
                       "optional": true
                     }
                   ]
@@ -1203,17 +1215,17 @@
                       "desc": "Must be supplied."
                     },
                     {
-                      "textRaw": "`offset` {number} Defaults to `0`. ",
+                      "textRaw": "`offset` {number} **Default:** `0` ",
                       "name": "offset",
+                      "default": "`0`",
                       "type": "number",
-                      "desc": "Defaults to `0`.",
                       "optional": true
                     },
                     {
-                      "textRaw": "`size` {number} Defaults to `buffer.length - offset`. ",
+                      "textRaw": "`size` {number} **Default:** `buffer.length - offset` ",
                       "name": "size",
+                      "default": "`buffer.length - offset`",
                       "type": "number",
-                      "desc": "Defaults to `buffer.length - offset`.",
                       "optional": true
                     }
                   ]
@@ -1256,17 +1268,17 @@
                       "desc": "Must be supplied."
                     },
                     {
-                      "textRaw": "`offset` {number} Defaults to `0`. ",
+                      "textRaw": "`offset` {number} **Default:** `0` ",
                       "name": "offset",
+                      "default": "`0`",
                       "type": "number",
-                      "desc": "Defaults to `0`.",
                       "optional": true
                     },
                     {
-                      "textRaw": "`size` {number} Defaults to `buffer.length - offset`. ",
+                      "textRaw": "`size` {number} **Default:** `buffer.length - offset` ",
                       "name": "size",
+                      "default": "`buffer.length - offset`",
                       "type": "number",
-                      "desc": "Defaults to `buffer.length - offset`.",
                       "optional": true
                     },
                     {
@@ -1317,10 +1329,10 @@
                       "type": "string"
                     },
                     {
-                      "textRaw": "`flags` {crypto.constants} Defaults to `crypto.constants.ENGINE_METHOD_ALL`. ",
+                      "textRaw": "`flags` {crypto.constants} **Default:** `crypto.constants.ENGINE_METHOD_ALL` ",
                       "name": "flags",
+                      "default": "`crypto.constants.ENGINE_METHOD_ALL`",
                       "type": "crypto.constants",
-                      "desc": "Defaults to `crypto.constants.ENGINE_METHOD_ALL`.",
                       "optional": true
                     }
                   ]
@@ -1459,7 +1471,7 @@
             ],
             "changes": []
           },
-          "desc": "<p>SPKAC is a Certificate Signing Request mechanism originally implemented by\nNetscape and now specified formally as part of <a href=\"https://www.w3.org/TR/html5/forms.html#the-keygen-element\">HTML5&#39;s <code>keygen</code> element</a>.</p>\n<p>The <code>crypto</code> module provides the <code>Certificate</code> class for working with SPKAC\ndata. The most common usage is handling output generated by the HTML5\n<code>&lt;keygen&gt;</code> element. Node.js uses <a href=\"https://www.openssl.org/docs/man1.0.2/apps/spkac.html\">OpenSSL&#39;s SPKAC implementation</a> internally.</p>\n",
+          "desc": "<p>SPKAC is a Certificate Signing Request mechanism originally implemented by\nNetscape and was specified formally as part of <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTML/Element/keygen\">HTML5&#39;s <code>keygen</code> element</a>.</p>\n<p>Note that <code>&lt;keygen&gt;</code> is deprecated since <a href=\"https://www.w3.org/TR/html52/changes.html#features-removed\">HTML 5.2</a> and new projects\nshould not use this element anymore.</p>\n<p>The <code>crypto</code> module provides the <code>Certificate</code> class for working with SPKAC\ndata. The most common usage is handling output generated by the HTML5\n<code>&lt;keygen&gt;</code> element. Node.js uses <a href=\"https://www.openssl.org/docs/man1.0.2/apps/spkac.html\">OpenSSL&#39;s SPKAC implementation</a> internally.</p>\n",
           "methods": [
             {
               "textRaw": "new crypto.Certificate()",
@@ -1697,10 +1709,10 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`autoPadding` {boolean} Defaults to `true`. ",
+                      "textRaw": "`autoPadding` {boolean} **Default:** `true` ",
                       "name": "autoPadding",
+                      "default": "`true`",
                       "type": "boolean",
-                      "desc": "Defaults to `true`.",
                       "optional": true
                     }
                   ]
@@ -1919,10 +1931,10 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`autoPadding` {boolean} Defaults to `true`. ",
+                      "textRaw": "`autoPadding` {boolean} **Default:** `true` ",
                       "name": "autoPadding",
+                      "default": "`true`",
                       "type": "boolean",
-                      "desc": "Defaults to `true`.",
                       "optional": true
                     }
                   ]
@@ -2401,10 +2413,10 @@
                       "optional": true
                     },
                     {
-                      "textRaw": "`format` {string} Defaults to `uncompressed`. ",
+                      "textRaw": "`format` {string} **Default:** `uncompressed` ",
                       "name": "format",
+                      "default": "`uncompressed`",
                       "type": "string",
-                      "desc": "Defaults to `uncompressed`.",
                       "optional": true
                     }
                   ]
@@ -2476,10 +2488,10 @@
                       "optional": true
                     },
                     {
-                      "textRaw": "`format` {string} Defaults to `uncompressed`. ",
+                      "textRaw": "`format` {string} **Default:** `uncompressed` ",
                       "name": "format",
+                      "default": "`uncompressed`",
                       "type": "string",
-                      "desc": "Defaults to `uncompressed`.",
                       "optional": true
                     }
                   ]

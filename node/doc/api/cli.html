@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Command Line Options | Node.js v8.11.4 Documentation</title>
+  <title>Command Line Options | Node.js v8.12.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -82,7 +82,7 @@
 
     <div id="column1" data-id="cli" class="interior">
       <header>
-        <h1>Node.js v8.11.4 Documentation</h1>
+        <h1>Node.js v8.12.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -137,6 +137,7 @@
 <li><span class="stability_undefined"><a href="#cli_force_async_hooks_checks"><code>--force-async-hooks-checks</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_trace_events_enabled"><code>--trace-events-enabled</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_trace_event_categories"><code>--trace-event-categories</code></a></span></li>
+<li><span class="stability_undefined"><a href="#cli_trace_event_file_pattern"><code>--trace-event-file-pattern</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_zero_fill_buffers"><code>--zero-fill-buffers</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_preserve_symlinks"><code>--preserve-symlinks</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_track_heap_objects"><code>--track-heap-objects</code></a></span></li>
@@ -329,6 +330,11 @@ by enabling one of the <code>async_hooks</code> hooks.</p>
 <span>Added in: v7.7.0</span>
 </div><p>A comma separated list of categories that should be traced when trace event
 tracing is enabled using <code>--trace-events-enabled</code>.</p>
+<h3><code>--trace-event-file-pattern</code><span><a class="mark" href="#cli_trace_event_file_pattern" id="cli_trace_event_file_pattern">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.12.0</span>
+</div><p>Template string specifying the filepath for the trace event data, it
+supports <code>${rotation}</code> and <code>${pid}</code>.</p>
 <h3><code>--zero-fill-buffers</code><span><a class="mark" href="#cli_zero_fill_buffers" id="cli_zero_fill_buffers">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v6.0.0</span>
@@ -483,6 +489,7 @@ not allowed in the environment is used, such as <code>-p</code> or a script file
 <li><code>--trace-deprecation</code></li>
 <li><code>--trace-events-categories</code></li>
 <li><code>--trace-events-enabled</code></li>
+<li><code>--trace-event-file-pattern</code></li>
 <li><code>--trace-sync-io</code></li>
 <li><code>--trace-warnings</code></li>
 <li><code>--track-heap-objects</code></li>
@@ -495,6 +502,8 @@ not allowed in the environment is used, such as <code>-p</code> or a script file
 <ul>
 <li><code>--abort-on-uncaught-exception</code></li>
 <li><code>--max-old-space-size</code></li>
+<li><code>--perf-basic-prof</code></li>
+<li><code>--perf-prof</code></li>
 <li><code>--stack-trace-limit</code></li>
 </ul>
 <h3><code>NODE_PENDING_DEPRECATION=1</code><span><a class="mark" href="#cli_node_pending_deprecation_1" id="cli_node_pending_deprecation_1">#</a></span></h3>

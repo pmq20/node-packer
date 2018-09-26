@@ -150,7 +150,7 @@
               "textRaw": "Signal Events",
               "name": "SIGINT, SIGHUP, etc.",
               "type": "event",
-              "desc": "<p>Signal events will be emitted when the Node.js process receives a signal. Please\nrefer to signal(7) for a listing of standard POSIX signal names such as\n<code>SIGINT</code>, <code>SIGHUP</code>, etc.</p>\n<p>The name of each event will be the uppercase common name for the signal (e.g.\n<code>&#39;SIGINT&#39;</code> for <code>SIGINT</code> signals).</p>\n<p>For example:</p>\n<pre><code class=\"lang-js\">// Begin reading from stdin so the process does not exit.\nprocess.stdin.resume();\n\nprocess.on(&#39;SIGINT&#39;, () =&gt; {\n  console.log(&#39;Received SIGINT. Press Control-D to exit.&#39;);\n});\n</code></pre>\n<ul>\n<li><code>SIGUSR1</code> is reserved by Node.js to start the <a href=\"debugger.html\">debugger</a>. It&#39;s possible to\ninstall a listener but doing so will <em>not</em> stop the debugger from starting.</li>\n<li><code>SIGTERM</code> and <code>SIGINT</code> have default handlers on non-Windows platforms that\nreset the terminal mode before exiting with code <code>128 + signal number</code>. If one\nof these signals has a listener installed, its default behavior will be\nremoved (Node.js will no longer exit).</li>\n<li><code>SIGPIPE</code> is ignored by default. It can have a listener installed.</li>\n<li><code>SIGHUP</code> is generated on Windows when the console window is closed, and on\nother platforms under various similar conditions, see signal(7). It can have a\nlistener installed, however Node.js will be unconditionally terminated by\nWindows about 10 seconds later. On non-Windows platforms, the default\nbehavior of <code>SIGHUP</code> is to terminate Node.js, but once a listener has been\ninstalled its default behavior will be removed.</li>\n<li><code>SIGTERM</code> is not supported on Windows, it can be listened on.</li>\n<li><code>SIGINT</code> from the terminal is supported on all platforms, and can usually be\ngenerated with <code>&lt;Ctrl&gt;+C</code> (though this may be configurable). It is not generated\nwhen terminal raw mode is enabled.</li>\n<li><code>SIGBREAK</code> is delivered on Windows when <code>&lt;Ctrl&gt;+&lt;Break&gt;</code> is pressed, on\nnon-Windows platforms it can be listened on, but there is no way to send or\ngenerate it.</li>\n<li><code>SIGWINCH</code> is delivered when the console has been resized. On Windows, this\nwill only happen on write to the console when the cursor is being moved, or\nwhen a readable tty is used in raw mode.</li>\n<li><code>SIGKILL</code> cannot have a listener installed, it will unconditionally terminate\nNode.js on all platforms.</li>\n<li><code>SIGSTOP</code> cannot have a listener installed.</li>\n<li><code>SIGBUS</code>, <code>SIGFPE</code>, <code>SIGSEGV</code> and <code>SIGILL</code>, when not raised artificially\n using kill(2), inherently leave the process in a state from which it is not\n safe to attempt to call JS listeners. Doing so might lead to the process\n hanging in an endless loop, since listeners attached using <code>process.on()</code> are\n called asynchronously and therefore unable to correct the underlying problem.</li>\n</ul>\n<p><em>Note</em>: Windows does not support sending signals, but Node.js offers some\nemulation with <a href=\"#process_process_kill_pid_signal\"><code>process.kill()</code></a>, and <a href=\"child_process.html#child_process_subprocess_kill_signal\"><code>subprocess.kill()</code></a>. Sending\nsignal <code>0</code> can be used to test for the existence of a process. Sending <code>SIGINT</code>,\n<code>SIGTERM</code>, and <code>SIGKILL</code> cause the unconditional termination of the target\nprocess.</p>\n",
+              "desc": "<p>Signal events will be emitted when the Node.js process receives a signal. Please\nrefer to signal(7) for a listing of standard POSIX signal names such as\n<code>SIGINT</code>, <code>SIGHUP</code>, etc.</p>\n<p>The signal handler will receive the signal&#39;s name (<code>&#39;SIGINT&#39;</code>,\n <code>&#39;SIGTERM&#39;</code>, etc.) as the first argument.</p>\n<p>The name of each event will be the uppercase common name for the signal (e.g.\n<code>&#39;SIGINT&#39;</code> for <code>SIGINT</code> signals).</p>\n<p>For example:</p>\n<pre><code class=\"lang-js\">// Begin reading from stdin so the process does not exit.\nprocess.stdin.resume();\n\nprocess.on(&#39;SIGINT&#39;, () =&gt; {\n  console.log(&#39;Received SIGINT. Press Control-D to exit.&#39;);\n});\n\n// Using a single function to handle multiple signals\nfunction handle(signal) {\n  console.log(`Received ${signal}`);\n}\n\nprocess.on(&#39;SIGINT&#39;, handle);\nprocess.on(&#39;SIGTERM&#39;, handle);\n</code></pre>\n<ul>\n<li><code>SIGUSR1</code> is reserved by Node.js to start the <a href=\"debugger.html\">debugger</a>. It&#39;s possible to\ninstall a listener but doing so will <em>not</em> stop the debugger from starting.</li>\n<li><code>SIGTERM</code> and <code>SIGINT</code> have default handlers on non-Windows platforms that\nreset the terminal mode before exiting with code <code>128 + signal number</code>. If one\nof these signals has a listener installed, its default behavior will be\nremoved (Node.js will no longer exit).</li>\n<li><code>SIGPIPE</code> is ignored by default. It can have a listener installed.</li>\n<li><code>SIGHUP</code> is generated on Windows when the console window is closed, and on\nother platforms under various similar conditions, see signal(7). It can have a\nlistener installed, however Node.js will be unconditionally terminated by\nWindows about 10 seconds later. On non-Windows platforms, the default\nbehavior of <code>SIGHUP</code> is to terminate Node.js, but once a listener has been\ninstalled its default behavior will be removed.</li>\n<li><code>SIGTERM</code> is not supported on Windows, it can be listened on.</li>\n<li><code>SIGINT</code> from the terminal is supported on all platforms, and can usually be\ngenerated with <code>&lt;Ctrl&gt;+C</code> (though this may be configurable). It is not generated\nwhen terminal raw mode is enabled.</li>\n<li><code>SIGBREAK</code> is delivered on Windows when <code>&lt;Ctrl&gt;+&lt;Break&gt;</code> is pressed, on\nnon-Windows platforms it can be listened on, but there is no way to send or\ngenerate it.</li>\n<li><code>SIGWINCH</code> is delivered when the console has been resized. On Windows, this\nwill only happen on write to the console when the cursor is being moved, or\nwhen a readable tty is used in raw mode.</li>\n<li><code>SIGKILL</code> cannot have a listener installed, it will unconditionally terminate\nNode.js on all platforms.</li>\n<li><code>SIGSTOP</code> cannot have a listener installed.</li>\n<li><code>SIGBUS</code>, <code>SIGFPE</code>, <code>SIGSEGV</code> and <code>SIGILL</code>, when not raised artificially\n using kill(2), inherently leave the process in a state from which it is not\n safe to attempt to call JS listeners. Doing so might lead to the process\n hanging in an endless loop, since listeners attached using <code>process.on()</code> are\n called asynchronously and therefore unable to correct the underlying problem.</li>\n</ul>\n<p><em>Note</em>: Windows does not support sending signals, but Node.js offers some\nemulation with <a href=\"#process_process_kill_pid_signal\"><code>process.kill()</code></a>, and <a href=\"child_process.html#child_process_subprocess_kill_signal\"><code>subprocess.kill()</code></a>. Sending\nsignal <code>0</code> can be used to test for the existence of a process. Sending <code>SIGINT</code>,\n<code>SIGTERM</code>, and <code>SIGKILL</code> cause the unconditional termination of the target\nprocess.</p>\n",
               "params": []
             }
           ],
@@ -328,10 +328,11 @@
                   "textRaw": "`options` {Object} ",
                   "options": [
                     {
-                      "textRaw": "`type` {string} When `warning` is a String, `type` is the name to use for the *type* of warning being emitted. Default: `Warning`. ",
+                      "textRaw": "`type` {string} When `warning` is a String, `type` is the name to use for the *type* of warning being emitted. **Default:** `Warning`. ",
                       "name": "type",
+                      "default": "`Warning`",
                       "type": "string",
-                      "desc": "When `warning` is a String, `type` is the name to use for the *type* of warning being emitted. Default: `Warning`."
+                      "desc": "When `warning` is a String, `type` is the name to use for the *type* of warning being emitted."
                     },
                     {
                       "textRaw": "`code` {string} A unique identifier for the warning instance being emitted. ",
@@ -340,10 +341,11 @@
                       "desc": "A unique identifier for the warning instance being emitted."
                     },
                     {
-                      "textRaw": "`ctor` {Function} When `warning` is a String, `ctor` is an optional function used to limit the generated stack trace. Default `process.emitWarning` ",
+                      "textRaw": "`ctor` {Function} When `warning` is a String, `ctor` is an optional function used to limit the generated stack trace. **Default:** `process.emitWarning`. ",
                       "name": "ctor",
+                      "default": "`process.emitWarning`",
                       "type": "Function",
-                      "desc": "When `warning` is a String, `ctor` is an optional function used to limit the generated stack trace. Default `process.emitWarning`"
+                      "desc": "When `warning` is a String, `ctor` is an optional function used to limit the generated stack trace."
                     },
                     {
                       "textRaw": "`detail` {string} Additional text to include with the error. ",
@@ -392,10 +394,11 @@
                   "desc": "The warning to emit."
                 },
                 {
-                  "textRaw": "`type` {string} When `warning` is a String, `type` is the name to use for the *type* of warning being emitted. Default: `Warning`. ",
+                  "textRaw": "`type` {string} When `warning` is a String, `type` is the name to use for the *type* of warning being emitted. **Default:** `Warning`. ",
                   "name": "type",
+                  "default": "`Warning`",
                   "type": "string",
-                  "desc": "When `warning` is a String, `type` is the name to use for the *type* of warning being emitted. Default: `Warning`.",
+                  "desc": "When `warning` is a String, `type` is the name to use for the *type* of warning being emitted.",
                   "optional": true
                 },
                 {
@@ -406,10 +409,11 @@
                   "optional": true
                 },
                 {
-                  "textRaw": "`ctor` {Function} When `warning` is a String, `ctor` is an optional function used to limit the generated stack trace. Default `process.emitWarning` ",
+                  "textRaw": "`ctor` {Function} When `warning` is a String, `ctor` is an optional function used to limit the generated stack trace. **Default:** `process.emitWarning`. ",
                   "name": "ctor",
+                  "default": "`process.emitWarning`",
                   "type": "Function",
-                  "desc": "When `warning` is a String, `ctor` is an optional function used to limit the generated stack trace. Default `process.emitWarning`",
+                  "desc": "When `warning` is a String, `ctor` is an optional function used to limit the generated stack trace.",
                   "optional": true
                 }
               ]
@@ -459,10 +463,11 @@
             {
               "params": [
                 {
-                  "textRaw": "`code` {integer} The exit code. Defaults to `0`. ",
+                  "textRaw": "`code` {integer} The exit code. **Default:** `0`. ",
                   "name": "code",
+                  "default": "`0`",
                   "type": "integer",
-                  "desc": "The exit code. Defaults to `0`.",
+                  "desc": "The exit code.",
                   "optional": true
                 }
               ]
@@ -693,10 +698,11 @@
                   "desc": "A process ID"
                 },
                 {
-                  "textRaw": "`signal` {string|number} The signal to send, either as a string or number. Defaults to `'SIGTERM'`. ",
+                  "textRaw": "`signal` {string|number} The signal to send, either as a string or number. **Default:** `'SIGTERM'`. ",
                   "name": "signal",
+                  "default": "`'SIGTERM'`",
                   "type": "string|number",
-                  "desc": "The signal to send, either as a string or number. Defaults to `'SIGTERM'`.",
+                  "desc": "The signal to send, either as a string or number.",
                   "optional": true
                 }
               ]
@@ -1155,6 +1161,18 @@
           "desc": "<p>If the Node.js process is spawned with an IPC channel (see the <a href=\"child_process.html\">Child Process</a>\nand <a href=\"cluster.html\">Cluster</a> documentation), the <code>process.connected</code> property will return\n<code>true</code> so long as the IPC channel is connected and will return <code>false</code> after\n<code>process.disconnect()</code> is called.</p>\n<p>Once <code>process.connected</code> is <code>false</code>, it is no longer possible to send messages\nover the IPC channel using <code>process.send()</code>.</p>\n"
         },
         {
+          "textRaw": "`debugPort` {number} ",
+          "type": "number",
+          "name": "debugPort",
+          "meta": {
+            "added": [
+              "v0.7.2"
+            ],
+            "changes": []
+          },
+          "desc": "<p>The port used by Node.js&#39;s debugger when enabled.</p>\n<pre><code class=\"lang-js\">process.debugPort = 5858;\n</code></pre>\n"
+        },
+        {
           "textRaw": "`env` {Object} ",
           "type": "Object",
           "name": "env",
@@ -1247,7 +1265,7 @@
             ],
             "changes": []
           },
-          "desc": "<p>The <code>process.platform</code> property returns a string identifying the operating\nsystem platform on which the Node.js process is running.</p>\n<p>Currently possible values are:</p>\n<ul>\n<li><code>&#39;aix&#39;</code></li>\n<li><code>&#39;darwin&#39;</code></li>\n<li><code>&#39;freebsd&#39;</code></li>\n<li><code>&#39;linux&#39;</code></li>\n<li><code>&#39;openbsd&#39;</code></li>\n<li><code>&#39;sunos&#39;</code></li>\n<li><code>&#39;win32&#39;</code></li>\n</ul>\n<pre><code class=\"lang-js\">console.log(`This platform is ${process.platform}`);\n</code></pre>\n<p>The value <code>&#39;android&#39;</code> may also be returned if the Node.js is built on the\nAndroid operating system. However, Android support in Node.js\n<a href=\"https://github.com/nodejs/node/blob/master/BUILDING.md#supported-platforms-1\">is experimental</a>.</p>\n"
+          "desc": "<p>The <code>process.platform</code> property returns a string identifying the operating\nsystem platform on which the Node.js process is running.</p>\n<p>Currently possible values are:</p>\n<ul>\n<li><code>&#39;aix&#39;</code></li>\n<li><code>&#39;darwin&#39;</code></li>\n<li><code>&#39;freebsd&#39;</code></li>\n<li><code>&#39;linux&#39;</code></li>\n<li><code>&#39;openbsd&#39;</code></li>\n<li><code>&#39;sunos&#39;</code></li>\n<li><code>&#39;win32&#39;</code></li>\n</ul>\n<pre><code class=\"lang-js\">console.log(`This platform is ${process.platform}`);\n</code></pre>\n<p>The value <code>&#39;android&#39;</code> may also be returned if the Node.js is built on the\nAndroid operating system. However, Android support in Node.js\n<a href=\"https://github.com/nodejs/node/blob/master/BUILDING.md#androidandroid-based-devices-eg-firefox-os\">is experimental</a>.</p>\n"
         },
         {
           "textRaw": "`ppid` {integer} ",

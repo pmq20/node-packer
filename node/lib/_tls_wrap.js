@@ -262,11 +262,15 @@ function initRead(tls, wrapped) {
  * Provides a wrap of socket stream to do encrypted communication.
  */
 
-function TLSSocket(socket, options) {
-  if (options === undefined)
-    this._tlsOptions = {};
-  else
-    this._tlsOptions = options;
+function TLSSocket(socket, opts) {
+  const tlsOptions = Object.assign({}, opts);
+
+  if (tlsOptions.NPNProtocols)
+    tls.convertNPNProtocols(tlsOptions.NPNProtocols, tlsOptions);
+  if (tlsOptions.ALPNProtocols)
+    tls.convertALPNProtocols(tlsOptions.ALPNProtocols, tlsOptions);
+
+  this._tlsOptions = tlsOptions;
   this._secureEstablished = false;
   this._securePending = false;
   this._newSessionPending = false;
@@ -676,6 +680,16 @@ TLSSocket.prototype.getPeerCertificate = function(detailed) {
   return null;
 };
 
+TLSSocket.prototype.getFinished = function() {
+  if (this._handle)
+    return this._handle.getFinished();
+};
+
+TLSSocket.prototype.getPeerFinished = function() {
+  if (this._handle)
+    return this._handle.getPeerFinished();
+};
+
 TLSSocket.prototype.getSession = function() {
   if (this._handle) {
     return this._handle.getSession();
@@ -1044,11 +1058,8 @@ exports.connect = function(...args /* [port,] [host,] [options,] [cb] */) {
                  options.host ||
                  (options.socket && options.socket._host) ||
                  'localhost';
-  const NPN = {};
-  const ALPN = {};
+
   const context = options.secureContext || tls.createSecureContext(options);
-  tls.convertNPNProtocols(options.NPNProtocols, NPN);
-  tls.convertALPNProtocols(options.ALPNProtocols, ALPN);
 
   var socket = new TLSSocket(options.socket, {
     pipe: !!options.path,
@@ -1057,8 +1068,8 @@ exports.connect = function(...args /* [port,] [host,] [options,] [cb] */) {
     requestCert: true,
     rejectUnauthorized: options.rejectUnauthorized !== false,
     session: options.session,
-    NPNProtocols: NPN.NPNProtocols,
-    ALPNProtocols: ALPN.ALPNProtocols,
+    NPNProtocols: options.NPNProtocols,
+    ALPNProtocols: options.ALPNProtocols,
     requestOCSP: options.requestOCSP
   });
 

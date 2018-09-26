@@ -398,8 +398,9 @@
                     {
                       "params": [
                         {
-                          "textRaw": "`flag` {boolean} ",
+                          "textRaw": "`flag` {boolean} **Default:** `false` ",
                           "name": "flag",
+                          "default": "`false`",
                           "type": "boolean"
                         }
                       ]
@@ -412,7 +413,7 @@
                       ]
                     }
                   ],
-                  "desc": "<p>Indicate whether to treat <code>TypedArray</code> and <code>DataView</code> objects as\nhost objects, i.e. pass them to <a href=\"#v8_serializer_writehostobject_object\"><code>serializer._writeHostObject()</code></a>.</p>\n<p>The default is not to treat those objects as host objects.</p>\n"
+                  "desc": "<p>Indicate whether to treat <code>TypedArray</code> and <code>DataView</code> objects as\nhost objects, i.e. pass them to <a href=\"#v8_serializer_writehostobject_object\"><code>serializer._writeHostObject()</code></a>.</p>\n"
                 }
               ],
               "signatures": [

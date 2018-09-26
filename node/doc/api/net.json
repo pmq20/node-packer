@@ -270,8 +270,8 @@
                             {
                               "textRaw": "`exclusive` {boolean} **Default:** `false` ",
                               "name": "exclusive",
-                              "type": "boolean",
-                              "desc": "**Default:** `false`"
+                              "default": "`false`",
+                              "type": "boolean"
                             }
                           ],
                           "name": "options",
@@ -603,7 +603,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Creates a new socket object.</p>\n<ul>\n<li><code>options</code> {Object} Available options are:<ul>\n<li><code>fd</code>: {number} If specified, wrap around an existing socket with\nthe given file descriptor, otherwise a new socket will be created.</li>\n<li><code>allowHalfOpen</code> {boolean} Indicates whether half-opened TCP connections\nare allowed. See <a href=\"#net_net_createserver_options_connectionlistener\"><code>net.createServer()</code></a> and the <a href=\"#net_event_end\"><code>&#39;end&#39;</code></a> event\nfor details. <strong>Default:</strong> <code>false</code></li>\n<li><code>readable</code> {boolean} Allow reads on the socket when an <code>fd</code> is passed,\notherwise ignored. <strong>Default:</strong> <code>false</code></li>\n<li><code>writable</code> {boolean} Allow writes on the socket when an <code>fd</code> is passed,\notherwise ignored. <strong>Default:</strong> <code>false</code></li>\n</ul>\n</li>\n<li>Returns: {net.Socket}</li>\n</ul>\n<p>The newly created socket can be either a TCP socket or a streaming <a href=\"#net_ipc_support\">IPC</a>\nendpoint, depending on what it <a href=\"#net_socket_connect\"><code>connect()</code></a> to.</p>\n",
+              "desc": "<p>Creates a new socket object.</p>\n<ul>\n<li><code>options</code> {Object} Available options are:<ul>\n<li><code>fd</code>: {number} If specified, wrap around an existing socket with\nthe given file descriptor, otherwise a new socket will be created.</li>\n<li><code>allowHalfOpen</code> {boolean} Indicates whether half-opened TCP connections\nare allowed. See <a href=\"#net_net_createserver_options_connectionlistener\"><code>net.createServer()</code></a> and the <a href=\"#net_event_end\"><code>&#39;end&#39;</code></a> event\nfor details. <strong>Default:</strong> <code>false</code>.</li>\n<li><code>readable</code> {boolean} Allow reads on the socket when an <code>fd</code> is passed,\notherwise ignored. <strong>Default:</strong> <code>false</code>.</li>\n<li><code>writable</code> {boolean} Allow writes on the socket when an <code>fd</code> is passed,\notherwise ignored. <strong>Default:</strong> <code>false</code>.</li>\n</ul>\n</li>\n<li>Returns: {net.Socket}</li>\n</ul>\n<p>The newly created socket can be either a TCP socket or a streaming <a href=\"#net_ipc_support\">IPC</a>\nendpoint, depending on what it <a href=\"#net_socket_connect\"><code>connect()</code></a> to.</p>\n",
               "signatures": [
                 {
                   "params": [
@@ -694,7 +694,7 @@
                       ]
                     }
                   ],
-                  "desc": "<p>Initiate a connection on a given socket. Normally this method is not needed,\nthe socket should be created and opened with <a href=\"#net_net_createconnection\"><code>net.createConnection()</code></a>. Use\nthis only when implementing a custom Socket.</p>\n<p>For TCP connections, available <code>options</code> are:</p>\n<ul>\n<li><code>port</code> {number} Required. Port the socket should connect to.</li>\n<li><code>host</code> {string} Host the socket should connect to. <strong>Default:</strong> <code>&#39;localhost&#39;</code></li>\n<li><code>localAddress</code> {string} Local address the socket should connect from.</li>\n<li><code>localPort</code> {number} Local port the socket should connect from.</li>\n<li><code>family</code> {number}: Version of IP stack, can be either 4 or 6. <strong>Default:</strong> <code>4</code></li>\n<li><code>hints</code> {number} Optional <a href=\"dns.html#dns_supported_getaddrinfo_flags\"><code>dns.lookup()</code> hints</a>.</li>\n<li><code>lookup</code> {Function} Custom lookup function. <strong>Default:</strong> <a href=\"dns.html#dns_dns_lookup_hostname_options_callback\"><code>dns.lookup()</code></a></li>\n</ul>\n<p>For <a href=\"#net_ipc_support\">IPC</a> connections, available <code>options</code> are:</p>\n<ul>\n<li><code>path</code> {string} Required. Path the client should connect to.\nSee <a href=\"#net_identifying_paths_for_ipc_connections\">Identifying paths for IPC connections</a>. If provided, the TCP-specific\noptions above are ignored.</li>\n</ul>\n<p>Returns <code>socket</code>.</p>\n"
+                  "desc": "<p>Initiate a connection on a given socket. Normally this method is not needed,\nthe socket should be created and opened with <a href=\"#net_net_createconnection\"><code>net.createConnection()</code></a>. Use\nthis only when implementing a custom Socket.</p>\n<p>For TCP connections, available <code>options</code> are:</p>\n<ul>\n<li><code>port</code> {number} Required. Port the socket should connect to.</li>\n<li><code>host</code> {string} Host the socket should connect to. <strong>Default:</strong> <code>&#39;localhost&#39;</code>.</li>\n<li><code>localAddress</code> {string} Local address the socket should connect from.</li>\n<li><code>localPort</code> {number} Local port the socket should connect from.</li>\n<li><code>family</code> {number}: Version of IP stack, can be either <code>4</code> or <code>6</code>.\n<strong>Default:</strong> <code>4</code>.</li>\n<li><code>hints</code> {number} Optional <a href=\"dns.html#dns_supported_getaddrinfo_flags\"><code>dns.lookup()</code> hints</a>.</li>\n<li><code>lookup</code> {Function} Custom lookup function. <strong>Default:</strong> <a href=\"dns.html#dns_dns_lookup_hostname_options_callback\"><code>dns.lookup()</code></a>.</li>\n</ul>\n<p>For <a href=\"#net_ipc_support\">IPC</a> connections, available <code>options</code> are:</p>\n<ul>\n<li><code>path</code> {string} Required. Path the client should connect to.\nSee <a href=\"#net_identifying_paths_for_ipc_connections\">Identifying paths for IPC connections</a>. If provided, the TCP-specific\noptions above are ignored.</li>\n</ul>\n<p>Returns <code>socket</code>.</p>\n"
                 },
                 {
                   "textRaw": "socket.connect(path[, connectListener])",
@@ -1005,11 +1005,17 @@
                   },
                   "params": [
                     {
+                      "textRaw": "`enable` {boolean} **Default:** `false` ",
                       "name": "enable",
+                      "default": "`false`",
+                      "type": "boolean",
                       "optional": true
                     },
                     {
+                      "textRaw": "`initialDelay` {number} **Default:** `0` ",
                       "name": "initialDelay",
+                      "default": "`0`",
+                      "type": "number",
                       "optional": true
                     }
                   ]
@@ -1027,7 +1033,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Enable/disable keep-alive functionality, and optionally set the initial\ndelay before the first keepalive probe is sent on an idle socket.\n<code>enable</code> defaults to <code>false</code>.</p>\n<p>Set <code>initialDelay</code> (in milliseconds) to set the delay between the last\ndata packet received and the first keepalive probe. Setting 0 for\ninitialDelay will leave the value unchanged from the default\n(or previous) setting. Defaults to <code>0</code>.</p>\n"
+              "desc": "<p>Enable/disable keep-alive functionality, and optionally set the initial\ndelay before the first keepalive probe is sent on an idle socket.</p>\n<p>Set <code>initialDelay</code> (in milliseconds) to set the delay between the last\ndata packet received and the first keepalive probe. Setting 0 for\ninitialDelay will leave the value unchanged from the default\n(or previous) setting.</p>\n"
             },
             {
               "textRaw": "socket.setNoDelay([noDelay])",
@@ -1049,7 +1055,10 @@
                   },
                   "params": [
                     {
+                      "textRaw": "`noDelay` {boolean} **Default:** `true` ",
                       "name": "noDelay",
+                      "default": "`true`",
+                      "type": "boolean",
                       "optional": true
                     }
                   ]
@@ -1063,7 +1072,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Disables the Nagle algorithm. By default TCP connections use the Nagle\nalgorithm, they buffer data before sending it off. Setting <code>true</code> for\n<code>noDelay</code> will immediately fire off data each time <code>socket.write()</code> is called.\n<code>noDelay</code> defaults to <code>true</code>.</p>\n"
+              "desc": "<p>Disables the Nagle algorithm. By default TCP connections use the Nagle\nalgorithm, they buffer data before sending it off. Setting <code>true</code> for\n<code>noDelay</code> will immediately fire off data each time <code>socket.write()</code> is called.</p>\n"
             },
             {
               "textRaw": "socket.setTimeout(timeout[, callback])",
@@ -1604,10 +1613,11 @@
                       "desc": "Port the socket should connect to. Will be passed to [`socket.connect(port[, host][, connectListener])`][`socket.connect(port, host)`]."
                     },
                     {
-                      "textRaw": "`host` {string} Host the socket should connect to. Will be passed to [`socket.connect(port[, host][, connectListener])`][`socket.connect(port, host)`].  **Default:** `'localhost'` ",
+                      "textRaw": "`host` {string} Host the socket should connect to. Will be passed to [`socket.connect(port[, host][, connectListener])`][`socket.connect(port, host)`].  **Default:** `'localhost'`. ",
                       "name": "host",
+                      "default": "`'localhost'`",
                       "type": "string",
-                      "desc": "Host the socket should connect to. Will be passed to [`socket.connect(port[, host][, connectListener])`][`socket.connect(port, host)`].  **Default:** `'localhost'`",
+                      "desc": "Host the socket should connect to. Will be passed to [`socket.connect(port[, host][, connectListener])`][`socket.connect(port, host)`].",
                       "optional": true
                     },
                     {
@@ -1654,7 +1664,7 @@
             ],
             "changes": []
           },
-          "desc": "<p>Creates a new TCP or <a href=\"#net_ipc_support\">IPC</a> server.</p>\n<ul>\n<li><code>options</code> {Object}<ul>\n<li><code>allowHalfOpen</code> {boolean} Indicates whether half-opened TCP\nconnections are allowed. <strong>Default:</strong> <code>false</code></li>\n<li><code>pauseOnConnect</code> {boolean} Indicates whether the socket should be\npaused on incoming connections. <strong>Default:</strong> <code>false</code></li>\n</ul>\n</li>\n<li><code>connectionListener</code> {Function} Automatically set as a listener for the\n<a href=\"#net_event_connection\"><code>&#39;connection&#39;</code></a> event.</li>\n<li>Returns: {net.Server}</li>\n</ul>\n<p>If <code>allowHalfOpen</code> is set to <code>true</code>, when the other end of the socket\nsends a FIN packet, the server will only send a FIN packet back when\n<a href=\"#net_socket_end_data_encoding\"><code>socket.end()</code></a> is explicitly called, until then the connection is\nhalf-closed (non-readable but still writable). See <a href=\"#net_event_end\"><code>&#39;end&#39;</code></a> event\nand <a href=\"https://tools.ietf.org/html/rfc1122\">RFC 1122</a> (section 4.2.2.13) for more information.</p>\n<p>If <code>pauseOnConnect</code> is set to <code>true</code>, then the socket associated with each\nincoming connection will be paused, and no data will be read from its handle.\nThis allows connections to be passed between processes without any data being\nread by the original process. To begin reading data from a paused socket, call\n<a href=\"#net_socket_resume\"><code>socket.resume()</code></a>.</p>\n<p>The server can be a TCP server or a <a href=\"#net_ipc_support\">IPC</a> server, depending on what it\n<a href=\"#net_server_listen\"><code>listen()</code></a> to.</p>\n<p>Here is an example of an TCP echo server which listens for connections\non port 8124:</p>\n<pre><code class=\"lang-js\">const net = require(&#39;net&#39;);\nconst server = net.createServer((c) =&gt; {\n  // &#39;connection&#39; listener\n  console.log(&#39;client connected&#39;);\n  c.on(&#39;end&#39;, () =&gt; {\n    console.log(&#39;client disconnected&#39;);\n  });\n  c.write(&#39;hello\\r\\n&#39;);\n  c.pipe(c);\n});\nserver.on(&#39;error&#39;, (err) =&gt; {\n  throw err;\n});\nserver.listen(8124, () =&gt; {\n  console.log(&#39;server bound&#39;);\n});\n</code></pre>\n<p>Test this by using <code>telnet</code>:</p>\n<pre><code class=\"lang-console\">$ telnet localhost 8124\n</code></pre>\n<p>To listen on the socket <code>/tmp/echo.sock</code> the third line from the last would\njust be changed to</p>\n<pre><code class=\"lang-js\">server.listen(&#39;/tmp/echo.sock&#39;, () =&gt; {\n  console.log(&#39;server bound&#39;);\n});\n</code></pre>\n<p>Use <code>nc</code> to connect to a UNIX domain socket server:</p>\n<pre><code class=\"lang-console\">$ nc -U /tmp/echo.sock\n</code></pre>\n",
+          "desc": "<p>Creates a new TCP or <a href=\"#net_ipc_support\">IPC</a> server.</p>\n<ul>\n<li><code>options</code> {Object}<ul>\n<li><code>allowHalfOpen</code> {boolean} Indicates whether half-opened TCP\nconnections are allowed. <strong>Default:</strong> <code>false</code>.</li>\n<li><code>pauseOnConnect</code> {boolean} Indicates whether the socket should be\npaused on incoming connections. <strong>Default:</strong> <code>false</code>.</li>\n</ul>\n</li>\n<li><code>connectionListener</code> {Function} Automatically set as a listener for the\n<a href=\"#net_event_connection\"><code>&#39;connection&#39;</code></a> event.</li>\n<li>Returns: {net.Server}</li>\n</ul>\n<p>If <code>allowHalfOpen</code> is set to <code>true</code>, when the other end of the socket\nsends a FIN packet, the server will only send a FIN packet back when\n<a href=\"#net_socket_end_data_encoding\"><code>socket.end()</code></a> is explicitly called, until then the connection is\nhalf-closed (non-readable but still writable). See <a href=\"#net_event_end\"><code>&#39;end&#39;</code></a> event\nand <a href=\"https://tools.ietf.org/html/rfc1122\">RFC 1122</a> (section 4.2.2.13) for more information.</p>\n<p>If <code>pauseOnConnect</code> is set to <code>true</code>, then the socket associated with each\nincoming connection will be paused, and no data will be read from its handle.\nThis allows connections to be passed between processes without any data being\nread by the original process. To begin reading data from a paused socket, call\n<a href=\"#net_socket_resume\"><code>socket.resume()</code></a>.</p>\n<p>The server can be a TCP server or a <a href=\"#net_ipc_support\">IPC</a> server, depending on what it\n<a href=\"#net_server_listen\"><code>listen()</code></a> to.</p>\n<p>Here is an example of an TCP echo server which listens for connections\non port 8124:</p>\n<pre><code class=\"lang-js\">const net = require(&#39;net&#39;);\nconst server = net.createServer((c) =&gt; {\n  // &#39;connection&#39; listener\n  console.log(&#39;client connected&#39;);\n  c.on(&#39;end&#39;, () =&gt; {\n    console.log(&#39;client disconnected&#39;);\n  });\n  c.write(&#39;hello\\r\\n&#39;);\n  c.pipe(c);\n});\nserver.on(&#39;error&#39;, (err) =&gt; {\n  throw err;\n});\nserver.listen(8124, () =&gt; {\n  console.log(&#39;server bound&#39;);\n});\n</code></pre>\n<p>Test this by using <code>telnet</code>:</p>\n<pre><code class=\"lang-console\">$ telnet localhost 8124\n</code></pre>\n<p>To listen on the socket <code>/tmp/echo.sock</code> the third line from the last would\njust be changed to</p>\n<pre><code class=\"lang-js\">server.listen(&#39;/tmp/echo.sock&#39;, () =&gt; {\n  console.log(&#39;server bound&#39;);\n});\n</code></pre>\n<p>Use <code>nc</code> to connect to a UNIX domain socket server:</p>\n<pre><code class=\"lang-console\">$ nc -U /tmp/echo.sock\n</code></pre>\n",
           "signatures": [
             {
               "params": [

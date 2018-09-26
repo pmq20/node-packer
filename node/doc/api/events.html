@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Events | Node.js v8.11.4 Documentation</title>
+  <title>Events | Node.js v8.12.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -82,7 +82,7 @@
 
     <div id="column1" data-id="events" class="interior">
       <header>
-        <h1>Node.js v8.11.4 Documentation</h1>
+        <h1>Node.js v8.12.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -279,8 +279,7 @@ added and <code>&#39;removeListener&#39;</code> when existing listeners are remo
 <span>Added in: v0.1.26</span>
 </div><ul>
 <li><code>eventName</code> <span class="type">&lt;any&gt;</span> The name of the event being listened for</li>
-<li><code>listener</code> 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The event handler function</li>
+<li><code>listener</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The event handler function</li>
 </ul>
 <p>The <code>EventEmitter</code> instance will emit its own <code>&#39;newListener&#39;</code> event <em>before</em>
 a listener is added to its internal array of listeners.</p>
@@ -323,8 +322,7 @@ myEmitter.emit(&#39;event&#39;);
 </details>
 </div><ul>
 <li><code>eventName</code> <span class="type">&lt;any&gt;</span> The event name</li>
-<li><code>listener</code> 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The event handler function</li>
+<li><code>listener</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The event handler function</li>
 </ul>
 <p>The <code>&#39;removeListener&#39;</code> event is emitted <em>after</em> the <code>listener</code> is removed.</p>
 <h3>EventEmitter.listenerCount(emitter, eventName)<span><a class="mark" href="#events_eventemitter_listenercount_emitter_eventname" id="events_eventemitter_listenercount_emitter_eventname">#</a></span></h3>
@@ -374,8 +372,7 @@ Its <code>name</code> property is set to <code>&#39;MaxListenersExceededWarning&
 <span>Added in: v0.1.26</span>
 </div><ul>
 <li><code>eventName</code> <span class="type">&lt;any&gt;</span></li>
-<li><code>listener</code> 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>listener</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
 </ul>
 <p>Alias for <code>emitter.on(eventName, listener)</code>.</p>
 <h3>emitter.emit(eventName[, ...args])<span><a class="mark" href="#events_emitter_emit_eventname_args" id="events_emitter_emit_eventname_args">#</a></span></h3>
@@ -446,8 +443,7 @@ console.log(util.inspect(server.listeners(&#39;connection&#39;)));
 <span>Added in: v0.1.101</span>
 </div><ul>
 <li><code>eventName</code> <span class="type">&lt;any&gt;</span> The name of the event.</li>
-<li><code>listener</code> 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The callback function</li>
+<li><code>listener</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The callback function</li>
 </ul>
 <p>Adds the <code>listener</code> function to the end of the listeners array for the
 event named <code>eventName</code>. No checks are made to see if the <code>listener</code> has
@@ -475,8 +471,7 @@ myEE.emit(&#39;foo&#39;);
 <span>Added in: v0.3.0</span>
 </div><ul>
 <li><code>eventName</code> <span class="type">&lt;any&gt;</span> The name of the event.</li>
-<li><code>listener</code> 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The callback function</li>
+<li><code>listener</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The callback function</li>
 </ul>
 <p>Adds a <strong>one-time</strong> <code>listener</code> function for the event named <code>eventName</code>. The
 next time <code>eventName</code> is triggered, this listener is removed and then invoked.</p>
@@ -501,8 +496,7 @@ myEE.emit(&#39;foo&#39;);
 <span>Added in: v6.0.0</span>
 </div><ul>
 <li><code>eventName</code> <span class="type">&lt;any&gt;</span> The name of the event.</li>
-<li><code>listener</code> 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The callback function</li>
+<li><code>listener</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The callback function</li>
 </ul>
 <p>Adds the <code>listener</code> function to the <em>beginning</em> of the listeners array for the
 event named <code>eventName</code>. No checks are made to see if the <code>listener</code> has
@@ -519,8 +513,7 @@ times.</p>
 <span>Added in: v6.0.0</span>
 </div><ul>
 <li><code>eventName</code> <span class="type">&lt;any&gt;</span> The name of the event.</li>
-<li><code>listener</code> 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The callback function</li>
+<li><code>listener</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The callback function</li>
 </ul>
 <p>Adds a <strong>one-time</strong> <code>listener</code> function for the event named <code>eventName</code> to the
 <em>beginning</em> of the listeners array. The next time <code>eventName</code> is triggered, this
@@ -546,8 +539,7 @@ component or module (e.g. sockets or file streams).</p>
 <span>Added in: v0.1.26</span>
 </div><ul>
 <li><code>eventName</code> <span class="type">&lt;any&gt;</span></li>
-<li><code>listener</code> 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>listener</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
 </ul>
 <p>Removes the specified <code>listener</code> from the listener array for the event named
 <code>eventName</code>.</p>
@@ -605,8 +597,7 @@ the <code>emitter.listeners()</code> method will need to be recreated.</p>
 <div class="api_metadata">
 <span>Added in: v0.3.5</span>
 </div><ul>
-<li><code>n</code> 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
+<li><code>n</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a></li>
 </ul>
 <p>By default EventEmitters will print a warning if more than <code>10</code> listeners are
 added for a particular event. This is a useful default that helps finding

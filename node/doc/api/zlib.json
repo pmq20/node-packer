@@ -71,7 +71,7 @@
             ]
           },
           "type": "misc",
-          "desc": "<p>Each class takes an <code>options</code> object. All options are optional.</p>\n<p>Note that some options are only relevant when compressing, and are\nignored by the decompression classes.</p>\n<ul>\n<li><code>flush</code> {integer} (default: <code>zlib.constants.Z_NO_FLUSH</code>)</li>\n<li><code>finishFlush</code> {integer} (default: <code>zlib.constants.Z_FINISH</code>)</li>\n<li><code>chunkSize</code> {integer} (default: 16*1024)</li>\n<li><code>windowBits</code> {integer}</li>\n<li><code>level</code> {integer} (compression only)</li>\n<li><code>memLevel</code> {integer} (compression only)</li>\n<li><code>strategy</code> {integer} (compression only)</li>\n<li><code>dictionary</code> {Buffer|TypedArray|DataView} (deflate/inflate only, empty dictionary by\ndefault)</li>\n<li><code>info</code> {boolean} (If <code>true</code>, returns an object with <code>buffer</code> and <code>engine</code>)</li>\n</ul>\n<p>See the description of <code>deflateInit2</code> and <code>inflateInit2</code> at\n<a href=\"https://zlib.net/manual.html#Advanced\">https://zlib.net/manual.html#Advanced</a> for more information on these.</p>\n"
+          "desc": "<p>Each class takes an <code>options</code> object. All options are optional.</p>\n<p>Note that some options are only relevant when compressing, and are\nignored by the decompression classes.</p>\n<ul>\n<li><code>flush</code> {integer} <strong>Default:</strong> <code>zlib.constants.Z_NO_FLUSH</code></li>\n<li><code>finishFlush</code> {integer} <strong>Default:</strong> <code>zlib.constants.Z_FINISH</code></li>\n<li><code>chunkSize</code> {integer} <strong>Default:</strong> <code>16 * 1024</code></li>\n<li><code>windowBits</code> {integer}</li>\n<li><code>level</code> {integer} (compression only)</li>\n<li><code>memLevel</code> {integer} (compression only)</li>\n<li><code>strategy</code> {integer} (compression only)</li>\n<li><code>dictionary</code> {Buffer|TypedArray|DataView} (deflate/inflate only, empty dictionary by\ndefault)</li>\n<li><code>info</code> {boolean} (If <code>true</code>, returns an object with <code>buffer</code> and <code>engine</code>)</li>\n</ul>\n<p>See the description of <code>deflateInit2</code> and <code>inflateInit2</code> at\n<a href=\"https://zlib.net/manual.html#Advanced\">https://zlib.net/manual.html#Advanced</a> for more information on these.</p>\n"
         },
         {
           "textRaw": "Convenience Methods",
@@ -1048,8 +1048,20 @@
                 ],
                 "changes": []
               },
-              "desc": "<p><code>kind</code> defaults to <code>zlib.constants.Z_FULL_FLUSH</code>.</p>\n<p>Flush pending data. Don&#39;t call this frivolously, premature flushes negatively\nimpact the effectiveness of the compression algorithm.</p>\n<p>Calling this only flushes data from the internal <code>zlib</code> state, and does not\nperform flushing of any kind on the streams level. Rather, it behaves like a\nnormal call to <code>.write()</code>, i.e. it will be queued up behind other pending\nwrites and will only produce output when data is being read from the stream.</p>\n",
               "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`kind` **Default:** `zlib.constants.Z_FULL_FLUSH` ",
+                      "name": "kind",
+                      "default": "`zlib.constants.Z_FULL_FLUSH`",
+                      "optional": true
+                    },
+                    {
+                      "name": "callback"
+                    }
+                  ]
+                },
                 {
                   "params": [
                     {
@@ -1061,7 +1073,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>Flush pending data. Don&#39;t call this frivolously, premature flushes negatively\nimpact the effectiveness of the compression algorithm.</p>\n<p>Calling this only flushes data from the internal <code>zlib</code> state, and does not\nperform flushing of any kind on the streams level. Rather, it behaves like a\nnormal call to <code>.write()</code>, i.e. it will be queued up behind other pending\nwrites and will only produce output when data is being read from the stream.</p>\n"
             },
             {
               "textRaw": "zlib.params(level, strategy, callback)",

@@ -17,24 +17,27 @@
             {
               "params": [
                 {
-                  "textRaw": "port {number} Port to listen on for inspector connections. Optional, defaults to what was specified on the CLI. ",
+                  "textRaw": "`port` {number} Port to listen on for inspector connections. Optional. **Default:** what was specified on the CLI. ",
                   "name": "port",
+                  "default": "what was specified on the CLI",
                   "type": "number",
-                  "desc": "Port to listen on for inspector connections. Optional, defaults to what was specified on the CLI.",
+                  "desc": "Port to listen on for inspector connections. Optional.",
                   "optional": true
                 },
                 {
-                  "textRaw": "host {string} Host to listen on for inspector connections. Optional, defaults to what was specified on the CLI. ",
+                  "textRaw": "`host` {string} Host to listen on for inspector connections. Optional. **Default:** what was specified on the CLI. ",
                   "name": "host",
+                  "default": "what was specified on the CLI",
                   "type": "string",
-                  "desc": "Host to listen on for inspector connections. Optional, defaults to what was specified on the CLI.",
+                  "desc": "Host to listen on for inspector connections. Optional.",
                   "optional": true
                 },
                 {
-                  "textRaw": "wait {boolean} Block until a client has connected. Optional, defaults to false. ",
+                  "textRaw": "`wait` {boolean} Block until a client has connected. Optional. **Default:** `false`. ",
                   "name": "wait",
+                  "default": "`false`",
                   "type": "boolean",
-                  "desc": "Block until a client has connected. Optional, defaults to false.",
+                  "desc": "Block until a client has connected. Optional.",
                   "optional": true
                 }
               ]
@@ -184,7 +187,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Immediately close the session. All pending message callbacks will be called\nwith an error. <a href=\"#inspector_session_connect\"><code>session.connect()</code></a> will need to be called to be able to send\nmessages again. Reconnected session will lose all inspector state, such as\nenabled agents or configured breakpoints.</p>\n",
+              "desc": "<p>Immediately close the session. All pending message callbacks will be called\nwith an error. <a href=\"#inspector_session_connect\"><code>session.connect()</code></a> will need to be called to be able to send\nmessages again. Reconnected session will lose all inspector state, such as\nenabled agents or configured breakpoints.</p>\n<h2>Example usage</h2>\n",
               "signatures": [
                 {
                   "params": []
@@ -218,6 +221,15 @@
               },
               "params": [],
               "desc": "<p>Emitted when an inspector notification is received that has its method field set\nto the <code>&lt;inspector-protocol-method&gt;</code> value.</p>\n<p>The following snippet installs a listener on the <a href=\"https://chromedevtools.github.io/devtools-protocol/v8/Debugger/#event-paused\"><code>Debugger.paused</code></a>\nevent, and prints the reason for program suspension whenever program\nexecution is suspended (through breakpoints, for example):</p>\n<pre><code class=\"lang-js\">session.on(&#39;Debugger.paused&#39;, ({ params }) =&gt; {\n  console.log(params.hitBreakpoints);\n});\n// [ &#39;/the/file/that/has/the/breakpoint.js:11:0&#39; ]\n</code></pre>\n"
+            }
+          ],
+          "modules": [
+            {
+              "textRaw": "CPU Profiler",
+              "name": "cpu_profiler",
+              "desc": "<p>Apart from the debugger, various V8 Profilers are available through the DevTools\nprotocol. Here&#39;s a simple example showing how to use the <a href=\"https://chromedevtools.github.io/devtools-protocol/v8/Profiler\">CPU profiler</a>:</p>\n<pre><code class=\"lang-js\">const inspector = require(&#39;inspector&#39;);\n\nconst session = new inspector.Session();\nsession.connect();\n\nsession.post(&#39;Profiler.enable&#39;, () =&gt; {\n  session.post(&#39;Profiler.start&#39;, () =&gt; {\n    // invoke business logic under measurement here...\n\n    // some time later...\n    session.post(&#39;Profiler.stop&#39;, ({ profile }) =&gt; {\n      // write profile to disk, upload, etc.\n    });\n  });\n});\n</code></pre>\n",
+              "type": "module",
+              "displayName": "CPU Profiler"
             }
           ]
         }

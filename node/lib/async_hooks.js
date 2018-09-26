@@ -48,15 +48,15 @@ const {
 class AsyncHook {
   constructor({ init, before, after, destroy, promiseResolve }) {
     if (init !== undefined && typeof init !== 'function')
-      throw new errors.TypeError('ERR_ASYNC_CALLBACK', 'init');
+      throw new errors.TypeError('ERR_ASYNC_CALLBACK', 'hook.init');
     if (before !== undefined && typeof before !== 'function')
-      throw new errors.TypeError('ERR_ASYNC_CALLBACK', 'before');
+      throw new errors.TypeError('ERR_ASYNC_CALLBACK', 'hook.before');
     if (after !== undefined && typeof after !== 'function')
-      throw new errors.TypeError('ERR_ASYNC_CALLBACK', 'before');
+      throw new errors.TypeError('ERR_ASYNC_CALLBACK', 'hook.after');
     if (destroy !== undefined && typeof destroy !== 'function')
-      throw new errors.TypeError('ERR_ASYNC_CALLBACK', 'before');
+      throw new errors.TypeError('ERR_ASYNC_CALLBACK', 'hook.destroy');
     if (promiseResolve !== undefined && typeof promiseResolve !== 'function')
-      throw new errors.TypeError('ERR_ASYNC_CALLBACK', 'promiseResolve');
+      throw new errors.TypeError('ERR_ASYNC_CALLBACK', 'hook.promiseResolve');
 
     this[init_symbol] = init;
     this[before_symbol] = before;
@@ -185,6 +185,17 @@ class AsyncResource {
   emitAfter() {
     emitAfter(this[async_id_symbol]);
     return this;
+  }
+
+  runInAsyncScope(fn, thisArg, ...args) {
+    emitBefore(this[async_id_symbol], this[trigger_async_id_symbol]);
+    let ret;
+    try {
+      ret = Reflect.apply(fn, thisArg, args);
+    } finally {
+      emitAfter(this[async_id_symbol]);
+    }
+    return ret;
   }
 
   emitDestroy() {

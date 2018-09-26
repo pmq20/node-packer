@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Errors | Node.js v8.11.4 Documentation</title>
+  <title>Errors | Node.js v8.12.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -82,7 +82,7 @@
 
     <div id="column1" data-id="errors" class="interior">
       <header>
-        <h1>Node.js v8.11.4 Documentation</h1>
+        <h1>Node.js v8.12.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -264,19 +264,13 @@
 errors:</p>
 <ul>
 <li>Standard JavaScript errors such as:<ul>
-<li>
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/EvalError" class="type">&lt;EvalError&gt;</a> : thrown when a call to <code>eval()</code> fails.</li>
-<li>
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SyntaxError" class="type">&lt;SyntaxError&gt;</a> : thrown in response to improper JavaScript language
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/EvalError" class="type">&lt;EvalError&gt;</a> : thrown when a call to <code>eval()</code> fails.</li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SyntaxError" class="type">&lt;SyntaxError&gt;</a> : thrown in response to improper JavaScript language
 syntax.</li>
-<li>
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RangeError" class="type">&lt;RangeError&gt;</a> : thrown when a value is not within an expected range</li>
-<li>
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ReferenceError" class="type">&lt;ReferenceError&gt;</a> : thrown when using undefined variables</li>
-<li>
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError" class="type">&lt;TypeError&gt;</a> : thrown when passing arguments of the wrong type</li>
-<li>
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/URIError" class="type">&lt;URIError&gt;</a> : thrown when a global URI handling function is misused.</li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RangeError" class="type">&lt;RangeError&gt;</a> : thrown when a value is not within an expected range</li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ReferenceError" class="type">&lt;ReferenceError&gt;</a> : thrown when using undefined variables</li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError" class="type">&lt;TypeError&gt;</a> : thrown when passing arguments of the wrong type</li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/URIError" class="type">&lt;URIError&gt;</a> : thrown when a global URI handling function is misused.</li>
 </ul>
 </li>
 <li>System errors triggered by underlying operating system constraints such
@@ -288,8 +282,7 @@ Node.js detects an exceptional logic violation that should never occur. These
 are raised typically by the <code>assert</code> module.</li>
 </ul>
 <p>All JavaScript and System errors raised by Node.js inherit from, or are
-instances of, the standard JavaScript 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a> class and are guaranteed
+instances of, the standard JavaScript <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a> class and are guaranteed
 to provide <em>at least</em> the properties available on that class.</p>
 <h2>Error Propagation and Interception<span><a class="mark" href="#errors_error_propagation_and_interception" id="errors_error_propagation_and_interception">#</a></span></h2>
 <!--type=misc-->
@@ -438,8 +431,7 @@ is thrown.</p>
 will either be instances of, or inherit from, the <code>Error</code> class.</p>
 <h3>new Error(message)<span><a class="mark" href="#errors_new_error_message" id="errors_new_error_message">#</a></span></h3>
 <div class="signature"><ul>
-<li><code>message</code> 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>message</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>Creates a new <code>Error</code> object and sets the <code>error.message</code> property to the
 provided text message. If an object is passed as <code>message</code>, the text message
@@ -450,10 +442,8 @@ are dependent on <a href="https://github.com/v8/v8/wiki/Stack-Trace-API">V8&#39;
 given by the property <code>Error.stackTraceLimit</code>, whichever is smaller.</p>
 <h3>Error.captureStackTrace(targetObject[, constructorOpt])<span><a class="mark" href="#errors_error_capturestacktrace_targetobject_constructoropt" id="errors_error_capturestacktrace_targetobject_constructoropt">#</a></span></h3>
 <div class="signature"><ul>
-<li><code>targetObject</code> 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
-<li><code>constructorOpt</code> 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>targetObject</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
+<li><code>constructorOpt</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
 </ul>
 </div><p>Creates a <code>.stack</code> property on <code>targetObject</code>, which when accessed returns
 a string representing the location in the code at which
@@ -479,8 +469,7 @@ new MyError().stack;
 </code></pre>
 <h3>Error.stackTraceLimit<span><a class="mark" href="#errors_error_stacktracelimit" id="errors_error_stacktracelimit">#</a></span></h3>
 <div class="signature"><ul>
-<li>
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
 </ul>
 </div><p>The <code>Error.stackTraceLimit</code> property specifies the number of stack frames
 collected by a stack trace (whether generated by <code>new Error().stack</code> or
@@ -491,15 +480,13 @@ will affect any stack trace captured <em>after</em> the value has been changed.<
 not capture any frames.</p>
 <h3>error.code<span><a class="mark" href="#errors_error_code" id="errors_error_code">#</a></span></h3>
 <div class="signature"><ul>
-<li>
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>The <code>error.code</code> property is a string label that identifies the kind of error.
 See <a href="#nodejs-error-codes">Node.js Error Codes</a> for details about specific codes.</p>
 <h3>error.message<span><a class="mark" href="#errors_error_message" id="errors_error_message">#</a></span></h3>
 <div class="signature"><ul>
-<li>
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>The <code>error.message</code> property is the string description of the error as set by
 calling <code>new Error(message)</code>. The <code>message</code> passed to the constructor will also
@@ -513,8 +500,7 @@ console.error(err.message);
 </code></pre>
 <h3>error.stack<span><a class="mark" href="#errors_error_stack" id="errors_error_stack">#</a></span></h3>
 <div class="signature"><ul>
-<li>
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>The <code>error.stack</code> property is a string describing the point in the code at which
 the <code>Error</code> was instantiated.</p>
@@ -655,16 +641,13 @@ added properties.</p>
 <h3>Class: System Error<span><a class="mark" href="#errors_class_system_error" id="errors_class_system_error">#</a></span></h3>
 <h4>error.code<span><a class="mark" href="#errors_error_code_1" id="errors_error_code_1">#</a></span></h4>
 <div class="signature"><ul>
-<li>
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>The <code>error.code</code> property is a string representing the error code, which is
 typically <code>E</code> followed by a sequence of capital letters.</p>
 <h4>error.errno<span><a class="mark" href="#errors_error_errno" id="errors_error_errno">#</a></span></h4>
 <div class="signature"><ul>
-<li>
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
 </ul>
 </div><p>The <code>error.errno</code> property is a number or a string.
 The number is a <strong>negative</strong> value which corresponds to the error code defined
@@ -673,28 +656,24 @@ in <a href="http://docs.libuv.org/en/v1.x/errors.html"><code>libuv Error handlin
 of a string, it is the same as <code>error.code</code>.</p>
 <h4>error.syscall<span><a class="mark" href="#errors_error_syscall" id="errors_error_syscall">#</a></span></h4>
 <div class="signature"><ul>
-<li>
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>The <code>error.syscall</code> property is a string describing the <a href="http://man7.org/linux/man-pages/man2/syscall.2.html">syscall</a> that failed.</p>
 <h4>error.path<span><a class="mark" href="#errors_error_path" id="errors_error_path">#</a></span></h4>
 <div class="signature"><ul>
-<li>
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>When present (e.g. in <code>fs</code> or <code>child_process</code>), the <code>error.path</code> property is a
 string containing a relevant invalid pathname.</p>
 <h4>error.address<span><a class="mark" href="#errors_error_address" id="errors_error_address">#</a></span></h4>
 <div class="signature"><ul>
-<li>
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 </div><p>When present (e.g. in <code>net</code> or <code>dgram</code>), the <code>error.address</code> property is a
 string describing the address to which the connection failed.</p>
 <h4>error.port<span><a class="mark" href="#errors_error_port" id="errors_error_port">#</a></span></h4>
 <div class="signature"><ul>
-<li>
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
 </ul>
 </div><p>When present (e.g. in <code>net</code> or <code>dgram</code>), the <code>error.port</code> property is a number
 representing the connection&#39;s port that is not available.</p>

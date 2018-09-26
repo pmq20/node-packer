@@ -3,6 +3,10 @@
 
 #include <vector>
 
+#ifdef __POSIX__
+#include <sys/time.h>  // gettimeofday
+#endif
+
 namespace node {
 namespace performance {
 
@@ -22,12 +26,37 @@ using v8::Object;
 using v8::String;
 using v8::Value;
 
+// Microseconds in a second, as a float.
+#define MICROS_PER_SEC 1e6
+// Microseconds in a millisecond, as a float.
+#define MICROS_PER_MILLIS 1e3
+
+// https://w3c.github.io/hr-time/#dfn-time-origin
 const uint64_t timeOrigin = PERFORMANCE_NOW();
+// https://w3c.github.io/hr-time/#dfn-time-origin-timestamp
+const double timeOriginTimestamp = GetCurrentTimeInMicroseconds();
 uint64_t performance_node_start;
 uint64_t performance_v8_start;
 
 uint64_t performance_last_gc_start_mark_ = 0;
 v8::GCType performance_last_gc_type_ = v8::GCType::kGCTypeAll;
+
+double GetCurrentTimeInMicroseconds() {
+#ifdef _WIN32
+// The difference between the Unix Epoch and the Windows Epoch in 100-ns ticks.
+#define TICKS_TO_UNIX_EPOCH 116444736000000000LL
+  FILETIME ft;
+  GetSystemTimeAsFileTime(&ft);
+  uint64_t filetime_int = static_cast<uint64_t>(ft.dwHighDateTime) << 32 |
+                          ft.dwLowDateTime;
+  // FILETIME is measured in terms of 100 ns. Convert that to 1 us (1000 ns).
+  return (filetime_int - TICKS_TO_UNIX_EPOCH) / 10.;
+#else
+  struct timeval tp;
+  gettimeofday(&tp, nullptr);
+  return MICROS_PER_SEC * tp.tv_sec + tp.tv_usec;
+#endif
+}
 
 // Initialize the performance entry object properties
 inline void InitObject(const PerformanceEntry& entry, Local<Object> obj) {
@@ -92,7 +121,8 @@ void PerformanceEntry::Notify(Environment* env,
     node::MakeCallback(env->isolate(),
                        env->process_object(),
                        env->performance_entry_callback(),
-                       1, &object);
+                       1, &object,
+                       node::async_context{0, 0}).ToLocalChecked();
   }
 }
 
@@ -184,8 +214,9 @@ void SetupPerformanceObservers(const FunctionCallbackInfo<Value>& args) {
 }
 
 // Creates a GC Performance Entry and passes it to observers
-void PerformanceGCCallback(Environment* env, void* ptr) {
-  GCPerformanceEntry* entry = static_cast<GCPerformanceEntry*>(ptr);
+void PerformanceGCCallback(uv_async_t* handle) {
+  GCPerformanceEntry* entry = static_cast<GCPerformanceEntry*>(handle->data);
+  Environment* env = entry->env();
   HandleScope scope(env->isolate());
   Local<Context> context = env->context();
 
@@ -203,6 +234,10 @@ void PerformanceGCCallback(Environment* env, void* ptr) {
   }
 
   delete entry;
+  auto closeCB = [](uv_handle_t* handle) {
+    delete reinterpret_cast<uv_async_t*>(handle);
+  };
+  uv_close(reinterpret_cast<uv_handle_t*>(handle), closeCB);
 }
 
 // Marks the start of a GC cycle
@@ -219,11 +254,16 @@ void MarkGarbageCollectionEnd(Isolate* isolate,
                               v8::GCCallbackFlags flags,
                               void* data) {
   Environment* env = static_cast<Environment*>(data);
-  env->SetImmediate(PerformanceGCCallback,
-                    new GCPerformanceEntry(env,
-                                           static_cast<PerformanceGCKind>(type),
-                                           performance_last_gc_start_mark_,
-                                           PERFORMANCE_NOW()));
+  uv_async_t* async = new uv_async_t();
+  if (uv_async_init(env->event_loop(), async, PerformanceGCCallback))
+    return delete async;
+  uv_unref(reinterpret_cast<uv_handle_t*>(async));
+  async->data =
+      new GCPerformanceEntry(env,
+                             static_cast<PerformanceGCKind>(type),
+                             performance_last_gc_start_mark_,
+                             PERFORMANCE_NOW());
+  CHECK_EQ(0, uv_async_send(async));
 }
 
 
@@ -370,6 +410,12 @@ void Init(Local<Object> target,
                             FIXED_ONE_BYTE_STRING(isolate, "timeOrigin"),
                             v8::Number::New(isolate, timeOrigin / 1e6),
                             attr).ToChecked();
+
+  target->DefineOwnProperty(
+      context,
+      FIXED_ONE_BYTE_STRING(isolate, "timeOriginTimestamp"),
+      v8::Number::New(isolate, timeOriginTimestamp / MICROS_PER_MILLIS),
+      attr).ToChecked();
 
   target->DefineOwnProperty(context,
                             env->constants_string(),

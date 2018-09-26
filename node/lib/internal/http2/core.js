@@ -5,6 +5,7 @@
 require('internal/util').assertCrypto();
 
 const { async_id_symbol } = process.binding('async_wrap');
+const http = require('http');
 const binding = process.binding('http2');
 const assert = require('assert');
 const { Buffer } = require('buffer');
@@ -61,12 +62,14 @@ const {
 } = require('timers');
 
 const { ShutdownWrap, WriteWrap } = process.binding('stream_wrap');
-const { constants } = binding;
+const { constants, nameForErrorCode } = binding;
 
 const NETServer = net.Server;
 const TLSServer = tls.Server;
 
 const kInspect = require('internal/util').customInspectSymbol;
+const { kIncomingMessage } = require('_http_common');
+const { kServerResponse } = require('_http_server');
 
 const kAlpnProtocol = Symbol('alpnProtocol');
 const kAuthority = Symbol('authority');
@@ -406,7 +409,7 @@ function onAltSvc(stream, origin, alt) {
 
 // Receiving a GOAWAY frame from the connected peer is a signal that no
 // new streams should be created. If the code === NGHTTP2_NO_ERROR, we
-// are going to send our our close, but allow existing frames to close
+// are going to send our close, but allow existing frames to close
 // normally. If code !== NGHTTP2_NO_ERROR, we are going to send our own
 // close using the same code then destroy the session with an error.
 // The goaway event will be emitted on next tick.
@@ -461,7 +464,7 @@ function requestOnConnect(headers, options) {
   if (session.destroyed)
     return;
 
-  // If the session was closed while waiting for for the connect, destroy
+  // If the session was closed while waiting for the connect, destroy
   // the stream and do not continue with the request.
   if (session.closed) {
     const err = new errors.Error('ERR_HTTP2_GOAWAY_SESSION');
@@ -1147,7 +1150,7 @@ class Http2Session extends EventEmitter {
     // Otherwise, destroy immediately.
     if (!socket.destroyed) {
       if (!error) {
-        setImmediate(socket.end.bind(socket));
+        setImmediate(socket.destroy.bind(socket));
       } else {
         socket.destroy(error);
       }
@@ -1644,7 +1647,7 @@ class Http2Stream extends Duplex {
     req.async = false;
     const err = createWriteReq(req, handle, data, encoding);
     if (err)
-      return this.destroy(util._errnoException(err, 'write', req.error), cb);
+      return this.destroy(errors.errnoException(err, 'write', req.error), cb);
     trackWriteState(this, req.bytes);
   }
 
@@ -1687,7 +1690,7 @@ class Http2Stream extends Duplex {
     }
     const err = handle.writev(req, chunks);
     if (err)
-      return this.destroy(util._errnoException(err, 'write', req.error), cb);
+      return this.destroy(errors.errnoException(err, 'write', req.error), cb);
     trackWriteState(this, req.bytes);
   }
 
@@ -1839,7 +1842,8 @@ class Http2Stream extends Duplex {
     // abort and is already covered by aborted event, also allows more
     // seamless compatibility with http1
     if (err == null && code !== NGHTTP2_NO_ERROR && code !== NGHTTP2_CANCEL)
-      err = new errors.Error('ERR_HTTP2_STREAM_ERROR', code);
+      err = new errors.Error('ERR_HTTP2_STREAM_ERROR',
+                             nameForErrorCode[code] || code);
 
     this[kSession] = undefined;
     this[kHandle] = undefined;
@@ -2485,8 +2489,11 @@ function connectionListener(socket) {
 
   if (socket.alpnProtocol === false || socket.alpnProtocol === 'http/1.1') {
     // Fallback to HTTP/1.1
-    if (options.allowHTTP1 === true)
+    if (options.allowHTTP1 === true) {
+      socket.server[kIncomingMessage] = options.Http1IncomingMessage;
+      socket.server[kServerResponse] = options.Http1ServerResponse;
       return httpConnectionListener.call(this, socket);
+    }
     // Let event handler deal with the socket
     debug(`Unknown protocol from ${socket.remoteAddress}:${socket.remotePort}`);
     if (!this.emit('unknownProtocol', socket)) {
@@ -2526,6 +2533,17 @@ function initializeOptions(options) {
   options.allowHalfOpen = true;
   assertIsObject(options.settings, 'options.settings');
   options.settings = Object.assign({}, options.settings);
+
+  // Used only with allowHTTP1
+  options.Http1IncomingMessage = options.Http1IncomingMessage ||
+    http.IncomingMessage;
+  options.Http1ServerResponse = options.Http1ServerResponse ||
+    http.ServerResponse;
+
+  options.Http2ServerRequest = options.Http2ServerRequest ||
+                                       Http2ServerRequest;
+  options.Http2ServerResponse = options.Http2ServerResponse ||
+                                        Http2ServerResponse;
   return options;
 }
 
@@ -2591,7 +2609,11 @@ class Http2Server extends NETServer {
 function setupCompat(ev) {
   if (ev === 'request') {
     this.removeListener('newListener', setupCompat);
-    this.on('stream', onServerStream);
+    this.on('stream', onServerStream.bind(
+      this,
+      this[kOptions].Http2ServerRequest,
+      this[kOptions].Http2ServerResponse)
+    );
   }
 }
 

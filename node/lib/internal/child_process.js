@@ -18,7 +18,7 @@ const SocketList = require('internal/socket_list');
 const { convertToValidSignal } = require('internal/util');
 const { isUint8Array } = require('internal/util/types');
 
-const errnoException = util._errnoException;
+const errnoException = errors.errnoException;
 const { SocketListSend, SocketListReceive } = SocketList;
 
 const MAX_HANDLE_RETRANSMISSIONS = 3;
@@ -227,17 +227,7 @@ function flushStdio(subprocess) {
 
 
 function createSocket(pipe, readable) {
-  var s = new net.Socket({ handle: pipe });
-
-  if (readable) {
-    s.writable = false;
-    s.readable = true;
-  } else {
-    s.writable = true;
-    s.readable = false;
-  }
-
-  return s;
+  return net.Socket({ handle: pipe, readable, writable: !readable });
 }
 
 

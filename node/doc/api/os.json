@@ -258,7 +258,7 @@
               "params": []
             }
           ],
-          "desc": "<p>The <code>os.platform()</code> method returns a string identifying the operating system\nplatform as set during compile time of Node.js.</p>\n<p>Currently possible values are:</p>\n<ul>\n<li><code>&#39;aix&#39;</code></li>\n<li><code>&#39;darwin&#39;</code></li>\n<li><code>&#39;freebsd&#39;</code></li>\n<li><code>&#39;linux&#39;</code></li>\n<li><code>&#39;openbsd&#39;</code></li>\n<li><code>&#39;sunos&#39;</code></li>\n<li><code>&#39;win32&#39;</code></li>\n</ul>\n<p>Equivalent to <a href=\"process.html#process_process_platform\"><code>process.platform</code></a>.</p>\n<p><em>Note</em>: The value <code>&#39;android&#39;</code> may also be returned if the Node.js is built on\nthe Android operating system. However, Android support in Node.js is considered\nto be experimental at this time.</p>\n"
+          "desc": "<p>The <code>os.platform()</code> method returns a string identifying the operating system\nplatform as set during compile time of Node.js.</p>\n<p>Currently possible values are:</p>\n<ul>\n<li><code>&#39;aix&#39;</code></li>\n<li><code>&#39;darwin&#39;</code></li>\n<li><code>&#39;freebsd&#39;</code></li>\n<li><code>&#39;linux&#39;</code></li>\n<li><code>&#39;openbsd&#39;</code></li>\n<li><code>&#39;sunos&#39;</code></li>\n<li><code>&#39;win32&#39;</code></li>\n</ul>\n<p>Equivalent to <a href=\"process.html#process_process_platform\"><code>process.platform</code></a>.</p>\n<p><em>Note</em>: The value <code>&#39;android&#39;</code> may also be returned if the Node.js is built on\nthe Android operating system. However, Android support in Node.js is considered\n<a href=\"https://github.com/nodejs/node/blob/master/BUILDING.md#androidandroid-based-devices-eg-firefox-os\">to be experimental</a> at this time.</p>\n"
         },
         {
           "textRaw": "os.release()",
@@ -413,10 +413,11 @@
                   "textRaw": "`options` {Object} ",
                   "options": [
                     {
-                      "textRaw": "`encoding` {string} Character encoding used to interpret resulting strings. If `encoding` is set to `'buffer'`, the `username`, `shell`, and `homedir` values will be `Buffer` instances. **Default:** `'utf8'` ",
+                      "textRaw": "`encoding` {string} Character encoding used to interpret resulting strings. If `encoding` is set to `'buffer'`, the `username`, `shell`, and `homedir` values will be `Buffer` instances. **Default:** `'utf8'`. ",
                       "name": "encoding",
+                      "default": "`'utf8'`",
                       "type": "string",
-                      "desc": "Character encoding used to interpret resulting strings. If `encoding` is set to `'buffer'`, the `username`, `shell`, and `homedir` values will be `Buffer` instances. **Default:** `'utf8'`"
+                      "desc": "Character encoding used to interpret resulting strings. If `encoding` is set to `'buffer'`, the `username`, `shell`, and `homedir` values will be `Buffer` instances."
                     }
                   ],
                   "name": "options",

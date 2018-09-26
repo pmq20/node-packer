@@ -23,7 +23,7 @@
             {
               "textRaw": "Supported",
               "name": "supported",
-              "desc": "<p>Only the CLI argument for the main entry point to the program can be an entry\npoint into an ESM graph. In the future <code>import()</code> can be used to create entry\npoints into ESM graphs at run time.</p>\n",
+              "desc": "<p>Only the CLI argument for the main entry point to the program can be an entry\npoint into an ESM graph. Dynamic import can also be used to create entry points\ninto ESM graphs at runtime.</p>\n",
               "type": "misc",
               "displayName": "Supported"
             },

@@ -82,9 +82,6 @@ const emitDestroyNative = emitHookFactory(destroy_symbol, 'emitDestroyNative');
 const emitPromiseResolveNative =
     emitHookFactory(promise_resolve_symbol, 'emitPromiseResolveNative');
 
-// TODO(refack): move to node-config.cc
-const abort_regex = /^--abort[_-]on[_-]uncaught[_-]exception$/;
-
 // Setup the callbacks that node::AsyncWrap will call when there are hooks to
 // process. They use the same functions as the JS embedder API. These callbacks
 // are setup immediately to prevent async_wrap.setupHooks() from being hijacked
@@ -104,7 +101,7 @@ function fatalError(e) {
     Error.captureStackTrace(o, fatalError);
     process._rawDebug(o.stack);
   }
-  if (process.execArgv.some((e) => abort_regex.test(e))) {
+  if (process.binding('config').shouldAbortOnUncaughtException) {
     process.abort();
   }
   process.exit(1);
@@ -127,7 +124,7 @@ function validateAsyncId(asyncId, type) {
 // emitInitScript.
 function emitInitNative(asyncId, type, triggerAsyncId, resource) {
   active_hooks.call_depth += 1;
-  // Use a single try/catch for all hook to avoid setting up one per iteration.
+  // Use a single try/catch for all hooks to avoid setting up one per iteration.
   try {
     for (var i = 0; i < active_hooks.array.length; i++) {
       if (typeof active_hooks.array[i][init_symbol] === 'function') {

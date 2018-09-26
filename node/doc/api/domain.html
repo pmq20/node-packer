@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Domain | Node.js v8.11.4 Documentation</title>
+  <title>Domain | Node.js v8.12.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -82,7 +82,7 @@
 
     <div id="column1" data-id="domain" class="interior">
       <header>
-        <h1>Node.js v8.11.4 Documentation</h1>
+        <h1>Node.js v8.12.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -384,8 +384,7 @@ serverDomain.run(() =&gt; {
 </code></pre>
 <h2>domain.create()<span><a class="mark" href="#domain_domain_create" id="domain_domain_create">#</a></span></h2>
 <div class="signature"><ul>
-<li>Returns: 
-            <a href="domain.html#domain_class_domain" class="type">&lt;Domain&gt;</a></li>
+<li>Returns: <a href="domain.html#domain_class_domain" class="type">&lt;Domain&gt;</a></li>
 </ul>
 </div><p>Returns a new Domain object.</p>
 <h2>Class: Domain<span><a class="mark" href="#domain_class_domain" id="domain_class_domain">#</a></span></h2>
@@ -395,16 +394,13 @@ uncaught exceptions to the active Domain object.</p>
 catches, listen to its <code>&#39;error&#39;</code> event.</p>
 <h3>domain.members<span><a class="mark" href="#domain_domain_members" id="domain_domain_members">#</a></span></h3>
 <div class="signature"><ul>
-<li>
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a></li>
 </ul>
 </div><p>An array of timers and event emitters that have been explicitly added
 to the domain.</p>
 <h3>domain.add(emitter)<span><a class="mark" href="#domain_domain_add_emitter" id="domain_domain_add_emitter">#</a></span></h3>
 <div class="signature"><ul>
-<li><code>emitter</code> 
-            <a href="events.html#events_class_eventemitter" class="type">&lt;EventEmitter&gt;</a> | 
-            <a href="timers.html#timers_timers" class="type">&lt;Timer&gt;</a> emitter or timer to be added to the domain</li>
+<li><code>emitter</code> <a href="events.html#events_class_eventemitter" class="type">&lt;EventEmitter&gt;</a> | <a href="timers.html#timers_timers" class="type">&lt;Timer&gt;</a> emitter or timer to be added to the domain</li>
 </ul>
 </div><p>Explicitly adds an emitter to the domain. If any event handlers called by
 the emitter throw an error, or if the emitter emits an <code>&#39;error&#39;</code> event, it
@@ -417,10 +413,8 @@ the domain &#39;error&#39; handler.</p>
 from that one, and bound to this one instead.</p>
 <h3>domain.bind(callback)<span><a class="mark" href="#domain_domain_bind_callback" id="domain_domain_bind_callback">#</a></span></h3>
 <div class="signature"><ul>
-<li><code>callback</code> 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The callback function</li>
-<li>Returns: 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The bound function</li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The callback function</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The bound function</li>
 </ul>
 </div><p>The returned function will be a wrapper around the supplied callback
 function. When the returned function is called, any errors that are
@@ -472,10 +466,8 @@ single domain.</p>
 without exiting the domain.</p>
 <h3>domain.intercept(callback)<span><a class="mark" href="#domain_domain_intercept_callback" id="domain_domain_intercept_callback">#</a></span></h3>
 <div class="signature"><ul>
-<li><code>callback</code> 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The callback function</li>
-<li>Returns: 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The intercepted function</li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The callback function</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The intercepted function</li>
 </ul>
 </div><p>This method is almost identical to <a href="#domain_domain_bind_callback"><code>domain.bind(callback)</code></a>. However, in
 addition to catching thrown errors, it will also intercept <a href="errors.html#errors_class_error"><code>Error</code></a>
@@ -507,16 +499,13 @@ d.on(&#39;error&#39;, (er) =&gt; {
 </code></pre>
 <h3>domain.remove(emitter)<span><a class="mark" href="#domain_domain_remove_emitter" id="domain_domain_remove_emitter">#</a></span></h3>
 <div class="signature"><ul>
-<li><code>emitter</code> 
-            <a href="events.html#events_class_eventemitter" class="type">&lt;EventEmitter&gt;</a> | 
-            <a href="timers.html#timers_timers" class="type">&lt;Timer&gt;</a> emitter or timer to be removed from the domain</li>
+<li><code>emitter</code> <a href="events.html#events_class_eventemitter" class="type">&lt;EventEmitter&gt;</a> | <a href="timers.html#timers_timers" class="type">&lt;Timer&gt;</a> emitter or timer to be removed from the domain</li>
 </ul>
 </div><p>The opposite of <a href="#domain_domain_add_emitter"><code>domain.add(emitter)</code></a>. Removes domain handling from the
 specified emitter.</p>
 <h3>domain.run(fn[, ...args])<span><a class="mark" href="#domain_domain_run_fn_args" id="domain_domain_run_fn_args">#</a></span></h3>
 <div class="signature"><ul>
-<li><code>fn</code> 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>fn</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
 <li><code>...args</code> <span class="type">&lt;any&gt;</span></li>
 </ul>
 </div><p>Run the supplied function in the context of the domain, implicitly

@@ -324,7 +324,7 @@ Equivalent to [`process.platform`][].
 
 *Note*: The value `'android'` may also be returned if the Node.js is built on
 the Android operating system. However, Android support in Node.js is considered
-to be experimental at this time.
+[to be experimental][Android building] at this time.
 
 ## os.release()
 <!-- YAML
@@ -400,7 +400,7 @@ added: v6.0.0
 * `options` {Object}
   * `encoding` {string} Character encoding used to interpret resulting strings.
     If `encoding` is set to `'buffer'`, the `username`, `shell`, and `homedir`
-    values will be `Buffer` instances. **Default:** `'utf8'`
+    values will be `Buffer` instances. **Default:** `'utf8'`.
 * Returns: {Object}
 
 The `os.userInfo()` method returns information about the currently effective
@@ -1185,4 +1185,5 @@ The following error codes are specific to the Windows operating system:
 
 [`process.arch`]: process.html#process_process_arch
 [`process.platform`]: process.html#process_process_platform
+[Android building]: https://github.com/nodejs/node/blob/master/BUILDING.md#androidandroid-based-devices-eg-firefox-os
 [uname(3)]: https://linux.die.net/man/3/uname

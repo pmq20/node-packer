@@ -1,6 +1,14 @@
 #include "node_internals.h"
 #include "async_wrap.h"
 #include "v8-profiler.h"
+#include "node_buffer.h"
+#include "node_platform.h"
+
+#if defined(_MSC_VER)
+#define getpid GetCurrentProcessId
+#else
+#include <unistd.h>
+#endif
 
 #include <stdio.h>
 #include <algorithm>
@@ -10,10 +18,134 @@ namespace node {
 using v8::Context;
 using v8::FunctionTemplate;
 using v8::HandleScope;
+using v8::Isolate;
 using v8::Local;
 using v8::Message;
+using v8::Private;
 using v8::StackFrame;
 using v8::StackTrace;
+using v8::String;
+
+IsolateData::IsolateData(Isolate* isolate,
+                         uv_loop_t* event_loop,
+                         MultiIsolatePlatform* platform,
+                         uint32_t* zero_fill_field) :
+    isolate_(isolate),
+    event_loop_(event_loop),
+    zero_fill_field_(zero_fill_field),
+    platform_(platform) {
+  if (platform_ != nullptr)
+    platform_->RegisterIsolate(this, event_loop);
+
+  // Create string and private symbol properties as internalized one byte
+  // strings after the platform is properly initialized.
+  //
+  // Internalized because it makes property lookups a little faster and
+  // because the string is created in the old space straight away.  It's going
+  // to end up in the old space sooner or later anyway but now it doesn't go
+  // through v8::Eternal's new space handling first.
+  //
+  // One byte because our strings are ASCII and we can safely skip V8's UTF-8
+  // decoding step.
+
+#define V(PropertyName, StringValue)                                        \
+    PropertyName ## _.Set(                                                  \
+        isolate,                                                            \
+        Private::New(                                                       \
+            isolate,                                                        \
+            String::NewFromOneByte(                                         \
+                isolate,                                                    \
+                reinterpret_cast<const uint8_t*>(StringValue),              \
+                v8::NewStringType::kInternalized,                           \
+                sizeof(StringValue) - 1).ToLocalChecked()));
+  PER_ISOLATE_PRIVATE_SYMBOL_PROPERTIES(V)
+#undef V
+#define V(PropertyName, StringValue)                                        \
+    PropertyName ## _.Set(                                                  \
+        isolate,                                                            \
+        String::NewFromOneByte(                                             \
+            isolate,                                                        \
+            reinterpret_cast<const uint8_t*>(StringValue),                  \
+            v8::NewStringType::kInternalized,                               \
+            sizeof(StringValue) - 1).ToLocalChecked());
+  PER_ISOLATE_STRING_PROPERTIES(V)
+#undef V
+}
+
+IsolateData::~IsolateData() {
+  if (platform_ != nullptr)
+    platform_->UnregisterIsolate(this);
+}
+
+Environment::Environment(IsolateData* isolate_data,
+                         Local<Context> context)
+    : isolate_(context->GetIsolate()),
+      isolate_data_(isolate_data),
+      timer_base_(uv_now(isolate_data->event_loop())),
+      using_domains_(false),
+      printed_error_(false),
+      trace_sync_io_(false),
+      abort_on_uncaught_exception_(false),
+      makecallback_cntr_(0),
+      scheduled_immediate_count_(isolate_, 1),
+#if HAVE_INSPECTOR
+      inspector_agent_(new inspector::Agent(this)),
+#endif
+      handle_cleanup_waiting_(0),
+      http_parser_buffer_(nullptr),
+      fs_stats_field_array_(nullptr),
+      context_(context->GetIsolate(), context) {
+  // We'll be creating new objects so make sure we've entered the context.
+  v8::HandleScope handle_scope(isolate());
+  v8::Context::Scope context_scope(context);
+  set_as_external(v8::External::New(isolate(), this));
+
+  v8::Local<v8::Primitive> null = v8::Null(isolate());
+  v8::Local<v8::Object> binding_cache_object = v8::Object::New(isolate());
+  CHECK(binding_cache_object->SetPrototype(context, null).FromJust());
+  set_binding_cache_object(binding_cache_object);
+
+  v8::Local<v8::Object> internal_binding_cache_object =
+      v8::Object::New(isolate());
+  CHECK(internal_binding_cache_object->SetPrototype(context, null).FromJust());
+  set_internal_binding_cache_object(internal_binding_cache_object);
+
+  set_module_load_list_array(v8::Array::New(isolate()));
+
+  AssignToContext(context);
+
+  destroy_async_id_list_.reserve(512);
+  performance_state_.reset(new performance::performance_state(isolate()));
+  performance_state_->milestones[
+      performance::NODE_PERFORMANCE_MILESTONE_ENVIRONMENT] =
+          PERFORMANCE_NOW();
+  performance_state_->milestones[
+    performance::NODE_PERFORMANCE_MILESTONE_NODE_START] =
+        performance::performance_node_start;
+  performance_state_->milestones[
+    performance::NODE_PERFORMANCE_MILESTONE_V8_START] =
+        performance::performance_v8_start;
+}
+
+Environment::~Environment() {
+  v8::HandleScope handle_scope(isolate());
+
+#if HAVE_INSPECTOR
+  // Destroy inspector agent before erasing the context. The inspector
+  // destructor depends on the context still being accessible.
+  inspector_agent_.reset();
+#endif
+
+  context()->SetAlignedPointerInEmbedderData(kContextEmbedderDataIndex,
+                                             nullptr);
+#define V(PropertyName, TypeName) PropertyName ## _.Reset();
+  ENVIRONMENT_STRONG_PERSISTENT_PROPERTIES(V)
+#undef V
+
+  delete[] heap_statistics_buffer_;
+  delete[] heap_space_statistics_buffer_;
+  delete[] http_parser_buffer_;
+}
 
 void Environment::Start(int argc,
                         const char* const* argv,
@@ -155,6 +287,35 @@ void Environment::PrintSyncTrace() const {
   fflush(stderr);
 }
 
+void Environment::RunCleanup() {
+  while (!cleanup_hooks_.empty()) {
+    // Copy into a vector, since we can't sort an unordered_set in-place.
+    std::vector<CleanupHookCallback> callbacks(
+        cleanup_hooks_.begin(), cleanup_hooks_.end());
+    // We can't erase the copied elements from `cleanup_hooks_` yet, because we
+    // need to be able to check whether they were un-scheduled by another hook.
+
+    std::sort(callbacks.begin(), callbacks.end(),
+              [](const CleanupHookCallback& a, const CleanupHookCallback& b) {
+      // Sort in descending order so that the most recently inserted callbacks
+      // are run first.
+      return a.insertion_order_counter_ > b.insertion_order_counter_;
+    });
+
+    for (const CleanupHookCallback& cb : callbacks) {
+      if (cleanup_hooks_.count(cb) == 0) {
+        // This hook was removed from the `cleanup_hooks_` set during another
+        // hook that was run earlier. Nothing to do here.
+        continue;
+      }
+
+      cb.fn_(cb.arg_);
+      cleanup_hooks_.erase(cb);
+      CleanupHandles();
+    }
+  }
+}
+
 void Environment::RunAtExitCallbacks() {
   for (AtExitCallback at_exit : at_exit_functions_) {
     at_exit.cb_(at_exit.arg_);
@@ -200,12 +361,6 @@ bool Environment::RemovePromiseHook(promise_hook_func fn, void* arg) {
   }
 
   return true;
-}
-
-bool Environment::EmitNapiWarning() {
-  bool current_value = emit_napi_warning_;
-  emit_napi_warning_ = false;
-  return current_value;
 }
 
 void Environment::EnvPromiseHook(v8::PromiseHookType type,

@@ -192,6 +192,13 @@ int StreamBase::Writev(const FunctionCallbackInfo<Value>& args) {
       offset += str_size;
       bytes += str_size;
     }
+
+    err = DoTryWrite(&buf_list, &count);
+    if (err != 0 || count == 0) {
+      req_wrap->Dispatched();
+      req_wrap->Dispose();
+      goto done;
+    }
   }
 
   err = DoWrite(req_wrap, buf_list, count, nullptr);
@@ -408,7 +415,7 @@ void StreamBase::AfterWrite(WriteWrap* req_wrap, int status) {
   // Unref handle property
   Local<Object> req_wrap_obj = req_wrap->object();
   req_wrap_obj->Delete(env->context(), env->handle_string()).FromJust();
-  OnAfterWrite(req_wrap, status);
+  EmitAfterWrite(req_wrap, status);
 
   Local<Value> argv[] = {
     Integer::New(env->isolate(), status),

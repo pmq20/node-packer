@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Tracing | Node.js v8.11.4 Documentation</title>
+  <title>Tracing | Node.js v8.12.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -82,7 +82,7 @@
 
     <div id="column1" data-id="tracing" class="interior">
       <header>
-        <h1>Node.js v8.11.4 Documentation</h1>
+        <h1>Node.js v8.12.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -129,6 +129,15 @@ By default the <code>node</code>, <code>node.async_hooks</code>, and <code>v8</c
 <p>Running Node.js with tracing enabled will produce log files that can be opened
 in the <a href="https://www.chromium.org/developers/how-tos/trace-event-profiling-tool"><code>chrome://tracing</code></a>
 tab of Chrome.</p>
+<p>The logging file is by default called <code>node_trace.${rotation}.log</code>, where
+<code>${rotation}</code> is an incrementing log-rotation id. The filepath pattern can
+be specified with <code>--trace-event-file-pattern</code> that accepts a template
+string that supports <code>${rotation}</code> and <code>${pid}</code>. For example:</p>
+<pre><code class="lang-txt">node --trace-events-enabled --trace-event-file-pattern &#39;${pid}-${rotation}.log&#39; server.js
+</code></pre>
+<p>Starting with Node 10.0.0, the tracing system uses the same time source as the
+one used by <code>process.hrtime()</code> however the trace-event timestamps are expressed
+in microseconds, unlike <code>process.hrtime()</code> which returns nanoseconds.</p>
 
       </div>
     </div>

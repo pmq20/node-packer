@@ -350,7 +350,7 @@ function socketCloseListener() {
   req.emit('close');
   if (req.res && req.res.readable) {
     // Socket closed before we emitted 'end' below.
-    req.res.emit('aborted');
+    if (!req.res.complete) req.res.emit('aborted');
     var res = req.res;
     res.on('end', function() {
       res.emit('close');
@@ -470,6 +470,7 @@ function socketOnData(d) {
       // TODO(isaacs): Need a way to reset a stream to fresh state
       // IE, not flowing, and not explicitly paused.
       socket._readableState.flowing = null;
+      socket._httpMessage = null;
 
       req.emit(eventName, res, socket, bodyHead);
       req.emit('close');

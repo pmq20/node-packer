@@ -361,7 +361,7 @@
                   "params": []
                 }
               ],
-              "desc": "<p>Returns the current high resolution millisecond timestamp.</p>\n"
+              "desc": "<p>Returns the current high resolution millisecond timestamp, where 0 represents\nthe start of the current <code>node</code> process.</p>\n"
             },
             {
               "textRaw": "performance.timerify(fn)",
@@ -396,6 +396,17 @@
           ],
           "properties": [
             {
+              "textRaw": "performance.maxEntries",
+              "name": "maxEntries",
+              "meta": {
+                "added": [
+                  "v8.12.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Value: {number}</p>\n<p>The maximum number of Performance Entry items that should be added to the\nPerformance Timeline. This limit is not strictly enforced, but a process\nwarning will be emitted if the number of entries in the timeline exceeds\nthis limit.</p>\n<p>Defaults to 150.</p>\n"
+            },
+            {
               "textRaw": "`nodeTiming` {PerformanceNodeTiming} ",
               "type": "PerformanceNodeTiming",
               "name": "nodeTiming",
@@ -417,7 +428,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>The <a href=\"https://w3c.github.io/hr-time/#dom-performance-timeorigin\"><code>timeOrigin</code></a> specifies the high resolution millisecond timestamp from\nwhich all performance metric durations are measured.</p>\n"
+              "desc": "<p>The <a href=\"https://w3c.github.io/hr-time/#dom-performance-timeorigin\"><code>timeOrigin</code></a> specifies the high resolution millisecond timestamp at\nwhich the current <code>node</code> process began, measured in Unix time.</p>\n"
             }
           ]
         },
@@ -516,7 +527,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>The high resolution millisecond timestamp at which the Node.js process\ncompleted bootstrap.</p>\n"
+              "desc": "<p>The high resolution millisecond timestamp at which the Node.js process\ncompleted bootstrapping. If bootstrapping has not yet finished, the property\nhas the value of -1.</p>\n"
             },
             {
               "textRaw": "`clusterSetupEnd` {number} ",
@@ -528,7 +539,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>The high resolution millisecond timestamp at which cluster processing ended.</p>\n"
+              "desc": "<p>The high resolution millisecond timestamp at which cluster processing ended. If\ncluster processing has not yet ended, the property has the value of -1.</p>\n"
             },
             {
               "textRaw": "`clusterSetupStart` {number} ",
@@ -540,7 +551,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>The high resolution millisecond timestamp at which cluster processing started.</p>\n"
+              "desc": "<p>The high resolution millisecond timestamp at which cluster processing started.\nIf cluster processing has not yet started, the property has the value of -1.</p>\n"
             },
             {
               "textRaw": "`loopExit` {number} ",
@@ -552,7 +563,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>The high resolution millisecond timestamp at which the Node.js event loop\nexited.</p>\n"
+              "desc": "<p>The high resolution millisecond timestamp at which the Node.js event loop\nexited. If the event loop has not yet exited, the property has the value of -1.\nIt can only have a value of not -1 in a handler of the <a href=\"process.html#process_event_exit\"><code>&#39;exit&#39;</code></a> event.</p>\n"
             },
             {
               "textRaw": "`loopStart` {number} ",
@@ -564,7 +575,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>The high resolution millisecond timestamp at which the Node.js event loop\nstarted.</p>\n"
+              "desc": "<p>The high resolution millisecond timestamp at which the Node.js event loop\nstarted. If the event loop has not yet started (e.g., in the first tick of the\nmain script), the property has the value of -1.</p>\n"
             },
             {
               "textRaw": "`moduleLoadEnd` {number} ",
@@ -636,7 +647,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>The high resolution millisecond timestamp at which third_party_main processing\nended.</p>\n"
+              "desc": "<p>The high resolution millisecond timestamp at which third_party_main\nprocessing ended. If third_party_main processing has not yet ended, the\nproperty has the value of -1.</p>\n"
             },
             {
               "textRaw": "`thirdPartyMainStart` {number} ",
@@ -648,7 +659,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>The high resolution millisecond timestamp at which third_party_main processing\nstarted.</p>\n"
+              "desc": "<p>The high resolution millisecond timestamp at which third_party_main\nprocessing started. If third_party_main processing has not yet started, the\nproperty has the value of -1.</p>\n"
             },
             {
               "textRaw": "`v8Start` {number} ",
@@ -866,10 +877,11 @@
                           "desc": "An array of strings identifying the types of `PerformanceEntry` instances the observer is interested in. If not provided an error will be thrown."
                         },
                         {
-                          "textRaw": "`buffered` {boolean} If true, the notification callback will be called using `setImmediate()` and multiple `PerformanceEntry` instance notifications will be buffered internally. If `false`, notifications will be immediate and synchronous. Defaults to `false`. ",
+                          "textRaw": "`buffered` {boolean} If true, the notification callback will be called using `setImmediate()` and multiple `PerformanceEntry` instance notifications will be buffered internally. If `false`, notifications will be immediate and synchronous. **Default:** `false`. ",
                           "name": "buffered",
+                          "default": "`false`",
                           "type": "boolean",
-                          "desc": "If true, the notification callback will be called using `setImmediate()` and multiple `PerformanceEntry` instance notifications will be buffered internally. If `false`, notifications will be immediate and synchronous. Defaults to `false`."
+                          "desc": "If true, the notification callback will be called using `setImmediate()` and multiple `PerformanceEntry` instance notifications will be buffered internally. If `false`, notifications will be immediate and synchronous."
                         }
                       ],
                       "name": "options",

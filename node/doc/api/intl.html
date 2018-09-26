@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Internationalization Support | Node.js v8.11.4 Documentation</title>
+  <title>Internationalization Support | Node.js v8.12.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -82,7 +82,7 @@
 
     <div id="column1" data-id="intl" class="interior">
       <header>
-        <h1>Node.js v8.11.4 Documentation</h1>
+        <h1>Node.js v8.12.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -150,6 +150,7 @@ Specification</a> (aka ECMA-402):<ul>
 <li><a href="buffer.html#buffer_buffer_transcode_source_fromenc_toenc"><code>require(&#39;buffer&#39;).transcode()</code></a></li>
 <li>More accurate <a href="repl.html#repl_repl">REPL</a> line editing</li>
 <li><a href="util.html#util_class_util_textdecoder"><code>require(&#39;util&#39;).TextDecoder</code></a></li>
+<li><a href="https://github.com/tc39/proposal-regexp-unicode-property-escapes">RegExp Unicode Property Escapes</a></li>
 </ul>
 <p>Node.js (and its underlying V8 engine) uses <a href="http://icu-project.org/">ICU</a> to implement these features
 in native C/C++ code. However, some of them require a very large ICU data file
@@ -256,6 +257,13 @@ option:</p>
 <td>partial (basic encodings support)</td>
 <td>partial/full (depends on OS)</td>
 <td>partial (Unicode-only)</td>
+<td>full</td>
+</tr>
+<tr>
+<td><a href="https://github.com/tc39/proposal-regexp-unicode-property-escapes">RegExp Unicode Property Escapes</a></td>
+<td>none (invalid RegExp error)</td>
+<td>full</td>
+<td>full</td>
 <td>full</td>
 </tr>
 </tbody>

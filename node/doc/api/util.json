@@ -153,6 +153,41 @@
           "desc": "<p>The <code>util.format()</code> method returns a formatted string using the first argument\nas a <code>printf</code>-like format.</p>\n<p>The first argument is a string containing zero or more <em>placeholder</em> tokens.\nEach placeholder token is replaced with the converted value from the\ncorresponding argument. Supported placeholders are:</p>\n<ul>\n<li><code>%s</code> - String.</li>\n<li><code>%d</code> - Number (integer or floating point value).</li>\n<li><code>%i</code> - Integer.</li>\n<li><code>%f</code> - Floating point value.</li>\n<li><code>%j</code> - JSON. Replaced with the string <code>&#39;[Circular]&#39;</code> if the argument\ncontains circular references.</li>\n<li><code>%o</code> - Object. A string representation of an object\nwith generic JavaScript object formatting.\nSimilar to <code>util.inspect()</code> with options <code>{ showHidden: true, depth: 4, showProxy: true }</code>.\nThis will show the full object including non-enumerable symbols and properties.</li>\n<li><code>%O</code> - Object. A string representation of an object\nwith generic JavaScript object formatting.\nSimilar to <code>util.inspect()</code> without options.\nThis will show the full object not including non-enumerable symbols and properties.</li>\n<li><code>%%</code> - single percent sign (<code>&#39;%&#39;</code>). This does not consume an argument.</li>\n</ul>\n<p>If the placeholder does not have a corresponding argument, the placeholder is\nnot replaced.</p>\n<pre><code class=\"lang-js\">util.format(&#39;%s:%s&#39;, &#39;foo&#39;);\n// Returns: &#39;foo:%s&#39;\n</code></pre>\n<p>If there are more arguments passed to the <code>util.format()</code> method than the number\nof placeholders, the extra arguments are coerced into strings then concatenated\nto the returned string, each delimited by a space. Excessive arguments whose\n<code>typeof</code> is <code>&#39;object&#39;</code> or <code>&#39;symbol&#39;</code> (except <code>null</code>) will be transformed by\n<code>util.inspect()</code>.</p>\n<pre><code class=\"lang-js\">util.format(&#39;%s:%s&#39;, &#39;foo&#39;, &#39;bar&#39;, &#39;baz&#39;); // &#39;foo:bar baz&#39;\n</code></pre>\n<p>If the first argument is not a string then <code>util.format()</code> returns\na string that is the concatenation of all arguments separated by spaces.\nEach argument is converted to a string using <code>util.inspect()</code>.</p>\n<pre><code class=\"lang-js\">util.format(1, 2, 3); // &#39;1 2 3&#39;\n</code></pre>\n<p>If only one argument is passed to <code>util.format()</code>, it is returned as it is\nwithout any formatting.</p>\n<pre><code class=\"lang-js\">util.format(&#39;%% %s&#39;); // &#39;%% %s&#39;\n</code></pre>\n"
         },
         {
+          "textRaw": "util.getSystemErrorName(err)",
+          "type": "method",
+          "name": "getSystemErrorName",
+          "meta": {
+            "added": [
+              "v8.12.0"
+            ],
+            "changes": []
+          },
+          "signatures": [
+            {
+              "return": {
+                "textRaw": "Returns: {string} ",
+                "name": "return",
+                "type": "string"
+              },
+              "params": [
+                {
+                  "textRaw": "`err` {number} ",
+                  "name": "err",
+                  "type": "number"
+                }
+              ]
+            },
+            {
+              "params": [
+                {
+                  "name": "err"
+                }
+              ]
+            }
+          ],
+          "desc": "<p>Returns the string name for a numeric error code that comes from a Node.js API.\nThe mapping between error codes and error names is platform-dependent.\nSee <a href=\"errors.html#errors_common_system_errors\">Common System Errors</a> for the names of common errors.</p>\n<pre><code class=\"lang-js\">fs.access(&#39;file/that/does/not/exist&#39;, (err) =&gt; {\n  const name = util.getSystemErrorName(err.errno);\n  console.error(name);  // ENOENT\n});\n</code></pre>\n"
+        },
+        {
           "textRaw": "util.inherits(constructor, superConstructor)",
           "type": "method",
           "name": "inherits",
@@ -226,10 +261,11 @@
                   "textRaw": "`options` {Object} ",
                   "options": [
                     {
-                      "textRaw": "`showHidden` {boolean} If `true`, the `object`'s non-enumerable symbols and properties will be included in the formatted result. Defaults to `false`. ",
+                      "textRaw": "`showHidden` {boolean} If `true`, the `object`'s non-enumerable symbols and properties will be included in the formatted result. **Default:** `false`. ",
                       "name": "showHidden",
+                      "default": "`false`",
                       "type": "boolean",
-                      "desc": "If `true`, the `object`'s non-enumerable symbols and properties will be included in the formatted result. Defaults to `false`."
+                      "desc": "If `true`, the `object`'s non-enumerable symbols and properties will be included in the formatted result."
                     },
                     {
                       "textRaw": "`depth` {number} Specifies the number of times to recurse while formatting the `object`. This is useful for inspecting large complicated objects. Defaults to `2`. To make it recurse indefinitely pass `null`. ",
@@ -238,34 +274,39 @@
                       "desc": "Specifies the number of times to recurse while formatting the `object`. This is useful for inspecting large complicated objects. Defaults to `2`. To make it recurse indefinitely pass `null`."
                     },
                     {
-                      "textRaw": "`colors` {boolean} If `true`, the output will be styled with ANSI color codes. Defaults to `false`. Colors are customizable, see [Customizing `util.inspect` colors][]. ",
+                      "textRaw": "`colors` {boolean} If `true`, the output will be styled with ANSI color codes. Colors are customizable, see [Customizing `util.inspect` colors][]. **Default:** `false`. ",
                       "name": "colors",
+                      "default": "`false`",
                       "type": "boolean",
-                      "desc": "If `true`, the output will be styled with ANSI color codes. Defaults to `false`. Colors are customizable, see [Customizing `util.inspect` colors][]."
+                      "desc": "If `true`, the output will be styled with ANSI color codes. Colors are customizable, see [Customizing `util.inspect` colors][]."
                     },
                     {
-                      "textRaw": "`customInspect` {boolean} If `false`, then custom `inspect(depth, opts)` functions exported on the `object` being inspected will not be called. Defaults to `true`. ",
+                      "textRaw": "`customInspect` {boolean} If `false`, then custom `inspect(depth, opts)` functions exported on the `object` being inspected will not be called. **Default:** `true`. ",
                       "name": "customInspect",
+                      "default": "`true`",
                       "type": "boolean",
-                      "desc": "If `false`, then custom `inspect(depth, opts)` functions exported on the `object` being inspected will not be called. Defaults to `true`."
+                      "desc": "If `false`, then custom `inspect(depth, opts)` functions exported on the `object` being inspected will not be called."
                     },
                     {
-                      "textRaw": "`showProxy` {boolean} If `true`, then objects and functions that are `Proxy` objects will be introspected to show their `target` and `handler` objects. Defaults to `false`. ",
+                      "textRaw": "`showProxy` {boolean} If `true`, then objects and functions that are `Proxy` objects will be introspected to show their `target` and `handler` objects. **Default:** `false`. ",
                       "name": "showProxy",
+                      "default": "`false`",
                       "type": "boolean",
-                      "desc": "If `true`, then objects and functions that are `Proxy` objects will be introspected to show their `target` and `handler` objects. Defaults to `false`."
+                      "desc": "If `true`, then objects and functions that are `Proxy` objects will be introspected to show their `target` and `handler` objects."
                     },
                     {
-                      "textRaw": "`maxArrayLength` {number} Specifies the maximum number of array and `TypedArray` elements to include when formatting. Defaults to `100`. Set to `null` to show all array elements. Set to `0` or negative to show no array elements. ",
+                      "textRaw": "`maxArrayLength` {number} Specifies the maximum number of array and `TypedArray` elements to include when formatting. Set to `null` to show all array elements. Set to `0` or negative to show no array elements. **Default:** `100`. ",
                       "name": "maxArrayLength",
+                      "default": "`100`",
                       "type": "number",
-                      "desc": "Specifies the maximum number of array and `TypedArray` elements to include when formatting. Defaults to `100`. Set to `null` to show all array elements. Set to `0` or negative to show no array elements."
+                      "desc": "Specifies the maximum number of array and `TypedArray` elements to include when formatting. Set to `null` to show all array elements. Set to `0` or negative to show no array elements."
                     },
                     {
-                      "textRaw": "`breakLength` {number} The length at which an object's keys are split across multiple lines. Set to `Infinity` to format an object as a single line. Defaults to 60 for legacy compatibility. ",
+                      "textRaw": "`breakLength` {number} The length at which an object's keys are split across multiple lines. Set to `Infinity` to format an object as a single line. **Default:** `60` for legacy compatibility. ",
                       "name": "breakLength",
+                      "default": "`60` for legacy compatibility",
                       "type": "number",
-                      "desc": "The length at which an object's keys are split across multiple lines. Set to `Infinity` to format an object as a single line. Defaults to 60 for legacy compatibility."
+                      "desc": "The length at which an object's keys are split across multiple lines. Set to `Infinity` to format an object as a single line."
                     }
                   ],
                   "name": "options",
@@ -456,10 +497,11 @@
                       "textRaw": "`options` {Object} ",
                       "options": [
                         {
-                          "textRaw": "`stream` {boolean} `true` if additional chunks of data are expected. Defaults to `false`. ",
+                          "textRaw": "`stream` {boolean} `true` if additional chunks of data are expected. **Default:** `false`. ",
                           "name": "stream",
+                          "default": "`false`",
                           "type": "boolean",
-                          "desc": "`true` if additional chunks of data are expected. Defaults to `false`."
+                          "desc": "`true` if additional chunks of data are expected."
                         }
                       ],
                       "name": "options",
@@ -508,26 +550,29 @@
             {
               "params": [
                 {
-                  "textRaw": "`encoding` {string} Identifies the `encoding` that this `TextDecoder` instance supports. Defaults to `'utf-8'`. ",
+                  "textRaw": "`encoding` {string} Identifies the `encoding` that this `TextDecoder` instance supports. **Default:** `'utf-8'`. ",
                   "name": "encoding",
+                  "default": "`'utf-8'`",
                   "type": "string",
-                  "desc": "Identifies the `encoding` that this `TextDecoder` instance supports. Defaults to `'utf-8'`.",
+                  "desc": "Identifies the `encoding` that this `TextDecoder` instance supports.",
                   "optional": true
                 },
                 {
                   "textRaw": "`options` {Object} ",
                   "options": [
                     {
-                      "textRaw": "`fatal` {boolean} `true` if decoding failures are fatal. Defaults to `false`. This option is only supported when ICU is enabled (see [Internationalization][]). ",
+                      "textRaw": "`fatal` {boolean} `true` if decoding failures are fatal. This option is only supported when ICU is enabled (see [Internationalization][]). **Default:** `false`. ",
                       "name": "fatal",
+                      "default": "`false`",
                       "type": "boolean",
-                      "desc": "`true` if decoding failures are fatal. Defaults to `false`. This option is only supported when ICU is enabled (see [Internationalization][])."
+                      "desc": "`true` if decoding failures are fatal. This option is only supported when ICU is enabled (see [Internationalization][])."
                     },
                     {
-                      "textRaw": "`ignoreBOM` {boolean} When `true`, the `TextDecoder` will include the byte  order mark in the decoded result. When `false`, the byte order mark will  be removed from the output. This option is only used when `encoding` is  `'utf-8'`, `'utf-16be'` or `'utf-16le'`. Defaults to `false`. ",
+                      "textRaw": "`ignoreBOM` {boolean} When `true`, the `TextDecoder` will include the byte  order mark in the decoded result. When `false`, the byte order mark will  be removed from the output. This option is only used when `encoding` is  `'utf-8'`, `'utf-16be'` or `'utf-16le'`. **Default:** `false`. ",
                       "name": "ignoreBOM",
+                      "default": "`false`",
                       "type": "boolean",
-                      "desc": "When `true`, the `TextDecoder` will include the byte  order mark in the decoded result. When `false`, the byte order mark will  be removed from the output. This option is only used when `encoding` is  `'utf-8'`, `'utf-16be'` or `'utf-16le'`. Defaults to `false`."
+                      "desc": "When `true`, the `TextDecoder` will include the byte  order mark in the decoded result. When `false`, the byte order mark will  be removed from the output. This option is only used when `encoding` is  `'utf-8'`, `'utf-16be'` or `'utf-16le'`."
                     }
                   ],
                   "name": "options",
@@ -577,10 +622,11 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`input` {string} The text to encode. Defaults to an empty string. ",
+                      "textRaw": "`input` {string} The text to encode. **Default:** an empty string. ",
                       "name": "input",
+                      "default": "an empty string",
                       "type": "string",
-                      "desc": "The text to encode. Defaults to an empty string.",
+                      "desc": "The text to encode.",
                       "optional": true
                     }
                   ]

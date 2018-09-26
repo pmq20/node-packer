@@ -19,7 +19,7 @@
             ],
             "changes": []
           },
-          "desc": "<ul>\n<li><code>encoding</code> {string} The character encoding the <code>StringDecoder</code> will use.\nDefaults to <code>&#39;utf8&#39;</code>.</li>\n</ul>\n<p>Creates a new <code>StringDecoder</code> instance.</p>\n",
+          "desc": "<ul>\n<li><code>encoding</code> {string} The character encoding the <code>StringDecoder</code> will use.\n<strong>Default:</strong> <code>&#39;utf8&#39;</code>.</li>\n</ul>\n<p>Creates a new <code>StringDecoder</code> instance.</p>\n",
           "methods": [
             {
               "textRaw": "stringDecoder.end([buffer])",

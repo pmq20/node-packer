@@ -13,6 +13,10 @@ const largeBuffer = Buffer.alloc(1e6);
 const server = http2.createServer({ maxSessionMemory: 1 });
 
 server.on('stream', common.mustCall((stream) => {
+  stream.on('error', (err) => {
+    if (err.code !== 'ECONNRESET')
+      throw err;
+  });
   stream.respond();
   stream.end(largeBuffer);
 }));
@@ -30,7 +34,7 @@ server.listen(0, common.mustCall(() => {
       req.on('error', common.expectsError({
         code: 'ERR_HTTP2_STREAM_ERROR',
         type: Error,
-        message: 'Stream closed with error code 11'
+        message: 'Stream closed with error code NGHTTP2_ENHANCE_YOUR_CALM'
       }));
       req.on('close', common.mustCall(() => {
         server.close();

@@ -95,7 +95,7 @@
                         {
                           "textRaw": "`resource`",
                           "name": "`resource`",
-                          "desc": "<p><code>resource</code> is an object that represents the actual async resource that has\nbeen initialized. This can contain useful information that can vary based on\nthe value of <code>type</code>. For instance, for the <code>GETADDRINFOREQWRAP</code> resource type,\n<code>resource</code> provides the hostname used when looking up the IP address for the\nhostname in <code>net.Server.listen()</code>. The API for accessing this information is\ncurrently not considered public, but using the Embedder API, users can provide\nand document their own resource objects. For example, such a resource object\ncould contain the SQL query being executed.</p>\n<p>In the case of Promises, the <code>resource</code> object will have <code>promise</code> property\nthat refers to the Promise that is being initialized, and a <code>parentId</code> property\nset to the <code>asyncId</code> of a parent Promise, if there is one, and <code>undefined</code>\notherwise. For example, in the case of <code>b = a.then(handler)</code>, <code>a</code> is considered\na parent Promise of <code>b</code>.</p>\n<p><em>Note</em>: In some cases the resource object is reused for performance reasons,\nit is thus not safe to use it as a key in a <code>WeakMap</code> or add properties to it.</p>\n",
+                          "desc": "<p><code>resource</code> is an object that represents the actual async resource that has\nbeen initialized. This can contain useful information that can vary based on\nthe value of <code>type</code>. For instance, for the <code>GETADDRINFOREQWRAP</code> resource type,\n<code>resource</code> provides the hostname used when looking up the IP address for the\nhostname in <code>net.Server.listen()</code>. The API for accessing this information is\ncurrently not considered public, but using the Embedder API, users can provide\nand document their own resource objects. For example, such a resource object\ncould contain the SQL query being executed.</p>\n<p>In the case of Promises, the <code>resource</code> object will have <code>promise</code> property\nthat refers to the Promise that is being initialized, and a <code>isChainedPromise</code>\nproperty, set to <code>true</code> if the promise has a parent promise, and <code>false</code>\notherwise. For example, in the case of <code>b = a.then(handler)</code>, <code>a</code> is considered\na parent Promise of <code>b</code>. Here, <code>b</code> is considered a chained promise.</p>\n<p><em>Note</em>: In some cases the resource object is reused for performance reasons,\nit is thus not safe to use it as a key in a <code>WeakMap</code> or add properties to it.</p>\n",
                           "type": "module",
                           "displayName": "`resource`"
                         },
@@ -191,26 +191,55 @@
             {
               "textRaw": "`class AsyncResource()`",
               "name": "`class_asyncresource()`",
-              "desc": "<p>The class <code>AsyncResource</code> was designed to be extended by the embedder&#39;s async\nresources. Using this users can easily trigger the lifetime events of their\nown resources.</p>\n<p>The <code>init</code> hook will trigger when an <code>AsyncResource</code> is instantiated.</p>\n<p><em>Note</em>: <code>before</code> and <code>after</code> calls must be unwound in the same order that they\nare called. Otherwise, an unrecoverable exception will occur and the process\nwill abort.</p>\n<p>The following is an overview of the <code>AsyncResource</code> API.</p>\n<pre><code class=\"lang-js\">const { AsyncResource, executionAsyncId } = require(&#39;async_hooks&#39;);\n\n// AsyncResource() is meant to be extended. Instantiating a\n// new AsyncResource() also triggers init. If triggerAsyncId is omitted then\n// async_hook.executionAsyncId() is used.\nconst asyncResource = new AsyncResource(\n  type, { triggerAsyncId: executionAsyncId(), requireManualDestroy: false }\n);\n\n// Call AsyncHooks before callbacks.\nasyncResource.emitBefore();\n\n// Call AsyncHooks after callbacks.\nasyncResource.emitAfter();\n\n// Call AsyncHooks destroy callbacks.\nasyncResource.emitDestroy();\n\n// Return the unique ID assigned to the AsyncResource instance.\nasyncResource.asyncId();\n\n// Return the trigger ID for the AsyncResource instance.\nasyncResource.triggerAsyncId();\n</code></pre>\n",
+              "desc": "<p>The class <code>AsyncResource</code> was designed to be extended by the embedder&#39;s async\nresources. Using this users can easily trigger the lifetime events of their\nown resources.</p>\n<p>The <code>init</code> hook will trigger when an <code>AsyncResource</code> is instantiated.</p>\n<p>The following is an overview of the <code>AsyncResource</code> API.</p>\n<pre><code class=\"lang-js\">const { AsyncResource, executionAsyncId } = require(&#39;async_hooks&#39;);\n\n// AsyncResource() is meant to be extended. Instantiating a\n// new AsyncResource() also triggers init. If triggerAsyncId is omitted then\n// async_hook.executionAsyncId() is used.\nconst asyncResource = new AsyncResource(\n  type, { triggerAsyncId: executionAsyncId(), requireManualDestroy: false }\n);\n\n// Run a function in the execution context of the resource. This will\n// * establish the context of the resource\n// * trigger the AsyncHooks before callbacks\n// * call the provided function `fn` with the supplied arguments\n// * trigger the AsyncHooks after callbacks\n// * restore the original execution context\nasyncResource.runInAsyncScope(fn, thisArg, ...args);\n\n// Call AsyncHooks destroy callbacks.\nasyncResource.emitDestroy();\n\n// Return the unique ID assigned to the AsyncResource instance.\nasyncResource.asyncId();\n\n// Return the trigger ID for the AsyncResource instance.\nasyncResource.triggerAsyncId();\n\n// Call AsyncHooks before callbacks.\n// Deprecated: Use asyncResource.runInAsyncScope instead.\nasyncResource.emitBefore();\n\n// Call AsyncHooks after callbacks.\n// Deprecated: Use asyncResource.runInAsyncScope instead.\nasyncResource.emitAfter();\n</code></pre>\n",
               "modules": [
                 {
                   "textRaw": "`AsyncResource(type[, options])`",
                   "name": "`asyncresource(type[,_options])`",
-                  "desc": "<ul>\n<li><code>type</code> {string} The type of async event.</li>\n<li><code>options</code> {Object}<ul>\n<li><code>triggerAsyncId</code> {number} The ID of the execution context that created this\nasync event. <strong>Default:</strong> <code>executionAsyncId()</code></li>\n<li><code>requireManualDestroy</code> {boolean} Disables automatic <code>emitDestroy</code> when the\nobject is garbage collected. This usually does not need to be set (even if\n<code>emitDestroy</code> is called manually), unless the resource&#39;s asyncId is retrieved\nand the sensitive API&#39;s <code>emitDestroy</code> is called with it.\n<strong>Default:</strong> <code>false</code></li>\n</ul>\n</li>\n</ul>\n<p>Example usage:</p>\n<pre><code class=\"lang-js\">class DBQuery extends AsyncResource {\n  constructor(db) {\n    super(&#39;DBQuery&#39;);\n    this.db = db;\n  }\n\n  getInfo(query, callback) {\n    this.db.get(query, (err, data) =&gt; {\n      this.emitBefore();\n      callback(err, data);\n      this.emitAfter();\n    });\n  }\n\n  close() {\n    this.db = null;\n    this.emitDestroy();\n  }\n}\n</code></pre>\n",
+                  "desc": "<ul>\n<li><code>type</code> {string} The type of async event.</li>\n<li><code>options</code> {Object}<ul>\n<li><code>triggerAsyncId</code> {number} The ID of the execution context that created this\nasync event. <strong>Default:</strong> <code>executionAsyncId()</code>.</li>\n<li><code>requireManualDestroy</code> {boolean} Disables automatic <code>emitDestroy</code> when the\nobject is garbage collected. This usually does not need to be set (even if\n<code>emitDestroy</code> is called manually), unless the resource&#39;s asyncId is retrieved\nand the sensitive API&#39;s <code>emitDestroy</code> is called with it. <strong>Default:</strong> <code>false</code>.</li>\n</ul>\n</li>\n</ul>\n<p>Example usage:</p>\n<pre><code class=\"lang-js\">class DBQuery extends AsyncResource {\n  constructor(db) {\n    super(&#39;DBQuery&#39;);\n    this.db = db;\n  }\n\n  getInfo(query, callback) {\n    this.db.get(query, (err, data) =&gt; {\n      this.runInAsyncScope(callback, null, err, data);\n    });\n  }\n\n  close() {\n    this.db = null;\n    this.emitDestroy();\n  }\n}\n</code></pre>\n",
                   "type": "module",
                   "displayName": "`AsyncResource(type[, options])`"
                 },
                 {
+                  "textRaw": "`asyncResource.runInAsyncScope(fn[, thisArg, ...args])`",
+                  "name": "`asyncresource.runinasyncscope(fn[,_thisarg,_...args])`",
+                  "meta": {
+                    "added": [
+                      "v8.12.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<ul>\n<li><code>fn</code> {Function} The function to call in the execution context of this async\nresource.</li>\n<li><code>thisArg</code> {any} The receiver to be used for the function call.</li>\n<li><code>...args</code> {any} Optional arguments to pass to the function.</li>\n</ul>\n<p>Call the provided function with the provided arguments in the execution context\nof the async resource. This will establish the context, trigger the AsyncHooks\nbefore callbacks, call the function, trigger the AsyncHooks after callbacks, and\nthen restore the original execution context.</p>\n",
+                  "type": "module",
+                  "displayName": "`asyncResource.runInAsyncScope(fn[, thisArg, ...args])`"
+                },
+                {
                   "textRaw": "`asyncResource.emitBefore()`",
                   "name": "`asyncresource.emitbefore()`",
-                  "desc": "<ul>\n<li>Returns: {undefined}</li>\n</ul>\n<p>Call all <code>before</code> callbacks to notify that a new asynchronous execution context\nis being entered. If nested calls to <code>emitBefore()</code> are made, the stack of\n<code>asyncId</code>s will be tracked and properly unwound.</p>\n",
+                  "meta": {
+                    "deprecated": [
+                      "v8.12.0"
+                    ],
+                    "changes": []
+                  },
+                  "stability": 0,
+                  "stabilityText": "Deprecated: Use [`asyncResource.runInAsyncScope()`][] instead.",
+                  "desc": "<ul>\n<li>Returns: {undefined}</li>\n</ul>\n<p>Call all <code>before</code> callbacks to notify that a new asynchronous execution context\nis being entered. If nested calls to <code>emitBefore()</code> are made, the stack of\n<code>asyncId</code>s will be tracked and properly unwound.</p>\n<p><code>before</code> and <code>after</code> calls must be unwound in the same order that they\nare called. Otherwise, an unrecoverable exception will occur and the process\nwill abort. For this reason, the <code>emitBefore</code> and <code>emitAfter</code> APIs are\nconsidered deprecated. Please use <code>runInAsyncScope</code>, as it provides a much safer\nalternative.</p>\n",
                   "type": "module",
                   "displayName": "`asyncResource.emitBefore()`"
                 },
                 {
                   "textRaw": "`asyncResource.emitAfter()`",
                   "name": "`asyncresource.emitafter()`",
-                  "desc": "<ul>\n<li>Returns: {undefined}</li>\n</ul>\n<p>Call all <code>after</code> callbacks. If nested calls to <code>emitBefore()</code> were made, then\nmake sure the stack is unwound properly. Otherwise an error will be thrown.</p>\n<p>If the user&#39;s callback throws an exception, <code>emitAfter()</code> will automatically be\ncalled for all <code>asyncId</code>s on the stack if the error is handled by a domain or\n<code>&#39;uncaughtException&#39;</code> handler.</p>\n",
+                  "meta": {
+                    "deprecated": [
+                      "v8.12.0"
+                    ],
+                    "changes": []
+                  },
+                  "stability": 0,
+                  "stabilityText": "Deprecated: Use [`asyncResource.runInAsyncScope()`][] instead.",
+                  "desc": "<ul>\n<li>Returns: {undefined}</li>\n</ul>\n<p>Call all <code>after</code> callbacks. If nested calls to <code>emitBefore()</code> were made, then\nmake sure the stack is unwound properly. Otherwise an error will be thrown.</p>\n<p>If the user&#39;s callback throws an exception, <code>emitAfter()</code> will automatically be\ncalled for all <code>asyncId</code>s on the stack if the error is handled by a domain or\n<code>&#39;uncaughtException&#39;</code> handler.</p>\n<p><code>before</code> and <code>after</code> calls must be unwound in the same order that they\nare called. Otherwise, an unrecoverable exception will occur and the process\nwill abort. For this reason, the <code>emitBefore</code> and <code>emitAfter</code> APIs are\nconsidered deprecated. Please use <code>runInAsyncScope</code>, as it provides a much safer\nalternative.</p>\n",
                   "type": "module",
                   "displayName": "`asyncResource.emitAfter()`"
                 },

@@ -2,7 +2,7 @@
 
 <!--introduced_in=v7.10.0-->
 
-> Stability: 1 - Experimental
+> Stability: 2 - Stable
 
 N-API (pronounced N as in the letter, followed by API)
 is an API for building native Addons. It is independent from
@@ -55,7 +55,7 @@ there to be one or more C++ wrapper modules that provide an inlineable C++
 API. Binaries built with these wrapper modules will depend on the symbols
 for the N-API C based functions exported by Node.js. These wrappers are not
 part of N-API, nor will they be maintained as part of Node.js. One such
-example is: [node-api](https://github.com/nodejs/node-api).
+example is: [node-addon-api](https://github.com/nodejs/node-addon-api).
 
 In order to use the N-API functions, include the file
 [node_api.h](https://github.com/nodejs/node/blob/master/src/node_api.h)
@@ -88,7 +88,9 @@ typedef enum {
   napi_generic_failure,
   napi_pending_exception,
   napi_cancelled,
-  napi_status_last
+  napi_escape_called_twice,
+  napi_handle_scope_mismatch,
+  napi_callback_scope_mismatch
 } napi_status;
 ```
 If additional information is required upon an API returning a failed status,
@@ -610,7 +612,7 @@ that has a loop which iterates through the elements in a large array:
 ```C
 for (int i = 0; i < 1000000; i++) {
   napi_value result;
-  napi_status status = napi_get_element(e, object, i, &result);
+  napi_status status = napi_get_element(env, object, i, &result);
   if (status != napi_ok) {
     break;
   }
@@ -647,7 +649,7 @@ for (int i = 0; i < 1000000; i++) {
     break;
   }
   napi_value result;
-  status = napi_get_element(e, object, i, &result);
+  status = napi_get_element(env, object, i, &result);
   if (status != napi_ok) {
     break;
   }
@@ -902,6 +904,58 @@ Returns `napi_ok` if the API succeeded.
 If still valid, this API returns the `napi_value` representing the
 JavaScript Object associated with the `napi_ref`. Otherwise, result
 will be NULL.
+
+### Cleanup on exit of the current Node.js instance
+
+While a Node.js process typically releases all its resources when exiting,
+embedders of Node.js, or future Worker support, may require addons to register
+clean-up hooks that will be run once the current Node.js instance exits.
+
+N-API provides functions for registering and un-registering such callbacks.
+When those callbacks are run, all resources that are being held by the addon
+should be freed up.
+
+#### napi_add_env_cleanup_hook
+<!-- YAML
+added: v8.12.0
+-->
+```C
+NODE_EXTERN napi_status napi_add_env_cleanup_hook(napi_env env,
+                                                  void (*fun)(void* arg),
+                                                  void* arg);
+```
+
+Registers `fun` as a function to be run with the `arg` parameter once the
+current Node.js environment exits.
+
+A function can safely be specified multiple times with different
+`arg` values. In that case, it will be called multiple times as well.
+Providing the same `fun` and `arg` values multiple times is not allowed
+and will lead the process to abort.
+
+The hooks will be called in reverse order, i.e. the most recently added one
+will be called first.
+
+Removing this hook can be done by using `napi_remove_env_cleanup_hook`.
+Typically, that happens when the resource for which this hook was added
+is being torn down anyway.
+
+#### napi_remove_env_cleanup_hook
+<!-- YAML
+added: v8.12.0
+-->
+```C
+NAPI_EXTERN napi_status napi_remove_env_cleanup_hook(napi_env env,
+                                                     void (*fun)(void* arg),
+                                                     void* arg);
+```
+
+Unregisters `fun` as a function to be run with the `arg` parameter once the
+current Node.js environment exits. Both the argument and the function value
+need to be exact matches.
+
+The function must have originally been registered
+with `napi_add_env_cleanup_hook`, otherwise the process will abort.
 
 ## Module registration
 N-API modules are registered in a manner similar to other modules
@@ -2484,10 +2538,10 @@ performed using a N-API call).
 property to be a JavaScript function represented by `method`. If this is
 passed in, set `value`, `getter` and `setter` to `NULL` (since these members
 won't be used).
-- `data`: The callback data passed into `method`, `getter` and `setter` if
-this function is invoked.
 - `attributes`: The attributes associated with the particular property.
 See [`napi_property_attributes`](#n_api_napi_property_attributes).
+- `data`: The callback data passed into `method`, `getter` and `setter` if
+this function is invoked.
 
 ### Functions
 #### napi_get_property_names

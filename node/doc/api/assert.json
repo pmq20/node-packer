@@ -251,7 +251,7 @@
               ]
             }
           ],
-          "desc": "<p>Asserts that the function <code>block</code> does not throw an error. See\n<a href=\"#assert_assert_throws_block_error_message\"><code>assert.throws()</code></a> for more details.</p>\n<p>When <code>assert.doesNotThrow()</code> is called, it will immediately call the <code>block</code>\nfunction.</p>\n<p>If an error is thrown and it is the same type as that specified by the <code>error</code>\nparameter, then an <code>AssertionError</code> is thrown. If the error is of a different\ntype, or if the <code>error</code> parameter is undefined, the error is propagated back\nto the caller.</p>\n<p>The following, for instance, will throw the <a href=\"errors.html#errors_class_typeerror\"><code>TypeError</code></a> because there is no\nmatching error type in the assertion:</p>\n<pre><code class=\"lang-js\">assert.doesNotThrow(\n  () =&gt; {\n    throw new TypeError(&#39;Wrong value&#39;);\n  },\n  SyntaxError\n);\n</code></pre>\n<p>However, the following will result in an <code>AssertionError</code> with the message\n&#39;Got unwanted exception (TypeError)..&#39;:</p>\n<pre><code class=\"lang-js\">assert.doesNotThrow(\n  () =&gt; {\n    throw new TypeError(&#39;Wrong value&#39;);\n  },\n  TypeError\n);\n</code></pre>\n<p>If an <code>AssertionError</code> is thrown and a value is provided for the <code>message</code>\nparameter, the value of <code>message</code> will be appended to the <code>AssertionError</code>\nmessage:</p>\n<pre><code class=\"lang-js\">assert.doesNotThrow(\n  () =&gt; {\n    throw new TypeError(&#39;Wrong value&#39;);\n  },\n  TypeError,\n  &#39;Whoops&#39;\n);\n// Throws: AssertionError: Got unwanted exception (TypeError). Whoops\n</code></pre>\n"
+          "desc": "<p>Asserts that the function <code>block</code> does not throw an error. See\n<a href=\"#assert_assert_throws_block_error_message\"><code>assert.throws()</code></a> for more details.</p>\n<p>Please note: Using <code>assert.doesNotThrow()</code> is actually not useful because there\nis no benefit by catching an error and then rethrowing it. Instead, consider\nadding a comment next to the specific code path that should not throw and keep\nerror messages as expressive as possible.</p>\n<p>When <code>assert.doesNotThrow()</code> is called, it will immediately call the <code>block</code>\nfunction.</p>\n<p>If an error is thrown and it is the same type as that specified by the <code>error</code>\nparameter, then an <code>AssertionError</code> is thrown. If the error is of a different\ntype, or if the <code>error</code> parameter is undefined, the error is propagated back\nto the caller.</p>\n<p>The following, for instance, will throw the <a href=\"errors.html#errors_class_typeerror\"><code>TypeError</code></a> because there is no\nmatching error type in the assertion:</p>\n<pre><code class=\"lang-js\">assert.doesNotThrow(\n  () =&gt; {\n    throw new TypeError(&#39;Wrong value&#39;);\n  },\n  SyntaxError\n);\n</code></pre>\n<p>However, the following will result in an <code>AssertionError</code> with the message\n&#39;Got unwanted exception (TypeError)..&#39;:</p>\n<pre><code class=\"lang-js\">assert.doesNotThrow(\n  () =&gt; {\n    throw new TypeError(&#39;Wrong value&#39;);\n  },\n  TypeError\n);\n</code></pre>\n<p>If an <code>AssertionError</code> is thrown and a value is provided for the <code>message</code>\nparameter, the value of <code>message</code> will be appended to the <code>AssertionError</code>\nmessage:</p>\n<pre><code class=\"lang-js\">assert.doesNotThrow(\n  () =&gt; {\n    throw new TypeError(&#39;Wrong value&#39;);\n  },\n  TypeError,\n  &#39;Whoops&#39;\n);\n// Throws: AssertionError: Got unwanted exception (TypeError). Whoops\n</code></pre>\n"
         },
         {
           "textRaw": "assert.equal(actual, expected[, message])",
@@ -331,17 +331,17 @@
                   "optional": true
                 },
                 {
-                  "textRaw": "`operator` {string} **Default:** '!=' ",
+                  "textRaw": "`operator` {string} **Default:** `'!='` ",
                   "name": "operator",
+                  "default": "`'!='`",
                   "type": "string",
-                  "desc": "**Default:** '!='",
                   "optional": true
                 },
                 {
                   "textRaw": "`stackStartFunction` {Function} **Default:** `assert.fail` ",
                   "name": "stackStartFunction",
+                  "default": "`assert.fail`",
                   "type": "Function",
-                  "desc": "**Default:** `assert.fail`",
                   "optional": true
                 }
               ]
@@ -408,17 +408,17 @@
                   "optional": true
                 },
                 {
-                  "textRaw": "`operator` {string} **Default:** '!=' ",
+                  "textRaw": "`operator` {string} **Default:** `'!='` ",
                   "name": "operator",
+                  "default": "`'!='`",
                   "type": "string",
-                  "desc": "**Default:** '!='",
                   "optional": true
                 },
                 {
                   "textRaw": "`stackStartFunction` {Function} **Default:** `assert.fail` ",
                   "name": "stackStartFunction",
+                  "default": "`assert.fail`",
                   "type": "Function",
-                  "desc": "**Default:** `assert.fail`",
                   "optional": true
                 }
               ]

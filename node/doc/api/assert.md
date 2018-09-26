@@ -191,6 +191,11 @@ changes:
 Asserts that the function `block` does not throw an error. See
 [`assert.throws()`][] for more details.
 
+Please note: Using `assert.doesNotThrow()` is actually not useful because there
+is no benefit by catching an error and then rethrowing it. Instead, consider
+adding a comment next to the specific code path that should not throw and keep
+error messages as expressive as possible.
+
 When `assert.doesNotThrow()` is called, it will immediately call the `block`
 function.
 
@@ -275,7 +280,7 @@ added: v0.1.21
 * `actual` {any}
 * `expected` {any}
 * `message` {any}
-* `operator` {string} **Default:** '!='
+* `operator` {string} **Default:** `'!='`
 * `stackStartFunction` {Function} **Default:** `assert.fail`
 
 Throws an `AssertionError`. If `message` is falsy, the error message is set as

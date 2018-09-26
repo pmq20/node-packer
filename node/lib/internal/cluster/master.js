@@ -129,8 +129,10 @@ function createWorkerProcess(id, env) {
   }
 
   return fork(cluster.settings.exec, cluster.settings.args, {
+    cwd: cluster.settings.cwd,
     env: workerEnv,
     silent: cluster.settings.silent,
+    windowsHide: cluster.settings.windowsHide,
     execArgv: execArgv,
     stdio: cluster.settings.stdio,
     gid: cluster.settings.gid,

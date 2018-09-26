@@ -26,7 +26,11 @@ const stream = require('stream');
 const timers = require('timers');
 const util = require('util');
 const internalUtil = require('internal/util');
-const { isLegalPort, normalizedArgsSymbol } = require('internal/net');
+const {
+  isLegalPort,
+  normalizedArgsSymbol,
+  makeSyncWrite
+} = require('internal/net');
 const assert = require('assert');
 const cares = process.binding('cares_wrap');
 const uv = process.binding('uv');
@@ -48,8 +52,8 @@ const dns = require('dns');
 // reasons it's lazy loaded.
 var cluster = null;
 
-const errnoException = util._errnoException;
-const exceptionWithHostPort = util._exceptionWithHostPort;
+const errnoException = errors.errnoException;
+const exceptionWithHostPort = errors.exceptionWithHostPort;
 
 function noop() {}
 
@@ -206,20 +210,24 @@ function Socket(options) {
     this._handle = options.handle; // private
     this[async_id_symbol] = getNewAsyncId(this._handle);
   } else if (options.fd !== undefined) {
-    this._handle = createHandle(options.fd, false);
-    this._handle.open(options.fd);
+    const fd = options.fd;
+    this._handle = createHandle(fd, false);
+    this._handle.open(fd);
     this[async_id_symbol] = this._handle.getAsyncId();
     // options.fd can be string (since it is user-defined),
     // so changing this to === would be semver-major
     // See: https://github.com/nodejs/node/pull/11513
     // eslint-disable-next-line eqeqeq
-    if ((options.fd == 1 || options.fd == 2) &&
+    if ((fd == 1 || fd == 2) &&
         (this._handle instanceof Pipe) &&
         process.platform === 'win32') {
       // Make stdout and stderr blocking on Windows
       var err = this._handle.setBlocking(true);
       if (err)
         throw errnoException(err, 'setBlocking');
+
+      this._writev = null;
+      this._write = makeSyncWrite(fd);
     }
     this.readable = options.readable !== false;
     this.writable = options.writable !== false;
@@ -229,7 +237,6 @@ function Socket(options) {
   }
 
   // shut down the socket when we're finished with it.
-  this.on('finish', onSocketFinish);
   this.on('_socketEnd', onSocketEnd);
 
   initSocketHandle(this);
@@ -273,39 +280,42 @@ Socket.prototype._unrefTimer = function _unrefTimer() {
 
 function shutdownSocket(self, callback) {
   var req = new ShutdownWrap();
-  req.oncomplete = callback;
+  req.oncomplete = afterShutdown;
   req.handle = self._handle;
+  req.callback = callback;
   return self._handle.shutdown(req);
 }
 
 // the user has called .end(), and all the bytes have been
 // sent out to the other side.
-function onSocketFinish() {
-  // If still connecting - defer handling 'finish' until 'connect' will happen
+Socket.prototype._final = function(cb) {
+  // If still connecting - defer handling `_final` until 'connect' will happen
   if (this.connecting) {
-    debug('osF: not yet connected');
-    return this.once('connect', onSocketFinish);
+    debug('_final: not yet connected');
+    return this.once('connect', () => this._final(cb));
   }
 
-  debug('onSocketFinish');
   if (!this.readable || this._readableState.ended) {
-    debug('oSF: ended, destroy', this._readableState);
+    debug('_final: ended, destroy', this._readableState);
+    cb();
     return this.destroy();
   }
 
-  debug('oSF: not ended, call shutdown()');
+  debug('_final: not ended, call shutdown()');
 
   // otherwise, just shutdown, or destroy() if not possible
-  if (!this._handle || !this._handle.shutdown)
+  if (!this._handle || !this._handle.shutdown) {
+    cb();
     return this.destroy();
+  }
 
   var err = defaultTriggerAsyncIdScope(
-    this[async_id_symbol], shutdownSocket, this, afterShutdown
+    this[async_id_symbol], shutdownSocket, this, cb
   );
 
   if (err)
     return this.destroy(errnoException(err, 'shutdown'));
-}
+};
 
 
 function afterShutdown(status, handle, req) {
@@ -313,6 +323,8 @@ function afterShutdown(status, handle, req) {
 
   debug('afterShutdown destroyed=%j', self.destroyed,
         self._readableState);
+
+  this.callback();
 
   // callback may come after call to destroy.
   if (self.destroyed)
@@ -495,18 +507,10 @@ Socket.prototype._read = function(n) {
 };
 
 
-Socket.prototype.end = function(data, encoding) {
-  stream.Duplex.prototype.end.call(this, data, encoding);
-  this.writable = false;
+Socket.prototype.end = function(data, encoding, callback) {
+  stream.Duplex.prototype.end.call(this, data, encoding, callback);
   DTRACE_NET_STREAM_END(this);
   LTTNG_NET_STREAM_END(this);
-
-  // just in case we're waiting for an EOF.
-  if (this.readable && !this._readableState.endEmitted)
-    this.read(0);
-  else
-    maybeDestroy(this);
-
   return this;
 };
 
@@ -1171,6 +1175,7 @@ function afterConnect(status, handle, req, readable, writable) {
     self._unrefTimer();
 
     self.emit('connect');
+    self.emit('ready');
 
     // start the first read, or get an immediate EOF.
     // this doesn't actually consume any bytes, because len=0.

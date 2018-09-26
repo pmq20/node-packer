@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>N-API | Node.js v8.11.4 Documentation</title>
+  <title>N-API | Node.js v8.12.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -82,7 +82,7 @@
 
     <div id="column1" data-id="n-api" class="interior">
       <header>
-        <h1>Node.js v8.11.4 Documentation</h1>
+        <h1>Node.js v8.12.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -109,7 +109,7 @@
       <div id="toc">
         <h2>Table of Contents</h2>
         <ul>
-<li><span class="stability_1"><a href="#n_api_n_api">N-API</a></span><ul>
+<li><span class="stability_2"><a href="#n_api_n_api">N-API</a></span><ul>
 <li><span class="stability_undefined"><a href="#n_api_basic_n_api_data_types">Basic N-API Data Types</a></span><ul>
 <li><span class="stability_undefined"><a href="#n_api_napi_status">napi_status</a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_extended_error_info">napi_extended_error_info</a></span></li>
@@ -171,6 +171,11 @@
 <li><span class="stability_undefined"><a href="#n_api_napi_reference_ref">napi_reference_ref</a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_reference_unref">napi_reference_unref</a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_get_reference_value">napi_get_reference_value</a></span></li>
+</ul>
+</li>
+<li><span class="stability_undefined"><a href="#n_api_cleanup_on_exit_of_the_current_node_js_instance">Cleanup on exit of the current Node.js instance</a></span><ul>
+<li><span class="stability_undefined"><a href="#n_api_napi_add_env_cleanup_hook">napi_add_env_cleanup_hook</a></span></li>
+<li><span class="stability_undefined"><a href="#n_api_napi_remove_env_cleanup_hook">napi_remove_env_cleanup_hook</a></span></li>
 </ul>
 </li>
 </ul>
@@ -339,7 +344,7 @@
       <div id="apicontent">
         <h1>N-API<span><a class="mark" href="#n_api_n_api" id="n_api_n_api">#</a></span></h1>
 <!--introduced_in=v7.10.0-->
-<div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p>N-API (pronounced N as in the letter, followed by API)
+<div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><p>N-API (pronounced N as in the letter, followed by API)
 is an API for building native Addons. It is independent from
 the underlying JavaScript runtime (ex V8) and is maintained as part of
 Node.js itself. This API will be Application Binary Interface (ABI) stable
@@ -389,7 +394,7 @@ there to be one or more C++ wrapper modules that provide an inlineable C++
 API. Binaries built with these wrapper modules will depend on the symbols
 for the N-API C based functions exported by Node.js. These wrappers are not
 part of N-API, nor will they be maintained as part of Node.js. One such
-example is: <a href="https://github.com/nodejs/node-api">node-api</a>.</p>
+example is: <a href="https://github.com/nodejs/node-addon-api">node-addon-api</a>.</p>
 <p>In order to use the N-API functions, include the file
 <a href="https://github.com/nodejs/node/blob/master/src/node_api.h">node_api.h</a>
 which is located in the src directory in the node development tree.
@@ -416,7 +421,9 @@ Currently, the following status codes are supported.</p>
   napi_generic_failure,
   napi_pending_exception,
   napi_cancelled,
-  napi_status_last
+  napi_escape_called_twice,
+  napi_handle_scope_mismatch,
+  napi_callback_scope_mismatch
 } napi_status;
 </code></pre>
 <p>If additional information is required upon an API returning a failed status,
@@ -832,7 +839,7 @@ the lifespan of a native method. For example, consider a native method
 that has a loop which iterates through the elements in a large array:</p>
 <pre><code class="lang-C">for (int i = 0; i &lt; 1000000; i++) {
   napi_value result;
-  napi_status status = napi_get_element(e, object, i, &amp;result);
+  napi_status status = napi_get_element(env, object, i, &amp;result);
   if (status != napi_ok) {
     break;
   }
@@ -863,7 +870,7 @@ is valid throughout the execution of the loop:</p>
     break;
   }
   napi_value result;
-  status = napi_get_element(e, object, i, &amp;result);
+  status = napi_get_element(env, object, i, &amp;result);
   if (status != napi_ok) {
     break;
   }
@@ -1071,6 +1078,43 @@ object to which the reference is related.</p>
 <p>If still valid, this API returns the <code>napi_value</code> representing the
 JavaScript Object associated with the <code>napi_ref</code>. Otherwise, result
 will be NULL.</p>
+<h3>Cleanup on exit of the current Node.js instance<span><a class="mark" href="#n_api_cleanup_on_exit_of_the_current_node_js_instance" id="n_api_cleanup_on_exit_of_the_current_node_js_instance">#</a></span></h3>
+<p>While a Node.js process typically releases all its resources when exiting,
+embedders of Node.js, or future Worker support, may require addons to register
+clean-up hooks that will be run once the current Node.js instance exits.</p>
+<p>N-API provides functions for registering and un-registering such callbacks.
+When those callbacks are run, all resources that are being held by the addon
+should be freed up.</p>
+<h4>napi_add_env_cleanup_hook<span><a class="mark" href="#n_api_napi_add_env_cleanup_hook" id="n_api_napi_add_env_cleanup_hook">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v8.12.0</span>
+</div><pre><code class="lang-C">NODE_EXTERN napi_status napi_add_env_cleanup_hook(napi_env env,
+                                                  void (*fun)(void* arg),
+                                                  void* arg);
+</code></pre>
+<p>Registers <code>fun</code> as a function to be run with the <code>arg</code> parameter once the
+current Node.js environment exits.</p>
+<p>A function can safely be specified multiple times with different
+<code>arg</code> values. In that case, it will be called multiple times as well.
+Providing the same <code>fun</code> and <code>arg</code> values multiple times is not allowed
+and will lead the process to abort.</p>
+<p>The hooks will be called in reverse order, i.e. the most recently added one
+will be called first.</p>
+<p>Removing this hook can be done by using <code>napi_remove_env_cleanup_hook</code>.
+Typically, that happens when the resource for which this hook was added
+is being torn down anyway.</p>
+<h4>napi_remove_env_cleanup_hook<span><a class="mark" href="#n_api_napi_remove_env_cleanup_hook" id="n_api_napi_remove_env_cleanup_hook">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v8.12.0</span>
+</div><pre><code class="lang-C">NAPI_EXTERN napi_status napi_remove_env_cleanup_hook(napi_env env,
+                                                     void (*fun)(void* arg),
+                                                     void* arg);
+</code></pre>
+<p>Unregisters <code>fun</code> as a function to be run with the <code>arg</code> parameter once the
+current Node.js environment exits. Both the argument and the function value
+need to be exact matches.</p>
+<p>The function must have originally been registered
+with <code>napi_add_env_cleanup_hook</code>, otherwise the process will abort.</p>
 <h2>Module registration<span><a class="mark" href="#n_api_module_registration" id="n_api_module_registration">#</a></span></h2>
 <p>N-API modules are registered in a manner similar to other modules
 except that instead of using the <code>NODE_MODULE</code> macro the following
@@ -2369,10 +2413,10 @@ performed using a N-API call).</li>
 property to be a JavaScript function represented by <code>method</code>. If this is
 passed in, set <code>value</code>, <code>getter</code> and <code>setter</code> to <code>NULL</code> (since these members
 won&#39;t be used).</li>
-<li><code>data</code>: The callback data passed into <code>method</code>, <code>getter</code> and <code>setter</code> if
-this function is invoked.</li>
 <li><code>attributes</code>: The attributes associated with the particular property.
 See <a href="#n_api_napi_property_attributes"><code>napi_property_attributes</code></a>.</li>
+<li><code>data</code>: The callback data passed into <code>method</code>, <code>getter</code> and <code>setter</code> if
+this function is invoked.</li>
 </ul>
 <h3>Functions<span><a class="mark" href="#n_api_functions" id="n_api_functions">#</a></span></h3>
 <h4>napi_get_property_names<span><a class="mark" href="#n_api_napi_get_property_names" id="n_api_napi_get_property_names">#</a></span></h4>

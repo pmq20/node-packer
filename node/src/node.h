@@ -61,6 +61,7 @@
 #endif
 
 #include "v8.h"  // NOLINT(build/include_order)
+#include "v8-platform.h"  // NOLINT(build/include_order)
 #include "node_version.h"  // NODE_MODULE_VERSION
 
 #define NODE_MAKE_VERSION(major, minor, patch)                                \
@@ -95,6 +96,11 @@
 
 // Forward-declare libuv loop
 struct uv_loop_s;
+
+// Forward-declare TracingController, used by CreatePlatform.
+namespace v8 {
+class TracingController;
+}
 
 // Forward-declare these functions now to stop MSVS from becoming
 // terminally confused when it's done in node_internals.h
@@ -208,8 +214,28 @@ NODE_EXTERN void Init(int* argc,
 class IsolateData;
 class Environment;
 
-NODE_EXTERN IsolateData* CreateIsolateData(v8::Isolate* isolate,
-                                           struct uv_loop_s* loop);
+class MultiIsolatePlatform : public v8::Platform {
+ public:
+  virtual ~MultiIsolatePlatform() { }
+  virtual void DrainBackgroundTasks(v8::Isolate* isolate) = 0;
+  virtual void CancelPendingDelayedTasks(v8::Isolate* isolate) = 0;
+
+  // These will be called by the `IsolateData` creation/destruction functions.
+  virtual void RegisterIsolate(IsolateData* isolate_data,
+                               struct uv_loop_s* loop) = 0;
+  virtual void UnregisterIsolate(IsolateData* isolate_data) = 0;
+};
+
+// If `platform` is passed, it will be used to register new Worker instances.
+// It can be `nullptr`, in which case creating new Workers inside of
+// Environments that use this `IsolateData` will not work.
+NODE_EXTERN IsolateData* CreateIsolateData(
+    v8::Isolate* isolate,
+    struct uv_loop_s* loop);
+NODE_EXTERN IsolateData* CreateIsolateData(
+    v8::Isolate* isolate,
+    struct uv_loop_s* loop,
+    MultiIsolatePlatform* platform);
 NODE_EXTERN void FreeIsolateData(IsolateData* isolate_data);
 
 NODE_EXTERN Environment* CreateEnvironment(IsolateData* isolate_data,
@@ -221,6 +247,11 @@ NODE_EXTERN Environment* CreateEnvironment(IsolateData* isolate_data,
 
 NODE_EXTERN void LoadEnvironment(Environment* env);
 NODE_EXTERN void FreeEnvironment(Environment* env);
+
+NODE_EXTERN MultiIsolatePlatform* CreatePlatform(
+    int thread_pool_size,
+    v8::TracingController* tracing_controller);
+NODE_EXTERN void FreePlatform(MultiIsolatePlatform* platform);
 
 NODE_EXTERN void EmitBeforeExit(Environment* env);
 NODE_EXTERN int EmitExit(Environment* env);
@@ -549,6 +580,19 @@ NODE_EXTERN void AddPromiseHook(v8::Isolate* isolate,
                                 promise_hook_func fn,
                                 void* arg);
 
+/* This is a lot like node::AtExit, except that the hooks added via this
+ * function are run before the AtExit ones and will always be registered
+ * for the current Environment instance.
+ * These functions are safe to use in an addon supporting multiple
+ * threads/isolates. */
+NODE_EXTERN void AddEnvironmentCleanupHook(v8::Isolate* isolate,
+                                           void (*fun)(void* arg),
+                                           void* arg);
+
+NODE_EXTERN void RemoveEnvironmentCleanupHook(v8::Isolate* isolate,
+                                              void (*fun)(void* arg),
+                                              void* arg);
+
 /* Returns the id of the current execution context. If the return value is
  * zero then no execution has been set. This will happen if the user handles
  * I/O from native code. */
@@ -712,8 +756,9 @@ class AsyncResource {
                                      trigger_async_id);
     }
 
-    ~AsyncResource() {
+    virtual ~AsyncResource() {
       EmitAsyncDestroy(isolate_, async_context_);
+      resource_.Reset();
     }
 
     v8::MaybeLocal<v8::Value> MakeCallback(

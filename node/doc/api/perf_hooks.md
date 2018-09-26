@@ -125,6 +125,20 @@ Creates a new `PerformanceMark` entry in the Performance Timeline. A
 `performanceEntry.duration` is always `0`. Performance marks are used
 to mark specific significant moments in the Performance Timeline.
 
+### performance.maxEntries
+<!-- YAML
+added: v8.12.0
+-->
+
+Value: {number}
+
+The maximum number of Performance Entry items that should be added to the
+Performance Timeline. This limit is not strictly enforced, but a process
+warning will be emitted if the number of entries in the timeline exceeds
+this limit.
+
+Defaults to 150.
+
 ### performance.measure(name, startMark, endMark)
 <!-- YAML
 added: v8.5.0
@@ -167,7 +181,8 @@ added: v8.5.0
 
 * Returns: {number}
 
-Returns the current high resolution millisecond timestamp.
+Returns the current high resolution millisecond timestamp, where 0 represents
+the start of the current `node` process.
 
 ### performance.timeOrigin
 <!-- YAML
@@ -176,8 +191,8 @@ added: v8.5.0
 
 * {number}
 
-The [`timeOrigin`][] specifies the high resolution millisecond timestamp from
-which all performance metric durations are measured.
+The [`timeOrigin`][] specifies the high resolution millisecond timestamp at
+which the current `node` process began, measured in Unix time.
 
 ### performance.timerify(fn)
 <!-- YAML
@@ -288,7 +303,8 @@ added: v8.5.0
 * {number}
 
 The high resolution millisecond timestamp at which the Node.js process
-completed bootstrap.
+completed bootstrapping. If bootstrapping has not yet finished, the property
+has the value of -1.
 
 ### performanceNodeTiming.clusterSetupEnd
 <!-- YAML
@@ -297,7 +313,8 @@ added: v8.5.0
 
 * {number}
 
-The high resolution millisecond timestamp at which cluster processing ended.
+The high resolution millisecond timestamp at which cluster processing ended. If
+cluster processing has not yet ended, the property has the value of -1.
 
 ### performanceNodeTiming.clusterSetupStart
 <!-- YAML
@@ -307,6 +324,7 @@ added: v8.5.0
 * {number}
 
 The high resolution millisecond timestamp at which cluster processing started.
+If cluster processing has not yet started, the property has the value of -1.
 
 ### performanceNodeTiming.loopExit
 <!-- YAML
@@ -316,7 +334,8 @@ added: v8.5.0
 * {number}
 
 The high resolution millisecond timestamp at which the Node.js event loop
-exited.
+exited. If the event loop has not yet exited, the property has the value of -1.
+It can only have a value of not -1 in a handler of the [`'exit'`][] event.
 
 ### performanceNodeTiming.loopStart
 <!-- YAML
@@ -326,7 +345,8 @@ added: v8.5.0
 * {number}
 
 The high resolution millisecond timestamp at which the Node.js event loop
-started.
+started. If the event loop has not yet started (e.g., in the first tick of the
+main script), the property has the value of -1.
 
 ### performanceNodeTiming.moduleLoadEnd
 <!-- YAML
@@ -381,8 +401,9 @@ added: v8.5.0
 
 * {number}
 
-The high resolution millisecond timestamp at which third_party_main processing
-ended.
+The high resolution millisecond timestamp at which third\_party\_main
+processing ended. If third\_party\_main processing has not yet ended, the
+property has the value of -1.
 
 ### performanceNodeTiming.thirdPartyMainStart
 <!-- YAML
@@ -391,8 +412,9 @@ added: v8.5.0
 
 * {number}
 
-The high resolution millisecond timestamp at which third_party_main processing
-started.
+The high resolution millisecond timestamp at which third\_party\_main
+processing started. If third\_party\_main processing has not yet started, the
+property has the value of -1.
 
 ### performanceNodeTiming.v8Start
 <!-- YAML
@@ -509,7 +531,7 @@ added: v8.5.0
   * `buffered` {boolean} If true, the notification callback will be
     called using `setImmediate()` and multiple `PerformanceEntry` instance
     notifications will be buffered internally. If `false`, notifications will
-    be immediate and synchronous. Defaults to `false`.
+    be immediate and synchronous. **Default:** `false`.
 
 Subscribes the `PerformanceObserver` instance to notifications of new
 `PerformanceEntry` instances identified by `options.entryTypes`.
@@ -628,6 +650,7 @@ obs.observe({ entryTypes: ['function'], buffered: true });
 require('some-module');
 ```
 
+[`'exit'`]: process.html#process_event_exit
 [`timeOrigin`]: https://w3c.github.io/hr-time/#dom-performance-timeorigin
 [Async Hooks]: async_hooks.html
 [W3C Performance Timeline]: https://w3c.github.io/performance-timeline/

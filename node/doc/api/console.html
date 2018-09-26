@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Console | Node.js v8.11.4 Documentation</title>
+  <title>Console | Node.js v8.12.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -82,7 +82,7 @@
 
     <div id="column1" data-id="console" class="interior">
       <header>
-        <h1>Node.js v8.11.4 Documentation</h1>
+        <h1>Node.js v8.12.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -207,10 +207,8 @@ or <code>console.Console</code> (or their destructured counterparts):</p>
 </code></pre>
 <h3>new Console(stdout[, stderr])<span><a class="mark" href="#console_new_console_stdout_stderr" id="console_new_console_stdout_stderr">#</a></span></h3>
 <div class="signature"><ul>
-<li><code>stdout</code> 
-            <a href="stream.html#stream_class_stream_writable" class="type">&lt;stream.Writable&gt;</a></li>
-<li><code>stderr</code> 
-            <a href="stream.html#stream_class_stream_writable" class="type">&lt;stream.Writable&gt;</a></li>
+<li><code>stdout</code> <a href="stream.html#stream_class_stream_writable" class="type">&lt;stream.Writable&gt;</a></li>
+<li><code>stderr</code> <a href="stream.html#stream_class_stream_writable" class="type">&lt;stream.Writable&gt;</a></li>
 </ul>
 </div><p>Creates a new <code>Console</code> with one or two writable stream instances. <code>stdout</code> is a
 writable stream to print log or info output. <code>stderr</code> is used for warning or
@@ -295,8 +293,7 @@ binary.</p>
 <div class="api_metadata">
 <span>Added in: v8.3.0</span>
 </div><ul>
-<li><code>label</code> 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The display label for the counter. Defaults to <code>&#39;default&#39;</code>.</li>
+<li><code>label</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The display label for the counter. <strong>Default:</strong> <code>&#39;default&#39;</code>.</li>
 </ul>
 <p>Maintains an internal counter specific to <code>label</code> and outputs to <code>stdout</code> the
 number of times <code>console.count()</code> has been called with the given <code>label</code>.</p>
@@ -325,8 +322,7 @@ undefined
 <div class="api_metadata">
 <span>Added in: v8.3.0</span>
 </div><ul>
-<li><code>label</code> 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The display label for the counter. Defaults to <code>&#39;default&#39;</code>.</li>
+<li><code>label</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The display label for the counter. <strong>Default:</strong> <code>&#39;default&#39;</code>.</li>
 </ul>
 <p>Resets the internal counter specific to <code>label</code>.</p>
 <!-- eslint-skip -->
@@ -353,34 +349,20 @@ undefined
 <span>Added in: v0.1.101</span>
 </div><ul>
 <li><code>obj</code> <span class="type">&lt;any&gt;</span></li>
-<li><code>options</code> 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
-<li><code>showHidden</code> 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
-<li><code>depth</code> 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
-<li><code>colors</code> 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
+<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
+<li><code>showHidden</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> If <code>true</code> then the object&#39;s non-enumerable and symbol
+properties will be shown too. <strong>Default:</strong> <code>false</code>.</li>
+<li><code>depth</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Tells <a href="util.html#util_util_inspect_object_options"><code>util.inspect()</code></a> how many times to recurse while
+formatting the object. This is useful for inspecting large complicated
+objects. To make it recurse indefinitely, pass <code>null</code>. <strong>Default:</strong> <code>2</code>.</li>
+<li><code>colors</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> If <code>true</code>, then the output will be styled with ANSI color
+ codes. Colors are customizable;
+ see <a href="util.html#util_customizing_util_inspect_colors">customizing <code>util.inspect()</code> colors</a>. <strong>Default:</strong> <code>false</code>.</li>
 </ul>
 </li>
 </ul>
 <p>Uses <a href="util.html#util_util_inspect_object_options"><code>util.inspect()</code></a> on <code>obj</code> and prints the resulting string to <code>stdout</code>.
-This function bypasses any custom <code>inspect()</code> function defined on <code>obj</code>. An
-optional <code>options</code> object may be passed to alter certain aspects of the
-formatted string:</p>
-<ul>
-<li><p><code>showHidden</code> - if <code>true</code> then the object&#39;s non-enumerable and symbol
-properties will be shown too. Defaults to <code>false</code>.</p>
-</li>
-<li><p><code>depth</code> - tells <a href="util.html#util_util_inspect_object_options"><code>util.inspect()</code></a> how many times to recurse while
-formatting the object. This is useful for inspecting large complicated objects.
-Defaults to <code>2</code>. To make it recurse indefinitely, pass <code>null</code>.</p>
-</li>
-<li><p><code>colors</code> - if <code>true</code>, then the output will be styled with ANSI color codes.
-Defaults to <code>false</code>. Colors are customizable; see
-<a href="util.html#util_customizing_util_inspect_colors">customizing <code>util.inspect()</code> colors</a>.</p>
-</li>
-</ul>
+This function bypasses any custom <code>inspect()</code> function defined on <code>obj</code>.</p>
 <h3>console.error([data][, ...args])<span><a class="mark" href="#console_console_error_data_args" id="console_console_error_data_args">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.100</span>
@@ -448,8 +430,7 @@ console.log(&#39;count:&#39;, count);
 <div class="api_metadata">
 <span>Added in: v0.1.104</span>
 </div><ul>
-<li><code>label</code> 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>label</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>Starts a timer that can be used to compute the duration of an operation. Timers
 are identified by a unique <code>label</code>. Use the same <code>label</code> when calling
@@ -469,8 +450,7 @@ milliseconds to <code>stdout</code>. Timer durations are accurate to the sub-mil
 </table>
 </details>
 </div><ul>
-<li><code>label</code> 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>label</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>Stops a timer that was previously started by calling <a href="#console_console_time_label"><code>console.time()</code></a> and
 prints the result to <code>stdout</code>:</p>

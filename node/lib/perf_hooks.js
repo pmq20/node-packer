@@ -8,6 +8,7 @@ const {
   observerCounts,
   setupObservers,
   timeOrigin,
+  timeOriginTimestamp,
   timerify,
   constants
 } = process.binding('performance');
@@ -53,6 +54,9 @@ const kClearEntry = Symbol('clear-entry');
 const kGetEntries = Symbol('get-entries');
 const kIndex = Symbol('index');
 const kMarks = Symbol('marks');
+const kCount = Symbol('count');
+const kMaxCount = Symbol('max-count');
+const kDefaultMaxCount = 150;
 
 observerCounts[NODE_PERFORMANCE_ENTRY_TYPE_MARK] = 1;
 observerCounts[NODE_PERFORMANCE_ENTRY_TYPE_MEASURE] = 1;
@@ -142,6 +146,13 @@ function now() {
   return hr[0] * 1000 + hr[1] / 1e6;
 }
 
+function getMilestoneTimestamp(milestoneIdx) {
+  const ns = milestones[milestoneIdx];
+  if (ns === -1)
+    return ns;
+  return ns / 1e6 - timeOrigin;
+}
+
 class PerformanceNodeTiming {
   constructor() {}
 
@@ -154,7 +165,7 @@ class PerformanceNodeTiming {
   }
 
   get startTime() {
-    return timeOrigin;
+    return 0;
   }
 
   get duration() {
@@ -162,59 +173,64 @@ class PerformanceNodeTiming {
   }
 
   get nodeStart() {
-    return milestones[NODE_PERFORMANCE_MILESTONE_NODE_START];
+    return getMilestoneTimestamp(NODE_PERFORMANCE_MILESTONE_NODE_START);
   }
 
   get v8Start() {
-    return milestones[NODE_PERFORMANCE_MILESTONE_V8_START];
+    return getMilestoneTimestamp(NODE_PERFORMANCE_MILESTONE_V8_START);
   }
 
   get environment() {
-    return milestones[NODE_PERFORMANCE_MILESTONE_ENVIRONMENT];
+    return getMilestoneTimestamp(NODE_PERFORMANCE_MILESTONE_ENVIRONMENT);
   }
 
   get loopStart() {
-    return milestones[NODE_PERFORMANCE_MILESTONE_LOOP_START];
+    return getMilestoneTimestamp(NODE_PERFORMANCE_MILESTONE_LOOP_START);
   }
 
   get loopExit() {
-    return milestones[NODE_PERFORMANCE_MILESTONE_LOOP_EXIT];
+    return getMilestoneTimestamp(NODE_PERFORMANCE_MILESTONE_LOOP_EXIT);
   }
 
   get bootstrapComplete() {
-    return milestones[NODE_PERFORMANCE_MILESTONE_BOOTSTRAP_COMPLETE];
+    return getMilestoneTimestamp(NODE_PERFORMANCE_MILESTONE_BOOTSTRAP_COMPLETE);
   }
 
   get thirdPartyMainStart() {
-    return milestones[NODE_PERFORMANCE_MILESTONE_THIRD_PARTY_MAIN_START];
+    return getMilestoneTimestamp(
+      NODE_PERFORMANCE_MILESTONE_THIRD_PARTY_MAIN_START);
   }
 
   get thirdPartyMainEnd() {
-    return milestones[NODE_PERFORMANCE_MILESTONE_THIRD_PARTY_MAIN_END];
+    return getMilestoneTimestamp(
+      NODE_PERFORMANCE_MILESTONE_THIRD_PARTY_MAIN_END);
   }
 
   get clusterSetupStart() {
-    return milestones[NODE_PERFORMANCE_MILESTONE_CLUSTER_SETUP_START];
+    return getMilestoneTimestamp(
+      NODE_PERFORMANCE_MILESTONE_CLUSTER_SETUP_START);
   }
 
   get clusterSetupEnd() {
-    return milestones[NODE_PERFORMANCE_MILESTONE_CLUSTER_SETUP_END];
+    return getMilestoneTimestamp(NODE_PERFORMANCE_MILESTONE_CLUSTER_SETUP_END);
   }
 
   get moduleLoadStart() {
-    return milestones[NODE_PERFORMANCE_MILESTONE_MODULE_LOAD_START];
+    return getMilestoneTimestamp(NODE_PERFORMANCE_MILESTONE_MODULE_LOAD_START);
   }
 
   get moduleLoadEnd() {
-    return milestones[NODE_PERFORMANCE_MILESTONE_MODULE_LOAD_END];
+    return getMilestoneTimestamp(NODE_PERFORMANCE_MILESTONE_MODULE_LOAD_END);
   }
 
   get preloadModuleLoadStart() {
-    return milestones[NODE_PERFORMANCE_MILESTONE_PRELOAD_MODULE_LOAD_START];
+    return getMilestoneTimestamp(
+      NODE_PERFORMANCE_MILESTONE_PRELOAD_MODULE_LOAD_START);
   }
 
   get preloadModuleLoadEnd() {
-    return milestones[NODE_PERFORMANCE_MILESTONE_PRELOAD_MODULE_LOAD_END];
+    return getMilestoneTimestamp(
+      NODE_PERFORMANCE_MILESTONE_PRELOAD_MODULE_LOAD_END);
   }
 
   [kInspect]() {
@@ -250,10 +266,17 @@ const nodeTiming = new PerformanceNodeTiming();
 // Maintains a list of entries as a linked list stored in insertion order.
 class PerformanceObserverEntryList {
   constructor() {
-    Object.defineProperty(this, kEntries, {
-      writable: true,
-      enumerable: false,
-      value: {}
+    Object.defineProperties(this, {
+      [kEntries]: {
+        writable: true,
+        enumerable: false,
+        value: {}
+      },
+      [kCount]: {
+        writable: true,
+        enumerable: false,
+        value: 0
+      }
     });
     L.init(this[kEntries]);
   }
@@ -261,7 +284,12 @@ class PerformanceObserverEntryList {
   [kInsertEntry](entry) {
     const item = { entry };
     L.append(this[kEntries], item);
+    this[kCount]++;
     this[kIndexEntry](item);
+  }
+
+  get length() {
+    return this[kCount];
   }
 
   [kIndexEntry](entry) {
@@ -384,7 +412,20 @@ class Performance extends PerformanceObserverEntryList {
     this[kIndex] = {
       [kMarks]: new Set()
     };
+    this[kMaxCount] = kDefaultMaxCount;
     this[kInsertEntry](nodeTiming);
+  }
+
+  set maxEntries(val) {
+    if (typeof val !== 'number' || val >>> 0 !== val) {
+      const errors = lazyErrors();
+      throw new errors.TypeError('ERR_INVALID_ARG_TYPE', 'val', 'number');
+    }
+    this[kMaxCount] = Math.max(1, val >>> 0);
+  }
+
+  get maxEntries() {
+    return this[kMaxCount];
   }
 
   [kIndexEntry](item) {
@@ -397,6 +438,17 @@ class Performance extends PerformanceObserverEntryList {
     }
     const entry = item.entry;
     L.append(items, { entry, item });
+    const count = this[kCount];
+    if (count > this[kMaxCount]) {
+      const text = count === 1 ? 'is 1 entry' : `are ${count} entries`;
+      process.emitWarning('Possible perf_hooks memory leak detected. ' +
+                          `There ${text} in the ` +
+                          'Performance Timeline. Use the clear methods ' +
+                          'to remove entries that are no longer needed or ' +
+                          'set performance.maxEntries equal to a higher ' +
+                          'value (currently the maxEntries is ' +
+                          `${this[kMaxCount]}).`);
+    }
   }
 
   [kClearEntry](type, name) {
@@ -411,10 +463,12 @@ class Performance extends PerformanceObserverEntryList {
         if (entry.name === `${name}`) {
           L.remove(item); // remove from the index
           L.remove(item.item); // remove from the master
+          this[kCount]--;
         }
       } else {
         L.remove(item); // remove from the index
         L.remove(item.item); // remove from the master
+        this[kCount]--;
       }
       item = next;
     }
@@ -425,11 +479,11 @@ class Performance extends PerformanceObserverEntryList {
   }
 
   get timeOrigin() {
-    return timeOrigin;
+    return timeOriginTimestamp;
   }
 
   now() {
-    return now();
+    return now() - timeOrigin;
   }
 
   mark(name) {
@@ -508,8 +562,9 @@ class Performance extends PerformanceObserverEntryList {
 
   [kInspect]() {
     return {
-      timeOrigin,
-      nodeTiming
+      maxEntries: this.maxEntries,
+      nodeTiming: this.nodeTiming,
+      timeOrigin: this.timeOrigin
     };
   }
 }

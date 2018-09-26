@@ -4,15 +4,13 @@
 
 > Stability: 2 - Stable
 
-Prior to the introduction of [`TypedArray`] in [`ECMAScript 2015`] (ES6), the
-JavaScript language had no mechanism for reading or manipulating streams
-of binary data. The `Buffer` class was introduced as part of the Node.js
-API to make it possible to interact with octet streams in the context of things
-like TCP streams and file system operations.
+Prior to the introduction of [`TypedArray`], the JavaScript language had no
+mechanism for reading or manipulating streams of binary data. The `Buffer` class
+was introduced as part of the Node.js API to enable interaction with octet
+streams in TCP streams, file system operations, and other contexts.
 
-Now that [`TypedArray`] has been added in ES6, the `Buffer` class implements the
-[`Uint8Array`] API in a manner that is more optimized and suitable for Node.js'
-use cases.
+With [`TypedArray`] now available, the `Buffer` class implements the
+[`Uint8Array`] API in a manner that is more optimized and suitable for Node.js.
 
 Instances of the `Buffer` class are similar to arrays of integers but
 correspond to fixed-sized, raw memory allocations outside the V8 heap.
@@ -196,11 +194,11 @@ The character encodings currently supported by Node.js include:
 * `'hex'` - Encode each byte as two hexadecimal characters.
 
 *Note*: Today's browsers follow the [WHATWG Encoding Standard][] which aliases
-both 'latin1' and ISO-8859-1 to win-1252. This means that while doing something
-like `http.get()`, if the returned charset is one of those listed in the WHATWG
-specification it is possible that the server actually returned
-win-1252-encoded data, and using `'latin1'` encoding may incorrectly decode the
-characters.
+both `'latin1'` and `'ISO-8859-1'` to `'win-1252'`. This means that while doing
+something like `http.get()`, if the returned charset is one of those listed in
+the WHATWG specification it is possible that the server actually returned
+`'win-1252'`-encoded data, and using `'latin1'` encoding may incorrectly decode
+the characters.
 
 ## Buffers and TypedArray
 <!-- YAML
@@ -211,11 +209,10 @@ changes:
 -->
 
 `Buffer` instances are also [`Uint8Array`] instances. However, there are subtle
-incompatibilities with the TypedArray specification in [`ECMAScript 2015`].
-For example, while [`ArrayBuffer#slice()`] creates a copy of the slice, the
-implementation of [`Buffer#slice()`][`buf.slice()`] creates a view over the
-existing `Buffer` without copying, making [`Buffer#slice()`][`buf.slice()`] far
-more efficient.
+incompatibilities with [`TypedArray`]. For example, while
+[`ArrayBuffer#slice()`] creates a copy of the slice, the implementation of
+[`Buffer#slice()`][`buf.slice()`] creates a view over the existing `Buffer`
+without copying, making [`Buffer#slice()`][`buf.slice()`] far more efficient.
 
 It is also possible to create new [`TypedArray`] instances from a `Buffer` with
 the following caveats:
@@ -289,10 +286,9 @@ function:
 * [`Buffer.from(arrayBuffer[, byteOffset [, length]])`][`Buffer.from(arrayBuffer)`]
 * [`Buffer.from(string[, encoding])`][`Buffer.from(string)`]
 
-## Buffers and ES6 iteration
+## Buffers and iteration
 
-`Buffer` instances can be iterated over using the [`ECMAScript 2015`] (ES6) `for..of`
-syntax.
+`Buffer` instances can be iterated over using `for..of` syntax:
 
 Example:
 
@@ -341,7 +337,7 @@ Example:
 const buf = new Buffer([0x62, 0x75, 0x66, 0x66, 0x65, 0x72]);
 ```
 
-### new Buffer(arrayBuffer[, byteOffset [, length]])
+### new Buffer(arrayBuffer[, byteOffset[, length]])
 <!-- YAML
 added: v3.0.0
 deprecated: v6.0.0
@@ -363,9 +359,9 @@ changes:
 
 * `arrayBuffer` {ArrayBuffer|SharedArrayBuffer} An [`ArrayBuffer`],
   [`SharedArrayBuffer`] or the `.buffer` property of a [`TypedArray`].
-* `byteOffset` {integer} Index of first byte to expose. **Default:** `0`
+* `byteOffset` {integer} Index of first byte to expose. **Default:** `0`.
 * `length` {integer} Number of bytes to expose.
-  **Default:** `arrayBuffer.length - byteOffset`
+  **Default:** `arrayBuffer.length - byteOffset`.
 
 This creates a view of the [`ArrayBuffer`] or [`SharedArrayBuffer`] without
 copying the underlying memory. For example, when passed a reference to the
@@ -410,7 +406,8 @@ changes:
 
 > Stability: 0 - Deprecated: Use [`Buffer.from(buffer)`] instead.
 
-* `buffer` {Buffer} An existing `Buffer` to copy data from.
+* `buffer` {Buffer|Uint8Array} An existing `Buffer` or [`Uint8Array`] from which
+  to copy data.
 
 Copies the passed `buffer` data onto a new `Buffer` instance.
 
@@ -484,7 +481,7 @@ changes:
 > Use [`Buffer.from(string[, encoding])`][`Buffer.from(string)`] instead.
 
 * `string` {string} String to encode.
-* `encoding` {string} The encoding of `string`. **Default:** `'utf8'`
+* `encoding` {string} The encoding of `string`. **Default:** `'utf8'`.
 
 Creates a new `Buffer` containing the given JavaScript string `string`. If
 provided, the `encoding` parameter identifies the character encoding of `string`.
@@ -499,7 +496,6 @@ console.log(buf1.toString());
 
 // Prints: this is a tC)st
 console.log(buf1.toString('ascii'));
-
 
 const buf2 = new Buffer('7468697320697320612074c3a97374', 'hex');
 
@@ -519,9 +515,9 @@ changes:
 
 * `size` {integer} The desired length of the new `Buffer`.
 * `fill` {string|Buffer|integer} A value to pre-fill the new `Buffer` with.
-  **Default:** `0`
+  **Default:** `0`.
 * `encoding` {string} If `fill` is a string, this is its encoding.
-  **Default:** `'utf8'`
+  **Default:** `'utf8'`.
 
 Allocates a new `Buffer` of `size` bytes. If `fill` is `undefined`, the
 `Buffer` will be *zero-filled*.
@@ -687,7 +683,7 @@ changes:
 * `string` {string|Buffer|TypedArray|DataView|ArrayBuffer|SharedArrayBuffer} A
   value to calculate the length of.
 * `encoding` {string} If `string` is a string, this is its encoding.
-  **Default:** `'utf8'`
+  **Default:** `'utf8'`.
 * Returns: {integer} The number of bytes contained within `string`.
 
 Returns the actual byte length of a string. This is not the same as
@@ -814,9 +810,9 @@ added: v5.10.0
 
 * `arrayBuffer` {ArrayBuffer|SharedArrayBuffer} An [`ArrayBuffer`],
   [`SharedArrayBuffer`], or the `.buffer` property of a [`TypedArray`].
-* `byteOffset` {integer} Index of first byte to expose. **Default:** `0`
+* `byteOffset` {integer} Index of first byte to expose. **Default:** `0`.
 * `length` {integer} Number of bytes to expose.
-  **Default:** `arrayBuffer.length - byteOffset`
+  **Default:** `arrayBuffer.length - byteOffset`.
 
 This creates a view of the [`ArrayBuffer`] without copying the underlying
 memory. For example, when passed a reference to the `.buffer` property of a
@@ -865,7 +861,8 @@ A `TypeError` will be thrown if `arrayBuffer` is not an [`ArrayBuffer`] or a
 added: v5.10.0
 -->
 
-* `buffer` {Buffer} An existing `Buffer` to copy data from.
+* `buffer` {Buffer|Uint8Array} An existing `Buffer` or [`Uint8Array`] from which
+  to copy data.
 
 Copies the passed `buffer` data onto a new `Buffer` instance.
 
@@ -892,7 +889,7 @@ added: v5.10.0
 -->
 
 * `string` {string} A string to encode.
-* `encoding` {string} The encoding of `string`. **Default:** `'utf8'`
+* `encoding` {string} The encoding of `string`. **Default:** `'utf8'`.
 
 Creates a new `Buffer` containing the given JavaScript string `string`. If
 provided, the `encoding` parameter identifies the character encoding of `string`.
@@ -907,7 +904,6 @@ console.log(buf1.toString());
 
 // Prints: this is a tC)st
 console.log(buf1.toString('ascii'));
-
 
 const buf2 = Buffer.from('7468697320697320612074c3a97374', 'hex');
 
@@ -1041,13 +1037,13 @@ changes:
 
 * `target` {Buffer|Uint8Array} A `Buffer` or [`Uint8Array`] to compare to.
 * `targetStart` {integer} The offset within `target` at which to begin
-  comparison. **Default:** `0`
+  comparison. **Default:** `0`.
 * `targetEnd` {integer} The offset with `target` at which to end comparison
-  (not inclusive). **Default:** `target.length`
+  (not inclusive). **Default:** `target.length`.
 * `sourceStart` {integer} The offset within `buf` at which to begin comparison.
-  **Default:** `0`
+  **Default:** `0`.
 * `sourceEnd` {integer} The offset within `buf` at which to end comparison
-  (not inclusive). **Default:** [`buf.length`]
+  (not inclusive). **Default:** [`buf.length`].
 * Returns: {integer}
 
 Compares `buf` with `target` and returns a number indicating whether `buf`
@@ -1115,11 +1111,11 @@ added: v0.1.90
 
 * `target` {Buffer|Uint8Array} A `Buffer` or [`Uint8Array`] to copy into.
 * `targetStart` {integer} The offset within `target` at which to begin
-  copying to. **Default:** `0`
+  copying to. **Default:** `0`.
 * `sourceStart` {integer} The offset within `buf` at which to begin copying from.
-  **Default:** `0`
+  **Default:** `0`.
 * `sourceEnd` {integer} The offset within `buf` at which to stop copying (not
-  inclusive). **Default:** [`buf.length`]
+  inclusive). **Default:** [`buf.length`].
 * Returns: {integer} The number of bytes copied.
 
 Copies data from a region of `buf` to a region in `target` even if the `target`
@@ -1226,10 +1222,10 @@ changes:
 -->
 
 * `value` {string|Buffer|integer} The value to fill `buf` with.
-* `offset` {integer} Number of bytes to skip before starting to fill `buf`. **Default:** `0`
-* `end` {integer} Where to stop filling `buf` (not inclusive). **Default:** [`buf.length`]
+* `offset` {integer} Number of bytes to skip before starting to fill `buf`. **Default:** `0`.
+* `end` {integer} Where to stop filling `buf` (not inclusive). **Default:** [`buf.length`].
 * `encoding` {string} If `value` is a string, this is its encoding.
-  **Default:** `'utf8'`
+  **Default:** `'utf8'`.
 * Returns: {Buffer} A reference to `buf`.
 
 Fills `buf` with the specified `value`. If the `offset` and `end` are not given,
@@ -1280,9 +1276,9 @@ added: v5.3.0
 -->
 
 * `value` {string|Buffer|integer} What to search for.
-* `byteOffset` {integer} Where to begin searching in `buf`. **Default:** `0`
+* `byteOffset` {integer} Where to begin searching in `buf`. **Default:** `0`.
 * `encoding` {string} If `value` is a string, this is its encoding.
-  **Default:** `'utf8'`
+  **Default:** `'utf8'`.
 * Returns: {boolean} `true` if `value` was found in `buf`, `false` otherwise.
 
 Equivalent to [`buf.indexOf() !== -1`][`buf.indexOf()`].
@@ -1329,11 +1325,12 @@ changes:
 -->
 
 * `value` {string|Buffer|Uint8Array|integer} What to search for.
-* `byteOffset` {integer} Where to begin searching in `buf`. **Default:** `0`
-* `encoding` {string} If `value` is a string, this is its encoding.
-  **Default:** `'utf8'`
-* Returns: {integer} The index of the first occurrence of `value` in `buf` or `-1`
-  if `buf` does not contain `value`.
+* `byteOffset` {integer} Where to begin searching in `buf`. **Default:** `0`.
+* `encoding` {string} If `value` is a string, this is the encoding used to
+  determine the binary representation of the string that will be searched for in
+  `buf`. **Default:** `'utf8'`.
+* Returns: {integer} The index of the first occurrence of `value` in `buf`, or
+  `-1` if `buf` does not contain `value`.
 
 If `value` is:
 
@@ -1367,7 +1364,6 @@ console.log(buf.indexOf(Buffer.from('a buffer example')));
 
 // Prints: 8
 console.log(buf.indexOf(Buffer.from('a buffer example').slice(0, 8)));
-
 
 const utf16Buffer = Buffer.from('\u039a\u0391\u03a3\u03a3\u0395', 'ucs2');
 
@@ -1443,14 +1439,15 @@ changes:
 
 * `value` {string|Buffer|Uint8Array|integer} What to search for.
 * `byteOffset` {integer} Where to begin searching in `buf`.
-  **Default:** [`buf.length`]` - 1`
-* `encoding` {string} If `value` is a string, this is its encoding.
-  **Default:** `'utf8'`
-* Returns: {integer} The index of the last occurrence of `value` in `buf` or `-1`
-  if `buf` does not contain `value`.
+  **Default:** [`buf.length`]` - 1`.
+* `encoding` {string} If `value` is a string, this is the encoding used to
+  determine the binary representation of the string that will be searched for in
+  `buf`. **Default:** `'utf8'`.
+* Returns: {integer} The index of the last occurrence of `value` in `buf`, or
+  `-1` if `buf` does not contain `value`.
 
-Identical to [`buf.indexOf()`], except `buf` is searched from back to front
-instead of front to back.
+Identical to [`buf.indexOf()`], except the last occurrence of `value` is found
+rather than the first occurrence.
 
 Examples:
 
@@ -1478,7 +1475,6 @@ console.log(buf.lastIndexOf('buffer', 5));
 
 // Prints: -1
 console.log(buf.lastIndexOf('buffer', 4));
-
 
 const utf16Buffer = Buffer.from('\u039a\u0391\u03a3\u03a3\u0395', 'ucs2');
 
@@ -1922,9 +1918,9 @@ changes:
                  calculations with them.
 -->
 
-* `start` {integer} Where the new `Buffer` will start. **Default:** `0`
+* `start` {integer} Where the new `Buffer` will start. **Default:** `0`.
 * `end` {integer} Where the new `Buffer` will end (not inclusive).
-  **Default:** [`buf.length`]
+  **Default:** [`buf.length`].
 * Returns: {Buffer}
 
 Returns a new `Buffer` that references the same memory as the original, but
@@ -1986,7 +1982,7 @@ added: v5.10.0
 
 * Returns: {Buffer} A reference to `buf`.
 
-Interprets `buf` as an array of unsigned 16-bit integers and swaps the byte-order
+Interprets `buf` as an array of unsigned 16-bit integers and swaps the byte order
 *in-place*. Throws a `RangeError` if [`buf.length`] is not a multiple of 2.
 
 Examples:
@@ -2002,7 +1998,6 @@ buf1.swap16();
 // Prints: <Buffer 02 01 04 03 06 05 08 07>
 console.log(buf1);
 
-
 const buf2 = Buffer.from([0x1, 0x2, 0x3]);
 
 // Throws an exception: RangeError: Buffer size must be a multiple of 16-bits
@@ -2016,7 +2011,7 @@ added: v5.10.0
 
 * Returns: {Buffer} A reference to `buf`.
 
-Interprets `buf` as an array of unsigned 32-bit integers and swaps the byte-order
+Interprets `buf` as an array of unsigned 32-bit integers and swaps the byte order
 *in-place*. Throws a `RangeError` if [`buf.length`] is not a multiple of 4.
 
 Examples:
@@ -2032,7 +2027,6 @@ buf1.swap32();
 // Prints: <Buffer 04 03 02 01 08 07 06 05>
 console.log(buf1);
 
-
 const buf2 = Buffer.from([0x1, 0x2, 0x3]);
 
 // Throws an exception: RangeError: Buffer size must be a multiple of 32-bits
@@ -2046,7 +2040,7 @@ added: v6.3.0
 
 * Returns: {Buffer} A reference to `buf`.
 
-Interprets `buf` as an array of 64-bit numbers and swaps the byte-order *in-place*.
+Interprets `buf` as an array of 64-bit numbers and swaps the byte order *in-place*.
 Throws a `RangeError` if [`buf.length`] is not a multiple of 8.
 
 Examples:
@@ -2061,7 +2055,6 @@ buf1.swap64();
 
 // Prints: <Buffer 08 07 06 05 04 03 02 01>
 console.log(buf1);
-
 
 const buf2 = Buffer.from([0x1, 0x2, 0x3]);
 
@@ -2106,10 +2099,10 @@ console.log(copy);
 added: v0.1.90
 -->
 
-* `encoding` {string} The character encoding to decode to. **Default:** `'utf8'`
-* `start` {integer} The byte offset to start decoding at. **Default:** `0`
+* `encoding` {string} The character encoding to decode to. **Default:** `'utf8'`.
+* `start` {integer} The byte offset to start decoding at. **Default:** `0`.
 * `end` {integer} The byte offset to stop decoding at (not inclusive).
-  **Default:** [`buf.length`]
+  **Default:** [`buf.length`].
 * Returns: {string}
 
 Decodes `buf` to a string according to the specified character encoding in
@@ -2133,7 +2126,6 @@ console.log(buf1.toString('ascii'));
 
 // Prints: abcde
 console.log(buf1.toString('ascii', 0, 5));
-
 
 const buf2 = Buffer.from('tést');
 
@@ -2191,9 +2183,9 @@ added: v0.1.90
 -->
 
 * `string` {string} String to be written to `buf`.
-* `offset` {integer} Number of bytes to skip before starting to write `string`. **Default:** `0`
-* `length` {integer} Number of bytes to write. **Default:** `buf.length - offset`
-* `encoding` {string} The character encoding of `string`. **Default:** `'utf8'`
+* `offset` {integer} Number of bytes to skip before starting to write `string`. **Default:** `0`.
+* `length` {integer} Number of bytes to write. **Default:** `buf.length - offset`.
+* `encoding` {string} The character encoding of `string`. **Default:** `'utf8'`.
 * Returns: {integer} Number of bytes written.
 
 Writes `string` to `buf` at `offset` according to the character encoding in `encoding`.
@@ -2528,7 +2520,7 @@ added: v0.5.5
 * `offset` {integer} Number of bytes to skip before starting to write. Must satisfy: `0 <= offset <= buf.length - byteLength`.
 * `byteLength` {integer} Number of bytes to write. Must satisfy: `0 < byteLength <= 6`.
 * `noAssert` {boolean} Skip `value`, `offset`, and `byteLength` validation?
-  **Default:** `false`
+  **Default:** `false`.
 * Returns: {integer} `offset` plus the number of bytes written.
 
 Writes `byteLength` bytes of `value` to `buf` at the specified `offset`.
@@ -2757,5 +2749,4 @@ This value may depend on the JS engine that is being used.
 [RFC1345]: https://tools.ietf.org/html/rfc1345
 [RFC4648, Section 5]: https://tools.ietf.org/html/rfc4648#section-5
 [WHATWG Encoding Standard]: https://encoding.spec.whatwg.org/
-[`ECMAScript 2015`]: https://www.ecma-international.org/ecma-262/6.0/index.html
 [iterator]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols

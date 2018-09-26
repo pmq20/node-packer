@@ -30,7 +30,7 @@
               "textRaw": "Client-initiated renegotiation attack mitigation",
               "name": "Client-initiated renegotiation attack mitigation",
               "type": "misc",
-              "desc": "<p>The TLS protocol allows clients to renegotiate certain aspects of the TLS\nsession. Unfortunately, session renegotiation requires a disproportionate amount\nof server-side resources, making it a potential vector for denial-of-service\nattacks.</p>\n<p>To mitigate the risk, renegotiation is limited to three times every ten minutes.\nAn <code>&#39;error&#39;</code> event is emitted on the <a href=\"#tls_class_tls_tlssocket\"><code>tls.TLSSocket</code></a> instance when this\nthreshold is exceeded. The limits are configurable:</p>\n<ul>\n<li><code>tls.CLIENT_RENEG_LIMIT</code> {number} Specifies the number of renegotiation\nrequests. Defaults to <code>3</code>.</li>\n<li><code>tls.CLIENT_RENEG_WINDOW</code> {number} Specifies the time renegotiation window\nin seconds. Defaults to <code>600</code> (10 minutes).</li>\n</ul>\n<p><em>Note</em>: The default renegotiation limits should not be modified without a full\nunderstanding of the implications and risks.</p>\n<p>To test the renegotiation limits on a server, connect to it using the OpenSSL\ncommand-line client (<code>openssl s_client -connect address:port</code>) then input\n<code>R&lt;CR&gt;</code> (i.e., the letter <code>R</code> followed by a carriage return) multiple times.</p>\n"
+              "desc": "<p>The TLS protocol allows clients to renegotiate certain aspects of the TLS\nsession. Unfortunately, session renegotiation requires a disproportionate amount\nof server-side resources, making it a potential vector for denial-of-service\nattacks.</p>\n<p>To mitigate the risk, renegotiation is limited to three times every ten minutes.\nAn <code>&#39;error&#39;</code> event is emitted on the <a href=\"#tls_class_tls_tlssocket\"><code>tls.TLSSocket</code></a> instance when this\nthreshold is exceeded. The limits are configurable:</p>\n<ul>\n<li><code>tls.CLIENT_RENEG_LIMIT</code> {number} Specifies the number of renegotiation\nrequests. <strong>Default:</strong> <code>3</code>.</li>\n<li><code>tls.CLIENT_RENEG_WINDOW</code> {number} Specifies the time renegotiation window\nin seconds. <strong>Default:</strong> <code>600</code> (10 minutes).</li>\n</ul>\n<p><em>Note</em>: The default renegotiation limits should not be modified without a full\nunderstanding of the implications and risks.</p>\n<p>To test the renegotiation limits on a server, connect to it using the OpenSSL\ncommand-line client (<code>openssl s_client -connect address:port</code>) then input\n<code>R&lt;CR&gt;</code> (i.e., the letter <code>R</code> followed by a carriage return) multiple times.</p>\n"
             }
           ],
           "type": "module",
@@ -178,9 +178,10 @@
                           "desc": "An optional TLS context object from  [`tls.createSecureContext()`][]"
                         },
                         {
-                          "textRaw": "`isServer`: If `true` the TLS socket will be instantiated in server-mode. Defaults to `false`. ",
+                          "textRaw": "`isServer`: If `true` the TLS socket will be instantiated in server-mode. **Default:** `false`. ",
                           "name": "isServer",
-                          "desc": "If `true` the TLS socket will be instantiated in server-mode. Defaults to `false`."
+                          "default": "`false`",
+                          "desc": "If `true` the TLS socket will be instantiated in server-mode."
                         },
                         {
                           "textRaw": "`server` {net.Server} An optional [`net.Server`][] instance ",
@@ -553,9 +554,10 @@
                       "textRaw": "`options` {Object} ",
                       "options": [
                         {
-                          "textRaw": "`isServer`: The SSL/TLS protocol is asymmetrical, TLSSockets must know if they are to behave as a server or a client. If `true` the TLS socket will be instantiated as a server. Defaults to `false`. ",
+                          "textRaw": "`isServer`: The SSL/TLS protocol is asymmetrical, TLSSockets must know if they are to behave as a server or a client. If `true` the TLS socket will be instantiated as a server. **Default:** `false`. ",
                           "name": "isServer",
-                          "desc": "The SSL/TLS protocol is asymmetrical, TLSSockets must know if they are to behave as a server or a client. If `true` the TLS socket will be instantiated as a server. Defaults to `false`."
+                          "default": "`false`",
+                          "desc": "The SSL/TLS protocol is asymmetrical, TLSSockets must know if they are to behave as a server or a client. If `true` the TLS socket will be instantiated as a server."
                         },
                         {
                           "textRaw": "`server` {net.Server} An optional [`net.Server`][] instance. ",
@@ -700,6 +702,32 @@
               ]
             },
             {
+              "textRaw": "tlsSocket.getFinished()",
+              "type": "method",
+              "name": "getFinished",
+              "meta": {
+                "added": [
+                  "v8.12.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {Buffer|undefined} The latest `Finished` message that has been sent to the socket as part of a SSL/TLS handshake, or `undefined` if no `Finished` message has been sent yet. ",
+                    "name": "return",
+                    "type": "Buffer|undefined",
+                    "desc": "The latest `Finished` message that has been sent to the socket as part of a SSL/TLS handshake, or `undefined` if no `Finished` message has been sent yet."
+                  },
+                  "params": []
+                },
+                {
+                  "params": []
+                }
+              ],
+              "desc": "<p>As the <code>Finished</code> messages are message digests of the complete handshake\n(with a total of 192 bits for TLS 1.0 and more for SSL 3.0), they can\nbe used for external authentication procedures when the authentication\nprovided by SSL/TLS is not desired or is not enough.</p>\n<p>Corresponds to the <code>SSL_get_finished</code> routine in OpenSSL and may be used\nto implement the <code>tls-unique</code> channel binding from <a href=\"https://tools.ietf.org/html/rfc5929\">RFC 5929</a>.</p>\n"
+            },
+            {
               "textRaw": "tlsSocket.getPeerCertificate([detailed])",
               "type": "method",
               "name": "getPeerCertificate",
@@ -731,6 +759,32 @@
                 }
               ],
               "desc": "<p>Returns an object representing the peer&#39;s certificate. The returned object has\nsome properties corresponding to the fields of the certificate.</p>\n<p>If the full certificate chain was requested, each certificate will include a\n<code>issuerCertificate</code> property containing an object representing its issuer&#39;s\ncertificate.</p>\n<p>For example:</p>\n<pre><code class=\"lang-text\">{ subject:\n   { C: &#39;UK&#39;,\n     ST: &#39;Acknack Ltd&#39;,\n     L: &#39;Rhys Jones&#39;,\n     O: &#39;node.js&#39;,\n     OU: &#39;Test TLS Certificate&#39;,\n     CN: &#39;localhost&#39; },\n  issuer:\n   { C: &#39;UK&#39;,\n     ST: &#39;Acknack Ltd&#39;,\n     L: &#39;Rhys Jones&#39;,\n     O: &#39;node.js&#39;,\n     OU: &#39;Test TLS Certificate&#39;,\n     CN: &#39;localhost&#39; },\n  issuerCertificate:\n   { ... another certificate, possibly with a .issuerCertificate ... },\n  raw: &lt; RAW DER buffer &gt;,\n  valid_from: &#39;Nov 11 09:52:22 2009 GMT&#39;,\n  valid_to: &#39;Nov 6 09:52:22 2029 GMT&#39;,\n  fingerprint: &#39;2A:7A:C2:DD:E5:F9:CC:53:72:35:99:7A:02:5A:71:38:52:EC:8A:DF&#39;,\n  serialNumber: &#39;B9B0D332A1AA5635&#39; }\n</code></pre>\n<p>If the peer does not provide a certificate, an empty object will be returned.</p>\n"
+            },
+            {
+              "textRaw": "tlsSocket.getPeerFinished()",
+              "type": "method",
+              "name": "getPeerFinished",
+              "meta": {
+                "added": [
+                  "v8.12.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {Buffer|undefined} The latest `Finished` message that is expected or has actually been received from the socket as part of a SSL/TLS handshake, or `undefined` if there is no `Finished` message so far. ",
+                    "name": "return",
+                    "type": "Buffer|undefined",
+                    "desc": "The latest `Finished` message that is expected or has actually been received from the socket as part of a SSL/TLS handshake, or `undefined` if there is no `Finished` message so far."
+                  },
+                  "params": []
+                },
+                {
+                  "params": []
+                }
+              ],
+              "desc": "<p>As the <code>Finished</code> messages are message digests of the complete handshake\n(with a total of 192 bits for TLS 1.0 and more for SSL 3.0), they can\nbe used for external authentication procedures when the authentication\nprovided by SSL/TLS is not desired or is not enough.</p>\n<p>Corresponds to the <code>SSL_get_peer_finished</code> routine in OpenSSL and may be used\nto implement the <code>tls-unique</code> channel binding from <a href=\"https://tools.ietf.org/html/rfc5929\">RFC 5929</a>.</p>\n"
             },
             {
               "textRaw": "tlsSocket.getProtocol()",
@@ -800,10 +854,11 @@
                       "textRaw": "`options` {Object} ",
                       "options": [
                         {
-                          "textRaw": "`rejectUnauthorized` {boolean} If not `false`, the server certificate is verified against the list of supplied CAs. An `'error'` event is emitted if verification fails; `err.code` contains the OpenSSL error code. Defaults to `true`. ",
+                          "textRaw": "`rejectUnauthorized` {boolean} If not `false`, the server certificate is verified against the list of supplied CAs. An `'error'` event is emitted if verification fails; `err.code` contains the OpenSSL error code. **Default:** `true`. ",
                           "name": "rejectUnauthorized",
+                          "default": "`true`",
                           "type": "boolean",
-                          "desc": "If not `false`, the server certificate is verified against the list of supplied CAs. An `'error'` event is emitted if verification fails; `err.code` contains the OpenSSL error code. Defaults to `true`."
+                          "desc": "If not `false`, the server certificate is verified against the list of supplied CAs. An `'error'` event is emitted if verification fails; `err.code` contains the OpenSSL error code."
                         },
                         {
                           "textRaw": "`requestCert` ",
@@ -848,10 +903,11 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`size` {number} The maximum TLS fragment size. Defaults to `16384`. The maximum value is `16384`. ",
+                      "textRaw": "`size` {number} The maximum TLS fragment size. The maximum value is `16384`. **Default:** `16384`. ",
                       "name": "size",
+                      "default": "`16384`",
                       "type": "number",
-                      "desc": "The maximum TLS fragment size. Defaults to `16384`. The maximum value is `16384`."
+                      "desc": "The maximum TLS fragment size. The maximum value is `16384`."
                     }
                   ]
                 },
@@ -1065,10 +1121,11 @@
                   "textRaw": "`options` {Object} ",
                   "options": [
                     {
-                      "textRaw": "`host` {string} Host the client should connect to, defaults to 'localhost'. ",
+                      "textRaw": "`host` {string} Host the client should connect to. **Default:** `'localhost'`. ",
                       "name": "host",
+                      "default": "`'localhost'`",
                       "type": "string",
-                      "desc": "Host the client should connect to, defaults to 'localhost'."
+                      "desc": "Host the client should connect to."
                     },
                     {
                       "textRaw": "`port` {number} Port the client should connect to. ",
@@ -1089,10 +1146,11 @@
                       "desc": "Establish secure connection on a given socket rather than creating a new socket. Typically, this is an instance of [`net.Socket`][], but any `Duplex` stream is allowed. If this option is specified, `path`, `host` and `port` are ignored, except for certificate validation. Usually, a socket is already connected when passed to `tls.connect()`, but it can be connected later. Note that connection/disconnection/destruction of `socket` is the user's responsibility, calling `tls.connect()` will not cause `net.connect()` to be called."
                     },
                     {
-                      "textRaw": "`rejectUnauthorized` {boolean} If not `false`, the server certificate is verified against the list of supplied CAs. An `'error'` event is emitted if verification fails; `err.code` contains the OpenSSL error code. Defaults to `true`. ",
+                      "textRaw": "`rejectUnauthorized` {boolean} If not `false`, the server certificate is verified against the list of supplied CAs. An `'error'` event is emitted if verification fails; `err.code` contains the OpenSSL error code. **Default:** `true`. ",
                       "name": "rejectUnauthorized",
+                      "default": "`true`",
                       "type": "boolean",
-                      "desc": "If not `false`, the server certificate is verified against the list of supplied CAs. An `'error'` event is emitted if verification fails; `err.code` contains the OpenSSL error code. Defaults to `true`."
+                      "desc": "If not `false`, the server certificate is verified against the list of supplied CAs. An `'error'` event is emitted if verification fails; `err.code` contains the OpenSSL error code."
                     },
                     {
                       "textRaw": "`NPNProtocols` {string[]|Buffer[]|Uint8Array[]|Buffer|Uint8Array} An array of strings, `Buffer`s or `Uint8Array`s, or a single `Buffer` or `Uint8Array` containing supported NPN protocols. `Buffer`s should have the format `[len][name][len][name]...` e.g. `0x05hello0x05world`, where the first byte is the length of the next protocol name. Passing an array is usually much simpler, e.g. `['hello', 'world']`. ",
@@ -1124,10 +1182,11 @@
                       "desc": "A `Buffer` instance, containing TLS session."
                     },
                     {
-                      "textRaw": "`minDHSize` {number} Minimum size of the DH parameter in bits to accept a TLS connection. When a server offers a DH parameter with a size less than `minDHSize`, the TLS connection is destroyed and an error is thrown. Defaults to `1024`. ",
+                      "textRaw": "`minDHSize` {number} Minimum size of the DH parameter in bits to accept a TLS connection. When a server offers a DH parameter with a size less than `minDHSize`, the TLS connection is destroyed and an error is thrown. **Default:** `1024`. ",
                       "name": "minDHSize",
+                      "default": "`1024`",
                       "type": "number",
-                      "desc": "Minimum size of the DH parameter in bits to accept a TLS connection. When a server offers a DH parameter with a size less than `minDHSize`, the TLS connection is destroyed and an error is thrown. Defaults to `1024`."
+                      "desc": "Minimum size of the DH parameter in bits to accept a TLS connection. When a server offers a DH parameter with a size less than `minDHSize`, the TLS connection is destroyed and an error is thrown."
                     },
                     {
                       "textRaw": "`secureContext`: Optional TLS context object created with [`tls.createSecureContext()`][]. If a `secureContext` is _not_ provided, one will be created by passing the entire `options` object to `tls.createSecureContext()`. ",
@@ -1135,10 +1194,11 @@
                       "desc": "Optional TLS context object created with [`tls.createSecureContext()`][]. If a `secureContext` is _not_ provided, one will be created by passing the entire `options` object to `tls.createSecureContext()`."
                     },
                     {
-                      "textRaw": "`lookup`: {Function} Custom lookup function. Defaults to [`dns.lookup()`][]. ",
+                      "textRaw": "`lookup`: {Function} Custom lookup function. **Default:** [`dns.lookup()`][]. ",
                       "name": "lookup",
+                      "default": "[`dns.lookup()`][]",
                       "type": "Function",
-                      "desc": "Custom lookup function. Defaults to [`dns.lookup()`][]."
+                      "desc": "Custom lookup function."
                     },
                     {
                       "textRaw": "...: Optional [`tls.createSecureContext()`][] options that are used if the `secureContext` option is missing, otherwise they are ignored. ",
@@ -1364,10 +1424,11 @@
                       "desc": "Attempt to use the server's cipher suite preferences instead of the client's. When `true`, causes `SSL_OP_CIPHER_SERVER_PREFERENCE` to be set in `secureOptions`, see [OpenSSL Options][] for more information."
                     },
                     {
-                      "textRaw": "`ecdhCurve` {string} A string describing a named curve or a colon separated list of curve NIDs or names, for example `P-521:P-384:P-256`, to use for ECDH key agreement, or `false` to disable ECDH. Set to `auto` to select the curve automatically. Defaults to [`tls.DEFAULT_ECDH_CURVE`]. Use [`crypto.getCurves()`][] to obtain a list of available curve names. On recent releases, `openssl ecparam -list_curves` will also display the name and description of each available elliptic curve. ",
+                      "textRaw": "`ecdhCurve` {string} A string describing a named curve or a colon separated list of curve NIDs or names, for example `P-521:P-384:P-256`, to use for ECDH key agreement, or `false` to disable ECDH. Set to `auto` to select the curve automatically. Use [`crypto.getCurves()`][] to obtain a list of available curve names. On recent releases, `openssl ecparam -list_curves` will also display the name and description of each available elliptic curve. **Default:** [`tls.DEFAULT_ECDH_CURVE`]. ",
                       "name": "ecdhCurve",
+                      "default": "[`tls.DEFAULT_ECDH_CURVE`]",
                       "type": "string",
-                      "desc": "A string describing a named curve or a colon separated list of curve NIDs or names, for example `P-521:P-384:P-256`, to use for ECDH key agreement, or `false` to disable ECDH. Set to `auto` to select the curve automatically. Defaults to [`tls.DEFAULT_ECDH_CURVE`]. Use [`crypto.getCurves()`][] to obtain a list of available curve names. On recent releases, `openssl ecparam -list_curves` will also display the name and description of each available elliptic curve."
+                      "desc": "A string describing a named curve or a colon separated list of curve NIDs or names, for example `P-521:P-384:P-256`, to use for ECDH key agreement, or `false` to disable ECDH. Set to `auto` to select the curve automatically. Use [`crypto.getCurves()`][] to obtain a list of available curve names. On recent releases, `openssl ecparam -list_curves` will also display the name and description of each available elliptic curve."
                     },
                     {
                       "textRaw": "`dhparam` {string|Buffer} Diffie Hellman parameters, required for [Perfect Forward Secrecy][]. Use `openssl dhparam` to create the parameters. The key length must be greater than or equal to 1024 bits, otherwise an error will be thrown. It is strongly recommended to use 2048 bits or larger for stronger security. If omitted or invalid, the parameters are silently discarded and DHE ciphers will not be available. ",
@@ -1437,22 +1498,25 @@
                   "textRaw": "`options` {Object} ",
                   "options": [
                     {
-                      "textRaw": "`handshakeTimeout` {number} Abort the connection if the SSL/TLS handshake does not finish in the specified number of milliseconds. Defaults to `120` seconds. A `'tlsClientError'` is emitted on the `tls.Server` object whenever a handshake times out. ",
+                      "textRaw": "`handshakeTimeout` {number} Abort the connection if the SSL/TLS handshake does not finish in the specified number of milliseconds. A `'tlsClientError'` is emitted on the `tls.Server` object whenever a handshake times out. **Default:** `120000` (120 seconds). ",
                       "name": "handshakeTimeout",
+                      "default": "`120000` (120 seconds)",
                       "type": "number",
-                      "desc": "Abort the connection if the SSL/TLS handshake does not finish in the specified number of milliseconds. Defaults to `120` seconds. A `'tlsClientError'` is emitted on the `tls.Server` object whenever a handshake times out."
+                      "desc": "Abort the connection if the SSL/TLS handshake does not finish in the specified number of milliseconds. A `'tlsClientError'` is emitted on the `tls.Server` object whenever a handshake times out."
                     },
                     {
-                      "textRaw": "`requestCert` {boolean} If `true` the server will request a certificate from clients that connect and attempt to verify that certificate. Defaults to `false`. ",
+                      "textRaw": "`requestCert` {boolean} If `true` the server will request a certificate from clients that connect and attempt to verify that certificate. **Default:** `false`. ",
                       "name": "requestCert",
+                      "default": "`false`",
                       "type": "boolean",
-                      "desc": "If `true` the server will request a certificate from clients that connect and attempt to verify that certificate. Defaults to `false`."
+                      "desc": "If `true` the server will request a certificate from clients that connect and attempt to verify that certificate."
                     },
                     {
-                      "textRaw": "`rejectUnauthorized` {boolean} If not `false` the server will reject any connection which is not authorized with the list of supplied CAs. This option only has an effect if `requestCert` is `true`. Defaults to `true`. ",
+                      "textRaw": "`rejectUnauthorized` {boolean} If not `false` the server will reject any connection which is not authorized with the list of supplied CAs. This option only has an effect if `requestCert` is `true`. **Default:** `true`. ",
                       "name": "rejectUnauthorized",
+                      "default": "`true`",
                       "type": "boolean",
-                      "desc": "If not `false` the server will reject any connection which is not authorized with the list of supplied CAs. This option only has an effect if `requestCert` is `true`. Defaults to `true`."
+                      "desc": "If not `false` the server will reject any connection which is not authorized with the list of supplied CAs. This option only has an effect if `requestCert` is `true`."
                     },
                     {
                       "textRaw": "`NPNProtocols` {string[]|Buffer[]|Uint8Array[]|Buffer|Uint8Array} An array of strings, `Buffer`s or `Uint8Array`s, or a single `Buffer` or `Uint8Array` containing supported NPN protocols. `Buffer`s should have the format `[len][name][len][name]...` e.g. `0x05hello0x05world`, where the first byte is the length of the next protocol name. Passing an array is usually much simpler, e.g. `['hello', 'world']`. (Protocols should be ordered by their priority.) ",

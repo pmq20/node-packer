@@ -90,10 +90,10 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`msecs` {number} Defaults to 120000 (2 minutes). ",
+                      "textRaw": "`msecs` {number} **Default:** `120000` (2 minutes) ",
                       "name": "msecs",
+                      "default": "`120000` (2 minutes)",
                       "type": "number",
-                      "desc": "Defaults to 120000 (2 minutes).",
                       "optional": true
                     },
                     {
@@ -122,7 +122,7 @@
           ],
           "properties": [
             {
-              "textRaw": "`timeout` {number} Defaults to 120000 (2 minutes). ",
+              "textRaw": "`timeout` {number} **Default:** `120000` (2 minutes) ",
               "type": "number",
               "name": "timeout",
               "meta": {
@@ -131,11 +131,11 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>See <a href=\"http.html#http_server_timeout\"><code>http.Server#timeout</code></a>.</p>\n",
-              "shortDesc": "Defaults to 120000 (2 minutes)."
+              "default": "`120000` (2 minutes)",
+              "desc": "<p>See <a href=\"http.html#http_server_timeout\"><code>http.Server#timeout</code></a>.</p>\n"
             },
             {
-              "textRaw": "`keepAliveTimeout` {number} Defaults to 5000 (5 seconds). ",
+              "textRaw": "`keepAliveTimeout` {number} **Default:** `5000` (5 seconds) ",
               "type": "number",
               "name": "keepAliveTimeout",
               "meta": {
@@ -144,8 +144,8 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>See <a href=\"http.html#http_server_keepalivetimeout\"><code>http.Server#keepAliveTimeout</code></a>.</p>\n",
-              "shortDesc": "Defaults to 5000 (5 seconds)."
+              "default": "`5000` (5 seconds)",
+              "desc": "<p>See <a href=\"http.html#http_server_keepalivetimeout\"><code>http.Server#keepAliveTimeout</code></a>.</p>\n"
             }
           ]
         }
@@ -165,10 +165,10 @@
             {
               "params": [
                 {
-                  "textRaw": "`options` {Object} Accepts `options` from [`tls.createServer()`][] and [`tls.createSecureContext()`][]. ",
+                  "textRaw": "`options` {Object} Accepts `options` from [`tls.createServer()`][], [`tls.createSecureContext()`][] and [`http.createServer()`][]. ",
                   "name": "options",
                   "type": "Object",
-                  "desc": "Accepts `options` from [`tls.createServer()`][] and [`tls.createSecureContext()`][].",
+                  "desc": "Accepts `options` from [`tls.createServer()`][], [`tls.createSecureContext()`][] and [`http.createServer()`][].",
                   "optional": true
                 },
                 {
@@ -265,19 +265,19 @@
                   "textRaw": "`options` {Object | string | URL} Accepts all `options` from [`http.request()`][], with some differences in default values: ",
                   "options": [
                     {
-                      "textRaw": "`protocol` Defaults to `https:` ",
+                      "textRaw": "`protocol` **Default:** `https:` ",
                       "name": "protocol",
-                      "desc": "Defaults to `https:`"
+                      "default": "`https:`"
                     },
                     {
-                      "textRaw": "`port` Defaults to `443`. ",
+                      "textRaw": "`port` **Default:** `443` ",
                       "name": "port",
-                      "desc": "Defaults to `443`."
+                      "default": "`443`"
                     },
                     {
-                      "textRaw": "`agent` Defaults to `https.globalAgent`. ",
+                      "textRaw": "`agent` **Default:** `https.globalAgent` ",
                       "name": "agent",
-                      "desc": "Defaults to `https.globalAgent`."
+                      "default": "`https.globalAgent`"
                     }
                   ],
                   "name": "options",

@@ -140,7 +140,7 @@
                         "changes": []
                       },
                       "params": [],
-                      "desc": "<p>The <code>&#39;unpipe&#39;</code> event is emitted when the <a href=\"#stream_readable_unpipe_destination\"><code>stream.unpipe()</code></a> method is called\non a <a href=\"#stream_class_stream_readable\">Readable</a> stream, removing this <a href=\"#stream_class_stream_writable\">Writable</a> from its set of\ndestinations.</p>\n<pre><code class=\"lang-js\">const writer = getWritableStreamSomehow();\nconst reader = getReadableStreamSomehow();\nwriter.on(&#39;unpipe&#39;, (src) =&gt; {\n  console.error(&#39;Something has stopped piping into the writer.&#39;);\n  assert.equal(src, reader);\n});\nreader.pipe(writer);\nreader.unpipe(writer);\n</code></pre>\n"
+                      "desc": "<p>The <code>&#39;unpipe&#39;</code> event is emitted when the <a href=\"#stream_readable_unpipe_destination\"><code>stream.unpipe()</code></a> method is called\non a <a href=\"#stream_class_stream_readable\">Readable</a> stream, removing this <a href=\"#stream_class_stream_writable\">Writable</a> from its set of\ndestinations.</p>\n<p>This is also emitted in case this <a href=\"#stream_class_stream_writable\">Writable</a> stream emits an error when a\n<a href=\"#stream_class_stream_readable\">Readable</a> stream pipes into it.</p>\n<pre><code class=\"lang-js\">const writer = getWritableStreamSomehow();\nconst reader = getReadableStreamSomehow();\nwriter.on(&#39;unpipe&#39;, (src) =&gt; {\n  console.error(&#39;Something has stopped piping into the writer.&#39;);\n  assert.equal(src, reader);\n});\nreader.pipe(writer);\nreader.unpipe(writer);\n</code></pre>\n"
                     }
                   ],
                   "methods": [
@@ -584,10 +584,11 @@
                               "textRaw": "`options` {Object} Pipe options ",
                               "options": [
                                 {
-                                  "textRaw": "`end` {boolean} End the writer when the reader ends. Defaults to `true`. ",
+                                  "textRaw": "`end` {boolean} End the writer when the reader ends. **Default:** `true`. ",
                                   "name": "end",
+                                  "default": "`true`",
                                   "type": "boolean",
-                                  "desc": "End the writer when the reader ends. Defaults to `true`."
+                                  "desc": "End the writer when the reader ends."
                                 }
                               ],
                               "name": "options",
@@ -647,7 +648,7 @@
                           ]
                         }
                       ],
-                      "desc": "<p>The <code>readable.read()</code> method pulls some data out of the internal buffer and\nreturns it. If no data available to be read, <code>null</code> is returned. By default,\nthe data will be returned as a <code>Buffer</code> object unless an encoding has been\nspecified using the <code>readable.setEncoding()</code> method or the stream is operating\nin object mode.</p>\n<p>The optional <code>size</code> argument specifies a specific number of bytes to read. If\n<code>size</code> bytes are not available to be read, <code>null</code> will be returned <em>unless</em>\nthe stream has ended, in which case all of the data remaining in the internal\nbuffer will be returned.</p>\n<p>If the <code>size</code> argument is not specified, all of the data contained in the\ninternal buffer will be returned.</p>\n<p>The <code>readable.read()</code> method should only be called on Readable streams operating\nin paused mode. In flowing mode, <code>readable.read()</code> is called automatically until\nthe internal buffer is fully drained.</p>\n<pre><code class=\"lang-js\">const readable = getReadableStreamSomehow();\nreadable.on(&#39;readable&#39;, () =&gt; {\n  let chunk;\n  while (null !== (chunk = readable.read())) {\n    console.log(`Received ${chunk.length} bytes of data.`);\n  }\n});\n</code></pre>\n<p>In general, it is recommended that developers avoid the use of the <code>&#39;readable&#39;</code>\nevent and the <code>readable.read()</code> method in favor of using either\n<code>readable.pipe()</code> or the <code>&#39;data&#39;</code> event.</p>\n<p>A Readable stream in object mode will always return a single item from\na call to <a href=\"#stream_readable_read_size\"><code>readable.read(size)</code></a>, regardless of the value of the\n<code>size</code> argument.</p>\n<p><em>Note</em>: If the <code>readable.read()</code> method returns a chunk of data, a <code>&#39;data&#39;</code>\nevent will also be emitted.</p>\n<p><em>Note</em>: Calling <a href=\"#stream_readable_read_size\"><code>stream.read([size])</code></a> after the <a href=\"#stream_event_end\"><code>&#39;end&#39;</code></a>\nevent has been emitted will return <code>null</code>. No runtime error will be raised.</p>\n"
+                      "desc": "<p>The <code>readable.read()</code> method pulls some data out of the internal buffer and\nreturns it. If no data available to be read, <code>null</code> is returned. By default,\nthe data will be returned as a <code>Buffer</code> object unless an encoding has been\nspecified using the <code>readable.setEncoding()</code> method or the stream is operating\nin object mode.</p>\n<p>The optional <code>size</code> argument specifies a specific number of bytes to read. If\n<code>size</code> bytes are not available to be read, <code>null</code> will be returned <em>unless</em>\nthe stream has ended, in which case all of the data remaining in the internal\nbuffer will be returned.</p>\n<p>If the <code>size</code> argument is not specified, all of the data contained in the\ninternal buffer will be returned.</p>\n<p>The <code>readable.read()</code> method should only be called on Readable streams operating\nin paused mode. In flowing mode, <code>readable.read()</code> is called automatically until\nthe internal buffer is fully drained.</p>\n<pre><code class=\"lang-js\">const readable = getReadableStreamSomehow();\nreadable.on(&#39;readable&#39;, () =&gt; {\n  let chunk;\n  while (null !== (chunk = readable.read())) {\n    console.log(`Received ${chunk.length} bytes of data.`);\n  }\n});\n</code></pre>\n<p>A Readable stream in object mode will always return a single item from\na call to <a href=\"#stream_readable_read_size\"><code>readable.read(size)</code></a>, regardless of the value of the\n<code>size</code> argument.</p>\n<p><em>Note</em>: If the <code>readable.read()</code> method returns a chunk of data, a <code>&#39;data&#39;</code>\nevent will also be emitted.</p>\n<p><em>Note</em>: Calling <a href=\"#stream_readable_read_size\"><code>stream.read([size])</code></a> after the <a href=\"#stream_event_end\"><code>&#39;end&#39;</code></a>\nevent has been emitted will return <code>null</code>. No runtime error will be raised.</p>\n"
                     },
                     {
                       "textRaw": "readable.resume()",
@@ -951,22 +952,25 @@
                           "textRaw": "`options` {Object} ",
                           "options": [
                             {
-                              "textRaw": "`highWaterMark` {number} Buffer level when [`stream.write()`][stream-write] starts returning `false`. Defaults to `16384` (16kb), or `16` for `objectMode` streams. ",
+                              "textRaw": "`highWaterMark` {number} Buffer level when [`stream.write()`][stream-write] starts returning `false`. **Default:** `16384` (16kb), or `16` for `objectMode` streams. ",
                               "name": "highWaterMark",
+                              "default": "`16384` (16kb), or `16` for `objectMode` streams",
                               "type": "number",
-                              "desc": "Buffer level when [`stream.write()`][stream-write] starts returning `false`. Defaults to `16384` (16kb), or `16` for `objectMode` streams."
+                              "desc": "Buffer level when [`stream.write()`][stream-write] starts returning `false`."
                             },
                             {
-                              "textRaw": "`decodeStrings` {boolean} Whether or not to decode strings into Buffers before passing them to [`stream._write()`][stream-_write]. Defaults to `true` ",
+                              "textRaw": "`decodeStrings` {boolean} Whether or not to decode strings into Buffers before passing them to [`stream._write()`][stream-_write]. **Default:** `true`. ",
                               "name": "decodeStrings",
+                              "default": "`true`",
                               "type": "boolean",
-                              "desc": "Whether or not to decode strings into Buffers before passing them to [`stream._write()`][stream-_write]. Defaults to `true`"
+                              "desc": "Whether or not to decode strings into Buffers before passing them to [`stream._write()`][stream-_write]."
                             },
                             {
-                              "textRaw": "`objectMode` {boolean} Whether or not the [`stream.write(anyObj)`][stream-write] is a valid operation. When set, it becomes possible to write JavaScript values other than string, `Buffer` or `Uint8Array` if supported by the stream implementation. Defaults to `false` ",
+                              "textRaw": "`objectMode` {boolean} Whether or not the [`stream.write(anyObj)`][stream-write] is a valid operation. When set, it becomes possible to write JavaScript values other than string, `Buffer` or `Uint8Array` if supported by the stream implementation. **Default:** `false`. ",
                               "name": "objectMode",
+                              "default": "`false`",
                               "type": "boolean",
-                              "desc": "Whether or not the [`stream.write(anyObj)`][stream-write] is a valid operation. When set, it becomes possible to write JavaScript values other than string, `Buffer` or `Uint8Array` if supported by the stream implementation. Defaults to `false`"
+                              "desc": "Whether or not the [`stream.write(anyObj)`][stream-write] is a valid operation. When set, it becomes possible to write JavaScript values other than string, `Buffer` or `Uint8Array` if supported by the stream implementation."
                             },
                             {
                               "textRaw": "`write` {Function} Implementation for the [`stream._write()`][stream-_write] method. ",
@@ -1163,7 +1167,7 @@
                 {
                   "textRaw": "Errors While Writing",
                   "name": "errors_while_writing",
-                  "desc": "<p>It is recommended that errors occurring during the processing of the\n<code>writable._write()</code> and <code>writable._writev()</code> methods are reported by invoking\nthe callback and passing the error as the first argument. This will cause an\n<code>&#39;error&#39;</code> event to be emitted by the Writable. Throwing an Error from within\n<code>writable._write()</code> can result in unexpected and inconsistent behavior depending\non how the stream is being used. Using the callback ensures consistent and\npredictable handling of errors.</p>\n<pre><code class=\"lang-js\">const { Writable } = require(&#39;stream&#39;);\n\nconst myWritable = new Writable({\n  write(chunk, encoding, callback) {\n    if (chunk.toString().indexOf(&#39;a&#39;) &gt;= 0) {\n      callback(new Error(&#39;chunk is invalid&#39;));\n    } else {\n      callback();\n    }\n  }\n});\n</code></pre>\n",
+                  "desc": "<p>It is recommended that errors occurring during the processing of the\n<code>writable._write()</code> and <code>writable._writev()</code> methods are reported by invoking\nthe callback and passing the error as the first argument. This will cause an\n<code>&#39;error&#39;</code> event to be emitted by the Writable. Throwing an Error from within\n<code>writable._write()</code> can result in unexpected and inconsistent behavior depending\non how the stream is being used. Using the callback ensures consistent and\npredictable handling of errors.</p>\n<p>If a Readable stream pipes into a Writable stream when Writable emits an\nerror, the Readable stream will be unpiped.</p>\n<pre><code class=\"lang-js\">const { Writable } = require(&#39;stream&#39;);\n\nconst myWritable = new Writable({\n  write(chunk, encoding, callback) {\n    if (chunk.toString().indexOf(&#39;a&#39;) &gt;= 0) {\n      callback(new Error(&#39;chunk is invalid&#39;));\n    } else {\n      callback();\n    }\n  }\n});\n</code></pre>\n",
                   "type": "module",
                   "displayName": "Errors While Writing"
                 },
@@ -1201,22 +1205,25 @@
                           "textRaw": "`options` {Object} ",
                           "options": [
                             {
-                              "textRaw": "`highWaterMark` {number} The maximum [number of bytes][hwm-gotcha] to store in the internal buffer before ceasing to read from the underlying resource. Defaults to `16384` (16kb), or `16` for `objectMode` streams ",
+                              "textRaw": "`highWaterMark` {number} The maximum [number of bytes][hwm-gotcha] to store in the internal buffer before ceasing to read from the underlying resource. **Default:** `16384` (16kb), or `16` for `objectMode` streams. ",
                               "name": "highWaterMark",
+                              "default": "`16384` (16kb), or `16` for `objectMode` streams",
                               "type": "number",
-                              "desc": "The maximum [number of bytes][hwm-gotcha] to store in the internal buffer before ceasing to read from the underlying resource. Defaults to `16384` (16kb), or `16` for `objectMode` streams"
+                              "desc": "The maximum [number of bytes][hwm-gotcha] to store in the internal buffer before ceasing to read from the underlying resource."
                             },
                             {
-                              "textRaw": "`encoding` {string} If specified, then buffers will be decoded to strings using the specified encoding. Defaults to `null` ",
+                              "textRaw": "`encoding` {string} If specified, then buffers will be decoded to strings using the specified encoding. **Default:** `null`. ",
                               "name": "encoding",
+                              "default": "`null`",
                               "type": "string",
-                              "desc": "If specified, then buffers will be decoded to strings using the specified encoding. Defaults to `null`"
+                              "desc": "If specified, then buffers will be decoded to strings using the specified encoding."
                             },
                             {
-                              "textRaw": "`objectMode` {boolean} Whether this stream should behave as a stream of objects. Meaning that [`stream.read(n)`][stream-read] returns a single value instead of a Buffer of size n. Defaults to `false` ",
+                              "textRaw": "`objectMode` {boolean} Whether this stream should behave as a stream of objects. Meaning that [`stream.read(n)`][stream-read] returns a single value instead of a Buffer of size n. **Default:** `false`. ",
                               "name": "objectMode",
+                              "default": "`false`",
                               "type": "boolean",
-                              "desc": "Whether this stream should behave as a stream of objects. Meaning that [`stream.read(n)`][stream-read] returns a single value instead of a Buffer of size n. Defaults to `false`"
+                              "desc": "Whether this stream should behave as a stream of objects. Meaning that [`stream.read(n)`][stream-read] returns a single value instead of a Buffer of size n."
                             },
                             {
                               "textRaw": "`read` {Function} Implementation for the [`stream._read()`][stream-_read] method. ",
@@ -1362,7 +1369,7 @@
                       ]
                     }
                   ],
-                  "desc": "<p>When <code>chunk</code> is a <code>Buffer</code>, <code>Uint8Array</code> or <code>string</code>, the <code>chunk</code> of data will\nbe added to the internal queue for users of the stream to consume.\nPassing <code>chunk</code> as <code>null</code> signals the end of the stream (EOF), after which no\nmore data can be written.</p>\n<p>When the Readable is operating in paused mode, the data added with\n<code>readable.push()</code> can be read out by calling the\n<a href=\"#stream_readable_read_size\"><code>readable.read()</code></a> method when the <a href=\"#stream_event_readable\"><code>&#39;readable&#39;</code></a> event is\nemitted.</p>\n<p>When the Readable is operating in flowing mode, the data added with\n<code>readable.push()</code> will be delivered by emitting a <code>&#39;data&#39;</code> event.</p>\n<p>The <code>readable.push()</code> method is designed to be as flexible as possible. For\nexample, when wrapping a lower-level source that provides some form of\npause/resume mechanism, and a data callback, the low-level source can be wrapped\nby the custom Readable instance as illustrated in the following example:</p>\n<pre><code class=\"lang-js\">// source is an object with readStop() and readStart() methods,\n// and an `ondata` member that gets called when it has data, and\n// an `onend` member that gets called when the data is over.\n\nclass SourceWrapper extends Readable {\n  constructor(options) {\n    super(options);\n\n    this._source = getLowlevelSourceObject();\n\n    // Every time there&#39;s data, push it into the internal buffer.\n    this._source.ondata = (chunk) =&gt; {\n      // if push() returns false, then stop reading from source\n      if (!this.push(chunk))\n        this._source.readStop();\n    };\n\n    // When the source ends, push the EOF-signaling `null` chunk\n    this._source.onend = () =&gt; {\n      this.push(null);\n    };\n  }\n  // _read will be called when the stream wants to pull more data in\n  // the advisory size argument is ignored in this case.\n  _read(size) {\n    this._source.readStart();\n  }\n}\n</code></pre>\n<p><em>Note</em>: The <code>readable.push()</code> method is intended be called only by Readable\nImplementers, and only from within the <code>readable._read()</code> method.</p>\n"
+                  "desc": "<p>When <code>chunk</code> is a <code>Buffer</code>, <code>Uint8Array</code> or <code>string</code>, the <code>chunk</code> of data will\nbe added to the internal queue for users of the stream to consume.\nPassing <code>chunk</code> as <code>null</code> signals the end of the stream (EOF), after which no\nmore data can be written.</p>\n<p>When the Readable is operating in paused mode, the data added with\n<code>readable.push()</code> can be read out by calling the\n<a href=\"#stream_readable_read_size\"><code>readable.read()</code></a> method when the <a href=\"#stream_event_readable\"><code>&#39;readable&#39;</code></a> event is\nemitted.</p>\n<p>When the Readable is operating in flowing mode, the data added with\n<code>readable.push()</code> will be delivered by emitting a <code>&#39;data&#39;</code> event.</p>\n<p>The <code>readable.push()</code> method is designed to be as flexible as possible. For\nexample, when wrapping a lower-level source that provides some form of\npause/resume mechanism, and a data callback, the low-level source can be wrapped\nby the custom Readable instance as illustrated in the following example:</p>\n<pre><code class=\"lang-js\">// source is an object with readStop() and readStart() methods,\n// and an `ondata` member that gets called when it has data, and\n// an `onend` member that gets called when the data is over.\n\nclass SourceWrapper extends Readable {\n  constructor(options) {\n    super(options);\n\n    this._source = getLowlevelSourceObject();\n\n    // Every time there&#39;s data, push it into the internal buffer.\n    this._source.ondata = (chunk) =&gt; {\n      // if push() returns false, then stop reading from source\n      if (!this.push(chunk))\n        this._source.readStop();\n    };\n\n    // When the source ends, push the EOF-signaling `null` chunk\n    this._source.onend = () =&gt; {\n      this.push(null);\n    };\n  }\n  // _read will be called when the stream wants to pull more data in\n  // the advisory size argument is ignored in this case.\n  _read(size) {\n    this._source.readStart();\n  }\n}\n</code></pre>\n<p><em>Note</em>: The <code>readable.push()</code> method is intended be called only by Readable\nImplementers, and only from within the <code>readable._read()</code> method.</p>\n<p>For streams not operating in object mode, if the <code>chunk</code> parameter of\n<code>readable.push()</code> is <code>undefined</code>, it will be treated as empty string or\nbuffer. See <a href=\"#stream_readable_push\"><code>readable.push(&#39;&#39;)</code></a> for more information.</p>\n"
                 }
               ],
               "modules": [
@@ -1410,22 +1417,25 @@
                           "textRaw": "`options` {Object} Passed to both Writable and Readable constructors. Also has the following fields: ",
                           "options": [
                             {
-                              "textRaw": "`allowHalfOpen` {boolean} Defaults to `true`. If set to `false`, then the stream will automatically end the writable side when the readable side ends. ",
+                              "textRaw": "`allowHalfOpen` {boolean} If set to `false`, then the stream will automatically end the writable side when the readable side ends. **Default:** `true`. ",
                               "name": "allowHalfOpen",
+                              "default": "`true`",
                               "type": "boolean",
-                              "desc": "Defaults to `true`. If set to `false`, then the stream will automatically end the writable side when the readable side ends."
+                              "desc": "If set to `false`, then the stream will automatically end the writable side when the readable side ends."
                             },
                             {
-                              "textRaw": "`readableObjectMode` {boolean} Defaults to `false`. Sets `objectMode` for readable side of the stream. Has no effect if `objectMode` is `true`. ",
+                              "textRaw": "`readableObjectMode` {boolean} Sets `objectMode` for readable side of the stream. Has no effect if `objectMode` is `true`. **Default:** `false`. ",
                               "name": "readableObjectMode",
+                              "default": "`false`",
                               "type": "boolean",
-                              "desc": "Defaults to `false`. Sets `objectMode` for readable side of the stream. Has no effect if `objectMode` is `true`."
+                              "desc": "Sets `objectMode` for readable side of the stream. Has no effect if `objectMode` is `true`."
                             },
                             {
-                              "textRaw": "`writableObjectMode` {boolean} Defaults to `false`. Sets `objectMode` for writable side of the stream. Has no effect if `objectMode` is `true`. ",
+                              "textRaw": "`writableObjectMode` {boolean} Sets `objectMode` for writable side of the stream. Has no effect if `objectMode` is `true`. **Default:** `false`. ",
                               "name": "writableObjectMode",
+                              "default": "`false`",
                               "type": "boolean",
-                              "desc": "Defaults to `false`. Sets `objectMode` for writable side of the stream. Has no effect if `objectMode` is `true`."
+                              "desc": "Sets `objectMode` for writable side of the stream. Has no effect if `objectMode` is `true`."
                             },
                             {
                               "textRaw": "`readableHighWaterMark` {number} Sets `highWaterMark` for the readable side of the stream. Has no effect if `highWaterMark` is provided. ",

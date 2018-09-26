@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>String Decoder | Node.js v8.11.4 Documentation</title>
+  <title>String Decoder | Node.js v8.12.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -82,7 +82,7 @@
 
     <div id="column1" data-id="string_decoder" class="interior">
       <header>
-        <h1>Node.js v8.11.4 Documentation</h1>
+        <h1>Node.js v8.12.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -162,17 +162,15 @@ console.log(decoder.end(Buffer.from([0xAC])));
 <div class="api_metadata">
 <span>Added in: v0.1.99</span>
 </div><ul>
-<li><code>encoding</code> 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The character encoding the <code>StringDecoder</code> will use.
-Defaults to <code>&#39;utf8&#39;</code>.</li>
+<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The character encoding the <code>StringDecoder</code> will use.
+<strong>Default:</strong> <code>&#39;utf8&#39;</code>.</li>
 </ul>
 <p>Creates a new <code>StringDecoder</code> instance.</p>
 <h3>stringDecoder.end([buffer])<span><a class="mark" href="#string_decoder_stringdecoder_end_buffer" id="string_decoder_stringdecoder_end_buffer">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.9.3</span>
 </div><ul>
-<li><code>buffer</code> 
-            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> A <code>Buffer</code> containing the bytes to decode.</li>
+<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> A <code>Buffer</code> containing the bytes to decode.</li>
 </ul>
 <p>Returns any remaining input stored in the internal buffer as a string. Bytes
 representing incomplete UTF-8 and UTF-16 characters will be replaced with
@@ -193,8 +191,7 @@ is performed before returning the remaining input.</p>
 </table>
 </details>
 </div><ul>
-<li><code>buffer</code> 
-            <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> A <code>Buffer</code> containing the bytes to decode.</li>
+<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> A <code>Buffer</code> containing the bytes to decode.</li>
 </ul>
 <p>Returns a decoded string, ensuring that any incomplete multibyte characters at
 the end of the <code>Buffer</code> are omitted from the returned string and stored in an

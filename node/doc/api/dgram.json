@@ -750,10 +750,11 @@
                           "desc": "The family of socket. Must be either `'udp4'` or `'udp6'`. Required."
                         },
                         {
-                          "textRaw": "`reuseAddr` {boolean} When `true` [`socket.bind()`][] will reuse the address, even if another process has already bound a socket on it. Defaults to `false`. ",
+                          "textRaw": "`reuseAddr` {boolean} When `true` [`socket.bind()`][] will reuse the address, even if another process has already bound a socket on it. **Default:** `false`. ",
                           "name": "reuseAddr",
+                          "default": "`false`",
                           "type": "boolean",
-                          "desc": "When `true` [`socket.bind()`][] will reuse the address, even if another process has already bound a socket on it. Defaults to `false`."
+                          "desc": "When `true` [`socket.bind()`][] will reuse the address, even if another process has already bound a socket on it."
                         },
                         {
                           "textRaw": "`recvBufferSize` {number} - Sets the `SO_RCVBUF` socket value. ",
@@ -768,10 +769,11 @@
                           "desc": "Sets the `SO_SNDBUF` socket value."
                         },
                         {
-                          "textRaw": "`lookup` {Function} Custom lookup function. Defaults to [`dns.lookup()`][]. ",
+                          "textRaw": "`lookup` {Function} Custom lookup function. **Default:** [`dns.lookup()`][]. ",
                           "name": "lookup",
+                          "default": "[`dns.lookup()`][]",
                           "type": "Function",
-                          "desc": "Custom lookup function. Defaults to [`dns.lookup()`][]."
+                          "desc": "Custom lookup function."
                         }
                       ],
                       "name": "options",

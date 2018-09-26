@@ -93,7 +93,7 @@
             {
               "textRaw": "Environment Variable Options",
               "name": "environment_variable_options",
-              "desc": "<p>Various behaviors of the Node.js REPL can be customized using the following\nenvironment variables:</p>\n<ul>\n<li><code>NODE_REPL_HISTORY</code> - When a valid path is given, persistent REPL history\nwill be saved to the specified file rather than <code>.node_repl_history</code> in the\nuser&#39;s home directory. Setting this value to <code>&#39;&#39;</code> will disable persistent\nREPL history. Whitespace will be trimmed from the value.</li>\n<li><code>NODE_REPL_HISTORY_SIZE</code> - Defaults to <code>1000</code>. Controls how many lines of\nhistory will be persisted if history is available. Must be a positive number.</li>\n<li><code>NODE_REPL_MODE</code> - May be any of <code>sloppy</code>, <code>strict</code>, or <code>magic</code>. Defaults\nto <code>sloppy</code>, which will allow non-strict mode code to be run. <code>magic</code> is\n<strong>deprecated</strong> and treated as an alias of <code>sloppy</code>.</li>\n</ul>\n",
+              "desc": "<p>Various behaviors of the Node.js REPL can be customized using the following\nenvironment variables:</p>\n<ul>\n<li><code>NODE_REPL_HISTORY</code> - When a valid path is given, persistent REPL history\nwill be saved to the specified file rather than <code>.node_repl_history</code> in the\nuser&#39;s home directory. Setting this value to <code>&#39;&#39;</code> will disable persistent\nREPL history. Whitespace will be trimmed from the value.</li>\n<li><code>NODE_REPL_HISTORY_SIZE</code> - Controls how many lines of history will be\npersisted if history is available. Must be a positive number.\n<strong>Default:</strong> <code>1000</code>.</li>\n<li><code>NODE_REPL_MODE</code> - May be any of <code>sloppy</code>, <code>strict</code>, or <code>magic</code>. <code>magic</code> is\n<strong>deprecated</strong> and treated as an alias of <code>sloppy</code>. <strong>Default:</strong> <code>sloppy</code>,\nwhich will allow non-strict mode code to be run.</li>\n</ul>\n",
               "type": "module",
               "displayName": "Environment Variable Options"
             },
@@ -283,58 +283,67 @@
                   "textRaw": "`options` {Object|string} ",
                   "options": [
                     {
-                      "textRaw": "`prompt` {string} The input prompt to display. Defaults to `> ` (with a trailing space). ",
+                      "textRaw": "`prompt` {string} The input prompt to display. **Default:** `> `. (with a trailing space). ",
                       "name": "prompt",
+                      "default": "`> `. (with a trailing space)",
                       "type": "string",
-                      "desc": "The input prompt to display. Defaults to `> ` (with a trailing space)."
+                      "desc": "The input prompt to display."
                     },
                     {
-                      "textRaw": "`input` {stream.Readable} The Readable stream from which REPL input will be read. Defaults to `process.stdin`. ",
+                      "textRaw": "`input` {stream.Readable} The Readable stream from which REPL input will be read. **Default:** `process.stdin`. ",
                       "name": "input",
+                      "default": "`process.stdin`",
                       "type": "stream.Readable",
-                      "desc": "The Readable stream from which REPL input will be read. Defaults to `process.stdin`."
+                      "desc": "The Readable stream from which REPL input will be read."
                     },
                     {
-                      "textRaw": "`output` {stream.Writable} The Writable stream to which REPL output will be written. Defaults to `process.stdout`. ",
+                      "textRaw": "`output` {stream.Writable} The Writable stream to which REPL output will be written. **Default:** `process.stdout`. ",
                       "name": "output",
+                      "default": "`process.stdout`",
                       "type": "stream.Writable",
-                      "desc": "The Writable stream to which REPL output will be written. Defaults to `process.stdout`."
+                      "desc": "The Writable stream to which REPL output will be written."
                     },
                     {
-                      "textRaw": "`terminal` {boolean} If `true`, specifies that the `output` should be treated as a TTY terminal, and have ANSI/VT100 escape codes written to it. Defaults to checking the value of the `isTTY` property on the `output` stream upon instantiation. ",
+                      "textRaw": "`terminal` {boolean} If `true`, specifies that the `output` should be treated as a TTY terminal, and have ANSI/VT100 escape codes written to it. **Default:** checking the value of the `isTTY` property on the `output` stream upon instantiation. ",
                       "name": "terminal",
+                      "default": "checking the value of the `isTTY` property on the `output` stream upon instantiation",
                       "type": "boolean",
-                      "desc": "If `true`, specifies that the `output` should be treated as a TTY terminal, and have ANSI/VT100 escape codes written to it. Defaults to checking the value of the `isTTY` property on the `output` stream upon instantiation."
+                      "desc": "If `true`, specifies that the `output` should be treated as a TTY terminal, and have ANSI/VT100 escape codes written to it."
                     },
                     {
-                      "textRaw": "`eval` {Function} The function to be used when evaluating each given line of input. Defaults to an async wrapper for the JavaScript `eval()` function. An `eval` function can error with `repl.Recoverable` to indicate the input was incomplete and prompt for additional lines. ",
+                      "textRaw": "`eval` {Function} The function to be used when evaluating each given line of input. **Default:** an async wrapper for the JavaScript `eval()` function. An `eval` function can error with `repl.Recoverable` to indicate the input was incomplete and prompt for additional lines. ",
                       "name": "eval",
+                      "default": "an async wrapper for the JavaScript `eval()` function. An `eval` function can error with `repl.Recoverable` to indicate the input was incomplete and prompt for additional lines",
                       "type": "Function",
-                      "desc": "The function to be used when evaluating each given line of input. Defaults to an async wrapper for the JavaScript `eval()` function. An `eval` function can error with `repl.Recoverable` to indicate the input was incomplete and prompt for additional lines."
+                      "desc": "The function to be used when evaluating each given line of input."
                     },
                     {
-                      "textRaw": "`useColors` {boolean} If `true`, specifies that the default `writer` function should include ANSI color styling to REPL output. If a custom `writer` function is provided then this has no effect. Defaults to the  REPL instances `terminal` value. ",
+                      "textRaw": "`useColors` {boolean} If `true`, specifies that the default `writer` function should include ANSI color styling to REPL output. If a custom `writer` function is provided then this has no effect. **Default:** the  REPL instances `terminal` value. ",
                       "name": "useColors",
+                      "default": "the  REPL instances `terminal` value",
                       "type": "boolean",
-                      "desc": "If `true`, specifies that the default `writer` function should include ANSI color styling to REPL output. If a custom `writer` function is provided then this has no effect. Defaults to the  REPL instances `terminal` value."
+                      "desc": "If `true`, specifies that the default `writer` function should include ANSI color styling to REPL output. If a custom `writer` function is provided then this has no effect."
                     },
                     {
-                      "textRaw": "`useGlobal` {boolean} If `true`, specifies that the default evaluation  function will use the JavaScript `global` as the context as opposed to  creating a new separate context for the REPL instance. The node CLI REPL  sets this value to `true`. Defaults to `false`. ",
+                      "textRaw": "`useGlobal` {boolean} If `true`, specifies that the default evaluation  function will use the JavaScript `global` as the context as opposed to  creating a new separate context for the REPL instance. The node CLI REPL  sets this value to `true`. **Default:** `false`. ",
                       "name": "useGlobal",
+                      "default": "`false`",
                       "type": "boolean",
-                      "desc": "If `true`, specifies that the default evaluation  function will use the JavaScript `global` as the context as opposed to  creating a new separate context for the REPL instance. The node CLI REPL  sets this value to `true`. Defaults to `false`."
+                      "desc": "If `true`, specifies that the default evaluation  function will use the JavaScript `global` as the context as opposed to  creating a new separate context for the REPL instance. The node CLI REPL  sets this value to `true`."
                     },
                     {
-                      "textRaw": "`ignoreUndefined` {boolean} If `true`, specifies that the default writer  will not output the return value of a command if it evaluates to  `undefined`. Defaults to `false`. ",
+                      "textRaw": "`ignoreUndefined` {boolean} If `true`, specifies that the default writer  will not output the return value of a command if it evaluates to  `undefined`. **Default:** `false`. ",
                       "name": "ignoreUndefined",
+                      "default": "`false`",
                       "type": "boolean",
-                      "desc": "If `true`, specifies that the default writer  will not output the return value of a command if it evaluates to  `undefined`. Defaults to `false`."
+                      "desc": "If `true`, specifies that the default writer  will not output the return value of a command if it evaluates to  `undefined`."
                     },
                     {
-                      "textRaw": "`writer` {Function} The function to invoke to format the output of each  command before writing to `output`. Defaults to [`util.inspect()`][]. ",
+                      "textRaw": "`writer` {Function} The function to invoke to format the output of each  command before writing to `output`. **Default:** [`util.inspect()`][]. ",
                       "name": "writer",
+                      "default": "[`util.inspect()`][]",
                       "type": "Function",
-                      "desc": "The function to invoke to format the output of each  command before writing to `output`. Defaults to [`util.inspect()`][]."
+                      "desc": "The function to invoke to format the output of each  command before writing to `output`."
                     },
                     {
                       "textRaw": "`completer` {Function} An optional function used for custom Tab auto  completion. See [`readline.InterfaceCompleter`][] for an example. ",
@@ -366,9 +375,10 @@
                       "desc": "A flag that specifies whether the default evaluator executes all JavaScript commands in strict mode or default (sloppy) mode. Acceptable values are:"
                     },
                     {
-                      "textRaw": "`breakEvalOnSigint` - Stop evaluating the current piece of code when `SIGINT` is received, i.e. `Ctrl+C` is pressed. This cannot be used together with a custom `eval` function. Defaults to `false`. ",
+                      "textRaw": "`breakEvalOnSigint` - Stop evaluating the current piece of code when `SIGINT` is received, i.e. `Ctrl+C` is pressed. This cannot be used together with a custom `eval` function. **Default:** `false`. ",
                       "name": "breakEvalOnSigint",
-                      "desc": "Stop evaluating the current piece of code when `SIGINT` is received, i.e. `Ctrl+C` is pressed. This cannot be used together with a custom `eval` function. Defaults to `false`."
+                      "default": "`false`",
+                      "desc": "Stop evaluating the current piece of code when `SIGINT` is received, i.e. `Ctrl+C` is pressed. This cannot be used together with a custom `eval` function."
                     }
                   ],
                   "name": "options",

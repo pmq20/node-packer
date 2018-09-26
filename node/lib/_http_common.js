@@ -34,6 +34,7 @@ const {
 
 const debug = require('util').debuglog('http');
 
+const kIncomingMessage = Symbol('IncomingMessage');
 const kOnHeaders = HTTPParser.kOnHeaders | 0;
 const kOnHeadersComplete = HTTPParser.kOnHeadersComplete | 0;
 const kOnBody = HTTPParser.kOnBody | 0;
@@ -73,7 +74,11 @@ function parserOnHeadersComplete(versionMajor, versionMinor, headers, method,
     parser._url = '';
   }
 
-  parser.incoming = new IncomingMessage(parser.socket);
+  // Parser is also used by http client
+  var ParserIncomingMessage = parser.socket && parser.socket.server ?
+    parser.socket.server[kIncomingMessage] : IncomingMessage;
+
+  parser.incoming = new ParserIncomingMessage(parser.socket);
   parser.incoming.httpVersionMajor = versionMajor;
   parser.incoming.httpVersionMinor = versionMinor;
   parser.incoming.httpVersion = `${versionMajor}.${versionMinor}`;
@@ -181,6 +186,7 @@ var parsers = new FreeList('parsers', 1000, function() {
   return parser;
 });
 
+function closeParserInstance(parser) { parser.close(); }
 
 // Free the parser and also break any links that it
 // might have to any other things.
@@ -203,7 +209,9 @@ function freeParser(parser, req, socket) {
     parser.outgoing = null;
     parser[kOnExecute] = null;
     if (parsers.free(parser) === false) {
-      parser.close();
+      // Make sure the parser's stack has unwound before deleting the
+      // corresponding C++ object through .close().
+      setImmediate(closeParserInstance, parser);
     } else {
       // Since the Parser destructor isn't going to run the destroy() callbacks
       // it needs to be triggered manually.
@@ -353,5 +361,6 @@ module.exports = {
   freeParser,
   httpSocketSetup,
   methods,
-  parsers
+  parsers,
+  kIncomingMessage
 };

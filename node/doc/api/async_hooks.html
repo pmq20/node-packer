@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Async Hooks | Node.js v8.11.4 Documentation</title>
+  <title>Async Hooks | Node.js v8.12.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -82,7 +82,7 @@
 
     <div id="column1" data-id="async_hooks" class="interior">
       <header>
-        <h1>Node.js v8.11.4 Documentation</h1>
+        <h1>Node.js v8.12.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -143,8 +143,9 @@
 <li><span class="stability_undefined"><a href="#async_hooks_javascript_embedder_api">JavaScript Embedder API</a></span><ul>
 <li><span class="stability_undefined"><a href="#async_hooks_class_asyncresource"><code>class AsyncResource()</code></a></span><ul>
 <li><span class="stability_undefined"><a href="#async_hooks_asyncresource_type_options"><code>AsyncResource(type[, options])</code></a></span></li>
-<li><span class="stability_undefined"><a href="#async_hooks_asyncresource_emitbefore"><code>asyncResource.emitBefore()</code></a></span></li>
-<li><span class="stability_undefined"><a href="#async_hooks_asyncresource_emitafter"><code>asyncResource.emitAfter()</code></a></span></li>
+<li><span class="stability_undefined"><a href="#async_hooks_asyncresource_runinasyncscope_fn_thisarg_args"><code>asyncResource.runInAsyncScope(fn[, thisArg, ...args])</code></a></span></li>
+<li><span class="stability_0"><a href="#async_hooks_asyncresource_emitbefore"><code>asyncResource.emitBefore()</code></a></span></li>
+<li><span class="stability_0"><a href="#async_hooks_asyncresource_emitafter"><code>asyncResource.emitAfter()</code></a></span></li>
 <li><span class="stability_undefined"><a href="#async_hooks_asyncresource_emitdestroy"><code>asyncResource.emitDestroy()</code></a></span></li>
 <li><span class="stability_undefined"><a href="#async_hooks_asyncresource_asyncid"><code>asyncResource.asyncId()</code></a></span></li>
 <li><span class="stability_undefined"><a href="#async_hooks_asyncresource_triggerasyncid"><code>asyncResource.triggerAsyncId()</code></a></span></li>
@@ -226,20 +227,14 @@ function promiseResolve(asyncId) { }
 <div class="api_metadata">
 <span>Added in: v8.1.0</span>
 </div><ul>
-<li><code>callbacks</code> 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> The <a href="#async_hooks_hook_callbacks">Hook Callbacks</a> to register<ul>
-<li><code>init</code> 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The <a href="#async_hooks_init_asyncid_type_triggerasyncid_resource"><code>init</code> callback</a>.</li>
-<li><code>before</code> 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The <a href="#async_hooks_before_asyncid"><code>before</code> callback</a>.</li>
-<li><code>after</code> 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The <a href="#async_hooks_after_asyncid"><code>after</code> callback</a>.</li>
-<li><code>destroy</code> 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The <a href="#async_hooks_destroy_asyncid"><code>destroy</code> callback</a>.</li>
+<li><code>callbacks</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> The <a href="#async_hooks_hook_callbacks">Hook Callbacks</a> to register<ul>
+<li><code>init</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The <a href="#async_hooks_init_asyncid_type_triggerasyncid_resource"><code>init</code> callback</a>.</li>
+<li><code>before</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The <a href="#async_hooks_before_asyncid"><code>before</code> callback</a>.</li>
+<li><code>after</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The <a href="#async_hooks_after_asyncid"><code>after</code> callback</a>.</li>
+<li><code>destroy</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The <a href="#async_hooks_destroy_asyncid"><code>destroy</code> callback</a>.</li>
 </ul>
 </li>
-<li>Returns: 
-            <a href="async_hooks.html#async_hooks_async_hooks_createhook_callbacks" class="type">&lt;AsyncHook&gt;</a> Instance used for disabling and enabling hooks</li>
+<li>Returns: <a href="async_hooks.html#async_hooks_async_hooks_createhook_callbacks" class="type">&lt;AsyncHook&gt;</a> Instance used for disabling and enabling hooks</li>
 </ul>
 <p>Registers functions to be called for different lifetime events of each async
 operation.</p>
@@ -306,8 +301,7 @@ it was the logging itself that caused AsyncHooks callback to call. By
 doing this the otherwise infinite recursion is broken.</p>
 <h4><code>asyncHook.enable()</code><span><a class="mark" href="#async_hooks_asynchook_enable" id="async_hooks_asynchook_enable">#</a></span></h4>
 <div class="signature"><ul>
-<li>Returns: 
-            <a href="async_hooks.html#async_hooks_async_hooks_createhook_callbacks" class="type">&lt;AsyncHook&gt;</a> A reference to <code>asyncHook</code>.</li>
+<li>Returns: <a href="async_hooks.html#async_hooks_async_hooks_createhook_callbacks" class="type">&lt;AsyncHook&gt;</a> A reference to <code>asyncHook</code>.</li>
 </ul>
 </div><p>Enable the callbacks for a given <code>AsyncHook</code> instance. If no callbacks are
 provided enabling is a noop.</p>
@@ -319,8 +313,7 @@ const hook = async_hooks.createHook(callbacks).enable();
 </code></pre>
 <h4><code>asyncHook.disable()</code><span><a class="mark" href="#async_hooks_asynchook_disable" id="async_hooks_asynchook_disable">#</a></span></h4>
 <div class="signature"><ul>
-<li>Returns: 
-            <a href="async_hooks.html#async_hooks_async_hooks_createhook_callbacks" class="type">&lt;AsyncHook&gt;</a> A reference to <code>asyncHook</code>.</li>
+<li>Returns: <a href="async_hooks.html#async_hooks_async_hooks_createhook_callbacks" class="type">&lt;AsyncHook&gt;</a> A reference to <code>asyncHook</code>.</li>
 </ul>
 </div><p>Disable the callbacks for a given <code>AsyncHook</code> instance from the global pool of
 AsyncHook callbacks to be executed. Once a hook has been disabled it will not
@@ -332,15 +325,11 @@ four areas: instantiation, before/after the callback is called, and when the
 instance is destroyed.</p>
 <h5><code>init(asyncId, type, triggerAsyncId, resource)</code><span><a class="mark" href="#async_hooks_init_asyncid_type_triggerasyncid_resource" id="async_hooks_init_asyncid_type_triggerasyncid_resource">#</a></span></h5>
 <div class="signature"><ul>
-<li><code>asyncId</code> 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> A unique ID for the async resource.</li>
-<li><code>type</code> 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The type of the async resource.</li>
-<li><code>triggerAsyncId</code> 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> The unique ID of the async resource in whose
+<li><code>asyncId</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> A unique ID for the async resource.</li>
+<li><code>type</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The type of the async resource.</li>
+<li><code>triggerAsyncId</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> The unique ID of the async resource in whose
 execution context this async resource was created.</li>
-<li><code>resource</code> 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> Reference to the resource representing the async operation,
+<li><code>resource</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> Reference to the resource representing the async operation,
 needs to be released during <em>destroy</em>.</li>
 </ul>
 </div><p>Called when a class is constructed that has the <em>possibility</em> to emit an
@@ -410,10 +399,10 @@ currently not considered public, but using the Embedder API, users can provide
 and document their own resource objects. For example, such a resource object
 could contain the SQL query being executed.</p>
 <p>In the case of Promises, the <code>resource</code> object will have <code>promise</code> property
-that refers to the Promise that is being initialized, and a <code>parentId</code> property
-set to the <code>asyncId</code> of a parent Promise, if there is one, and <code>undefined</code>
+that refers to the Promise that is being initialized, and a <code>isChainedPromise</code>
+property, set to <code>true</code> if the promise has a parent promise, and <code>false</code>
 otherwise. For example, in the case of <code>b = a.then(handler)</code>, <code>a</code> is considered
-a parent Promise of <code>b</code>.</p>
+a parent Promise of <code>b</code>. Here, <code>b</code> is considered a chained promise.</p>
 <p><em>Note</em>: In some cases the resource object is reused for performance reasons,
 it is thus not safe to use it as a key in a <code>WeakMap</code> or add properties to it.</p>
 <h6>Asynchronous context example<span><a class="mark" href="#async_hooks_asynchronous_context_example" id="async_hooks_asynchronous_context_example">#</a></span></h6>
@@ -491,8 +480,7 @@ API the user&#39;s callback is placed in a <code>process.nextTick()</code>.</p>
 the <em>why</em> use <code>triggerAsyncId</code>.</p>
 <h5><code>before(asyncId)</code><span><a class="mark" href="#async_hooks_before_asyncid" id="async_hooks_before_asyncid">#</a></span></h5>
 <div class="signature"><ul>
-<li><code>asyncId</code> 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+<li><code>asyncId</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
 </ul>
 </div><p>When an asynchronous operation is initiated (such as a TCP server receiving a
 new connection) or completes (such as writing data to disk) a callback is
@@ -507,8 +495,7 @@ callback multiple times, while other operations like <code>fs.open()</code> will
 it only once.</p>
 <h5><code>after(asyncId)</code><span><a class="mark" href="#async_hooks_after_asyncid" id="async_hooks_after_asyncid">#</a></span></h5>
 <div class="signature"><ul>
-<li><code>asyncId</code> 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+<li><code>asyncId</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
 </ul>
 </div><p>Called immediately after the callback specified in <code>before</code> is completed.</p>
 <p><em>Note:</em> If an uncaught exception occurs during execution of the callback, then
@@ -516,8 +503,7 @@ it only once.</p>
 <code>domain</code>&#39;s handler runs.</p>
 <h5><code>destroy(asyncId)</code><span><a class="mark" href="#async_hooks_destroy_asyncid" id="async_hooks_destroy_asyncid">#</a></span></h5>
 <div class="signature"><ul>
-<li><code>asyncId</code> 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+<li><code>asyncId</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
 </ul>
 </div><p>Called after the resource corresponding to <code>asyncId</code> is destroyed. It is also
 called asynchronously from the embedder API <code>emitDestroy()</code>.</p>
@@ -528,8 +514,7 @@ the resource does not depend on garbage collection, then this will not be an
 issue.</p>
 <h5><code>promiseResolve(asyncId)</code><span><a class="mark" href="#async_hooks_promiseresolve_asyncid" id="async_hooks_promiseresolve_asyncid">#</a></span></h5>
 <div class="signature"><ul>
-<li><code>asyncId</code> 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+<li><code>asyncId</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
 </ul>
 </div><p>Called when the <code>resolve</code> function passed to the <code>Promise</code> constructor is
 invoked (either directly or through other means of resolving a promise).</p>
@@ -562,8 +547,7 @@ init for PROMISE with id 6, trigger id: 5  # the Promise returned by then()
 </table>
 </details>
 </div><ul>
-<li>Returns: 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> The <code>asyncId</code> of the current execution context. Useful to
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> The <code>asyncId</code> of the current execution context. Useful to
 track when something calls.</li>
 </ul>
 <p>For example:</p>
@@ -592,8 +576,7 @@ causality (which is covered by <code>triggerAsyncId()</code>). For example:</p>
 See the section on <a href="#async_hooks_promise_execution_tracking">promise execution tracking</a>.</p>
 <h4><code>async_hooks.triggerAsyncId()</code><span><a class="mark" href="#async_hooks_async_hooks_triggerasyncid" id="async_hooks_async_hooks_triggerasyncid">#</a></span></h4>
 <div class="signature"><ul>
-<li>Returns: 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> The ID of the resource responsible for calling the callback
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> The ID of the resource responsible for calling the callback
 that is currently being executed.</li>
 </ul>
 </div><p>For example:</p>
@@ -658,9 +641,6 @@ JavaScript API so that all the appropriate callbacks are called.</p>
 resources. Using this users can easily trigger the lifetime events of their
 own resources.</p>
 <p>The <code>init</code> hook will trigger when an <code>AsyncResource</code> is instantiated.</p>
-<p><em>Note</em>: <code>before</code> and <code>after</code> calls must be unwound in the same order that they
-are called. Otherwise, an unrecoverable exception will occur and the process
-will abort.</p>
 <p>The following is an overview of the <code>AsyncResource</code> API.</p>
 <pre><code class="lang-js">const { AsyncResource, executionAsyncId } = require(&#39;async_hooks&#39;);
 
@@ -671,11 +651,13 @@ const asyncResource = new AsyncResource(
   type, { triggerAsyncId: executionAsyncId(), requireManualDestroy: false }
 );
 
-// Call AsyncHooks before callbacks.
-asyncResource.emitBefore();
-
-// Call AsyncHooks after callbacks.
-asyncResource.emitAfter();
+// Run a function in the execution context of the resource. This will
+// * establish the context of the resource
+// * trigger the AsyncHooks before callbacks
+// * call the provided function `fn` with the supplied arguments
+// * trigger the AsyncHooks after callbacks
+// * restore the original execution context
+asyncResource.runInAsyncScope(fn, thisArg, ...args);
 
 // Call AsyncHooks destroy callbacks.
 asyncResource.emitDestroy();
@@ -685,22 +667,25 @@ asyncResource.asyncId();
 
 // Return the trigger ID for the AsyncResource instance.
 asyncResource.triggerAsyncId();
+
+// Call AsyncHooks before callbacks.
+// Deprecated: Use asyncResource.runInAsyncScope instead.
+asyncResource.emitBefore();
+
+// Call AsyncHooks after callbacks.
+// Deprecated: Use asyncResource.runInAsyncScope instead.
+asyncResource.emitAfter();
 </code></pre>
 <h4><code>AsyncResource(type[, options])</code><span><a class="mark" href="#async_hooks_asyncresource_type_options" id="async_hooks_asyncresource_type_options">#</a></span></h4>
 <div class="signature"><ul>
-<li><code>type</code> 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The type of async event.</li>
-<li><code>options</code> 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
-<li><code>triggerAsyncId</code> 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> The ID of the execution context that created this
-async event. <strong>Default:</strong> <code>executionAsyncId()</code></li>
-<li><code>requireManualDestroy</code> 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Disables automatic <code>emitDestroy</code> when the
+<li><code>type</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The type of async event.</li>
+<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
+<li><code>triggerAsyncId</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> The ID of the execution context that created this
+async event. <strong>Default:</strong> <code>executionAsyncId()</code>.</li>
+<li><code>requireManualDestroy</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Disables automatic <code>emitDestroy</code> when the
 object is garbage collected. This usually does not need to be set (even if
 <code>emitDestroy</code> is called manually), unless the resource&#39;s asyncId is retrieved
-and the sensitive API&#39;s <code>emitDestroy</code> is called with it.
-<strong>Default:</strong> <code>false</code></li>
+and the sensitive API&#39;s <code>emitDestroy</code> is called with it. <strong>Default:</strong> <code>false</code>.</li>
 </ul>
 </li>
 </ul>
@@ -713,9 +698,7 @@ and the sensitive API&#39;s <code>emitDestroy</code> is called with it.
 
   getInfo(query, callback) {
     this.db.get(query, (err, data) =&gt; {
-      this.emitBefore();
-      callback(err, data);
-      this.emitAfter();
+      this.runInAsyncScope(callback, null, err, data);
     });
   }
 
@@ -725,28 +708,52 @@ and the sensitive API&#39;s <code>emitDestroy</code> is called with it.
   }
 }
 </code></pre>
-<h4><code>asyncResource.emitBefore()</code><span><a class="mark" href="#async_hooks_asyncresource_emitbefore" id="async_hooks_asyncresource_emitbefore">#</a></span></h4>
-<div class="signature"><ul>
-<li>Returns: 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Undefined_type" class="type">&lt;undefined&gt;</a></li>
+<h4><code>asyncResource.runInAsyncScope(fn[, thisArg, ...args])</code><span><a class="mark" href="#async_hooks_asyncresource_runinasyncscope_fn_thisarg_args" id="async_hooks_asyncresource_runinasyncscope_fn_thisarg_args">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v8.12.0</span>
+</div><ul>
+<li><code>fn</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> The function to call in the execution context of this async
+resource.</li>
+<li><code>thisArg</code> <span class="type">&lt;any&gt;</span> The receiver to be used for the function call.</li>
+<li><code>...args</code> <span class="type">&lt;any&gt;</span> Optional arguments to pass to the function.</li>
 </ul>
-</div><p>Call all <code>before</code> callbacks to notify that a new asynchronous execution context
+<p>Call the provided function with the provided arguments in the execution context
+of the async resource. This will establish the context, trigger the AsyncHooks
+before callbacks, call the function, trigger the AsyncHooks after callbacks, and
+then restore the original execution context.</p>
+<h4><code>asyncResource.emitBefore()</code><span><a class="mark" href="#async_hooks_asyncresource_emitbefore" id="async_hooks_asyncresource_emitbefore">#</a></span></h4>
+<div class="api_metadata">
+<span>Deprecated since: v8.12.0</span>
+</div><div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="#async_hooks_asyncresource_runinasyncscope_fn_thisarg_args"><code>asyncResource.runInAsyncScope()</code></a> instead.</div><ul>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Undefined_type" class="type">&lt;undefined&gt;</a></li>
+</ul>
+<p>Call all <code>before</code> callbacks to notify that a new asynchronous execution context
 is being entered. If nested calls to <code>emitBefore()</code> are made, the stack of
 <code>asyncId</code>s will be tracked and properly unwound.</p>
+<p><code>before</code> and <code>after</code> calls must be unwound in the same order that they
+are called. Otherwise, an unrecoverable exception will occur and the process
+will abort. For this reason, the <code>emitBefore</code> and <code>emitAfter</code> APIs are
+considered deprecated. Please use <code>runInAsyncScope</code>, as it provides a much safer
+alternative.</p>
 <h4><code>asyncResource.emitAfter()</code><span><a class="mark" href="#async_hooks_asyncresource_emitafter" id="async_hooks_asyncresource_emitafter">#</a></span></h4>
-<div class="signature"><ul>
-<li>Returns: 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Undefined_type" class="type">&lt;undefined&gt;</a></li>
+<div class="api_metadata">
+<span>Deprecated since: v8.12.0</span>
+</div><div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="#async_hooks_asyncresource_runinasyncscope_fn_thisarg_args"><code>asyncResource.runInAsyncScope()</code></a> instead.</div><ul>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Undefined_type" class="type">&lt;undefined&gt;</a></li>
 </ul>
-</div><p>Call all <code>after</code> callbacks. If nested calls to <code>emitBefore()</code> were made, then
+<p>Call all <code>after</code> callbacks. If nested calls to <code>emitBefore()</code> were made, then
 make sure the stack is unwound properly. Otherwise an error will be thrown.</p>
 <p>If the user&#39;s callback throws an exception, <code>emitAfter()</code> will automatically be
 called for all <code>asyncId</code>s on the stack if the error is handled by a domain or
 <code>&#39;uncaughtException&#39;</code> handler.</p>
+<p><code>before</code> and <code>after</code> calls must be unwound in the same order that they
+are called. Otherwise, an unrecoverable exception will occur and the process
+will abort. For this reason, the <code>emitBefore</code> and <code>emitAfter</code> APIs are
+considered deprecated. Please use <code>runInAsyncScope</code>, as it provides a much safer
+alternative.</p>
 <h4><code>asyncResource.emitDestroy()</code><span><a class="mark" href="#async_hooks_asyncresource_emitdestroy" id="async_hooks_asyncresource_emitdestroy">#</a></span></h4>
 <div class="signature"><ul>
-<li>Returns: 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Undefined_type" class="type">&lt;undefined&gt;</a></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Undefined_type" class="type">&lt;undefined&gt;</a></li>
 </ul>
 </div><p>Call all <code>destroy</code> hooks. This should only ever be called once. An error will
 be thrown if it is called more than once. This <strong>must</strong> be manually called. If
@@ -754,13 +761,11 @@ the resource is left to be collected by the GC then the <code>destroy</code> hoo
 never be called.</p>
 <h4><code>asyncResource.asyncId()</code><span><a class="mark" href="#async_hooks_asyncresource_asyncid" id="async_hooks_asyncresource_asyncid">#</a></span></h4>
 <div class="signature"><ul>
-<li>Returns: 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> The unique <code>asyncId</code> assigned to the resource.</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> The unique <code>asyncId</code> assigned to the resource.</li>
 </ul>
 </div><h4><code>asyncResource.triggerAsyncId()</code><span><a class="mark" href="#async_hooks_asyncresource_triggerasyncid" id="async_hooks_asyncresource_triggerasyncid">#</a></span></h4>
 <div class="signature"><ul>
-<li>Returns: 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> The same <code>triggerAsyncId</code> that is passed to the <code>AsyncResource</code>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> The same <code>triggerAsyncId</code> that is passed to the <code>AsyncResource</code>
 constructor.</li>
 </ul>
 </div>

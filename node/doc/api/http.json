@@ -285,28 +285,32 @@
                   "textRaw": "`options` {Object} Set of configurable options to set on the agent. Can have the following fields: ",
                   "options": [
                     {
-                      "textRaw": "`keepAlive` {boolean} Keep sockets around even when there are no outstanding requests, so they can be used for future requests without having to reestablish a TCP connection. Defaults to `false` ",
+                      "textRaw": "`keepAlive` {boolean} Keep sockets around even when there are no outstanding requests, so they can be used for future requests without having to reestablish a TCP connection. **Default:** `false`. ",
                       "name": "keepAlive",
+                      "default": "`false`",
                       "type": "boolean",
-                      "desc": "Keep sockets around even when there are no outstanding requests, so they can be used for future requests without having to reestablish a TCP connection. Defaults to `false`"
+                      "desc": "Keep sockets around even when there are no outstanding requests, so they can be used for future requests without having to reestablish a TCP connection."
                     },
                     {
-                      "textRaw": "`keepAliveMsecs` {number} When using the `keepAlive` option, specifies the [initial delay](net.html#net_socket_setkeepalive_enable_initialdelay) for TCP Keep-Alive packets. Ignored when the `keepAlive` option is `false` or `undefined`. Defaults to `1000`. ",
+                      "textRaw": "`keepAliveMsecs` {number} When using the `keepAlive` option, specifies the [initial delay](net.html#net_socket_setkeepalive_enable_initialdelay) for TCP Keep-Alive packets. Ignored when the `keepAlive` option is `false` or `undefined`. **Default:** `1000`. ",
                       "name": "keepAliveMsecs",
+                      "default": "`1000`",
                       "type": "number",
-                      "desc": "When using the `keepAlive` option, specifies the [initial delay](net.html#net_socket_setkeepalive_enable_initialdelay) for TCP Keep-Alive packets. Ignored when the `keepAlive` option is `false` or `undefined`. Defaults to `1000`."
+                      "desc": "When using the `keepAlive` option, specifies the [initial delay](net.html#net_socket_setkeepalive_enable_initialdelay) for TCP Keep-Alive packets. Ignored when the `keepAlive` option is `false` or `undefined`."
                     },
                     {
-                      "textRaw": "`maxSockets` {number} Maximum number of sockets to allow per host. Defaults to `Infinity`. ",
+                      "textRaw": "`maxSockets` {number} Maximum number of sockets to allow per host. **Default:** `Infinity`. ",
                       "name": "maxSockets",
+                      "default": "`Infinity`",
                       "type": "number",
-                      "desc": "Maximum number of sockets to allow per host. Defaults to `Infinity`."
+                      "desc": "Maximum number of sockets to allow per host."
                     },
                     {
-                      "textRaw": "`maxFreeSockets` {number} Maximum number of sockets to leave open in a free state. Only relevant if `keepAlive` is set to `true`. Defaults to `256`. ",
+                      "textRaw": "`maxFreeSockets` {number} Maximum number of sockets to leave open in a free state. Only relevant if `keepAlive` is set to `true`. **Default:** `256`. ",
                       "name": "maxFreeSockets",
+                      "default": "`256`",
                       "type": "number",
-                      "desc": "Maximum number of sockets to leave open in a free state. Only relevant if `keepAlive` is set to `true`. Defaults to `256`."
+                      "desc": "Maximum number of sockets to leave open in a free state. Only relevant if `keepAlive` is set to `true`."
                     }
                   ],
                   "name": "options",
@@ -887,7 +891,7 @@
                 ]
               },
               "params": [],
-              "desc": "<p>If a client connection emits an <code>&#39;error&#39;</code> event, it will be forwarded here.\nListener of this event is responsible for closing/destroying the underlying\nsocket. For example, one may wish to more gracefully close the socket with an\nHTTP &#39;400 Bad Request&#39; response instead of abruptly severing the connection.</p>\n<p>Default behavior is to destroy the socket immediately on malformed request.</p>\n<p><code>socket</code> is the <a href=\"net.html#net_class_net_socket\"><code>net.Socket</code></a> object that the error originated from.</p>\n<pre><code class=\"lang-js\">const http = require(&#39;http&#39;);\n\nconst server = http.createServer((req, res) =&gt; {\n  res.end();\n});\nserver.on(&#39;clientError&#39;, (err, socket) =&gt; {\n  socket.end(&#39;HTTP/1.1 400 Bad Request\\r\\n\\r\\n&#39;);\n});\nserver.listen(8000);\n</code></pre>\n<p>When the <code>&#39;clientError&#39;</code> event occurs, there is no <code>request</code> or <code>response</code>\nobject, so any HTTP response sent, including response headers and payload,\n<em>must</em> be written directly to the <code>socket</code> object. Care must be taken to\nensure the response is a properly formatted HTTP response message.</p>\n<p><code>err</code> is an instance of <code>Error</code> with two extra columns:</p>\n<ul>\n<li><code>bytesParsed</code>: the bytes count of request packet that Node.js may have parsed\ncorrectly;</li>\n<li><code>rawPacket</code>: the raw packet of current request.</li>\n</ul>\n"
+              "desc": "<p>If a client connection emits an <code>&#39;error&#39;</code> event, it will be forwarded here.\nListener of this event is responsible for closing/destroying the underlying\nsocket. For example, one may wish to more gracefully close the socket with a\ncustom HTTP response instead of abruptly severing the connection.</p>\n<p>Default behavior is to close the socket with an HTTP &#39;400 Bad Request&#39; response\nif possible, otherwise the socket is immediately destroyed.</p>\n<p><code>socket</code> is the <a href=\"net.html#net_class_net_socket\"><code>net.Socket</code></a> object that the error originated from.</p>\n<pre><code class=\"lang-js\">const http = require(&#39;http&#39;);\n\nconst server = http.createServer((req, res) =&gt; {\n  res.end();\n});\nserver.on(&#39;clientError&#39;, (err, socket) =&gt; {\n  socket.end(&#39;HTTP/1.1 400 Bad Request\\r\\n\\r\\n&#39;);\n});\nserver.listen(8000);\n</code></pre>\n<p>When the <code>&#39;clientError&#39;</code> event occurs, there is no <code>request</code> or <code>response</code>\nobject, so any HTTP response sent, including response headers and payload,\n<em>must</em> be written directly to the <code>socket</code> object. Care must be taken to\nensure the response is a properly formatted HTTP response message.</p>\n<p><code>err</code> is an instance of <code>Error</code> with two extra columns:</p>\n<ul>\n<li><code>bytesParsed</code>: the bytes count of request packet that Node.js may have parsed\ncorrectly;</li>\n<li><code>rawPacket</code>: the raw packet of current request.</li>\n</ul>\n"
             },
             {
               "textRaw": "Event: 'close'",
@@ -1013,10 +1017,10 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`msecs` {number} Defaults to 120000 (2 minutes). ",
+                      "textRaw": "`msecs` {number} **Default:** `120000` (2 minutes) ",
                       "name": "msecs",
+                      "default": "`120000` (2 minutes)",
                       "type": "number",
-                      "desc": "Defaults to 120000 (2 minutes).",
                       "optional": true
                     },
                     {
@@ -1057,7 +1061,7 @@
               "desc": "<p>A Boolean indicating whether or not the server is listening for\nconnections.</p>\n"
             },
             {
-              "textRaw": "`maxHeadersCount` {number} Defaults to 2000. ",
+              "textRaw": "`maxHeadersCount` {number} **Default:** `2000` ",
               "type": "number",
               "name": "maxHeadersCount",
               "meta": {
@@ -1066,11 +1070,11 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Limits maximum incoming headers count, equal to 2000 by default. If set to 0 -\nno limit will be applied.</p>\n",
-              "shortDesc": "Defaults to 2000."
+              "default": "`2000`",
+              "desc": "<p>Limits maximum incoming headers count. If set to 0 - no limit will be applied.</p>\n"
             },
             {
-              "textRaw": "`timeout` {number} Timeout in milliseconds. Defaults to 120000 (2 minutes). ",
+              "textRaw": "`timeout` {number} Timeout in milliseconds. **Default:** `120000` (2 minutes). ",
               "type": "number",
               "name": "timeout",
               "meta": {
@@ -1079,11 +1083,12 @@
                 ],
                 "changes": []
               },
+              "default": "`120000` (2 minutes)",
               "desc": "<p>The number of milliseconds of inactivity before a socket is presumed\nto have timed out.</p>\n<p>A value of <code>0</code> will disable the timeout behavior on incoming connections.</p>\n<p><em>Note</em>: The socket timeout logic is set up on connection, so changing this\nvalue only affects new connections to the server, not any existing connections.</p>\n",
-              "shortDesc": "Timeout in milliseconds. Defaults to 120000 (2 minutes)."
+              "shortDesc": "Timeout in milliseconds."
             },
             {
-              "textRaw": "`keepAliveTimeout` {number} Timeout in milliseconds. Defaults to 5000 (5 seconds). ",
+              "textRaw": "`keepAliveTimeout` {number} Timeout in milliseconds. **Default:** `5000` (5 seconds). ",
               "type": "number",
               "name": "keepAliveTimeout",
               "meta": {
@@ -1092,8 +1097,9 @@
                 ],
                 "changes": []
               },
+              "default": "`5000` (5 seconds)",
               "desc": "<p>The number of milliseconds of inactivity a server needs to wait for additional\nincoming data, after it has finished writing the last response, before a socket\nwill be destroyed. If the server receives new data before the keep-alive\ntimeout has fired, it will reset the regular inactivity timeout, i.e.,\n<a href=\"#http_server_timeout\"><code>server.timeout</code></a>.</p>\n<p>A value of <code>0</code> will disable the keep-alive timeout behavior on incoming connections.\nA value of <code>0</code> makes the http server behave similarly to Node.js versions prior to 8.0.0,\nwhich did not have a keep-alive timeout.</p>\n<p><em>Note</em>: The socket timeout logic is set up on connection, so changing this\nvalue only affects new connections to the server, not any existing connections.</p>\n",
-              "shortDesc": "Timeout in milliseconds. Defaults to 5000 (5 seconds)."
+              "shortDesc": "Timeout in milliseconds."
             }
           ]
         },
@@ -1471,8 +1477,9 @@
                       "type": "string|Buffer"
                     },
                     {
-                      "textRaw": "`encoding` {string} ",
+                      "textRaw": "`encoding` {string} **Default:** `'utf8'` ",
                       "name": "encoding",
+                      "default": "`'utf8'`",
                       "type": "string",
                       "optional": true
                     },
@@ -1500,7 +1507,7 @@
                   ]
                 }
               ],
-              "desc": "<p>If this method is called and <a href=\"#http_response_writehead_statuscode_statusmessage_headers\"><code>response.writeHead()</code></a> has not been called,\nit will switch to implicit header mode and flush the implicit headers.</p>\n<p>This sends a chunk of the response body. This method may\nbe called multiple times to provide successive parts of the body.</p>\n<p>Note that in the <code>http</code> module, the response body is omitted when the\nrequest is a HEAD request. Similarly, the <code>204</code> and <code>304</code> responses\n<em>must not</em> include a message body.</p>\n<p><code>chunk</code> can be a string or a buffer. If <code>chunk</code> is a string,\nthe second parameter specifies how to encode it into a byte stream.\nBy default the <code>encoding</code> is <code>&#39;utf8&#39;</code>. <code>callback</code> will be called when this chunk\nof data is flushed.</p>\n<p><em>Note</em>: This is the raw HTTP body and has nothing to do with\nhigher-level multi-part body encodings that may be used.</p>\n<p>The first time <a href=\"#http_response_write_chunk_encoding_callback\"><code>response.write()</code></a> is called, it will send the buffered\nheader information and the first chunk of the body to the client. The second\ntime <a href=\"#http_response_write_chunk_encoding_callback\"><code>response.write()</code></a> is called, Node.js assumes data will be streamed,\nand sends the new data separately. That is, the response is buffered up to the\nfirst chunk of the body.</p>\n<p>Returns <code>true</code> if the entire data was flushed successfully to the kernel\nbuffer. Returns <code>false</code> if all or part of the data was queued in user memory.\n<code>&#39;drain&#39;</code> will be emitted when the buffer is free again.</p>\n"
+              "desc": "<p>If this method is called and <a href=\"#http_response_writehead_statuscode_statusmessage_headers\"><code>response.writeHead()</code></a> has not been called,\nit will switch to implicit header mode and flush the implicit headers.</p>\n<p>This sends a chunk of the response body. This method may\nbe called multiple times to provide successive parts of the body.</p>\n<p>Note that in the <code>http</code> module, the response body is omitted when the\nrequest is a HEAD request. Similarly, the <code>204</code> and <code>304</code> responses\n<em>must not</em> include a message body.</p>\n<p><code>chunk</code> can be a string or a buffer. If <code>chunk</code> is a string,\nthe second parameter specifies how to encode it into a byte stream.\n<code>callback</code> will be called when this chunk of data is flushed.</p>\n<p><em>Note</em>: This is the raw HTTP body and has nothing to do with\nhigher-level multi-part body encodings that may be used.</p>\n<p>The first time <a href=\"#http_response_write_chunk_encoding_callback\"><code>response.write()</code></a> is called, it will send the buffered\nheader information and the first chunk of the body to the client. The second\ntime <a href=\"#http_response_write_chunk_encoding_callback\"><code>response.write()</code></a> is called, Node.js assumes data will be streamed,\nand sends the new data separately. That is, the response is buffered up to the\nfirst chunk of the body.</p>\n<p>Returns <code>true</code> if the entire data was flushed successfully to the kernel\nbuffer. Returns <code>false</code> if all or part of the data was queued in user memory.\n<code>&#39;drain&#39;</code> will be emitted when the buffer is free again.</p>\n"
             },
             {
               "textRaw": "response.writeContinue()",
@@ -1938,14 +1945,20 @@
       ],
       "methods": [
         {
-          "textRaw": "http.createServer([requestListener])",
+          "textRaw": "http.createServer([options][, requestListener])",
           "type": "method",
           "name": "createServer",
           "meta": {
             "added": [
               "v0.1.13"
             ],
-            "changes": []
+            "changes": [
+              {
+                "version": "v8.12.0",
+                "pr-url": "https://github.com/nodejs/node/pull/15752",
+                "description": "The `options` argument is supported now."
+              }
+            ]
           },
           "signatures": [
             {
@@ -1956,6 +1969,28 @@
               },
               "params": [
                 {
+                  "textRaw": "`options` {Object} ",
+                  "options": [
+                    {
+                      "textRaw": "`IncomingMessage` {http.IncomingMessage} Specifies the IncomingMessage class to be used. Useful for extending the original `IncomingMessage`. **Default:** `IncomingMessage`. ",
+                      "name": "IncomingMessage",
+                      "default": "`IncomingMessage`",
+                      "type": "http.IncomingMessage",
+                      "desc": "Specifies the IncomingMessage class to be used. Useful for extending the original `IncomingMessage`."
+                    },
+                    {
+                      "textRaw": "`ServerResponse` {http.ServerResponse} Specifies the ServerResponse class to be used. Useful for extending the original `ServerResponse`. **Default:** `ServerResponse`. ",
+                      "name": "ServerResponse",
+                      "default": "`ServerResponse`",
+                      "type": "http.ServerResponse",
+                      "desc": "Specifies the ServerResponse class to be used. Useful for extending the original `ServerResponse`."
+                    }
+                  ],
+                  "name": "options",
+                  "type": "Object",
+                  "optional": true
+                },
+                {
                   "textRaw": "`requestListener` {Function} ",
                   "name": "requestListener",
                   "type": "Function",
@@ -1965,6 +2000,10 @@
             },
             {
               "params": [
+                {
+                  "name": "options",
+                  "optional": true
+                },
                 {
                   "name": "requestListener",
                   "optional": true
@@ -2054,16 +2093,18 @@
                   "textRaw": "`options` {Object | string | URL} ",
                   "options": [
                     {
-                      "textRaw": "`protocol` {string} Protocol to use. Defaults to `http:`. ",
+                      "textRaw": "`protocol` {string} Protocol to use. **Default:** `http:`. ",
                       "name": "protocol",
+                      "default": "`http:`",
                       "type": "string",
-                      "desc": "Protocol to use. Defaults to `http:`."
+                      "desc": "Protocol to use."
                     },
                     {
-                      "textRaw": "`host` {string} A domain name or IP address of the server to issue the request to. Defaults to `localhost`. ",
+                      "textRaw": "`host` {string} A domain name or IP address of the server to issue the request to. **Default:** `localhost`. ",
                       "name": "host",
+                      "default": "`localhost`",
                       "type": "string",
-                      "desc": "A domain name or IP address of the server to issue the request to. Defaults to `localhost`."
+                      "desc": "A domain name or IP address of the server to issue the request to."
                     },
                     {
                       "textRaw": "`hostname` {string} Alias for `host`. To support [`url.parse()`][], `hostname` is preferred over `host`. ",
@@ -2078,10 +2119,11 @@
                       "desc": "IP address family to use when resolving `host` and `hostname`. Valid values are `4` or `6`. When unspecified, both IP v4 and v6 will be used."
                     },
                     {
-                      "textRaw": "`port` {number} Port of remote server. Defaults to 80. ",
+                      "textRaw": "`port` {number} Port of remote server. **Default:** `80`. ",
                       "name": "port",
+                      "default": "`80`",
                       "type": "number",
-                      "desc": "Port of remote server. Defaults to 80."
+                      "desc": "Port of remote server."
                     },
                     {
                       "textRaw": "`localAddress` {string} Local interface to bind for network connections. ",
@@ -2096,16 +2138,18 @@
                       "desc": "Unix Domain Socket (use one of host:port or socketPath)."
                     },
                     {
-                      "textRaw": "`method` {string} A string specifying the HTTP request method. Defaults to `'GET'`. ",
+                      "textRaw": "`method` {string} A string specifying the HTTP request method. **Default:** `'GET'`. ",
                       "name": "method",
+                      "default": "`'GET'`",
                       "type": "string",
-                      "desc": "A string specifying the HTTP request method. Defaults to `'GET'`."
+                      "desc": "A string specifying the HTTP request method."
                     },
                     {
-                      "textRaw": "`path` {string} Request path. Defaults to `'/'`. Should include query string if any. E.G. `'/index.html?page=12'`. An exception is thrown when the request path contains illegal characters. Currently, only spaces are rejected but that may change in the future. ",
+                      "textRaw": "`path` {string} Request path. Should include query string if any. E.G. `'/index.html?page=12'`. An exception is thrown when the request path contains illegal characters. Currently, only spaces are rejected but that may change in the future. **Default:** `'/'`. ",
                       "name": "path",
+                      "default": "`'/'`",
                       "type": "string",
-                      "desc": "Request path. Defaults to `'/'`. Should include query string if any. E.G. `'/index.html?page=12'`. An exception is thrown when the request path contains illegal characters. Currently, only spaces are rejected but that may change in the future."
+                      "desc": "Request path. Should include query string if any. E.G. `'/index.html?page=12'`. An exception is thrown when the request path contains illegal characters. Currently, only spaces are rejected but that may change in the future."
                     },
                     {
                       "textRaw": "`headers` {Object} An object containing request headers. ",
@@ -2125,8 +2169,7 @@
                         {
                           "textRaw": "`undefined` (default): use [`http.globalAgent`][] for this host and port. ",
                           "name": "undefined",
-                          "default": "",
-                          "desc": ": use [`http.globalAgent`][] for this host and port."
+                          "desc": "(default): use [`http.globalAgent`][] for this host and port."
                         },
                         {
                           "textRaw": "`Agent` object: explicitly use the passed in `Agent`. ",

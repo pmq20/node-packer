@@ -59,7 +59,7 @@ const { kMaxLength } = require('buffer');
 const isWindows = process.platform === 'win32';
 
 const DEBUG = process.env.NODE_DEBUG && /fs/.test(process.env.NODE_DEBUG);
-const errnoException = util._errnoException;
+const errnoException = errors.errnoException;
 
 function getOptions(options, defaultOptions) {
   if (options === null || options === undefined ||
@@ -2004,6 +2004,7 @@ ReadStream.prototype.open = function() {
 
     self.fd = fd;
     self.emit('open', fd);
+    self.emit('ready');
     // start the flow of data.
     self.read();
   });
@@ -2167,6 +2168,7 @@ WriteStream.prototype.open = function() {
 
     this.fd = fd;
     this.emit('open', fd);
+    this.emit('ready');
   });
 };
 

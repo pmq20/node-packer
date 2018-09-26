@@ -138,11 +138,9 @@ using v8::Boolean;
 using v8::Context;
 using v8::EscapableHandleScope;
 using v8::Exception;
-using v8::Float64Array;
 using v8::Function;
 using v8::FunctionCallbackInfo;
 using v8::HandleScope;
-using v8::HeapStatistics;
 using v8::Integer;
 using v8::Isolate;
 using v8::Local;
@@ -157,7 +155,6 @@ using v8::Object;
 using v8::ObjectTemplate;
 using v8::Promise;
 using v8::PromiseHookType;
-using v8::PromiseRejectMessage;
 using v8::PropertyCallbackInfo;
 using v8::ScriptOrigin;
 using v8::SealHandleScope;
@@ -168,7 +165,7 @@ using v8::Undefined;
 using v8::V8;
 using v8::Value;
 
-using AsyncHooks = node::Environment::AsyncHooks;
+using AsyncHooks = Environment::AsyncHooks;
 
 static bool print_eval = false;
 static bool force_repl = false;
@@ -192,6 +189,8 @@ static node_module* modlist_linked;
 static node_module* modlist_addon;
 static bool trace_enabled = false;
 static std::string trace_enabled_categories;  // NOLINT(runtime/string)
+static std::string trace_file_pattern =  // NOLINT(runtime/string)
+  "node_trace.${rotation}.log";
 static bool abort_on_uncaught_exception = false;
 
 // Bit flag used to track security reverts (see node_revert.h)
@@ -262,26 +261,26 @@ bool v8_initialized = false;
 bool linux_at_secure = false;
 
 // process-relative uptime base, initialized at start-up
-static double prog_start_time;
+double prog_start_time;
 
 static Mutex node_isolate_mutex;
 static v8::Isolate* node_isolate;
 
-node::DebugOptions debug_options;
+DebugOptions debug_options;
 
 static struct {
 #if NODE_USE_V8_PLATFORM
-  void Initialize(int thread_pool_size, uv_loop_t* loop) {
+  void Initialize(int thread_pool_size) {
     if (trace_enabled) {
-      tracing_agent_.reset(new tracing::Agent());
-      platform_ = new NodePlatform(thread_pool_size, loop,
+      tracing_agent_.reset(new tracing::Agent(trace_file_pattern));
+      platform_ = new NodePlatform(thread_pool_size,
         tracing_agent_->GetTracingController());
       V8::InitializePlatform(platform_);
       tracing::TraceEventHelper::SetTracingController(
         tracing_agent_->GetTracingController());
     } else {
       tracing_agent_.reset(nullptr);
-      platform_ = new NodePlatform(thread_pool_size, loop, nullptr);
+      platform_ = new NodePlatform(thread_pool_size, nullptr);
       V8::InitializePlatform(platform_);
       tracing::TraceEventHelper::SetTracingController(
         new v8::TracingController());
@@ -295,13 +294,17 @@ static struct {
     tracing_agent_.reset(nullptr);
   }
 
-  void DrainVMTasks() {
-    platform_->DrainBackgroundTasks();
+  void DrainVMTasks(Isolate* isolate) {
+    platform_->DrainBackgroundTasks(isolate);
+  }
+
+  void CancelVMTasks(Isolate* isolate) {
+    platform_->CancelPendingDelayedTasks(isolate);
   }
 
 #if HAVE_INSPECTOR
   bool StartInspector(Environment *env, const char* script_path,
-                      const node::DebugOptions& options) {
+                      const DebugOptions& options) {
     // Inspector agent can't fail to start, but if it was configured to listen
     // right away on the websocket port and fails to bind/etc, this will return
     // false.
@@ -318,17 +321,23 @@ static struct {
   }
 
   void StopTracingAgent() {
-    tracing_agent_->Stop();
+    if (tracing_agent_)
+      tracing_agent_->Stop();
+  }
+
+  NodePlatform* Platform() {
+    return platform_;
   }
 
   std::unique_ptr<tracing::Agent> tracing_agent_;
   NodePlatform* platform_;
 #else  // !NODE_USE_V8_PLATFORM
-  void Initialize(int thread_pool_size, uv_loop_t* loop) {}
+  void Initialize(int thread_pool_size) {}
   void Dispose() {}
-  void DrainVMTasks() {}
+  void DrainVMTasks(Isolate* isolate) {}
+  void CancelVMTasks(Isolate* isolate) {}
   bool StartInspector(Environment *env, const char* script_path,
-                      const node::DebugOptions& options) {
+                      const DebugOptions& options) {
     env->ThrowError("Node compiled with NODE_USE_V8_PLATFORM=0");
     return true;
   }
@@ -338,6 +347,10 @@ static struct {
                     "so event tracing is not available.\n");
   }
   void StopTracingAgent() {}
+
+  NodePlatform* Platform() {
+    return nullptr;
+  }
 #endif  // !NODE_USE_V8_PLATFORM
 
 #if !NODE_USE_V8_PLATFORM || !HAVE_INSPECTOR
@@ -351,7 +364,7 @@ static struct {
 static const unsigned kMaxSignal = 32;
 #endif
 
-static void PrintErrorString(const char* format, ...) {
+void PrintErrorString(const char* format, ...) {
   va_list ap;
   va_start(ap, format);
 #ifdef _WIN32
@@ -1088,9 +1101,9 @@ Local<Value> WinapiErrnoException(Isolate* isolate,
 
 void* ArrayBufferAllocator::Allocate(size_t size) {
   if (zero_fill_field_ || zero_fill_all_buffers)
-    return node::UncheckedCalloc(size);
+    return UncheckedCalloc(size);
   else
-    return node::UncheckedMalloc(size);
+    return UncheckedMalloc(size);
 }
 
 namespace {
@@ -1261,6 +1274,8 @@ void SetupDomainUse(const FunctionCallbackInfo<Value>& args) {
   env->set_domains_stack_array(args[1].As<Array>());
 
   // Do a little housekeeping.
+  // TODO(jasnell): This should be moved to bootstrapper.cc and the bootstrap
+  // object at some point, but doing so requires a bit more refactoring.
   env->process_object()->Delete(
       env->context(),
       FIXED_ONE_BYTE_STRING(args.GetIsolate(), "_setupDomainUse")).FromJust();
@@ -1276,81 +1291,6 @@ void SetupDomainUse(const FunctionCallbackInfo<Value>& args) {
   args.GetReturnValue().Set(Uint32Array::New(array_buffer, 0, fields_count));
 }
 
-
-void RunMicrotasks(const FunctionCallbackInfo<Value>& args) {
-  args.GetIsolate()->RunMicrotasks();
-}
-
-
-void SetupProcessObject(const FunctionCallbackInfo<Value>& args) {
-  Environment* env = Environment::GetCurrent(args);
-
-  CHECK(args[0]->IsFunction());
-
-  env->set_push_values_to_array_function(args[0].As<Function>());
-  env->process_object()->Delete(
-      env->context(),
-      FIXED_ONE_BYTE_STRING(env->isolate(), "_setupProcessObject")).FromJust();
-}
-
-
-void SetupNextTick(const FunctionCallbackInfo<Value>& args) {
-  Environment* env = Environment::GetCurrent(args);
-
-  CHECK(args[0]->IsFunction());
-  CHECK(args[1]->IsObject());
-
-  env->set_tick_callback_function(args[0].As<Function>());
-
-  env->SetMethod(args[1].As<Object>(), "runMicrotasks", RunMicrotasks);
-
-  // Do a little housekeeping.
-  env->process_object()->Delete(
-      env->context(),
-      FIXED_ONE_BYTE_STRING(args.GetIsolate(), "_setupNextTick")).FromJust();
-
-  // Values use to cross communicate with processNextTick.
-  uint32_t* const fields = env->tick_info()->fields();
-  uint32_t const fields_count = env->tick_info()->fields_count();
-
-  Local<ArrayBuffer> array_buffer =
-      ArrayBuffer::New(env->isolate(), fields, sizeof(*fields) * fields_count);
-
-  args.GetReturnValue().Set(Uint32Array::New(array_buffer, 0, fields_count));
-}
-
-void PromiseRejectCallback(PromiseRejectMessage message) {
-  Local<Promise> promise = message.GetPromise();
-  Isolate* isolate = promise->GetIsolate();
-  Local<Value> value = message.GetValue();
-  Local<Integer> event = Integer::New(isolate, message.GetEvent());
-
-  Environment* env = Environment::GetCurrent(isolate);
-  Local<Function> callback = env->promise_reject_function();
-
-  if (value.IsEmpty())
-    value = Undefined(isolate);
-
-  Local<Value> args[] = { event, promise, value };
-  Local<Object> process = env->process_object();
-
-  callback->Call(process, arraysize(args), args);
-}
-
-void SetupPromises(const FunctionCallbackInfo<Value>& args) {
-  Environment* env = Environment::GetCurrent(args);
-  Isolate* isolate = env->isolate();
-
-  CHECK(args[0]->IsFunction());
-
-  isolate->SetPromiseRejectCallback(PromiseRejectCallback);
-  env->set_promise_reject_function(args[0].As<Function>());
-
-  env->process_object()->Delete(
-      env->context(),
-      FIXED_ONE_BYTE_STRING(isolate, "_setupPromises")).FromJust();
-}
-
 }  // anonymous namespace
 
 
@@ -1358,6 +1298,22 @@ void AddPromiseHook(v8::Isolate* isolate, promise_hook_func fn, void* arg) {
   Environment* env = Environment::GetCurrent(isolate);
   env->AddPromiseHook(fn, arg);
 }
+
+void AddEnvironmentCleanupHook(v8::Isolate* isolate,
+                               void (*fun)(void* arg),
+                               void* arg) {
+  Environment* env = Environment::GetCurrent(isolate);
+  env->AddCleanupHook(fun, arg);
+}
+
+
+void RemoveEnvironmentCleanupHook(v8::Isolate* isolate,
+                                  void (*fun)(void* arg),
+                                  void* arg) {
+  Environment* env = Environment::GetCurrent(isolate);
+  env->RemoveCleanupHook(fun, arg);
+}
+
 
 CallbackScope::CallbackScope(Isolate* isolate,
                              Local<Object> object,
@@ -1590,129 +1546,6 @@ Local<Value> MakeCallback(Isolate* isolate,
   return handle_scope.Escape(
       MakeCallback(isolate, recv, callback, argc, argv, {0, 0})
           .FromMaybe(Local<Value>()));
-}
-
-
-enum encoding ParseEncoding(const char* encoding,
-                            enum encoding default_encoding) {
-  switch (encoding[0]) {
-    case 'u':
-      // utf8, utf16le
-      if (encoding[1] == 't' && encoding[2] == 'f') {
-        // Skip `-`
-        encoding += encoding[3] == '-' ? 4 : 3;
-        if (encoding[0] == '8' && encoding[1] == '\0')
-          return UTF8;
-        if (strncmp(encoding, "16le", 4) == 0)
-          return UCS2;
-
-      // ucs2
-      } else if (encoding[1] == 'c' && encoding[2] == 's') {
-        encoding += encoding[3] == '-' ? 4 : 3;
-        if (encoding[0] == '2' && encoding[1] == '\0')
-          return UCS2;
-      }
-      break;
-    case 'l':
-      // latin1
-      if (encoding[1] == 'a') {
-        if (strncmp(encoding + 2, "tin1", 4) == 0)
-          return LATIN1;
-      }
-      break;
-    case 'b':
-      // binary
-      if (encoding[1] == 'i') {
-        if (strncmp(encoding + 2, "nary", 4) == 0)
-          return LATIN1;
-
-      // buffer
-      } else if (encoding[1] == 'u') {
-        if (strncmp(encoding + 2, "ffer", 4) == 0)
-          return BUFFER;
-      }
-      break;
-    case '\0':
-      return default_encoding;
-    default:
-      break;
-  }
-
-  if (StringEqualNoCase(encoding, "utf8")) {
-    return UTF8;
-  } else if (StringEqualNoCase(encoding, "utf-8")) {
-    return UTF8;
-  } else if (StringEqualNoCase(encoding, "ascii")) {
-    return ASCII;
-  } else if (StringEqualNoCase(encoding, "base64")) {
-    return BASE64;
-  } else if (StringEqualNoCase(encoding, "ucs2")) {
-    return UCS2;
-  } else if (StringEqualNoCase(encoding, "ucs-2")) {
-    return UCS2;
-  } else if (StringEqualNoCase(encoding, "utf16le")) {
-    return UCS2;
-  } else if (StringEqualNoCase(encoding, "utf-16le")) {
-    return UCS2;
-  } else if (StringEqualNoCase(encoding, "latin1")) {
-    return LATIN1;
-  } else if (StringEqualNoCase(encoding, "binary")) {
-    return LATIN1;  // BINARY is a deprecated alias of LATIN1.
-  } else if (StringEqualNoCase(encoding, "buffer")) {
-    return BUFFER;
-  } else if (StringEqualNoCase(encoding, "hex")) {
-    return HEX;
-  } else {
-    return default_encoding;
-  }
-}
-
-
-enum encoding ParseEncoding(Isolate* isolate,
-                            Local<Value> encoding_v,
-                            enum encoding default_encoding) {
-  CHECK(!encoding_v.IsEmpty());
-
-  if (!encoding_v->IsString())
-    return default_encoding;
-
-  node::Utf8Value encoding(isolate, encoding_v);
-
-  return ParseEncoding(*encoding, default_encoding);
-}
-
-Local<Value> Encode(Isolate* isolate,
-                    const char* buf,
-                    size_t len,
-                    enum encoding encoding) {
-  CHECK_NE(encoding, UCS2);
-  Local<Value> error;
-  return StringBytes::Encode(isolate, buf, len, encoding, &error)
-      .ToLocalChecked();
-}
-
-Local<Value> Encode(Isolate* isolate, const uint16_t* buf, size_t len) {
-  Local<Value> error;
-  return StringBytes::Encode(isolate, buf, len, &error)
-      .ToLocalChecked();
-}
-
-// Returns -1 if the handle was not valid for decoding
-ssize_t DecodeBytes(Isolate* isolate,
-                    Local<Value> val,
-                    enum encoding encoding) {
-  HandleScope scope(isolate);
-
-  return StringBytes::Size(isolate, val, encoding);
-}
-
-// Returns number of bytes written.
-ssize_t DecodeWrite(Isolate* isolate,
-                    char* buf,
-                    size_t buflen,
-                    Local<Value> val,
-                    enum encoding encoding) {
-  return StringBytes::Write(isolate, buf, buflen, val, encoding, nullptr);
 }
 
 bool IsExceptionDecorated(Environment* env, Local<Value> er) {
@@ -2040,7 +1873,6 @@ NO_RETURN void Assert(const char* const (*args)[4]) {
 
   Abort();
 }
-
 
 static void Abort(const FunctionCallbackInfo<Value>& args) {
   Abort();
@@ -2491,7 +2323,6 @@ static void InitGroups(const FunctionCallbackInfo<Value>& args) {
 
 #endif  // __POSIX__ && !defined(__ANDROID__)
 
-
 static void WaitForInspectorDisconnect(Environment* env) {
 #if HAVE_INSPECTOR
   if (env->inspector_agent()->IsConnected()) {
@@ -2519,113 +2350,6 @@ static void Exit(const FunctionCallbackInfo<Value>& args) {
     v8_platform.StopTracingAgent();
   }
   exit(args[0]->Int32Value());
-}
-
-
-static void Uptime(const FunctionCallbackInfo<Value>& args) {
-  Environment* env = Environment::GetCurrent(args);
-  double uptime;
-
-  uv_update_time(env->event_loop());
-  uptime = uv_now(env->event_loop()) - prog_start_time;
-
-  args.GetReturnValue().Set(Number::New(env->isolate(), uptime / 1000));
-}
-
-
-static void MemoryUsage(const FunctionCallbackInfo<Value>& args) {
-  Environment* env = Environment::GetCurrent(args);
-
-  size_t rss;
-  int err = uv_resident_set_memory(&rss);
-  if (err) {
-    return env->ThrowUVException(err, "uv_resident_set_memory");
-  }
-
-  Isolate* isolate = env->isolate();
-  // V8 memory usage
-  HeapStatistics v8_heap_stats;
-  isolate->GetHeapStatistics(&v8_heap_stats);
-
-  // Get the double array pointer from the Float64Array argument.
-  CHECK(args[0]->IsFloat64Array());
-  Local<Float64Array> array = args[0].As<Float64Array>();
-  CHECK_EQ(array->Length(), 4);
-  Local<ArrayBuffer> ab = array->Buffer();
-  double* fields = static_cast<double*>(ab->GetContents().Data());
-
-  fields[0] = rss;
-  fields[1] = v8_heap_stats.total_heap_size();
-  fields[2] = v8_heap_stats.used_heap_size();
-  fields[3] = isolate->AdjustAmountOfExternalAllocatedMemory(0);
-}
-
-
-static void Kill(const FunctionCallbackInfo<Value>& args) {
-  Environment* env = Environment::GetCurrent(args);
-
-  if (args.Length() != 2) {
-    return env->ThrowError("Bad argument.");
-  }
-
-  int pid = args[0]->Int32Value();
-  int sig = args[1]->Int32Value();
-  int err = uv_kill(pid, sig);
-  args.GetReturnValue().Set(err);
-}
-
-// used in Hrtime() below
-#define NANOS_PER_SEC 1000000000
-
-// Hrtime exposes libuv's uv_hrtime() high-resolution timer.
-// The value returned by uv_hrtime() is a 64-bit int representing nanoseconds,
-// so this function instead fills in an Uint32Array with 3 entries,
-// to avoid any integer overflow possibility.
-// The first two entries contain the second part of the value
-// broken into the upper/lower 32 bits to be converted back in JS,
-// because there is no Uint64Array in JS.
-// The third entry contains the remaining nanosecond part of the value.
-static void Hrtime(const FunctionCallbackInfo<Value>& args) {
-  uint64_t t = uv_hrtime();
-
-  Local<ArrayBuffer> ab = args[0].As<Uint32Array>()->Buffer();
-  uint32_t* fields = static_cast<uint32_t*>(ab->GetContents().Data());
-
-  fields[0] = (t / NANOS_PER_SEC) >> 32;
-  fields[1] = (t / NANOS_PER_SEC) & 0xffffffff;
-  fields[2] = t % NANOS_PER_SEC;
-}
-
-// Microseconds in a second, as a float, used in CPUUsage() below
-#define MICROS_PER_SEC 1e6
-
-// CPUUsage use libuv's uv_getrusage() this-process resource usage accessor,
-// to access ru_utime (user CPU time used) and ru_stime (system CPU time used),
-// which are uv_timeval_t structs (long tv_sec, long tv_usec).
-// Returns those values as Float64 microseconds in the elements of the array
-// passed to the function.
-static void CPUUsage(const FunctionCallbackInfo<Value>& args) {
-  uv_rusage_t rusage;
-
-  // Call libuv to get the values we'll return.
-  int err = uv_getrusage(&rusage);
-  if (err) {
-    // On error, return the strerror version of the error code.
-    Local<String> errmsg = OneByteString(args.GetIsolate(), uv_strerror(err));
-    args.GetReturnValue().Set(errmsg);
-    return;
-  }
-
-  // Get the double array pointer from the Float64Array argument.
-  CHECK(args[0]->IsFloat64Array());
-  Local<Float64Array> array = args[0].As<Float64Array>();
-  CHECK_EQ(array->Length(), 2);
-  Local<ArrayBuffer> ab = array->Buffer();
-  double* fields = static_cast<double*>(ab->GetContents().Data());
-
-  // Set the Float64Array elements to be user / system values in microseconds.
-  fields[0] = MICROS_PER_SEC * rusage.ru_utime.tv_sec + rusage.ru_utime.tv_usec;
-  fields[1] = MICROS_PER_SEC * rusage.ru_stime.tv_sec + rusage.ru_stime.tv_usec;
 }
 
 extern "C" void node_module_register(void* m) {
@@ -2715,12 +2439,9 @@ static void DLOpen(const FunctionCallbackInfo<Value>& args) {
     env->ThrowError("Module did not self-register.");
     return;
   }
-  if (mp->nm_version == -1) {
-    if (env->EmitNapiWarning()) {
-      ProcessEmitWarning(env, "N-API is an experimental feature and could "
-                         "change at any time.");
-    }
-  } else if (mp->nm_version != NODE_MODULE_VERSION) {
+
+  // -1 is used for N-API modules
+  if ((mp->nm_version != -1) && (mp->nm_version != NODE_MODULE_VERSION)) {
     char errmsg[1024];
     snprintf(errmsg,
              sizeof(errmsg),
@@ -3326,19 +3047,6 @@ void ActivateImmediateCheck(const FunctionCallbackInfo<Value>& args) {
   env->ActivateImmediateCheck();
 }
 
-
-void StartProfilerIdleNotifier(const FunctionCallbackInfo<Value>& args) {
-  Environment* env = Environment::GetCurrent(args);
-  env->StartProfilerIdleNotifier();
-}
-
-
-void StopProfilerIdleNotifier(const FunctionCallbackInfo<Value>& args) {
-  Environment* env = Environment::GetCurrent(args);
-  env->StopProfilerIdleNotifier();
-}
-
-
 #define READONLY_PROPERTY(obj, str, var)                                      \
   do {                                                                        \
     obj->DefineOwnProperty(env->context(),                                    \
@@ -3552,8 +3260,9 @@ void SetupProcessObject(Environment* env,
                     Integer::New(env->isolate(), uv_os_getpid()));
   READONLY_PROPERTY(process, "features", GetFeatures(env));
 
-  process->SetAccessor(FIXED_ONE_BYTE_STRING(env->isolate(), "ppid"),
-                       GetParentProcessId);
+  CHECK(process->SetAccessor(env->context(),
+                             FIXED_ONE_BYTE_STRING(env->isolate(), "ppid"),
+                             GetParentProcessId).FromJust());
 
   auto scheduled_immediate_count =
       FIXED_ONE_BYTE_STRING(env->isolate(), "_scheduledImmediateCount");
@@ -3694,14 +3403,23 @@ void SetupProcessObject(Environment* env,
   env->SetMethod(process,
                  "_stopProfilerIdleNotifier",
                  StopProfilerIdleNotifier);
+  env->SetMethod(process, "_debugProcess", DebugProcess);
+  env->SetMethod(process, "_debugPause", DebugPause);
+  env->SetMethod(process, "_debugEnd", DebugEnd);
   env->SetMethod(process, "_getActiveRequests", GetActiveRequests);
   env->SetMethod(process, "_getActiveHandles", GetActiveHandles);
-  env->SetMethod(process, "reallyExit", Exit);
+  env->SetMethod(process, "_internalBinding", InternalBinding);
+  env->SetMethod(process, "_kill", Kill);
+  env->SetMethod(process, "_linkedBinding", LinkedBinding);
+  env->SetMethod(process, "_setupDomainUse", SetupDomainUse);
+  env->SetMethod(process, "binding", Binding);
+  env->SetMethod(process, "dlopen", DLOpen);
   env->SetMethod(process, "abort", Abort);
   env->SetMethod(process, "chdir", Chdir);
   env->SetMethod(process, "cwd", Cwd);
-
+  env->SetMethod(process, "reallyExit", Exit);
   env->SetMethod(process, "umask", Umask);
+  env->SetMethod(process, "uptime", Uptime);
 
 #if defined(__POSIX__) && !defined(__ANDROID__)
   env->SetMethod(process, "getuid", GetUid);
@@ -3737,10 +3455,6 @@ void SetupProcessObject(Environment* env,
   env->SetMethod(process, "binding", Binding);
   env->SetMethod(process, "_linkedBinding", LinkedBinding);
   env->SetMethod(process, "_internalBinding", InternalBinding);
-
-  env->SetMethod(process, "_setupProcessObject", SetupProcessObject);
-  env->SetMethod(process, "_setupNextTick", SetupNextTick);
-  env->SetMethod(process, "_setupPromises", SetupPromises);
   env->SetMethod(process, "_setupDomainUse", SetupDomainUse);
 
   // --------- [Enclose.IO Hack start] ---------
@@ -3771,19 +3485,6 @@ void SignalExit(int signo) {
   CHECK_EQ(sigaction(signo, &sa, nullptr), 0);
 #endif
   raise(signo);
-}
-
-
-// Most of the time, it's best to use `console.error` to write
-// to the process.stderr stream.  However, in some cases, such as
-// when debugging the stream.Writable class or the process.nextTick
-// function, it is useful to bypass JavaScript entirely.
-static void RawDebug(const FunctionCallbackInfo<Value>& args) {
-  CHECK(args.Length() == 1 && args[0]->IsString() &&
-        "must be called with a single string");
-  node::Utf8Value message(args.GetIsolate(), args[0]);
-  PrintErrorString("%s\n", *message);
-  fflush(stderr);
 }
 
 void LoadEnvironment(Environment* env) {
@@ -3834,8 +3535,6 @@ void LoadEnvironment(Environment* env) {
   // thrown during process startup.
   try_catch.SetVerbose(true);
 
-  env->SetMethod(env->process_object(), "_rawDebug", RawDebug);
-
   // Expose the global object as a property on itself
   // (Allows you to set stuff on `global` from anywhere in JavaScript.)
   global->Set(FIXED_ONE_BYTE_STRING(env->isolate(), "global"), global);
@@ -3847,9 +3546,15 @@ void LoadEnvironment(Environment* env) {
   // We start the process this way in order to be more modular. Developers
   // who do not like how bootstrap_node.js sets up the module system but do
   // like Node's I/O bindings may want to replace 'f' with their own function.
-  Local<Value> arg = env->process_object();
-
-  auto ret = f->Call(env->context(), Null(env->isolate()), 1, &arg);
+  Local<Object> bootstrapper = Object::New(env->isolate());
+  SetupBootstrapObject(env, bootstrapper);
+  Local<Value> args[] = {
+    env->process_object(),
+    bootstrapper
+  };
+  auto ret = f->Call(env->context(),
+                     Null(env->isolate()),
+                     arraysize(args), args);
   // If there was an error during bootstrap then it was either handled by the
   // FatalException handler or it's unrecoverable (e.g. max call stack
   // exceeded). Either way, clear the stack so that the AsyncCallbackScope
@@ -3908,6 +3613,10 @@ static void PrintHelp() {
          "  --trace-events-enabled     track trace events\n"
          "  --trace-event-categories   comma separated list of trace event\n"
          "                             categories to record\n"
+         "  --trace-event-file-pattern Template string specifying the\n"
+         "                             filepath for the trace-events data, it\n"
+         "                             supports ${rotation} and ${pid}\n"
+         "                             log-rotation id. %%2$u is the pid.\n"
          "  --track-heap-objects       track heap object allocations for heap "
          "snapshots\n"
          "  --prof-process             process v8 profiler output generated\n"
@@ -4034,6 +3743,7 @@ static void CheckIfAllowedInEnv(const char* exe, bool is_env,
     "--force-async-hooks-checks",
     "--trace-events-enabled",
     "--trace-event-categories",
+    "--trace-event-file-pattern",
     "--track-heap-objects",
     "--zero-fill-buffers",
     "--v8-pool-size",
@@ -4046,6 +3756,8 @@ static void CheckIfAllowedInEnv(const char* exe, bool is_env,
     "--icu-data-dir",
 
     // V8 options (define with '_', which allows '-' or '_')
+    "--perf_prof",
+    "--perf_basic_prof",
     "--abort_on_uncaught_exception",
     "--max_old_space_size",
     "--stack_trace_limit",
@@ -4183,6 +3895,14 @@ static void ParseArgs(int* argc,
       }
       args_consumed += 1;
       trace_enabled_categories = categories;
+    } else if (strcmp(arg, "--trace-event-file-pattern") == 0) {
+      const char* file_pattern = argv[index + 1];
+      if (file_pattern == nullptr) {
+        fprintf(stderr, "%s: %s requires an argument\n", argv[0], arg);
+        exit(9);
+      }
+      args_consumed += 1;
+      trace_file_pattern = file_pattern;
     } else if (strcmp(arg, "--track-heap-objects") == 0) {
       track_heap_objects = true;
     } else if (strcmp(arg, "--throw-deprecation") == 0) {
@@ -4194,6 +3914,8 @@ static void ParseArgs(int* argc,
       config_preserve_symlinks = true;
     } else if (strcmp(arg, "--experimental-modules") == 0) {
       config_experimental_modules = true;
+      new_v8_argv[new_v8_argc] = "--harmony-dynamic-import";
+      new_v8_argc += 1;
     }  else if (strcmp(arg, "--loader") == 0) {
       const char* module = argv[index + 1];
       if (!config_experimental_modules) {
@@ -4608,7 +4330,7 @@ void Init(int* argc,
   prog_start_time = static_cast<double>(uv_now(uv_default_loop()));
 
   // Register built-in modules
-  node::RegisterBuiltinModules();
+  RegisterBuiltinModules();
 
   // Make inherited handles noninheritable.
   uv_disable_stdio_inheritance();
@@ -4774,7 +4496,14 @@ int EmitExit(Environment* env) {
 
 
 IsolateData* CreateIsolateData(Isolate* isolate, uv_loop_t* loop) {
-  return new IsolateData(isolate, loop);
+  return new IsolateData(isolate, loop, nullptr);
+}
+
+IsolateData* CreateIsolateData(
+    Isolate* isolate,
+    uv_loop_t* loop,
+    MultiIsolatePlatform* platform) {
+  return new IsolateData(isolate, loop, platform);
 }
 
 
@@ -4799,7 +4528,20 @@ Environment* CreateEnvironment(IsolateData* isolate_data,
 
 
 void FreeEnvironment(Environment* env) {
+  env->RunCleanup();
   delete env;
+}
+
+
+MultiIsolatePlatform* CreatePlatform(
+    int thread_pool_size,
+    v8::TracingController* tracing_controller) {
+  return new NodePlatform(thread_pool_size, tracing_controller);
+}
+
+
+void FreePlatform(MultiIsolatePlatform* platform) {
+  delete platform;
 }
 
 
@@ -4842,7 +4584,7 @@ inline int Start(Isolate* isolate, IsolateData* isolate_data,
     do {
       uv_run(env.event_loop(), UV_RUN_DEFAULT);
 
-      v8_platform.DrainVMTasks();
+      v8_platform.DrainVMTasks(isolate);
 
       more = uv_loop_alive(env.event_loop());
       if (more)
@@ -4860,10 +4602,13 @@ inline int Start(Isolate* isolate, IsolateData* isolate_data,
   env.set_trace_sync_io(false);
 
   const int exit_code = EmitExit(&env);
+
+  env.RunCleanup();
   RunAtExit(&env);
   uv_key_delete(&thread_local_env);
 
-  v8_platform.DrainVMTasks();
+  v8_platform.DrainVMTasks(isolate);
+  v8_platform.CancelVMTasks(isolate);
   WaitForInspectorDisconnect(&env);
 #if defined(LEAK_SANITIZER)
   __lsan_do_leak_check();
@@ -4906,7 +4651,11 @@ inline int Start(uv_loop_t* event_loop,
     Locker locker(isolate);
     Isolate::Scope isolate_scope(isolate);
     HandleScope handle_scope(isolate);
-    IsolateData isolate_data(isolate, event_loop, allocator.zero_fill_field());
+    IsolateData isolate_data(
+        isolate,
+        event_loop,
+        v8_platform.Platform(),
+        allocator.zero_fill_field());
     exit_code = Start(isolate, &isolate_data, argc, argv, exec_argc, exec_argv);
   }
 
@@ -4924,7 +4673,7 @@ inline int Start(uv_loop_t* event_loop,
 int Start(int argc, char** argv) {
   atexit([] () { uv_tty_reset_mode(); });
   PlatformInit();
-  node::performance::performance_node_start = PERFORMANCE_NOW();
+  performance::performance_node_start = PERFORMANCE_NOW();
 
   CHECK_GT(argc, 0);
 
@@ -4953,7 +4702,7 @@ int Start(int argc, char** argv) {
   V8::SetEntropySource(crypto::EntropySource);
 #endif  // HAVE_OPENSSL
 
-  v8_platform.Initialize(v8_thread_pool_size, uv_default_loop());
+  v8_platform.Initialize(v8_thread_pool_size);
   // Enable tracing when argv has --trace-events-enabled.
   if (trace_enabled) {
     fprintf(stderr, "Warning: Trace event is an experimental feature "
@@ -4961,7 +4710,7 @@ int Start(int argc, char** argv) {
     v8_platform.StartTracingAgent();
   }
   V8::Initialize();
-  node::performance::performance_v8_start = PERFORMANCE_NOW();
+  performance::performance_v8_start = PERFORMANCE_NOW();
   v8_initialized = true;
   const int exit_code =
       Start(uv_default_loop(), argc, argv, exec_argc, exec_argv);

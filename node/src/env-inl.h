@@ -37,41 +37,9 @@
 
 namespace node {
 
-inline IsolateData::IsolateData(v8::Isolate* isolate, uv_loop_t* event_loop,
-                                uint32_t* zero_fill_field) :
-
-// Create string and private symbol properties as internalized one byte strings.
-//
-// Internalized because it makes property lookups a little faster and because
-// the string is created in the old space straight away.  It's going to end up
-// in the old space sooner or later anyway but now it doesn't go through
-// v8::Eternal's new space handling first.
-//
-// One byte because our strings are ASCII and we can safely skip V8's UTF-8
-// decoding step.  It's a one-time cost, but why pay it when you don't have to?
-#define V(PropertyName, StringValue)                                          \
-    PropertyName ## _(                                                        \
-        isolate,                                                              \
-        v8::Private::New(                                                     \
-            isolate,                                                          \
-            v8::String::NewFromOneByte(                                       \
-                isolate,                                                      \
-                reinterpret_cast<const uint8_t*>(StringValue),                \
-                v8::NewStringType::kInternalized,                             \
-                sizeof(StringValue) - 1).ToLocalChecked())),
-  PER_ISOLATE_PRIVATE_SYMBOL_PROPERTIES(V)
-#undef V
-#define V(PropertyName, StringValue)                                          \
-    PropertyName ## _(                                                        \
-        isolate,                                                              \
-        v8::String::NewFromOneByte(                                           \
-            isolate,                                                          \
-            reinterpret_cast<const uint8_t*>(StringValue),                    \
-            v8::NewStringType::kInternalized,                                 \
-            sizeof(StringValue) - 1).ToLocalChecked()),
-    PER_ISOLATE_STRING_PROPERTIES(V)
-#undef V
-    event_loop_(event_loop), zero_fill_field_(zero_fill_field) {}
+inline v8::Isolate* IsolateData::isolate() const {
+  return isolate_;
+}
 
 inline uv_loop_t* IsolateData::event_loop() const {
   return event_loop_;
@@ -79,6 +47,10 @@ inline uv_loop_t* IsolateData::event_loop() const {
 
 inline uint32_t* IsolateData::zero_fill_field() const {
   return zero_fill_field_;
+}
+
+inline MultiIsolatePlatform* IsolateData::platform() const {
+  return platform_;
 }
 
 inline Environment::AsyncHooks::AsyncHooks()
@@ -92,10 +64,6 @@ inline Environment::AsyncHooks::AsyncHooks()
   // 0 is not used as the magic value, because that indicates a missing context
   // which is different from a default context.
   async_id_fields_[AsyncHooks::kDefaultTriggerAsyncId] = -1;
-
-  // kAsyncIdCounter should start at 1 because that'll be the id the execution
-  // context during bootstrap (code that runs before entering uv_run()).
-  async_id_fields_[AsyncHooks::kAsyncIdCounter] = 1;
 
   // Create all the provider strings that will be passed to JS. Place them in
   // an array so the array index matches the PROVIDER id offset. This way the
@@ -198,6 +166,9 @@ inline void Environment::AsyncHooks::clear_async_id_stack() {
   async_id_fields_[kTriggerAsyncId] = 0;
   fields_[kStackLength] = 0;
 }
+
+// The DefaultTriggerAsyncIdScope(AsyncWrap*) constructor is defined in
+// async_wrap-inl.h to avoid a circular dependency.
 
 inline Environment::AsyncHooks::DefaultTriggerAsyncIdScope
   ::DefaultTriggerAsyncIdScope(Environment* env,
@@ -307,77 +278,6 @@ inline Environment* Environment::GetCurrent(
   CHECK(info.Data()->IsExternal());
   return static_cast<Environment*>(
       info.Data().template As<v8::External>()->Value());
-}
-
-inline Environment::Environment(IsolateData* isolate_data,
-                                v8::Local<v8::Context> context)
-    : isolate_(context->GetIsolate()),
-      isolate_data_(isolate_data),
-      timer_base_(uv_now(isolate_data->event_loop())),
-      using_domains_(false),
-      printed_error_(false),
-      trace_sync_io_(false),
-      abort_on_uncaught_exception_(false),
-      emit_napi_warning_(true),
-      makecallback_cntr_(0),
-      scheduled_immediate_count_(isolate_, 1),
-#if HAVE_INSPECTOR
-      inspector_agent_(new inspector::Agent(this)),
-#endif
-      handle_cleanup_waiting_(0),
-      http_parser_buffer_(nullptr),
-      fs_stats_field_array_(nullptr),
-      context_(context->GetIsolate(), context) {
-  // We'll be creating new objects so make sure we've entered the context.
-  v8::HandleScope handle_scope(isolate());
-  v8::Context::Scope context_scope(context);
-  set_as_external(v8::External::New(isolate(), this));
-
-  v8::Local<v8::Primitive> null = v8::Null(isolate());
-  v8::Local<v8::Object> binding_cache_object = v8::Object::New(isolate());
-  CHECK(binding_cache_object->SetPrototype(context, null).FromJust());
-  set_binding_cache_object(binding_cache_object);
-
-  v8::Local<v8::Object> internal_binding_cache_object =
-      v8::Object::New(isolate());
-  CHECK(internal_binding_cache_object->SetPrototype(context, null).FromJust());
-  set_internal_binding_cache_object(internal_binding_cache_object);
-
-  set_module_load_list_array(v8::Array::New(isolate()));
-
-  AssignToContext(context);
-
-  destroy_async_id_list_.reserve(512);
-  performance_state_.reset(new performance::performance_state(isolate()));
-  performance_state_->milestones[
-      performance::NODE_PERFORMANCE_MILESTONE_ENVIRONMENT] =
-          PERFORMANCE_NOW();
-  performance_state_->milestones[
-    performance::NODE_PERFORMANCE_MILESTONE_NODE_START] =
-        performance::performance_node_start;
-  performance_state_->milestones[
-    performance::NODE_PERFORMANCE_MILESTONE_V8_START] =
-        performance::performance_v8_start;
-}
-
-inline Environment::~Environment() {
-  v8::HandleScope handle_scope(isolate());
-
-#if HAVE_INSPECTOR
-  // Destroy inspector agent before erasing the context. The inspector
-  // destructor depends on the context still being accessible.
-  inspector_agent_.reset();
-#endif
-
-  context()->SetAlignedPointerInEmbedderData(kContextEmbedderDataIndex,
-                                             nullptr);
-#define V(PropertyName, TypeName) PropertyName ## _.Reset();
-  ENVIRONMENT_STRONG_PERSISTENT_PROPERTIES(V)
-#undef V
-
-  delete[] heap_statistics_buffer_;
-  delete[] heap_space_statistics_buffer_;
-  delete[] http_parser_buffer_;
 }
 
 inline v8::Isolate* Environment::isolate() const {
@@ -559,7 +459,8 @@ inline performance::performance_state* Environment::performance_state() {
   return performance_state_.get();
 }
 
-inline std::map<std::string, uint64_t>* Environment::performance_marks() {
+inline std::unordered_map<std::string, uint64_t>*
+    Environment::performance_marks() {
   return &performance_marks_;
 }
 
@@ -646,6 +547,29 @@ inline void Environment::SetTemplateMethod(v8::Local<v8::FunctionTemplate> that,
       v8::String::NewFromUtf8(isolate(), name, type).ToLocalChecked();
   that->Set(name_string, t);
   t->SetClassName(name_string);  // NODE_SET_METHOD() compatibility.
+}
+
+void Environment::AddCleanupHook(void (*fn)(void*), void* arg) {
+  auto insertion_info = cleanup_hooks_.emplace(CleanupHookCallback {
+    fn, arg, cleanup_hook_counter_++
+  });
+  // Make sure there was no existing element with these values.
+  CHECK_EQ(insertion_info.second, true);
+}
+
+void Environment::RemoveCleanupHook(void (*fn)(void*), void* arg) {
+  CleanupHookCallback search { fn, arg, 0 };
+  cleanup_hooks_.erase(search);
+}
+
+size_t Environment::CleanupHookCallback::Hash::operator()(
+    const CleanupHookCallback& cb) const {
+  return std::hash<void*>()(cb.arg_);
+}
+
+bool Environment::CleanupHookCallback::Equal::operator()(
+    const CleanupHookCallback& a, const CleanupHookCallback& b) const {
+  return a.fn_ == b.fn_ && a.arg_ == b.arg_;
 }
 
 #define VP(PropertyName, StringValue) V(v8::Private, PropertyName)

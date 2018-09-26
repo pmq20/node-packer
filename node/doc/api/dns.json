@@ -98,16 +98,18 @@
                       "desc": "One or more [supported `getaddrinfo` flags][]. Multiple flags may be passed by bitwise `OR`ing their values."
                     },
                     {
-                      "textRaw": "`all` {boolean} When `true`, the callback returns all resolved addresses in an array. Otherwise, returns a single address. **Default:** `false` ",
+                      "textRaw": "`all` {boolean} When `true`, the callback returns all resolved addresses in an array. Otherwise, returns a single address. **Default:** `false`. ",
                       "name": "all",
+                      "default": "`false`",
                       "type": "boolean",
-                      "desc": "When `true`, the callback returns all resolved addresses in an array. Otherwise, returns a single address. **Default:** `false`"
+                      "desc": "When `true`, the callback returns all resolved addresses in an array. Otherwise, returns a single address."
                     },
                     {
                       "textRaw": "`verbatim` {boolean} When `true`, the callback receives IPv4 and IPv6 addresses in the order the DNS resolver returned them. When `false`, IPv4 addresses are placed before IPv6 addresses. **Default:** currently `false` (addresses are reordered) but this is expected to change in the not too distant future. New code should use `{ verbatim: true }`. ",
                       "name": "verbatim",
+                      "default": "currently `false` (addresses are reordered) but this is expected to change in the not too distant future. New code should use `{ verbatim: true }`",
                       "type": "boolean",
-                      "desc": "When `true`, the callback receives IPv4 and IPv6 addresses in the order the DNS resolver returned them. When `false`, IPv4 addresses are placed before IPv6 addresses. **Default:** currently `false` (addresses are reordered) but this is expected to change in the not too distant future. New code should use `{ verbatim: true }`."
+                      "desc": "When `true`, the callback receives IPv4 and IPv6 addresses in the order the DNS resolver returned them. When `false`, IPv4 addresses are placed before IPv6 addresses."
                     }
                   ],
                   "name": "options",
@@ -251,10 +253,11 @@
                   "desc": "Hostname to resolve."
                 },
                 {
-                  "textRaw": "`rrtype` {string} Resource record type. **Default:** `'A'` ",
+                  "textRaw": "`rrtype` {string} Resource record type. **Default:** `'A'`. ",
                   "name": "rrtype",
+                  "default": "`'A'`",
                   "type": "string",
-                  "desc": "Resource record type. **Default:** `'A'`",
+                  "desc": "Resource record type.",
                   "optional": true
                 },
                 {

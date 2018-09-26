@@ -40,7 +40,7 @@ This method is identical to [`server.listen()`][] from [`net.Server`][].
 <!-- YAML
 added: v0.11.2
 -->
-- `msecs` {number} Defaults to 120000 (2 minutes).
+- `msecs` {number} **Default:** `120000` (2 minutes)
 - `callback` {Function}
 
 See [`http.Server#setTimeout()`][].
@@ -49,7 +49,7 @@ See [`http.Server#setTimeout()`][].
 <!-- YAML
 added: v0.11.2
 -->
-- {number} Defaults to 120000 (2 minutes).
+- {number} **Default:** `120000` (2 minutes)
 
 See [`http.Server#timeout`][].
 
@@ -57,7 +57,7 @@ See [`http.Server#timeout`][].
 <!-- YAML
 added: v8.0.0
 -->
-- {number} Defaults to 5000 (5 seconds).
+- {number} **Default:** `5000` (5 seconds)
 
 See [`http.Server#keepAliveTimeout`][].
 
@@ -65,7 +65,8 @@ See [`http.Server#keepAliveTimeout`][].
 <!-- YAML
 added: v0.3.4
 -->
-- `options` {Object} Accepts `options` from [`tls.createServer()`][] and [`tls.createSecureContext()`][].
+- `options` {Object} Accepts `options` from [`tls.createServer()`][],
+ [`tls.createSecureContext()`][] and [`http.createServer()`][].
 - `requestListener` {Function} A listener to be added to the `request` event.
 
 Example:
@@ -154,11 +155,11 @@ changes:
     pr-url: https://github.com/nodejs/node/pull/10638
     description: The `options` parameter can be a WHATWG `URL` object.
 -->
-- `options` {Object | string | URL} Accepts all `options` from [`http.request()`][],
-  with some differences in default values:
-  - `protocol` Defaults to `https:`
-  - `port` Defaults to `443`.
-  - `agent` Defaults to `https.globalAgent`.
+- `options` {Object | string | URL} Accepts all `options` from
+  [`http.request()`][], with some differences in default values:
+  - `protocol` **Default:** `https:`
+  - `port` **Default:** `443`
+  - `agent` **Default:** `https.globalAgent`
 - `callback` {Function}
 
 
@@ -255,6 +256,7 @@ const req = https.request(options, (res) => {
 [`http.Server#setTimeout()`]: http.html#http_server_settimeout_msecs_callback
 [`http.Server#timeout`]: http.html#http_server_timeout
 [`http.Server`]: http.html#http_class_http_server
+[`http.createServer()`]: http.html#httpcreateserveroptions-requestlistener
 [`http.close()`]: http.html#http_server_close_callback
 [`http.get()`]: http.html#http_http_get_options_callback
 [`http.request()`]: http.html#http_http_request_options_callback

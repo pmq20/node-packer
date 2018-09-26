@@ -323,6 +323,9 @@ The `'unpipe'` event is emitted when the [`stream.unpipe()`][] method is called
 on a [Readable][] stream, removing this [Writable][] from its set of
 destinations.
 
+This is also emitted in case this [Writable][] stream emits an error when a
+[Readable][] stream pipes into it.
+
 ```js
 const writer = getWritableStreamSomehow();
 const reader = getReadableStreamSomehow();
@@ -836,7 +839,7 @@ added: v0.9.4
 
 * `destination` {stream.Writable} The destination for writing data
 * `options` {Object} Pipe options
-  * `end` {boolean} End the writer when the reader ends. Defaults to `true`.
+  * `end` {boolean} End the writer when the reader ends. **Default:** `true`.
 
 The `readable.pipe()` method attaches a [Writable][] stream to the `readable`,
 causing it to switch automatically into flowing mode and push all of its data
@@ -930,10 +933,6 @@ readable.on('readable', () => {
   }
 });
 ```
-
-In general, it is recommended that developers avoid the use of the `'readable'`
-event and the `readable.read()` method in favor of using either
-`readable.pipe()` or the `'data'` event.
 
 A Readable stream in object mode will always return a single item from
 a call to [`readable.read(size)`][stream-read], regardless of the value of the
@@ -1320,16 +1319,16 @@ constructor and implement the `writable._write()` method. The
 
 * `options` {Object}
   * `highWaterMark` {number} Buffer level when
-    [`stream.write()`][stream-write] starts returning `false`. Defaults to
+    [`stream.write()`][stream-write] starts returning `false`. **Default:**
     `16384` (16kb), or `16` for `objectMode` streams.
   * `decodeStrings` {boolean} Whether or not to decode strings into
     Buffers before passing them to [`stream._write()`][stream-_write].
-    Defaults to `true`
+    **Default:** `true`.
   * `objectMode` {boolean} Whether or not the
     [`stream.write(anyObj)`][stream-write] is a valid operation. When set,
     it becomes possible to write JavaScript values other than string,
     `Buffer` or `Uint8Array` if supported by the stream implementation.
-    Defaults to `false`
+    **Default:** `false`.
   * `write` {Function} Implementation for the
     [`stream._write()`][stream-_write] method.
   * `writev` {Function} Implementation for the
@@ -1485,6 +1484,9 @@ the callback and passing the error as the first argument. This will cause an
 on how the stream is being used. Using the callback ensures consistent and
 predictable handling of errors.
 
+If a Readable stream pipes into a Writable stream when Writable emits an
+error, the Readable stream will be unpiped.
+
 ```js
 const { Writable } = require('stream');
 
@@ -1578,12 +1580,12 @@ constructor and implement the `readable._read()` method.
 * `options` {Object}
   * `highWaterMark` {number} The maximum [number of bytes][hwm-gotcha] to store
     in the internal buffer before ceasing to read from the underlying resource.
-    Defaults to `16384` (16kb), or `16` for `objectMode` streams
+    **Default:** `16384` (16kb), or `16` for `objectMode` streams.
   * `encoding` {string} If specified, then buffers will be decoded to
-    strings using the specified encoding. Defaults to `null`
+    strings using the specified encoding. **Default:** `null`.
   * `objectMode` {boolean} Whether this stream should behave
     as a stream of objects. Meaning that [`stream.read(n)`][stream-read] returns
-    a single value instead of a Buffer of size n. Defaults to `false`
+    a single value instead of a Buffer of size n. **Default:** `false`.
   * `read` {Function} Implementation for the [`stream._read()`][stream-_read]
     method.
   * `destroy` {Function} Implementation for the [`stream._destroy()`][readable-_destroy]
@@ -1740,6 +1742,10 @@ class SourceWrapper extends Readable {
 *Note*: The `readable.push()` method is intended be called only by Readable
 Implementers, and only from within the `readable._read()` method.
 
+For streams not operating in object mode, if the `chunk` parameter of
+`readable.push()` is `undefined`, it will be treated as empty string or
+buffer. See [`readable.push('')`][] for more information.
+
 #### Errors While Reading
 
 It is recommended that errors occurring during the processing of the
@@ -1823,15 +1829,13 @@ changes:
 
 * `options` {Object} Passed to both Writable and Readable
   constructors. Also has the following fields:
-  * `allowHalfOpen` {boolean} Defaults to `true`. If set to `false`, then
-    the stream will automatically end the writable side when the
-    readable side ends.
-  * `readableObjectMode` {boolean} Defaults to `false`. Sets `objectMode`
-    for readable side of the stream. Has no effect if `objectMode`
-    is `true`.
-  * `writableObjectMode` {boolean} Defaults to `false`. Sets `objectMode`
-    for writable side of the stream. Has no effect if `objectMode`
-    is `true`.
+  * `allowHalfOpen` {boolean} If set to `false`, then the stream will
+    automatically end the writable side when the readable side ends.
+    **Default:** `true`.
+  * `readableObjectMode` {boolean} Sets `objectMode` for readable side of the
+    stream. Has no effect if `objectMode` is `true`. **Default:** `false`.
+  * `writableObjectMode` {boolean} Sets `objectMode` for writable side of the
+    stream. Has no effect if `objectMode` is `true`. **Default:** `false`.
   * `readableHighWaterMark` {number} Sets `highWaterMark` for the readable side
     of the stream. Has no effect if `highWaterMark` is provided.
   * `writableHighWaterMark` {number} Sets `highWaterMark` for the writable side
@@ -2259,6 +2263,7 @@ contain multi-byte characters.
 [`stream.uncork()`]: #stream_writable_uncork
 [`stream.unpipe()`]: #stream_readable_unpipe_destination
 [`stream.wrap()`]: #stream_readable_wrap_stream
+[`readable.push('')`]: #stream_readable_push
 [`writable.cork()`]: #stream_writable_cork
 [`writable.uncork()`]: #stream_writable_uncork
 [`zlib.createDeflate()`]: zlib.html#zlib_zlib_createdeflate_options

@@ -58,6 +58,12 @@
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {this} - the read stream instance.",
+                    "name": "return",
+                    "type": "this",
+                    "desc": "the read stream instance."
+                  },
                   "params": [
                     {
                       "textRaw": "`mode` {boolean} If `true`, configures the `tty.ReadStream` to operate as a raw device. If `false`, configures the `tty.ReadStream` to operate in its default mode. The `readStream.isRaw` property will be set to the resulting mode.",
@@ -98,6 +104,174 @@
               "desc": "<p>The <code>'resize'</code> event is emitted whenever either of the <code>writeStream.columns</code>\nor <code>writeStream.rows</code> properties have changed. No arguments are passed to the\nlistener callback when called.</p>\n<pre><code class=\"language-js\">process.stdout.on('resize', () => {\n  console.log('screen size has changed!');\n  console.log(`${process.stdout.columns}x${process.stdout.rows}`);\n});\n</code></pre>"
             }
           ],
+          "methods": [
+            {
+              "textRaw": "writeStream.clearLine(dir)",
+              "type": "method",
+              "name": "clearLine",
+              "meta": {
+                "added": [
+                  "v0.7.7"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`dir` {number}",
+                      "name": "dir",
+                      "type": "number",
+                      "options": [
+                        {
+                          "textRaw": "`-1` - to the left from cursor",
+                          "name": "-1",
+                          "desc": "to the left from cursor"
+                        },
+                        {
+                          "textRaw": "`1` - to the right from cursor",
+                          "name": "1",
+                          "desc": "to the right from cursor"
+                        },
+                        {
+                          "textRaw": "`0` - the entire line",
+                          "name": "0",
+                          "desc": "the entire line"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p><code>writeStream.clearLine()</code> clears the current line of this <code>WriteStream</code> in a\ndirection identified by <code>dir</code>.</p>"
+            },
+            {
+              "textRaw": "writeStream.clearScreenDown()",
+              "type": "method",
+              "name": "clearScreenDown",
+              "meta": {
+                "added": [
+                  "v0.7.7"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": []
+                }
+              ],
+              "desc": "<p><code>writeStream.clearScreenDown()</code> clears this <code>WriteStream</code> from the current\ncursor down.</p>"
+            },
+            {
+              "textRaw": "writeStream.cursorTo(x, y)",
+              "type": "method",
+              "name": "cursorTo",
+              "meta": {
+                "added": [
+                  "v0.7.7"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`x` {number}",
+                      "name": "x",
+                      "type": "number"
+                    },
+                    {
+                      "textRaw": "`y` {number}",
+                      "name": "y",
+                      "type": "number"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p><code>writeStream.cursorTo()</code> moves this <code>WriteStream</code>'s cursor to the specified\nposition.</p>"
+            },
+            {
+              "textRaw": "writeStream.getColorDepth([env])",
+              "type": "method",
+              "name": "getColorDepth",
+              "meta": {
+                "added": [
+                  "v9.9.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {number}",
+                    "name": "return",
+                    "type": "number"
+                  },
+                  "params": [
+                    {
+                      "textRaw": "`env` {Object} An object containing the environment variables to check. **Default:** `process.env`.",
+                      "name": "env",
+                      "type": "Object",
+                      "default": "`process.env`",
+                      "desc": "An object containing the environment variables to check.",
+                      "optional": true
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Returns:</p>\n<ul>\n<li><code>1</code> for 2,</li>\n<li><code>4</code> for 16,</li>\n<li><code>8</code> for 256,</li>\n<li><code>24</code> for 16,777,216\ncolors supported.</li>\n</ul>\n<p>Use this to determine what colors the terminal supports. Due to the nature of\ncolors in terminals it is possible to either have false positives or false\nnegatives. It depends on process information and the environment variables that\nmay lie about what terminal is used.\nTo enforce a specific behavior without relying on <code>process.env</code> it is possible\nto pass in an object with different settings.</p>\n<p>Use the <code>NODE_DISABLE_COLORS</code> environment variable to enforce this function to\nalways return 1.</p>"
+            },
+            {
+              "textRaw": "writeStream.getWindowSize()",
+              "type": "method",
+              "name": "getWindowSize",
+              "meta": {
+                "added": [
+                  "v0.7.7"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {number[]}",
+                    "name": "return",
+                    "type": "number[]"
+                  },
+                  "params": []
+                }
+              ],
+              "desc": "<p><code>writeStream.getWindowSize()</code> returns the size of the <a href=\"tty.html\">TTY</a>\ncorresponding to this <code>WriteStream</code>. The array is of the type\n<code>[numColumns, numRows]</code> where <code>numColumns</code> and <code>numRows</code> represent the number\nof columns and rows in the corresponding <a href=\"tty.html\">TTY</a>.</p>"
+            },
+            {
+              "textRaw": "writeStream.moveCursor(dx, dy)",
+              "type": "method",
+              "name": "moveCursor",
+              "meta": {
+                "added": [
+                  "v0.7.7"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`dx` {number}",
+                      "name": "dx",
+                      "type": "number"
+                    },
+                    {
+                      "textRaw": "`dy` {number}",
+                      "name": "dy",
+                      "type": "number"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p><code>writeStream.moveCursor()</code> moves this <code>WriteStream</code>'s cursor <em>relative</em> to its\ncurrent position.</p>"
+            }
+          ],
           "properties": [
             {
               "textRaw": "writeStream.columns",
@@ -131,39 +305,6 @@
                 "changes": []
               },
               "desc": "<p>A <code>number</code> specifying the number of rows the TTY currently has. This property\nis updated whenever the <code>'resize'</code> event is emitted.</p>"
-            }
-          ],
-          "methods": [
-            {
-              "textRaw": "writeStream.getColorDepth([env])",
-              "type": "method",
-              "name": "getColorDepth",
-              "meta": {
-                "added": [
-                  "v9.9.0"
-                ],
-                "changes": []
-              },
-              "signatures": [
-                {
-                  "return": {
-                    "textRaw": "Returns: {number}",
-                    "name": "return",
-                    "type": "number"
-                  },
-                  "params": [
-                    {
-                      "textRaw": "`env` {Object} An object containing the environment variables to check. **Default:** `process.env`.",
-                      "name": "env",
-                      "type": "Object",
-                      "default": "`process.env`",
-                      "desc": "An object containing the environment variables to check.",
-                      "optional": true
-                    }
-                  ]
-                }
-              ],
-              "desc": "<p>Returns:</p>\n<ul>\n<li><code>1</code> for 2,</li>\n<li><code>4</code> for 16,</li>\n<li><code>8</code> for 256,</li>\n<li><code>24</code> for 16,777,216\ncolors supported.</li>\n</ul>\n<p>Use this to determine what colors the terminal supports. Due to the nature of\ncolors in terminals it is possible to either have false positives or false\nnegatives. It depends on process information and the environment variables that\nmay lie about what terminal is used.\nTo enforce a specific behavior without relying on <code>process.env</code> it is possible\nto pass in an object with different settings.</p>\n<p>Use the <code>NODE_DISABLE_COLORS</code> environment variable to enforce this function to\nalways return 1.</p>"
             }
           ]
         }

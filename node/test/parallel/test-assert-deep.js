@@ -364,13 +364,13 @@ assertDeepAndStrictEqual(
   new Map([[null, 3]])
 );
 assertOnlyDeepEqual(
-  new Map([[null, undefined]]),
-  new Map([[undefined, null]])
+  new Map([[undefined, null], ['+000', 2n]]),
+  new Map([[null, undefined], [false, '2']]),
 );
 
 assertOnlyDeepEqual(
-  new Set([null, '']),
-  new Set([undefined, 0])
+  new Set([null, '', 1n, 5, 2n, false]),
+  new Set([undefined, 0, 5n, true, '2', '-000'])
 );
 assertNotDeepOrStrict(
   new Set(['']),
@@ -934,6 +934,17 @@ assert.throws(() => assert.deepStrictEqual(new Boolean(true), {}),
                '  [\n    1,\n-   2\n+   2,\n+   3\n  ]' }
   );
   util.inspect.defaultOptions = tmp;
+
+  const invalidTrap = new Proxy([1, 2, 3], {
+    ownKeys() { return []; }
+  });
+  assert.throws(
+    () => assert.deepStrictEqual(invalidTrap, [1, 2, 3]),
+    {
+      name: 'TypeError',
+      message: "'ownKeys' on proxy: trap result did not include 'length'"
+    }
+  );
 }
 
 // Basic valueOf check.
@@ -941,4 +952,11 @@ assert.throws(() => assert.deepStrictEqual(new Boolean(true), {}),
   const a = new String(1);
   a.valueOf = undefined;
   assertNotDeepOrStrict(a, new String(1));
+}
+
+// Basic array out of bounds check.
+{
+  const arr = [1, 2, 3];
+  arr[2 ** 32] = true;
+  assertNotDeepOrStrict(arr, [1, 2, 3]);
 }

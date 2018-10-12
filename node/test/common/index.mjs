@@ -13,7 +13,6 @@ const {
   isOpenBSD,
   isLinux,
   isOSX,
-  isGlibc,
   enoughTestMem,
   enoughTestCpu,
   rootDir,
@@ -24,11 +23,8 @@ const {
   hasIPv6,
   childShouldThrowAndAbort,
   ddCommand,
-  spawnPwd,
-  spawnSyncPwd,
   platformTimeout,
   allowGlobals,
-  leakedGlobals,
   mustCall,
   mustCallAtLeast,
   mustCallAsync,
@@ -52,12 +48,7 @@ const {
   getBufferSources,
   disableCrashOnUnhandledRejection,
   getTTYfd,
-  runWithInvalidFD,
-  hijackStdout,
-  hijackStderr,
-  restoreStdout,
-  restoreStderr,
-  isCPPSymbolsNotMapped
+  runWithInvalidFD
 } = common;
 
 export {
@@ -71,7 +62,6 @@ export {
   isOpenBSD,
   isLinux,
   isOSX,
-  isGlibc,
   enoughTestMem,
   enoughTestCpu,
   rootDir,
@@ -82,11 +72,8 @@ export {
   hasIPv6,
   childShouldThrowAndAbort,
   ddCommand,
-  spawnPwd,
-  spawnSyncPwd,
   platformTimeout,
   allowGlobals,
-  leakedGlobals,
   mustCall,
   mustCallAtLeast,
   mustCallAsync,
@@ -110,10 +97,5 @@ export {
   getBufferSources,
   disableCrashOnUnhandledRejection,
   getTTYfd,
-  runWithInvalidFD,
-  hijackStdout,
-  hijackStderr,
-  restoreStdout,
-  restoreStderr,
-  isCPPSymbolsNotMapped
+  runWithInvalidFD
 };

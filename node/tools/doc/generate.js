@@ -38,18 +38,20 @@ const json = require('./json');
 const args = process.argv.slice(2);
 let filename = null;
 let nodeVersion = null;
-let analytics = null;
 let outputDir = null;
+let apilinks = {};
 
 args.forEach(function(arg) {
   if (!arg.startsWith('--')) {
     filename = arg;
   } else if (arg.startsWith('--node-version=')) {
     nodeVersion = arg.replace(/^--node-version=/, '');
-  } else if (arg.startsWith('--analytics=')) {
-    analytics = arg.replace(/^--analytics=/, '');
   } else if (arg.startsWith('--output-directory=')) {
     outputDir = arg.replace(/^--output-directory=/, '');
+  } else if (arg.startsWith('--apilinks=')) {
+    apilinks = JSON.parse(
+      fs.readFileSync(arg.replace(/^--apilinks=/, ''), 'utf8')
+    );
   }
 });
 
@@ -71,7 +73,7 @@ fs.readFile(filename, 'utf8', (er, input) => {
     .use(json.jsonAPI, { filename })
     .use(html.firstHeader)
     .use(html.preprocessElements, { filename })
-    .use(html.buildToc, { filename })
+    .use(html.buildToc, { filename, apilinks })
     .use(remark2rehype, { allowDangerousHTML: true })
     .use(raw)
     .use(htmlStringify)
@@ -80,7 +82,7 @@ fs.readFile(filename, 'utf8', (er, input) => {
   const basename = path.basename(filename, '.md');
 
   html.toHTML(
-    { input, content, filename, nodeVersion, analytics },
+    { input, content, filename, nodeVersion },
     (err, html) => {
       const target = path.join(outputDir, `${basename}.html`);
       if (err) throw err;

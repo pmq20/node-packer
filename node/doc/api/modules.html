@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Modules | Node.js v10.9.0 Documentation</title>
+  <title>Modules | Node.js v10.12.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -80,7 +80,7 @@
 
     <div id="column1" data-id="modules" class="interior">
       <header>
-        <h1>Node.js v10.9.0 Documentation</h1>
+        <h1>Node.js v10.12.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -175,6 +175,7 @@
 <p><a href="#modules_the_module_object_1">The <code>Module</code> Object</a></p>
 <ul>
 <li><a href="#modules_module_builtinmodules">module.builtinModules</a></li>
+<li><a href="#modules_module_createrequirefrompath_filename">module.createRequireFromPath(filename)</a></li>
 </ul>
 </li>
 </ul>
@@ -340,10 +341,11 @@ NODE_MODULES_PATHS(START)
 <p>Modules are cached after the first time they are loaded. This means
 (among other things) that every call to <code>require('foo')</code> will get
 exactly the same object returned, if it would resolve to the same file.</p>
-<p>Multiple calls to <code>require('foo')</code> may not cause the module code to be
-executed multiple times.  This is an important feature. With it,
-"partially done" objects can be returned, thus allowing transitive
-dependencies to be loaded even when they would cause cycles.</p>
+<p>Provided <code>require.cache</code> is not modified, multiple calls to
+<code>require('foo')</code> will not cause the module code to be executed multiple times.
+This is an important feature. With it, "partially done" objects can be returned,
+thus allowing transitive dependencies to be loaded even when they would cause
+cycles.</p>
 <p>To have a module execute code multiple times, export a function, and call
 that function.</p>
 <h3>Module Caching Caveats<span><a class="mark" href="#modules_module_caching_caveats" id="modules_module_caching_caveats">#</a></span></h3>
@@ -447,12 +449,8 @@ look like this:</p>
 <code>require('./some-library')</code> would attempt to load
 <code>./some-library/lib/some-library.js</code>.</p>
 <p>This is the extent of Node.js's awareness of <code>package.json</code> files.</p>
-<p>If the file specified by the <code>'main'</code> entry of <code>package.json</code> is missing and
-can not be resolved, Node.js will report the entire module as missing with the
-default error:</p>
-<pre><code class="language-txt">Error: Cannot find module 'some-library'
-</code></pre>
-<p>If there is no <code>package.json</code> file present in the directory, then Node.js
+<p>If there is no <code>package.json</code> file present in the directory, or if the
+<code>'main'</code> entry is missing or cannot be resolved, then Node.js
 will attempt to load an <code>index.js</code> or <code>index.node</code> file out of that
 directory. For example, if there was no <code>package.json</code> file in the above
 example, then <code>require('./some-library')</code> would attempt to load:</p>
@@ -460,6 +458,10 @@ example, then <code>require('./some-library')</code> would attempt to load:</p>
 <li><code>./some-library/index.js</code></li>
 <li><code>./some-library/index.node</code></li>
 </ul>
+<p>If these attempts fail, then Node.js will report the entire module as missing
+with the default error:</p>
+<pre><code class="language-txt">Error: Cannot find module 'some-library'
+</code></pre>
 <h2>Loading from `node_modules` Folders<span><a class="mark" href="#modules_loading_from_node_modules_folders" id="modules_loading_from_node_modules_folders">#</a></span></h2>
 
 <p>If the module identifier passed to <code>require()</code> is not a
@@ -745,7 +747,7 @@ not acceptable; many want their module to be an instance of some class. To do
 this, assign the desired export object to <code>module.exports</code>. Note that assigning
 the desired object to <code>exports</code> will simply rebind the local <code>exports</code> variable,
 which is probably not what is desired.</p>
-<p>For example suppose we were making a module called <code>a.js</code>:</p>
+<p>For example, suppose we were making a module called <code>a.js</code>:</p>
 <pre><code class="language-js">const EventEmitter = require('events');
 
 module.exports = new EventEmitter();
@@ -888,12 +890,26 @@ if a module is maintained by a third party or not.</p>
 by the <a href="#modules_the_module_wrapper">module wrapper</a>. To access it, require the <code>Module</code> module:</p>
 <pre><code class="language-js">const builtin = require('module').builtinModules;
 </code></pre>
+<h3>module.createRequireFromPath(filename)<span><a class="mark" href="#modules_module_createrequirefrompath_filename" id="modules_module_createrequirefrompath_filename">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v10.12.0</span>
+</div>
+<ul>
+<li><code>filename</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Filename to be used to construct the relative require
+function.</li>
+<li>Returns: {<a href="#modules_require"><code>require</code></a>} Require function</li>
+</ul>
+<pre><code class="language-js">const { createRequireFromPath } = require('module');
+const requireUtil = createRequireFromPath('../src/utils');
+
+// require `../src/utils/some-tool`
+requireUtil('./some-tool');
+</code></pre>
       </div>
     </div>
   </div>
   <script src="assets/sh_main.js"></script>
   <script src="assets/sh_javascript.min.js"></script>
   <script>highlight(undefined, undefined, 'pre');</script>
-  <!-- __TRACKING__ -->
 </body>
 </html>

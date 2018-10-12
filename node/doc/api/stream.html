@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Stream | Node.js v10.9.0 Documentation</title>
+  <title>Stream | Node.js v10.12.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -80,7 +80,7 @@
 
     <div id="column1" data-id="stream" class="interior">
       <header>
-        <h1>Node.js v10.9.0 Documentation</h1>
+        <h1>Node.js v10.12.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -156,9 +156,9 @@
 <li>
 <p><a href="#stream_readable_streams">Readable Streams</a></p>
 <ul>
-<li><a href="#stream_two_modes">Two Modes</a></li>
+<li><a href="#stream_two_reading_modes">Two Reading Modes</a></li>
 <li><a href="#stream_three_states">Three States</a></li>
-<li><a href="#stream_choose_one">Choose One</a></li>
+<li><a href="#stream_choose_one_api_style">Choose One API Style</a></li>
 <li>
 <p><a href="#stream_class_stream_readable">Class: stream.Readable</a></p>
 <ul>
@@ -263,7 +263,7 @@
       </div>
 
       <div id="apicontent">
-        <h1>Stream<span><a class="mark" href="#stream_stream" id="stream_stream">#</a></span></h1>
+        <h1>Stream<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/stream.js#L30">[src]</a><span><a class="mark" href="#stream_stream" id="stream_stream">#</a></span></h1>
 
 <p></p><div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><p></p>
 <p>A stream is an abstract interface for working with streaming data in Node.js.
@@ -289,14 +289,14 @@ the elements of the API that are required to <em>implement</em> new types of str
 <h2>Types of Streams<span><a class="mark" href="#stream_types_of_streams" id="stream_types_of_streams">#</a></span></h2>
 <p>There are four fundamental stream types within Node.js:</p>
 <ul>
-<li><a href="#stream_class_stream_writable"><code>Writable</code></a> - streams to which data can be written (for example
+<li><a href="#stream_class_stream_writable"><code>Writable</code></a> - streams to which data can be written (for example,
 <a href="fs.html#fs_fs_createwritestream_path_options"><code>fs.createWriteStream()</code></a>).</li>
-<li><a href="#stream_class_stream_readable"><code>Readable</code></a> - streams from which data can be read (for example
+<li><a href="#stream_class_stream_readable"><code>Readable</code></a> - streams from which data can be read (for example,
 <a href="fs.html#fs_fs_createreadstream_path_options"><code>fs.createReadStream()</code></a>).</li>
-<li><a href="#stream_class_stream_duplex"><code>Duplex</code></a> - streams that are both <code>Readable</code> and <code>Writable</code> (for example
+<li><a href="#stream_class_stream_duplex"><code>Duplex</code></a> - streams that are both <code>Readable</code> and <code>Writable</code> (for example,
 <a href="net.html#net_class_net_socket"><code>net.Socket</code></a>).</li>
 <li><a href="#stream_class_stream_transform"><code>Transform</code></a> - <code>Duplex</code> streams that can modify or transform the data as it
-is written and read (for example <a href="zlib.html#zlib_zlib_createdeflate_options"><code>zlib.createDeflate()</code></a>).</li>
+is written and read (for example, <a href="zlib.html#zlib_zlib_createdeflate_options"><code>zlib.createDeflate()</code></a>).</li>
 </ul>
 <p>Additionally this module includes the utility functions <a href="#stream_stream_pipeline_streams_callback">pipeline</a> and
 <a href="#stream_stream_finished_stream_callback">finished</a>.</p>
@@ -315,7 +315,7 @@ object mode is not safe.</p>
 buffer that can be retrieved using <code>writable.writableBuffer</code> or
 <code>readable.readableBuffer</code>, respectively.</p>
 <p>The amount of data potentially buffered depends on the <code>highWaterMark</code> option
-passed into the streams constructor. For normal streams, the <code>highWaterMark</code>
+passed into the stream's constructor. For normal streams, the <code>highWaterMark</code>
 option specifies a <a href="#stream_highwatermark_discrepancy_after_calling_readable_setencoding">total number of bytes</a>. For streams operating
 in object mode, the <code>highWaterMark</code> specifies a total number of objects.</p>
 <p>Data is buffered in <code>Readable</code> streams when the implementation calls
@@ -751,13 +751,22 @@ consumed.</p>
 </ul>
 <p>All <a href="#stream_class_stream_readable"><code>Readable</code></a> streams implement the interface defined by the
 <code>stream.Readable</code> class.</p>
-<h4>Two Modes<span><a class="mark" href="#stream_two_modes" id="stream_two_modes">#</a></span></h4>
-<p><code>Readable</code> streams effectively operate in one of two modes: flowing and paused.</p>
-<p>When in flowing mode, data is read from the underlying system automatically
+<h4>Two Reading Modes<span><a class="mark" href="#stream_two_reading_modes" id="stream_two_reading_modes">#</a></span></h4>
+<p><code>Readable</code> streams effectively operate in one of two modes: flowing and
+paused. These modes are separate from <a href="#stream_object_mode">object mode</a>.
+A <a href="#stream_class_stream_readable"><code>Readable</code></a> stream can be in object mode or not, regardless of whether
+it is in flowing mode or paused mode.</p>
+<ul>
+<li>
+<p>In flowing mode, data is read from the underlying system automatically
 and provided to an application as quickly as possible using events via the
 <a href="events.html#events_class_eventemitter"><code>EventEmitter</code></a> interface.</p>
+</li>
+<li>
 <p>In paused mode, the <a href="#stream_readable_read_size"><code>stream.read()</code></a> method must be called
 explicitly to read chunks of data from the stream.</p>
+</li>
+</ul>
 <p>All <a href="#stream_class_stream_readable"><code>Readable</code></a> streams begin in paused mode but can be switched to flowing
 mode in one of the following ways:</p>
 <ul>
@@ -786,6 +795,11 @@ available to handle the data, that data will be lost. This can occur, for
 instance, when the <code>readable.resume()</code> method is called without a listener
 attached to the <code>'data'</code> event, or when a <code>'data'</code> event handler is removed
 from the stream.</p>
+<p>Adding a <a href="#stream_event_readable"><code>'readable'</code></a> event handler automatically make the stream to
+stop flowing, and the data to be consumed via
+<a href="#stream_readable_read_size"><code>readable.read()</code></a>. If the <a href="#stream_event_readable"><code>'readable'</code></a> event handler is
+removed, then the stream will start flowing again if there is a
+<a href="#stream_event_data"><code>'data'</code></a> event handler.</p>
 <h4>Three States<span><a class="mark" href="#stream_three_states" id="stream_three_states">#</a></span></h4>
 <p>The "two modes" of operation for a <code>Readable</code> stream are a simplified
 abstraction for the more complicated internal state management that is happening
@@ -793,21 +807,21 @@ within the <code>Readable</code> stream implementation.</p>
 <p>Specifically, at any given point in time, every <code>Readable</code> is in one of three
 possible states:</p>
 <ul>
-<li><code>readable.readableFlowing = null</code></li>
-<li><code>readable.readableFlowing = false</code></li>
-<li><code>readable.readableFlowing = true</code></li>
+<li><code>readable.readableFlowing === null</code></li>
+<li><code>readable.readableFlowing === false</code></li>
+<li><code>readable.readableFlowing === true</code></li>
 </ul>
 <p>When <code>readable.readableFlowing</code> is <code>null</code>, no mechanism for consuming the
-streams data is provided so the stream will not generate its data. While in this
-state, attaching a listener for the <code>'data'</code> event, calling the
+stream's data is provided. Therefore, the stream will not generate data.
+While in this state, attaching a listener for the <code>'data'</code> event, calling the
 <code>readable.pipe()</code> method, or calling the <code>readable.resume()</code> method will switch
-<code>readable.readableFlowing</code> to <code>true</code>, causing the <code>Readable</code> to begin
-actively emitting events as data is generated.</p>
+<code>readable.readableFlowing</code> to <code>true</code>, causing the <code>Readable</code> to begin actively
+emitting events as data is generated.</p>
 <p>Calling <code>readable.pause()</code>, <code>readable.unpipe()</code>, or receiving backpressure
 will cause the <code>readable.readableFlowing</code> to be set as <code>false</code>,
 temporarily halting the flowing of events but <em>not</em> halting the generation of
 data. While in this state, attaching a listener for the <code>'data'</code> event
-would not cause <code>readable.readableFlowing</code> to switch to <code>true</code>.</p>
+will not switch <code>readable.readableFlowing</code> to <code>true</code>.</p>
 <pre><code class="language-js">const { PassThrough, Writable } = require('stream');
 const pass = new PassThrough();
 const writable = new Writable();
@@ -817,20 +831,23 @@ pass.unpipe(writable);
 // readableFlowing is now false
 
 pass.on('data', (chunk) => { console.log(chunk.toString()); });
-pass.write('ok'); // will not emit 'data'
-pass.resume(); // must be called to make 'data' being emitted
+pass.write('ok');  // will not emit 'data'
+pass.resume();     // must be called to make stream emit 'data'
 </code></pre>
 <p>While <code>readable.readableFlowing</code> is <code>false</code>, data may be accumulating
-within the streams internal buffer.</p>
-<h4>Choose One<span><a class="mark" href="#stream_choose_one" id="stream_choose_one">#</a></span></h4>
+within the stream's internal buffer.</p>
+<h4>Choose One API Style<span><a class="mark" href="#stream_choose_one_api_style" id="stream_choose_one_api_style">#</a></span></h4>
 <p>The <code>Readable</code> stream API evolved across multiple Node.js versions and provides
 multiple methods of consuming stream data. In general, developers should choose
 <em>one</em> of the methods of consuming data and <em>should never</em> use multiple methods
-to consume data from a single stream.</p>
+to consume data from a single stream. Specifically, using a combination
+of <code>on('data')</code>, <code>on('readable')</code>, <code>pipe()</code>, or async iterators could
+lead to unintuitive behavior.</p>
 <p>Use of the <code>readable.pipe()</code> method is recommended for most users as it has been
 implemented to provide the easiest way of consuming stream data. Developers that
 require more fine-grained control over the transfer and generation of data can
-use the <a href="events.html#events_class_eventemitter"><code>EventEmitter</code></a> and <code>readable.pause()</code>/<code>readable.resume()</code> APIs.</p>
+use the <a href="events.html#events_class_eventemitter"><code>EventEmitter</code></a> and <code>readable.on('readable')</code>/<code>readable.read()</code>
+or the <code>readable.pause()</code>/<code>readable.resume()</code> APIs.</p>
 <h4>Class: stream.Readable<span><a class="mark" href="#stream_class_stream_readable" id="stream_class_stream_readable">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v0.9.4</span>
@@ -953,9 +970,13 @@ end
 <p>In general, the <code>readable.pipe()</code> and <code>'data'</code> event mechanisms are easier to
 understand than the <code>'readable'</code> event. However, handling <code>'readable'</code> might
 result in increased throughput.</p>
-<p>If both <code>'readable'</code> and <a href="#stream_event_data"><code>'data'</code></a>  are used at the same time, <code>'readable'</code>
+<p>If both <code>'readable'</code> and <a href="#stream_event_data"><code>'data'</code></a> are used at the same time, <code>'readable'</code>
 takes precedence in controlling the flow, i.e. <code>'data'</code> will be emitted
-only when <a href="#stream_readable_read_size"><code>stream.read()</code></a> is called.</p>
+only when <a href="#stream_readable_read_size"><code>stream.read()</code></a> is called. The
+<code>readableFlowing</code> property would become <code>false</code>.
+If there are <code>'data'</code> listeners when <code>'readable'</code> is removed, the stream
+will start flowing, i.e. <code>'data'</code> events will be emitted without calling
+<code>.resume()</code>.</p>
 <h5>readable.destroy([error])<span><a class="mark" href="#stream_readable_destroy_error" id="stream_readable_destroy_error">#</a></span></h5>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
@@ -1009,6 +1030,8 @@ readable.on('data', (chunk) => {
   }, 1000);
 });
 </code></pre>
+<p>The <code>readable.pause()</code> method has no effect if there is a <code>'readable'</code>
+event listener.</p>
 <h5>readable.pipe(destination[, options])<span><a class="mark" href="#stream_readable_pipe_destination_options" id="stream_readable_pipe_destination_options">#</a></span></h5>
 <div class="api_metadata">
 <span>Added in: v0.9.4</span>
@@ -1021,8 +1044,8 @@ readable.on('data', (chunk) => {
 <li><code>end</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> End the writer when the reader ends. <strong>Default:</strong> <code>true</code>.</li>
 </ul>
 </li>
-<li>Returns: <a href="stream.html#stream_class_stream_writable" class="type">&#x3C;stream.Writable></a> making it possible to set up chains of piped
-streams</li>
+<li>Returns: <a href="stream.html#stream_class_stream_writable" class="type">&#x3C;stream.Writable></a> The <em>destination</em>, allowing for a chain of pipes if
+it is a <a href="#stream_class_stream_duplex"><code>Duplex</code></a> or a <a href="#stream_class_stream_transform"><code>Transform</code></a> stream</li>
 </ul>
 <p>The <code>readable.pipe()</code> method attaches a <a href="#stream_class_stream_writable"><code>Writable</code></a> stream to the <code>readable</code>,
 causing it to switch automatically into flowing mode and push all of its data
@@ -1050,8 +1073,7 @@ r.pipe(z).pipe(w);
 <p>By default, <a href="#stream_writable_end_chunk_encoding_callback"><code>stream.end()</code></a> is called on the destination <code>Writable</code>
 stream when the source <code>Readable</code> stream emits <a href="#stream_event_end"><code>'end'</code></a>, so that the
 destination is no longer writable. To disable this default behavior, the <code>end</code>
-option can be passed as <code>false</code>, causing the destination stream to remain open,
-as illustrated in the following example:</p>
+option can be passed as <code>false</code>, causing the destination stream to remain open:</p>
 <pre><code class="language-js">reader.pipe(writer, { end: false });
 reader.on('end', () => {
   writer.end('Goodbye\n');
@@ -1137,8 +1159,7 @@ the status of the <code>highWaterMark</code>.</p>
 <p>The <code>readable.resume()</code> method causes an explicitly paused <code>Readable</code> stream to
 resume emitting <a href="#stream_event_data"><code>'data'</code></a> events, switching the stream into flowing mode.</p>
 <p>The <code>readable.resume()</code> method can be used to fully consume the data from a
-stream without actually processing any of that data as illustrated in the
-following example:</p>
+stream without actually processing any of that data:</p>
 <pre><code class="language-js">getReadableStreamSomehow()
   .resume()
   .on('end', () => {
@@ -1277,9 +1298,8 @@ process of performing a read.</p>
 <li><code>stream</code> <a href="stream.html#stream_stream" class="type">&#x3C;Stream></a> An "old style" readable stream</li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this" class="type">&#x3C;this></a></li>
 </ul>
-<p>Versions of Node.js prior to v0.10 had streams that did not implement the
-entire <code>stream</code> module API as it is currently defined. (See <a href="#stream_compatibility_with_older_node_js_versions">Compatibility</a>
-for more information.)</p>
+<p>Prior to Node.js 0.10, streams did not implement the entire <code>stream</code> module API
+as it is currently defined. (See <a href="#stream_compatibility_with_older_node_js_versions">Compatibility</a> for more information.)</p>
 <p>When using an older Node.js library that emits <a href="#stream_event_data"><code>'data'</code></a> events and has a
 <a href="#stream_readable_pause"><code>stream.pause()</code></a> method that is advisory only, the
 <code>readable.wrap()</code> method can be used to create a <a href="#stream_class_stream_readable"><code>Readable</code></a> stream that uses
@@ -1367,7 +1387,7 @@ implement both the <a href="#stream_class_stream_readable"><code>Readable</code>
 </ul>
 <p>Destroy the stream, and emit <code>'error'</code>. After this call, the
 transform stream would release any internal resources.
-implementors should not override this method, but instead implement
+Implementors should not override this method, but instead implement
 <a href="#stream_readable_destroy_err_callback"><code>readable._destroy()</code></a>.
 The default implementation of <code>_destroy()</code> for <code>Transform</code> also emit <code>'close'</code>.</p>
 <h3>stream.finished(stream, callback)<span><a class="mark" href="#stream_stream_finished_stream_callback" id="stream_stream_finished_stream_callback">#</a></span></h3>
@@ -1550,9 +1570,13 @@ constructor and implement the <code>writable._write()</code> method. The
 <li><code>highWaterMark</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Buffer level when
 <a href="#stream_writable_write_chunk_encoding_callback"><code>stream.write()</code></a> starts returning <code>false</code>. <strong>Default:</strong>
 <code>16384</code> (16kb), or <code>16</code> for <code>objectMode</code> streams.</li>
-<li><code>decodeStrings</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> Whether or not to decode strings into
-<code>Buffer</code>s before passing them to <a href="#stream_writable_write_chunk_encoding_callback_1"><code>stream._write()</code></a>.
+<li><code>decodeStrings</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> Whether or not to encode strings as
+<code>Buffer</code>s before passing them to <a href="#stream_writable_write_chunk_encoding_callback_1"><code>stream._write()</code></a>,
+using the encoding specified in the <a href="#stream_writable_write_chunk_encoding_callback"><code>stream.write()</code></a> call.
 <strong>Default:</strong> <code>true</code>.</li>
+<li><code>defaultEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The default encoding that is used when no
+encoding is specified as an argument to <a href="#stream_writable_write_chunk_encoding_callback"><code>stream.write()</code></a>.
+<strong>Default:</strong> <code>'utf8'</code>.</li>
 <li><code>objectMode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> Whether or not the
 <a href="#stream_writable_write_chunk_encoding_callback"><code>stream.write(anyObj)</code></a> is a valid operation. When set,
 it becomes possible to write JavaScript values other than string,
@@ -1899,7 +1923,7 @@ emitted.</p>
 <p>The <code>readable.push()</code> method is designed to be as flexible as possible. For
 example, when wrapping a lower-level source that provides some form of
 pause/resume mechanism, and a data callback, the low-level source can be wrapped
-by the custom <code>Readable</code> instance as illustrated in the following example:</p>
+by the custom <code>Readable</code> instance:</p>
 <pre><code class="language-js">// source is an object with readStop() and readStart() methods,
 // and an `ondata` member that gets called when it has data, and
 // an `onend` member that gets called when the data is over.
@@ -2266,10 +2290,10 @@ primarily for examples and testing, but there are some use cases where
 
 <h3>Compatibility with Older Node.js Versions<span><a class="mark" href="#stream_compatibility_with_older_node_js_versions" id="stream_compatibility_with_older_node_js_versions">#</a></span></h3>
 
-<p>In versions of Node.js prior to v0.10, the <code>Readable</code> stream interface was
-simpler, but also less powerful and less useful.</p>
+<p>Prior to Node.js 0.10, the <code>Readable</code> stream interface was simpler, but also
+less powerful and less useful.</p>
 <ul>
-<li>Rather than waiting for calls the <a href="#stream_readable_read_size"><code>stream.read()</code></a> method,
+<li>Rather than waiting for calls to the <a href="#stream_readable_read_size"><code>stream.read()</code></a> method,
 <a href="#stream_event_data"><code>'data'</code></a> events would begin emitting immediately. Applications that
 would need to perform some amount of work to decide how to handle data
 were required to store read data into buffers so the data would not be lost.</li>
@@ -2277,7 +2301,7 @@ were required to store read data into buffers so the data would not be lost.</li
 guaranteed. This meant that it was still necessary to be prepared to receive
 <a href="#stream_event_data"><code>'data'</code></a> events <em>even when the stream was in a paused state</em>.</li>
 </ul>
-<p>In Node.js v0.10, the <a href="#stream_class_stream_readable"><code>Readable</code></a> class was added. For backwards
+<p>In Node.js 0.10, the <a href="#stream_class_stream_readable"><code>Readable</code></a> class was added. For backwards
 compatibility with older Node.js programs, <code>Readable</code> streams switch into
 "flowing mode" when a <a href="#stream_event_data"><code>'data'</code></a> event handler is added, or when the
 <a href="#stream_readable_resume"><code>stream.resume()</code></a> method is called. The effect is that, even
@@ -2303,9 +2327,8 @@ net.createServer((socket) => {
 
 }).listen(1337);
 </code></pre>
-<p>In versions of Node.js prior to v0.10, the incoming message data would be
-simply discarded. However, in Node.js v0.10 and beyond, the socket remains
-paused forever.</p>
+<p>Prior to Node.js 0.10, the incoming message data would be simply discarded.
+However, in Node.js 0.10 and beyond, the socket remains paused forever.</p>
 <p>The workaround in this situation is to call the
 <a href="#stream_readable_resume"><code>stream.resume()</code></a> method to begin the flow of data:</p>
 <pre><code class="language-js">// Workaround
@@ -2319,7 +2342,7 @@ net.createServer((socket) => {
 }).listen(1337);
 </code></pre>
 <p>In addition to new <code>Readable</code> streams switching into flowing mode,
-pre-v0.10 style streams can be wrapped in a <code>Readable</code> class using the
+pre-0.10 style streams can be wrapped in a <code>Readable</code> class using the
 <a href="#stream_readable_wrap_stream"><code>readable.wrap()</code></a> method.</p>
 <h3><code>readable.read(0)</code><span><a class="mark" href="#stream_readable_read_0" id="stream_readable_read_0">#</a></span></h3>
 <p>There are some cases where it is necessary to trigger a refresh of the
@@ -2354,6 +2377,5 @@ contain multi-byte characters.</p>
   <script src="assets/sh_main.js"></script>
   <script src="assets/sh_javascript.min.js"></script>
   <script>highlight(undefined, undefined, 'pre');</script>
-  <!-- __TRACKING__ -->
 </body>
 </html>

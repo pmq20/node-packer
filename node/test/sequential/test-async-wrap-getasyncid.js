@@ -45,6 +45,7 @@ const { getSystemErrorName } = require('util');
     delete providers.WORKER;
     if (!common.isMainThread)
       delete providers.INSPECTORJSBINDING;
+    delete providers.KEYPAIRGENREQUEST;
 
     const objKeys = Object.keys(providers);
     if (objKeys.length > 0)
@@ -147,7 +148,7 @@ if (common.hasCrypto) { // eslint-disable-line node-core/crypto-check
 
 {
   const HTTPParser = process.binding('http_parser').HTTPParser;
-  testInitialized(new HTTPParser(), 'HTTPParser');
+  testInitialized(new HTTPParser(0), 'HTTPParser');
 }
 
 

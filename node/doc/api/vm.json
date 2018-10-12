@@ -8,7 +8,7 @@
       "introduced_in": "v0.10.0",
       "stability": 2,
       "stabilityText": "Stable",
-      "desc": "<p>The <code>vm</code> module provides APIs for compiling and running code within V8 Virtual\nMachine contexts.</p>\n<p>JavaScript code can be compiled and run immediately or\ncompiled, saved, and run later.</p>\n<p>A common use case is to run the code in a sandboxed environment.\nThe sandboxed code uses a different V8 Context, meaning that\nit has a different global object than the rest of the code.</p>\n<p>One can provide the context by <a href=\"#vm_what_does_it_mean_to_contextify_an_object\">\"contextifying\"</a> a sandbox\nobject. The sandboxed code treats any property in the sandbox like a\nglobal variable. Any changes to global variables caused by the sandboxed\ncode are reflected in the sandbox object.</p>\n<pre><code class=\"language-js\">const vm = require('vm');\n\nconst x = 1;\n\nconst sandbox = { x: 2 };\nvm.createContext(sandbox); // Contextify the sandbox.\n\nconst code = 'x += 40; var y = 17;';\n// x and y are global variables in the sandboxed environment.\n// Initially, x has the value 2 because that is the value of sandbox.x.\nvm.runInContext(code, sandbox);\n\nconsole.log(sandbox.x); // 42\nconsole.log(sandbox.y); // 17\n\nconsole.log(x); // 1; y is not defined.\n</code></pre>\n<p><strong>The vm module is not a security mechanism. Do not use it to run untrusted\ncode</strong>.</p>",
+      "desc": "<p>The <code>vm</code> module provides APIs for compiling and running code within V8 Virtual\nMachine contexts. <strong>Note that the <code>vm</code> module is not a security mechanism. Do\nnot use it to run untrusted code</strong>. The term \"sandbox\" is used throughout these\ndocs simply to refer to a separate context, and does not confer any security\nguarantees.</p>\n<p>JavaScript code can be compiled and run immediately or\ncompiled, saved, and run later.</p>\n<p>A common use case is to run the code in a sandboxed environment.\nThe sandboxed code uses a different V8 Context, meaning that\nit has a different global object than the rest of the code.</p>\n<p>One can provide the context by <a href=\"#vm_what_does_it_mean_to_contextify_an_object\">\"contextifying\"</a> a sandbox\nobject. The sandboxed code treats any property in the sandbox like a\nglobal variable. Any changes to global variables caused by the sandboxed\ncode are reflected in the sandbox object.</p>\n<pre><code class=\"language-js\">const vm = require('vm');\n\nconst x = 1;\n\nconst sandbox = { x: 2 };\nvm.createContext(sandbox); // Contextify the sandbox.\n\nconst code = 'x += 40; var y = 17;';\n// x and y are global variables in the sandboxed environment.\n// Initially, x has the value 2 because that is the value of sandbox.x.\nvm.runInContext(code, sandbox);\n\nconsole.log(sandbox.x); // 42\nconsole.log(sandbox.y); // 17\n\nconsole.log(x); // 1; y is not defined.\n</code></pre>",
       "classes": [
         {
           "textRaw": "Class: vm.SourceTextModule",
@@ -505,6 +505,92 @@
         }
       ],
       "methods": [
+        {
+          "textRaw": "vm.compileFunction(code[, params[, options]])",
+          "type": "method",
+          "name": "compileFunction",
+          "meta": {
+            "added": [
+              "v10.10.0"
+            ],
+            "changes": []
+          },
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`code` {string} The body of the function to compile.",
+                  "name": "code",
+                  "type": "string",
+                  "desc": "The body of the function to compile."
+                },
+                {
+                  "textRaw": "`params` {string[]} An array of strings containing all parameters for the function.",
+                  "name": "params",
+                  "type": "string[]",
+                  "desc": "An array of strings containing all parameters for the function.",
+                  "optional": true
+                },
+                {
+                  "textRaw": "`options` {Object}",
+                  "name": "options",
+                  "type": "Object",
+                  "options": [
+                    {
+                      "textRaw": "`filename` {string} Specifies the filename used in stack traces produced by this script. **Default:** `''`.",
+                      "name": "filename",
+                      "type": "string",
+                      "default": "`''`",
+                      "desc": "Specifies the filename used in stack traces produced by this script."
+                    },
+                    {
+                      "textRaw": "`lineOffset` {number} Specifies the line number offset that is displayed in stack traces produced by this script. **Default:** `0`.",
+                      "name": "lineOffset",
+                      "type": "number",
+                      "default": "`0`",
+                      "desc": "Specifies the line number offset that is displayed in stack traces produced by this script."
+                    },
+                    {
+                      "textRaw": "`columnOffset` {number} Specifies the column number offset that is displayed in stack traces produced by this script. **Default:** `0`.",
+                      "name": "columnOffset",
+                      "type": "number",
+                      "default": "`0`",
+                      "desc": "Specifies the column number offset that is displayed in stack traces produced by this script."
+                    },
+                    {
+                      "textRaw": "`cachedData` {Buffer} Provides an optional `Buffer` with V8's code cache data for the supplied source.",
+                      "name": "cachedData",
+                      "type": "Buffer",
+                      "desc": "Provides an optional `Buffer` with V8's code cache data for the supplied source."
+                    },
+                    {
+                      "textRaw": "`produceCachedData` {boolean} Specifies whether to produce new cache data. **Default:** `false`.",
+                      "name": "produceCachedData",
+                      "type": "boolean",
+                      "default": "`false`",
+                      "desc": "Specifies whether to produce new cache data."
+                    },
+                    {
+                      "textRaw": "`parsingContext` {Object} The sandbox/context in which the said function should be compiled in.",
+                      "name": "parsingContext",
+                      "type": "Object",
+                      "desc": "The sandbox/context in which the said function should be compiled in."
+                    },
+                    {
+                      "textRaw": "`contextExtensions` {Object[]} An array containing a collection of context extensions (objects wrapping the current scope) to be applied while compiling. **Default:** `[]`.",
+                      "name": "contextExtensions",
+                      "type": "Object[]",
+                      "default": "`[]`",
+                      "desc": "An array containing a collection of context extensions (objects wrapping the current scope) to be applied while compiling."
+                    }
+                  ],
+                  "optional": true
+                }
+              ]
+            }
+          ],
+          "desc": "<p>Compiles the given code into the provided context/sandbox (if no context is\nsupplied, the current context is used), and returns it wrapped inside a\nfunction with the given <code>params</code>.</p>"
+        },
         {
           "textRaw": "vm.createContext([sandbox[, options]])",
           "type": "method",

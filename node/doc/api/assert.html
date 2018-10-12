@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Assert | Node.js v10.9.0 Documentation</title>
+  <title>Assert | Node.js v10.12.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -80,7 +80,7 @@
 
     <div id="column1" data-id="assert" class="interior">
       <header>
-        <h1>Node.js v10.9.0 Documentation</h1>
+        <h1>Node.js v10.12.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -134,8 +134,8 @@
 <li><a href="#assert_comparison_details">Comparison details</a></li>
 </ul>
 </li>
-<li><a href="#assert_assert_doesnotreject_block_error_message">assert.doesNotReject(block[, error][, message])</a></li>
-<li><a href="#assert_assert_doesnotthrow_block_error_message">assert.doesNotThrow(block[, error][, message])</a></li>
+<li><a href="#assert_assert_doesnotreject_asyncfn_error_message">assert.doesNotReject(asyncFn[, error][, message])</a></li>
+<li><a href="#assert_assert_doesnotthrow_fn_error_message">assert.doesNotThrow(fn[, error][, message])</a></li>
 <li><a href="#assert_assert_equal_actual_expected_message">assert.equal(actual, expected[, message])</a></li>
 <li><a href="#assert_assert_fail_message">assert.fail([message])</a></li>
 <li><span class="stability_0"><a href="#assert_assert_fail_actual_expected_message_operator_stackstartfn">assert.fail(actual, expected[, message[, operator[, stackStartFn]]])</a></span></li>
@@ -145,9 +145,9 @@
 <li><a href="#assert_assert_notequal_actual_expected_message">assert.notEqual(actual, expected[, message])</a></li>
 <li><a href="#assert_assert_notstrictequal_actual_expected_message">assert.notStrictEqual(actual, expected[, message])</a></li>
 <li><a href="#assert_assert_ok_value_message">assert.ok(value[, message])</a></li>
-<li><a href="#assert_assert_rejects_block_error_message">assert.rejects(block[, error][, message])</a></li>
+<li><a href="#assert_assert_rejects_asyncfn_error_message">assert.rejects(asyncFn[, error][, message])</a></li>
 <li><a href="#assert_assert_strictequal_actual_expected_message">assert.strictEqual(actual, expected[, message])</a></li>
-<li><a href="#assert_assert_throws_block_error_message">assert.throws(block[, error][, message])</a></li>
+<li><a href="#assert_assert_throws_fn_error_message">assert.throws(fn[, error][, message])</a></li>
 </ul>
 </li>
 </ul>
@@ -163,7 +163,7 @@ test invariants.</p>
 <a href="#assert_strict_mode"><code>strict mode</code></a>.</p>
 <p>For more information about the used equality comparisons see
 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Equality_comparisons_and_sameness">MDN's guide on equality comparisons and sameness</a>.</p>
-<h2>Class: assert.AssertionError<span><a class="mark" href="#assert_class_assert_assertionerror" id="assert_class_assert_assertionerror">#</a></span></h2>
+<h2>Class: assert.AssertionError<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/assert.js#L133">[src]</a><span><a class="mark" href="#assert_class_assert_assertionerror" id="assert_class_assert_assertionerror">#</a></span></h2>
 <p>A subclass of <code>Error</code> that indicates the failure of an assertion. All errors
 thrown by the <code>assert</code> module will be instances of the <code>AssertionError</code> class.</p>
 <h3>new assert.AssertionError(options)<span><a class="mark" href="#assert_new_assert_assertionerror_options" id="assert_new_assert_assertionerror_options">#</a></span></h3>
@@ -284,7 +284,7 @@ lax:</p>
 <pre><code class="language-js">// WARNING: This does not throw an AssertionError!
 assert.deepEqual(/a/gi, new Date());
 </code></pre>
-<h2>assert(value[, message])<span><a class="mark" href="#assert_assert_value_message" id="assert_assert_value_message">#</a></span></h2>
+<h2>assert(value[, message])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/assert.js#L72">[src]</a><span><a class="mark" href="#assert_assert_value_message" id="assert_assert_value_message">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.5.9</span>
 </div>
@@ -293,7 +293,7 @@ assert.deepEqual(/a/gi, new Date());
 <li><code>message</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&#x3C;Error></a></li>
 </ul>
 <p>An alias of <a href="#assert_assert_ok_value_message"><code>assert.ok()</code></a>.</p>
-<h2>assert.deepEqual(actual, expected[, message])<span><a class="mark" href="#assert_assert_deepequal_actual_expected_message" id="assert_assert_deepequal_actual_expected_message">#</a></span></h2>
+<h2>assert.deepEqual(actual, expected[, message])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/assert.js#L392">[src]</a><span><a class="mark" href="#assert_assert_deepequal_actual_expected_message" id="assert_assert_deepequal_actual_expected_message">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -377,7 +377,7 @@ property set equal to the value of the <code>message</code> parameter. If the <c
 parameter is undefined, a default error message is assigned. If the <code>message</code>
 parameter is an instance of an <a href="errors.html#errors_class_error"><code>Error</code></a> then it will be thrown instead of the
 <code>AssertionError</code>.</p>
-<h2>assert.deepStrictEqual(actual, expected[, message])<span><a class="mark" href="#assert_assert_deepstrictequal_actual_expected_message" id="assert_assert_deepstrictequal_actual_expected_message">#</a></span></h2>
+<h2>assert.deepStrictEqual(actual, expected[, message])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/assert.js#L420">[src]</a><span><a class="mark" href="#assert_assert_deepstrictequal_actual_expected_message" id="assert_assert_deepstrictequal_actual_expected_message">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -515,19 +515,19 @@ property set equal to the value of the <code>message</code> parameter. If the <c
 parameter is undefined, a default error message is assigned. If the <code>message</code>
 parameter is an instance of an <a href="errors.html#errors_class_error"><code>Error</code></a> then it will be thrown instead of the
 <code>AssertionError</code>.</p>
-<h2>assert.doesNotReject(block[, error][, message])<span><a class="mark" href="#assert_assert_doesnotreject_block_error_message" id="assert_assert_doesnotreject_block_error_message">#</a></span></h2>
+<h2>assert.doesNotReject(asyncFn[, error][, message])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/assert.js#L701">[src]</a><span><a class="mark" href="#assert_assert_doesnotreject_asyncfn_error_message" id="assert_assert_doesnotreject_asyncfn_error_message">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v10.0.0</span>
 </div>
 <ul>
-<li><code>block</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise" class="type">&#x3C;Promise></a></li>
+<li><code>asyncFn</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise" class="type">&#x3C;Promise></a></li>
 <li><code>error</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp" class="type">&#x3C;RegExp></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
-<li><code>message</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&#x3C;Error></a></li>
+<li><code>message</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
-<p>Awaits the <code>block</code> promise or, if <code>block</code> is a function, immediately calls the
-function and awaits the returned promise to complete. It will then check that
-the promise is not rejected.</p>
-<p>If <code>block</code> is a function and it throws an error synchronously,
+<p>Awaits the <code>asyncFn</code> promise or, if <code>asyncFn</code> is a function, immediately
+calls the function and awaits the returned promise to complete. It will then
+check that the promise is not rejected.</p>
+<p>If <code>asyncFn</code> is a function and it throws an error synchronously,
 <code>assert.doesNotReject()</code> will return a rejected <code>Promise</code> with that error. If
 the function does not return a promise, <code>assert.doesNotReject()</code> will return a
 rejected <code>Promise</code> with an <a href="errors.html#errors_err_invalid_return_value"><code>ERR_INVALID_RETURN_VALUE</code></a> error. In both cases
@@ -537,9 +537,9 @@ is little benefit by catching a rejection and then rejecting it again. Instead,
 consider adding a comment next to the specific code path that should not reject
 and keep error messages as expressive as possible.</p>
 <p>If specified, <code>error</code> can be a <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes"><code>Class</code></a>, <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions"><code>RegExp</code></a> or a validation
-function. See <a href="#assert_assert_throws_block_error_message"><code>assert.throws()</code></a> for more details.</p>
+function. See <a href="#assert_assert_throws_fn_error_message"><code>assert.throws()</code></a> for more details.</p>
 <p>Besides the async nature to await the completion behaves identically to
-<a href="#assert_assert_doesnotthrow_block_error_message"><code>assert.doesNotThrow()</code></a>.</p>
+<a href="#assert_assert_doesnotthrow_fn_error_message"><code>assert.doesNotThrow()</code></a>.</p>
 <pre><code class="language-js">(async () => {
   await assert.doesNotReject(
     async () => {
@@ -554,7 +554,7 @@ function. See <a href="#assert_assert_throws_block_error_message"><code>assert.t
     // ...
   });
 </code></pre>
-<h2>assert.doesNotThrow(block[, error][, message])<span><a class="mark" href="#assert_assert_doesnotthrow_block_error_message" id="assert_assert_doesnotthrow_block_error_message">#</a></span></h2>
+<h2>assert.doesNotThrow(fn[, error][, message])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/assert.js#L697">[src]</a><span><a class="mark" href="#assert_assert_doesnotthrow_fn_error_message" id="assert_assert_doesnotthrow_fn_error_message">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -569,23 +569,23 @@ function. See <a href="#assert_assert_throws_block_error_message"><code>assert.t
 </details>
 </div>
 <ul>
-<li><code>block</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
+<li><code>fn</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
 <li><code>error</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp" class="type">&#x3C;RegExp></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
-<li><code>message</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&#x3C;Error></a></li>
+<li><code>message</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
-<p>Asserts that the function <code>block</code> does not throw an error.</p>
+<p>Asserts that the function <code>fn</code> does not throw an error.</p>
 <p>Please note: Using <code>assert.doesNotThrow()</code> is actually not useful because there
 is no benefit by catching an error and then rethrowing it. Instead, consider
 adding a comment next to the specific code path that should not throw and keep
 error messages as expressive as possible.</p>
-<p>When <code>assert.doesNotThrow()</code> is called, it will immediately call the <code>block</code>
+<p>When <code>assert.doesNotThrow()</code> is called, it will immediately call the <code>fn</code>
 function.</p>
 <p>If an error is thrown and it is the same type as that specified by the <code>error</code>
 parameter, then an <code>AssertionError</code> is thrown. If the error is of a different
 type, or if the <code>error</code> parameter is undefined, the error is propagated back
 to the caller.</p>
 <p>If specified, <code>error</code> can be a <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes"><code>Class</code></a>, <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions"><code>RegExp</code></a> or a validation
-function. See <a href="#assert_assert_throws_block_error_message"><code>assert.throws()</code></a> for more details.</p>
+function. See <a href="#assert_assert_throws_fn_error_message"><code>assert.throws()</code></a> for more details.</p>
 <p>The following, for instance, will throw the <a href="errors.html#errors_class_typeerror"><code>TypeError</code></a> because there is no
 matching error type in the assertion:</p>
 <!-- eslint-disable no-restricted-syntax -->
@@ -619,7 +619,7 @@ message:</p>
 );
 // Throws: AssertionError: Got unwanted exception: Whoops
 </code></pre>
-<h2>assert.equal(actual, expected[, message])<span><a class="mark" href="#assert_assert_equal_actual_expected_message" id="assert_assert_equal_actual_expected_message">#</a></span></h2>
+<h2>assert.equal(actual, expected[, message])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/assert.js#L363">[src]</a><span><a class="mark" href="#assert_assert_equal_actual_expected_message" id="assert_assert_equal_actual_expected_message">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.21</span>
 </div>
@@ -651,7 +651,7 @@ property set equal to the value of the <code>message</code> parameter. If the <c
 parameter is undefined, a default error message is assigned. If the <code>message</code>
 parameter is an instance of an <a href="errors.html#errors_class_error"><code>Error</code></a> then it will be thrown instead of the
 <code>AssertionError</code>.</p>
-<h2>assert.fail([message])<span><a class="mark" href="#assert_assert_fail_message" id="assert_assert_fail_message">#</a></span></h2>
+<h2>assert.fail([message])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/assert.js#L88">[src]</a><span><a class="mark" href="#assert_assert_fail_message" id="assert_assert_fail_message">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.21</span>
 </div>
@@ -674,7 +674,7 @@ assert.fail(new TypeError('need array'));
 </code></pre>
 <p>Using <code>assert.fail()</code> with more than two arguments is possible but deprecated.
 See below for further details.</p>
-<h2>assert.fail(actual, expected[, message[, operator[, stackStartFn]]])<span><a class="mark" href="#assert_assert_fail_actual_expected_message_operator_stackstartfn" id="assert_assert_fail_actual_expected_message_operator_stackstartfn">#</a></span></h2>
+<h2>assert.fail(actual, expected[, message[, operator[, stackStartFn]]])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/assert.js#L88">[src]</a><span><a class="mark" href="#assert_assert_fail_actual_expected_message_operator_stackstartfn" id="assert_assert_fail_actual_expected_message_operator_stackstartfn">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -732,7 +732,7 @@ suppressFrame();
 //     at ContextifyScript.Script.runInThisContext (vm.js:44:33)
 //     ...
 </code></pre>
-<h2>assert.ifError(value)<span><a class="mark" href="#assert_assert_iferror_value" id="assert_assert_iferror_value">#</a></span></h2>
+<h2>assert.ifError(value)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/assert.js#L705">[src]</a><span><a class="mark" href="#assert_assert_iferror_value" id="assert_assert_iferror_value">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -752,7 +752,7 @@ suppressFrame();
 <p>Throws <code>value</code> if <code>value</code> is not <code>undefined</code> or <code>null</code>. This is useful when
 testing the <code>error</code> argument in callbacks. The stack trace contains all frames
 from the error passed to <code>ifError()</code> including the potential new frames for
-<code>ifError()</code> itself. See below for an example.</p>
+<code>ifError()</code> itself.</p>
 <pre><code class="language-js">const assert = require('assert').strict;
 
 assert.ifError(null);
@@ -777,7 +777,7 @@ let err;
 //     at ifErrorFrame
 //     at errorFrame
 </code></pre>
-<h2>assert.notDeepEqual(actual, expected[, message])<span><a class="mark" href="#assert_assert_notdeepequal_actual_expected_message" id="assert_assert_notdeepequal_actual_expected_message">#</a></span></h2>
+<h2>assert.notDeepEqual(actual, expected[, message])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/assert.js#L406">[src]</a><span><a class="mark" href="#assert_assert_notdeepequal_actual_expected_message" id="assert_assert_notdeepequal_actual_expected_message">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -843,7 +843,7 @@ property set equal to the value of the <code>message</code> parameter. If the <c
 parameter is undefined, a default error message is assigned. If the <code>message</code>
 parameter is an instance of an <a href="errors.html#errors_class_error"><code>Error</code></a> then it will be thrown instead of the
 <code>AssertionError</code>.</p>
-<h2>assert.notDeepStrictEqual(actual, expected[, message])<span><a class="mark" href="#assert_assert_notdeepstrictequal_actual_expected_message" id="assert_assert_notdeepstrictequal_actual_expected_message">#</a></span></h2>
+<h2>assert.notDeepStrictEqual(actual, expected[, message])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/assert.js#L434">[src]</a><span><a class="mark" href="#assert_assert_notdeepstrictequal_actual_expected_message" id="assert_assert_notdeepstrictequal_actual_expected_message">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -883,7 +883,7 @@ a <code>message</code> property set equal to the value of the <code>message</cod
 <code>message</code> parameter is undefined, a default error message is assigned. If the
 <code>message</code> parameter is an instance of an <a href="errors.html#errors_class_error"><code>Error</code></a> then it will be thrown
 instead of the <code>AssertionError</code>.</p>
-<h2>assert.notEqual(actual, expected[, message])<span><a class="mark" href="#assert_assert_notequal_actual_expected_message" id="assert_assert_notequal_actual_expected_message">#</a></span></h2>
+<h2>assert.notEqual(actual, expected[, message])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/assert.js#L378">[src]</a><span><a class="mark" href="#assert_assert_notequal_actual_expected_message" id="assert_assert_notequal_actual_expected_message">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.21</span>
 </div>
@@ -914,7 +914,7 @@ set equal to the value of the <code>message</code> parameter. If the <code>messa
 undefined, a default error message is assigned. If the <code>message</code> parameter is an
 instance of an <a href="errors.html#errors_class_error"><code>Error</code></a> then it will be thrown instead of the
 <code>AssertionError</code>.</p>
-<h2>assert.notStrictEqual(actual, expected[, message])<span><a class="mark" href="#assert_assert_notstrictequal_actual_expected_message" id="assert_assert_notstrictequal_actual_expected_message">#</a></span></h2>
+<h2>assert.notStrictEqual(actual, expected[, message])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/assert.js#L459">[src]</a><span><a class="mark" href="#assert_assert_notstrictequal_actual_expected_message" id="assert_assert_notstrictequal_actual_expected_message">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -949,7 +949,7 @@ property set equal to the value of the <code>message</code> parameter. If the <c
 parameter is undefined, a default error message is assigned. If the <code>message</code>
 parameter is an instance of an <a href="errors.html#errors_class_error"><code>Error</code></a> then it will be thrown instead of the
 <code>AssertionError</code>.</p>
-<h2>assert.ok(value[, message])<span><a class="mark" href="#assert_assert_ok_value_message" id="assert_assert_ok_value_message">#</a></span></h2>
+<h2>assert.ok(value[, message])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/assert.js#L356">[src]</a><span><a class="mark" href="#assert_assert_ok_value_message" id="assert_assert_ok_value_message">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1015,31 +1015,31 @@ assert(0);
 //
 //   assert(0)
 </code></pre>
-<h2>assert.rejects(block[, error][, message])<span><a class="mark" href="#assert_assert_rejects_block_error_message" id="assert_assert_rejects_block_error_message">#</a></span></h2>
+<h2>assert.rejects(asyncFn[, error][, message])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/assert.js#L693">[src]</a><span><a class="mark" href="#assert_assert_rejects_asyncfn_error_message" id="assert_assert_rejects_asyncfn_error_message">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v10.0.0</span>
 </div>
 <ul>
-<li><code>block</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise" class="type">&#x3C;Promise></a></li>
+<li><code>asyncFn</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise" class="type">&#x3C;Promise></a></li>
 <li><code>error</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp" class="type">&#x3C;RegExp></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&#x3C;Error></a></li>
-<li><code>message</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&#x3C;Error></a></li>
+<li><code>message</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
-<p>Awaits the <code>block</code> promise or, if <code>block</code> is a function, immediately calls the
-function and awaits the returned promise to complete. It will then check that
-the promise is rejected.</p>
-<p>If <code>block</code> is a function and it throws an error synchronously,
+<p>Awaits the <code>asyncFn</code> promise or, if <code>asyncFn</code> is a function, immediately
+calls the function and awaits the returned promise to complete. It will then
+check that the promise is rejected.</p>
+<p>If <code>asyncFn</code> is a function and it throws an error synchronously,
 <code>assert.rejects()</code> will return a rejected <code>Promise</code> with that error. If the
 function does not return a promise, <code>assert.rejects()</code> will return a rejected
 <code>Promise</code> with an <a href="errors.html#errors_err_invalid_return_value"><code>ERR_INVALID_RETURN_VALUE</code></a> error. In both cases the error
 handler is skipped.</p>
 <p>Besides the async nature to await the completion behaves identically to
-<a href="#assert_assert_throws_block_error_message"><code>assert.throws()</code></a>.</p>
+<a href="#assert_assert_throws_fn_error_message"><code>assert.throws()</code></a>.</p>
 <p>If specified, <code>error</code> can be a <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes"><code>Class</code></a>, <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions"><code>RegExp</code></a>, a validation function,
 an object where each property will be tested for, or an instance of error where
 each property will be tested for including the non-enumerable <code>message</code> and
 <code>name</code> properties.</p>
 <p>If specified, <code>message</code> will be the message provided by the <code>AssertionError</code> if
-the block fails to reject.</p>
+the <code>asyncFn</code> fails to reject.</p>
 <pre><code class="language-js">(async () => {
   await assert.rejects(
     async () => {
@@ -1062,9 +1062,9 @@ the block fails to reject.</p>
 <p>Note that <code>error</code> cannot be a string. If a string is provided as the second
 argument, then <code>error</code> is assumed to be omitted and the string will be used for
 <code>message</code> instead. This can lead to easy-to-miss mistakes. Please read the
-example in <a href="#assert_assert_throws_block_error_message"><code>assert.throws()</code></a> carefully if using a string as the second
+example in <a href="#assert_assert_throws_fn_error_message"><code>assert.throws()</code></a> carefully if using a string as the second
 argument gets considered.</p>
-<h2>assert.strictEqual(actual, expected[, message])<span><a class="mark" href="#assert_assert_strictequal_actual_expected_message" id="assert_assert_strictequal_actual_expected_message">#</a></span></h2>
+<h2>assert.strictEqual(actual, expected[, message])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/assert.js#L447">[src]</a><span><a class="mark" href="#assert_assert_strictequal_actual_expected_message" id="assert_assert_strictequal_actual_expected_message">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1105,7 +1105,7 @@ assert.strictEqual(1, '1');
 <code>message</code> parameter is undefined, a default error message is assigned. If the
 <code>message</code> parameter is an instance of an <a href="errors.html#errors_class_error"><code>Error</code></a> then it will be thrown
 instead of the <code>AssertionError</code>.</p>
-<h2>assert.throws(block[, error][, message])<span><a class="mark" href="#assert_assert_throws_block_error_message" id="assert_assert_throws_block_error_message">#</a></span></h2>
+<h2>assert.throws(fn[, error][, message])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/assert.js#L689">[src]</a><span><a class="mark" href="#assert_assert_throws_fn_error_message" id="assert_assert_throws_fn_error_message">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1122,19 +1122,20 @@ instead of the <code>AssertionError</code>.</p>
 </details>
 </div>
 <ul>
-<li><code>block</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
+<li><code>fn</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
 <li><code>error</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp" class="type">&#x3C;RegExp></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&#x3C;Error></a></li>
-<li><code>message</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&#x3C;Error></a></li>
+<li><code>message</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
-<p>Expects the function <code>block</code> to throw an error.</p>
+<p>Expects the function <code>fn</code> to throw an error.</p>
 <p>If specified, <code>error</code> can be a <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes"><code>Class</code></a>, <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions"><code>RegExp</code></a>, a validation function,
 a validation object where each property will be tested for strict deep equality,
 or an instance of error where each property will be tested for strict deep
 equality including the non-enumerable <code>message</code> and <code>name</code> properties. When
 using an object, it is also possible to use a regular expression, when
 validating against a string property. See below for examples.</p>
-<p>If specified, <code>message</code> will be the message provided by the <code>AssertionError</code> if
-the block fails to throw.</p>
+<p>If specified, <code>message</code> will be appended to the message provided by the
+<code>AssertionError</code> if the <code>fn</code> call fails to throw or in case the error validation
+fails.</p>
 <p>Custom validation object/error instance:</p>
 <pre><code class="language-js">const err = new TypeError('Wrong value');
 err.code = 404;
@@ -1273,6 +1274,5 @@ second argument. This might lead to difficult-to-spot errors.</p>
   <script src="assets/sh_main.js"></script>
   <script src="assets/sh_javascript.min.js"></script>
   <script>highlight(undefined, undefined, 'pre');</script>
-  <!-- __TRACKING__ -->
 </body>
 </html>

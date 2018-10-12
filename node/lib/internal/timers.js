@@ -11,10 +11,12 @@ const async_id_symbol = Symbol('asyncId');
 const trigger_async_id_symbol = Symbol('triggerId');
 
 const {
-  ERR_INVALID_ARG_TYPE,
   ERR_INVALID_CALLBACK,
   ERR_OUT_OF_RANGE
 } = require('internal/errors').codes;
+const { validateNumber } = require('internal/validators');
+
+const { inspect } = require('util');
 
 // Timeout values > TIMEOUT_MAX are set to 1.
 const TIMEOUT_MAX = 2 ** 31 - 1;
@@ -80,6 +82,17 @@ function Timeout(callback, after, args, isRepeat, isUnrefed) {
   initAsyncResource(this, 'Timeout');
 }
 
+// Make sure the linked list only shows the minimal necessary information.
+Timeout.prototype[inspect.custom] = function(_, options) {
+  return inspect(this, {
+    ...options,
+    // Only inspect one level.
+    depth: 0,
+    // It should not recurse.
+    customInspect: false
+  });
+};
+
 Timeout.prototype.refresh = function() {
   if (this._handle) {
     // Would be more ideal with uv_timer_again(), however that API does not
@@ -130,10 +143,7 @@ function setUnrefTimeout(callback, after, arg1, arg2, arg3) {
 
 // Type checking used by timers.enroll() and Socket#setTimeout()
 function validateTimerDuration(msecs) {
-  if (typeof msecs !== 'number') {
-    throw new ERR_INVALID_ARG_TYPE('msecs', 'number', msecs);
-  }
-
+  validateNumber(msecs, 'msecs');
   if (msecs < 0 || !isFinite(msecs)) {
     throw new ERR_OUT_OF_RANGE('msecs', 'a non-negative finite number', msecs);
   }

@@ -249,11 +249,11 @@ added: v1.0.0
   - `plaintextLength` {number}
 * Returns: {Cipher} for method chaining.
 
-When using an authenticated encryption mode (only `GCM` and `CCM` are currently
-supported), the `cipher.setAAD()` method sets the value used for the
+When using an authenticated encryption mode (`GCM`, `CCM` and `OCB` are
+currently supported), the `cipher.setAAD()` method sets the value used for the
 _additional authenticated data_ (AAD) input parameter.
 
-The `options` argument is optional for `GCM`. When using `CCM`, the
+The `options` argument is optional for `GCM` and `OCB`. When using `CCM`, the
 `plaintextLength` option must be specified and its value must match the length
 of the plaintext in bytes. See [CCM mode][].
 
@@ -263,8 +263,8 @@ The `cipher.setAAD()` method must be called before [`cipher.update()`][].
 <!-- YAML
 added: v1.0.0
 -->
-* Returns: {Buffer} When using an authenticated encryption mode (only `GCM` and
-  `CCM` are currently supported), the `cipher.getAuthTag()` method returns a
+* Returns: {Buffer} When using an authenticated encryption mode (`GCM`, `CCM`
+  and `OCB` are currently supported), the `cipher.getAuthTag()` method returns a
   [`Buffer`][] containing the _authentication tag_ that has been computed from
   the given data.
 
@@ -412,8 +412,8 @@ changes:
   - `plaintextLength` {number}
 * Returns: {Decipher} for method chaining.
 
-When using an authenticated encryption mode (only `GCM` and `CCM` are currently
-supported), the `decipher.setAAD()` method sets the value used for the
+When using an authenticated encryption mode (`GCM`, `CCM` and `OCB` are
+currently supported), the `decipher.setAAD()` method sets the value used for the
 _additional authenticated data_ (AAD) input parameter.
 
 The `options` argument is optional for `GCM`. When using `CCM`, the
@@ -433,8 +433,8 @@ changes:
 * `buffer` {Buffer | TypedArray | DataView}
 * Returns: {Decipher} for method chaining.
 
-When using an authenticated encryption mode (only `GCM` and `CCM` are currently
-supported), the `decipher.setAuthTag()` method is used to pass in the
+When using an authenticated encryption mode (`GCM`, `CCM` and `OCB` are
+currently supported), the `decipher.setAuthTag()` method is used to pass in the
 received _authentication tag_. If no tag is provided, or if the cipher text
 has been tampered with, [`decipher.final()`][] will throw, indicating that the
 cipher text should be discarded due to failed authentication.
@@ -706,9 +706,9 @@ If the `inputEncoding` is not provided, `key` is expected to be a [`Buffer`][],
 Example (uncompressing a key):
 
 ```js
-const { ECDH } = require('crypto');
+const { createECDH, ECDH } = require('crypto');
 
-const ecdh = ECDH('secp256k1');
+const ecdh = createECDH('secp256k1');
 ecdh.generateKeys();
 
 const compressedKey = ecdh.getPublicKey('hex', 'compressed');
@@ -1124,6 +1124,8 @@ changes:
 * `privateKey` {string | Object}
   - `key` {string}
   - `passphrase` {string}
+  - `padding` {integer}
+  - `saltLength` {integer}
 * `outputFormat` {string}
 * Returns: {Buffer | string}
 
@@ -1324,6 +1326,9 @@ This property is deprecated. Please use `crypto.setFips()` and
 added: v0.1.94
 deprecated: v10.0.0
 changes:
+  - version: v10.10.0
+    pr-url: https://github.com/nodejs/node/pull/21447
+    description: Ciphers in OCB mode are now supported.
   - version: v10.2.0
     pr-url: https://github.com/nodejs/node/pull/20235
     description: The `authTagLength` option can now be used to produce shorter
@@ -1341,7 +1346,7 @@ Creates and returns a `Cipher` object that uses the given `algorithm` and
 `password`.
 
 The `options` argument controls stream behavior and is optional except when a
-cipher in CCM mode is used (e.g. `'aes-128-ccm'`). In that case, the
+cipher in CCM or OCB mode is used (e.g. `'aes-128-ccm'`). In that case, the
 `authTagLength` option is required and specifies the length of the
 authentication tag in bytes, see [CCM mode][]. In GCM mode, the `authTagLength`
 option is not required but can be used to set the length of the authentication
@@ -1376,6 +1381,9 @@ Adversaries][] for details.
 <!-- YAML
 added: v0.1.94
 changes:
+  - version: v10.10.0
+    pr-url: https://github.com/nodejs/node/pull/21447
+    description: Ciphers in OCB mode are now supported.
   - version: v10.2.0
     pr-url: https://github.com/nodejs/node/pull/20235
     description: The `authTagLength` option can now be used to produce shorter
@@ -1395,7 +1403,7 @@ Creates and returns a `Cipher` object, with the given `algorithm`, `key` and
 initialization vector (`iv`).
 
 The `options` argument controls stream behavior and is optional except when a
-cipher in CCM mode is used (e.g. `'aes-128-ccm'`). In that case, the
+cipher in CCM or OCB mode is used (e.g. `'aes-128-ccm'`). In that case, the
 `authTagLength` option is required and specifies the length of the
 authentication tag in bytes, see [CCM mode][]. In GCM mode, the `authTagLength`
 option is not required but can be used to set the length of the authentication
@@ -1441,6 +1449,10 @@ called.
 <!-- YAML
 added: v0.1.94
 deprecated: v10.0.0
+changes:
+  - version: v10.10.0
+    pr-url: https://github.com/nodejs/node/pull/21447
+    description: Ciphers in OCB mode are now supported.
 -->
 
 > Stability: 0 - Deprecated: Use [`crypto.createDecipheriv()`][] instead.
@@ -1454,7 +1466,7 @@ Creates and returns a `Decipher` object that uses the given `algorithm` and
 `password` (key).
 
 The `options` argument controls stream behavior and is optional except when a
-cipher in CCM mode is used (e.g. `'aes-128-ccm'`). In that case, the
+cipher in CCM or OCB mode is used (e.g. `'aes-128-ccm'`). In that case, the
 `authTagLength` option is required and specifies the length of the
 authentication tag in bytes, see [CCM mode][].
 
@@ -1474,6 +1486,9 @@ to create the `Decipher` object.
 <!-- YAML
 added: v0.1.94
 changes:
+  - version: v10.10.0
+    pr-url: https://github.com/nodejs/node/pull/21447
+    description: Ciphers in OCB mode are now supported.
   - version: v10.2.0
     pr-url: https://github.com/nodejs/node/pull/20039
     description: The `authTagLength` option can now be used to restrict accepted
@@ -1493,7 +1508,7 @@ Creates and returns a `Decipher` object that uses the given `algorithm`, `key`
 and initialization vector (`iv`).
 
 The `options` argument controls stream behavior and is optional except when a
-cipher in CCM mode is used (e.g. `'aes-128-ccm'`). In that case, the
+cipher in CCM or OCB mode is used (e.g. `'aes-128-ccm'`). In that case, the
 `authTagLength` option is required and specifies the length of the
 authentication tag in bytes, see [CCM mode][]. In GCM mode, the `authTagLength`
 option is not required but can be used to restrict accepted authentication tags
@@ -1680,14 +1695,125 @@ Use [`crypto.getHashes()`][] to obtain an array of names of the available
 signing algorithms. Optional `options` argument controls the
 `stream.Writable` behavior.
 
+### crypto.generateKeyPair(type, options, callback)
+<!-- YAML
+added: v10.12.0
+-->
+* `type`: {string} Must be `'rsa'`, `'dsa'` or `'ec'`.
+* `options`: {Object}
+  - `modulusLength`: {number} Key size in bits (RSA, DSA).
+  - `publicExponent`: {number} Public exponent (RSA). **Default:** `0x10001`.
+  - `divisorLength`: {number} Size of `q` in bits (DSA).
+  - `namedCurve`: {string} Name of the curve to use (EC).
+  - `publicKeyEncoding`: {Object}
+    - `type`: {string} Must be one of `'pkcs1'` (RSA only) or `'spki'`.
+    - `format`: {string} Must be `'pem'` or `'der'`.
+  - `privateKeyEncoding`: {Object}
+    - `type`: {string} Must be one of `'pkcs1'` (RSA only), `'pkcs8'` or
+      `'sec1'` (EC only).
+    - `format`: {string} Must be `'pem'` or `'der'`.
+    - `cipher`: {string} If specified, the private key will be encrypted with
+      the given `cipher` and `passphrase` using PKCS#5 v2.0 password based
+      encryption.
+    - `passphrase`: {string} The passphrase to use for encryption, see `cipher`.
+* `callback`: {Function}
+  - `err`: {Error}
+  - `publicKey`: {string|Buffer}
+  - `privateKey`: {string|Buffer}
+
+Generates a new asymmetric key pair of the given `type`. Only RSA, DSA and EC
+are currently supported.
+
+It is recommended to encode public keys as `'spki'` and private keys as
+`'pkcs8'` with encryption:
+
+```js
+const { generateKeyPair } = require('crypto');
+generateKeyPair('rsa', {
+  modulusLength: 4096,
+  publicKeyEncoding: {
+    type: 'spki',
+    format: 'pem'
+  },
+  privateKeyEncoding: {
+    type: 'pkcs8',
+    format: 'pem',
+    cipher: 'aes-256-cbc',
+    passphrase: 'top secret'
+  }
+}, (err, publicKey, privateKey) => {
+  // Handle errors and use the generated key pair.
+});
+```
+
+On completion, `callback` will be called with `err` set to `undefined` and
+`publicKey` / `privateKey` representing the generated key pair. When PEM
+encoding was selected, the result will be a string, otherwise it will be a
+buffer containing the data encoded as DER. Note that Node.js itself does not
+accept DER, it is supported for interoperability with other libraries such as
+WebCrypto only.
+
+If this method is invoked as its [`util.promisify()`][]ed version, it returns
+a `Promise` for an `Object` with `publicKey` and `privateKey` properties.
+
+### crypto.generateKeyPairSync(type, options)
+<!-- YAML
+added: v10.12.0
+-->
+* `type`: {string} Must be `'rsa'`, `'dsa'` or `'ec'`.
+* `options`: {Object}
+  - `modulusLength`: {number} Key size in bits (RSA, DSA).
+  - `publicExponent`: {number} Public exponent (RSA). **Default:** `0x10001`.
+  - `divisorLength`: {number} Size of `q` in bits (DSA).
+  - `namedCurve`: {string} Name of the curve to use (EC).
+  - `publicKeyEncoding`: {Object}
+    - `type`: {string} Must be one of `'pkcs1'` (RSA only) or `'spki'`.
+    - `format`: {string} Must be `'pem'` or `'der'`.
+  - `privateKeyEncoding`: {Object}
+    - `type`: {string} Must be one of `'pkcs1'` (RSA only), `'pkcs8'` or
+      `'sec1'` (EC only).
+    - `format`: {string} Must be `'pem'` or `'der'`.
+    - `cipher`: {string} If specified, the private key will be encrypted with
+      the given `cipher` and `passphrase` using PKCS#5 v2.0 password based
+      encryption.
+    - `passphrase`: {string} The passphrase to use for encryption, see `cipher`.
+* Returns: {Object}
+  - `publicKey`: {string|Buffer}
+  - `privateKey`: {string|Buffer}
+
+Generates a new asymmetric key pair of the given `type`. Only RSA, DSA and EC
+are currently supported.
+
+It is recommended to encode public keys as `'spki'` and private keys as
+`'pkcs8'` with encryption:
+
+```js
+const { generateKeyPairSync } = require('crypto');
+const { publicKey, privateKey } = generateKeyPairSync('rsa', {
+  modulusLength: 4096,
+  publicKeyEncoding: {
+    type: 'spki',
+    format: 'pem'
+  },
+  privateKeyEncoding: {
+    type: 'pkcs8',
+    format: 'pem',
+    cipher: 'aes-256-cbc',
+    passphrase: 'top secret'
+  }
+});
+```
+
+The return value `{ publicKey, privateKey }` represents the generated key pair.
+When PEM encoding was selected, the respective key will be a string, otherwise
+it will be a buffer containing the data encoded as DER.
+
 ### crypto.getCiphers()
 <!-- YAML
 added: v0.9.3
 -->
 * Returns: {string[]} An array with the names of the supported cipher
   algorithms.
-
-Example:
 
 ```js
 const ciphers = crypto.getCiphers();
@@ -1699,8 +1825,6 @@ console.log(ciphers); // ['aes-128-cbc', 'aes-128-ccm', ...]
 added: v2.3.0
 -->
 * Returns: {string[]} An array with the names of the supported elliptic curves.
-
-Example:
 
 ```js
 const curves = crypto.getCurves();
@@ -1720,7 +1844,7 @@ supported groups are: `'modp1'`, `'modp2'`, `'modp5'` (defined in
 `'modp16'`, `'modp17'`, `'modp18'` (defined in [RFC 3526][]). The
 returned object mimics the interface of objects created by
 [`crypto.createDiffieHellman()`][], but will not allow changing
-the keys (with [`diffieHellman.setPublicKey()`][] for example). The
+the keys (with [`diffieHellman.setPublicKey()`][], for example). The
 advantage of using this method is that the parties do not have to
 generate nor exchange a group modulus beforehand, saving both processor
 and communication time.
@@ -1755,8 +1879,6 @@ added: v0.9.3
 -->
 * Returns: {string[]} An array of the names of the supported hash algorithms,
   such as `'RSA-SHA256'`.
-
-Example:
 
 ```js
 const hashes = crypto.getHashes();
@@ -1799,14 +1921,15 @@ otherwise `err` will be `null`. By default, the successfully generated
 `derivedKey` will be passed to the callback as a [`Buffer`][]. An error will be
 thrown if any of the input arguments specify invalid values or types.
 
+If `digest` is `null`, `'sha1'` will be used. This behavior will be deprecated
+in a future version of Node.js.
+
 The `iterations` argument must be a number set as high as possible. The
 higher the number of iterations, the more secure the derived key will be,
 but will take a longer amount of time to complete.
 
 The `salt` should be as unique as possible. It is recommended that a salt is
 random and at least 16 bytes long. See [NIST SP 800-132][] for details.
-
-Example:
 
 ```js
 const crypto = require('crypto');
@@ -1864,14 +1987,15 @@ applied to derive a key of the requested byte length (`keylen`) from the
 If an error occurs an `Error` will be thrown, otherwise the derived key will be
 returned as a [`Buffer`][].
 
+If `digest` is `null`, `'sha1'` will be used. This behavior will be deprecated
+in a future version of Node.js.
+
 The `iterations` argument must be a number set as high as possible. The
 higher the number of iterations, the more secure the derived key will be,
 but will take a longer amount of time to complete.
 
 The `salt` should be as unique as possible. It is recommended that a salt is
 random and at least 16 bytes long. See [NIST SP 800-132][] for details.
-
-Example:
 
 ```js
 const crypto = require('crypto');
@@ -1907,7 +2031,8 @@ added: v0.11.14
 * `buffer` {Buffer | TypedArray | DataView}
 * Returns: {Buffer} A new `Buffer` with the decrypted content.
 
-Decrypts `buffer` with `privateKey`.
+Decrypts `buffer` with `privateKey`. `buffer` was previously encrypted using
+the corresponding public key, for example using [`crypto.publicEncrypt()`][].
 
 `privateKey` can be an object or a string. If `privateKey` is a string, it is
 treated as the key with no passphrase and will use `RSA_PKCS1_OAEP_PADDING`.
@@ -1925,7 +2050,8 @@ added: v1.1.0
 * `buffer` {Buffer | TypedArray | DataView}
 * Returns: {Buffer} A new `Buffer` with the encrypted content.
 
-Encrypts `buffer` with `privateKey`.
+Encrypts `buffer` with `privateKey`. The returned data can be decrypted using
+the corresponding public key, for example using [`crypto.publicDecrypt()`][].
 
 `privateKey` can be an object or a string. If `privateKey` is a string, it is
 treated as the key with no passphrase and will use `RSA_PKCS1_PADDING`.
@@ -1943,7 +2069,8 @@ added: v1.1.0
 * `buffer` {Buffer | TypedArray | DataView}
 * Returns: {Buffer} A new `Buffer` with the decrypted content.
 
-Decrypts `buffer` with `key`.
+Decrypts `buffer` with `key`.`buffer` was previously encrypted using
+the corresponding private key, for example using [`crypto.privateEncrypt()`][].
 
 `key` can be an object or a string. If `key` is a string, it is treated as
 the key with no passphrase and will use `RSA_PKCS1_PADDING`.
@@ -1966,7 +2093,8 @@ added: v0.11.14
 * Returns: {Buffer} A new `Buffer` with the encrypted content.
 
 Encrypts the content of `buffer` with `key` and returns a new
-[`Buffer`][] with encrypted content.
+[`Buffer`][] with encrypted content. The returned data can be decrypted using
+the corresponding private key, for example using [`crypto.privateDecrypt()`][].
 
 `key` can be an object or a string. If `key` is a string, it is treated as
 the key with no passphrase and will use `RSA_PKCS1_OAEP_PADDING`.
@@ -2367,7 +2495,7 @@ See the reference for other recommendations and details.
 
 ### CCM mode
 
-CCM is one of the two supported [AEAD algorithms][]. Applications which use this
+CCM is one of the supported [AEAD algorithms][]. Applications which use this
 mode must adhere to certain restrictions when using the cipher API:
 
 - The authentication tag length must be specified during cipher creation by
@@ -2760,6 +2888,10 @@ the `crypto`, `tls`, and `https` modules and are generally specific to OpenSSL.
 [`crypto.createVerify()`]: #crypto_crypto_createverify_algorithm_options
 [`crypto.getCurves()`]: #crypto_crypto_getcurves
 [`crypto.getHashes()`]: #crypto_crypto_gethashes
+[`crypto.privateDecrypt()`]: #crypto_crypto_privatedecrypt_privatekey_buffer
+[`crypto.privateEncrypt()`]: #crypto_crypto_privateencrypt_privatekey_buffer
+[`crypto.publicDecrypt()`]: #crypto_crypto_publicdecrypt_key_buffer
+[`crypto.publicEncrypt()`]: #crypto_crypto_publicencrypt_key_buffer
 [`crypto.randomBytes()`]: #crypto_crypto_randombytes_size_callback
 [`crypto.randomFill()`]: #crypto_crypto_randomfill_buffer_offset_size_callback
 [`crypto.scrypt()`]: #crypto_crypto_scrypt_password_salt_keylen_options_callback
@@ -2778,6 +2910,7 @@ the `crypto`, `tls`, and `https` modules and are generally specific to OpenSSL.
 [`stream.transform` options]: stream.html#stream_new_stream_transform_options
 [`stream.Writable` options]: stream.html#stream_constructor_new_stream_writable_options
 [`tls.createSecureContext()`]: tls.html#tls_tls_createsecurecontext_options
+[`util.promisify()`]: util.html#util_util_promisify_original
 [`verify.update()`]: #crypto_verify_update_data_inputencoding
 [`verify.verify()`]: #crypto_verify_verify_object_signature_signatureformat
 [AEAD algorithms]: https://en.wikipedia.org/wiki/Authenticated_encryption

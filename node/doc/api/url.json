@@ -85,7 +85,7 @@
                   "textRaw": "`port` {string}",
                   "type": "string",
                   "name": "port",
-                  "desc": "<p>Gets and sets the port portion of the URL.</p>\n<pre><code class=\"language-js\">const myURL = new URL('https://example.org:8888');\nconsole.log(myURL.port);\n// Prints 8888\n\n// Default ports are automatically transformed to the empty string\n// (HTTPS protocol's default port is 443)\nmyURL.port = '443';\nconsole.log(myURL.port);\n// Prints the empty string\nconsole.log(myURL.href);\n// Prints https://example.org/\n\nmyURL.port = 1234;\nconsole.log(myURL.port);\n// Prints 1234\nconsole.log(myURL.href);\n// Prints https://example.org:1234/\n\n// Completely invalid port strings are ignored\nmyURL.port = 'abcd';\nconsole.log(myURL.port);\n// Prints 1234\n\n// Leading numbers are treated as a port number\nmyURL.port = '5678abcd';\nconsole.log(myURL.port);\n// Prints 5678\n\n// Non-integers are truncated\nmyURL.port = 1234.5678;\nconsole.log(myURL.port);\n// Prints 1234\n\n// Out-of-range numbers which are not represented in scientific notation\n// will be ignored.\nmyURL.port = 1e10; // 10000000000, will be range-checked as described below\nconsole.log(myURL.port);\n// Prints 1234\n</code></pre>\n<p>The port value may be set as either a number or as a string containing a number\nin the range <code>0</code> to <code>65535</code> (inclusive). Setting the value to the default port\nof the <code>URL</code> objects given <code>protocol</code> will result in the <code>port</code> value becoming\nthe empty string (<code>''</code>).</p>\n<p>Upon assigning a value to the port, the value will first be converted to a\nstring using <code>.toString()</code>.</p>\n<p>If that string is invalid but it begins with a number, the leading number is\nassigned to <code>port</code>.\nOtherwise, or if the number lies outside the range denoted above,\nit is ignored.</p>\n<p>Note that numbers which contain a decimal point,\nsuch as floating-point numbers or numbers in scientific notation,\nare not an exception to this rule.\nLeading numbers up to the decimal point will be set as the URL's port,\nassuming they are valid:</p>\n<pre><code class=\"language-js\">myURL.port = 4.567e21;\nconsole.log(myURL.port);\n// Prints 4 (because it is the leading number in the string '4.567e21')\n</code></pre>"
+                  "desc": "<p>Gets and sets the port portion of the URL.</p>\n<p>The port value may be a number or a string containing a number in the range\n<code>0</code> to <code>65535</code> (inclusive). Setting the value to the default port of the\n<code>URL</code> objects given <code>protocol</code> will result in the <code>port</code> value becoming\nthe empty string (<code>''</code>).</p>\n<p>The port value can be an empty string in which case the port depends on\nthe protocol/scheme:</p>\n<table>\n<thead>\n<tr>\n<th align=\"left\">protocol</th>\n<th align=\"left\">port</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td align=\"left\">\"ftp\"</td>\n<td align=\"left\">21</td>\n</tr>\n<tr>\n<td align=\"left\">\"file\"</td>\n<td align=\"left\"></td>\n</tr>\n<tr>\n<td align=\"left\">\"gopher\"</td>\n<td align=\"left\">70</td>\n</tr>\n<tr>\n<td align=\"left\">\"http\"</td>\n<td align=\"left\">80</td>\n</tr>\n<tr>\n<td align=\"left\">\"https\"</td>\n<td align=\"left\">443</td>\n</tr>\n<tr>\n<td align=\"left\">\"ws\"</td>\n<td align=\"left\">80</td>\n</tr>\n<tr>\n<td align=\"left\">\"wss\"</td>\n<td align=\"left\">443</td>\n</tr>\n</tbody>\n</table>\n<p>Upon assigning a value to the port, the value will first be converted to a\nstring using <code>.toString()</code>.</p>\n<p>If that string is invalid but it begins with a number, the leading number is\nassigned to <code>port</code>.\nIf the number lies outside the range denoted above, it is ignored.</p>\n<pre><code class=\"language-js\">const myURL = new URL('https://example.org:8888');\nconsole.log(myURL.port);\n// Prints 8888\n\n// Default ports are automatically transformed to the empty string\n// (HTTPS protocol's default port is 443)\nmyURL.port = '443';\nconsole.log(myURL.port);\n// Prints the empty string\nconsole.log(myURL.href);\n// Prints https://example.org/\n\nmyURL.port = 1234;\nconsole.log(myURL.port);\n// Prints 1234\nconsole.log(myURL.href);\n// Prints https://example.org:1234/\n\n// Completely invalid port strings are ignored\nmyURL.port = 'abcd';\nconsole.log(myURL.port);\n// Prints 1234\n\n// Leading numbers are treated as a port number\nmyURL.port = '5678abcd';\nconsole.log(myURL.port);\n// Prints 5678\n\n// Non-integers are truncated\nmyURL.port = 1234.5678;\nconsole.log(myURL.port);\n// Prints 1234\n\n// Out-of-range numbers which are not represented in scientific notation\n// will be ignored.\nmyURL.port = 1e10; // 10000000000, will be range-checked as described below\nconsole.log(myURL.port);\n// Prints 1234\n</code></pre>\n<p>Note that numbers which contain a decimal point,\nsuch as floating-point numbers or numbers in scientific notation,\nare not an exception to this rule.\nLeading numbers up to the decimal point will be set as the URL's port,\nassuming they are valid:</p>\n<pre><code class=\"language-js\">myURL.port = 4.567e21;\nconsole.log(myURL.port);\n// Prints 4 (because it is the leading number in the string '4.567e21')\n</code></pre>"
                 },
                 {
                   "textRaw": "`protocol` {string}",
@@ -544,6 +544,30 @@
               "desc": "<p>Returns the Unicode serialization of the <code>domain</code>. If <code>domain</code> is an invalid\ndomain, the empty string is returned.</p>\n<p>It performs the inverse operation to <a href=\"#url_url_domaintoascii_domain\"><code>url.domainToASCII()</code></a>.</p>\n<pre><code class=\"language-js\">const url = require('url');\nconsole.log(url.domainToUnicode('xn--espaol-zwa.com'));\n// Prints español.com\nconsole.log(url.domainToUnicode('xn--fiq228c.com'));\n// Prints 中文.com\nconsole.log(url.domainToUnicode('xn--iñvalid.com'));\n// Prints an empty string\n</code></pre>"
             },
             {
+              "textRaw": "url.fileURLToPath(url)",
+              "type": "method",
+              "name": "fileURLToPath",
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {string} The fully-resolved platform-specific Node.js file path.",
+                    "name": "return",
+                    "type": "string",
+                    "desc": "The fully-resolved platform-specific Node.js file path."
+                  },
+                  "params": [
+                    {
+                      "textRaw": "`url` {URL | string} The file URL string or URL object to convert to a path.",
+                      "name": "url",
+                      "type": "URL | string",
+                      "desc": "The file URL string or URL object to convert to a path."
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>This function ensures the correct decodings of percent-encoded characters as\nwell as ensuring a cross-platform valid absolute path string.</p>\n<pre><code class=\"language-js\">new URL('file:///C:/path/').pathname;    // Incorrect: /C:/path/\nfileURLToPath('file:///C:/path/');       // Correct:   C:\\path\\ (Windows)\n\nnew URL('file://nas/foo.txt').pathname;  // Incorrect: /foo.txt\nfileURLToPath('file://nas/foo.txt');     // Correct:   \\\\nas\\foo.txt (Windows)\n\nnew URL('file:///你好.txt').pathname;    // Incorrect: /%E4%BD%A0%E5%A5%BD.txt\nfileURLToPath('file:///你好.txt');       // Correct:   /你好.txt (POSIX)\n\nnew URL('file:///hello world').pathname; // Incorrect: /hello%20world\nfileURLToPath('file:///hello world');    // Correct:   /hello world (POSIX)\n</code></pre>"
+            },
+            {
               "textRaw": "url.format(URL[, options])",
               "type": "method",
               "name": "format",
@@ -606,7 +630,31 @@
                   ]
                 }
               ],
-              "desc": "<p>Returns a customizable serialization of a URL <code>String</code> representation of a\n<a href=\"#url_the_whatwg_url_api\">WHATWG URL</a> object.</p>\n<p>The URL object has both a <code>toString()</code> method and <code>href</code> property that return\nstring serializations of the URL. These are not, however, customizable in\nany way. The <code>url.format(URL[, options])</code> method allows for basic customization\nof the output.</p>\n<p>For example:</p>\n<pre><code class=\"language-js\">const myURL = new URL('https://a:b@你好你好?abc#foo');\n\nconsole.log(myURL.href);\n// Prints https://a:b@xn--6qqa088eba/?abc#foo\n\nconsole.log(myURL.toString());\n// Prints https://a:b@xn--6qqa088eba/?abc#foo\n\nconsole.log(url.format(myURL, { fragment: false, unicode: true, auth: false }));\n// Prints 'https://你好你好/?abc'\n</code></pre>"
+              "desc": "<p>Returns a customizable serialization of a URL <code>String</code> representation of a\n<a href=\"#url_the_whatwg_url_api\">WHATWG URL</a> object.</p>\n<p>The URL object has both a <code>toString()</code> method and <code>href</code> property that return\nstring serializations of the URL. These are not, however, customizable in\nany way. The <code>url.format(URL[, options])</code> method allows for basic customization\nof the output.</p>\n<pre><code class=\"language-js\">const myURL = new URL('https://a:b@你好你好?abc#foo');\n\nconsole.log(myURL.href);\n// Prints https://a:b@xn--6qqa088eba/?abc#foo\n\nconsole.log(myURL.toString());\n// Prints https://a:b@xn--6qqa088eba/?abc#foo\n\nconsole.log(url.format(myURL, { fragment: false, unicode: true, auth: false }));\n// Prints 'https://你好你好/?abc'\n</code></pre>"
+            },
+            {
+              "textRaw": "url.pathToFileURL(path)",
+              "type": "method",
+              "name": "pathToFileURL",
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {URL} The file URL object.",
+                    "name": "return",
+                    "type": "URL",
+                    "desc": "The file URL object."
+                  },
+                  "params": [
+                    {
+                      "textRaw": "`path` {string} The path to convert to a File URL.",
+                      "name": "path",
+                      "type": "string",
+                      "desc": "The path to convert to a File URL."
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>This function ensures that <code>path</code> is resolved absolutely, and that the URL\ncontrol characters are correctly encoded when converting into a File URL.</p>\n<pre><code class=\"language-js\">new URL(__filename);                // Incorrect: throws (POSIX)\nnew URL(__filename);                // Incorrect: C:\\... (Windows)\npathToFileURL(__filename);          // Correct:   file:///... (POSIX)\npathToFileURL(__filename);          // Correct:   file:///C:/... (Windows)\n\nnew URL('/foo#1', 'file:');         // Incorrect: file:///foo#1\npathToFileURL('/foo#1');            // Correct:   file:///foo%231 (POSIX)\n\nnew URL('/some/path%.js', 'file:'); // Incorrect: file:///some/path%\npathToFileURL('/some/path%.js');    // Correct:   file:///some/path%25 (POSIX)\n</code></pre>"
             }
           ],
           "type": "module",
@@ -654,7 +702,7 @@
                 {
                   "textRaw": "urlObject.pathname",
                   "name": "pathname",
-                  "desc": "<p>The <code>pathname</code> property consists of the entire path section of the URL. This\nis everything following the <code>host</code> (including the <code>port</code>) and before the start\nof the <code>query</code> or <code>hash</code> components, delimited by either the ASCII question\nmark (<code>?</code>) or hash (<code>#</code>) characters.</p>\n<p>For example <code>'/p/a/t/h'</code>.</p>\n<p>No decoding of the path string is performed.</p>"
+                  "desc": "<p>The <code>pathname</code> property consists of the entire path section of the URL. This\nis everything following the <code>host</code> (including the <code>port</code>) and before the start\nof the <code>query</code> or <code>hash</code> components, delimited by either the ASCII question\nmark (<code>?</code>) or hash (<code>#</code>) characters.</p>\n<p>For example: <code>'/p/a/t/h'</code>.</p>\n<p>No decoding of the path string is performed.</p>"
                 },
                 {
                   "textRaw": "urlObject.port",
@@ -807,7 +855,7 @@
                   ]
                 }
               ],
-              "desc": "<p>The <code>url.resolve()</code> method resolves a target URL relative to a base URL in a\nmanner similar to that of a Web browser resolving an anchor tag HREF.</p>\n<p>For example:</p>\n<pre><code class=\"language-js\">const url = require('url');\nurl.resolve('/one/two/three', 'four');         // '/one/two/four'\nurl.resolve('http://example.com/', '/one');    // 'http://example.com/one'\nurl.resolve('http://example.com/one', '/two'); // 'http://example.com/two'\n</code></pre>\n<p><a id=\"whatwg-percent-encoding\"></a></p>"
+              "desc": "<p>The <code>url.resolve()</code> method resolves a target URL relative to a base URL in a\nmanner similar to that of a Web browser resolving an anchor tag HREF.</p>\n<pre><code class=\"language-js\">const url = require('url');\nurl.resolve('/one/two/three', 'four');         // '/one/two/four'\nurl.resolve('http://example.com/', '/one');    // 'http://example.com/one'\nurl.resolve('http://example.com/one', '/two'); // 'http://example.com/two'\n</code></pre>\n<p><a id=\"whatwg-percent-encoding\"></a></p>"
             }
           ],
           "type": "module",
@@ -828,7 +876,7 @@
             {
               "textRaw": "WHATWG API",
               "name": "whatwg_api",
-              "desc": "<p>The <a href=\"https://url.spec.whatwg.org/\">WHATWG URL Standard</a> uses a more selective and fine grained approach to\nselecting encoded characters than that used by the Legacy API.</p>\n<p>The WHATWG algorithm defines four \"percent-encode sets\" that describe ranges\nof characters that must be percent-encoded:</p>\n<ul>\n<li>\n<p>The <em>C0 control percent-encode set</em> includes code points in range U+0000 to\nU+001F (inclusive) and all code points greater than U+007E.</p>\n</li>\n<li>\n<p>The <em>fragment percent-encode set</em> includes the <em>C0 control percent-encode set</em>\nand code points U+0020, U+0022, U+003C, U+003E, and U+0060.</p>\n</li>\n<li>\n<p>The <em>path percent-encode set</em> includes the <em>C0 control percent-encode set</em>\nand code points U+0020, U+0022, U+0023, U+003C, U+003E, U+003F, U+0060,\nU+007B, and U+007D.</p>\n</li>\n<li>\n<p>The <em>userinfo encode set</em> includes the <em>path percent-encode set</em> and code\npoints U+002F, U+003A, U+003B, U+003D, U+0040, U+005B, U+005C, U+005D,\nU+005E, and U+007C.</p>\n</li>\n</ul>\n<p>The <em>userinfo percent-encode set</em> is used exclusively for username and\npasswords encoded within the URL. The <em>path percent-encode set</em> is used for the\npath of most URLs. The <em>fragment percent-encode set</em> is used for URL fragments.\nThe <em>C0 control percent-encode set</em> is used for host and path under certain\nspecific conditions, in addition to all other cases.</p>\n<p>When non-ASCII characters appear within a hostname, the hostname is encoded\nusing the <a href=\"https://tools.ietf.org/html/rfc5891#section-4.4\">Punycode</a> algorithm. Note, however, that a hostname <em>may</em> contain\n<em>both</em> Punycode encoded and percent-encoded characters. For example:</p>\n<pre><code class=\"language-js\">const myURL = new URL('https://%CF%80.com/foo');\nconsole.log(myURL.href);\n// Prints https://xn--1xa.com/foo\nconsole.log(myURL.origin);\n// Prints https://π.com\n</code></pre>",
+              "desc": "<p>The <a href=\"https://url.spec.whatwg.org/\">WHATWG URL Standard</a> uses a more selective and fine grained approach to\nselecting encoded characters than that used by the Legacy API.</p>\n<p>The WHATWG algorithm defines four \"percent-encode sets\" that describe ranges\nof characters that must be percent-encoded:</p>\n<ul>\n<li>\n<p>The <em>C0 control percent-encode set</em> includes code points in range U+0000 to\nU+001F (inclusive) and all code points greater than U+007E.</p>\n</li>\n<li>\n<p>The <em>fragment percent-encode set</em> includes the <em>C0 control percent-encode set</em>\nand code points U+0020, U+0022, U+003C, U+003E, and U+0060.</p>\n</li>\n<li>\n<p>The <em>path percent-encode set</em> includes the <em>C0 control percent-encode set</em>\nand code points U+0020, U+0022, U+0023, U+003C, U+003E, U+003F, U+0060,\nU+007B, and U+007D.</p>\n</li>\n<li>\n<p>The <em>userinfo encode set</em> includes the <em>path percent-encode set</em> and code\npoints U+002F, U+003A, U+003B, U+003D, U+0040, U+005B, U+005C, U+005D,\nU+005E, and U+007C.</p>\n</li>\n</ul>\n<p>The <em>userinfo percent-encode set</em> is used exclusively for username and\npasswords encoded within the URL. The <em>path percent-encode set</em> is used for the\npath of most URLs. The <em>fragment percent-encode set</em> is used for URL fragments.\nThe <em>C0 control percent-encode set</em> is used for host and path under certain\nspecific conditions, in addition to all other cases.</p>\n<p>When non-ASCII characters appear within a hostname, the hostname is encoded\nusing the <a href=\"https://tools.ietf.org/html/rfc5891#section-4.4\">Punycode</a> algorithm. Note, however, that a hostname <em>may</em> contain\n<em>both</em> Punycode encoded and percent-encoded characters:</p>\n<pre><code class=\"language-js\">const myURL = new URL('https://%CF%80.com/foo');\nconsole.log(myURL.href);\n// Prints https://xn--1xa.com/foo\nconsole.log(myURL.origin);\n// Prints https://π.com\n</code></pre>",
               "type": "module",
               "displayName": "WHATWG API"
             }

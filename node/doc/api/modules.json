@@ -32,7 +32,7 @@
           "textRaw": "Caching",
           "name": "Caching",
           "type": "misc",
-          "desc": "<p>Modules are cached after the first time they are loaded. This means\n(among other things) that every call to <code>require('foo')</code> will get\nexactly the same object returned, if it would resolve to the same file.</p>\n<p>Multiple calls to <code>require('foo')</code> may not cause the module code to be\nexecuted multiple times.  This is an important feature. With it,\n\"partially done\" objects can be returned, thus allowing transitive\ndependencies to be loaded even when they would cause cycles.</p>\n<p>To have a module execute code multiple times, export a function, and call\nthat function.</p>",
+          "desc": "<p>Modules are cached after the first time they are loaded. This means\n(among other things) that every call to <code>require('foo')</code> will get\nexactly the same object returned, if it would resolve to the same file.</p>\n<p>Provided <code>require.cache</code> is not modified, multiple calls to\n<code>require('foo')</code> will not cause the module code to be executed multiple times.\nThis is an important feature. With it, \"partially done\" objects can be returned,\nthus allowing transitive dependencies to be loaded even when they would cause\ncycles.</p>\n<p>To have a module execute code multiple times, export a function, and call\nthat function.</p>",
           "miscs": [
             {
               "textRaw": "Module Caching Caveats",
@@ -64,7 +64,7 @@
           "textRaw": "Folders as Modules",
           "name": "Folders as Modules",
           "type": "misc",
-          "desc": "<p>It is convenient to organize programs and libraries into self-contained\ndirectories, and then provide a single entry point to that library.\nThere are three ways in which a folder may be passed to <code>require()</code> as\nan argument.</p>\n<p>The first is to create a <code>package.json</code> file in the root of the folder,\nwhich specifies a <code>main</code> module. An example <code>package.json</code> file might\nlook like this:</p>\n<pre><code class=\"language-json\">{ \"name\" : \"some-library\",\n  \"main\" : \"./lib/some-library.js\" }\n</code></pre>\n<p>If this was in a folder at <code>./some-library</code>, then\n<code>require('./some-library')</code> would attempt to load\n<code>./some-library/lib/some-library.js</code>.</p>\n<p>This is the extent of Node.js's awareness of <code>package.json</code> files.</p>\n<p>If the file specified by the <code>'main'</code> entry of <code>package.json</code> is missing and\ncan not be resolved, Node.js will report the entire module as missing with the\ndefault error:</p>\n<pre><code class=\"language-txt\">Error: Cannot find module 'some-library'\n</code></pre>\n<p>If there is no <code>package.json</code> file present in the directory, then Node.js\nwill attempt to load an <code>index.js</code> or <code>index.node</code> file out of that\ndirectory. For example, if there was no <code>package.json</code> file in the above\nexample, then <code>require('./some-library')</code> would attempt to load:</p>\n<ul>\n<li><code>./some-library/index.js</code></li>\n<li><code>./some-library/index.node</code></li>\n</ul>"
+          "desc": "<p>It is convenient to organize programs and libraries into self-contained\ndirectories, and then provide a single entry point to that library.\nThere are three ways in which a folder may be passed to <code>require()</code> as\nan argument.</p>\n<p>The first is to create a <code>package.json</code> file in the root of the folder,\nwhich specifies a <code>main</code> module. An example <code>package.json</code> file might\nlook like this:</p>\n<pre><code class=\"language-json\">{ \"name\" : \"some-library\",\n  \"main\" : \"./lib/some-library.js\" }\n</code></pre>\n<p>If this was in a folder at <code>./some-library</code>, then\n<code>require('./some-library')</code> would attempt to load\n<code>./some-library/lib/some-library.js</code>.</p>\n<p>This is the extent of Node.js's awareness of <code>package.json</code> files.</p>\n<p>If there is no <code>package.json</code> file present in the directory, or if the\n<code>'main'</code> entry is missing or cannot be resolved, then Node.js\nwill attempt to load an <code>index.js</code> or <code>index.node</code> file out of that\ndirectory. For example, if there was no <code>package.json</code> file in the above\nexample, then <code>require('./some-library')</code> would attempt to load:</p>\n<ul>\n<li><code>./some-library/index.js</code></li>\n<li><code>./some-library/index.node</code></li>\n</ul>\n<p>If these attempts fail, then Node.js will report the entire module as missing\nwith the default error:</p>\n<pre><code class=\"language-txt\">Error: Cannot find module 'some-library'\n</code></pre>"
         },
         {
           "textRaw": "Loading from `node_modules` Folders",
@@ -301,6 +301,38 @@
               "desc": "<p>A list of the names of all modules provided by Node.js. Can be used to verify\nif a module is maintained by a third party or not.</p>\n<p>Note that <code>module</code> in this context isn't the same object that's provided\nby the <a href=\"#modules_the_module_wrapper\">module wrapper</a>. To access it, require the <code>Module</code> module:</p>\n<pre><code class=\"language-js\">const builtin = require('module').builtinModules;\n</code></pre>"
             }
           ],
+          "methods": [
+            {
+              "textRaw": "module.createRequireFromPath(filename)",
+              "type": "method",
+              "name": "createRequireFromPath",
+              "meta": {
+                "added": [
+                  "v10.12.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {[`require`][]} Require function",
+                    "name": "return",
+                    "type": "[`require`][]",
+                    "desc": "Require function"
+                  },
+                  "params": [
+                    {
+                      "textRaw": "`filename` {string} Filename to be used to construct the relative require function.",
+                      "name": "filename",
+                      "type": "string",
+                      "desc": "Filename to be used to construct the relative require function."
+                    }
+                  ]
+                }
+              ],
+              "desc": "<pre><code class=\"language-js\">const { createRequireFromPath } = require('module');\nconst requireUtil = createRequireFromPath('../src/utils');\n\n// require `../src/utils/some-tool`\nrequireUtil('./some-tool');\n</code></pre>"
+            }
+          ],
           "type": "module",
           "displayName": "The `Module` Object"
         }
@@ -340,7 +372,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>The <code>module.exports</code> object is created by the <code>Module</code> system. Sometimes this is\nnot acceptable; many want their module to be an instance of some class. To do\nthis, assign the desired export object to <code>module.exports</code>. Note that assigning\nthe desired object to <code>exports</code> will simply rebind the local <code>exports</code> variable,\nwhich is probably not what is desired.</p>\n<p>For example suppose we were making a module called <code>a.js</code>:</p>\n<pre><code class=\"language-js\">const EventEmitter = require('events');\n\nmodule.exports = new EventEmitter();\n\n// Do some work, and after some time emit\n// the 'ready' event from the module itself.\nsetTimeout(() => {\n  module.exports.emit('ready');\n}, 1000);\n</code></pre>\n<p>Then in another file we could do:</p>\n<pre><code class=\"language-js\">const a = require('./a');\na.on('ready', () => {\n  console.log('module \"a\" is ready');\n});\n</code></pre>\n<p>Note that assignment to <code>module.exports</code> must be done immediately. It cannot be\ndone in any callbacks. This does not work:</p>\n<p><code>x.js</code>:</p>\n<pre><code class=\"language-js\">setTimeout(() => {\n  module.exports = { a: 'hello' };\n}, 0);\n</code></pre>\n<p><code>y.js</code>:</p>\n<pre><code class=\"language-js\">const x = require('./x');\nconsole.log(x.a);\n</code></pre>",
+              "desc": "<p>The <code>module.exports</code> object is created by the <code>Module</code> system. Sometimes this is\nnot acceptable; many want their module to be an instance of some class. To do\nthis, assign the desired export object to <code>module.exports</code>. Note that assigning\nthe desired object to <code>exports</code> will simply rebind the local <code>exports</code> variable,\nwhich is probably not what is desired.</p>\n<p>For example, suppose we were making a module called <code>a.js</code>:</p>\n<pre><code class=\"language-js\">const EventEmitter = require('events');\n\nmodule.exports = new EventEmitter();\n\n// Do some work, and after some time emit\n// the 'ready' event from the module itself.\nsetTimeout(() => {\n  module.exports.emit('ready');\n}, 1000);\n</code></pre>\n<p>Then in another file we could do:</p>\n<pre><code class=\"language-js\">const a = require('./a');\na.on('ready', () => {\n  console.log('module \"a\" is ready');\n});\n</code></pre>\n<p>Note that assignment to <code>module.exports</code> must be done immediately. It cannot be\ndone in any callbacks. This does not work:</p>\n<p><code>x.js</code>:</p>\n<pre><code class=\"language-js\">setTimeout(() => {\n  module.exports = { a: 'hello' };\n}, 0);\n</code></pre>\n<p><code>y.js</code>:</p>\n<pre><code class=\"language-js\">const x = require('./x');\nconsole.log(x.a);\n</code></pre>",
               "modules": [
                 {
                   "textRaw": "exports shortcut",

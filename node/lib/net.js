@@ -36,8 +36,7 @@ const {
 const assert = require('assert');
 const {
   UV_EADDRINUSE,
-  UV_EINVAL,
-  UV_EOF
+  UV_EINVAL
 } = process.binding('uv');
 
 const { Buffer } = require('buffer');
@@ -56,12 +55,14 @@ const {
 const {
   newAsyncId,
   defaultTriggerAsyncIdScope,
-  symbols: { async_id_symbol }
+  symbols: { async_id_symbol, owner_symbol }
 } = require('internal/async_hooks');
 const {
   createWriteWrap,
   writevGeneric,
-  writeGeneric
+  writeGeneric,
+  onStreamRead,
+  kUpdateTimer
 } = require('internal/stream_base_commons');
 const errors = require('internal/errors');
 const {
@@ -150,7 +151,7 @@ function connect(...args) {
     socket.setTimeout(options.timeout);
   }
 
-  return Socket.prototype.connect.call(socket, normalized);
+  return socket.connect(normalized);
 }
 
 
@@ -207,8 +208,8 @@ function initSocketHandle(self) {
 
   // Handle creation may be deferred to bind() or connect() time.
   if (self._handle) {
-    self._handle.owner = self;
-    self._handle.onread = onread;
+    self._handle[owner_symbol] = self;
+    self._handle.onread = onStreamRead;
     self[async_id_symbol] = getNewAsyncId(self._handle);
   }
 }
@@ -371,7 +372,7 @@ Socket.prototype._final = function(cb) {
 
 
 function afterShutdown(status, handle) {
-  var self = handle.owner;
+  var self = handle[owner_symbol];
 
   debug('afterShutdown destroyed=%j', self.destroyed,
         self._readableState);
@@ -514,6 +515,12 @@ Object.defineProperty(Socket.prototype, 'bufferSize', {
   }
 });
 
+Object.defineProperty(Socket.prototype, kUpdateTimer, {
+  get: function() {
+    return this._unrefTimer;
+  }
+});
+
 
 // Just call handle.readStart until we have enough in the buffer
 Socket.prototype._read = function(n) {
@@ -614,61 +621,6 @@ Socket.prototype._destroy = function(exception, cb) {
     }
   }
 };
-
-
-// This function is called whenever the handle gets a
-// buffer, or when there's an error reading.
-function onread(nread, buffer) {
-  var handle = this;
-  var self = handle.owner;
-  assert(handle === self._handle, 'handle != self._handle');
-
-  self._unrefTimer();
-
-  debug('onread', nread);
-
-  if (nread > 0) {
-    debug('got data');
-
-    // read success.
-    // In theory (and in practice) calling readStop right now
-    // will prevent this from being called again until _read() gets
-    // called again.
-
-    // Optimization: emit the original buffer with end points
-    var ret = self.push(buffer);
-
-    if (handle.reading && !ret) {
-      handle.reading = false;
-      debug('readStop');
-      var err = handle.readStop();
-      if (err)
-        self.destroy(errnoException(err, 'read'));
-    }
-    return;
-  }
-
-  // if we didn't get any bytes, that doesn't necessarily mean EOF.
-  // wait for the next one.
-  if (nread === 0) {
-    debug('not any data, keep waiting');
-    return;
-  }
-
-  // Error, possibly EOF.
-  if (nread !== UV_EOF) {
-    return self.destroy(errnoException(nread, 'read'));
-  }
-
-  debug('EOF');
-
-  // push a null to signal the end of data.
-  // Do it before `maybeDestroy` for correct order of events:
-  // `end` -> `close`
-  self.push(null);
-  self.read(0);
-}
-
 
 Socket.prototype._getpeername = function() {
   if (!this._peername) {
@@ -819,7 +771,7 @@ protoGetter('bytesWritten', function bytesWritten() {
 
 
 function afterWrite(status, handle, err) {
-  var self = handle.owner;
+  var self = handle[owner_symbol];
   if (self !== process.stderr && self !== process.stdout)
     debug('afterWrite', status);
 
@@ -1121,7 +1073,7 @@ Socket.prototype.unref = function() {
 
 
 function afterConnect(status, handle, req, readable, writable) {
-  var self = handle.owner;
+  var self = handle[owner_symbol];
 
   // callback may come after call to destroy
   if (self.destroyed) {
@@ -1323,7 +1275,7 @@ function setupListenHandle(address, port, addressType, backlog, fd) {
 
   this[async_id_symbol] = getNewAsyncId(this._handle);
   this._handle.onconnection = onconnection;
-  this._handle.owner = this;
+  this._handle[owner_symbol] = this;
 
   // Use a backlog of 512 entries. We pass 511 to the listen() call because
   // the kernel does: backlogsize = roundup_pow_of_two(backlogsize + 1);
@@ -1536,7 +1488,7 @@ Server.prototype.address = function() {
 
 function onconnection(err, clientHandle) {
   var handle = this;
-  var self = handle.owner;
+  var self = handle[owner_symbol];
 
   debug('onconnection');
 
@@ -1667,6 +1619,14 @@ function emitCloseNT(self) {
 }
 
 
+// Legacy alias on the C++ wrapper object. This is not public API, so we may
+// want to runtime-deprecate it at some point. There's no hurry, though.
+Object.defineProperty(TCP.prototype, 'owner', {
+  get() { return this[owner_symbol]; },
+  set(v) { return this[owner_symbol] = v; }
+});
+
+
 Server.prototype.listenFD = internalUtil.deprecate(function(fd, type) {
   return this.listen({ fd: fd });
 }, 'Server.listenFD is deprecated. Use Server.listen({fd: <number>}) instead.',
@@ -1715,7 +1675,7 @@ if (process.platform === 'win32') {
     }
 
     if (handle._simultaneousAccepts !== simultaneousAccepts) {
-      handle.setSimultaneousAccepts(simultaneousAccepts);
+      handle.setSimultaneousAccepts(!!simultaneousAccepts);
       handle._simultaneousAccepts = simultaneousAccepts;
     }
   };

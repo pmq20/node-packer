@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Path | Node.js v10.9.0 Documentation</title>
+  <title>Path | Node.js v10.12.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -80,7 +80,7 @@
 
     <div id="column1" data-id="path" class="interior">
       <header>
-        <h1>Node.js v10.9.0 Documentation</h1>
+        <h1>Node.js v10.12.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -177,7 +177,7 @@ operating system, use <a href="#path_path_posix"><code>path.posix</code></a>:</p
 </code></pre>
 <p><em>Note:</em> On Windows Node.js follows the concept of per-drive working directory.
 This behavior can be observed when using a drive path without a backslash. For
-example <code>path.resolve('c:\\')</code> can potentially return a different result than
+example, <code>path.resolve('c:\\')</code> can potentially return a different result than
 <code>path.resolve('c:')</code>. For more information, see
 <a href="https://docs.microsoft.com/en-us/windows/desktop/FileIO/naming-a-file#fully-qualified-vs-relative-paths">this MSDN page</a>.</p>
 <h2>path.basename(path[, ext])<span><a class="mark" href="#path_path_basename_path_ext" id="path_path_basename_path_ext">#</a></span></h2>
@@ -365,7 +365,7 @@ path.format({
 </ul>
 <p>The <code>path.isAbsolute()</code> method determines if <code>path</code> is an absolute path.</p>
 <p>If the given <code>path</code> is a zero-length string, <code>false</code> will be returned.</p>
-<p>For example on POSIX:</p>
+<p>For example, on POSIX:</p>
 <pre><code class="language-js">path.isAbsolute('/foo/bar'); // true
 path.isAbsolute('/baz/..');  // true
 path.isAbsolute('qux/');     // false
@@ -417,7 +417,7 @@ instance of the platform specific path segment separator (<code>/</code> on POSI
 <code>\</code> on Windows). Trailing separators are preserved.</p>
 <p>If the <code>path</code> is a zero-length string, <code>'.'</code> is returned, representing the
 current working directory.</p>
-<p>For example on POSIX:</p>
+<p>For example, on POSIX:</p>
 <pre><code class="language-js">path.normalize('/foo/bar//baz/asdf/quux/..');
 // Returns: '/foo/bar/baz/asdf'
 </code></pre>
@@ -450,7 +450,7 @@ see <a href="#path_path_sep"><code>path.sep</code></a>.</p>
 <li><code>name</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 <li><code>ext</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
-<p>For example on POSIX:</p>
+<p>For example, on POSIX:</p>
 <pre><code class="language-js">path.parse('/home/user/dir/file.txt');
 // Returns:
 // { root: '/',
@@ -516,7 +516,7 @@ on the current working directory. If <code>from</code> and <code>to</code> each 
 path (after calling <code>path.resolve()</code> on each), a zero-length string is returned.</p>
 <p>If a zero-length string is passed as <code>from</code> or <code>to</code>, the current working
 directory will be used instead of the zero-length strings.</p>
-<p>For example on POSIX:</p>
+<p>For example, on POSIX:</p>
 <pre><code class="language-js">path.relative('/data/orandea/test/aaa', '/data/orandea/impl/bbb');
 // Returns: '../../impl/bbb'
 </code></pre>
@@ -569,7 +569,7 @@ path.resolve('wwwroot', 'static_files/png/', '../gif/image.gif');
 <li><code>\</code> on Windows</li>
 <li><code>/</code> on POSIX</li>
 </ul>
-<p>For example on POSIX:</p>
+<p>For example, on POSIX:</p>
 <pre><code class="language-js">'foo/bar/baz'.split(path.sep);
 // Returns: ['foo', 'bar', 'baz']
 </code></pre>
@@ -608,6 +608,5 @@ of the <code>path</code> methods.</p>
   <script src="assets/sh_main.js"></script>
   <script src="assets/sh_javascript.min.js"></script>
   <script>highlight(undefined, undefined, 'pre');</script>
-  <!-- __TRACKING__ -->
 </body>
 </html>

@@ -1661,8 +1661,17 @@ void Isolate::PrintCurrentStackTrace(FILE* out) {
 
     Handle<Object> receiver(frame->receiver(), this);
     Handle<JSFunction> function(frame->function(), this);
-    Handle<AbstractCode> code(AbstractCode::cast(frame->LookupCode()), this);
-    const int offset = static_cast<int>(frame->pc() - code->InstructionStart());
+    Handle<AbstractCode> code;
+    int offset;
+    if (frame->is_interpreted()) {
+      InterpretedFrame* interpreted_frame = InterpretedFrame::cast(frame);
+      code = handle(AbstractCode::cast(interpreted_frame->GetBytecodeArray()),
+                    this);
+      offset = interpreted_frame->GetBytecodeOffset();
+    } else {
+      code = handle(AbstractCode::cast(frame->LookupCode()), this);
+      offset = static_cast<int>(frame->pc() - code->InstructionStart());
+    }
 
     JSStackFrame site(this, receiver, function, code, offset);
     Handle<String> line = site.ToString().ToHandleChecked();
@@ -3283,6 +3292,10 @@ CodeTracer* Isolate::GetCodeTracer() {
 bool Isolate::use_optimizer() {
   return FLAG_opt && !serializer_enabled_ && CpuFeatures::SupportsOptimizer() &&
          !is_precise_count_code_coverage() && !is_block_count_code_coverage();
+}
+
+bool Isolate::NeedsDetailedOptimizedCodeLineInfo() const {
+  return NeedsSourcePositionsForProfiling() || FLAG_detailed_line_info;
 }
 
 bool Isolate::NeedsSourcePositionsForProfiling() const {

@@ -2,8 +2,8 @@
 
 const { AsyncWrap, Providers } = process.binding('async_wrap');
 const { Buffer } = require('buffer');
-const { INT_MAX, pbkdf2: _pbkdf2 } = process.binding('crypto');
-const { validateInt32 } = require('internal/validators');
+const { pbkdf2: _pbkdf2 } = process.binding('crypto');
+const { validateUint32 } = require('internal/validators');
 const {
   ERR_CRYPTO_INVALID_DIGEST,
   ERR_CRYPTO_PBKDF2_ERROR,
@@ -22,7 +22,7 @@ function pbkdf2(password, salt, iterations, keylen, digest, callback) {
   }
 
   ({ password, salt, iterations, keylen, digest } =
-      check(password, salt, iterations, keylen, digest, callback));
+    check(password, salt, iterations, keylen, digest));
 
   if (typeof callback !== 'function')
     throw new ERR_INVALID_CALLBACK();
@@ -42,7 +42,7 @@ function pbkdf2(password, salt, iterations, keylen, digest, callback) {
 
 function pbkdf2Sync(password, salt, iterations, keylen, digest) {
   ({ password, salt, iterations, keylen, digest } =
-      check(password, salt, iterations, keylen, digest, pbkdf2Sync));
+    check(password, salt, iterations, keylen, digest));
   const keybuf = Buffer.alloc(keylen);
   handleError(keybuf, password, salt, iterations, digest);
   const encoding = getDefaultEncoding();
@@ -50,7 +50,7 @@ function pbkdf2Sync(password, salt, iterations, keylen, digest) {
   return keybuf.toString(encoding);
 }
 
-function check(password, salt, iterations, keylen, digest, callback) {
+function check(password, salt, iterations, keylen, digest) {
   if (typeof digest !== 'string') {
     if (digest !== null)
       throw new ERR_INVALID_ARG_TYPE('digest', ['string', 'null'], digest);
@@ -59,8 +59,8 @@ function check(password, salt, iterations, keylen, digest, callback) {
 
   password = validateArrayBufferView(password, 'password');
   salt = validateArrayBufferView(salt, 'salt');
-  iterations = validateInt32(iterations, 'iterations', 0, INT_MAX);
-  keylen = validateInt32(keylen, 'keylen', 0, INT_MAX);
+  iterations = validateUint32(iterations, 'iterations', 0);
+  keylen = validateUint32(keylen, 'keylen', 0);
 
   return { password, salt, iterations, keylen, digest };
 }

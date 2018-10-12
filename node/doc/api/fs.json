@@ -404,7 +404,7 @@
                       ]
                     }
                   ],
-                  "desc": "<p>Truncates the file then resolves the <code>Promise</code> with no arguments upon success.</p>\n<p>If the file was larger than <code>len</code> bytes, only the first <code>len</code> bytes will be\nretained in the file.</p>\n<p>For example, the following program retains only the first four bytes of the\nfile:</p>\n<pre><code class=\"language-js\">const fs = require('fs');\nconst fsPromises = fs.promises;\n\nconsole.log(fs.readFileSync('temp.txt', 'utf8'));\n// Prints: Node.js\n\nasync function doTruncate() {\n  let filehandle = null;\n  try {\n    filehandle = await fsPromises.open('temp.txt', 'r+');\n    await filehandle.truncate(4);\n  } finally {\n    if (filehandle) {\n      // close the file if it is opened.\n      await filehandle.close();\n    }\n  }\n  console.log(fs.readFileSync('temp.txt', 'utf8'));  // Prints: Node\n}\n\ndoTruncate().catch(console.error);\n</code></pre>\n<p>If the file previously was shorter than <code>len</code> bytes, it is extended, and the\nextended part is filled with null bytes (<code>'\\0'</code>). For example,</p>\n<pre><code class=\"language-js\">const fs = require('fs');\nconst fsPromises = fs.promises;\n\nconsole.log(fs.readFileSync('temp.txt', 'utf8'));\n// Prints: Node.js\n\nasync function doTruncate() {\n  let filehandle = null;\n  try {\n    filehandle = await fsPromises.open('temp.txt', 'r+');\n    await filehandle.truncate(10);\n  } finally {\n    if (filehandle) {\n      // close the file if it is opened.\n      await filehandle.close();\n    }\n  }\n  console.log(fs.readFileSync('temp.txt', 'utf8'));  // Prints Node.js\\0\\0\\0\n}\n\ndoTruncate().catch(console.error);\n</code></pre>\n<p>The last three bytes are null bytes (<code>'\\0'</code>), to compensate the over-truncation.</p>"
+                  "desc": "<p>Truncates the file then resolves the <code>Promise</code> with no arguments upon success.</p>\n<p>If the file was larger than <code>len</code> bytes, only the first <code>len</code> bytes will be\nretained in the file.</p>\n<p>For example, the following program retains only the first four bytes of the\nfile:</p>\n<pre><code class=\"language-js\">const fs = require('fs');\nconst fsPromises = fs.promises;\n\nconsole.log(fs.readFileSync('temp.txt', 'utf8'));\n// Prints: Node.js\n\nasync function doTruncate() {\n  let filehandle = null;\n  try {\n    filehandle = await fsPromises.open('temp.txt', 'r+');\n    await filehandle.truncate(4);\n  } finally {\n    if (filehandle) {\n      // close the file if it is opened.\n      await filehandle.close();\n    }\n  }\n  console.log(fs.readFileSync('temp.txt', 'utf8'));  // Prints: Node\n}\n\ndoTruncate().catch(console.error);\n</code></pre>\n<p>If the file previously was shorter than <code>len</code> bytes, it is extended, and the\nextended part is filled with null bytes (<code>'\\0'</code>):</p>\n<pre><code class=\"language-js\">const fs = require('fs');\nconst fsPromises = fs.promises;\n\nconsole.log(fs.readFileSync('temp.txt', 'utf8'));\n// Prints: Node.js\n\nasync function doTruncate() {\n  let filehandle = null;\n  try {\n    filehandle = await fsPromises.open('temp.txt', 'r+');\n    await filehandle.truncate(10);\n  } finally {\n    if (filehandle) {\n      // close the file if it is opened.\n      await filehandle.close();\n    }\n  }\n  console.log(fs.readFileSync('temp.txt', 'utf8'));  // Prints Node.js\\0\\0\\0\n}\n\ndoTruncate().catch(console.error);\n</code></pre>\n<p>The last three bytes are null bytes (<code>'\\0'</code>), to compensate the over-truncation.</p>"
                 },
                 {
                   "textRaw": "filehandle.utimes(atime, mtime)",
@@ -480,7 +480,7 @@
                       ]
                     }
                   ],
-                  "desc": "<p>Write <code>buffer</code> to the file.</p>\n<p>The <code>Promise</code> is resolved with an object containing a <code>bytesWritten</code> property\nidentifying the number of bytes written, and a <code>buffer</code> property containing\na reference to the <code>buffer</code> written.</p>\n<p><code>offset</code> determines the part of the buffer to be written, and <code>length</code> is\nan integer specifying the number of bytes to write.</p>\n<p><code>position</code> refers to the offset from the beginning of the file where this data\nshould be written. If <code>typeof position !== 'number'</code>, the data will be written\nat the current position. See <a href=\"http://man7.org/linux/man-pages/man2/pwrite.2.html\"><code>pwrite(2)</code></a>.</p>\n<p>It is unsafe to use <code>filehandle.write()</code> multiple times on the same file\nwithout waiting for the <code>Promise</code> to be resolved (or rejected). For this\nscenario, <code>fs.createWriteStream</code> is strongly recommended.</p>\n<p>On Linux, positional writes do not work when the file is opened in append mode.\nThe kernel ignores the position argument and always appends the data to\nthe end of the file.</p>"
+                  "desc": "<p>Write <code>buffer</code> to the file.</p>\n<p>The <code>Promise</code> is resolved with an object containing a <code>bytesWritten</code> property\nidentifying the number of bytes written, and a <code>buffer</code> property containing\na reference to the <code>buffer</code> written.</p>\n<p><code>offset</code> determines the part of the buffer to be written, and <code>length</code> is\nan integer specifying the number of bytes to write.</p>\n<p><code>position</code> refers to the offset from the beginning of the file where this data\nshould be written. If <code>typeof position !== 'number'</code>, the data will be written\nat the current position. See <a href=\"http://man7.org/linux/man-pages/man2/pwrite.2.html\"><code>pwrite(2)</code></a>.</p>\n<p>It is unsafe to use <code>filehandle.write()</code> multiple times on the same file\nwithout waiting for the <code>Promise</code> to be resolved (or rejected). For this\nscenario, <a href=\"#fs_fs_createwritestream_path_options\"><code>fs.createWriteStream()</code></a> is strongly recommended.</p>\n<p>On Linux, positional writes do not work when the file is opened in append mode.\nThe kernel ignores the position argument and always appends the data to\nthe end of the file.</p>"
                 },
                 {
                   "textRaw": "filehandle.writeFile(data, options)",
@@ -762,7 +762,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Asynchronously copies <code>src</code> to <code>dest</code>. By default, <code>dest</code> is overwritten if it\nalready exists. The <code>Promise</code> will be resolved with no arguments upon success.</p>\n<p>Node.js makes no guarantees about the atomicity of the copy operation. If an\nerror occurs after the destination file has been opened for writing, Node.js\nwill attempt to remove the destination.</p>\n<p><code>flags</code> is an optional integer that specifies the behavior\nof the copy operation. It is possible to create a mask consisting of the bitwise\nOR of two or more values (e.g.\n<code>fs.constants.COPYFILE_EXCL | fs.constants.COPYFILE_FICLONE</code>).</p>\n<ul>\n<li><code>fs.constants.COPYFILE_EXCL</code> - The copy operation will fail if <code>dest</code> already\nexists.</li>\n<li><code>fs.constants.COPYFILE_FICLONE</code> - The copy operation will attempt to create a\ncopy-on-write reflink. If the platform does not support copy-on-write, then a\nfallback copy mechanism is used.</li>\n<li><code>fs.constants.COPYFILE_FICLONE_FORCE</code> - The copy operation will attempt to\ncreate a copy-on-write reflink. If the platform does not support copy-on-write,\nthen the operation will fail.</li>\n</ul>\n<p>Example:</p>\n<pre><code class=\"language-js\">const fsPromises = require('fs').promises;\n\n// destination.txt will be created or overwritten by default.\nfsPromises.copyFile('source.txt', 'destination.txt')\n  .then(() => console.log('source.txt was copied to destination.txt'))\n  .catch(() => console.log('The file could not be copied'));\n</code></pre>\n<p>If the third argument is a number, then it specifies <code>flags</code>, as shown in the\nfollowing example.</p>\n<pre><code class=\"language-js\">const fs = require('fs');\nconst fsPromises = fs.promises;\nconst { COPYFILE_EXCL } = fs.constants;\n\n// By using COPYFILE_EXCL, the operation will fail if destination.txt exists.\nfsPromises.copyFile('source.txt', 'destination.txt', COPYFILE_EXCL)\n  .then(() => console.log('source.txt was copied to destination.txt'))\n  .catch(() => console.log('The file could not be copied'));\n</code></pre>"
+              "desc": "<p>Asynchronously copies <code>src</code> to <code>dest</code>. By default, <code>dest</code> is overwritten if it\nalready exists. The <code>Promise</code> will be resolved with no arguments upon success.</p>\n<p>Node.js makes no guarantees about the atomicity of the copy operation. If an\nerror occurs after the destination file has been opened for writing, Node.js\nwill attempt to remove the destination.</p>\n<p><code>flags</code> is an optional integer that specifies the behavior\nof the copy operation. It is possible to create a mask consisting of the bitwise\nOR of two or more values (e.g.\n<code>fs.constants.COPYFILE_EXCL | fs.constants.COPYFILE_FICLONE</code>).</p>\n<ul>\n<li><code>fs.constants.COPYFILE_EXCL</code> - The copy operation will fail if <code>dest</code> already\nexists.</li>\n<li><code>fs.constants.COPYFILE_FICLONE</code> - The copy operation will attempt to create a\ncopy-on-write reflink. If the platform does not support copy-on-write, then a\nfallback copy mechanism is used.</li>\n<li><code>fs.constants.COPYFILE_FICLONE_FORCE</code> - The copy operation will attempt to\ncreate a copy-on-write reflink. If the platform does not support copy-on-write,\nthen the operation will fail.</li>\n</ul>\n<pre><code class=\"language-js\">const fsPromises = require('fs').promises;\n\n// destination.txt will be created or overwritten by default.\nfsPromises.copyFile('source.txt', 'destination.txt')\n  .then(() => console.log('source.txt was copied to destination.txt'))\n  .catch(() => console.log('The file could not be copied'));\n</code></pre>\n<p>If the third argument is a number, then it specifies <code>flags</code>:</p>\n<pre><code class=\"language-js\">const fs = require('fs');\nconst fsPromises = fs.promises;\nconst { COPYFILE_EXCL } = fs.constants;\n\n// By using COPYFILE_EXCL, the operation will fail if destination.txt exists.\nfsPromises.copyFile('source.txt', 'destination.txt', COPYFILE_EXCL)\n  .then(() => console.log('source.txt was copied to destination.txt'))\n  .catch(() => console.log('The file could not be copied'));\n</code></pre>"
             },
             {
               "textRaw": "fsPromises.lchmod(path, mode)",
@@ -924,7 +924,7 @@
               "desc": "<p>Asynchronous <a href=\"http://man7.org/linux/man-pages/man2/lstat.2.html\"><code>lstat(2)</code></a>. The <code>Promise</code> is resolved with the <a href=\"#fs_class_fs_stats\"><code>fs.Stats</code></a> object\nfor the given symbolic link <code>path</code>.</p>"
             },
             {
-              "textRaw": "fsPromises.mkdir(path[, mode])",
+              "textRaw": "fsPromises.mkdir(path[, options])",
               "type": "method",
               "name": "mkdir",
               "meta": {
@@ -947,16 +947,30 @@
                       "type": "string|Buffer|URL"
                     },
                     {
-                      "textRaw": "`mode` {integer} **Default:** `0o777`",
-                      "name": "mode",
-                      "type": "integer",
-                      "default": "`0o777`",
+                      "textRaw": "`options` {Object|integer}",
+                      "name": "options",
+                      "type": "Object|integer",
+                      "options": [
+                        {
+                          "textRaw": "`recursive` {boolean} **Default:** `false`",
+                          "name": "recursive",
+                          "type": "boolean",
+                          "default": "`false`"
+                        },
+                        {
+                          "textRaw": "`mode` {integer} Not supported on Windows. **Default:** `0o777`.",
+                          "name": "mode",
+                          "type": "integer",
+                          "default": "`0o777`",
+                          "desc": "Not supported on Windows."
+                        }
+                      ],
                       "optional": true
                     }
                   ]
                 }
               ],
-              "desc": "<p>Asynchronously creates a directory then resolves the <code>Promise</code> with no\narguments upon success.</p>"
+              "desc": "<p>Asynchronously creates a directory then resolves the <code>Promise</code> with no\narguments upon success.</p>\n<p>The optional <code>options</code> argument can be an integer specifying mode (permission\nand sticky bits), or an object with a <code>mode</code> property and a <code>recursive</code>\nproperty indicating whether parent folders should be created.</p>"
             },
             {
               "textRaw": "fsPromises.mkdtemp(prefix[, options])",
@@ -1049,7 +1063,13 @@
                 "added": [
                   "v10.0.0"
                 ],
-                "changes": []
+                "changes": [
+                  {
+                    "version": "v10.11.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/22020",
+                    "description": "New option `withFileTypes` was added."
+                  }
+                ]
               },
               "signatures": [
                 {
@@ -1074,6 +1094,12 @@
                           "name": "encoding",
                           "type": "string",
                           "default": "`'utf8'`"
+                        },
+                        {
+                          "textRaw": "`withFileTypes` {boolean} **Default:** `false`",
+                          "name": "withFileTypes",
+                          "type": "boolean",
+                          "default": "`false`"
                         }
                       ],
                       "optional": true
@@ -1081,7 +1107,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Reads the contents of a directory then resolves the <code>Promise</code> with an array\nof the names of the files in the directory excluding <code>'.'</code> and <code>'..'</code>.</p>\n<p>The optional <code>options</code> argument can be a string specifying an encoding, or an\nobject with an <code>encoding</code> property specifying the character encoding to use for\nthe filenames. If the <code>encoding</code> is set to <code>'buffer'</code>, the filenames returned\nwill be passed as <code>Buffer</code> objects.</p>"
+              "desc": "<p>Reads the contents of a directory then resolves the <code>Promise</code> with an array\nof the names of the files in the directory excluding <code>'.'</code> and <code>'..'</code>.</p>\n<p>The optional <code>options</code> argument can be a string specifying an encoding, or an\nobject with an <code>encoding</code> property specifying the character encoding to use for\nthe filenames. If the <code>encoding</code> is set to <code>'buffer'</code>, the filenames returned\nwill be passed as <code>Buffer</code> objects.</p>\n<p>If <code>options.withFileTypes</code> is set to <code>true</code>, the resolved array will contain\n<a href=\"#fs_class_fs_dirent\"><code>fs.Dirent</code></a> objects.</p>"
             },
             {
               "textRaw": "fsPromises.readFile(path[, options])",
@@ -1580,12 +1606,194 @@
         {
           "textRaw": "File System Flags",
           "name": "file_system_flags",
-          "desc": "<p>The following flags are available wherever the <code>flag</code> option takes a\nstring:</p>\n<ul>\n<li>\n<p><code>'a'</code> - Open file for appending.\nThe file is created if it does not exist.</p>\n</li>\n<li>\n<p><code>'ax'</code> - Like <code>'a'</code> but fails if the path exists.</p>\n</li>\n<li>\n<p><code>'a+'</code> - Open file for reading and appending.\nThe file is created if it does not exist.</p>\n</li>\n<li>\n<p><code>'ax+'</code> - Like <code>'a+'</code> but fails if the path exists.</p>\n</li>\n<li>\n<p><code>'as'</code> - Open file for appending in synchronous mode.\nThe file is created if it does not exist.</p>\n</li>\n<li>\n<p><code>'as+'</code> - Open file for reading and appending in synchronous mode.\nThe file is created if it does not exist.</p>\n</li>\n<li>\n<p><code>'r'</code> - Open file for reading.\nAn exception occurs if the file does not exist.</p>\n</li>\n<li>\n<p><code>'r+'</code> - Open file for reading and writing.\nAn exception occurs if the file does not exist.</p>\n</li>\n<li>\n<p><code>'rs+'</code> - Open file for reading and writing in synchronous mode. Instructs\nthe operating system to bypass the local file system cache.</p>\n<p>This is primarily useful for opening files on NFS mounts as it allows\nskipping the potentially stale local cache. It has a very real impact on\nI/O performance so using this flag is not recommended unless it is needed.</p>\n<p>This doesn't turn <code>fs.open()</code> or <code>fsPromises.open()</code> into a synchronous\nblocking call. If synchronous operation is desired, something like\n<code>fs.openSync()</code> should be used.</p>\n</li>\n<li>\n<p><code>'w'</code> - Open file for writing.\nThe file is created (if it does not exist) or truncated (if it exists).</p>\n</li>\n<li>\n<p><code>'wx'</code> - Like <code>'w'</code> but fails if the path exists.</p>\n</li>\n<li>\n<p><code>'w+'</code> - Open file for reading and writing.\nThe file is created (if it does not exist) or truncated (if it exists).</p>\n</li>\n<li>\n<p><code>'wx+'</code> - Like <code>'w+'</code> but fails if the path exists.</p>\n</li>\n</ul>\n<p><code>flag</code> can also be a number as documented by <a href=\"http://man7.org/linux/man-pages/man2/open.2.html\"><code>open(2)</code></a>; commonly used constants\nare available from <code>fs.constants</code>. On Windows, flags are translated to\ntheir equivalent ones where applicable, e.g. <code>O_WRONLY</code> to <code>FILE_GENERIC_WRITE</code>,\nor <code>O_EXCL|O_CREAT</code> to <code>CREATE_NEW</code>, as accepted by <code>CreateFileW</code>.</p>\n<p>The exclusive flag <code>'x'</code> (<code>O_EXCL</code> flag in <a href=\"http://man7.org/linux/man-pages/man2/open.2.html\"><code>open(2)</code></a>) ensures that path is newly\ncreated. On POSIX systems, path is considered to exist even if it is a symlink\nto a non-existent file. The exclusive flag may or may not work with network\nfile systems.</p>\n<p>On Linux, positional writes don't work when the file is opened in append mode.\nThe kernel ignores the position argument and always appends the data to\nthe end of the file.</p>\n<p>Modifying a file rather than replacing it may require a flags mode of <code>'r+'</code>\nrather than the default mode <code>'w'</code>.</p>\n<p>The behavior of some flags are platform-specific. As such, opening a directory\non macOS and Linux with the <code>'a+'</code> flag - see example below - will return an\nerror. In contrast, on Windows and FreeBSD, a file descriptor or a <code>FileHandle</code>\nwill be returned.</p>\n<pre><code class=\"language-js\">// macOS and Linux\nfs.open('&#x3C;directory>', 'a+', (err, fd) => {\n  // => [Error: EISDIR: illegal operation on a directory, open &#x3C;directory>]\n});\n\n// Windows and FreeBSD\nfs.open('&#x3C;directory>', 'a+', (err, fd) => {\n  // => null, &#x3C;fd>\n});\n</code></pre>\n<p>On Windows, opening an existing hidden file using the <code>'w'</code> flag (either\nthrough <code>fs.open()</code> or <code>fs.writeFile()</code> or <code>fsPromises.open()</code>) will fail with\n<code>EPERM</code>. Existing hidden files can be opened for writing with the <code>'r+'</code> flag.</p>\n<p>A call to <code>fs.ftruncate()</code> or <code>fsPromises.ftruncate()</code> can be used to reset\nthe file contents.</p>",
+          "desc": "<p>The following flags are available wherever the <code>flag</code> option takes a\nstring:</p>\n<ul>\n<li>\n<p><code>'a'</code> - Open file for appending.\nThe file is created if it does not exist.</p>\n</li>\n<li>\n<p><code>'ax'</code> - Like <code>'a'</code> but fails if the path exists.</p>\n</li>\n<li>\n<p><code>'a+'</code> - Open file for reading and appending.\nThe file is created if it does not exist.</p>\n</li>\n<li>\n<p><code>'ax+'</code> - Like <code>'a+'</code> but fails if the path exists.</p>\n</li>\n<li>\n<p><code>'as'</code> - Open file for appending in synchronous mode.\nThe file is created if it does not exist.</p>\n</li>\n<li>\n<p><code>'as+'</code> - Open file for reading and appending in synchronous mode.\nThe file is created if it does not exist.</p>\n</li>\n<li>\n<p><code>'r'</code> - Open file for reading.\nAn exception occurs if the file does not exist.</p>\n</li>\n<li>\n<p><code>'r+'</code> - Open file for reading and writing.\nAn exception occurs if the file does not exist.</p>\n</li>\n<li>\n<p><code>'rs+'</code> - Open file for reading and writing in synchronous mode. Instructs\nthe operating system to bypass the local file system cache.</p>\n<p>This is primarily useful for opening files on NFS mounts as it allows\nskipping the potentially stale local cache. It has a very real impact on\nI/O performance so using this flag is not recommended unless it is needed.</p>\n<p>This doesn't turn <code>fs.open()</code> or <code>fsPromises.open()</code> into a synchronous\nblocking call. If synchronous operation is desired, something like\n<code>fs.openSync()</code> should be used.</p>\n</li>\n<li>\n<p><code>'w'</code> - Open file for writing.\nThe file is created (if it does not exist) or truncated (if it exists).</p>\n</li>\n<li>\n<p><code>'wx'</code> - Like <code>'w'</code> but fails if the path exists.</p>\n</li>\n<li>\n<p><code>'w+'</code> - Open file for reading and writing.\nThe file is created (if it does not exist) or truncated (if it exists).</p>\n</li>\n<li>\n<p><code>'wx+'</code> - Like <code>'w+'</code> but fails if the path exists.</p>\n</li>\n</ul>\n<p><code>flag</code> can also be a number as documented by <a href=\"http://man7.org/linux/man-pages/man2/open.2.html\"><code>open(2)</code></a>; commonly used constants\nare available from <code>fs.constants</code>. On Windows, flags are translated to\ntheir equivalent ones where applicable, e.g. <code>O_WRONLY</code> to <code>FILE_GENERIC_WRITE</code>,\nor <code>O_EXCL|O_CREAT</code> to <code>CREATE_NEW</code>, as accepted by <code>CreateFileW</code>.</p>\n<p>The exclusive flag <code>'x'</code> (<code>O_EXCL</code> flag in <a href=\"http://man7.org/linux/man-pages/man2/open.2.html\"><code>open(2)</code></a>) ensures that path is newly\ncreated. On POSIX systems, path is considered to exist even if it is a symlink\nto a non-existent file. The exclusive flag may or may not work with network\nfile systems.</p>\n<p>On Linux, positional writes don't work when the file is opened in append mode.\nThe kernel ignores the position argument and always appends the data to\nthe end of the file.</p>\n<p>Modifying a file rather than replacing it may require a flags mode of <code>'r+'</code>\nrather than the default mode <code>'w'</code>.</p>\n<p>The behavior of some flags are platform-specific. As such, opening a directory\non macOS and Linux with the <code>'a+'</code> flag - see example below - will return an\nerror. In contrast, on Windows and FreeBSD, a file descriptor or a <code>FileHandle</code>\nwill be returned.</p>\n<pre><code class=\"language-js\">// macOS and Linux\nfs.open('&#x3C;directory>', 'a+', (err, fd) => {\n  // => [Error: EISDIR: illegal operation on a directory, open &#x3C;directory>]\n});\n\n// Windows and FreeBSD\nfs.open('&#x3C;directory>', 'a+', (err, fd) => {\n  // => null, &#x3C;fd>\n});\n</code></pre>\n<p>On Windows, opening an existing hidden file using the <code>'w'</code> flag (either\nthrough <code>fs.open()</code> or <code>fs.writeFile()</code> or <code>fsPromises.open()</code>) will fail with\n<code>EPERM</code>. Existing hidden files can be opened for writing with the <code>'r+'</code> flag.</p>\n<p>A call to <code>fs.ftruncate()</code> or <code>filehandle.truncate()</code> can be used to reset\nthe file contents.</p>",
           "type": "module",
           "displayName": "File System Flags"
         }
       ],
       "classes": [
+        {
+          "textRaw": "Class: fs.Dirent",
+          "type": "class",
+          "name": "fs.Dirent",
+          "meta": {
+            "added": [
+              "v10.10.0"
+            ],
+            "changes": []
+          },
+          "desc": "<p>When <a href=\"#fs_fs_readdir_path_options_callback\"><code>fs.readdir()</code></a> or <a href=\"#fs_fs_readdirsync_path_options\"><code>fs.readdirSync()</code></a> is called with the\n<code>withFileTypes</code> option set to <code>true</code>, the resulting array is filled with\n<code>fs.Dirent</code> objects, rather than strings or <code>Buffers</code>.</p>",
+          "methods": [
+            {
+              "textRaw": "dirent.isBlockDevice()",
+              "type": "method",
+              "name": "isBlockDevice",
+              "meta": {
+                "added": [
+                  "v10.10.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {boolean}",
+                    "name": "return",
+                    "type": "boolean"
+                  },
+                  "params": []
+                }
+              ],
+              "desc": "<p>Returns <code>true</code> if the <code>fs.Dirent</code> object describes a block device.</p>"
+            },
+            {
+              "textRaw": "dirent.isCharacterDevice()",
+              "type": "method",
+              "name": "isCharacterDevice",
+              "meta": {
+                "added": [
+                  "v10.10.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {boolean}",
+                    "name": "return",
+                    "type": "boolean"
+                  },
+                  "params": []
+                }
+              ],
+              "desc": "<p>Returns <code>true</code> if the <code>fs.Dirent</code> object describes a character device.</p>"
+            },
+            {
+              "textRaw": "dirent.isDirectory()",
+              "type": "method",
+              "name": "isDirectory",
+              "meta": {
+                "added": [
+                  "v10.10.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {boolean}",
+                    "name": "return",
+                    "type": "boolean"
+                  },
+                  "params": []
+                }
+              ],
+              "desc": "<p>Returns <code>true</code> if the <code>fs.Dirent</code> object describes a file system\ndirectory.</p>"
+            },
+            {
+              "textRaw": "dirent.isFIFO()",
+              "type": "method",
+              "name": "isFIFO",
+              "meta": {
+                "added": [
+                  "v10.10.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {boolean}",
+                    "name": "return",
+                    "type": "boolean"
+                  },
+                  "params": []
+                }
+              ],
+              "desc": "<p>Returns <code>true</code> if the <code>fs.Dirent</code> object describes a first-in-first-out\n(FIFO) pipe.</p>"
+            },
+            {
+              "textRaw": "dirent.isFile()",
+              "type": "method",
+              "name": "isFile",
+              "meta": {
+                "added": [
+                  "v10.10.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {boolean}",
+                    "name": "return",
+                    "type": "boolean"
+                  },
+                  "params": []
+                }
+              ],
+              "desc": "<p>Returns <code>true</code> if the <code>fs.Dirent</code> object describes a regular file.</p>"
+            },
+            {
+              "textRaw": "dirent.isSocket()",
+              "type": "method",
+              "name": "isSocket",
+              "meta": {
+                "added": [
+                  "v10.10.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {boolean}",
+                    "name": "return",
+                    "type": "boolean"
+                  },
+                  "params": []
+                }
+              ],
+              "desc": "<p>Returns <code>true</code> if the <code>fs.Dirent</code> object describes a socket.</p>"
+            },
+            {
+              "textRaw": "dirent.isSymbolicLink()",
+              "type": "method",
+              "name": "isSymbolicLink",
+              "meta": {
+                "added": [
+                  "v10.10.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {boolean}",
+                    "name": "return",
+                    "type": "boolean"
+                  },
+                  "params": []
+                }
+              ],
+              "desc": "<p>Returns <code>true</code> if the <code>fs.Dirent</code> object describes a symbolic link.</p>"
+            }
+          ],
+          "properties": [
+            {
+              "textRaw": "`name` {string|Buffer}",
+              "type": "string|Buffer",
+              "name": "name",
+              "meta": {
+                "added": [
+                  "v10.10.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>The file name that this <code>fs.Dirent</code> object refers to. The type of this\nvalue is determined by the <code>options.encoding</code> passed to <a href=\"#fs_fs_readdir_path_options_callback\"><code>fs.readdir()</code></a> or\n<a href=\"#fs_fs_readdirsync_path_options\"><code>fs.readdirSync()</code></a>.</p>"
+            }
+          ]
+        },
         {
           "textRaw": "Class: fs.FSWatcher",
           "type": "class",
@@ -2184,7 +2392,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>The path to the file the stream is writing to as specified in the first\nargument to <code>fs.createWriteStream()</code>. If <code>path</code> is passed as a string, then\n<code>writeStream.path</code> will be a string. If <code>path</code> is passed as a <code>Buffer</code>, then\n<code>writeStream.path</code> will be a <code>Buffer</code>.</p>"
+              "desc": "<p>The path to the file the stream is writing to as specified in the first\nargument to <a href=\"#fs_fs_createwritestream_path_options\"><code>fs.createWriteStream()</code></a>. If <code>path</code> is passed as a string, then\n<code>writeStream.path</code> will be a string. If <code>path</code> is passed as a <code>Buffer</code>, then\n<code>writeStream.path</code> will be a <code>Buffer</code>.</p>"
             }
           ]
         }
@@ -2366,7 +2574,7 @@
               ]
             }
           ],
-          "desc": "<p>Asynchronously append data to a file, creating the file if it does not yet\nexist. <code>data</code> can be a string or a <a href=\"buffer.html#buffer_buffer\"><code>Buffer</code></a>.</p>\n<p>Example:</p>\n<pre><code class=\"language-js\">fs.appendFile('message.txt', 'data to append', (err) => {\n  if (err) throw err;\n  console.log('The \"data to append\" was appended to file!');\n});\n</code></pre>\n<p>If <code>options</code> is a string, then it specifies the encoding. Example:</p>\n<pre><code class=\"language-js\">fs.appendFile('message.txt', 'data to append', 'utf8', callback);\n</code></pre>\n<p>The <code>path</code> may be specified as a numeric file descriptor that has been opened\nfor appending (using <code>fs.open()</code> or <code>fs.openSync()</code>). The file descriptor will\nnot be closed automatically.</p>\n<pre><code class=\"language-js\">fs.open('message.txt', 'a', (err, fd) => {\n  if (err) throw err;\n  fs.appendFile(fd, 'data to append', 'utf8', (err) => {\n    fs.close(fd, (err) => {\n      if (err) throw err;\n    });\n    if (err) throw err;\n  });\n});\n</code></pre>"
+          "desc": "<p>Asynchronously append data to a file, creating the file if it does not yet\nexist. <code>data</code> can be a string or a <a href=\"buffer.html#buffer_buffer\"><code>Buffer</code></a>.</p>\n<pre><code class=\"language-js\">fs.appendFile('message.txt', 'data to append', (err) => {\n  if (err) throw err;\n  console.log('The \"data to append\" was appended to file!');\n});\n</code></pre>\n<p>If <code>options</code> is a string, then it specifies the encoding:</p>\n<pre><code class=\"language-js\">fs.appendFile('message.txt', 'data to append', 'utf8', callback);\n</code></pre>\n<p>The <code>path</code> may be specified as a numeric file descriptor that has been opened\nfor appending (using <code>fs.open()</code> or <code>fs.openSync()</code>). The file descriptor will\nnot be closed automatically.</p>\n<pre><code class=\"language-js\">fs.open('message.txt', 'a', (err, fd) => {\n  if (err) throw err;\n  fs.appendFile(fd, 'data to append', 'utf8', (err) => {\n    fs.close(fd, (err) => {\n      if (err) throw err;\n    });\n    if (err) throw err;\n  });\n});\n</code></pre>"
         },
         {
           "textRaw": "fs.appendFileSync(path, data[, options])",
@@ -2433,7 +2641,7 @@
               ]
             }
           ],
-          "desc": "<p>Synchronously append data to a file, creating the file if it does not yet\nexist. <code>data</code> can be a string or a <a href=\"buffer.html#buffer_buffer\"><code>Buffer</code></a>.</p>\n<p>Example:</p>\n<pre><code class=\"language-js\">try {\n  fs.appendFileSync('message.txt', 'data to append');\n  console.log('The \"data to append\" was appended to file!');\n} catch (err) {\n  /* Handle the error */\n}\n</code></pre>\n<p>If <code>options</code> is a string, then it specifies the encoding. Example:</p>\n<pre><code class=\"language-js\">fs.appendFileSync('message.txt', 'data to append', 'utf8');\n</code></pre>\n<p>The <code>path</code> may be specified as a numeric file descriptor that has been opened\nfor appending (using <code>fs.open()</code> or <code>fs.openSync()</code>). The file descriptor will\nnot be closed automatically.</p>\n<pre><code class=\"language-js\">let fd;\n\ntry {\n  fd = fs.openSync('message.txt', 'a');\n  fs.appendFileSync(fd, 'data to append', 'utf8');\n} catch (err) {\n  /* Handle the error */\n} finally {\n  if (fd !== undefined)\n    fs.closeSync(fd);\n}\n</code></pre>"
+          "desc": "<p>Synchronously append data to a file, creating the file if it does not yet\nexist. <code>data</code> can be a string or a <a href=\"buffer.html#buffer_buffer\"><code>Buffer</code></a>.</p>\n<pre><code class=\"language-js\">try {\n  fs.appendFileSync('message.txt', 'data to append');\n  console.log('The \"data to append\" was appended to file!');\n} catch (err) {\n  /* Handle the error */\n}\n</code></pre>\n<p>If <code>options</code> is a string, then it specifies the encoding:</p>\n<pre><code class=\"language-js\">fs.appendFileSync('message.txt', 'data to append', 'utf8');\n</code></pre>\n<p>The <code>path</code> may be specified as a numeric file descriptor that has been opened\nfor appending (using <code>fs.open()</code> or <code>fs.openSync()</code>). The file descriptor will\nnot be closed automatically.</p>\n<pre><code class=\"language-js\">let fd;\n\ntry {\n  fd = fs.openSync('message.txt', 'a');\n  fs.appendFileSync(fd, 'data to append', 'utf8');\n} catch (err) {\n  /* Handle the error */\n} finally {\n  if (fd !== undefined)\n    fs.closeSync(fd);\n}\n</code></pre>"
         },
         {
           "textRaw": "fs.chmod(path, mode, callback)",
@@ -2744,7 +2952,7 @@
               ]
             }
           ],
-          "desc": "<p>Asynchronously copies <code>src</code> to <code>dest</code>. By default, <code>dest</code> is overwritten if it\nalready exists. No arguments other than a possible exception are given to the\ncallback function. Node.js makes no guarantees about the atomicity of the copy\noperation. If an error occurs after the destination file has been opened for\nwriting, Node.js will attempt to remove the destination.</p>\n<p><code>flags</code> is an optional integer that specifies the behavior\nof the copy operation. It is possible to create a mask consisting of the bitwise\nOR of two or more values (e.g.\n<code>fs.constants.COPYFILE_EXCL | fs.constants.COPYFILE_FICLONE</code>).</p>\n<ul>\n<li><code>fs.constants.COPYFILE_EXCL</code> - The copy operation will fail if <code>dest</code> already\nexists.</li>\n<li><code>fs.constants.COPYFILE_FICLONE</code> - The copy operation will attempt to create a\ncopy-on-write reflink. If the platform does not support copy-on-write, then a\nfallback copy mechanism is used.</li>\n<li><code>fs.constants.COPYFILE_FICLONE_FORCE</code> - The copy operation will attempt to\ncreate a copy-on-write reflink. If the platform does not support copy-on-write,\nthen the operation will fail.</li>\n</ul>\n<p>Example:</p>\n<pre><code class=\"language-js\">const fs = require('fs');\n\n// destination.txt will be created or overwritten by default.\nfs.copyFile('source.txt', 'destination.txt', (err) => {\n  if (err) throw err;\n  console.log('source.txt was copied to destination.txt');\n});\n</code></pre>\n<p>If the third argument is a number, then it specifies <code>flags</code>, as shown in the\nfollowing example.</p>\n<pre><code class=\"language-js\">const fs = require('fs');\nconst { COPYFILE_EXCL } = fs.constants;\n\n// By using COPYFILE_EXCL, the operation will fail if destination.txt exists.\nfs.copyFile('source.txt', 'destination.txt', COPYFILE_EXCL, callback);\n</code></pre>"
+          "desc": "<p>Asynchronously copies <code>src</code> to <code>dest</code>. By default, <code>dest</code> is overwritten if it\nalready exists. No arguments other than a possible exception are given to the\ncallback function. Node.js makes no guarantees about the atomicity of the copy\noperation. If an error occurs after the destination file has been opened for\nwriting, Node.js will attempt to remove the destination.</p>\n<p><code>flags</code> is an optional integer that specifies the behavior\nof the copy operation. It is possible to create a mask consisting of the bitwise\nOR of two or more values (e.g.\n<code>fs.constants.COPYFILE_EXCL | fs.constants.COPYFILE_FICLONE</code>).</p>\n<ul>\n<li><code>fs.constants.COPYFILE_EXCL</code> - The copy operation will fail if <code>dest</code> already\nexists.</li>\n<li><code>fs.constants.COPYFILE_FICLONE</code> - The copy operation will attempt to create a\ncopy-on-write reflink. If the platform does not support copy-on-write, then a\nfallback copy mechanism is used.</li>\n<li><code>fs.constants.COPYFILE_FICLONE_FORCE</code> - The copy operation will attempt to\ncreate a copy-on-write reflink. If the platform does not support copy-on-write,\nthen the operation will fail.</li>\n</ul>\n<pre><code class=\"language-js\">const fs = require('fs');\n\n// destination.txt will be created or overwritten by default.\nfs.copyFile('source.txt', 'destination.txt', (err) => {\n  if (err) throw err;\n  console.log('source.txt was copied to destination.txt');\n});\n</code></pre>\n<p>If the third argument is a number, then it specifies <code>flags</code>:</p>\n<pre><code class=\"language-js\">const fs = require('fs');\nconst { COPYFILE_EXCL } = fs.constants;\n\n// By using COPYFILE_EXCL, the operation will fail if destination.txt exists.\nfs.copyFile('source.txt', 'destination.txt', COPYFILE_EXCL, callback);\n</code></pre>"
         },
         {
           "textRaw": "fs.copyFileSync(src, dest[, flags])",
@@ -2782,7 +2990,7 @@
               ]
             }
           ],
-          "desc": "<p>Synchronously copies <code>src</code> to <code>dest</code>. By default, <code>dest</code> is overwritten if it\nalready exists. Returns <code>undefined</code>. Node.js makes no guarantees about the\natomicity of the copy operation. If an error occurs after the destination file\nhas been opened for writing, Node.js will attempt to remove the destination.</p>\n<p><code>flags</code> is an optional integer that specifies the behavior\nof the copy operation. It is possible to create a mask consisting of the bitwise\nOR of two or more values (e.g.\n<code>fs.constants.COPYFILE_EXCL | fs.constants.COPYFILE_FICLONE</code>).</p>\n<ul>\n<li><code>fs.constants.COPYFILE_EXCL</code> - The copy operation will fail if <code>dest</code> already\nexists.</li>\n<li><code>fs.constants.COPYFILE_FICLONE</code> - The copy operation will attempt to create a\ncopy-on-write reflink. If the platform does not support copy-on-write, then a\nfallback copy mechanism is used.</li>\n<li><code>fs.constants.COPYFILE_FICLONE_FORCE</code> - The copy operation will attempt to\ncreate a copy-on-write reflink. If the platform does not support copy-on-write,\nthen the operation will fail.</li>\n</ul>\n<p>Example:</p>\n<pre><code class=\"language-js\">const fs = require('fs');\n\n// destination.txt will be created or overwritten by default.\nfs.copyFileSync('source.txt', 'destination.txt');\nconsole.log('source.txt was copied to destination.txt');\n</code></pre>\n<p>If the third argument is a number, then it specifies <code>flags</code>, as shown in the\nfollowing example.</p>\n<pre><code class=\"language-js\">const fs = require('fs');\nconst { COPYFILE_EXCL } = fs.constants;\n\n// By using COPYFILE_EXCL, the operation will fail if destination.txt exists.\nfs.copyFileSync('source.txt', 'destination.txt', COPYFILE_EXCL);\n</code></pre>"
+          "desc": "<p>Synchronously copies <code>src</code> to <code>dest</code>. By default, <code>dest</code> is overwritten if it\nalready exists. Returns <code>undefined</code>. Node.js makes no guarantees about the\natomicity of the copy operation. If an error occurs after the destination file\nhas been opened for writing, Node.js will attempt to remove the destination.</p>\n<p><code>flags</code> is an optional integer that specifies the behavior\nof the copy operation. It is possible to create a mask consisting of the bitwise\nOR of two or more values (e.g.\n<code>fs.constants.COPYFILE_EXCL | fs.constants.COPYFILE_FICLONE</code>).</p>\n<ul>\n<li><code>fs.constants.COPYFILE_EXCL</code> - The copy operation will fail if <code>dest</code> already\nexists.</li>\n<li><code>fs.constants.COPYFILE_FICLONE</code> - The copy operation will attempt to create a\ncopy-on-write reflink. If the platform does not support copy-on-write, then a\nfallback copy mechanism is used.</li>\n<li><code>fs.constants.COPYFILE_FICLONE_FORCE</code> - The copy operation will attempt to\ncreate a copy-on-write reflink. If the platform does not support copy-on-write,\nthen the operation will fail.</li>\n</ul>\n<pre><code class=\"language-js\">const fs = require('fs');\n\n// destination.txt will be created or overwritten by default.\nfs.copyFileSync('source.txt', 'destination.txt');\nconsole.log('source.txt was copied to destination.txt');\n</code></pre>\n<p>If the third argument is a number, then it specifies <code>flags</code>:</p>\n<pre><code class=\"language-js\">const fs = require('fs');\nconst { COPYFILE_EXCL } = fs.constants;\n\n// By using COPYFILE_EXCL, the operation will fail if destination.txt exists.\nfs.copyFileSync('source.txt', 'destination.txt', COPYFILE_EXCL);\n</code></pre>"
         },
         {
           "textRaw": "fs.createReadStream(path[, options])",
@@ -2883,7 +3091,7 @@
               ]
             }
           ],
-          "desc": "<p>Unlike the 16 kb default <code>highWaterMark</code> for a readable stream, the stream\nreturned by this method has a default <code>highWaterMark</code> of 64 kb.</p>\n<p><code>options</code> can include <code>start</code> and <code>end</code> values to read a range of bytes from\nthe file instead of the entire file. Both <code>start</code> and <code>end</code> are inclusive and\nstart counting at 0. If <code>fd</code> is specified and <code>start</code> is omitted or <code>undefined</code>,\n<code>fs.createReadStream()</code> reads sequentially from the current file position.\nThe <code>encoding</code> can be any one of those accepted by <a href=\"buffer.html#buffer_buffer\"><code>Buffer</code></a>.</p>\n<p>If <code>fd</code> is specified, <code>ReadStream</code> will ignore the <code>path</code> argument and will use\nthe specified file descriptor. This means that no <code>'open'</code> event will be\nemitted. <code>fd</code> should be blocking; non-blocking <code>fd</code>s should be passed to\n<a href=\"net.html#net_class_net_socket\"><code>net.Socket</code></a>.</p>\n<p>If <code>autoClose</code> is false, then the file descriptor won't be closed, even if\nthere's an error. It is the application's responsibility to close it and make\nsure there's no file descriptor leak. If <code>autoClose</code> is set to true (default\nbehavior), on <code>'error'</code> or <code>'end'</code> the file descriptor will be closed\nautomatically.</p>\n<p><code>mode</code> sets the file mode (permission and sticky bits), but only if the\nfile was created.</p>\n<p>An example to read the last 10 bytes of a file which is 100 bytes long:</p>\n<pre><code class=\"language-js\">fs.createReadStream('sample.txt', { start: 90, end: 99 });\n</code></pre>\n<p>If <code>options</code> is a string, then it specifies the encoding.</p>"
+          "desc": "<p>Unlike the 16 kb default <code>highWaterMark</code> for a readable stream, the stream\nreturned by this method has a default <code>highWaterMark</code> of 64 kb.</p>\n<p><code>options</code> can include <code>start</code> and <code>end</code> values to read a range of bytes from\nthe file instead of the entire file. Both <code>start</code> and <code>end</code> are inclusive and\nstart counting at 0. If <code>fd</code> is specified and <code>start</code> is omitted or <code>undefined</code>,\n<code>fs.createReadStream()</code> reads sequentially from the current file position.\nThe <code>encoding</code> can be any one of those accepted by <a href=\"buffer.html#buffer_buffer\"><code>Buffer</code></a>.</p>\n<p>If <code>fd</code> is specified, <code>ReadStream</code> will ignore the <code>path</code> argument and will use\nthe specified file descriptor. This means that no <code>'open'</code> event will be\nemitted. <code>fd</code> should be blocking; non-blocking <code>fd</code>s should be passed to\n<a href=\"net.html#net_class_net_socket\"><code>net.Socket</code></a>.</p>\n<p>If <code>fd</code> points to a character device that only supports blocking reads\n(such as keyboard or sound card), read operations do not finish until data is\navailable. This can prevent the process from exiting and the stream from\nclosing naturally.</p>\n<pre><code class=\"language-js\">const fs = require('fs');\n// Create a stream from some character  device.\nconst stream = fs.createReadStream('/dev/input/event0');\nsetTimeout(() => {\n  stream.close(); // This may not close the stream.\n  // Artificially marking end-of-stream, as if the underlying resource had\n  // indicated end-of-file by itself, allows the stream to close.\n  // This does not cancel pending read operations, and if there is such an\n  // operation, the process may still not be able to exit successfully\n  // until it finishes.\n  stream.push(null);\n  stream.read(0);\n}, 100);\n</code></pre>\n<p>If <code>autoClose</code> is false, then the file descriptor won't be closed, even if\nthere's an error. It is the application's responsibility to close it and make\nsure there's no file descriptor leak. If <code>autoClose</code> is set to true (default\nbehavior), on <code>'error'</code> or <code>'end'</code> the file descriptor will be closed\nautomatically.</p>\n<p><code>mode</code> sets the file mode (permission and sticky bits), but only if the\nfile was created.</p>\n<p>An example to read the last 10 bytes of a file which is 100 bytes long:</p>\n<pre><code class=\"language-js\">fs.createReadStream('sample.txt', { start: 90, end: 99 });\n</code></pre>\n<p>If <code>options</code> is a string, then it specifies the encoding.</p>"
         },
         {
           "textRaw": "fs.createWriteStream(path[, options])",
@@ -3023,7 +3231,7 @@
               ]
             }
           ],
-          "desc": "<p>Test whether or not the given path exists by checking with the file system.\nThen call the <code>callback</code> argument with either true or false. Example:</p>\n<pre><code class=\"language-js\">fs.exists('/etc/passwd', (exists) => {\n  console.log(exists ? 'it\\'s there' : 'no passwd!');\n});\n</code></pre>\n<p><strong>The parameters for this callback are not consistent with other Node.js\ncallbacks.</strong> Normally, the first parameter to a Node.js callback is an <code>err</code>\nparameter, optionally followed by other parameters. The <code>fs.exists()</code> callback\nhas only one boolean parameter. This is one reason <code>fs.access()</code> is recommended\ninstead of <code>fs.exists()</code>.</p>\n<p>Using <code>fs.exists()</code> to check for the existence of a file before calling\n<code>fs.open()</code>, <code>fs.readFile()</code> or <code>fs.writeFile()</code> is not recommended. Doing\nso introduces a race condition, since other processes may change the file's\nstate between the two calls. Instead, user code should open/read/write the\nfile directly and handle the error raised if the file does not exist.</p>\n<p><strong>write (NOT RECOMMENDED)</strong></p>\n<pre><code class=\"language-js\">fs.exists('myfile', (exists) => {\n  if (exists) {\n    console.error('myfile already exists');\n  } else {\n    fs.open('myfile', 'wx', (err, fd) => {\n      if (err) throw err;\n      writeMyData(fd);\n    });\n  }\n});\n</code></pre>\n<p><strong>write (RECOMMENDED)</strong></p>\n<pre><code class=\"language-js\">fs.open('myfile', 'wx', (err, fd) => {\n  if (err) {\n    if (err.code === 'EEXIST') {\n      console.error('myfile already exists');\n      return;\n    }\n\n    throw err;\n  }\n\n  writeMyData(fd);\n});\n</code></pre>\n<p><strong>read (NOT RECOMMENDED)</strong></p>\n<pre><code class=\"language-js\">fs.exists('myfile', (exists) => {\n  if (exists) {\n    fs.open('myfile', 'r', (err, fd) => {\n      if (err) throw err;\n      readMyData(fd);\n    });\n  } else {\n    console.error('myfile does not exist');\n  }\n});\n</code></pre>\n<p><strong>read (RECOMMENDED)</strong></p>\n<pre><code class=\"language-js\">fs.open('myfile', 'r', (err, fd) => {\n  if (err) {\n    if (err.code === 'ENOENT') {\n      console.error('myfile does not exist');\n      return;\n    }\n\n    throw err;\n  }\n\n  readMyData(fd);\n});\n</code></pre>\n<p>The \"not recommended\" examples above check for existence and then use the\nfile; the \"recommended\" examples are better because they use the file directly\nand handle the error, if any.</p>\n<p>In general, check for the existence of a file only if the file won’t be\nused directly, for example when its existence is a signal from another\nprocess.</p>"
+          "desc": "<p>Test whether or not the given path exists by checking with the file system.\nThen call the <code>callback</code> argument with either true or false:</p>\n<pre><code class=\"language-js\">fs.exists('/etc/passwd', (exists) => {\n  console.log(exists ? 'it\\'s there' : 'no passwd!');\n});\n</code></pre>\n<p><strong>The parameters for this callback are not consistent with other Node.js\ncallbacks.</strong> Normally, the first parameter to a Node.js callback is an <code>err</code>\nparameter, optionally followed by other parameters. The <code>fs.exists()</code> callback\nhas only one boolean parameter. This is one reason <code>fs.access()</code> is recommended\ninstead of <code>fs.exists()</code>.</p>\n<p>Using <code>fs.exists()</code> to check for the existence of a file before calling\n<code>fs.open()</code>, <code>fs.readFile()</code> or <code>fs.writeFile()</code> is not recommended. Doing\nso introduces a race condition, since other processes may change the file's\nstate between the two calls. Instead, user code should open/read/write the\nfile directly and handle the error raised if the file does not exist.</p>\n<p><strong>write (NOT RECOMMENDED)</strong></p>\n<pre><code class=\"language-js\">fs.exists('myfile', (exists) => {\n  if (exists) {\n    console.error('myfile already exists');\n  } else {\n    fs.open('myfile', 'wx', (err, fd) => {\n      if (err) throw err;\n      writeMyData(fd);\n    });\n  }\n});\n</code></pre>\n<p><strong>write (RECOMMENDED)</strong></p>\n<pre><code class=\"language-js\">fs.open('myfile', 'wx', (err, fd) => {\n  if (err) {\n    if (err.code === 'EEXIST') {\n      console.error('myfile already exists');\n      return;\n    }\n\n    throw err;\n  }\n\n  writeMyData(fd);\n});\n</code></pre>\n<p><strong>read (NOT RECOMMENDED)</strong></p>\n<pre><code class=\"language-js\">fs.exists('myfile', (exists) => {\n  if (exists) {\n    fs.open('myfile', 'r', (err, fd) => {\n      if (err) throw err;\n      readMyData(fd);\n    });\n  } else {\n    console.error('myfile does not exist');\n  }\n});\n</code></pre>\n<p><strong>read (RECOMMENDED)</strong></p>\n<pre><code class=\"language-js\">fs.open('myfile', 'r', (err, fd) => {\n  if (err) {\n    if (err.code === 'ENOENT') {\n      console.error('myfile does not exist');\n      return;\n    }\n\n    throw err;\n  }\n\n  readMyData(fd);\n});\n</code></pre>\n<p>The \"not recommended\" examples above check for existence and then use the\nfile; the \"recommended\" examples are better because they use the file directly\nand handle the error, if any.</p>\n<p>In general, check for the existence of a file only if the file won’t be\nused directly, for example when its existence is a signal from another\nprocess.</p>"
         },
         {
           "textRaw": "fs.existsSync(path)",
@@ -3536,7 +3744,7 @@
               ]
             }
           ],
-          "desc": "<p>Asynchronous <a href=\"http://man7.org/linux/man-pages/man2/ftruncate.2.html\"><code>ftruncate(2)</code></a>. No arguments other than a possible exception are\ngiven to the completion callback.</p>\n<p>If the file referred to by the file descriptor was larger than <code>len</code> bytes, only\nthe first <code>len</code> bytes will be retained in the file.</p>\n<p>For example, the following program retains only the first four bytes of the\nfile:</p>\n<pre><code class=\"language-js\">console.log(fs.readFileSync('temp.txt', 'utf8'));\n// Prints: Node.js\n\n// get the file descriptor of the file to be truncated\nconst fd = fs.openSync('temp.txt', 'r+');\n\n// truncate the file to first four bytes\nfs.ftruncate(fd, 4, (err) => {\n  assert.ifError(err);\n  console.log(fs.readFileSync('temp.txt', 'utf8'));\n});\n// Prints: Node\n</code></pre>\n<p>If the file previously was shorter than <code>len</code> bytes, it is extended, and the\nextended part is filled with null bytes (<code>'\\0'</code>). For example,</p>\n<pre><code class=\"language-js\">console.log(fs.readFileSync('temp.txt', 'utf8'));\n// Prints: Node.js\n\n// get the file descriptor of the file to be truncated\nconst fd = fs.openSync('temp.txt', 'r+');\n\n// truncate the file to 10 bytes, whereas the actual size is 7 bytes\nfs.ftruncate(fd, 10, (err) => {\n  assert.ifError(err);\n  console.log(fs.readFileSync('temp.txt'));\n});\n// Prints: &#x3C;Buffer 4e 6f 64 65 2e 6a 73 00 00 00>\n// ('Node.js\\0\\0\\0' in UTF8)\n</code></pre>\n<p>The last three bytes are null bytes (<code>'\\0'</code>), to compensate the over-truncation.</p>"
+          "desc": "<p>Asynchronous <a href=\"http://man7.org/linux/man-pages/man2/ftruncate.2.html\"><code>ftruncate(2)</code></a>. No arguments other than a possible exception are\ngiven to the completion callback.</p>\n<p>If the file referred to by the file descriptor was larger than <code>len</code> bytes, only\nthe first <code>len</code> bytes will be retained in the file.</p>\n<p>For example, the following program retains only the first four bytes of the\nfile:</p>\n<pre><code class=\"language-js\">console.log(fs.readFileSync('temp.txt', 'utf8'));\n// Prints: Node.js\n\n// get the file descriptor of the file to be truncated\nconst fd = fs.openSync('temp.txt', 'r+');\n\n// truncate the file to first four bytes\nfs.ftruncate(fd, 4, (err) => {\n  assert.ifError(err);\n  console.log(fs.readFileSync('temp.txt', 'utf8'));\n});\n// Prints: Node\n</code></pre>\n<p>If the file previously was shorter than <code>len</code> bytes, it is extended, and the\nextended part is filled with null bytes (<code>'\\0'</code>):</p>\n<pre><code class=\"language-js\">console.log(fs.readFileSync('temp.txt', 'utf8'));\n// Prints: Node.js\n\n// get the file descriptor of the file to be truncated\nconst fd = fs.openSync('temp.txt', 'r+');\n\n// truncate the file to 10 bytes, whereas the actual size is 7 bytes\nfs.ftruncate(fd, 10, (err) => {\n  assert.ifError(err);\n  console.log(fs.readFileSync('temp.txt'));\n});\n// Prints: &#x3C;Buffer 4e 6f 64 65 2e 6a 73 00 00 00>\n// ('Node.js\\0\\0\\0' in UTF8)\n</code></pre>\n<p>The last three bytes are null bytes (<code>'\\0'</code>), to compensate the over-truncation.</p>"
         },
         {
           "textRaw": "fs.ftruncateSync(fd[, len])",
@@ -4062,7 +4270,7 @@
           "desc": "<p>Synchronous <a href=\"http://man7.org/linux/man-pages/man2/lstat.2.html\"><code>lstat(2)</code></a>.</p>"
         },
         {
-          "textRaw": "fs.mkdir(path[, mode], callback)",
+          "textRaw": "fs.mkdir(path[, options], callback)",
           "type": "method",
           "name": "mkdir",
           "meta": {
@@ -4070,6 +4278,11 @@
               "v0.1.8"
             ],
             "changes": [
+              {
+                "version": "v10.12.0",
+                "pr-url": "https://github.com/nodejs/node/pull/21875",
+                "description": "The second argument can now be an `options` object with `recursive` and `mode` properties."
+              },
               {
                 "version": "v10.0.0",
                 "pr-url": "https://github.com/nodejs/node/pull/12562",
@@ -4096,11 +4309,24 @@
                   "type": "string|Buffer|URL"
                 },
                 {
-                  "textRaw": "`mode` {integer} Not supported on Windows. **Default:** `0o777`.",
-                  "name": "mode",
-                  "type": "integer",
-                  "default": "`0o777`",
-                  "desc": "Not supported on Windows.",
+                  "textRaw": "`options` {Object|integer}",
+                  "name": "options",
+                  "type": "Object|integer",
+                  "options": [
+                    {
+                      "textRaw": "`recursive` {boolean} **Default:** `false`",
+                      "name": "recursive",
+                      "type": "boolean",
+                      "default": "`false`"
+                    },
+                    {
+                      "textRaw": "`mode` {integer} Not supported on Windows. **Default:** `0o777`.",
+                      "name": "mode",
+                      "type": "integer",
+                      "default": "`0o777`",
+                      "desc": "Not supported on Windows."
+                    }
+                  ],
                   "optional": true
                 },
                 {
@@ -4118,10 +4344,10 @@
               ]
             }
           ],
-          "desc": "<p>Asynchronously creates a directory. No arguments other than a possible exception\nare given to the completion callback.</p>\n<p>See also: <a href=\"http://man7.org/linux/man-pages/man2/mkdir.2.html\"><code>mkdir(2)</code></a>.</p>"
+          "desc": "<p>Asynchronously creates a directory. No arguments other than a possible exception\nare given to the completion callback.</p>\n<p>The optional <code>options</code> argument can be an integer specifying mode (permission\nand sticky bits), or an object with a <code>mode</code> property and a <code>recursive</code>\nproperty indicating whether parent folders should be created.</p>\n<pre><code class=\"language-js\">// Creates /tmp/a/apple, regardless of whether `/tmp` and /tmp/a exist.\nfs.mkdir('/tmp/a/apple', { recursive: true }, (err) => {\n  if (err) throw err;\n});\n</code></pre>\n<p>See also: <a href=\"http://man7.org/linux/man-pages/man2/mkdir.2.html\"><code>mkdir(2)</code></a>.</p>"
         },
         {
-          "textRaw": "fs.mkdirSync(path[, mode])",
+          "textRaw": "fs.mkdirSync(path[, options])",
           "type": "method",
           "name": "mkdirSync",
           "meta": {
@@ -4129,6 +4355,11 @@
               "v0.1.21"
             ],
             "changes": [
+              {
+                "version": "v10.12.0",
+                "pr-url": "https://github.com/nodejs/node/pull/21875",
+                "description": "The second argument can now be an `options` object with `recursive` and `mode` properties."
+              },
               {
                 "version": "v7.6.0",
                 "pr-url": "https://github.com/nodejs/node/pull/10739",
@@ -4145,17 +4376,30 @@
                   "type": "string|Buffer|URL"
                 },
                 {
-                  "textRaw": "`mode` {integer} Not supported on Windows. **Default:** `0o777`.",
-                  "name": "mode",
-                  "type": "integer",
-                  "default": "`0o777`",
-                  "desc": "Not supported on Windows.",
+                  "textRaw": "`options` {Object|integer}",
+                  "name": "options",
+                  "type": "Object|integer",
+                  "options": [
+                    {
+                      "textRaw": "`recursive` {boolean} **Default:** `false`",
+                      "name": "recursive",
+                      "type": "boolean",
+                      "default": "`false`"
+                    },
+                    {
+                      "textRaw": "`mode` {integer} Not supported on Windows. **Default:** `0o777`.",
+                      "name": "mode",
+                      "type": "integer",
+                      "default": "`0o777`",
+                      "desc": "Not supported on Windows."
+                    }
+                  ],
                   "optional": true
                 }
               ]
             }
           ],
-          "desc": "<p>Synchronously creates a directory. Returns <code>undefined</code>.\nThis is the synchronous version of <a href=\"#fs_fs_mkdir_path_mode_callback\"><code>fs.mkdir()</code></a>.</p>\n<p>See also: <a href=\"http://man7.org/linux/man-pages/man2/mkdir.2.html\"><code>mkdir(2)</code></a>.</p>"
+          "desc": "<p>Synchronously creates a directory. Returns <code>undefined</code>.\nThis is the synchronous version of <a href=\"#fs_fs_mkdir_path_options_callback\"><code>fs.mkdir()</code></a>.</p>\n<p>See also: <a href=\"http://man7.org/linux/man-pages/man2/mkdir.2.html\"><code>mkdir(2)</code></a>.</p>"
         },
         {
           "textRaw": "fs.mkdtemp(prefix[, options], callback)",
@@ -4390,6 +4634,11 @@
             ],
             "changes": [
               {
+                "version": "v10.10.0",
+                "pr-url": "https://github.com/nodejs/node/pull/22150",
+                "description": "The `buffer` parameter can now be any `TypedArray`, or a `DataView`."
+              },
+              {
                 "version": "v7.4.0",
                 "pr-url": "https://github.com/nodejs/node/pull/10382",
                 "description": "The `buffer` parameter can now be a `Uint8Array`."
@@ -4410,9 +4659,9 @@
                   "type": "integer"
                 },
                 {
-                  "textRaw": "`buffer` {Buffer|Uint8Array}",
+                  "textRaw": "`buffer` {Buffer|TypedArray|DataView}",
                   "name": "buffer",
-                  "type": "Buffer|Uint8Array"
+                  "type": "Buffer|TypedArray|DataView"
                 },
                 {
                   "textRaw": "`offset` {integer}",
@@ -4466,6 +4715,11 @@
             ],
             "changes": [
               {
+                "version": "v10.10.0",
+                "pr-url": "https://github.com/nodejs/node/pull/22020",
+                "description": "New option `withFileTypes` was added."
+              },
+              {
                 "version": "v10.0.0",
                 "pr-url": "https://github.com/nodejs/node/pull/12562",
                 "description": "The `callback` parameter is no longer optional. Not passing it will throw a `TypeError` at runtime."
@@ -4505,6 +4759,12 @@
                       "name": "encoding",
                       "type": "string",
                       "default": "`'utf8'`"
+                    },
+                    {
+                      "textRaw": "`withFileTypes` {boolean} **Default:** `false`",
+                      "name": "withFileTypes",
+                      "type": "boolean",
+                      "default": "`false`"
                     }
                   ],
                   "optional": true
@@ -4520,16 +4780,16 @@
                       "type": "Error"
                     },
                     {
-                      "textRaw": "`files` {string[]|Buffer[]}",
+                      "textRaw": "`files` {string[]|Buffer[]|fs.Dirent[]}",
                       "name": "files",
-                      "type": "string[]|Buffer[]"
+                      "type": "string[]|Buffer[]|fs.Dirent[]"
                     }
                   ]
                 }
               ]
             }
           ],
-          "desc": "<p>Asynchronous <a href=\"http://man7.org/linux/man-pages/man3/readdir.3.html\"><code>readdir(3)</code></a>. Reads the contents of a directory.\nThe callback gets two arguments <code>(err, files)</code> where <code>files</code> is an array of\nthe names of the files in the directory excluding <code>'.'</code> and <code>'..'</code>.</p>\n<p>The optional <code>options</code> argument can be a string specifying an encoding, or an\nobject with an <code>encoding</code> property specifying the character encoding to use for\nthe filenames passed to the callback. If the <code>encoding</code> is set to <code>'buffer'</code>,\nthe filenames returned will be passed as <code>Buffer</code> objects.</p>"
+          "desc": "<p>Asynchronous <a href=\"http://man7.org/linux/man-pages/man3/readdir.3.html\"><code>readdir(3)</code></a>. Reads the contents of a directory.\nThe callback gets two arguments <code>(err, files)</code> where <code>files</code> is an array of\nthe names of the files in the directory excluding <code>'.'</code> and <code>'..'</code>.</p>\n<p>The optional <code>options</code> argument can be a string specifying an encoding, or an\nobject with an <code>encoding</code> property specifying the character encoding to use for\nthe filenames passed to the callback. If the <code>encoding</code> is set to <code>'buffer'</code>,\nthe filenames returned will be passed as <code>Buffer</code> objects.</p>\n<p>If <code>options.withFileTypes</code> is set to <code>true</code>, the <code>files</code> array will contain\n<a href=\"#fs_class_fs_dirent\"><code>fs.Dirent</code></a> objects.</p>"
         },
         {
           "textRaw": "fs.readdirSync(path[, options])",
@@ -4541,6 +4801,11 @@
             ],
             "changes": [
               {
+                "version": "v10.10.0",
+                "pr-url": "https://github.com/nodejs/node/pull/22020",
+                "description": "New option `withFileTypes` was added."
+              },
+              {
                 "version": "v7.6.0",
                 "pr-url": "https://github.com/nodejs/node/pull/10739",
                 "description": "The `path` parameter can be a WHATWG `URL` object using `file:` protocol. Support is currently still *experimental*."
@@ -4550,10 +4815,9 @@
           "signatures": [
             {
               "return": {
-                "textRaw": "Returns: {string[]} An array of filenames excluding `'.'` and `'..'`.",
+                "textRaw": "Returns: {string[]|Buffer[]|fs.Dirent[]}",
                 "name": "return",
-                "type": "string[]",
-                "desc": "An array of filenames excluding `'.'` and `'..'`."
+                "type": "string[]|Buffer[]|fs.Dirent[]"
               },
               "params": [
                 {
@@ -4571,6 +4835,12 @@
                       "name": "encoding",
                       "type": "string",
                       "default": "`'utf8'`"
+                    },
+                    {
+                      "textRaw": "`withFileTypes` {boolean} **Default:** `false`",
+                      "name": "withFileTypes",
+                      "type": "boolean",
+                      "default": "`false`"
                     }
                   ],
                   "optional": true
@@ -4578,7 +4848,7 @@
               ]
             }
           ],
-          "desc": "<p>Synchronous <a href=\"http://man7.org/linux/man-pages/man3/readdir.3.html\"><code>readdir(3)</code></a>.</p>\n<p>The optional <code>options</code> argument can be a string specifying an encoding, or an\nobject with an <code>encoding</code> property specifying the character encoding to use for\nthe filenames returned. If the <code>encoding</code> is set to <code>'buffer'</code>,\nthe filenames returned will be passed as <code>Buffer</code> objects.</p>"
+          "desc": "<p>Synchronous <a href=\"http://man7.org/linux/man-pages/man3/readdir.3.html\"><code>readdir(3)</code></a>.</p>\n<p>The optional <code>options</code> argument can be a string specifying an encoding, or an\nobject with an <code>encoding</code> property specifying the character encoding to use for\nthe filenames returned. If the <code>encoding</code> is set to <code>'buffer'</code>,\nthe filenames returned will be passed as <code>Buffer</code> objects.</p>\n<p>If <code>options.withFileTypes</code> is set to <code>true</code>, the result will contain\n<a href=\"#fs_class_fs_dirent\"><code>fs.Dirent</code></a> objects.</p>"
         },
         {
           "textRaw": "fs.readFile(path[, options], callback)",
@@ -4666,7 +4936,7 @@
               ]
             }
           ],
-          "desc": "<p>Asynchronously reads the entire contents of a file. Example:</p>\n<pre><code class=\"language-js\">fs.readFile('/etc/passwd', (err, data) => {\n  if (err) throw err;\n  console.log(data);\n});\n</code></pre>\n<p>The callback is passed two arguments <code>(err, data)</code>, where <code>data</code> is the\ncontents of the file.</p>\n<p>If no encoding is specified, then the raw buffer is returned.</p>\n<p>If <code>options</code> is a string, then it specifies the encoding. Example:</p>\n<pre><code class=\"language-js\">fs.readFile('/etc/passwd', 'utf8', callback);\n</code></pre>\n<p>When the path is a directory, the behavior of <code>fs.readFile()</code> and\n<a href=\"#fs_fs_readfilesync_path_options\"><code>fs.readFileSync()</code></a> is platform-specific. On macOS, Linux, and Windows, an\nerror will be returned. On FreeBSD, a representation of the directory's contents\nwill be returned.</p>\n<pre><code class=\"language-js\">// macOS, Linux, and Windows\nfs.readFile('&#x3C;directory>', (err, data) => {\n  // => [Error: EISDIR: illegal operation on a directory, read &#x3C;directory>]\n});\n\n//  FreeBSD\nfs.readFile('&#x3C;directory>', (err, data) => {\n  // => null, &#x3C;data>\n});\n</code></pre>\n<p>Any specified file descriptor has to support reading.</p>\n<p>If a file descriptor is specified as the <code>path</code>, it will not be closed\nautomatically.</p>\n<p>The <code>fs.readFile()</code> function buffers the entire file. To minimize memory costs,\nwhen possible prefer streaming via <code>fs.createReadStream()</code>.</p>"
+          "desc": "<p>Asynchronously reads the entire contents of a file.</p>\n<pre><code class=\"language-js\">fs.readFile('/etc/passwd', (err, data) => {\n  if (err) throw err;\n  console.log(data);\n});\n</code></pre>\n<p>The callback is passed two arguments <code>(err, data)</code>, where <code>data</code> is the\ncontents of the file.</p>\n<p>If no encoding is specified, then the raw buffer is returned.</p>\n<p>If <code>options</code> is a string, then it specifies the encoding:</p>\n<pre><code class=\"language-js\">fs.readFile('/etc/passwd', 'utf8', callback);\n</code></pre>\n<p>When the path is a directory, the behavior of <code>fs.readFile()</code> and\n<a href=\"#fs_fs_readfilesync_path_options\"><code>fs.readFileSync()</code></a> is platform-specific. On macOS, Linux, and Windows, an\nerror will be returned. On FreeBSD, a representation of the directory's contents\nwill be returned.</p>\n<pre><code class=\"language-js\">// macOS, Linux, and Windows\nfs.readFile('&#x3C;directory>', (err, data) => {\n  // => [Error: EISDIR: illegal operation on a directory, read &#x3C;directory>]\n});\n\n//  FreeBSD\nfs.readFile('&#x3C;directory>', (err, data) => {\n  // => null, &#x3C;data>\n});\n</code></pre>\n<p>Any specified file descriptor has to support reading.</p>\n<p>If a file descriptor is specified as the <code>path</code>, it will not be closed\nautomatically.</p>\n<p>The <code>fs.readFile()</code> function buffers the entire file. To minimize memory costs,\nwhen possible prefer streaming via <code>fs.createReadStream()</code>.</p>"
         },
         {
           "textRaw": "fs.readFileSync(path[, options])",
@@ -4857,6 +5127,11 @@
             ],
             "changes": [
               {
+                "version": "v10.10.0",
+                "pr-url": "https://github.com/nodejs/node/pull/22150",
+                "description": "The `buffer` parameter can now be any `TypedArray` or a `DataView`."
+              },
+              {
                 "version": "v6.0.0",
                 "pr-url": "https://github.com/nodejs/node/pull/4518",
                 "description": "The `length` parameter can now be `0`."
@@ -4877,9 +5152,9 @@
                   "type": "integer"
                 },
                 {
-                  "textRaw": "`buffer` {Buffer|Uint8Array}",
+                  "textRaw": "`buffer` {Buffer|TypedArray|DataView}",
                   "name": "buffer",
-                  "type": "Buffer|Uint8Array"
+                  "type": "Buffer|TypedArray|DataView"
                 },
                 {
                   "textRaw": "`offset` {integer}",
@@ -6043,6 +6318,11 @@
             ],
             "changes": [
               {
+                "version": "v10.10.0",
+                "pr-url": "https://github.com/nodejs/node/pull/22150",
+                "description": "The `buffer` parameter can now be any `TypedArray` or a `DataView`"
+              },
+              {
                 "version": "v10.0.0",
                 "pr-url": "https://github.com/nodejs/node/pull/12562",
                 "description": "The `callback` parameter is no longer optional. Not passing it will throw a `TypeError` at runtime."
@@ -6073,9 +6353,9 @@
                   "type": "integer"
                 },
                 {
-                  "textRaw": "`buffer` {Buffer|Uint8Array}",
+                  "textRaw": "`buffer` {Buffer|TypedArray|DataView}",
                   "name": "buffer",
-                  "type": "Buffer|Uint8Array"
+                  "type": "Buffer|TypedArray|DataView"
                 },
                 {
                   "textRaw": "`offset` {integer}",
@@ -6111,16 +6391,16 @@
                       "type": "integer"
                     },
                     {
-                      "textRaw": "`buffer` {Buffer|Uint8Array}",
+                      "textRaw": "`buffer` {Buffer|TypedArray|DataView}",
                       "name": "buffer",
-                      "type": "Buffer|Uint8Array"
+                      "type": "Buffer|TypedArray|DataView"
                     }
                   ]
                 }
               ]
             }
           ],
-          "desc": "<p>Write <code>buffer</code> to the file specified by <code>fd</code>.</p>\n<p><code>offset</code> determines the part of the buffer to be written, and <code>length</code> is\nan integer specifying the number of bytes to write.</p>\n<p><code>position</code> refers to the offset from the beginning of the file where this data\nshould be written. If <code>typeof position !== 'number'</code>, the data will be written\nat the current position. See <a href=\"http://man7.org/linux/man-pages/man2/pwrite.2.html\"><code>pwrite(2)</code></a>.</p>\n<p>The callback will be given three arguments <code>(err, bytesWritten, buffer)</code> where\n<code>bytesWritten</code> specifies how many <em>bytes</em> were written from <code>buffer</code>.</p>\n<p>If this method is invoked as its <a href=\"util.html#util_util_promisify_original\"><code>util.promisify()</code></a>ed version, it returns\na <code>Promise</code> for an <code>Object</code> with <code>bytesWritten</code> and <code>buffer</code> properties.</p>\n<p>It is unsafe to use <code>fs.write()</code> multiple times on the same file without waiting\nfor the callback. For this scenario, <code>fs.createWriteStream()</code> is recommended.</p>\n<p>On Linux, positional writes don't work when the file is opened in append mode.\nThe kernel ignores the position argument and always appends the data to\nthe end of the file.</p>"
+          "desc": "<p>Write <code>buffer</code> to the file specified by <code>fd</code>.</p>\n<p><code>offset</code> determines the part of the buffer to be written, and <code>length</code> is\nan integer specifying the number of bytes to write.</p>\n<p><code>position</code> refers to the offset from the beginning of the file where this data\nshould be written. If <code>typeof position !== 'number'</code>, the data will be written\nat the current position. See <a href=\"http://man7.org/linux/man-pages/man2/pwrite.2.html\"><code>pwrite(2)</code></a>.</p>\n<p>The callback will be given three arguments <code>(err, bytesWritten, buffer)</code> where\n<code>bytesWritten</code> specifies how many <em>bytes</em> were written from <code>buffer</code>.</p>\n<p>If this method is invoked as its <a href=\"util.html#util_util_promisify_original\"><code>util.promisify()</code></a>ed version, it returns\na <code>Promise</code> for an <code>Object</code> with <code>bytesWritten</code> and <code>buffer</code> properties.</p>\n<p>It is unsafe to use <code>fs.write()</code> multiple times on the same file without waiting\nfor the callback. For this scenario, <a href=\"#fs_fs_createwritestream_path_options\"><code>fs.createWriteStream()</code></a> is\nrecommended.</p>\n<p>On Linux, positional writes don't work when the file is opened in append mode.\nThe kernel ignores the position argument and always appends the data to\nthe end of the file.</p>"
         },
         {
           "textRaw": "fs.write(fd, string[, position[, encoding]], callback)",
@@ -6168,9 +6448,10 @@
                   "optional": true
                 },
                 {
-                  "textRaw": "`encoding` {string}",
+                  "textRaw": "`encoding` {string} **Default:** `'utf8'`",
                   "name": "encoding",
                   "type": "string",
+                  "default": "`'utf8'`",
                   "optional": true
                 },
                 {
@@ -6198,7 +6479,7 @@
               ]
             }
           ],
-          "desc": "<p>Write <code>string</code> to the file specified by <code>fd</code>. If <code>string</code> is not a string, then\nthe value will be coerced to one.</p>\n<p><code>position</code> refers to the offset from the beginning of the file where this data\nshould be written. If <code>typeof position !== 'number'</code> the data will be written at\nthe current position. See <a href=\"http://man7.org/linux/man-pages/man2/pwrite.2.html\"><code>pwrite(2)</code></a>.</p>\n<p><code>encoding</code> is the expected string encoding.</p>\n<p>The callback will receive the arguments <code>(err, written, string)</code> where <code>written</code>\nspecifies how many <em>bytes</em> the passed string required to be written. Bytes\nwritten is not necessarily the same as string characters written. See\n<a href=\"buffer.html#buffer_class_method_buffer_bytelength_string_encoding\"><code>Buffer.byteLength</code></a>.</p>\n<p>It is unsafe to use <code>fs.write()</code> multiple times on the same file without waiting\nfor the callback. For this scenario, <code>fs.createWriteStream()</code> is recommended.</p>\n<p>On Linux, positional writes don't work when the file is opened in append mode.\nThe kernel ignores the position argument and always appends the data to\nthe end of the file.</p>"
+          "desc": "<p>Write <code>string</code> to the file specified by <code>fd</code>. If <code>string</code> is not a string, then\nthe value will be coerced to one.</p>\n<p><code>position</code> refers to the offset from the beginning of the file where this data\nshould be written. If <code>typeof position !== 'number'</code> the data will be written at\nthe current position. See <a href=\"http://man7.org/linux/man-pages/man2/pwrite.2.html\"><code>pwrite(2)</code></a>.</p>\n<p><code>encoding</code> is the expected string encoding.</p>\n<p>The callback will receive the arguments <code>(err, written, string)</code> where <code>written</code>\nspecifies how many <em>bytes</em> the passed string required to be written. Bytes\nwritten is not necessarily the same as string characters written. See\n<a href=\"buffer.html#buffer_class_method_buffer_bytelength_string_encoding\"><code>Buffer.byteLength</code></a>.</p>\n<p>It is unsafe to use <code>fs.write()</code> multiple times on the same file without waiting\nfor the callback. For this scenario, <a href=\"#fs_fs_createwritestream_path_options\"><code>fs.createWriteStream()</code></a> is\nrecommended.</p>\n<p>On Linux, positional writes don't work when the file is opened in append mode.\nThe kernel ignores the position argument and always appends the data to\nthe end of the file.</p>"
         },
         {
           "textRaw": "fs.writeFile(file, data[, options], callback)",
@@ -6209,6 +6490,11 @@
               "v0.1.29"
             ],
             "changes": [
+              {
+                "version": "v10.10.0",
+                "pr-url": "https://github.com/nodejs/node/pull/22150",
+                "description": "The `data` parameter can now be any `TypedArray` or a `DataView`."
+              },
               {
                 "version": "v10.0.0",
                 "pr-url": "https://github.com/nodejs/node/pull/12562",
@@ -6241,9 +6527,9 @@
                   "desc": "filename or file descriptor"
                 },
                 {
-                  "textRaw": "`data` {string|Buffer|Uint8Array}",
+                  "textRaw": "`data` {string|Buffer|TypedArray|DataView}",
                   "name": "data",
-                  "type": "string|Buffer|Uint8Array"
+                  "type": "string|Buffer|TypedArray|DataView"
                 },
                 {
                   "textRaw": "`options` {Object|string}",
@@ -6287,7 +6573,7 @@
               ]
             }
           ],
-          "desc": "<p>Asynchronously writes data to a file, replacing the file if it already exists.\n<code>data</code> can be a string or a buffer.</p>\n<p>The <code>encoding</code> option is ignored if <code>data</code> is a buffer.</p>\n<p>Example:</p>\n<pre><code class=\"language-js\">fs.writeFile('message.txt', 'Hello Node.js', (err) => {\n  if (err) throw err;\n  console.log('The file has been saved!');\n});\n</code></pre>\n<p>If <code>options</code> is a string, then it specifies the encoding. Example:</p>\n<pre><code class=\"language-js\">fs.writeFile('message.txt', 'Hello Node.js', 'utf8', callback);\n</code></pre>\n<p>Any specified file descriptor has to support writing.</p>\n<p>It is unsafe to use <code>fs.writeFile()</code> multiple times on the same file without\nwaiting for the callback. For this scenario, <code>fs.createWriteStream()</code> is\nrecommended.</p>\n<p>If a file descriptor is specified as the <code>file</code>, it will not be closed\nautomatically.</p>"
+          "desc": "<p>Asynchronously writes data to a file, replacing the file if it already exists.\n<code>data</code> can be a string or a buffer.</p>\n<p>The <code>encoding</code> option is ignored if <code>data</code> is a buffer.</p>\n<pre><code class=\"language-js\">const data = new Uint8Array(Buffer.from('Hello Node.js'));\nfs.writeFile('message.txt', data, (err) => {\n  if (err) throw err;\n  console.log('The file has been saved!');\n});\n</code></pre>\n<p>If <code>options</code> is a string, then it specifies the encoding:</p>\n<pre><code class=\"language-js\">fs.writeFile('message.txt', 'Hello Node.js', 'utf8', callback);\n</code></pre>\n<p>Any specified file descriptor has to support writing.</p>\n<p>It is unsafe to use <code>fs.writeFile()</code> multiple times on the same file without\nwaiting for the callback. For this scenario, <a href=\"#fs_fs_createwritestream_path_options\"><code>fs.createWriteStream()</code></a> is\nrecommended.</p>\n<p>If a file descriptor is specified as the <code>file</code>, it will not be closed\nautomatically.</p>"
         },
         {
           "textRaw": "fs.writeFileSync(file, data[, options])",
@@ -6298,6 +6584,11 @@
               "v0.1.29"
             ],
             "changes": [
+              {
+                "version": "v10.10.0",
+                "pr-url": "https://github.com/nodejs/node/pull/22150",
+                "description": "The `data` parameter can now be any `TypedArray` or a `DataView`."
+              },
               {
                 "version": "v7.4.0",
                 "pr-url": "https://github.com/nodejs/node/pull/10382",
@@ -6320,9 +6611,9 @@
                   "desc": "filename or file descriptor"
                 },
                 {
-                  "textRaw": "`data` {string|Buffer|Uint8Array}",
+                  "textRaw": "`data` {string|Buffer|TypedArray|DataView}",
                   "name": "data",
-                  "type": "string|Buffer|Uint8Array"
+                  "type": "string|Buffer|TypedArray|DataView"
                 },
                 {
                   "textRaw": "`options` {Object|string}",
@@ -6366,6 +6657,11 @@
             ],
             "changes": [
               {
+                "version": "v10.10.0",
+                "pr-url": "https://github.com/nodejs/node/pull/22150",
+                "description": "The `buffer` parameter can now be any `TypedArray` or a `DataView`."
+              },
+              {
                 "version": "v7.4.0",
                 "pr-url": "https://github.com/nodejs/node/pull/10382",
                 "description": "The `buffer` parameter can now be a `Uint8Array`."
@@ -6380,9 +6676,10 @@
           "signatures": [
             {
               "return": {
-                "textRaw": "Returns: {number}",
+                "textRaw": "Returns: {number} The number of bytes written.",
                 "name": "return",
-                "type": "number"
+                "type": "number",
+                "desc": "The number of bytes written."
               },
               "params": [
                 {
@@ -6391,9 +6688,9 @@
                   "type": "integer"
                 },
                 {
-                  "textRaw": "`buffer` {Buffer|Uint8Array}",
+                  "textRaw": "`buffer` {Buffer|TypedArray|DataView}",
                   "name": "buffer",
-                  "type": "Buffer|Uint8Array"
+                  "type": "Buffer|TypedArray|DataView"
                 },
                 {
                   "textRaw": "`offset` {integer}",
@@ -6416,7 +6713,7 @@
               ]
             }
           ],
-          "desc": "<p>Returns the number of bytes written.</p>\n<p>For detailed information, see the documentation of the asynchronous version of\nthis API: <a href=\"#fs_fs_write_fd_buffer_offset_length_position_callback\"><code>fs.write()</code></a>.</p>"
+          "desc": "<p>For detailed information, see the documentation of the asynchronous version of\nthis API: <a href=\"#fs_fs_write_fd_buffer_offset_length_position_callback\"><code>fs.write(fd, buffer...)</code></a>.</p>"
         },
         {
           "textRaw": "fs.writeSync(fd, string[, position[, encoding]])",
@@ -6437,9 +6734,10 @@
           "signatures": [
             {
               "return": {
-                "textRaw": "Returns: {number}",
+                "textRaw": "Returns: {number} The number of bytes written.",
                 "name": "return",
-                "type": "number"
+                "type": "number",
+                "desc": "The number of bytes written."
               },
               "params": [
                 {
@@ -6467,7 +6765,7 @@
               ]
             }
           ],
-          "desc": "<p>Returns the number of bytes written.</p>\n<p>For detailed information, see the documentation of the asynchronous version of\nthis API: <a href=\"#fs_fs_write_fd_buffer_offset_length_position_callback\"><code>fs.write()</code></a>.</p>"
+          "desc": "<p>For detailed information, see the documentation of the asynchronous version of\nthis API: <a href=\"#fs_fs_write_fd_string_position_encoding_callback\"><code>fs.write(fd, string...)</code></a>.</p>"
         }
       ],
       "properties": [

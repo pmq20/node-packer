@@ -77,7 +77,14 @@ class JSGraph : public EmbedderGraph {
   }
 
   void AddEdge(Node* from, Node* to) override {
-    edges_[from].insert(to);
+    edges_[from].insert(std::make_pair(nullptr, to));
+  }
+
+  // For ABI compatibility, we did not backport the virtual function
+  // AddEdge() with the name as last argument back to v10.x.
+  // This is only here to reduce the amount of churn.
+  void AddEdge(Node* from, Node* to, const char* name = nullptr) {
+    edges_[from].insert(std::make_pair(name, to));
   }
 
   MaybeLocal<Array> CreateObject() const {
@@ -92,6 +99,7 @@ class JSGraph : public EmbedderGraph {
     Local<String> size_string = FIXED_ONE_BYTE_STRING(isolate_, "size");
     Local<String> value_string = FIXED_ONE_BYTE_STRING(isolate_, "value");
     Local<String> wraps_string = FIXED_ONE_BYTE_STRING(isolate_, "wraps");
+    Local<String> to_string = FIXED_ONE_BYTE_STRING(isolate_, "to");
 
     for (const std::unique_ptr<Node>& n : nodes_)
       info_objects[n.get()] = Object::New(isolate_);
@@ -102,15 +110,28 @@ class JSGraph : public EmbedderGraph {
       for (const std::unique_ptr<Node>& n : nodes_) {
         Local<Object> obj = info_objects[n.get()];
         Local<Value> value;
-        if (!String::NewFromUtf8(isolate_, n->Name(),
-                                 v8::NewStringType::kNormal).ToLocal(&value) ||
+        std::string name_str;
+        const char* prefix = n->NamePrefix();
+        if (prefix == nullptr) {
+          name_str = n->Name();
+        } else {
+          name_str = n->NamePrefix();
+          name_str += " ";
+          name_str += n->Name();
+        }
+        if (!String::NewFromUtf8(
+                 isolate_, name_str.c_str(), v8::NewStringType::kNormal)
+                 .ToLocal(&value) ||
             obj->Set(context, name_string, value).IsNothing() ||
-            obj->Set(context, is_root_string,
-                     Boolean::New(isolate_, n->IsRootNode())).IsNothing() ||
-            obj->Set(context, size_string,
-                     Number::New(isolate_, n->SizeInBytes())).IsNothing() ||
-            obj->Set(context, edges_string,
-                     Array::New(isolate_)).IsNothing()) {
+            obj->Set(context,
+                     is_root_string,
+                     Boolean::New(isolate_, n->IsRootNode()))
+                .IsNothing() ||
+            obj->Set(context,
+                     size_string,
+                     Number::New(isolate_, n->SizeInBytes()))
+                .IsNothing() ||
+            obj->Set(context, edges_string, Array::New(isolate_)).IsNothing()) {
           return MaybeLocal<Array>();
         }
         if (nodes->Set(context, i++, obj).IsNothing())
@@ -141,10 +162,24 @@ class JSGraph : public EmbedderGraph {
       }
 
       size_t i = 0;
-      for (Node* target : edge_info.second) {
-        if (edges.As<Array>()->Set(context,
-                                   i++,
-                                   info_objects[target]).IsNothing()) {
+      size_t j = 0;
+      for (const auto& edge : edge_info.second) {
+        Local<Object> to_object = info_objects[edge.second];
+        Local<Object> edge_obj = Object::New(isolate_);
+        Local<Value> edge_name_value;
+        const char* edge_name = edge.first;
+        if (edge_name != nullptr) {
+          if (!String::NewFromUtf8(
+                  isolate_, edge_name, v8::NewStringType::kNormal)
+                  .ToLocal(&edge_name_value)) {
+            return MaybeLocal<Array>();
+          }
+        } else {
+          edge_name_value = Number::New(isolate_, j++);
+        }
+        if (edge_obj->Set(context, name_string, edge_name_value).IsNothing() ||
+            edge_obj->Set(context, to_string, to_object).IsNothing() ||
+            edges.As<Array>()->Set(context, i++, edge_obj).IsNothing()) {
           return MaybeLocal<Array>();
         }
       }
@@ -158,7 +193,7 @@ class JSGraph : public EmbedderGraph {
   std::unordered_set<std::unique_ptr<Node>> nodes_;
   std::unordered_set<JSGraphJSNode*, JSGraphJSNode::Hash, JSGraphJSNode::Equal>
       engine_nodes_;
-  std::unordered_map<Node*, std::unordered_set<Node*>> edges_;
+  std::unordered_map<Node*, std::set<std::pair<const char*, Node*>>> edges_;
 };
 
 void BuildEmbedderGraph(const FunctionCallbackInfo<Value>& args) {

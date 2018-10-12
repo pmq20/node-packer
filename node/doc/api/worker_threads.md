@@ -20,8 +20,6 @@ Workers, unlike child processes or when using the `cluster` module, can also
 share memory efficiently by transferring `ArrayBuffer` instances or sharing
 `SharedArrayBuffer` instances between them.
 
-## Example
-
 ```js
 const {
   Worker, isMainThread, parentPort, workerData
@@ -281,8 +279,6 @@ See [`port.postMessage()`][] for more information on how messages are passed,
 and what kind of JavaScript values can be successfully transported through
 the thread barrier.
 
-For example:
-
 ```js
 const assert = require('assert');
 const {
@@ -431,6 +427,8 @@ added: v10.5.0
 -->
 
 * `callback` {Function}
+  * `err` {Error}
+  * `exitCode` {integer}
 
 Stop all JavaScript execution in the worker thread as soon as possible.
 `callback` is an optional function that is invoked once this operation is known

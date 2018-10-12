@@ -37,6 +37,7 @@ using v8::FunctionTemplate;
 using v8::HandleScope;
 using v8::Integer;
 using v8::Local;
+using v8::MaybeLocal;
 using v8::Object;
 using v8::String;
 using v8::Value;
@@ -49,14 +50,11 @@ class TimerWrap : public HandleWrap {
     Environment* env = Environment::GetCurrent(context);
     Local<FunctionTemplate> constructor = env->NewFunctionTemplate(New);
     Local<String> timerString = FIXED_ONE_BYTE_STRING(env->isolate(), "Timer");
+    constructor->Inherit(HandleWrap::GetConstructorTemplate(env));
     constructor->InstanceTemplate()->SetInternalFieldCount(1);
     constructor->SetClassName(timerString);
 
     env->SetTemplateMethod(constructor, "now", Now);
-
-    AsyncWrap::AddWrapMethods(env, constructor);
-    HandleWrap::AddWrapMethods(env, constructor);
-
     env->SetProtoMethod(constructor, "start", Start);
     env->SetProtoMethod(constructor, "stop", Stop);
 
@@ -68,9 +66,9 @@ class TimerWrap : public HandleWrap {
                    ->GetFunction(env->context()).ToLocalChecked()).FromJust();
   }
 
-  void MemoryInfo(MemoryTracker* tracker) const override {
-    tracker->TrackThis(this);
-  }
+  SET_NO_MEMORY_INFO()
+  SET_MEMORY_INFO_NAME(TimerWrap)
+  SET_SELF_SIZE(TimerWrap)
 
  private:
   static void SetupTimers(const FunctionCallbackInfo<Value>& args) {
@@ -138,17 +136,16 @@ class TimerWrap : public HandleWrap {
     Environment* env = wrap->env();
     HandleScope handle_scope(env->isolate());
     Context::Scope context_scope(env->context());
-    Local<Value> ret;
+    MaybeLocal<Value> ret;
     Local<Value> args[1];
     do {
       args[0] = env->GetNow();
-      ret = wrap->MakeCallback(env->timers_callback_function(), 1, args)
-                .ToLocalChecked();
-    } while (ret->IsUndefined() &&
+      ret = wrap->MakeCallback(env->timers_callback_function(), 1, args);
+    } while ((ret.IsEmpty() || ret.ToLocalChecked()->IsUndefined()) &&
              !env->tick_info()->has_thrown() &&
              env->can_call_into_js() &&
              wrap->object()->Get(env->context(),
-                                 env->owner_string()).ToLocalChecked()
+                                 env->owner_symbol()).ToLocalChecked()
                                                      ->IsUndefined());
   }
 

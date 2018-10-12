@@ -63,7 +63,7 @@ struct AsyncWrapObject : public AsyncWrap {
   static inline void New(const FunctionCallbackInfo<Value>& args) {
     Environment* env = Environment::GetCurrent(args);
     CHECK(args.IsConstructCall());
-    CHECK(env->async_wrap_constructor_template()->HasInstance(args.This()));
+    CHECK(env->async_wrap_object_ctor_template()->HasInstance(args.This()));
     CHECK(args[0]->IsUint32());
     auto type = static_cast<ProviderType>(args[0].As<Uint32>()->Value());
     new AsyncWrapObject(env, args.This(), type);
@@ -72,9 +72,9 @@ struct AsyncWrapObject : public AsyncWrap {
   inline AsyncWrapObject(Environment* env, Local<Object> object,
                          ProviderType type) : AsyncWrap(env, object, type) {}
 
-  void MemoryInfo(MemoryTracker* tracker) const override {
-    tracker->TrackThis(this);
-  }
+  SET_NO_MEMORY_INFO()
+  SET_MEMORY_INFO_NAME(AsyncWrapObject)
+  SET_SELF_SIZE(AsyncWrapObject)
 };
 
 
@@ -180,9 +180,9 @@ class PromiseWrap : public AsyncWrap {
     MakeWeak();
   }
 
-  void MemoryInfo(MemoryTracker* tracker) const override {
-    tracker->TrackThis(this);
-  }
+  SET_NO_MEMORY_INFO()
+  SET_MEMORY_INFO_NAME(PromiseWrap)
+  SET_SELF_SIZE(PromiseWrap)
 
   static constexpr int kPromiseField = 1;
   static constexpr int kIsChainedPromiseField = 2;
@@ -423,12 +423,16 @@ void AsyncWrap::QueueDestroyAsyncId(const FunctionCallbackInfo<Value>& args) {
       args[0].As<Number>()->Value());
 }
 
-void AsyncWrap::AddWrapMethods(Environment* env,
-                               Local<FunctionTemplate> constructor,
-                               int flag) {
-  env->SetProtoMethod(constructor, "getAsyncId", AsyncWrap::GetAsyncId);
-  if (flag & kFlagHasReset)
-    env->SetProtoMethod(constructor, "asyncReset", AsyncWrap::AsyncReset);
+Local<FunctionTemplate> AsyncWrap::GetConstructorTemplate(Environment* env) {
+  Local<FunctionTemplate> tmpl = env->async_wrap_ctor_template();
+  if (tmpl.IsEmpty()) {
+    tmpl = env->NewFunctionTemplate(nullptr);
+    tmpl->SetClassName(FIXED_ONE_BYTE_STRING(env->isolate(), "AsyncWrap"));
+    env->SetProtoMethod(tmpl, "getAsyncId", AsyncWrap::GetAsyncId);
+    env->SetProtoMethod(tmpl, "asyncReset", AsyncWrap::AsyncReset);
+    env->set_async_wrap_ctor_template(tmpl);
+  }
+  return tmpl;
 }
 
 void AsyncWrap::Initialize(Local<Object> target,
@@ -483,6 +487,10 @@ void AsyncWrap::Initialize(Local<Object> target,
               env->async_ids_stack_string(),
               env->async_hooks()->async_ids_stack().GetJSArray()).FromJust();
 
+  target->Set(context,
+              FIXED_ONE_BYTE_STRING(env->isolate(), "owner_symbol"),
+              env->owner_symbol()).FromJust();
+
   Local<Object> constants = Object::New(isolate);
 #define SET_HOOKS_CONSTANT(name)                                              \
   FORCE_SET_TARGET_FIELD(                                                     \
@@ -520,17 +528,20 @@ void AsyncWrap::Initialize(Local<Object> target,
   env->set_async_hooks_promise_resolve_function(Local<Function>());
   env->set_async_hooks_binding(target);
 
+  // TODO(addaleax): This block might better work as a
+  // AsyncWrapObject::Initialize() or AsyncWrapObject::GetConstructorTemplate()
+  // function.
   {
     auto class_name = FIXED_ONE_BYTE_STRING(env->isolate(), "AsyncWrap");
     auto function_template = env->NewFunctionTemplate(AsyncWrapObject::New);
     function_template->SetClassName(class_name);
-    AsyncWrap::AddWrapMethods(env, function_template);
+    function_template->Inherit(AsyncWrap::GetConstructorTemplate(env));
     auto instance_template = function_template->InstanceTemplate();
     instance_template->SetInternalFieldCount(1);
     auto function =
         function_template->GetFunction(env->context()).ToLocalChecked();
     target->Set(env->context(), class_name, function).FromJust();
-    env->set_async_wrap_constructor_template(function_template);
+    env->set_async_wrap_object_ctor_template(function_template);
   }
 }
 
@@ -550,9 +561,6 @@ AsyncWrap::AsyncWrap(Environment* env,
       provider_type_(provider) {
   CHECK_NE(provider, PROVIDER_NONE);
   CHECK_GE(object->InternalFieldCount(), 1);
-
-  // Shift provider value over to prevent id collision.
-  persistent().SetWrapperClassId(NODE_ASYNC_ID_OFFSET + provider_type_);
 
   // Use AsyncReset() call to execute the init() callbacks.
   AsyncReset(execution_async_id, silent);
@@ -677,12 +685,16 @@ MaybeLocal<Value> AsyncWrap::MakeCallback(const Local<Function> cb,
 
 
 async_id AsyncHooksGetExecutionAsyncId(Isolate* isolate) {
-  return Environment::GetCurrent(isolate)->execution_async_id();
+  Environment* env = Environment::GetCurrent(isolate);
+  if (env == nullptr) return -1;
+  return env->execution_async_id();
 }
 
 
 async_id AsyncHooksGetTriggerAsyncId(Isolate* isolate) {
-  return Environment::GetCurrent(isolate)->trigger_async_id();
+  Environment* env = Environment::GetCurrent(isolate);
+  if (env == nullptr) return -1;
+  return env->trigger_async_id();
 }
 
 
@@ -701,6 +713,7 @@ async_context EmitAsyncInit(Isolate* isolate,
                             v8::Local<v8::String> name,
                             async_id trigger_async_id) {
   Environment* env = Environment::GetCurrent(isolate);
+  CHECK_NOT_NULL(env);
 
   // Initialize async context struct
   if (trigger_async_id == -1)
@@ -730,6 +743,27 @@ std::string AsyncWrap::MemoryInfoName() const {
 std::string AsyncWrap::diagnostic_name() const {
   return MemoryInfoName() + " (" + std::to_string(env()->thread_id()) + ":" +
       std::to_string(static_cast<int64_t>(async_id_)) + ")";
+}
+
+Local<Object> AsyncWrap::GetOwner() {
+  return GetOwner(env(), object());
+}
+
+Local<Object> AsyncWrap::GetOwner(Environment* env, Local<Object> obj) {
+  v8::EscapableHandleScope handle_scope(env->isolate());
+  CHECK(!obj.IsEmpty());
+
+  v8::TryCatch ignore_exceptions(env->isolate());
+  while (true) {
+    Local<Value> owner;
+    if (!obj->Get(env->context(),
+                  env->owner_symbol()).ToLocal(&owner) ||
+        !owner->IsObject()) {
+      return handle_scope.Escape(obj);
+    }
+
+    obj = owner.As<Object>();
+  }
 }
 
 }  // namespace node

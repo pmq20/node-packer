@@ -43,7 +43,8 @@ function inspectValue(val) {
       // comparison.
       breakLength: Infinity,
       // Assert does not detect proxies currently.
-      showProxy: false
+      showProxy: false,
+      sorted: true
     }
   ).split('\n');
 }
@@ -270,6 +271,5 @@ class AssertionError extends Error {
 }
 
 module.exports = {
-  AssertionError,
-  errorCache: new Map()
+  AssertionError
 };

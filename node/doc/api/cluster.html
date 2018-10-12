@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Cluster | Node.js v10.9.0 Documentation</title>
+  <title>Cluster | Node.js v10.12.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -80,7 +80,7 @@
 
     <div id="column1" data-id="cluster" class="interior">
       <header>
-        <h1>Node.js v10.9.0 Documentation</h1>
+        <h1>Node.js v10.12.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -492,6 +492,10 @@ process.</li>
 <p>This function will kill the worker. In the master, it does this by disconnecting
 the <code>worker.process</code>, and once disconnected, killing with <code>signal</code>. In the
 worker, it does it by disconnecting the channel, and then exiting with code <code>0</code>.</p>
+<p>Because <code>kill()</code> attempts to gracefully disconnect the worker process, it is
+susceptible to waiting indefinitely for the disconnect to complete. For example,
+if the worker enters an infinite loop, a graceful disconnect will never occur.
+If the graceful disconnect behavior is not needed, use <code>worker.process.kill()</code>.</p>
 <p>Causes <code>.exitedAfterDisconnect</code> to be set.</p>
 <p>This method is aliased as <code>worker.destroy()</code> for backwards compatibility.</p>
 <p>Note that in a worker, <code>process.kill()</code> exists, but it is not this function,
@@ -822,7 +826,6 @@ the <code>env</code> passed to <code>.fork()</code>.</li>
 <li>The defaults above apply to the first call only, the defaults for later
 calls is the current value at the time of <code>cluster.setupMaster()</code> is called.</li>
 </ul>
-<p>Example:</p>
 <pre><code class="language-js">const cluster = require('cluster');
 cluster.setupMaster({
   exec: 'worker.js',
@@ -890,6 +893,5 @@ eachWorker((worker) => {
   <script src="assets/sh_main.js"></script>
   <script src="assets/sh_javascript.min.js"></script>
   <script>highlight(undefined, undefined, 'pre');</script>
-  <!-- __TRACKING__ -->
 </body>
 </html>

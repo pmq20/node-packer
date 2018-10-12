@@ -766,8 +766,11 @@ StartupData SnapshotCreator::CreateBlob(
       // Complete in-object slack tracking for all functions.
       fun->CompleteInobjectSlackTrackingIfActive();
 
-      // Also, clear out feedback vectors.
-      fun->feedback_cell()->set_value(isolate->heap()->undefined_value());
+      // Also, clear out feedback vectors, or any optimized code.
+      if (fun->has_feedback_vector()) {
+        fun->feedback_cell()->set_value(isolate->heap()->undefined_value());
+        fun->set_code(isolate->builtins()->builtin(i::Builtins::kCompileLazy));
+      }
     }
 
     // Clear out re-compilable data from all shared function infos. Any
@@ -2224,6 +2227,10 @@ int PrimitiveArray::Length() const {
   return array->length();
 }
 
+void PrimitiveArray::Set(Isolate* isolate, int index, Local<Primitive> item) {
+  return Set(index, item);
+}
+
 void PrimitiveArray::Set(int index, Local<Primitive> item) {
   i::Handle<i::FixedArray> array = Utils::OpenHandle(this);
   i::Isolate* isolate = array->GetIsolate();
@@ -2234,6 +2241,10 @@ void PrimitiveArray::Set(int index, Local<Primitive> item) {
                   "array length");
   i::Handle<i::Object> i_item = Utils::OpenHandle(*item);
   array->set(index, *i_item);
+}
+
+Local<Primitive> PrimitiveArray::Get(Isolate* isolate, int index) {
+  return Get(index);
 }
 
 Local<Primitive> PrimitiveArray::Get(int index) {
@@ -3019,15 +3030,20 @@ void Message::PrintCurrentStackTrace(Isolate* isolate, FILE* out) {
 
 // --- S t a c k T r a c e ---
 
-Local<StackFrame> StackTrace::GetFrame(uint32_t index) const {
-  i::Isolate* isolate = Utils::OpenHandle(this)->GetIsolate();
+Local<StackFrame> StackTrace::GetFrame(Isolate* v8_isolate,
+                                       uint32_t index) const {
+  i::Isolate* isolate = reinterpret_cast<i::Isolate*>(v8_isolate);
   ENTER_V8_NO_SCRIPT_NO_EXCEPTION(isolate);
-  EscapableHandleScope scope(reinterpret_cast<Isolate*>(isolate));
+  EscapableHandleScope scope(v8_isolate);
   auto obj = handle(Utils::OpenHandle(this)->get(index), isolate);
   auto info = i::Handle<i::StackFrameInfo>::cast(obj);
   return scope.Escape(Utils::StackFrameToLocal(info));
 }
 
+Local<StackFrame> StackTrace::GetFrame(uint32_t index) const {
+  i::Isolate* isolate = Utils::OpenHandle(this)->GetIsolate();
+  return GetFrame(reinterpret_cast<Isolate*>(isolate), index);
+}
 
 int StackTrace::GetFrameCount() const {
   return Utils::OpenHandle(this)->length();
@@ -5475,6 +5491,9 @@ bool String::ContainsOnlyOneByte() const {
   return helper.Check(*str);
 }
 
+int String::Utf8Length(Isolate* isolate) const {
+  return Utf8Length();
+}
 
 int String::Utf8Length() const {
   i::Handle<i::String> str = Utils::OpenHandle(this);
@@ -5701,12 +5720,10 @@ static bool RecursivelySerializeToUtf8(i::String* current,
 }
 
 
-int String::WriteUtf8(char* buffer,
-                      int capacity,
-                      int* nchars_ref,
-                      int options) const {
+int String::WriteUtf8(Isolate* v8_isolate, char* buffer, int capacity,
+                      int* nchars_ref, int options) const {
   i::Handle<i::String> str = Utils::OpenHandle(this);
-  i::Isolate* isolate = str->GetIsolate();
+  i::Isolate* isolate = reinterpret_cast<i::Isolate*>(v8_isolate);
   LOG_API(isolate, String, WriteUtf8);
   ENTER_V8_NO_SCRIPT_NO_EXCEPTION(isolate);
   str = i::String::Flatten(str);  // Flatten the string for efficiency.
@@ -5747,14 +5764,18 @@ int String::WriteUtf8(char* buffer,
   return writer.CompleteWrite(write_null, nchars_ref);
 }
 
+int String::WriteUtf8(char* buffer, int capacity, int* nchars_ref,
+                      int options) const {
+  i::Handle<i::String> str = Utils::OpenHandle(this);
+  i::Isolate* isolate = str->GetIsolate();
+  return WriteUtf8(reinterpret_cast<Isolate*>(isolate), buffer, capacity,
+                   nchars_ref, options);
+}
 
-template<typename CharType>
-static inline int WriteHelper(const String* string,
-                              CharType* buffer,
-                              int start,
-                              int length,
+template <typename CharType>
+static inline int WriteHelper(i::Isolate* isolate, const String* string,
+                              CharType* buffer, int start, int length,
                               int options) {
-  i::Isolate* isolate = Utils::OpenHandle(string)->GetIsolate();
   LOG_API(isolate, String, Write);
   ENTER_V8_NO_SCRIPT_NO_EXCEPTION(isolate);
   DCHECK(start >= 0 && length >= -1);
@@ -5777,7 +5798,14 @@ int String::WriteOneByte(uint8_t* buffer,
                          int start,
                          int length,
                          int options) const {
-  return WriteHelper(this, buffer, start, length, options);
+  i::Isolate* isolate = Utils::OpenHandle(this)->GetIsolate();
+  return WriteHelper(isolate, this, buffer, start, length, options);
+}
+
+int String::WriteOneByte(Isolate* isolate, uint8_t* buffer, int start,
+                         int length, int options) const {
+  return WriteHelper(reinterpret_cast<i::Isolate*>(isolate), this, buffer,
+                     start, length, options);
 }
 
 
@@ -5785,7 +5813,14 @@ int String::Write(uint16_t* buffer,
                   int start,
                   int length,
                   int options) const {
-  return WriteHelper(this, buffer, start, length, options);
+  i::Isolate* isolate = Utils::OpenHandle(this)->GetIsolate();
+  return WriteHelper(isolate, this, buffer, start, length, options);
+}
+
+int String::Write(Isolate* isolate, uint16_t* buffer, int start, int length,
+                  int options) const {
+  return WriteHelper(reinterpret_cast<i::Isolate*>(isolate), this, buffer,
+                     start, length, options);
 }
 
 
@@ -6641,10 +6676,10 @@ MaybeLocal<String> String::NewFromTwoByte(Isolate* isolate,
   return result;
 }
 
-
-Local<String> v8::String::Concat(Local<String> left, Local<String> right) {
+Local<String> v8::String::Concat(Isolate* v8_isolate, Local<String> left,
+                                 Local<String> right) {
+  i::Isolate* isolate = reinterpret_cast<i::Isolate*>(v8_isolate);
   i::Handle<i::String> left_string = Utils::OpenHandle(*left);
-  i::Isolate* isolate = left_string->GetIsolate();
   ENTER_V8_NO_SCRIPT_NO_EXCEPTION(isolate);
   LOG_API(isolate, String, Concat);
   i::Handle<i::String> right_string = Utils::OpenHandle(*right);
@@ -6658,6 +6693,11 @@ Local<String> v8::String::Concat(Local<String> left, Local<String> right) {
   return Utils::ToLocal(result);
 }
 
+Local<String> v8::String::Concat(Local<String> left, Local<String> right) {
+  i::Handle<i::String> left_string = Utils::OpenHandle(*left);
+  i::Isolate* isolate = left_string->GetIsolate();
+  return Concat(reinterpret_cast<Isolate*>(isolate), left, right);
+}
 
 MaybeLocal<String> v8::String::NewExternalTwoByte(
     Isolate* isolate, v8::String::ExternalStringResource* resource) {
@@ -6845,6 +6885,11 @@ bool v8::BooleanObject::ValueOf() const {
   i::Isolate* isolate = jsvalue->GetIsolate();
   LOG_API(isolate, BooleanObject, BooleanValue);
   return jsvalue->value()->IsTrue(isolate);
+}
+
+
+Local<v8::Value> v8::StringObject::New(Isolate* isolate, Local<String> value) {
+  return New(value);
 }
 
 
@@ -9980,7 +10025,7 @@ const char* CpuProfileNode::GetScriptResourceNameStr() const {
 }
 
 int CpuProfileNode::GetLineNumber() const {
-  return reinterpret_cast<const i::ProfileNode*>(this)->entry()->line_number();
+  return reinterpret_cast<const i::ProfileNode*>(this)->line_number();
 }
 
 
@@ -10118,9 +10163,14 @@ void CpuProfiler::CollectSample() {
 
 void CpuProfiler::StartProfiling(Local<String> title, bool record_samples) {
   reinterpret_cast<i::CpuProfiler*>(this)->StartProfiling(
-      *Utils::OpenHandle(*title), record_samples);
+      *Utils::OpenHandle(*title), record_samples, kLeafNodeLineNumbers);
 }
 
+void CpuProfiler::StartProfiling(Local<String> title, CpuProfilingMode mode,
+                                 bool record_samples) {
+  reinterpret_cast<i::CpuProfiler*>(this)->StartProfiling(
+      *Utils::OpenHandle(*title), record_samples, mode);
+}
 
 CpuProfile* CpuProfiler::StopProfiling(Local<String> title) {
   return reinterpret_cast<CpuProfile*>(

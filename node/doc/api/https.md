@@ -76,8 +76,6 @@ added: v0.3.4
  [`tls.createSecureContext()`][] and [`http.createServer()`][].
 * `requestListener` {Function} A listener to be added to the `'request'` event.
 
-Example:
-
 ```js
 // curl -k https://localhost:8000/
 const https = require('https');
@@ -118,7 +116,8 @@ added: v0.3.6
 changes:
   - version: v10.9.0
     pr-url: https://github.com/nodejs/node/pull/21616
-    description: allow both url and options to be passed to `https.get()`
+    description: The `url` parameter can now be passed along with a separate
+                 `options` object.
   - version: v7.5.0
     pr-url: https://github.com/nodejs/node/pull/10638
     description: The `options` parameter can be a WHATWG `URL` object.
@@ -133,8 +132,6 @@ Like [`http.get()`][] but for HTTPS.
 `options` can be an object, a string, or a [`URL`][] object. If `options` is a
 string, it is automatically parsed with [`url.parse()`][]. If it is a [`URL`][]
 object, it will be automatically converted to an ordinary `options` object.
-
-Example:
 
 ```js
 const https = require('https');
@@ -166,7 +163,8 @@ added: v0.3.6
 changes:
   - version: v10.9.0
     pr-url: https://github.com/nodejs/node/pull/21616
-    description: allow both url and options to be passed to `https.request()`
+    description: The `url` parameter can now be passed along with a separate
+                 `options` object.
   - version: v9.3.0
     pr-url: https://github.com/nodejs/node/pull/14903
     description: The `options` parameter can now include `clientCertEngine`.
@@ -192,8 +190,6 @@ The following additional `options` from [`tls.connect()`][] are also accepted:
 `options` can be an object, a string, or a [`URL`][] object. If `options` is a
 string, it is automatically parsed with [`url.parse()`][]. If it is a [`URL`][]
 object, it will be automatically converted to an ordinary `options` object.
-
-Example:
 
 ```js
 const https = require('https');
@@ -238,8 +234,6 @@ const req = https.request(options, (res) => {
 ```
 
 Alternatively, opt out of connection pooling by not using an [`Agent`][].
-
-Example:
 
 ```js
 const options = {

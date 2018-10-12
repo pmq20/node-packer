@@ -285,7 +285,7 @@ testAssertionMessage(/abc/gim, '/abc/gim');
 testAssertionMessage(function f() {}, '[Function: f]');
 testAssertionMessage(function() {}, '[Function]');
 testAssertionMessage({}, '{}');
-testAssertionMessage(circular, '{\n-   y: 1,\n-   x: [Circular]\n- }');
+testAssertionMessage(circular, '{\n-   x: [Circular],\n-   y: 1\n- }');
 testAssertionMessage({ a: undefined, b: null },
                      '{\n-   a: undefined,\n-   b: null\n- }');
 testAssertionMessage({ a: NaN, b: Infinity, c: -Infinity },
@@ -304,11 +304,11 @@ try {
 }
 
 try {
-  assert.strictEqual(1, 2, 'oh no');
+  assert.strictEqual(1, 2, 'oh no'); // eslint-disable-line no-restricted-syntax
 } catch (e) {
   assert.strictEqual(e.message, 'oh no');
-  assert.strictEqual(e.generatedMessage, false,
-                     'Message incorrectly marked as generated');
+  // Message should not be marked as generated.
+  assert.strictEqual(e.generatedMessage, false);
 }
 
 {
@@ -341,15 +341,15 @@ try {
 }
 
 {
-  // Verify that throws() and doesNotThrow() throw on non-function block.
-  const testBlockTypeError = (method, block) => {
+  // Verify that throws() and doesNotThrow() throw on non-functions.
+  const testBlockTypeError = (method, fn) => {
     common.expectsError(
-      () => method(block),
+      () => method(fn),
       {
         code: 'ERR_INVALID_ARG_TYPE',
         type: TypeError,
-        message: 'The "block" argument must be of type Function. Received ' +
-                 `type ${typeof block}`
+        message: 'The "fn" argument must be of type Function. Received ' +
+                 `type ${typeof fn}`
       }
     );
   };
@@ -593,8 +593,8 @@ assert.throws(
     '\n' +
     '- {}\n' +
     '+ {\n' +
-    "+   loop: 'forever',\n" +
-    '+   [Symbol(util.inspect.custom)]: [Function]\n' +
+    '+   [Symbol(nodejs.util.inspect.custom)]: [Function],\n' +
+    "+   loop: 'forever'\n" +
     '+ }'
   });
 
@@ -680,7 +680,7 @@ common.expectsError(
   () => {
     a(
       (() => 'string')()
-      // eslint-disable-next-line
+      // eslint-disable-next-line operator-linebreak
       ===
       123 instanceof
           Buffer
@@ -692,7 +692,7 @@ common.expectsError(
     message: 'The expression evaluated to a falsy value:\n\n' +
              '  a(\n' +
              '    (() => \'string\')()\n' +
-             '    // eslint-disable-next-line\n' +
+             '    // eslint-disable-next-line operator-linebreak\n' +
              '    ===\n' +
              '    123 instanceof\n' +
              '        Buffer\n' +
@@ -704,7 +704,7 @@ common.expectsError(
   () => {
     a(
       (() => 'string')()
-      // eslint-disable-next-line
+      // eslint-disable-next-line operator-linebreak
       ===
   123 instanceof
           Buffer
@@ -716,7 +716,7 @@ common.expectsError(
     message: 'The expression evaluated to a falsy value:\n\n' +
              '  a(\n' +
              '    (() => \'string\')()\n' +
-             '    // eslint-disable-next-line\n' +
+             '    // eslint-disable-next-line operator-linebreak\n' +
              '    ===\n' +
              '  123 instanceof\n' +
              '        Buffer\n' +
@@ -858,9 +858,12 @@ common.expectsError(
       code: 'ERR_ASSERTION',
       name: 'AssertionError [ERR_ASSERTION]',
       message: `${start}\n${actExp}\n\n` +
-               "  Comparison {\n    name: 'TypeError',\n" +
-               "    message: 'Wrong value',\n-   code: 404\n" +
-               '+   code: 404,\n+   foo: undefined\n  }'
+               '  Comparison {\n' +
+               '    code: 404,\n' +
+               '+   foo: undefined,\n' +
+               "    message: 'Wrong value',\n" +
+               "    name: 'TypeError'\n" +
+               '  }'
     }
   );
 
@@ -872,9 +875,13 @@ common.expectsError(
       code: 'ERR_ASSERTION',
       name: 'AssertionError [ERR_ASSERTION]',
       message: `${start}\n${actExp}\n\n` +
-               "  Comparison {\n    name: 'TypeError',\n" +
-               "    message: 'Wrong value',\n-   code: 404\n" +
-               "+   code: '404',\n+   foo: undefined\n  }"
+               '  Comparison {\n' +
+               '-   code: 404,\n' +
+               "+   code: '404',\n" +
+               '+   foo: undefined,\n' +
+               "    message: 'Wrong value',\n" +
+               "    name: 'TypeError'\n" +
+               '  }'
     }
   );
 
@@ -904,8 +911,11 @@ common.expectsError(
       name: 'AssertionError [ERR_ASSERTION]',
       code: 'ERR_ASSERTION',
       message: `${start}\n${actExp}\n\n` +
-               "  Comparison {\n-   name: 'TypeError',\n+   name: 'Error'," +
-               "\n    message: 'e'\n  }"
+               '  Comparison {\n' +
+               "    message: 'e',\n" +
+               "-   name: 'TypeError'\n" +
+               "+   name: 'Error'\n" +
+               '  }'
     }
   );
   assert.throws(
@@ -915,8 +925,11 @@ common.expectsError(
       code: 'ERR_ASSERTION',
       generatedMessage: true,
       message: `${start}\n${actExp}\n\n` +
-               "  Comparison {\n    name: 'Error',\n-   message: 'foo'" +
-               "\n+   message: ''\n  }"
+               '  Comparison {\n' +
+               "-   message: 'foo',\n" +
+               "+   message: '',\n" +
+               "    name: 'Error'\n" +
+               '  }'
     }
   );
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>N-API | Node.js v10.9.0 Documentation</title>
+  <title>N-API | Node.js v10.12.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -80,7 +80,7 @@
 
     <div id="column1" data-id="n-api" class="interior">
       <header>
-        <h1>Node.js v10.9.0 Documentation</h1>
+        <h1>Node.js v10.12.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -112,6 +112,7 @@
 <li>
 <p><span class="stability_2"><a href="#n_api_n_api">N-API</a></span></p>
 <ul>
+<li><a href="#n_api_implications_of_abi_stability">Implications of ABI Stability</a></li>
 <li><a href="#n_api_usage">Usage</a></li>
 <li><a href="#n_api_n_api_version_matrix">N-API Version Matrix</a></li>
 <li>
@@ -353,6 +354,7 @@
 <li><a href="#n_api_napi_wrap">napi_wrap</a></li>
 <li><a href="#n_api_napi_unwrap">napi_unwrap</a></li>
 <li><a href="#n_api_napi_remove_wrap">napi_remove_wrap</a></li>
+<li><a href="#n_api_napi_add_finalizer">napi_add_finalizer</a></li>
 </ul>
 </li>
 <li>
@@ -436,8 +438,8 @@ the underlying JavaScript runtime (ex V8) and is maintained as part of
 Node.js itself. This API will be Application Binary Interface (ABI) stable
 across versions of Node.js. It is intended to insulate Addons from
 changes in the underlying JavaScript engine and allow modules
-compiled for one version to run on later versions of Node.js without
-recompilation.</p>
+compiled for one major version to run on later major versions of Node.js without
+recompilation. The <a href="https://nodejs.org/en/docs/guides/abi-stability/">ABI Stability</a> guide provides a more in-depth explanation.</p>
 <p>Addons are built/packaged with the same approach/tools
 outlined in the section titled <a href="addons.html">C++ Addons</a>.
 The only difference is the set of APIs that are used by the native code.
@@ -465,6 +467,37 @@ API. Binaries built with these wrapper modules will depend on the symbols
 for the N-API C based functions exported by Node.js. These wrappers are not
 part of N-API, nor will they be maintained as part of Node.js. One such
 example is: <a href="https://github.com/nodejs/node-addon-api">node-addon-api</a>.</p>
+<h2>Implications of ABI Stability<span><a class="mark" href="#n_api_implications_of_abi_stability" id="n_api_implications_of_abi_stability">#</a></span></h2>
+<p>Although N-API provides an ABI stability guarantee, other parts of Node.js do
+not, and any external libraries used from the addon may not. In particular,
+none of the following APIs provide an ABI stability guarantee across major
+versions:</p>
+<ul>
+<li>
+<p>the Node.js C++ APIs available via any of</p>
+<pre><code class="language-C++">#include &#x3C;node.h>
+#include &#x3C;node_buffer.h>
+#include &#x3C;node_version.h>
+#include &#x3C;node_object_wrap.h>
+</code></pre>
+</li>
+<li>
+<p>the libuv APIs which are also included with Node.js and available via</p>
+<pre><code class="language-C++">#include &#x3C;uv.h>
+</code></pre>
+</li>
+<li>
+<p>the V8 API available via</p>
+<pre><code class="language-C++">#include &#x3C;v8.h>
+</code></pre>
+</li>
+</ul>
+<p>Thus, for an addon to remain ABI-compatible across Node.js major versions, it
+must make use exclusively of N-API by restricting itself to using</p>
+<pre><code class="language-C">#include &#x3C;node_api.h>
+</code></pre>
+<p>and by checking, for all external libraries that it uses, that the external
+library makes ABI stability guarantees similar to N-API.</p>
 <h2>Usage<span><a class="mark" href="#n_api_usage" id="n_api_usage">#</a></span></h2>
 <p>In order to use the N-API functions, include the file
 <a href="https://github.com/nodejs/node/blob/master/src/node_api.h"><code>node_api.h</code></a>
@@ -827,7 +860,7 @@ the name associated with the error is also updated to be:</p>
 <pre><code class="language-text">originalName [code]
 </code></pre>
 <p>where <code>originalName</code> is the original name associated with the error
-and <code>code</code> is the code that was provided. For example if the code
+and <code>code</code> is the code that was provided. For example, if the code
 is <code>'ERR_ERROR_1'</code> and a <code>TypeError</code> is being created the name will be:</p>
 <pre><code class="language-text">TypeError [ERR_ERROR_1]
 </code></pre>
@@ -906,7 +939,7 @@ the error.</li>
 </code></pre>
 <ul>
 <li><code>[in] env</code>: The environment that the API is invoked under.</li>
-<li><code>[in] msg</code>: The <code>napi_value</code> to be checked.</li>
+<li><code>[in] value</code>: The <code>napi_value</code> to be checked.</li>
 <li><code>[out] result</code>: Boolean value that is set to true if <code>napi_value</code> represents
 an error, false otherwise.</li>
 </ul>
@@ -1897,7 +1930,7 @@ outside the range of
 </div>
 <p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
 <pre><code class="language-C">napi_status napi_create_bigint_uint64(napi_env env,
-                                      uint64_t vaue,
+                                      uint64_t value,
                                       napi_value* result);
 </code></pre>
 <ul>
@@ -3172,6 +3205,10 @@ following:</p>
 JavaScript functions from native code. One can either call a function
 like a regular JavaScript function call, or as a constructor
 function.</p>
+<p>Any non-<code>NULL</code> data which is passed to this API via the <code>data</code> field of the
+<code>napi_property_descriptor</code> items can be associated with <code>object</code> and freed
+whenever <code>object</code> is garbage-collected by passing both <code>object</code> and the data to
+<a href="#n_api_napi_add_finalizer"><code>napi_add_finalizer</code></a>.</p>
 <h3>napi_call_function<span><a class="mark" href="#n_api_napi_call_function" id="n_api_napi_call_function">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
@@ -3293,6 +3330,10 @@ myaddon.sayHello();
 </code></pre>
 <p>The string passed to <code>require()</code> is the name of the target in <code>binding.gyp</code>
 responsible for creating the <code>.node</code> file.</p>
+<p>Any non-<code>NULL</code> data which is passed to this API via the <code>data</code> parameter can
+be associated with the resulting JavaScript function (which is returned in the
+<code>result</code> parameter) and freed whenever the function is garbage-collected by
+passing both the JavaScript function and the data to <a href="#n_api_napi_add_finalizer"><code>napi_add_finalizer</code></a>.</p>
 <p>JavaScript <code>Function</code>s are described in
 <a href="https://tc39.github.io/ecma262/#sec-function-objects">Section 19.2</a>
 of the ECMAScript Language Specification.</p>
@@ -3411,7 +3452,6 @@ the call.</li>
 called on a class prototype and a function called on an instance of a class.
 A common pattern used to address this problem is to save a persistent
 reference to the class constructor for later <code>instanceof</code> checks.</p>
-<p>As an example:</p>
 <pre><code class="language-C">napi_value MyClass_constructor = NULL;
 status = napi_get_reference_value(env, MyClass::es_constructor, &#x26;MyClass_constructor);
 assert(napi_ok == status);
@@ -3479,6 +3519,11 @@ code, and/or check whether provided values are instances of the class. In that
 case, to prevent the function value from being garbage-collected, create a
 persistent reference to it using <a href="#n_api_napi_create_reference"><code>napi_create_reference</code></a> and ensure the
 reference count is kept >= 1.</p>
+<p>Any non-<code>NULL</code> data which is passed to this API via the <code>data</code> parameter or via
+the <code>data</code> field of the <code>napi_property_descriptor</code> array items can be associated
+with the resulting JavaScript constructor (which is returned in the <code>result</code>
+parameter) and freed whenever the class is garbage-collected by passing both
+the JavaScript function and the data to <a href="#n_api_napi_add_finalizer"><code>napi_add_finalizer</code></a>.</p>
 <h3>napi_wrap<span><a class="mark" href="#n_api_napi_wrap" id="n_api_napi_wrap">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
@@ -3494,8 +3539,7 @@ reference count is kept >= 1.</p>
 <ul>
 <li><code>[in] env</code>: The environment that the API is invoked under.</li>
 <li><code>[in] js_object</code>: The JavaScript object that will be the wrapper for the
-native object. This object <em>must</em> have been created from the <code>prototype</code> of
-a constructor that was created using <code>napi_define_class()</code>.</li>
+native object.</li>
 <li><code>[in] native_object</code>: The native instance that will be wrapped in the
 JavaScript object.</li>
 <li><code>[in] finalize_cb</code>: Optional native callback that can be used to free the
@@ -3522,12 +3566,9 @@ has a reference count of 0. Typically this reference count would be incremented
 temporarily during async operations that require the instance to remain valid.</p>
 <p><em>Caution</em>: The optional returned reference (if obtained) should be deleted via
 <a href="#n_api_napi_delete_reference"><code>napi_delete_reference</code></a> ONLY in response to the finalize callback
-invocation. (If it is deleted before then, then the finalize callback may never
-be invoked.) Therefore, when obtaining a reference a finalize callback is also
-required in order to enable correct proper of the reference.</p>
-<p>This API may modify the prototype chain of the wrapper object. Afterward,
-additional manipulation of the wrapper's prototype chain may cause
-<code>napi_unwrap()</code> to fail.</p>
+invocation. If it is deleted before then, then the finalize callback may never
+be invoked. Therefore, when obtaining a reference a finalize callback is also
+required in order to enable correct disposal of the reference.</p>
 <p>Calling <code>napi_wrap()</code> a second time on an object will return an error. To
 associate another native instance with the object, use <code>napi_remove_wrap()</code>
 first.</p>
@@ -3569,10 +3610,48 @@ then by calling <code>napi_unwrap()</code> on the wrapper object.</p>
 </ul>
 <p>Returns <code>napi_ok</code> if the API succeeded.</p>
 <p>Retrieves a native instance that was previously wrapped in the JavaScript
-object <code>js_object</code> using <code>napi_wrap()</code> and removes the wrapping, thereby
-restoring the JavaScript object's prototype chain. If a finalize callback was
-associated with the wrapping, it will no longer be called when the JavaScript
-object becomes garbage-collected.</p>
+object <code>js_object</code> using <code>napi_wrap()</code> and removes the wrapping. If a finalize
+callback was associated with the wrapping, it will no longer be called when the
+JavaScript object becomes garbage-collected.</p>
+<h3>napi_add_finalizer<span><a class="mark" href="#n_api_napi_add_finalizer" id="n_api_napi_add_finalizer">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.0.0</span>
+<span>N-API version: 1</span>
+</div>
+<pre><code class="language-C">napi_status napi_add_finalizer(napi_env env,
+                               napi_value js_object,
+                               void* native_object,
+                               napi_finalize finalize_cb,
+                               void* finalize_hint,
+                               napi_ref* result);
+</code></pre>
+<ul>
+<li><code>[in] env</code>: The environment that the API is invoked under.</li>
+<li><code>[in] js_object</code>: The JavaScript object to which the native data will be
+attached.</li>
+<li><code>[in] native_object</code>: The native data that will be attached to the JavaScript
+object.</li>
+<li><code>[in] finalize_cb</code>: Native callback that will be used to free the
+native data when the JavaScript object is ready for garbage-collection.</li>
+<li><code>[in] finalize_hint</code>: Optional contextual hint that is passed to the
+finalize callback.</li>
+<li><code>[out] result</code>: Optional reference to the JavaScript object.</li>
+</ul>
+<p>Returns <code>napi_ok</code> if the API succeeded.</p>
+<p>Adds a <code>napi_finalize</code> callback which will be called when the JavaScript object
+in <code>js_object</code> is ready for garbage collection. This API is similar to
+<code>napi_wrap()</code> except that</p>
+<ul>
+<li>the native data cannot be retrieved later using <code>napi_unwrap()</code>,</li>
+<li>nor can it be removed later using <code>napi_remove_wrap()</code>, and</li>
+<li>the API can be called multiple times with different data items in order to
+attach each of them to the JavaScript object.</li>
+</ul>
+<p><em>Caution</em>: The optional returned reference (if obtained) should be deleted via
+<a href="#n_api_napi_delete_reference"><code>napi_delete_reference</code></a> ONLY in response to the finalize callback
+invocation. If it is deleted before then, then the finalize callback may never
+be invoked. Therefore, when obtaining a reference a finalize callback is also
+required in order to enable correct disposal of the reference.</p>
 <h2>Simple Asynchronous Operations<span><a class="mark" href="#n_api_simple_asynchronous_operations" id="n_api_simple_asynchronous_operations">#</a></span></h2>
 <p>Addon modules often need to leverage async helpers from libuv as part of their
 implementation. This allows them to schedule work to be executed asynchronously
@@ -3815,7 +3894,7 @@ invoking the callback. This should be a value previously obtained
 from <a href="#n_api_napi_async_init"><code>napi_async_init</code></a>.</li>
 <li><code>[out] result</code>: The newly created scope.</li>
 </ul>
-<p>There are cases (for example resolving promises) where it is
+<p>There are cases (for example, resolving promises) where it is
 necessary to have the equivalent of the scope associated with a callback
 in place when making certain N-API calls. If there is no other script on
 the stack the <a href="#n_api_napi_open_callback_scope"><code>napi_open_callback_scope</code></a> and
@@ -4189,8 +4268,8 @@ by the <code>async_hooks</code> API.</li>
 <li><code>[in] max_queue_size</code>: Maximum size of the queue. <code>0</code> for no limit.</li>
 <li><code>[in] initial_thread_count</code>: The initial number of threads, including the main
 thread, which will be making use of this function.</li>
-<li><code>[in] thread_finalize_data</code>: Data to be passed to <code>thread_finalize_cb</code>.</li>
-<li><code>[in] thread_finalize_cb</code>: Function to call when the
+<li><code>[in] thread_finalize_data</code>: Optional data to be passed to <code>thread_finalize_cb</code>.</li>
+<li><code>[in] thread_finalize_cb</code>: Optional function to call when the
 <code>napi_threadsafe_function</code> is being destroyed.</li>
 <li><code>[in] context</code>: Optional data to attach to the resulting
 <code>napi_threadsafe_function</code>.</li>
@@ -4315,6 +4394,5 @@ idempotent.</p>
   <script src="assets/sh_main.js"></script>
   <script src="assets/sh_javascript.min.js"></script>
   <script>highlight(undefined, undefined, 'pre');</script>
-  <!-- __TRACKING__ -->
 </body>
 </html>

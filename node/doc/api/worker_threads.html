@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Worker Threads | Node.js v10.9.0 Documentation</title>
+  <title>Worker Threads | Node.js v10.12.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -80,7 +80,7 @@
 
     <div id="column1" data-id="worker_threads" class="interior">
       <header>
-        <h1>Node.js v10.9.0 Documentation</h1>
+        <h1>Node.js v10.12.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -105,7 +105,6 @@
 <li>
 <p><span class="stability_1"><a href="#worker_threads_worker_threads">Worker Threads</a></span></p>
 <ul>
-<li><a href="#worker_threads_example">Example</a></li>
 <li><a href="#worker_threads_worker_ismainthread">worker.isMainThread</a></li>
 <li><a href="#worker_threads_worker_parentport">worker.parentPort</a></li>
 <li><a href="#worker_threads_worker_threadid">worker.threadId</a></li>
@@ -161,7 +160,6 @@ asynchronously already treat it more efficiently than Worker threads can.</p>
 <p>Workers, unlike child processes or when using the <code>cluster</code> module, can also
 share memory efficiently by transferring <code>ArrayBuffer</code> instances or sharing
 <code>SharedArrayBuffer</code> instances between them.</p>
-<h2>Example<span><a class="mark" href="#worker_threads_example" id="worker_threads_example">#</a></span></h2>
 <pre><code class="language-js">const {
   Worker, isMainThread, parentPort, workerData
 } = require('worker_threads');
@@ -380,7 +378,6 @@ pre-existing channel, such as the global one.</p>
 <p>See <a href="#worker_threads_port_postmessage_value_transferlist"><code>port.postMessage()</code></a> for more information on how messages are passed,
 and what kind of JavaScript values can be successfully transported through
 the thread barrier.</p>
-<p>For example:</p>
 <pre><code class="language-js">const assert = require('assert');
 const {
   Worker, MessageChannel, MessagePort, isMainThread, parentPort
@@ -519,7 +516,13 @@ inside the worker thread. If <code>stdout: true</code> was not passed to the
 <span>Added in: v10.5.0</span>
 </div>
 <ul>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
+<li>
+<p><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></p>
+<ul>
+<li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&#x3C;Error></a></li>
+<li><code>exitCode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
+</ul>
+</li>
 </ul>
 <p>Stop all JavaScript execution in the worker thread as soon as possible.
 <code>callback</code> is an optional function that is invoked once this operation is known
@@ -551,6 +554,5 @@ active handle in the event system. If the worker is already <code>unref()</code>
   <script src="assets/sh_main.js"></script>
   <script src="assets/sh_javascript.min.js"></script>
   <script>highlight(undefined, undefined, 'pre');</script>
-  <!-- __TRACKING__ -->
 </body>
 </html>

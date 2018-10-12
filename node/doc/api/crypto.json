@@ -76,6 +76,11 @@
                 ],
                 "changes": [
                   {
+                    "version": "v10.10.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/21447",
+                    "description": "Ciphers in OCB mode are now supported."
+                  },
+                  {
                     "version": "v10.2.0",
                     "pr-url": "https://github.com/nodejs/node/pull/20235",
                     "description": "The `authTagLength` option can now be used to produce shorter authentication tags in GCM mode and defaults to 16 bytes."
@@ -112,7 +117,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Creates and returns a <code>Cipher</code> object that uses the given <code>algorithm</code> and\n<code>password</code>.</p>\n<p>The <code>options</code> argument controls stream behavior and is optional except when a\ncipher in CCM mode is used (e.g. <code>'aes-128-ccm'</code>). In that case, the\n<code>authTagLength</code> option is required and specifies the length of the\nauthentication tag in bytes, see <a href=\"#crypto_ccm_mode\">CCM mode</a>. In GCM mode, the <code>authTagLength</code>\noption is not required but can be used to set the length of the authentication\ntag that will be returned by <code>getAuthTag()</code> and defaults to 16 bytes.</p>\n<p>The <code>algorithm</code> is dependent on OpenSSL, examples are <code>'aes192'</code>, etc. On\nrecent OpenSSL releases, <code>openssl list -cipher-algorithms</code>\n(<code>openssl list-cipher-algorithms</code> for older versions of OpenSSL) will\ndisplay the available cipher algorithms.</p>\n<p>The <code>password</code> is used to derive the cipher key and initialization vector (IV).\nThe value must be either a <code>'latin1'</code> encoded string, a <a href=\"buffer.html\"><code>Buffer</code></a>, a\n<code>TypedArray</code>, or a <code>DataView</code>.</p>\n<p>The implementation of <code>crypto.createCipher()</code> derives keys using the OpenSSL\nfunction <a href=\"https://www.openssl.org/docs/man1.1.0/crypto/EVP_BytesToKey.html\"><code>EVP_BytesToKey</code></a> with the digest algorithm set to MD5, one\niteration, and no salt. The lack of salt allows dictionary attacks as the same\npassword always creates the same key. The low iteration count and\nnon-cryptographically secure hash algorithm allow passwords to be tested very\nrapidly.</p>\n<p>In line with OpenSSL's recommendation to use a more modern algorithm instead of\n<a href=\"https://www.openssl.org/docs/man1.1.0/crypto/EVP_BytesToKey.html\"><code>EVP_BytesToKey</code></a> it is recommended that developers derive a key and IV on\ntheir own using <a href=\"#crypto_crypto_scrypt_password_salt_keylen_options_callback\"><code>crypto.scrypt()</code></a> and to use <a href=\"#crypto_crypto_createcipheriv_algorithm_key_iv_options\"><code>crypto.createCipheriv()</code></a>\nto create the <code>Cipher</code> object. Users should not use ciphers with counter mode\n(e.g. CTR, GCM, or CCM) in <code>crypto.createCipher()</code>. A warning is emitted when\nthey are used in order to avoid the risk of IV reuse that causes\nvulnerabilities. For the case when IV is reused in GCM, see <a href=\"https://github.com/nonce-disrespect/nonce-disrespect\">Nonce-Disrespecting\nAdversaries</a> for details.</p>"
+              "desc": "<p>Creates and returns a <code>Cipher</code> object that uses the given <code>algorithm</code> and\n<code>password</code>.</p>\n<p>The <code>options</code> argument controls stream behavior and is optional except when a\ncipher in CCM or OCB mode is used (e.g. <code>'aes-128-ccm'</code>). In that case, the\n<code>authTagLength</code> option is required and specifies the length of the\nauthentication tag in bytes, see <a href=\"#crypto_ccm_mode\">CCM mode</a>. In GCM mode, the <code>authTagLength</code>\noption is not required but can be used to set the length of the authentication\ntag that will be returned by <code>getAuthTag()</code> and defaults to 16 bytes.</p>\n<p>The <code>algorithm</code> is dependent on OpenSSL, examples are <code>'aes192'</code>, etc. On\nrecent OpenSSL releases, <code>openssl list -cipher-algorithms</code>\n(<code>openssl list-cipher-algorithms</code> for older versions of OpenSSL) will\ndisplay the available cipher algorithms.</p>\n<p>The <code>password</code> is used to derive the cipher key and initialization vector (IV).\nThe value must be either a <code>'latin1'</code> encoded string, a <a href=\"buffer.html\"><code>Buffer</code></a>, a\n<code>TypedArray</code>, or a <code>DataView</code>.</p>\n<p>The implementation of <code>crypto.createCipher()</code> derives keys using the OpenSSL\nfunction <a href=\"https://www.openssl.org/docs/man1.1.0/crypto/EVP_BytesToKey.html\"><code>EVP_BytesToKey</code></a> with the digest algorithm set to MD5, one\niteration, and no salt. The lack of salt allows dictionary attacks as the same\npassword always creates the same key. The low iteration count and\nnon-cryptographically secure hash algorithm allow passwords to be tested very\nrapidly.</p>\n<p>In line with OpenSSL's recommendation to use a more modern algorithm instead of\n<a href=\"https://www.openssl.org/docs/man1.1.0/crypto/EVP_BytesToKey.html\"><code>EVP_BytesToKey</code></a> it is recommended that developers derive a key and IV on\ntheir own using <a href=\"#crypto_crypto_scrypt_password_salt_keylen_options_callback\"><code>crypto.scrypt()</code></a> and to use <a href=\"#crypto_crypto_createcipheriv_algorithm_key_iv_options\"><code>crypto.createCipheriv()</code></a>\nto create the <code>Cipher</code> object. Users should not use ciphers with counter mode\n(e.g. CTR, GCM, or CCM) in <code>crypto.createCipher()</code>. A warning is emitted when\nthey are used in order to avoid the risk of IV reuse that causes\nvulnerabilities. For the case when IV is reused in GCM, see <a href=\"https://github.com/nonce-disrespect/nonce-disrespect\">Nonce-Disrespecting\nAdversaries</a> for details.</p>"
             },
             {
               "textRaw": "crypto.createCipheriv(algorithm, key, iv[, options])",
@@ -123,6 +128,11 @@
                   "v0.1.94"
                 ],
                 "changes": [
+                  {
+                    "version": "v10.10.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/21447",
+                    "description": "Ciphers in OCB mode are now supported."
+                  },
                   {
                     "version": "v10.2.0",
                     "pr-url": "https://github.com/nodejs/node/pull/20235",
@@ -168,7 +178,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Creates and returns a <code>Cipher</code> object, with the given <code>algorithm</code>, <code>key</code> and\ninitialization vector (<code>iv</code>).</p>\n<p>The <code>options</code> argument controls stream behavior and is optional except when a\ncipher in CCM mode is used (e.g. <code>'aes-128-ccm'</code>). In that case, the\n<code>authTagLength</code> option is required and specifies the length of the\nauthentication tag in bytes, see <a href=\"#crypto_ccm_mode\">CCM mode</a>. In GCM mode, the <code>authTagLength</code>\noption is not required but can be used to set the length of the authentication\ntag that will be returned by <code>getAuthTag()</code> and defaults to 16 bytes.</p>\n<p>The <code>algorithm</code> is dependent on OpenSSL, examples are <code>'aes192'</code>, etc. On\nrecent OpenSSL releases, <code>openssl list -cipher-algorithms</code>\n(<code>openssl list-cipher-algorithms</code> for older versions of OpenSSL) will\ndisplay the available cipher algorithms.</p>\n<p>The <code>key</code> is the raw key used by the <code>algorithm</code> and <code>iv</code> is an\n<a href=\"https://en.wikipedia.org/wiki/Initialization_vector\">initialization vector</a>. Both arguments must be <code>'utf8'</code> encoded strings,\n<a href=\"buffer.html\">Buffers</a>, <code>TypedArray</code>, or <code>DataView</code>s. If the cipher does not need\nan initialization vector, <code>iv</code> may be <code>null</code>.</p>\n<p>Initialization vectors should be unpredictable and unique; ideally, they will be\ncryptographically random. They do not have to be secret: IVs are typically just\nadded to ciphertext messages unencrypted. It may sound contradictory that\nsomething has to be unpredictable and unique, but does not have to be secret;\nit is important to remember that an attacker must not be able to predict ahead\nof time what a given IV will be.</p>"
+              "desc": "<p>Creates and returns a <code>Cipher</code> object, with the given <code>algorithm</code>, <code>key</code> and\ninitialization vector (<code>iv</code>).</p>\n<p>The <code>options</code> argument controls stream behavior and is optional except when a\ncipher in CCM or OCB mode is used (e.g. <code>'aes-128-ccm'</code>). In that case, the\n<code>authTagLength</code> option is required and specifies the length of the\nauthentication tag in bytes, see <a href=\"#crypto_ccm_mode\">CCM mode</a>. In GCM mode, the <code>authTagLength</code>\noption is not required but can be used to set the length of the authentication\ntag that will be returned by <code>getAuthTag()</code> and defaults to 16 bytes.</p>\n<p>The <code>algorithm</code> is dependent on OpenSSL, examples are <code>'aes192'</code>, etc. On\nrecent OpenSSL releases, <code>openssl list -cipher-algorithms</code>\n(<code>openssl list-cipher-algorithms</code> for older versions of OpenSSL) will\ndisplay the available cipher algorithms.</p>\n<p>The <code>key</code> is the raw key used by the <code>algorithm</code> and <code>iv</code> is an\n<a href=\"https://en.wikipedia.org/wiki/Initialization_vector\">initialization vector</a>. Both arguments must be <code>'utf8'</code> encoded strings,\n<a href=\"buffer.html\">Buffers</a>, <code>TypedArray</code>, or <code>DataView</code>s. If the cipher does not need\nan initialization vector, <code>iv</code> may be <code>null</code>.</p>\n<p>Initialization vectors should be unpredictable and unique; ideally, they will be\ncryptographically random. They do not have to be secret: IVs are typically just\nadded to ciphertext messages unencrypted. It may sound contradictory that\nsomething has to be unpredictable and unique, but does not have to be secret;\nit is important to remember that an attacker must not be able to predict ahead\nof time what a given IV will be.</p>"
             },
             {
               "textRaw": "crypto.createCredentials(details)",
@@ -215,7 +225,13 @@
                 "deprecated": [
                   "v10.0.0"
                 ],
-                "changes": []
+                "changes": [
+                  {
+                    "version": "v10.10.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/21447",
+                    "description": "Ciphers in OCB mode are now supported."
+                  }
+                ]
               },
               "stability": 0,
               "stabilityText": "Deprecated: Use [`crypto.createDecipheriv()`][] instead.",
@@ -247,7 +263,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Creates and returns a <code>Decipher</code> object that uses the given <code>algorithm</code> and\n<code>password</code> (key).</p>\n<p>The <code>options</code> argument controls stream behavior and is optional except when a\ncipher in CCM mode is used (e.g. <code>'aes-128-ccm'</code>). In that case, the\n<code>authTagLength</code> option is required and specifies the length of the\nauthentication tag in bytes, see <a href=\"#crypto_ccm_mode\">CCM mode</a>.</p>\n<p>The implementation of <code>crypto.createDecipher()</code> derives keys using the OpenSSL\nfunction <a href=\"https://www.openssl.org/docs/man1.1.0/crypto/EVP_BytesToKey.html\"><code>EVP_BytesToKey</code></a> with the digest algorithm set to MD5, one\niteration, and no salt. The lack of salt allows dictionary attacks as the same\npassword always creates the same key. The low iteration count and\nnon-cryptographically secure hash algorithm allow passwords to be tested very\nrapidly.</p>\n<p>In line with OpenSSL's recommendation to use a more modern algorithm instead of\n<a href=\"https://www.openssl.org/docs/man1.1.0/crypto/EVP_BytesToKey.html\"><code>EVP_BytesToKey</code></a> it is recommended that developers derive a key and IV on\ntheir own using <a href=\"#crypto_crypto_scrypt_password_salt_keylen_options_callback\"><code>crypto.scrypt()</code></a> and to use <a href=\"#crypto_crypto_createdecipheriv_algorithm_key_iv_options\"><code>crypto.createDecipheriv()</code></a>\nto create the <code>Decipher</code> object.</p>"
+              "desc": "<p>Creates and returns a <code>Decipher</code> object that uses the given <code>algorithm</code> and\n<code>password</code> (key).</p>\n<p>The <code>options</code> argument controls stream behavior and is optional except when a\ncipher in CCM or OCB mode is used (e.g. <code>'aes-128-ccm'</code>). In that case, the\n<code>authTagLength</code> option is required and specifies the length of the\nauthentication tag in bytes, see <a href=\"#crypto_ccm_mode\">CCM mode</a>.</p>\n<p>The implementation of <code>crypto.createDecipher()</code> derives keys using the OpenSSL\nfunction <a href=\"https://www.openssl.org/docs/man1.1.0/crypto/EVP_BytesToKey.html\"><code>EVP_BytesToKey</code></a> with the digest algorithm set to MD5, one\niteration, and no salt. The lack of salt allows dictionary attacks as the same\npassword always creates the same key. The low iteration count and\nnon-cryptographically secure hash algorithm allow passwords to be tested very\nrapidly.</p>\n<p>In line with OpenSSL's recommendation to use a more modern algorithm instead of\n<a href=\"https://www.openssl.org/docs/man1.1.0/crypto/EVP_BytesToKey.html\"><code>EVP_BytesToKey</code></a> it is recommended that developers derive a key and IV on\ntheir own using <a href=\"#crypto_crypto_scrypt_password_salt_keylen_options_callback\"><code>crypto.scrypt()</code></a> and to use <a href=\"#crypto_crypto_createdecipheriv_algorithm_key_iv_options\"><code>crypto.createDecipheriv()</code></a>\nto create the <code>Decipher</code> object.</p>"
             },
             {
               "textRaw": "crypto.createDecipheriv(algorithm, key, iv[, options])",
@@ -258,6 +274,11 @@
                   "v0.1.94"
                 ],
                 "changes": [
+                  {
+                    "version": "v10.10.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/21447",
+                    "description": "Ciphers in OCB mode are now supported."
+                  },
                   {
                     "version": "v10.2.0",
                     "pr-url": "https://github.com/nodejs/node/pull/20039",
@@ -303,7 +324,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Creates and returns a <code>Decipher</code> object that uses the given <code>algorithm</code>, <code>key</code>\nand initialization vector (<code>iv</code>).</p>\n<p>The <code>options</code> argument controls stream behavior and is optional except when a\ncipher in CCM mode is used (e.g. <code>'aes-128-ccm'</code>). In that case, the\n<code>authTagLength</code> option is required and specifies the length of the\nauthentication tag in bytes, see <a href=\"#crypto_ccm_mode\">CCM mode</a>. In GCM mode, the <code>authTagLength</code>\noption is not required but can be used to restrict accepted authentication tags\nto those with the specified length.</p>\n<p>The <code>algorithm</code> is dependent on OpenSSL, examples are <code>'aes192'</code>, etc. On\nrecent OpenSSL releases, <code>openssl list -cipher-algorithms</code>\n(<code>openssl list-cipher-algorithms</code> for older versions of OpenSSL) will\ndisplay the available cipher algorithms.</p>\n<p>The <code>key</code> is the raw key used by the <code>algorithm</code> and <code>iv</code> is an\n<a href=\"https://en.wikipedia.org/wiki/Initialization_vector\">initialization vector</a>. Both arguments must be <code>'utf8'</code> encoded strings,\n<a href=\"buffer.html\">Buffers</a>, <code>TypedArray</code>, or <code>DataView</code>s. If the cipher does not need\nan initialization vector, <code>iv</code> may be <code>null</code>.</p>\n<p>Initialization vectors should be unpredictable and unique; ideally, they will be\ncryptographically random. They do not have to be secret: IVs are typically just\nadded to ciphertext messages unencrypted. It may sound contradictory that\nsomething has to be unpredictable and unique, but does not have to be secret;\nit is important to remember that an attacker must not be able to predict ahead\nof time what a given IV will be.</p>"
+              "desc": "<p>Creates and returns a <code>Decipher</code> object that uses the given <code>algorithm</code>, <code>key</code>\nand initialization vector (<code>iv</code>).</p>\n<p>The <code>options</code> argument controls stream behavior and is optional except when a\ncipher in CCM or OCB mode is used (e.g. <code>'aes-128-ccm'</code>). In that case, the\n<code>authTagLength</code> option is required and specifies the length of the\nauthentication tag in bytes, see <a href=\"#crypto_ccm_mode\">CCM mode</a>. In GCM mode, the <code>authTagLength</code>\noption is not required but can be used to restrict accepted authentication tags\nto those with the specified length.</p>\n<p>The <code>algorithm</code> is dependent on OpenSSL, examples are <code>'aes192'</code>, etc. On\nrecent OpenSSL releases, <code>openssl list -cipher-algorithms</code>\n(<code>openssl list-cipher-algorithms</code> for older versions of OpenSSL) will\ndisplay the available cipher algorithms.</p>\n<p>The <code>key</code> is the raw key used by the <code>algorithm</code> and <code>iv</code> is an\n<a href=\"https://en.wikipedia.org/wiki/Initialization_vector\">initialization vector</a>. Both arguments must be <code>'utf8'</code> encoded strings,\n<a href=\"buffer.html\">Buffers</a>, <code>TypedArray</code>, or <code>DataView</code>s. If the cipher does not need\nan initialization vector, <code>iv</code> may be <code>null</code>.</p>\n<p>Initialization vectors should be unpredictable and unique; ideally, they will be\ncryptographically random. They do not have to be secret: IVs are typically just\nadded to ciphertext messages unencrypted. It may sound contradictory that\nsomething has to be unpredictable and unique, but does not have to be secret;\nit is important to remember that an attacker must not be able to predict ahead\nof time what a given IV will be.</p>"
             },
             {
               "textRaw": "crypto.createDiffieHellman(prime[, primeEncoding][, generator][, generatorEncoding])",
@@ -562,6 +583,257 @@
               "desc": "<p>Creates and returns a <code>Verify</code> object that uses the given algorithm.\nUse <a href=\"#crypto_crypto_gethashes\"><code>crypto.getHashes()</code></a> to obtain an array of names of the available\nsigning algorithms. Optional <code>options</code> argument controls the\n<code>stream.Writable</code> behavior.</p>"
             },
             {
+              "textRaw": "crypto.generateKeyPair(type, options, callback)",
+              "type": "method",
+              "name": "generateKeyPair",
+              "meta": {
+                "added": [
+                  "v10.12.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`type`: {string} Must be `'rsa'`, `'dsa'` or `'ec'`.",
+                      "name": "type",
+                      "type": "string",
+                      "desc": "Must be `'rsa'`, `'dsa'` or `'ec'`."
+                    },
+                    {
+                      "textRaw": "`options`: {Object}",
+                      "name": "options",
+                      "type": "Object",
+                      "options": [
+                        {
+                          "textRaw": "`modulusLength`: {number} Key size in bits (RSA, DSA).",
+                          "name": "modulusLength",
+                          "type": "number",
+                          "desc": "Key size in bits (RSA, DSA)."
+                        },
+                        {
+                          "textRaw": "`publicExponent`: {number} Public exponent (RSA). **Default:** `0x10001`.",
+                          "name": "publicExponent",
+                          "type": "number",
+                          "default": "`0x10001`",
+                          "desc": "Public exponent (RSA)."
+                        },
+                        {
+                          "textRaw": "`divisorLength`: {number} Size of `q` in bits (DSA).",
+                          "name": "divisorLength",
+                          "type": "number",
+                          "desc": "Size of `q` in bits (DSA)."
+                        },
+                        {
+                          "textRaw": "`namedCurve`: {string} Name of the curve to use (EC).",
+                          "name": "namedCurve",
+                          "type": "string",
+                          "desc": "Name of the curve to use (EC)."
+                        },
+                        {
+                          "textRaw": "`publicKeyEncoding`: {Object}",
+                          "name": "publicKeyEncoding",
+                          "type": "Object",
+                          "options": [
+                            {
+                              "textRaw": "`type`: {string} Must be one of `'pkcs1'` (RSA only) or `'spki'`.",
+                              "name": "type",
+                              "type": "string",
+                              "desc": "Must be one of `'pkcs1'` (RSA only) or `'spki'`."
+                            },
+                            {
+                              "textRaw": "`format`: {string} Must be `'pem'` or `'der'`.",
+                              "name": "format",
+                              "type": "string",
+                              "desc": "Must be `'pem'` or `'der'`."
+                            }
+                          ]
+                        },
+                        {
+                          "textRaw": "`privateKeyEncoding`: {Object}",
+                          "name": "privateKeyEncoding",
+                          "type": "Object",
+                          "options": [
+                            {
+                              "textRaw": "`type`: {string} Must be one of `'pkcs1'` (RSA only), `'pkcs8'` or `'sec1'` (EC only).",
+                              "name": "type",
+                              "type": "string",
+                              "desc": "Must be one of `'pkcs1'` (RSA only), `'pkcs8'` or `'sec1'` (EC only)."
+                            },
+                            {
+                              "textRaw": "`format`: {string} Must be `'pem'` or `'der'`.",
+                              "name": "format",
+                              "type": "string",
+                              "desc": "Must be `'pem'` or `'der'`."
+                            },
+                            {
+                              "textRaw": "`cipher`: {string} If specified, the private key will be encrypted with the given `cipher` and `passphrase` using PKCS#5 v2.0 password based encryption.",
+                              "name": "cipher",
+                              "type": "string",
+                              "desc": "If specified, the private key will be encrypted with the given `cipher` and `passphrase` using PKCS#5 v2.0 password based encryption."
+                            },
+                            {
+                              "textRaw": "`passphrase`: {string} The passphrase to use for encryption, see `cipher`.",
+                              "name": "passphrase",
+                              "type": "string",
+                              "desc": "The passphrase to use for encryption, see `cipher`."
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "textRaw": "`callback`: {Function}",
+                      "name": "callback",
+                      "type": "Function",
+                      "options": [
+                        {
+                          "textRaw": "`err`: {Error}",
+                          "name": "err",
+                          "type": "Error"
+                        },
+                        {
+                          "textRaw": "`publicKey`: {string|Buffer}",
+                          "name": "publicKey",
+                          "type": "string|Buffer"
+                        },
+                        {
+                          "textRaw": "`privateKey`: {string|Buffer}",
+                          "name": "privateKey",
+                          "type": "string|Buffer"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Generates a new asymmetric key pair of the given <code>type</code>. Only RSA, DSA and EC\nare currently supported.</p>\n<p>It is recommended to encode public keys as <code>'spki'</code> and private keys as\n<code>'pkcs8'</code> with encryption:</p>\n<pre><code class=\"language-js\">const { generateKeyPair } = require('crypto');\ngenerateKeyPair('rsa', {\n  modulusLength: 4096,\n  publicKeyEncoding: {\n    type: 'spki',\n    format: 'pem'\n  },\n  privateKeyEncoding: {\n    type: 'pkcs8',\n    format: 'pem',\n    cipher: 'aes-256-cbc',\n    passphrase: 'top secret'\n  }\n}, (err, publicKey, privateKey) => {\n  // Handle errors and use the generated key pair.\n});\n</code></pre>\n<p>On completion, <code>callback</code> will be called with <code>err</code> set to <code>undefined</code> and\n<code>publicKey</code> / <code>privateKey</code> representing the generated key pair. When PEM\nencoding was selected, the result will be a string, otherwise it will be a\nbuffer containing the data encoded as DER. Note that Node.js itself does not\naccept DER, it is supported for interoperability with other libraries such as\nWebCrypto only.</p>\n<p>If this method is invoked as its <a href=\"util.html#util_util_promisify_original\"><code>util.promisify()</code></a>ed version, it returns\na <code>Promise</code> for an <code>Object</code> with <code>publicKey</code> and <code>privateKey</code> properties.</p>"
+            },
+            {
+              "textRaw": "crypto.generateKeyPairSync(type, options)",
+              "type": "method",
+              "name": "generateKeyPairSync",
+              "meta": {
+                "added": [
+                  "v10.12.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {Object}",
+                    "name": "return",
+                    "type": "Object",
+                    "options": [
+                      {
+                        "textRaw": "`publicKey`: {string|Buffer}",
+                        "name": "publicKey",
+                        "type": "string|Buffer"
+                      },
+                      {
+                        "textRaw": "`privateKey`: {string|Buffer}",
+                        "name": "privateKey",
+                        "type": "string|Buffer"
+                      }
+                    ]
+                  },
+                  "params": [
+                    {
+                      "textRaw": "`type`: {string} Must be `'rsa'`, `'dsa'` or `'ec'`.",
+                      "name": "type",
+                      "type": "string",
+                      "desc": "Must be `'rsa'`, `'dsa'` or `'ec'`."
+                    },
+                    {
+                      "textRaw": "`options`: {Object}",
+                      "name": "options",
+                      "type": "Object",
+                      "options": [
+                        {
+                          "textRaw": "`modulusLength`: {number} Key size in bits (RSA, DSA).",
+                          "name": "modulusLength",
+                          "type": "number",
+                          "desc": "Key size in bits (RSA, DSA)."
+                        },
+                        {
+                          "textRaw": "`publicExponent`: {number} Public exponent (RSA). **Default:** `0x10001`.",
+                          "name": "publicExponent",
+                          "type": "number",
+                          "default": "`0x10001`",
+                          "desc": "Public exponent (RSA)."
+                        },
+                        {
+                          "textRaw": "`divisorLength`: {number} Size of `q` in bits (DSA).",
+                          "name": "divisorLength",
+                          "type": "number",
+                          "desc": "Size of `q` in bits (DSA)."
+                        },
+                        {
+                          "textRaw": "`namedCurve`: {string} Name of the curve to use (EC).",
+                          "name": "namedCurve",
+                          "type": "string",
+                          "desc": "Name of the curve to use (EC)."
+                        },
+                        {
+                          "textRaw": "`publicKeyEncoding`: {Object}",
+                          "name": "publicKeyEncoding",
+                          "type": "Object",
+                          "options": [
+                            {
+                              "textRaw": "`type`: {string} Must be one of `'pkcs1'` (RSA only) or `'spki'`.",
+                              "name": "type",
+                              "type": "string",
+                              "desc": "Must be one of `'pkcs1'` (RSA only) or `'spki'`."
+                            },
+                            {
+                              "textRaw": "`format`: {string} Must be `'pem'` or `'der'`.",
+                              "name": "format",
+                              "type": "string",
+                              "desc": "Must be `'pem'` or `'der'`."
+                            }
+                          ]
+                        },
+                        {
+                          "textRaw": "`privateKeyEncoding`: {Object}",
+                          "name": "privateKeyEncoding",
+                          "type": "Object",
+                          "options": [
+                            {
+                              "textRaw": "`type`: {string} Must be one of `'pkcs1'` (RSA only), `'pkcs8'` or `'sec1'` (EC only).",
+                              "name": "type",
+                              "type": "string",
+                              "desc": "Must be one of `'pkcs1'` (RSA only), `'pkcs8'` or `'sec1'` (EC only)."
+                            },
+                            {
+                              "textRaw": "`format`: {string} Must be `'pem'` or `'der'`.",
+                              "name": "format",
+                              "type": "string",
+                              "desc": "Must be `'pem'` or `'der'`."
+                            },
+                            {
+                              "textRaw": "`cipher`: {string} If specified, the private key will be encrypted with the given `cipher` and `passphrase` using PKCS#5 v2.0 password based encryption.",
+                              "name": "cipher",
+                              "type": "string",
+                              "desc": "If specified, the private key will be encrypted with the given `cipher` and `passphrase` using PKCS#5 v2.0 password based encryption."
+                            },
+                            {
+                              "textRaw": "`passphrase`: {string} The passphrase to use for encryption, see `cipher`.",
+                              "name": "passphrase",
+                              "type": "string",
+                              "desc": "The passphrase to use for encryption, see `cipher`."
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Generates a new asymmetric key pair of the given <code>type</code>. Only RSA, DSA and EC\nare currently supported.</p>\n<p>It is recommended to encode public keys as <code>'spki'</code> and private keys as\n<code>'pkcs8'</code> with encryption:</p>\n<pre><code class=\"language-js\">const { generateKeyPairSync } = require('crypto');\nconst { publicKey, privateKey } = generateKeyPairSync('rsa', {\n  modulusLength: 4096,\n  publicKeyEncoding: {\n    type: 'spki',\n    format: 'pem'\n  },\n  privateKeyEncoding: {\n    type: 'pkcs8',\n    format: 'pem',\n    cipher: 'aes-256-cbc',\n    passphrase: 'top secret'\n  }\n});\n</code></pre>\n<p>The return value <code>{ publicKey, privateKey }</code> represents the generated key pair.\nWhen PEM encoding was selected, the respective key will be a string, otherwise\nit will be a buffer containing the data encoded as DER.</p>"
+            },
+            {
               "textRaw": "crypto.getCiphers()",
               "type": "method",
               "name": "getCiphers",
@@ -582,7 +854,7 @@
                   "params": []
                 }
               ],
-              "desc": "<p>Example:</p>\n<pre><code class=\"language-js\">const ciphers = crypto.getCiphers();\nconsole.log(ciphers); // ['aes-128-cbc', 'aes-128-ccm', ...]\n</code></pre>"
+              "desc": "<pre><code class=\"language-js\">const ciphers = crypto.getCiphers();\nconsole.log(ciphers); // ['aes-128-cbc', 'aes-128-ccm', ...]\n</code></pre>"
             },
             {
               "textRaw": "crypto.getCurves()",
@@ -605,7 +877,7 @@
                   "params": []
                 }
               ],
-              "desc": "<p>Example:</p>\n<pre><code class=\"language-js\">const curves = crypto.getCurves();\nconsole.log(curves); // ['Oakley-EC2N-3', 'Oakley-EC2N-4', ...]\n</code></pre>"
+              "desc": "<pre><code class=\"language-js\">const curves = crypto.getCurves();\nconsole.log(curves); // ['Oakley-EC2N-3', 'Oakley-EC2N-4', ...]\n</code></pre>"
             },
             {
               "textRaw": "crypto.getDiffieHellman(groupName)",
@@ -633,7 +905,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Creates a predefined <code>DiffieHellman</code> key exchange object. The\nsupported groups are: <code>'modp1'</code>, <code>'modp2'</code>, <code>'modp5'</code> (defined in\n<a href=\"https://www.rfc-editor.org/rfc/rfc2412.txt\">RFC 2412</a>, but see <a href=\"#crypto_support_for_weak_or_compromised_algorithms\">Caveats</a>) and <code>'modp14'</code>, <code>'modp15'</code>,\n<code>'modp16'</code>, <code>'modp17'</code>, <code>'modp18'</code> (defined in <a href=\"https://www.rfc-editor.org/rfc/rfc3526.txt\">RFC 3526</a>). The\nreturned object mimics the interface of objects created by\n<a href=\"#crypto_crypto_creatediffiehellman_prime_primeencoding_generator_generatorencoding\"><code>crypto.createDiffieHellman()</code></a>, but will not allow changing\nthe keys (with <a href=\"#crypto_diffiehellman_setpublickey_publickey_encoding\"><code>diffieHellman.setPublicKey()</code></a> for example). The\nadvantage of using this method is that the parties do not have to\ngenerate nor exchange a group modulus beforehand, saving both processor\nand communication time.</p>\n<p>Example (obtaining a shared secret):</p>\n<pre><code class=\"language-js\">const crypto = require('crypto');\nconst alice = crypto.getDiffieHellman('modp14');\nconst bob = crypto.getDiffieHellman('modp14');\n\nalice.generateKeys();\nbob.generateKeys();\n\nconst aliceSecret = alice.computeSecret(bob.getPublicKey(), null, 'hex');\nconst bobSecret = bob.computeSecret(alice.getPublicKey(), null, 'hex');\n\n/* aliceSecret and bobSecret should be the same */\nconsole.log(aliceSecret === bobSecret);\n</code></pre>"
+              "desc": "<p>Creates a predefined <code>DiffieHellman</code> key exchange object. The\nsupported groups are: <code>'modp1'</code>, <code>'modp2'</code>, <code>'modp5'</code> (defined in\n<a href=\"https://www.rfc-editor.org/rfc/rfc2412.txt\">RFC 2412</a>, but see <a href=\"#crypto_support_for_weak_or_compromised_algorithms\">Caveats</a>) and <code>'modp14'</code>, <code>'modp15'</code>,\n<code>'modp16'</code>, <code>'modp17'</code>, <code>'modp18'</code> (defined in <a href=\"https://www.rfc-editor.org/rfc/rfc3526.txt\">RFC 3526</a>). The\nreturned object mimics the interface of objects created by\n<a href=\"#crypto_crypto_creatediffiehellman_prime_primeencoding_generator_generatorencoding\"><code>crypto.createDiffieHellman()</code></a>, but will not allow changing\nthe keys (with <a href=\"#crypto_diffiehellman_setpublickey_publickey_encoding\"><code>diffieHellman.setPublicKey()</code></a>, for example). The\nadvantage of using this method is that the parties do not have to\ngenerate nor exchange a group modulus beforehand, saving both processor\nand communication time.</p>\n<p>Example (obtaining a shared secret):</p>\n<pre><code class=\"language-js\">const crypto = require('crypto');\nconst alice = crypto.getDiffieHellman('modp14');\nconst bob = crypto.getDiffieHellman('modp14');\n\nalice.generateKeys();\nbob.generateKeys();\n\nconst aliceSecret = alice.computeSecret(bob.getPublicKey(), null, 'hex');\nconst bobSecret = bob.computeSecret(alice.getPublicKey(), null, 'hex');\n\n/* aliceSecret and bobSecret should be the same */\nconsole.log(aliceSecret === bobSecret);\n</code></pre>"
             },
             {
               "textRaw": "crypto.getFips()",
@@ -678,7 +950,7 @@
                   "params": []
                 }
               ],
-              "desc": "<p>Example:</p>\n<pre><code class=\"language-js\">const hashes = crypto.getHashes();\nconsole.log(hashes); // ['DSA', 'DSA-SHA', 'DSA-SHA1', ...]\n</code></pre>"
+              "desc": "<pre><code class=\"language-js\">const hashes = crypto.getHashes();\nconsole.log(hashes); // ['DSA', 'DSA-SHA', 'DSA-SHA1', ...]\n</code></pre>"
             },
             {
               "textRaw": "crypto.pbkdf2(password, salt, iterations, keylen, digest, callback)",
@@ -754,7 +1026,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Provides an asynchronous Password-Based Key Derivation Function 2 (PBKDF2)\nimplementation. A selected HMAC digest algorithm specified by <code>digest</code> is\napplied to derive a key of the requested byte length (<code>keylen</code>) from the\n<code>password</code>, <code>salt</code> and <code>iterations</code>.</p>\n<p>The supplied <code>callback</code> function is called with two arguments: <code>err</code> and\n<code>derivedKey</code>. If an error occurs while deriving the key, <code>err</code> will be set;\notherwise <code>err</code> will be <code>null</code>. By default, the successfully generated\n<code>derivedKey</code> will be passed to the callback as a <a href=\"buffer.html\"><code>Buffer</code></a>. An error will be\nthrown if any of the input arguments specify invalid values or types.</p>\n<p>The <code>iterations</code> argument must be a number set as high as possible. The\nhigher the number of iterations, the more secure the derived key will be,\nbut will take a longer amount of time to complete.</p>\n<p>The <code>salt</code> should be as unique as possible. It is recommended that a salt is\nrandom and at least 16 bytes long. See <a href=\"https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-132.pdf\">NIST SP 800-132</a> for details.</p>\n<p>Example:</p>\n<pre><code class=\"language-js\">const crypto = require('crypto');\ncrypto.pbkdf2('secret', 'salt', 100000, 64, 'sha512', (err, derivedKey) => {\n  if (err) throw err;\n  console.log(derivedKey.toString('hex'));  // '3745e48...08d59ae'\n});\n</code></pre>\n<p>The <code>crypto.DEFAULT_ENCODING</code> property can be used to change the way the\n<code>derivedKey</code> is passed to the callback. This property, however, has been\ndeprecated and use should be avoided.</p>\n<pre><code class=\"language-js\">const crypto = require('crypto');\ncrypto.DEFAULT_ENCODING = 'hex';\ncrypto.pbkdf2('secret', 'salt', 100000, 512, 'sha512', (err, derivedKey) => {\n  if (err) throw err;\n  console.log(derivedKey);  // '3745e48...aa39b34'\n});\n</code></pre>\n<p>An array of supported digest functions can be retrieved using\n<a href=\"#crypto_crypto_gethashes\"><code>crypto.getHashes()</code></a>.</p>\n<p>Note that this API uses libuv's threadpool, which can have surprising and\nnegative performance implications for some applications, see the\n<a href=\"cli.html#cli_uv_threadpool_size_size\"><code>UV_THREADPOOL_SIZE</code></a> documentation for more information.</p>"
+              "desc": "<p>Provides an asynchronous Password-Based Key Derivation Function 2 (PBKDF2)\nimplementation. A selected HMAC digest algorithm specified by <code>digest</code> is\napplied to derive a key of the requested byte length (<code>keylen</code>) from the\n<code>password</code>, <code>salt</code> and <code>iterations</code>.</p>\n<p>The supplied <code>callback</code> function is called with two arguments: <code>err</code> and\n<code>derivedKey</code>. If an error occurs while deriving the key, <code>err</code> will be set;\notherwise <code>err</code> will be <code>null</code>. By default, the successfully generated\n<code>derivedKey</code> will be passed to the callback as a <a href=\"buffer.html\"><code>Buffer</code></a>. An error will be\nthrown if any of the input arguments specify invalid values or types.</p>\n<p>If <code>digest</code> is <code>null</code>, <code>'sha1'</code> will be used. This behavior will be deprecated\nin a future version of Node.js.</p>\n<p>The <code>iterations</code> argument must be a number set as high as possible. The\nhigher the number of iterations, the more secure the derived key will be,\nbut will take a longer amount of time to complete.</p>\n<p>The <code>salt</code> should be as unique as possible. It is recommended that a salt is\nrandom and at least 16 bytes long. See <a href=\"https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-132.pdf\">NIST SP 800-132</a> for details.</p>\n<pre><code class=\"language-js\">const crypto = require('crypto');\ncrypto.pbkdf2('secret', 'salt', 100000, 64, 'sha512', (err, derivedKey) => {\n  if (err) throw err;\n  console.log(derivedKey.toString('hex'));  // '3745e48...08d59ae'\n});\n</code></pre>\n<p>The <code>crypto.DEFAULT_ENCODING</code> property can be used to change the way the\n<code>derivedKey</code> is passed to the callback. This property, however, has been\ndeprecated and use should be avoided.</p>\n<pre><code class=\"language-js\">const crypto = require('crypto');\ncrypto.DEFAULT_ENCODING = 'hex';\ncrypto.pbkdf2('secret', 'salt', 100000, 512, 'sha512', (err, derivedKey) => {\n  if (err) throw err;\n  console.log(derivedKey);  // '3745e48...aa39b34'\n});\n</code></pre>\n<p>An array of supported digest functions can be retrieved using\n<a href=\"#crypto_crypto_gethashes\"><code>crypto.getHashes()</code></a>.</p>\n<p>Note that this API uses libuv's threadpool, which can have surprising and\nnegative performance implications for some applications, see the\n<a href=\"cli.html#cli_uv_threadpool_size_size\"><code>UV_THREADPOOL_SIZE</code></a> documentation for more information.</p>"
             },
             {
               "textRaw": "crypto.pbkdf2Sync(password, salt, iterations, keylen, digest)",
@@ -813,7 +1085,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Provides a synchronous Password-Based Key Derivation Function 2 (PBKDF2)\nimplementation. A selected HMAC digest algorithm specified by <code>digest</code> is\napplied to derive a key of the requested byte length (<code>keylen</code>) from the\n<code>password</code>, <code>salt</code> and <code>iterations</code>.</p>\n<p>If an error occurs an <code>Error</code> will be thrown, otherwise the derived key will be\nreturned as a <a href=\"buffer.html\"><code>Buffer</code></a>.</p>\n<p>The <code>iterations</code> argument must be a number set as high as possible. The\nhigher the number of iterations, the more secure the derived key will be,\nbut will take a longer amount of time to complete.</p>\n<p>The <code>salt</code> should be as unique as possible. It is recommended that a salt is\nrandom and at least 16 bytes long. See <a href=\"https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-132.pdf\">NIST SP 800-132</a> for details.</p>\n<p>Example:</p>\n<pre><code class=\"language-js\">const crypto = require('crypto');\nconst key = crypto.pbkdf2Sync('secret', 'salt', 100000, 64, 'sha512');\nconsole.log(key.toString('hex'));  // '3745e48...08d59ae'\n</code></pre>\n<p>The <code>crypto.DEFAULT_ENCODING</code> property may be used to change the way the\n<code>derivedKey</code> is returned. This property, however, is deprecated and use\nshould be avoided.</p>\n<pre><code class=\"language-js\">const crypto = require('crypto');\ncrypto.DEFAULT_ENCODING = 'hex';\nconst key = crypto.pbkdf2Sync('secret', 'salt', 100000, 512, 'sha512');\nconsole.log(key);  // '3745e48...aa39b34'\n</code></pre>\n<p>An array of supported digest functions can be retrieved using\n<a href=\"#crypto_crypto_gethashes\"><code>crypto.getHashes()</code></a>.</p>"
+              "desc": "<p>Provides a synchronous Password-Based Key Derivation Function 2 (PBKDF2)\nimplementation. A selected HMAC digest algorithm specified by <code>digest</code> is\napplied to derive a key of the requested byte length (<code>keylen</code>) from the\n<code>password</code>, <code>salt</code> and <code>iterations</code>.</p>\n<p>If an error occurs an <code>Error</code> will be thrown, otherwise the derived key will be\nreturned as a <a href=\"buffer.html\"><code>Buffer</code></a>.</p>\n<p>If <code>digest</code> is <code>null</code>, <code>'sha1'</code> will be used. This behavior will be deprecated\nin a future version of Node.js.</p>\n<p>The <code>iterations</code> argument must be a number set as high as possible. The\nhigher the number of iterations, the more secure the derived key will be,\nbut will take a longer amount of time to complete.</p>\n<p>The <code>salt</code> should be as unique as possible. It is recommended that a salt is\nrandom and at least 16 bytes long. See <a href=\"https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-132.pdf\">NIST SP 800-132</a> for details.</p>\n<pre><code class=\"language-js\">const crypto = require('crypto');\nconst key = crypto.pbkdf2Sync('secret', 'salt', 100000, 64, 'sha512');\nconsole.log(key.toString('hex'));  // '3745e48...08d59ae'\n</code></pre>\n<p>The <code>crypto.DEFAULT_ENCODING</code> property may be used to change the way the\n<code>derivedKey</code> is returned. This property, however, is deprecated and use\nshould be avoided.</p>\n<pre><code class=\"language-js\">const crypto = require('crypto');\ncrypto.DEFAULT_ENCODING = 'hex';\nconst key = crypto.pbkdf2Sync('secret', 'salt', 100000, 512, 'sha512');\nconsole.log(key);  // '3745e48...aa39b34'\n</code></pre>\n<p>An array of supported digest functions can be retrieved using\n<a href=\"#crypto_crypto_gethashes\"><code>crypto.getHashes()</code></a>.</p>"
             },
             {
               "textRaw": "crypto.privateDecrypt(privateKey, buffer)",
@@ -867,7 +1139,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Decrypts <code>buffer</code> with <code>privateKey</code>.</p>\n<p><code>privateKey</code> can be an object or a string. If <code>privateKey</code> is a string, it is\ntreated as the key with no passphrase and will use <code>RSA_PKCS1_OAEP_PADDING</code>.</p>"
+              "desc": "<p>Decrypts <code>buffer</code> with <code>privateKey</code>. <code>buffer</code> was previously encrypted using\nthe corresponding public key, for example using <a href=\"#crypto_crypto_publicencrypt_key_buffer\"><code>crypto.publicEncrypt()</code></a>.</p>\n<p><code>privateKey</code> can be an object or a string. If <code>privateKey</code> is a string, it is\ntreated as the key with no passphrase and will use <code>RSA_PKCS1_OAEP_PADDING</code>.</p>"
             },
             {
               "textRaw": "crypto.privateEncrypt(privateKey, buffer)",
@@ -921,7 +1193,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Encrypts <code>buffer</code> with <code>privateKey</code>.</p>\n<p><code>privateKey</code> can be an object or a string. If <code>privateKey</code> is a string, it is\ntreated as the key with no passphrase and will use <code>RSA_PKCS1_PADDING</code>.</p>"
+              "desc": "<p>Encrypts <code>buffer</code> with <code>privateKey</code>. The returned data can be decrypted using\nthe corresponding public key, for example using <a href=\"#crypto_crypto_publicdecrypt_key_buffer\"><code>crypto.publicDecrypt()</code></a>.</p>\n<p><code>privateKey</code> can be an object or a string. If <code>privateKey</code> is a string, it is\ntreated as the key with no passphrase and will use <code>RSA_PKCS1_PADDING</code>.</p>"
             },
             {
               "textRaw": "crypto.publicDecrypt(key, buffer)",
@@ -975,7 +1247,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Decrypts <code>buffer</code> with <code>key</code>.</p>\n<p><code>key</code> can be an object or a string. If <code>key</code> is a string, it is treated as\nthe key with no passphrase and will use <code>RSA_PKCS1_PADDING</code>.</p>\n<p>Because RSA public keys can be derived from private keys, a private key may\nbe passed instead of a public key.</p>"
+              "desc": "<p>Decrypts <code>buffer</code> with <code>key</code>.<code>buffer</code> was previously encrypted using\nthe corresponding private key, for example using <a href=\"#crypto_crypto_privateencrypt_privatekey_buffer\"><code>crypto.privateEncrypt()</code></a>.</p>\n<p><code>key</code> can be an object or a string. If <code>key</code> is a string, it is treated as\nthe key with no passphrase and will use <code>RSA_PKCS1_PADDING</code>.</p>\n<p>Because RSA public keys can be derived from private keys, a private key may\nbe passed instead of a public key.</p>"
             },
             {
               "textRaw": "crypto.publicEncrypt(key, buffer)",
@@ -1029,7 +1301,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Encrypts the content of <code>buffer</code> with <code>key</code> and returns a new\n<a href=\"buffer.html\"><code>Buffer</code></a> with encrypted content.</p>\n<p><code>key</code> can be an object or a string. If <code>key</code> is a string, it is treated as\nthe key with no passphrase and will use <code>RSA_PKCS1_OAEP_PADDING</code>.</p>\n<p>Because RSA public keys can be derived from private keys, a private key may\nbe passed instead of a public key.</p>"
+              "desc": "<p>Encrypts the content of <code>buffer</code> with <code>key</code> and returns a new\n<a href=\"buffer.html\"><code>Buffer</code></a> with encrypted content. The returned data can be decrypted using\nthe corresponding private key, for example using <a href=\"#crypto_crypto_privatedecrypt_privatekey_buffer\"><code>crypto.privateDecrypt()</code></a>.</p>\n<p><code>key</code> can be an object or a string. If <code>key</code> is a string, it is treated as\nthe key with no passphrase and will use <code>RSA_PKCS1_OAEP_PADDING</code>.</p>\n<p>Because RSA public keys can be derived from private keys, a private key may\nbe passed instead of a public key.</p>"
             },
             {
               "textRaw": "crypto.randomBytes(size[, callback])",
@@ -1523,7 +1795,7 @@
             {
               "textRaw": "CCM mode",
               "name": "ccm_mode",
-              "desc": "<p>CCM is one of the two supported <a href=\"https://en.wikipedia.org/wiki/Authenticated_encryption\">AEAD algorithms</a>. Applications which use this\nmode must adhere to certain restrictions when using the cipher API:</p>\n<ul>\n<li>The authentication tag length must be specified during cipher creation by\nsetting the <code>authTagLength</code> option and must be one of 4, 6, 8, 10, 12, 14 or\n16 bytes.</li>\n<li>The length of the initialization vector (nonce) <code>N</code> must be between 7 and 13\nbytes (<code>7 ≤ N ≤ 13</code>).</li>\n<li>The length of the plaintext is limited to <code>2 ** (8 * (15 - N))</code> bytes.</li>\n<li>When decrypting, the authentication tag must be set via <code>setAuthTag()</code> before\nspecifying additional authenticated data or calling <code>update()</code>.\nOtherwise, decryption will fail and <code>final()</code> will throw an error in\ncompliance with section 2.6 of <a href=\"https://www.rfc-editor.org/rfc/rfc3610.txt\">RFC 3610</a>.</li>\n<li>Using stream methods such as <code>write(data)</code>, <code>end(data)</code> or <code>pipe()</code> in CCM\nmode might fail as CCM cannot handle more than one chunk of data per instance.</li>\n<li>When passing additional authenticated data (AAD), the length of the actual\nmessage in bytes must be passed to <code>setAAD()</code> via the <code>plaintextLength</code>\noption. This is not necessary if no AAD is used.</li>\n<li>As CCM processes the whole message at once, <code>update()</code> can only be called\nonce.</li>\n<li>Even though calling <code>update()</code> is sufficient to encrypt/decrypt the message,\napplications <em>must</em> call <code>final()</code> to compute or verify the\nauthentication tag.</li>\n</ul>\n<pre><code class=\"language-js\">const crypto = require('crypto');\n\nconst key = 'keykeykeykeykeykeykeykey';\nconst nonce = crypto.randomBytes(12);\n\nconst aad = Buffer.from('0123456789', 'hex');\n\nconst cipher = crypto.createCipheriv('aes-192-ccm', key, nonce, {\n  authTagLength: 16\n});\nconst plaintext = 'Hello world';\ncipher.setAAD(aad, {\n  plaintextLength: Buffer.byteLength(plaintext)\n});\nconst ciphertext = cipher.update(plaintext, 'utf8');\ncipher.final();\nconst tag = cipher.getAuthTag();\n\n// Now transmit { ciphertext, nonce, tag }.\n\nconst decipher = crypto.createDecipheriv('aes-192-ccm', key, nonce, {\n  authTagLength: 16\n});\ndecipher.setAuthTag(tag);\ndecipher.setAAD(aad, {\n  plaintextLength: ciphertext.length\n});\nconst receivedPlaintext = decipher.update(ciphertext, null, 'utf8');\n\ntry {\n  decipher.final();\n} catch (err) {\n  console.error('Authentication failed!');\n}\n\nconsole.log(receivedPlaintext);\n</code></pre>",
+              "desc": "<p>CCM is one of the supported <a href=\"https://en.wikipedia.org/wiki/Authenticated_encryption\">AEAD algorithms</a>. Applications which use this\nmode must adhere to certain restrictions when using the cipher API:</p>\n<ul>\n<li>The authentication tag length must be specified during cipher creation by\nsetting the <code>authTagLength</code> option and must be one of 4, 6, 8, 10, 12, 14 or\n16 bytes.</li>\n<li>The length of the initialization vector (nonce) <code>N</code> must be between 7 and 13\nbytes (<code>7 ≤ N ≤ 13</code>).</li>\n<li>The length of the plaintext is limited to <code>2 ** (8 * (15 - N))</code> bytes.</li>\n<li>When decrypting, the authentication tag must be set via <code>setAuthTag()</code> before\nspecifying additional authenticated data or calling <code>update()</code>.\nOtherwise, decryption will fail and <code>final()</code> will throw an error in\ncompliance with section 2.6 of <a href=\"https://www.rfc-editor.org/rfc/rfc3610.txt\">RFC 3610</a>.</li>\n<li>Using stream methods such as <code>write(data)</code>, <code>end(data)</code> or <code>pipe()</code> in CCM\nmode might fail as CCM cannot handle more than one chunk of data per instance.</li>\n<li>When passing additional authenticated data (AAD), the length of the actual\nmessage in bytes must be passed to <code>setAAD()</code> via the <code>plaintextLength</code>\noption. This is not necessary if no AAD is used.</li>\n<li>As CCM processes the whole message at once, <code>update()</code> can only be called\nonce.</li>\n<li>Even though calling <code>update()</code> is sufficient to encrypt/decrypt the message,\napplications <em>must</em> call <code>final()</code> to compute or verify the\nauthentication tag.</li>\n</ul>\n<pre><code class=\"language-js\">const crypto = require('crypto');\n\nconst key = 'keykeykeykeykeykeykeykey';\nconst nonce = crypto.randomBytes(12);\n\nconst aad = Buffer.from('0123456789', 'hex');\n\nconst cipher = crypto.createCipheriv('aes-192-ccm', key, nonce, {\n  authTagLength: 16\n});\nconst plaintext = 'Hello world';\ncipher.setAAD(aad, {\n  plaintextLength: Buffer.byteLength(plaintext)\n});\nconst ciphertext = cipher.update(plaintext, 'utf8');\ncipher.final();\nconst tag = cipher.getAuthTag();\n\n// Now transmit { ciphertext, nonce, tag }.\n\nconst decipher = crypto.createDecipheriv('aes-192-ccm', key, nonce, {\n  authTagLength: 16\n});\ndecipher.setAuthTag(tag);\ndecipher.setAAD(aad, {\n  plaintextLength: ciphertext.length\n});\nconst receivedPlaintext = decipher.update(ciphertext, null, 'utf8');\n\ntry {\n  decipher.final();\n} catch (err) {\n  console.error('Authentication failed!');\n}\n\nconsole.log(receivedPlaintext);\n</code></pre>",
               "type": "module",
               "displayName": "CCM mode"
             }
@@ -1871,7 +2143,7 @@
                   ]
                 }
               ],
-              "desc": "<p>When using an authenticated encryption mode (only <code>GCM</code> and <code>CCM</code> are currently\nsupported), the <code>cipher.setAAD()</code> method sets the value used for the\n<em>additional authenticated data</em> (AAD) input parameter.</p>\n<p>The <code>options</code> argument is optional for <code>GCM</code>. When using <code>CCM</code>, the\n<code>plaintextLength</code> option must be specified and its value must match the length\nof the plaintext in bytes. See <a href=\"#crypto_ccm_mode\">CCM mode</a>.</p>\n<p>The <code>cipher.setAAD()</code> method must be called before <a href=\"#crypto_cipher_update_data_inputencoding_outputencoding\"><code>cipher.update()</code></a>.</p>"
+              "desc": "<p>When using an authenticated encryption mode (<code>GCM</code>, <code>CCM</code> and <code>OCB</code> are\ncurrently supported), the <code>cipher.setAAD()</code> method sets the value used for the\n<em>additional authenticated data</em> (AAD) input parameter.</p>\n<p>The <code>options</code> argument is optional for <code>GCM</code> and <code>OCB</code>. When using <code>CCM</code>, the\n<code>plaintextLength</code> option must be specified and its value must match the length\nof the plaintext in bytes. See <a href=\"#crypto_ccm_mode\">CCM mode</a>.</p>\n<p>The <code>cipher.setAAD()</code> method must be called before <a href=\"#crypto_cipher_update_data_inputencoding_outputencoding\"><code>cipher.update()</code></a>.</p>"
             },
             {
               "textRaw": "cipher.getAuthTag()",
@@ -1886,10 +2158,10 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns: {Buffer} When using an authenticated encryption mode (only `GCM` and `CCM` are currently supported), the `cipher.getAuthTag()` method returns a [`Buffer`][] containing the _authentication tag_ that has been computed from the given data.",
+                    "textRaw": "Returns: {Buffer} When using an authenticated encryption mode (`GCM`, `CCM` and `OCB` are currently supported), the `cipher.getAuthTag()` method returns a [`Buffer`][] containing the _authentication tag_ that has been computed from the given data.",
                     "name": "return",
                     "type": "Buffer",
-                    "desc": "When using an authenticated encryption mode (only `GCM` and `CCM` are currently supported), the `cipher.getAuthTag()` method returns a [`Buffer`][] containing the _authentication tag_ that has been computed from the given data."
+                    "desc": "When using an authenticated encryption mode (`GCM`, `CCM` and `OCB` are currently supported), the `cipher.getAuthTag()` method returns a [`Buffer`][] containing the _authentication tag_ that has been computed from the given data."
                   },
                   "params": []
                 }
@@ -2064,7 +2336,7 @@
                   ]
                 }
               ],
-              "desc": "<p>When using an authenticated encryption mode (only <code>GCM</code> and <code>CCM</code> are currently\nsupported), the <code>decipher.setAAD()</code> method sets the value used for the\n<em>additional authenticated data</em> (AAD) input parameter.</p>\n<p>The <code>options</code> argument is optional for <code>GCM</code>. When using <code>CCM</code>, the\n<code>plaintextLength</code> option must be specified and its value must match the length\nof the plaintext in bytes. See <a href=\"#crypto_ccm_mode\">CCM mode</a>.</p>\n<p>The <code>decipher.setAAD()</code> method must be called before <a href=\"#crypto_decipher_update_data_inputencoding_outputencoding\"><code>decipher.update()</code></a>.</p>"
+              "desc": "<p>When using an authenticated encryption mode (<code>GCM</code>, <code>CCM</code> and <code>OCB</code> are\ncurrently supported), the <code>decipher.setAAD()</code> method sets the value used for the\n<em>additional authenticated data</em> (AAD) input parameter.</p>\n<p>The <code>options</code> argument is optional for <code>GCM</code>. When using <code>CCM</code>, the\n<code>plaintextLength</code> option must be specified and its value must match the length\nof the plaintext in bytes. See <a href=\"#crypto_ccm_mode\">CCM mode</a>.</p>\n<p>The <code>decipher.setAAD()</code> method must be called before <a href=\"#crypto_decipher_update_data_inputencoding_outputencoding\"><code>decipher.update()</code></a>.</p>"
             },
             {
               "textRaw": "decipher.setAuthTag(buffer)",
@@ -2099,7 +2371,7 @@
                   ]
                 }
               ],
-              "desc": "<p>When using an authenticated encryption mode (only <code>GCM</code> and <code>CCM</code> are currently\nsupported), the <code>decipher.setAuthTag()</code> method is used to pass in the\nreceived <em>authentication tag</em>. If no tag is provided, or if the cipher text\nhas been tampered with, <a href=\"#crypto_decipher_final_outputencoding\"><code>decipher.final()</code></a> will throw, indicating that the\ncipher text should be discarded due to failed authentication.</p>\n<p>Note that this Node.js version does not verify the length of GCM authentication\ntags. Such a check <em>must</em> be implemented by applications and is crucial to the\nauthenticity of the encrypted data, otherwise, an attacker can use an\narbitrarily short authentication tag to increase the chances of successfully\npassing authentication (up to 0.39%). It is highly recommended to associate one\nof the values 16, 15, 14, 13, 12, 8 or 4 bytes with each key, and to only permit\nauthentication tags of that length, see <a href=\"https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf\">NIST SP 800-38D</a>.</p>\n<p>The <code>decipher.setAuthTag()</code> method must be called before\n<a href=\"#crypto_decipher_final_outputencoding\"><code>decipher.final()</code></a>.</p>"
+              "desc": "<p>When using an authenticated encryption mode (<code>GCM</code>, <code>CCM</code> and <code>OCB</code> are\ncurrently supported), the <code>decipher.setAuthTag()</code> method is used to pass in the\nreceived <em>authentication tag</em>. If no tag is provided, or if the cipher text\nhas been tampered with, <a href=\"#crypto_decipher_final_outputencoding\"><code>decipher.final()</code></a> will throw, indicating that the\ncipher text should be discarded due to failed authentication.</p>\n<p>Note that this Node.js version does not verify the length of GCM authentication\ntags. Such a check <em>must</em> be implemented by applications and is crucial to the\nauthenticity of the encrypted data, otherwise, an attacker can use an\narbitrarily short authentication tag to increase the chances of successfully\npassing authentication (up to 0.39%). It is highly recommended to associate one\nof the values 16, 15, 14, 13, 12, 8 or 4 bytes with each key, and to only permit\nauthentication tags of that length, see <a href=\"https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf\">NIST SP 800-38D</a>.</p>\n<p>The <code>decipher.setAuthTag()</code> method must be called before\n<a href=\"#crypto_decipher_final_outputencoding\"><code>decipher.final()</code></a>.</p>"
             },
             {
               "textRaw": "decipher.setAutoPadding([autoPadding])",
@@ -2512,7 +2784,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Converts the EC Diffie-Hellman public key specified by <code>key</code> and <code>curve</code> to the\nformat specified by <code>format</code>. The <code>format</code> argument specifies point encoding\nand can be <code>'compressed'</code>, <code>'uncompressed'</code> or <code>'hybrid'</code>. The supplied key is\ninterpreted using the specified <code>inputEncoding</code>, and the returned key is encoded\nusing the specified <code>outputEncoding</code>. Encodings can be <code>'latin1'</code>, <code>'hex'</code>,\nor <code>'base64'</code>.</p>\n<p>Use <a href=\"#crypto_crypto_getcurves\"><code>crypto.getCurves()</code></a> to obtain a list of available curve names.\nOn recent OpenSSL releases, <code>openssl ecparam -list_curves</code> will also display\nthe name and description of each available elliptic curve.</p>\n<p>If <code>format</code> is not specified the point will be returned in <code>'uncompressed'</code>\nformat.</p>\n<p>If the <code>inputEncoding</code> is not provided, <code>key</code> is expected to be a <a href=\"buffer.html\"><code>Buffer</code></a>,\n<code>TypedArray</code>, or <code>DataView</code>.</p>\n<p>Example (uncompressing a key):</p>\n<pre><code class=\"language-js\">const { ECDH } = require('crypto');\n\nconst ecdh = ECDH('secp256k1');\necdh.generateKeys();\n\nconst compressedKey = ecdh.getPublicKey('hex', 'compressed');\n\nconst uncompressedKey = ECDH.convertKey(compressedKey,\n                                        'secp256k1',\n                                        'hex',\n                                        'hex',\n                                        'uncompressed');\n\n// the converted key and the uncompressed public key should be the same\nconsole.log(uncompressedKey === ecdh.getPublicKey('hex'));\n</code></pre>"
+              "desc": "<p>Converts the EC Diffie-Hellman public key specified by <code>key</code> and <code>curve</code> to the\nformat specified by <code>format</code>. The <code>format</code> argument specifies point encoding\nand can be <code>'compressed'</code>, <code>'uncompressed'</code> or <code>'hybrid'</code>. The supplied key is\ninterpreted using the specified <code>inputEncoding</code>, and the returned key is encoded\nusing the specified <code>outputEncoding</code>. Encodings can be <code>'latin1'</code>, <code>'hex'</code>,\nor <code>'base64'</code>.</p>\n<p>Use <a href=\"#crypto_crypto_getcurves\"><code>crypto.getCurves()</code></a> to obtain a list of available curve names.\nOn recent OpenSSL releases, <code>openssl ecparam -list_curves</code> will also display\nthe name and description of each available elliptic curve.</p>\n<p>If <code>format</code> is not specified the point will be returned in <code>'uncompressed'</code>\nformat.</p>\n<p>If the <code>inputEncoding</code> is not provided, <code>key</code> is expected to be a <a href=\"buffer.html\"><code>Buffer</code></a>,\n<code>TypedArray</code>, or <code>DataView</code>.</p>\n<p>Example (uncompressing a key):</p>\n<pre><code class=\"language-js\">const { createECDH, ECDH } = require('crypto');\n\nconst ecdh = createECDH('secp256k1');\necdh.generateKeys();\n\nconst compressedKey = ecdh.getPublicKey('hex', 'compressed');\n\nconst uncompressedKey = ECDH.convertKey(compressedKey,\n                                        'secp256k1',\n                                        'hex',\n                                        'hex',\n                                        'uncompressed');\n\n// the converted key and the uncompressed public key should be the same\nconsole.log(uncompressedKey === ecdh.getPublicKey('hex'));\n</code></pre>"
             }
           ],
           "methods": [
@@ -2940,6 +3212,16 @@
                           "textRaw": "`passphrase` {string}",
                           "name": "passphrase",
                           "type": "string"
+                        },
+                        {
+                          "textRaw": "`padding` {integer}",
+                          "name": "padding",
+                          "type": "integer"
+                        },
+                        {
+                          "textRaw": "`saltLength` {integer}",
+                          "name": "saltLength",
+                          "type": "integer"
                         }
                       ]
                     },

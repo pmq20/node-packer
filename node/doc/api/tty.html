@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>TTY | Node.js v10.9.0 Documentation</title>
+  <title>TTY | Node.js v10.12.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -80,7 +80,7 @@
 
     <div id="column1" data-id="tty" class="interior">
       <header>
-        <h1>Node.js v10.9.0 Documentation</h1>
+        <h1>Node.js v10.12.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -130,10 +130,15 @@
 <p><a href="#tty_class_tty_writestream">Class: tty.WriteStream</a></p>
 <ul>
 <li><a href="#tty_event_resize">Event: 'resize'</a></li>
+<li><a href="#tty_writestream_clearline_dir">writeStream.clearLine(dir)</a></li>
+<li><a href="#tty_writestream_clearscreendown">writeStream.clearScreenDown()</a></li>
 <li><a href="#tty_writestream_columns">writeStream.columns</a></li>
-<li><a href="#tty_writestream_istty">writeStream.isTTY</a></li>
-<li><a href="#tty_writestream_rows">writeStream.rows</a></li>
+<li><a href="#tty_writestream_cursorto_x_y">writeStream.cursorTo(x, y)</a></li>
 <li><a href="#tty_writestream_getcolordepth_env">writeStream.getColorDepth([env])</a></li>
+<li><a href="#tty_writestream_getwindowsize">writeStream.getWindowSize()</a></li>
+<li><a href="#tty_writestream_istty">writeStream.isTTY</a></li>
+<li><a href="#tty_writestream_movecursor_dx_dy">writeStream.moveCursor(dx, dy)</a></li>
+<li><a href="#tty_writestream_rows">writeStream.rows</a></li>
 </ul>
 </li>
 <li><a href="#tty_tty_isatty_fd">tty.isatty(fd)</a></li>
@@ -165,7 +170,7 @@ false
 <p>In most cases, there should be little to no reason for an application to
 manually create instances of the <code>tty.ReadStream</code> and <code>tty.WriteStream</code>
 classes.</p>
-<h2>Class: tty.ReadStream<span><a class="mark" href="#tty_class_tty_readstream" id="tty_class_tty_readstream">#</a></span></h2>
+<h2>Class: tty.ReadStream<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/tty.js#L38">[src]</a><span><a class="mark" href="#tty_class_tty_readstream" id="tty_class_tty_readstream">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.5.8</span>
 </div>
@@ -193,13 +198,14 @@ raw device. Defaults to <code>false</code>.</p>
 raw device. If <code>false</code>, configures the <code>tty.ReadStream</code> to operate in its
 default mode. The <code>readStream.isRaw</code> property will be set to the resulting
 mode.</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this" class="type">&#x3C;this></a> - the read stream instance.</li>
 </ul>
 <p>Allows configuration of <code>tty.ReadStream</code> so that it operates as a raw device.</p>
 <p>When in raw mode, input is always available character-by-character, not
 including modifiers. Additionally, all special processing of characters by the
 terminal is disabled, including echoing input characters.
 Note that <code>CTRL</code>+<code>C</code> will no longer cause a <code>SIGINT</code> when in this mode.</p>
-<h2>Class: tty.WriteStream<span><a class="mark" href="#tty_class_tty_writestream" id="tty_class_tty_writestream">#</a></span></h2>
+<h2>Class: tty.WriteStream<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/tty.js#L75">[src]</a><span><a class="mark" href="#tty_class_tty_writestream" id="tty_class_tty_writestream">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.5.8</span>
 </div>
@@ -219,23 +225,44 @@ listener callback when called.</p>
   console.log(`${process.stdout.columns}x${process.stdout.rows}`);
 });
 </code></pre>
+<h3>writeStream.clearLine(dir)<span><a class="mark" href="#tty_writestream_clearline_dir" id="tty_writestream_clearline_dir">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.7.7</span>
+</div>
+<ul>
+<li>
+<p><code>dir</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></p>
+<ul>
+<li><code>-1</code> - to the left from cursor</li>
+<li><code>1</code> - to the right from cursor</li>
+<li><code>0</code> - the entire line</li>
+</ul>
+</li>
+</ul>
+<p><code>writeStream.clearLine()</code> clears the current line of this <code>WriteStream</code> in a
+direction identified by <code>dir</code>.</p>
+<h3>writeStream.clearScreenDown()<span><a class="mark" href="#tty_writestream_clearscreendown" id="tty_writestream_clearscreendown">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.7.7</span>
+</div>
+<p><code>writeStream.clearScreenDown()</code> clears this <code>WriteStream</code> from the current
+cursor down.</p>
 <h3>writeStream.columns<span><a class="mark" href="#tty_writestream_columns" id="tty_writestream_columns">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.7.7</span>
 </div>
 <p>A <code>number</code> specifying the number of columns the TTY currently has. This property
 is updated whenever the <code>'resize'</code> event is emitted.</p>
-<h3>writeStream.isTTY<span><a class="mark" href="#tty_writestream_istty" id="tty_writestream_istty">#</a></span></h3>
-<div class="api_metadata">
-<span>Added in: v0.5.8</span>
-</div>
-<p>A <code>boolean</code> that is always <code>true</code>.</p>
-<h3>writeStream.rows<span><a class="mark" href="#tty_writestream_rows" id="tty_writestream_rows">#</a></span></h3>
+<h3>writeStream.cursorTo(x, y)<span><a class="mark" href="#tty_writestream_cursorto_x_y" id="tty_writestream_cursorto_x_y">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.7.7</span>
 </div>
-<p>A <code>number</code> specifying the number of rows the TTY currently has. This property
-is updated whenever the <code>'resize'</code> event is emitted.</p>
+<ul>
+<li><code>x</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
+<li><code>y</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
+</ul>
+<p><code>writeStream.cursorTo()</code> moves this <code>WriteStream</code>'s cursor to the specified
+position.</p>
 <h3>writeStream.getColorDepth([env])<span><a class="mark" href="#tty_writestream_getcolordepth_env" id="tty_writestream_getcolordepth_env">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v9.9.0</span>
@@ -261,7 +288,39 @@ To enforce a specific behavior without relying on <code>process.env</code> it is
 to pass in an object with different settings.</p>
 <p>Use the <code>NODE_DISABLE_COLORS</code> environment variable to enforce this function to
 always return 1.</p>
-<h2>tty.isatty(fd)<span><a class="mark" href="#tty_tty_isatty_fd" id="tty_tty_isatty_fd">#</a></span></h2>
+<h3>writeStream.getWindowSize()<span><a class="mark" href="#tty_writestream_getwindowsize" id="tty_writestream_getwindowsize">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.7.7</span>
+</div>
+<ul>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number[]></a></li>
+</ul>
+<p><code>writeStream.getWindowSize()</code> returns the size of the <a href="tty.html">TTY</a>
+corresponding to this <code>WriteStream</code>. The array is of the type
+<code>[numColumns, numRows]</code> where <code>numColumns</code> and <code>numRows</code> represent the number
+of columns and rows in the corresponding <a href="tty.html">TTY</a>.</p>
+<h3>writeStream.isTTY<span><a class="mark" href="#tty_writestream_istty" id="tty_writestream_istty">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.5.8</span>
+</div>
+<p>A <code>boolean</code> that is always <code>true</code>.</p>
+<h3>writeStream.moveCursor(dx, dy)<span><a class="mark" href="#tty_writestream_movecursor_dx_dy" id="tty_writestream_movecursor_dx_dy">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.7.7</span>
+</div>
+<ul>
+<li><code>dx</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
+<li><code>dy</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
+</ul>
+<p><code>writeStream.moveCursor()</code> moves this <code>WriteStream</code>'s cursor <em>relative</em> to its
+current position.</p>
+<h3>writeStream.rows<span><a class="mark" href="#tty_writestream_rows" id="tty_writestream_rows">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.7.7</span>
+</div>
+<p>A <code>number</code> specifying the number of rows the TTY currently has. This property
+is updated whenever the <code>'resize'</code> event is emitted.</p>
+<h2>tty.isatty(fd)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/tty.js#L34">[src]</a><span><a class="mark" href="#tty_tty_isatty_fd" id="tty_tty_isatty_fd">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.5.8</span>
 </div>
@@ -277,6 +336,5 @@ integer.</p>
   <script src="assets/sh_main.js"></script>
   <script src="assets/sh_javascript.min.js"></script>
   <script>highlight(undefined, undefined, 'pre');</script>
-  <!-- __TRACKING__ -->
 </body>
 </html>

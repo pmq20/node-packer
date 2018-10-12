@@ -57,11 +57,9 @@ class FSEventWrap: public HandleWrap {
   static void Start(const FunctionCallbackInfo<Value>& args);
   static void GetInitialized(const FunctionCallbackInfo<Value>& args);
 
-  void MemoryInfo(MemoryTracker* tracker) const override {
-    tracker->TrackThis(this);
-  }
-
-  ADD_MEMORY_INFO_NAME(FSEventWrap)
+  SET_NO_MEMORY_INFO()
+  SET_MEMORY_INFO_NAME(FSEventWrap)
+  SET_SELF_SIZE(FSEventWrap)
 
  private:
   static const encoding kDefaultEncoding = UTF8;
@@ -105,7 +103,7 @@ void FSEventWrap::Initialize(Local<Object> target,
   t->InstanceTemplate()->SetInternalFieldCount(1);
   t->SetClassName(fsevent_string);
 
-  AsyncWrap::AddWrapMethods(env, t);
+  t->Inherit(AsyncWrap::GetConstructorTemplate(env));
   env->SetProtoMethod(t, "start", Start);
   env->SetProtoMethod(t, "close", Close);
 
@@ -121,7 +119,7 @@ void FSEventWrap::Initialize(Local<Object> target,
       Local<FunctionTemplate>(),
       static_cast<PropertyAttribute>(ReadOnly | DontDelete | v8::DontEnum));
 
-  target->Set(fsevent_string, t->GetFunction());
+  target->Set(fsevent_string, t->GetFunction(context).ToLocalChecked());
 }
 
 

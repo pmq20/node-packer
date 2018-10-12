@@ -13,13 +13,23 @@
         {
           "textRaw": "Synopsis",
           "name": "synopsis",
-          "desc": "<p><code>node [options] [V8 options] [script.js | -e \"script\" | -] [--] [arguments]</code></p>\n<p><code>node debug [script.js | -e \"script\" | &#x3C;host>:&#x3C;port>] …</code></p>\n<p><code>node --v8-options</code></p>\n<p>Execute without arguments to start the <a href=\"repl.html\">REPL</a>.</p>\n<p><em>For more info about <code>node debug</code>, please see the <a href=\"debugger.html\">debugger</a> documentation.</em></p>",
+          "desc": "<p><code>node [options] [V8 options] [script.js | -e \"script\" | -] [--] [arguments]</code></p>\n<p><code>node inspect [script.js | -e \"script\" | &#x3C;host>:&#x3C;port>] …</code></p>\n<p><code>node --v8-options</code></p>\n<p>Execute without arguments to start the <a href=\"repl.html\">REPL</a>.</p>\n<p><em>For more info about <code>node inspect</code>, please see the <a href=\"debugger.html\">debugger</a> documentation.</em></p>",
           "type": "misc",
           "displayName": "Synopsis"
         },
         {
           "textRaw": "Options",
           "name": "options",
+          "meta": {
+            "changes": [
+              {
+                "version": "v10.12.0",
+                "pr-url": "https://github.com/nodejs/node/pull/23020",
+                "description": "Underscores instead of dashes are now allowed for Node.js options as well, in addition to V8 options."
+              }
+            ]
+          },
+          "desc": "<p>All options, including V8 options, allow words to be separated by both\ndashes (<code>-</code>) or underscores (<code>_</code>).</p>\n<p>For example, <code>--pending-deprecation</code> is equivalent to <code>--pending_deprecation</code>.</p>",
           "modules": [
             {
               "textRaw": "`-`",
@@ -59,6 +69,19 @@
               "desc": "<p>Aborting instead of exiting causes a core file to be generated for post-mortem\nanalysis using a debugger (such as <code>lldb</code>, <code>gdb</code>, and <code>mdb</code>).</p>\n<p>If this flag is passed, the behavior can still be set to not abort through\n<a href=\"process.html#process_process_setuncaughtexceptioncapturecallback_fn\"><code>process.setUncaughtExceptionCaptureCallback()</code></a> (and through usage of the\n<code>domain</code> module that uses it).</p>",
               "type": "module",
               "displayName": "`--abort-on-uncaught-exception`"
+            },
+            {
+              "textRaw": "`--completion-bash`",
+              "name": "`--completion-bash`",
+              "meta": {
+                "added": [
+                  "v10.12.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Print source-able bash completion script for Node.js.</p>\n<pre><code class=\"language-console\">$ node --completion-bash > node_bash_completion\n$ source node_bash_completion\n</code></pre>",
+              "type": "module",
+              "displayName": "`--completion-bash`"
             },
             {
               "textRaw": "`--enable-fips`",
@@ -189,6 +212,13 @@
               "desc": "<p>Activate inspector on <code>host:port</code>. Default is <code>127.0.0.1:9229</code>.</p>\n<p>V8 inspector integration allows tools such as Chrome DevTools and IDEs to debug\nand profile Node.js instances. The tools attach to Node.js instances via a\ntcp port and communicate using the <a href=\"https://chromedevtools.github.io/devtools-protocol/\">Chrome DevTools Protocol</a>.</p>",
               "type": "module",
               "displayName": "`--inspect[=[host:]port]`"
+            },
+            {
+              "textRaw": "`--loader=file`",
+              "name": "`--loader=file`",
+              "desc": "<!--\nadded: v9.0.0\n-->\n<p>Specify the <code>file</code> of the custom <a href=\"esm.html#esm_loader_hooks\">experimental ECMAScript Module</a> loader.</p>",
+              "type": "module",
+              "displayName": "`--loader=file`"
             },
             {
               "textRaw": "`--napi-modules`",
@@ -485,7 +515,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Print V8 command line options.</p>\n<p>V8 options allow words to be separated by both dashes (<code>-</code>) or\nunderscores (<code>_</code>).</p>\n<p>For example, <code>--stack-trace-limit</code> is equivalent to <code>--stack_trace_limit</code>.</p>",
+              "desc": "<p>Print V8 command line options.</p>",
               "type": "module",
               "displayName": "`--v8-options`"
             },
@@ -775,6 +805,13 @@
               "desc": "<p>Path to the file used to store the persistent REPL history. The default path is\n<code>~/.node_repl_history</code>, which is overridden by this variable. Setting the value\nto an empty string (<code>''</code> or <code>' '</code>) disables persistent REPL history.</p>",
               "type": "module",
               "displayName": "`NODE_REPL_HISTORY=file`"
+            },
+            {
+              "textRaw": "`NODE_V8_COVERAGE=dir`",
+              "name": "`node_v8_coverage=dir`",
+              "desc": "<p>When set, Node.js will begin outputting <a href=\"https://v8project.blogspot.com/2017/12/javascript-code-coverage.html\">V8 JavaScript code coverage</a> to the\ndirectory provided as an argument. Coverage is output as an array of\n<a href=\"https://chromedevtools.github.io/devtools-protocol/tot/Profiler#type-ScriptCoverage\">ScriptCoverage</a> objects:</p>\n<pre><code class=\"language-json\">{\n  \"result\": [\n    {\n      \"scriptId\": \"67\",\n      \"url\": \"internal/tty.js\",\n      \"functions\": []\n    }\n  ]\n}\n</code></pre>\n<p><code>NODE_V8_COVERAGE</code> will automatically propagate to subprocesses, making it\neasier to instrument applications that call the <code>child_process.spawn()</code> family\nof functions. <code>NODE_V8_COVERAGE</code> can be set to an empty string, to prevent\npropagation.</p>\n<p>At this time coverage is only collected in the main thread and will not be\noutput for code executed by worker threads.</p>",
+              "type": "module",
+              "displayName": "`NODE_V8_COVERAGE=dir`"
             },
             {
               "textRaw": "`OPENSSL_CONF=file`",

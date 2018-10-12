@@ -30,16 +30,6 @@ MaybeLocal<String> MakeString(Isolate* isolate,
         data,
         v8::NewStringType::kNormal,
         length);
-  } else if (encoding == UCS2) {
-#ifdef DEBUG
-    CHECK_EQ(reinterpret_cast<uintptr_t>(data) % 2, 0);
-    CHECK_EQ(length % 2, 0);
-#endif
-    ret = StringBytes::Encode(
-        isolate,
-        reinterpret_cast<const uint16_t*>(data),
-        length / 2,
-        &error);
   } else {
     ret = StringBytes::Encode(
         isolate,
@@ -226,7 +216,7 @@ MaybeLocal<String> StringDecoder::DecodeData(Isolate* isolate,
     if (prepend.IsEmpty()) {
       return body;
     } else {
-      return String::Concat(prepend, body);
+      return String::Concat(isolate, prepend, body);
     }
   } else {
     CHECK(Encoding() == ASCII || Encoding() == HEX || Encoding() == LATIN1);

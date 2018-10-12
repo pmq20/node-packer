@@ -42,7 +42,7 @@ const { emitExperimentalWarning } = require('internal/util');
 
 // Lazy loaded to improve the startup performance.
 let StringDecoder;
-let ReadableAsyncIterator;
+let createReadableStreamAsyncIterator;
 
 util.inherits(Readable, Stream);
 
@@ -147,7 +147,7 @@ function Readable(options) {
 
   // Checking for a Stream.Duplex instance is faster here instead of inside
   // the ReadableState constructor, at least with V8 6.5
-  const isDuplex = (this instanceof Stream.Duplex);
+  const isDuplex = this instanceof Stream.Duplex;
 
   this._readableState = new ReadableState(options, this, isDuplex);
 
@@ -529,7 +529,7 @@ function emitReadable(stream) {
 
 function emitReadable_(stream) {
   var state = stream._readableState;
-  debug('emit readable');
+  debug('emitReadable_', state.destroyed, state.length, state.ended);
   if (!state.destroyed && (state.length || state.ended)) {
     stream.emit('readable');
   }
@@ -810,6 +810,7 @@ Readable.prototype.on = function(ev, fn) {
   } else if (ev === 'readable') {
     if (!state.endEmitted && !state.readableListening) {
       state.readableListening = state.needReadable = true;
+      state.flowing = false;
       state.emittedReadable = false;
       debug('on readable', state.length, state.reading);
       if (state.length) {
@@ -858,6 +859,11 @@ Readable.prototype.removeAllListeners = function(ev) {
 
 function updateReadableListening(self) {
   self._readableState.readableListening = self.listenerCount('readable') > 0;
+
+  // crude way to check if we should resume
+  if (self.listenerCount('data') > 0) {
+    self.resume();
+  }
 }
 
 function nReadingNextTick(self) {
@@ -872,7 +878,8 @@ Readable.prototype.resume = function() {
   if (!state.flowing) {
     debug('resume');
     // we flow only if there is no one listening
-    // for readable
+    // for readable, but we still have to call
+    // resume()
     state.flowing = !state.readableListening;
     resume(this, state);
   }
@@ -983,9 +990,11 @@ Readable.prototype.wrap = function(stream) {
 
 Readable.prototype[Symbol.asyncIterator] = function() {
   emitExperimentalWarning('Readable[Symbol.asyncIterator]');
-  if (ReadableAsyncIterator === undefined)
-    ReadableAsyncIterator = require('internal/streams/async_iterator');
-  return new ReadableAsyncIterator(this);
+  if (createReadableStreamAsyncIterator === undefined) {
+    createReadableStreamAsyncIterator =
+      require('internal/streams/async_iterator');
+  }
+  return createReadableStreamAsyncIterator(this);
 };
 
 Object.defineProperty(Readable.prototype, 'readableHighWaterMark', {

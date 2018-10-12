@@ -362,6 +362,7 @@ MaybeLocal<Module> ModuleWrap::ResolveCallback(Local<Context> context,
                                                Local<String> specifier,
                                                Local<Module> referrer) {
   Environment* env = Environment::GetCurrent(context);
+  CHECK_NOT_NULL(env);  // TODO(addaleax): Handle nullptr here.
   Isolate* isolate = env->isolate();
   if (env->module_map.count(referrer->GetIdentityHash()) == 0) {
     env->ThrowError("linking error, unknown module");
@@ -432,16 +433,15 @@ std::string ReadFile(uv_file file) {
   uv_fs_t req;
   char buffer_memory[4096];
   uv_buf_t buf = uv_buf_init(buffer_memory, sizeof(buffer_memory));
-  int r;
 
   do {
-    r = uv_fs_read(uv_default_loop(),
-                   &req,
-                   file,
-                   &buf,
-                   1,
-                   contents.length(),  // offset
-                   nullptr);
+    const int r = uv_fs_read(uv_default_loop(),
+                             &req,
+                             file,
+                             &buf,
+                             1,
+                             contents.length(),  // offset
+                             nullptr);
     uv_fs_req_cleanup(&req);
 
     if (r <= 0)
@@ -700,6 +700,7 @@ static MaybeLocal<Promise> ImportModuleDynamically(
     Local<String> specifier) {
   Isolate* iso = context->GetIsolate();
   Environment* env = Environment::GetCurrent(context);
+  CHECK_NOT_NULL(env);  // TODO(addaleax): Handle nullptr here.
   v8::EscapableHandleScope handle_scope(iso);
 
   if (env->context() != context) {
@@ -750,8 +751,8 @@ void ModuleWrap::SetImportModuleDynamicallyCallback(
 
 void ModuleWrap::HostInitializeImportMetaObjectCallback(
     Local<Context> context, Local<Module> module, Local<Object> meta) {
-  Isolate* isolate = context->GetIsolate();
   Environment* env = Environment::GetCurrent(context);
+  CHECK_NOT_NULL(env);  // TODO(addaleax): Handle nullptr here.
   ModuleWrap* module_wrap = GetFromModule(env, module);
 
   if (module_wrap == nullptr) {
@@ -762,7 +763,7 @@ void ModuleWrap::HostInitializeImportMetaObjectCallback(
   Local<Function> callback =
       env->host_initialize_import_meta_object_callback();
   Local<Value> args[] = { wrap, meta };
-  callback->Call(context, Undefined(isolate), arraysize(args), args)
+  callback->Call(context, Undefined(env->isolate()), arraysize(args), args)
       .ToLocalChecked();
 }
 
@@ -799,7 +800,8 @@ void ModuleWrap::Initialize(Local<Object> target,
   env->SetProtoMethodNoSideEffect(tpl, "getStaticDependencySpecifiers",
                                   GetStaticDependencySpecifiers);
 
-  target->Set(FIXED_ONE_BYTE_STRING(isolate, "ModuleWrap"), tpl->GetFunction());
+  target->Set(FIXED_ONE_BYTE_STRING(isolate, "ModuleWrap"),
+              tpl->GetFunction(context).ToLocalChecked());
   env->SetMethod(target, "resolve", Resolve);
   env->SetMethod(target,
                  "setImportModuleDynamicallyCallback",

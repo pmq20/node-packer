@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Process | Node.js v10.9.0 Documentation</title>
+  <title>Process | Node.js v10.12.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -80,7 +80,7 @@
 
     <div id="column1" data-id="process" class="interior">
       <header>
-        <h1>Node.js v10.9.0 Documentation</h1>
+        <h1>Node.js v10.12.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -125,6 +125,7 @@
 <li><a href="#process_event_disconnect">Event: 'disconnect'</a></li>
 <li><a href="#process_event_exit">Event: 'exit'</a></li>
 <li><a href="#process_event_message">Event: 'message'</a></li>
+<li><a href="#process_event_multipleresolves">Event: 'multipleResolves'</a></li>
 <li><a href="#process_event_rejectionhandled">Event: 'rejectionHandled'</a></li>
 <li>
 <p><a href="#process_event_uncaughtexception">Event: 'uncaughtException'</a></p>
@@ -143,6 +144,7 @@
 </ul>
 </li>
 <li><a href="#process_process_abort">process.abort()</a></li>
+<li><a href="#process_process_allowednodeenvironmentflags">process.allowedNodeEnvironmentFlags</a></li>
 <li><a href="#process_process_arch">process.arch</a></li>
 <li><a href="#process_process_argv">process.argv</a></li>
 <li><a href="#process_process_argv0">process.argv0</a></li>
@@ -292,6 +294,55 @@ message sent by a parent process using <a href="child_process.html#child_process
 the child process.</p>
 <p>The message goes through serialization and parsing. The resulting message might
 not be the same as what is originally sent.</p>
+<h3>Event: 'multipleResolves'<span><a class="mark" href="#process_event_multipleresolves" id="process_event_multipleresolves">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v10.12.0</span>
+</div>
+<ul>
+<li><code>type</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The error type. One of <code>'resolve'</code> or <code>'reject'</code>.</li>
+<li><code>promise</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise" class="type">&#x3C;Promise></a> The promise that resolved or rejected more than once.</li>
+<li><code>value</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Data_types" class="type">&#x3C;any></a> The value with which the promise was either resolved or
+rejected after the original resolve.</li>
+</ul>
+<p>The <code>'multipleResolves'</code> event is emitted whenever a <code>Promise</code> has been either:</p>
+<ul>
+<li>Resolved more than once.</li>
+<li>Rejected more than once.</li>
+<li>Rejected after resolve.</li>
+<li>Resolved after reject.</li>
+</ul>
+<p>This is useful for tracking errors in your application while using the promise
+constructor. Otherwise such mistakes are silently swallowed due to being in a
+dead zone.</p>
+<p>It is recommended to end the process on such errors, since the process could be
+in an undefined state. While using the promise constructor make sure that it is
+guaranteed to trigger the <code>resolve()</code> or <code>reject()</code> functions exactly once per
+call and never call both functions in the same call.</p>
+<pre><code class="language-js">process.on('multipleResolves', (type, promise, reason) => {
+  console.error(type, promise, reason);
+  setImmediate(() => process.exit(1));
+});
+
+async function main() {
+  try {
+    return await new Promise((resolve, reject) => {
+      resolve('First call');
+      resolve('Swallowed resolve');
+      reject(new Error('Swallowed reject'));
+    });
+  } catch {
+    throw new Error('Failed');
+  }
+}
+
+main().then(console.log);
+// resolve: Promise { 'First call' } 'Swallowed resolve'
+// reject: Promise { 'First call' } Error: Swallowed reject
+//     at Promise (*)
+//     at new Promise (&#x3C;anonymous>)
+//     at main (*)
+// First call
+</code></pre>
 <h3>Event: 'rejectionHandled'<span><a class="mark" href="#process_event_rejectionhandled" id="process_event_rejectionhandled">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v1.4.1</span>
@@ -561,6 +612,49 @@ and <code>SIGKILL</code> cause the unconditional termination of the target proce
 <p>The <code>process.abort()</code> method causes the Node.js process to exit immediately and
 generate a core file.</p>
 <p>This feature is not available in <a href="worker_threads.html#worker_threads_class_worker"><code>Worker</code></a> threads.</p>
+<h2>process.allowedNodeEnvironmentFlags<span><a class="mark" href="#process_process_allowednodeenvironmentflags" id="process_process_allowednodeenvironmentflags">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v10.10.0</span>
+</div>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set" class="type">&#x3C;Set></a></li>
+</ul>
+<p>The <code>process.allowedNodeEnvironmentFlags</code> property is a special,
+read-only <code>Set</code> of flags allowable within the <a href="cli.html#cli_node_options_options"><code>NODE_OPTIONS</code></a>
+environment variable.</p>
+<p><code>process.allowedNodeEnvironmentFlags</code> extends <code>Set</code>, but overrides
+<code>Set.prototype.has</code> to recognize several different possible flag
+representations.  <code>process.allowedNodeEnvironmentFlags.has()</code> will
+return <code>true</code> in the following cases:</p>
+<ul>
+<li>Flags may omit leading single (<code>-</code>) or double (<code>--</code>) dashes; e.g.,
+<code>inspect-brk</code> for <code>--inspect-brk</code>, or <code>r</code> for <code>-r</code>.</li>
+<li>Flags passed through to V8 (as listed in <code>--v8-options</code>) may replace
+one or more <em>non-leading</em> dashes for an underscore, or vice-versa;
+e.g., <code>--perf_basic_prof</code>, <code>--perf-basic-prof</code>, <code>--perf_basic-prof</code>,
+etc.</li>
+<li>Flags may contain one or more equals (<code>=</code>) characters; all
+characters after and including the first equals will be ignored;
+e.g., <code>--stack-trace-limit=100</code>.</li>
+<li>Flags <em>must</em> be allowable within <a href="cli.html#cli_node_options_options"><code>NODE_OPTIONS</code></a>.</li>
+</ul>
+<p>When iterating over <code>process.allowedNodeEnvironmentFlags</code>, flags will
+appear only <em>once</em>; each will begin with one or more dashes. Flags
+passed through to V8 will contain underscores instead of non-leading
+dashes:</p>
+<pre><code class="language-js">process.allowedNodeEnvironmentFlags.forEach((flag) => {
+  // -r
+  // --inspect-brk
+  // --abort_on_uncaught_exception
+  // ...
+});
+</code></pre>
+<p>The methods <code>add()</code>, <code>clear()</code>, and <code>delete()</code> of
+<code>process.allowedNodeEnvironmentFlags</code> do nothing, and will fail
+silently.</p>
+<p>If Node.js was compiled <em>without</em> <a href="cli.html#cli_node_options_options"><code>NODE_OPTIONS</code></a> support (shown in
+<a href="#process_process_config"><code>process.config</code></a>), <code>process.allowedNodeEnvironmentFlags</code> will
+contain what <em>would have</em> been allowable.</p>
 <h2>process.arch<span><a class="mark" href="#process_process_arch" id="process_process_arch">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.5.0</span>
@@ -971,7 +1065,6 @@ console.log(process.env.foo);
 <p>Assigning a property on <code>process.env</code> will implicitly convert the value
 to a string. <strong>This behavior is deprecated.</strong> Future versions of Node.js may
 throw an error when the value is not a string, number, or boolean.</p>
-<p>Example:</p>
 <pre><code class="language-js">process.env.test = null;
 console.log(process.env.test);
 // => 'null'
@@ -980,14 +1073,12 @@ console.log(process.env.test);
 // => 'undefined'
 </code></pre>
 <p>Use <code>delete</code> to delete a property from <code>process.env</code>.</p>
-<p>Example:</p>
 <pre><code class="language-js">process.env.TEST = 1;
 delete process.env.TEST;
 console.log(process.env.TEST);
 // => undefined
 </code></pre>
 <p>On Windows operating systems, environment variables are case-insensitive.</p>
-<p>Example:</p>
 <pre><code class="language-js">process.env.TEST = 1;
 console.log(process.env.test);
 // => 1
@@ -1238,7 +1329,7 @@ setTimeout(() => {
 the group access list, using all groups of which the user is a member. This is
 a privileged operation that requires that the Node.js process either have <code>root</code>
 access or the <code>CAP_SETGID</code> capability.</p>
-<p>Note that care must be taken when dropping privileges. Example:</p>
+<p>Note that care must be taken when dropping privileges:</p>
 <pre><code class="language-js">console.log(process.getgroups());         // [ 0 ]
 process.initgroups('bnoordhuis', 1000);   // switch user
 console.log(process.getgroups());         // [ 27, 30, 46, 1000, 0 ]
@@ -1695,7 +1786,6 @@ stream) unless fd <code>2</code> refers to a file, in which case it is
 a <a href="stream.html#stream_writable_streams">Writable</a> stream.</p>
 <p><code>process.stderr</code> differs from other Node.js streams in important ways, see
 <a href="process.html#process_a_note_on_process_i_o">note on process I/O</a> for more information.</p>
-<p>This feature is not available in <a href="worker_threads.html#worker_threads_class_worker"><code>Worker</code></a> threads.</p>
 <h2>process.stdin<span><a class="mark" href="#process_process_stdin" id="process_process_stdin">#</a></span></h2>
 <ul>
 <li><a href="stream.html#stream_stream" class="type">&#x3C;Stream></a></li>
@@ -1723,7 +1813,6 @@ For more information see <a href="stream.html#stream_compatibility_with_older_no
 <p>In "old" streams mode the <code>stdin</code> stream is paused by default, so one
 must call <code>process.stdin.resume()</code> to read from it. Note also that calling
 <code>process.stdin.resume()</code> itself would switch stream to "old" mode.</p>
-<p>This feature is not available in <a href="worker_threads.html#worker_threads_class_worker"><code>Worker</code></a> threads.</p>
 <h2>process.stdout<span><a class="mark" href="#process_process_stdout" id="process_process_stdout">#</a></span></h2>
 <ul>
 <li><a href="stream.html#stream_stream" class="type">&#x3C;Stream></a></li>
@@ -1737,15 +1826,12 @@ a <a href="stream.html#stream_writable_streams">Writable</a> stream.</p>
 </code></pre>
 <p><code>process.stdout</code> differs from other Node.js streams in important ways, see
 <a href="process.html#process_a_note_on_process_i_o">note on process I/O</a> for more information.</p>
-<p>This feature is not available in <a href="worker_threads.html#worker_threads_class_worker"><code>Worker</code></a> threads.</p>
 <h3>A note on process I/O<span><a class="mark" href="#process_a_note_on_process_i_o" id="process_a_note_on_process_i_o">#</a></span></h3>
 <p><code>process.stdout</code> and <code>process.stderr</code> differ from other Node.js streams in
 important ways:</p>
 <ol>
 <li>They are used internally by <a href="console.html#console_console_log_data_args"><code>console.log()</code></a> and <a href="console.html#console_console_error_data_args"><code>console.error()</code></a>,
 respectively.</li>
-<li>They cannot be closed (<a href="stream.html#stream_writable_end_chunk_encoding_callback"><code>end()</code></a> will throw).</li>
-<li>They will never emit the <a href="stream.html#stream_event_finish"><code>'finish'</code></a> event.</li>
 <li>
 <p>Writes may be synchronous depending on what the stream is connected to
 and whether the system is Windows or POSIX:</p>
@@ -1955,6 +2041,5 @@ code will be <code>128</code> + <code>6</code>, or <code>134</code>.</li>
   <script src="assets/sh_main.js"></script>
   <script src="assets/sh_javascript.min.js"></script>
   <script>highlight(undefined, undefined, 'pre');</script>
-  <!-- __TRACKING__ -->
 </body>
 </html>

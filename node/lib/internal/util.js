@@ -364,6 +364,14 @@ function isInsideNodeModules() {
   return false;
 }
 
+function once(callback) {
+  let called = false;
+  return function(...args) {
+    if (called) return;
+    called = true;
+    callback(...args);
+  };
+}
 
 module.exports = {
   assertCrypto,
@@ -381,6 +389,7 @@ module.exports = {
   join,
   normalizeEncoding,
   objectToString,
+  once,
   promisify,
   spliceOne,
   removeColors,
@@ -390,7 +399,7 @@ module.exports = {
 
   // Symbol used to provide a custom inspect function for an object as an
   // alternative to using 'inspect'
-  customInspectSymbol: Symbol('util.inspect.custom'),
+  customInspectSymbol: Symbol.for('nodejs.util.inspect.custom'),
 
   // Used by the buffer module to capture an internal reference to the
   // default isEncoding implementation, just in case userland overrides it.

@@ -63,8 +63,13 @@ inherits(ReadStream, net.Socket);
 
 ReadStream.prototype.setRawMode = function(flag) {
   flag = !!flag;
-  this._handle.setRawMode(flag);
+  const err = this._handle.setRawMode(flag);
+  if (err) {
+    this.emit('error', errors.errnoException(err, 'setRawMode'));
+    return this;
+  }
   this.isRaw = flag;
+  return this;
 };
 
 function WriteStream(fd) {

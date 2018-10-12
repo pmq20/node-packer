@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Domain | Node.js v10.9.0 Documentation</title>
+  <title>Domain | Node.js v10.12.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -80,7 +80,7 @@
 
     <div id="column1" data-id="domain" class="interior">
       <header>
-        <h1>Node.js v10.9.0 Documentation</h1>
+        <h1>Node.js v10.12.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -128,20 +128,10 @@
 <ul>
 <li><a href="#domain_domain_members">domain.members</a></li>
 <li><a href="#domain_domain_add_emitter">domain.add(emitter)</a></li>
-<li>
-<p><a href="#domain_domain_bind_callback">domain.bind(callback)</a></p>
-<ul>
-<li><a href="#domain_example">Example</a></li>
-</ul>
-</li>
+<li><a href="#domain_domain_bind_callback">domain.bind(callback)</a></li>
 <li><a href="#domain_domain_enter">domain.enter()</a></li>
 <li><a href="#domain_domain_exit">domain.exit()</a></li>
-<li>
-<p><a href="#domain_domain_intercept_callback">domain.intercept(callback)</a></p>
-<ul>
-<li><a href="#domain_example_1">Example</a></li>
-</ul>
-</li>
+<li><a href="#domain_domain_intercept_callback">domain.intercept(callback)</a></li>
 <li><a href="#domain_domain_remove_emitter">domain.remove(emitter)</a></li>
 <li><a href="#domain_domain_run_fn_args">domain.run(fn[, ...args])</a></li>
 </ul>
@@ -423,7 +413,6 @@ from that one, and bound to this one instead.</p>
 <p>The returned function will be a wrapper around the supplied callback
 function. When the returned function is called, any errors that are
 thrown will be routed to the domain's <code>'error'</code> event.</p>
-<h4>Example<span><a class="mark" href="#domain_example" id="domain_example">#</a></span></h4>
 <pre><code class="language-js">const d = domain.create();
 
 function readSomeFile(filename, cb) {
@@ -470,7 +459,6 @@ addition to catching thrown errors, it will also intercept <a href="errors.html#
 objects sent as the first argument to the function.</p>
 <p>In this way, the common <code>if (err) return callback(err);</code> pattern can be replaced
 with a single error handler in a single place.</p>
-<h4>Example<span><a class="mark" href="#domain_example_1" id="domain_example_1">#</a></span></h4>
 <pre><code class="language-js">const d = domain.create();
 
 function readSomeFile(filename, cb) {
@@ -509,7 +497,6 @@ binding all event emitters, timers, and lowlevel requests that are
 created in that context. Optionally, arguments can be passed to
 the function.</p>
 <p>This is the most basic way to use a domain.</p>
-<p>Example:</p>
 <pre><code class="language-js">const domain = require('domain');
 const fs = require('fs');
 const d = domain.create();
@@ -570,6 +557,5 @@ rejections.</p>
   <script src="assets/sh_main.js"></script>
   <script src="assets/sh_javascript.min.js"></script>
   <script>highlight(undefined, undefined, 'pre');</script>
-  <!-- __TRACKING__ -->
 </body>
 </html>

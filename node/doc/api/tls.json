@@ -175,9 +175,9 @@
                       "name": "options",
                       "options": [
                         {
-                          "textRaw": "`secureContext`: An optional TLS context object from [`tls.createSecureContext()`][]",
+                          "textRaw": "`secureContext`: A TLS context object from [`tls.createSecureContext()`][]",
                           "name": "secureContext",
-                          "desc": "An optional TLS context object from [`tls.createSecureContext()`][]"
+                          "desc": "A TLS context object from [`tls.createSecureContext()`][]"
                         },
                         {
                           "textRaw": "`isServer`: If `true` the TLS socket will be instantiated in server-mode. **Default:** `false`.",
@@ -186,36 +186,36 @@
                           "desc": "If `true` the TLS socket will be instantiated in server-mode."
                         },
                         {
-                          "textRaw": "`server` {net.Server} An optional [`net.Server`][] instance",
+                          "textRaw": "`server` {net.Server} A [`net.Server`][] instance",
                           "name": "server",
                           "type": "net.Server",
-                          "desc": "An optional [`net.Server`][] instance"
+                          "desc": "A [`net.Server`][] instance"
                         },
                         {
-                          "textRaw": "`requestCert`: Optional, see [`tls.createServer()`][]",
+                          "textRaw": "`requestCert`: See [`tls.createServer()`][]",
                           "name": "requestCert",
-                          "desc": "Optional, see [`tls.createServer()`][]"
+                          "desc": "See [`tls.createServer()`][]"
                         },
                         {
-                          "textRaw": "`rejectUnauthorized`: Optional, see [`tls.createServer()`][]",
+                          "textRaw": "`rejectUnauthorized`: See [`tls.createServer()`][]",
                           "name": "rejectUnauthorized",
-                          "desc": "Optional, see [`tls.createServer()`][]"
+                          "desc": "See [`tls.createServer()`][]"
                         },
                         {
-                          "textRaw": "`ALPNProtocols`: Optional, see [`tls.createServer()`][]",
+                          "textRaw": "`ALPNProtocols`: See [`tls.createServer()`][]",
                           "name": "ALPNProtocols",
-                          "desc": "Optional, see [`tls.createServer()`][]"
+                          "desc": "See [`tls.createServer()`][]"
                         },
                         {
-                          "textRaw": "`SNICallback`: Optional, see [`tls.createServer()`][]",
+                          "textRaw": "`SNICallback`: See [`tls.createServer()`][]",
                           "name": "SNICallback",
-                          "desc": "Optional, see [`tls.createServer()`][]"
+                          "desc": "See [`tls.createServer()`][]"
                         },
                         {
-                          "textRaw": "`session` {Buffer} An optional `Buffer` instance containing a TLS session.",
+                          "textRaw": "`session` {Buffer} A `Buffer` instance containing a TLS session.",
                           "name": "session",
                           "type": "Buffer",
-                          "desc": "An optional `Buffer` instance containing a TLS session."
+                          "desc": "A `Buffer` instance containing a TLS session."
                         },
                         {
                           "textRaw": "`requestOCSP` {boolean} If `true`, specifies that the OCSP status request extension will be added to the client hello and an `'OCSPResponse'` event will be emitted on the socket before establishing a secure communication.",
@@ -382,10 +382,10 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`callback` {Function} An optional listener callback that will be registered to listen for the server instance's `'close'` event.",
+                      "textRaw": "`callback` {Function} A listener callback that will be registered to listen for the server instance's `'close'` event.",
                       "name": "callback",
                       "type": "Function",
-                      "desc": "An optional listener callback that will be registered to listen for the server instance's `'close'` event.",
+                      "desc": "A listener callback that will be registered to listen for the server instance's `'close'` event.",
                       "optional": true
                     }
                   ]
@@ -645,7 +645,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Returns an object representing the peer's certificate. The returned object has\nsome properties corresponding to the fields of the certificate.</p>\n<p>If the full certificate chain was requested, each certificate will include an\n<code>issuerCertificate</code> property containing an object representing its issuer's\ncertificate.</p>\n<p>For example:</p>\n<pre><code class=\"language-text\">{ subject:\n   { C: 'UK',\n     ST: 'Acknack Ltd',\n     L: 'Rhys Jones',\n     O: 'node.js',\n     OU: 'Test TLS Certificate',\n     CN: 'localhost' },\n  issuer:\n   { C: 'UK',\n     ST: 'Acknack Ltd',\n     L: 'Rhys Jones',\n     O: 'node.js',\n     OU: 'Test TLS Certificate',\n     CN: 'localhost' },\n  issuerCertificate:\n   { ... another certificate, possibly with an .issuerCertificate ... },\n  raw: &#x3C; RAW DER buffer >,\n  pubkey: &#x3C; RAW DER buffer >,\n  valid_from: 'Nov 11 09:52:22 2009 GMT',\n  valid_to: 'Nov 6 09:52:22 2029 GMT',\n  fingerprint: '2A:7A:C2:DD:E5:F9:CC:53:72:35:99:7A:02:5A:71:38:52:EC:8A:DF',\n  fingerprint256: '2A:7A:C2:DD:E5:F9:CC:53:72:35:99:7A:02:5A:71:38:52:EC:8A:DF:00:11:22:33:44:55:66:77:88:99:AA:BB',\n  serialNumber: 'B9B0D332A1AA5635' }\n</code></pre>\n<p>If the peer does not provide a certificate, an empty object will be returned.</p>"
+              "desc": "<p>Returns an object representing the peer's certificate. The returned object has\nsome properties corresponding to the fields of the certificate.</p>\n<p>If the full certificate chain was requested, each certificate will include an\n<code>issuerCertificate</code> property containing an object representing its issuer's\ncertificate.</p>\n<pre><code class=\"language-text\">{ subject:\n   { C: 'UK',\n     ST: 'Acknack Ltd',\n     L: 'Rhys Jones',\n     O: 'node.js',\n     OU: 'Test TLS Certificate',\n     CN: 'localhost' },\n  issuer:\n   { C: 'UK',\n     ST: 'Acknack Ltd',\n     L: 'Rhys Jones',\n     O: 'node.js',\n     OU: 'Test TLS Certificate',\n     CN: 'localhost' },\n  issuerCertificate:\n   { ... another certificate, possibly with an .issuerCertificate ... },\n  raw: &#x3C; RAW DER buffer >,\n  pubkey: &#x3C; RAW DER buffer >,\n  valid_from: 'Nov 11 09:52:22 2009 GMT',\n  valid_to: 'Nov 6 09:52:22 2029 GMT',\n  fingerprint: '2A:7A:C2:DD:E5:F9:CC:53:72:35:99:7A:02:5A:71:38:52:EC:8A:DF',\n  fingerprint256: '2A:7A:C2:DD:E5:F9:CC:53:72:35:99:7A:02:5A:71:38:52:EC:8A:DF:00:11:22:33:44:55:66:77:88:99:AA:BB',\n  serialNumber: 'B9B0D332A1AA5635' }\n</code></pre>\n<p>If the peer does not provide a certificate, an empty object will be returned.</p>"
             },
             {
               "textRaw": "tlsSocket.getPeerFinished()",
@@ -916,36 +916,36 @@
                       "desc": "The SSL/TLS protocol is asymmetrical, TLSSockets must know if they are to behave as a server or a client. If `true` the TLS socket will be instantiated as a server."
                     },
                     {
-                      "textRaw": "`server` {net.Server} An optional [`net.Server`][] instance.",
+                      "textRaw": "`server` {net.Server} A [`net.Server`][] instance.",
                       "name": "server",
                       "type": "net.Server",
-                      "desc": "An optional [`net.Server`][] instance."
+                      "desc": "A [`net.Server`][] instance."
                     },
                     {
-                      "textRaw": "`requestCert`: Whether to authenticate the remote peer by requesting a certificate. Clients always request a server certificate. Servers (`isServer` is true) may optionally set `requestCert` to true to request a client certificate.",
+                      "textRaw": "`requestCert`: Whether to authenticate the remote peer by requesting a certificate. Clients always request a server certificate. Servers (`isServer` is true) may set `requestCert` to true to request a client certificate.",
                       "name": "requestCert",
-                      "desc": "Whether to authenticate the remote peer by requesting a certificate. Clients always request a server certificate. Servers (`isServer` is true) may optionally set `requestCert` to true to request a client certificate."
+                      "desc": "Whether to authenticate the remote peer by requesting a certificate. Clients always request a server certificate. Servers (`isServer` is true) may set `requestCert` to true to request a client certificate."
                     },
                     {
-                      "textRaw": "`rejectUnauthorized`: Optional, see [`tls.createServer()`][]",
+                      "textRaw": "`rejectUnauthorized`: See [`tls.createServer()`][]",
                       "name": "rejectUnauthorized",
-                      "desc": "Optional, see [`tls.createServer()`][]"
+                      "desc": "See [`tls.createServer()`][]"
                     },
                     {
-                      "textRaw": "`ALPNProtocols`: Optional, see [`tls.createServer()`][]",
+                      "textRaw": "`ALPNProtocols`: See [`tls.createServer()`][]",
                       "name": "ALPNProtocols",
-                      "desc": "Optional, see [`tls.createServer()`][]"
+                      "desc": "See [`tls.createServer()`][]"
                     },
                     {
-                      "textRaw": "`SNICallback`: Optional, see [`tls.createServer()`][]",
+                      "textRaw": "`SNICallback`: See [`tls.createServer()`][]",
                       "name": "SNICallback",
-                      "desc": "Optional, see [`tls.createServer()`][]"
+                      "desc": "See [`tls.createServer()`][]"
                     },
                     {
-                      "textRaw": "`session` {Buffer} An optional `Buffer` instance containing a TLS session.",
+                      "textRaw": "`session` {Buffer} A `Buffer` instance containing a TLS session.",
                       "name": "session",
                       "type": "Buffer",
-                      "desc": "An optional `Buffer` instance containing a TLS session."
+                      "desc": "A `Buffer` instance containing a TLS session."
                     },
                     {
                       "textRaw": "`requestOCSP` {boolean} If `true`, specifies that the OCSP status request extension will be added to the client hello and an `'OCSPResponse'` event will be emitted on the socket before establishing a secure communication",
@@ -954,14 +954,14 @@
                       "desc": "If `true`, specifies that the OCSP status request extension will be added to the client hello and an `'OCSPResponse'` event will be emitted on the socket before establishing a secure communication"
                     },
                     {
-                      "textRaw": "`secureContext`: Optional TLS context object created with [`tls.createSecureContext()`][]. If a `secureContext` is _not_ provided, one will be created by passing the entire `options` object to `tls.createSecureContext()`.",
+                      "textRaw": "`secureContext`: TLS context object created with [`tls.createSecureContext()`][]. If a `secureContext` is _not_ provided, one will be created by passing the entire `options` object to `tls.createSecureContext()`.",
                       "name": "secureContext",
-                      "desc": "Optional TLS context object created with [`tls.createSecureContext()`][]. If a `secureContext` is _not_ provided, one will be created by passing the entire `options` object to `tls.createSecureContext()`."
+                      "desc": "TLS context object created with [`tls.createSecureContext()`][]. If a `secureContext` is _not_ provided, one will be created by passing the entire `options` object to `tls.createSecureContext()`."
                     },
                     {
-                      "textRaw": "...: Optional [`tls.createSecureContext()`][] options that are used if the `secureContext` option is missing, otherwise they are ignored.",
+                      "textRaw": "...: [`tls.createSecureContext()`][] options that are used if the `secureContext` option is missing. Otherwise, they are ignored.",
                       "name": "...",
-                      "desc": "Optional [`tls.createSecureContext()`][] options that are used if the `secureContext` option is missing, otherwise they are ignored."
+                      "desc": "[`tls.createSecureContext()`][] options that are used if the `secureContext` option is missing. Otherwise, they are ignored."
                     }
                   ],
                   "optional": true
@@ -1110,9 +1110,9 @@
                       "desc": "Minimum size of the DH parameter in bits to accept a TLS connection. When a server offers a DH parameter with a size less than `minDHSize`, the TLS connection is destroyed and an error is thrown."
                     },
                     {
-                      "textRaw": "`secureContext`: Optional TLS context object created with [`tls.createSecureContext()`][]. If a `secureContext` is _not_ provided, one will be created by passing the entire `options` object to `tls.createSecureContext()`.",
+                      "textRaw": "`secureContext`: TLS context object created with [`tls.createSecureContext()`][]. If a `secureContext` is _not_ provided, one will be created by passing the entire `options` object to `tls.createSecureContext()`.",
                       "name": "secureContext",
-                      "desc": "Optional TLS context object created with [`tls.createSecureContext()`][]. If a `secureContext` is _not_ provided, one will be created by passing the entire `options` object to `tls.createSecureContext()`."
+                      "desc": "TLS context object created with [`tls.createSecureContext()`][]. If a `secureContext` is _not_ provided, one will be created by passing the entire `options` object to `tls.createSecureContext()`."
                     },
                     {
                       "textRaw": "`lookup`: {Function} Custom lookup function. **Default:** [`dns.lookup()`][].",
@@ -1122,9 +1122,9 @@
                       "desc": "Custom lookup function."
                     },
                     {
-                      "textRaw": "...: Optional [`tls.createSecureContext()`][] options that are used if the `secureContext` option is missing, otherwise they are ignored.",
+                      "textRaw": "...: [`tls.createSecureContext()`][] options that are used if the `secureContext` option is missing, otherwise they are ignored.",
                       "name": "...",
-                      "desc": "Optional [`tls.createSecureContext()`][] options that are used if the `secureContext` option is missing, otherwise they are ignored."
+                      "desc": "[`tls.createSecureContext()`][] options that are used if the `secureContext` option is missing, otherwise they are ignored."
                     }
                   ]
                 },
@@ -1137,7 +1137,7 @@
               ]
             }
           ],
-          "desc": "<p>The <code>callback</code> function, if specified, will be added as a listener for the\n<a href=\"#tls_event_secureconnect\"><code>'secureConnect'</code></a> event.</p>\n<p><code>tls.connect()</code> returns a <a href=\"#tls_class_tls_tlssocket\"><code>tls.TLSSocket</code></a> object.</p>\n<p>The following implements a simple \"echo server\" example:</p>\n<pre><code class=\"language-js\">const tls = require('tls');\nconst fs = require('fs');\n\nconst options = {\n  // Necessary only if using the client certificate authentication\n  key: fs.readFileSync('client-key.pem'),\n  cert: fs.readFileSync('client-cert.pem'),\n\n  // Necessary only if the server uses the self-signed certificate\n  ca: [ fs.readFileSync('server-cert.pem') ]\n};\n\nconst socket = tls.connect(8000, options, () => {\n  console.log('client connected',\n              socket.authorized ? 'authorized' : 'unauthorized');\n  process.stdin.pipe(socket);\n  process.stdin.resume();\n});\nsocket.setEncoding('utf8');\nsocket.on('data', (data) => {\n  console.log(data);\n});\nsocket.on('end', () => {\n  server.close();\n});\n</code></pre>\n<p>Or</p>\n<pre><code class=\"language-js\">const tls = require('tls');\nconst fs = require('fs');\n\nconst options = {\n  pfx: fs.readFileSync('client.pfx')\n};\n\nconst socket = tls.connect(8000, options, () => {\n  console.log('client connected',\n              socket.authorized ? 'authorized' : 'unauthorized');\n  process.stdin.pipe(socket);\n  process.stdin.resume();\n});\nsocket.setEncoding('utf8');\nsocket.on('data', (data) => {\n  console.log(data);\n});\nsocket.on('end', () => {\n  server.close();\n});\n</code></pre>"
+          "desc": "<p>The <code>callback</code> function, if specified, will be added as a listener for the\n<a href=\"#tls_event_secureconnect\"><code>'secureConnect'</code></a> event.</p>\n<p><code>tls.connect()</code> returns a <a href=\"#tls_class_tls_tlssocket\"><code>tls.TLSSocket</code></a> object.</p>\n<p>Here is an example of a client of echo server as described in\n<a href=\"#tls_tls_createserver_options_secureconnectionlistener\"><code>tls.createServer()</code></a>:</p>\n<pre><code class=\"language-js\">// This example assumes that you have created an echo server that is\n// listening on port 8000.\nconst tls = require('tls');\nconst fs = require('fs');\n\nconst options = {\n  // Necessary only if using the client certificate authentication\n  key: fs.readFileSync('client-key.pem'),\n  cert: fs.readFileSync('client-cert.pem'),\n\n  // Necessary only if the server uses the self-signed certificate\n  ca: [ fs.readFileSync('server-cert.pem') ]\n};\n\nconst socket = tls.connect(8000, options, () => {\n  console.log('client connected',\n              socket.authorized ? 'authorized' : 'unauthorized');\n  process.stdin.pipe(socket);\n  process.stdin.resume();\n});\nsocket.setEncoding('utf8');\nsocket.on('data', (data) => {\n  console.log(data);\n});\nsocket.on('end', () => {\n  console.log('client ends');\n});\n</code></pre>\n<p>Or</p>\n<pre><code class=\"language-js\">// This example assumes that you have created an echo server that is\n// listening on port 8000.\nconst tls = require('tls');\nconst fs = require('fs');\n\nconst options = {\n  pfx: fs.readFileSync('client.pfx')\n};\n\nconst socket = tls.connect(8000, options, () => {\n  console.log('client connected',\n              socket.authorized ? 'authorized' : 'unauthorized');\n  process.stdin.pipe(socket);\n  process.stdin.resume();\n});\nsocket.setEncoding('utf8');\nsocket.on('data', (data) => {\n  console.log(data);\n});\nsocket.on('end', () => {\n  console.log('client ends');\n});\n</code></pre>"
         },
         {
           "textRaw": "tls.connect(path[, options][, callback])",
@@ -1197,10 +1197,10 @@
                   "desc": "Default value for `options.port`."
                 },
                 {
-                  "textRaw": "`host` {string} Optional default value for `options.host`.",
+                  "textRaw": "`host` {string} Default value for `options.host`.",
                   "name": "host",
                   "type": "string",
-                  "desc": "Optional default value for `options.host`.",
+                  "desc": "Default value for `options.host`.",
                   "optional": true
                 },
                 {
@@ -1223,7 +1223,7 @@
           "desc": "<p>Same as <a href=\"#tls_tls_connect_options_callback\"><code>tls.connect()</code></a> except that <code>port</code> and <code>host</code> can be provided\nas arguments instead of options.</p>\n<p>A port or host option, if specified, will take precedence over any port or host\nargument.</p>"
         },
         {
-          "textRaw": "tls.createSecureContext(options)",
+          "textRaw": "tls.createSecureContext([options])",
           "type": "method",
           "name": "createSecureContext",
           "meta": {
@@ -1231,6 +1231,11 @@
               "v0.11.13"
             ],
             "changes": [
+              {
+                "version": "v10.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/19794",
+                "description": "The `ecdhCurve` cannot be set to `false` anymore due to a change in OpenSSL."
+              },
               {
                 "version": "v9.3.0",
                 "pr-url": "https://github.com/nodejs/node/pull/14903",
@@ -1263,28 +1268,28 @@
                       "desc": "Optionally override the trusted CA certificates. Default is to trust the well-known CAs curated by Mozilla. Mozilla's CAs are completely replaced when CAs are explicitly specified using this option. The value can be a string or `Buffer`, or an `Array` of strings and/or `Buffer`s. Any string or `Buffer` can contain multiple PEM CAs concatenated together. The peer's certificate must be chainable to a CA trusted by the server for the connection to be authenticated. When using certificates that are not chainable to a well-known CA, the certificate's CA must be explicitly specified as a trusted or the connection will fail to authenticate. If the peer uses a certificate that doesn't match or chain to one of the default CAs, use the `ca` option to provide a CA certificate that the peer's certificate can match or chain to. For self-signed certificates, the certificate is its own CA, and must be provided."
                     },
                     {
-                      "textRaw": "`cert` {string|string[]|Buffer|Buffer[]} Optional cert chains in PEM format. One cert chain should be provided per private key. Each cert chain should consist of the PEM formatted certificate for a provided private `key`, followed by the PEM formatted intermediate certificates (if any), in order, and not including the root CA (the root CA must be pre-known to the peer, see `ca`). When providing multiple cert chains, they do not have to be in the same order as their private keys in `key`. If the intermediate certificates are not provided, the peer will not be able to validate the certificate, and the handshake will fail.",
+                      "textRaw": "`cert` {string|string[]|Buffer|Buffer[]} Cert chains in PEM format. One cert chain should be provided per private key. Each cert chain should consist of the PEM formatted certificate for a provided private `key`, followed by the PEM formatted intermediate certificates (if any), in order, and not including the root CA (the root CA must be pre-known to the peer, see `ca`). When providing multiple cert chains, they do not have to be in the same order as their private keys in `key`. If the intermediate certificates are not provided, the peer will not be able to validate the certificate, and the handshake will fail.",
                       "name": "cert",
                       "type": "string|string[]|Buffer|Buffer[]",
-                      "desc": "Optional cert chains in PEM format. One cert chain should be provided per private key. Each cert chain should consist of the PEM formatted certificate for a provided private `key`, followed by the PEM formatted intermediate certificates (if any), in order, and not including the root CA (the root CA must be pre-known to the peer, see `ca`). When providing multiple cert chains, they do not have to be in the same order as their private keys in `key`. If the intermediate certificates are not provided, the peer will not be able to validate the certificate, and the handshake will fail."
+                      "desc": "Cert chains in PEM format. One cert chain should be provided per private key. Each cert chain should consist of the PEM formatted certificate for a provided private `key`, followed by the PEM formatted intermediate certificates (if any), in order, and not including the root CA (the root CA must be pre-known to the peer, see `ca`). When providing multiple cert chains, they do not have to be in the same order as their private keys in `key`. If the intermediate certificates are not provided, the peer will not be able to validate the certificate, and the handshake will fail."
                     },
                     {
-                      "textRaw": "`ciphers` {string} Optional cipher suite specification, replacing the default. For more information, see [modifying the default cipher suite][].",
+                      "textRaw": "`ciphers` {string} Cipher suite specification, replacing the default. For more information, see [modifying the default cipher suite][].",
                       "name": "ciphers",
                       "type": "string",
-                      "desc": "Optional cipher suite specification, replacing the default. For more information, see [modifying the default cipher suite][]."
+                      "desc": "Cipher suite specification, replacing the default. For more information, see [modifying the default cipher suite][]."
                     },
                     {
-                      "textRaw": "`clientCertEngine` {string} Optional name of an OpenSSL engine which can provide the client certificate.",
+                      "textRaw": "`clientCertEngine` {string} Name of an OpenSSL engine which can provide the client certificate.",
                       "name": "clientCertEngine",
                       "type": "string",
-                      "desc": "Optional name of an OpenSSL engine which can provide the client certificate."
+                      "desc": "Name of an OpenSSL engine which can provide the client certificate."
                     },
                     {
-                      "textRaw": "`crl` {string|string[]|Buffer|Buffer[]} Optional PEM formatted CRLs (Certificate Revocation Lists).",
+                      "textRaw": "`crl` {string|string[]|Buffer|Buffer[]} PEM formatted CRLs (Certificate Revocation Lists).",
                       "name": "crl",
                       "type": "string|string[]|Buffer|Buffer[]",
-                      "desc": "Optional PEM formatted CRLs (Certificate Revocation Lists)."
+                      "desc": "PEM formatted CRLs (Certificate Revocation Lists)."
                     },
                     {
                       "textRaw": "`dhparam` {string|Buffer} Diffie Hellman parameters, required for [Perfect Forward Secrecy][]. Use `openssl dhparam` to create the parameters. The key length must be greater than or equal to 1024 bits, otherwise an error will be thrown. It is strongly recommended to use 2048 bits or larger for stronger security. If omitted or invalid, the parameters are silently discarded and DHE ciphers will not be available.",
@@ -1293,11 +1298,11 @@
                       "desc": "Diffie Hellman parameters, required for [Perfect Forward Secrecy][]. Use `openssl dhparam` to create the parameters. The key length must be greater than or equal to 1024 bits, otherwise an error will be thrown. It is strongly recommended to use 2048 bits or larger for stronger security. If omitted or invalid, the parameters are silently discarded and DHE ciphers will not be available."
                     },
                     {
-                      "textRaw": "`ecdhCurve` {string} A string describing a named curve or a colon separated list of curve NIDs or names, for example `P-521:P-384:P-256`, to use for ECDH key agreement, or `false` to disable ECDH. Set to `auto` to select the curve automatically. Use [`crypto.getCurves()`][] to obtain a list of available curve names. On recent releases, `openssl ecparam -list_curves` will also display the name and description of each available elliptic curve. **Default:** [`tls.DEFAULT_ECDH_CURVE`].",
+                      "textRaw": "`ecdhCurve` {string} A string describing a named curve or a colon separated list of curve NIDs or names, for example `P-521:P-384:P-256`, to use for ECDH key agreement. Set to `auto` to select the curve automatically. Use [`crypto.getCurves()`][] to obtain a list of available curve names. On recent releases, `openssl ecparam -list_curves` will also display the name and description of each available elliptic curve. **Default:** [`tls.DEFAULT_ECDH_CURVE`].",
                       "name": "ecdhCurve",
                       "type": "string",
                       "default": "[`tls.DEFAULT_ECDH_CURVE`]",
-                      "desc": "A string describing a named curve or a colon separated list of curve NIDs or names, for example `P-521:P-384:P-256`, to use for ECDH key agreement, or `false` to disable ECDH. Set to `auto` to select the curve automatically. Use [`crypto.getCurves()`][] to obtain a list of available curve names. On recent releases, `openssl ecparam -list_curves` will also display the name and description of each available elliptic curve."
+                      "desc": "A string describing a named curve or a colon separated list of curve NIDs or names, for example `P-521:P-384:P-256`, to use for ECDH key agreement. Set to `auto` to select the curve automatically. Use [`crypto.getCurves()`][] to obtain a list of available curve names. On recent releases, `openssl ecparam -list_curves` will also display the name and description of each available elliptic curve."
                     },
                     {
                       "textRaw": "`honorCipherOrder` {boolean} Attempt to use the server's cipher suite preferences instead of the client's. When `true`, causes `SSL_OP_CIPHER_SERVER_PREFERENCE` to be set in `secureOptions`, see [OpenSSL Options][] for more information.",
@@ -1306,22 +1311,22 @@
                       "desc": "Attempt to use the server's cipher suite preferences instead of the client's. When `true`, causes `SSL_OP_CIPHER_SERVER_PREFERENCE` to be set in `secureOptions`, see [OpenSSL Options][] for more information."
                     },
                     {
-                      "textRaw": "`key` {string|string[]|Buffer|Buffer[]|Object[]} Optional private keys in PEM format. PEM allows the option of private keys being encrypted. Encrypted keys will be decrypted with `options.passphrase`. Multiple keys using different algorithms can be provided either as an array of unencrypted key strings or buffers, or an array of objects in the form `{pem: <string|buffer>[, passphrase: <string>]}`. The object form can only occur in an array. `object.passphrase` is optional. Encrypted keys will be decrypted with `object.passphrase` if provided, or `options.passphrase` if it is not.",
+                      "textRaw": "`key` {string|string[]|Buffer|Buffer[]|Object[]} Private keys in PEM format. PEM allows the option of private keys being encrypted. Encrypted keys will be decrypted with `options.passphrase`. Multiple keys using different algorithms can be provided either as an array of unencrypted key strings or buffers, or an array of objects in the form `{pem: <string|buffer>[, passphrase: <string>]}`. The object form can only occur in an array. `object.passphrase` is optional. Encrypted keys will be decrypted with `object.passphrase` if provided, or `options.passphrase` if it is not.",
                       "name": "key",
                       "type": "string|string[]|Buffer|Buffer[]|Object[]",
-                      "desc": "Optional private keys in PEM format. PEM allows the option of private keys being encrypted. Encrypted keys will be decrypted with `options.passphrase`. Multiple keys using different algorithms can be provided either as an array of unencrypted key strings or buffers, or an array of objects in the form `{pem: <string|buffer>[, passphrase: <string>]}`. The object form can only occur in an array. `object.passphrase` is optional. Encrypted keys will be decrypted with `object.passphrase` if provided, or `options.passphrase` if it is not."
+                      "desc": "Private keys in PEM format. PEM allows the option of private keys being encrypted. Encrypted keys will be decrypted with `options.passphrase`. Multiple keys using different algorithms can be provided either as an array of unencrypted key strings or buffers, or an array of objects in the form `{pem: <string|buffer>[, passphrase: <string>]}`. The object form can only occur in an array. `object.passphrase` is optional. Encrypted keys will be decrypted with `object.passphrase` if provided, or `options.passphrase` if it is not."
                     },
                     {
-                      "textRaw": "`passphrase` {string} Optional shared passphrase used for a single private key and/or a PFX.",
+                      "textRaw": "`passphrase` {string} Shared passphrase used for a single private key and/or a PFX.",
                       "name": "passphrase",
                       "type": "string",
-                      "desc": "Optional shared passphrase used for a single private key and/or a PFX."
+                      "desc": "Shared passphrase used for a single private key and/or a PFX."
                     },
                     {
-                      "textRaw": "`pfx` {string|string[]|Buffer|Buffer[]|Object[]} Optional PFX or PKCS12 encoded private key and certificate chain. `pfx` is an alternative to providing `key` and `cert` individually. PFX is usually encrypted, if it is, `passphrase` will be used to decrypt it. Multiple PFX can be provided either as an array of unencrypted PFX buffers, or an array of objects in the form `{buf: <string|buffer>[, passphrase: <string>]}`. The object form can only occur in an array. `object.passphrase` is optional. Encrypted PFX will be decrypted with `object.passphrase` if provided, or `options.passphrase` if it is not.",
+                      "textRaw": "`pfx` {string|string[]|Buffer|Buffer[]|Object[]} PFX or PKCS12 encoded private key and certificate chain. `pfx` is an alternative to providing `key` and `cert` individually. PFX is usually encrypted, if it is, `passphrase` will be used to decrypt it. Multiple PFX can be provided either as an array of unencrypted PFX buffers, or an array of objects in the form `{buf: <string|buffer>[, passphrase: <string>]}`. The object form can only occur in an array. `object.passphrase` is optional. Encrypted PFX will be decrypted with `object.passphrase` if provided, or `options.passphrase` if it is not.",
                       "name": "pfx",
                       "type": "string|string[]|Buffer|Buffer[]|Object[]",
-                      "desc": "Optional PFX or PKCS12 encoded private key and certificate chain. `pfx` is an alternative to providing `key` and `cert` individually. PFX is usually encrypted, if it is, `passphrase` will be used to decrypt it. Multiple PFX can be provided either as an array of unencrypted PFX buffers, or an array of objects in the form `{buf: <string|buffer>[, passphrase: <string>]}`. The object form can only occur in an array. `object.passphrase` is optional. Encrypted PFX will be decrypted with `object.passphrase` if provided, or `options.passphrase` if it is not."
+                      "desc": "PFX or PKCS12 encoded private key and certificate chain. `pfx` is an alternative to providing `key` and `cert` individually. PFX is usually encrypted, if it is, `passphrase` will be used to decrypt it. Multiple PFX can be provided either as an array of unencrypted PFX buffers, or an array of objects in the form `{buf: <string|buffer>[, passphrase: <string>]}`. The object form can only occur in an array. `object.passphrase` is optional. Encrypted PFX will be decrypted with `object.passphrase` if provided, or `options.passphrase` if it is not."
                     },
                     {
                       "textRaw": "`secureOptions` {number} Optionally affect the OpenSSL protocol behavior, which is not usually necessary. This should be used carefully if at all! Value is a numeric bitmask of the `SSL_OP_*` options from [OpenSSL Options][].",
@@ -1330,19 +1335,20 @@
                       "desc": "Optionally affect the OpenSSL protocol behavior, which is not usually necessary. This should be used carefully if at all! Value is a numeric bitmask of the `SSL_OP_*` options from [OpenSSL Options][]."
                     },
                     {
-                      "textRaw": "`secureProtocol` {string} Optional SSL method to use. The possible values are listed as [SSL_METHODS][], use the function names as strings. For example, `'TLSv1_2_method'` to force TLS version 1.2. **Default:** `'TLS_method'`.",
+                      "textRaw": "`secureProtocol` {string} SSL method to use. The possible values are listed as [SSL_METHODS][], use the function names as strings. For example, `'TLSv1_2_method'` to force TLS version 1.2. **Default:** `'TLS_method'`.",
                       "name": "secureProtocol",
                       "type": "string",
                       "default": "`'TLS_method'`",
-                      "desc": "Optional SSL method to use. The possible values are listed as [SSL_METHODS][], use the function names as strings. For example, `'TLSv1_2_method'` to force TLS version 1.2."
+                      "desc": "SSL method to use. The possible values are listed as [SSL_METHODS][], use the function names as strings. For example, `'TLSv1_2_method'` to force TLS version 1.2."
                     },
                     {
-                      "textRaw": "`sessionIdContext` {string} Optional opaque identifier used by servers to ensure session state is not shared between applications. Unused by clients.",
+                      "textRaw": "`sessionIdContext` {string} Opaque identifier used by servers to ensure session state is not shared between applications. Unused by clients.",
                       "name": "sessionIdContext",
                       "type": "string",
-                      "desc": "Optional opaque identifier used by servers to ensure session state is not shared between applications. Unused by clients."
+                      "desc": "Opaque identifier used by servers to ensure session state is not shared between applications. Unused by clients."
                     }
-                  ]
+                  ],
+                  "optional": true
                 }
               ]
             }
@@ -1390,10 +1396,10 @@
                       "desc": "An array of strings, `Buffer`s or `Uint8Array`s, or a single `Buffer` or `Uint8Array` containing the supported ALPN protocols. `Buffer`s should have the format `[len][name][len][name]...` e.g. `0x05hello0x05world`, where the first byte is the length of the next protocol name. Passing an array is usually much simpler, e.g. `['hello', 'world']`. (Protocols should be ordered by their priority.)"
                     },
                     {
-                      "textRaw": "`clientCertEngine` {string} Optional name of an OpenSSL engine which can provide the client certificate.",
+                      "textRaw": "`clientCertEngine` {string} Name of an OpenSSL engine which can provide the client certificate.",
                       "name": "clientCertEngine",
                       "type": "string",
-                      "desc": "Optional name of an OpenSSL engine which can provide the client certificate."
+                      "desc": "Name of an OpenSSL engine which can provide the client certificate."
                     },
                     {
                       "textRaw": "`handshakeTimeout` {number} Abort the connection if the SSL/TLS handshake does not finish in the specified number of milliseconds. A `'tlsClientError'` is emitted on the `tls.Server` object whenever a handshake times out. **Default:** `120000` (120 seconds).",
@@ -1471,7 +1477,7 @@
               "params": []
             }
           ],
-          "desc": "<p>Returns an array with the names of the supported SSL ciphers.</p>\n<p>For example:</p>\n<pre><code class=\"language-js\">console.log(tls.getCiphers()); // ['AES128-SHA', 'AES256-SHA', ...]\n</code></pre>"
+          "desc": "<p>Returns an array with the names of the supported SSL ciphers.</p>\n<pre><code class=\"language-js\">console.log(tls.getCiphers()); // ['AES128-SHA', 'AES256-SHA', ...]\n</code></pre>"
         }
       ],
       "properties": [

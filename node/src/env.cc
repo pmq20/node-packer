@@ -44,6 +44,8 @@ IsolateData::IsolateData(Isolate* isolate,
   if (platform_ != nullptr)
     platform_->RegisterIsolate(this, event_loop);
 
+  options_.reset(new PerIsolateOptions(*per_process_opts->per_isolate));
+
   // Create string and private symbol properties as internalized one byte
   // strings after the platform is properly initialized.
   //
@@ -111,14 +113,10 @@ Environment::Environment(IsolateData* isolate_data,
       tick_info_(context->GetIsolate()),
       timer_base_(uv_now(isolate_data->event_loop())),
       printed_error_(false),
-      trace_sync_io_(false),
       abort_on_uncaught_exception_(false),
       emit_env_nonstring_warning_(true),
       makecallback_cntr_(0),
       should_abort_on_uncaught_toggle_(isolate_, 1),
-#if HAVE_INSPECTOR
-      inspector_agent_(new inspector::Agent(this)),
-#endif
       http_parser_buffer_(nullptr),
       fs_stats_field_array_(isolate_, kFsStatsFieldsLength * 2),
       fs_stats_field_bigint_array_(isolate_, kFsStatsFieldsLength * 2),
@@ -127,6 +125,19 @@ Environment::Environment(IsolateData* isolate_data,
   v8::HandleScope handle_scope(isolate());
   v8::Context::Scope context_scope(context);
   set_as_external(v8::External::New(isolate(), this));
+
+  // We create new copies of the per-Environment option sets, so that it is
+  // easier to modify them after Environment creation. The defaults are
+  // part of the per-Isolate option set, for which in turn the defaults are
+  // part of the per-process option set.
+  options_.reset(new EnvironmentOptions(*isolate_data->options()->per_env));
+  options_->debug_options.reset(new DebugOptions(*options_->debug_options));
+
+#if HAVE_INSPECTOR
+  // We can only create the inspector agent after having cloned the options.
+  inspector_agent_ =
+      std::unique_ptr<inspector::Agent>(new inspector::Agent(this));
+#endif
 
   AssignToContext(context, ContextInfo(""));
 
@@ -150,6 +161,9 @@ Environment::Environment(IsolateData* isolate_data,
 
   isolate()->GetHeapProfiler()->AddBuildEmbedderGraphCallback(
       BuildEmbedderGraph, this);
+  if (options_->no_force_async_hooks_checks) {
+    async_hooks_.no_force_checks();
+  }
 }
 
 Environment::~Environment() {
@@ -176,10 +190,8 @@ Environment::~Environment() {
   delete[] http_parser_buffer_;
 }
 
-void Environment::Start(int argc,
-                        const char* const* argv,
-                        int exec_argc,
-                        const char* const* exec_argv,
+void Environment::Start(const std::vector<std::string>& args,
+                        const std::vector<std::string>& exec_args,
                         bool start_profiler_idle_notifier) {
   HandleScope handle_scope(isolate());
   Context::Scope context_scope(context());
@@ -218,11 +230,13 @@ void Environment::Start(int argc,
   auto process_template = FunctionTemplate::New(isolate());
   process_template->SetClassName(FIXED_ONE_BYTE_STRING(isolate(), "process"));
 
-  auto process_object =
-      process_template->GetFunction()->NewInstance(context()).ToLocalChecked();
+  auto process_object = process_template->GetFunction(context())
+                            .ToLocalChecked()
+                            ->NewInstance(context())
+                            .ToLocalChecked();
   set_process_object(process_object);
 
-  SetupProcessObject(this, argc, argv, exec_argc, exec_argv);
+  SetupProcessObject(this, args, exec_args);
 
   static uv_once_t init_once = UV_ONCE_INIT;
   uv_once(&init_once, InitThreadLocalOnce);
@@ -299,7 +313,7 @@ void Environment::StopProfilerIdleNotifier() {
 }
 
 void Environment::PrintSyncTrace() const {
-  if (!trace_sync_io_)
+  if (!options_->trace_sync_io)
     return;
 
   HandleScope handle_scope(isolate());
@@ -310,7 +324,7 @@ void Environment::PrintSyncTrace() const {
           uv_os_getpid());
 
   for (int i = 0; i < stack->GetFrameCount() - 1; i++) {
-    Local<StackFrame> stack_frame = stack->GetFrame(i);
+    Local<StackFrame> stack_frame = stack->GetFrame(isolate(), i);
     node::Utf8Value fn_name_s(isolate(), stack_frame->GetFunctionName());
     node::Utf8Value script_name(isolate(), stack_frame->GetScriptName());
     const int line_number = stack_frame->GetLineNumber();
@@ -437,18 +451,9 @@ void Environment::EnvPromiseHook(v8::PromiseHookType type,
                                  v8::Local<v8::Value> parent) {
   Local<v8::Context> context = promise->CreationContext();
 
-  // Grow the embedder data if necessary to make sure we are not out of bounds
-  // when reading the magic number.
-  context->SetAlignedPointerInEmbedderData(
-      ContextEmbedderIndex::kContextTagBoundary, nullptr);
-  int* magicNumberPtr = reinterpret_cast<int*>(
-      context->GetAlignedPointerFromEmbedderData(
-          ContextEmbedderIndex::kContextTag));
-  if (magicNumberPtr != Environment::kNodeContextTagPtr) {
-    return;
-  }
-
   Environment* env = Environment::GetCurrent(context);
+  if (env == nullptr) return;
+
   for (const PromiseHookCallback& hook : env->promise_hooks_) {
     hook.cb_(type, promise, parent, hook.arg_);
   }

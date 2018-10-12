@@ -1,6 +1,8 @@
 #ifndef SRC_NODE_CONTEXT_DATA_H_
 #define SRC_NODE_CONTEXT_DATA_H_
 
+#if defined(NODE_WANT_INTERNALS) && NODE_WANT_INTERNALS
+
 namespace node {
 
 // Pick an index that's hopefully out of the way when we're embedded inside
@@ -23,18 +25,15 @@ namespace node {
 #define NODE_CONTEXT_TAG 35
 #endif
 
-#ifndef NODE_CONTEXT_TAG_BOUNDARY
-#define NODE_CONTEXT_TAG_BOUNDARY 36
-#endif
-
 enum ContextEmbedderIndex {
   kEnvironment = NODE_CONTEXT_EMBEDDER_DATA_INDEX,
   kSandboxObject = NODE_CONTEXT_SANDBOX_OBJECT_INDEX,
   kAllowWasmCodeGeneration = NODE_CONTEXT_ALLOW_WASM_CODE_GENERATION_INDEX,
   kContextTag = NODE_CONTEXT_TAG,
-  kContextTagBoundary = NODE_CONTEXT_TAG_BOUNDARY,
 };
 
 }  // namespace node
+
+#endif  // defined(NODE_WANT_INTERNALS) && NODE_WANT_INTERNALS
 
 #endif  // SRC_NODE_CONTEXT_DATA_H_

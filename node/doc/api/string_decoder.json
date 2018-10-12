@@ -34,10 +34,10 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`buffer` {Buffer} A `Buffer` containing the bytes to decode.",
+                      "textRaw": "`buffer` {Buffer|TypedArray|DataView} A `Buffer`, or `TypedArray`, or `DataView` containing the bytes to decode.",
                       "name": "buffer",
-                      "type": "Buffer",
-                      "desc": "A `Buffer` containing the bytes to decode.",
+                      "type": "Buffer|TypedArray|DataView",
+                      "desc": "A `Buffer`, or `TypedArray`, or `DataView` containing the bytes to decode.",
                       "optional": true
                     }
                   ]
@@ -70,15 +70,15 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`buffer` {Buffer} A `Buffer` containing the bytes to decode.",
+                      "textRaw": "`buffer` {Buffer|TypedArray|DataView} A `Buffer`, or `TypedArray`, or `DataView` containing the bytes to decode.",
                       "name": "buffer",
-                      "type": "Buffer",
-                      "desc": "A `Buffer` containing the bytes to decode."
+                      "type": "Buffer|TypedArray|DataView",
+                      "desc": "A `Buffer`, or `TypedArray`, or `DataView` containing the bytes to decode."
                     }
                   ]
                 }
               ],
-              "desc": "<p>Returns a decoded string, ensuring that any incomplete multibyte characters at\nthe end of the <code>Buffer</code> are omitted from the returned string and stored in an\ninternal buffer for the next call to <code>stringDecoder.write()</code> or\n<code>stringDecoder.end()</code>.</p>"
+              "desc": "<p>Returns a decoded string, ensuring that any incomplete multibyte characters at\nthe end of the <code>Buffer</code>, or <code>TypedArray</code>, or <code>DataView</code> are omitted from the\nreturned string and stored in an internal buffer for the next call to\n<code>stringDecoder.write()</code> or <code>stringDecoder.end()</code>.</p>"
             }
           ],
           "signatures": [

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>OS | Node.js v10.9.0 Documentation</title>
+  <title>OS | Node.js v10.12.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -80,7 +80,7 @@
 
     <div id="column1" data-id="os" class="interior">
       <header>
-        <h1>Node.js v10.9.0 Documentation</h1>
+        <h1>Node.js v10.12.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -124,12 +124,14 @@
 <li><a href="#os_os_cpus">os.cpus()</a></li>
 <li><a href="#os_os_endianness">os.endianness()</a></li>
 <li><a href="#os_os_freemem">os.freemem()</a></li>
+<li><a href="#os_os_getpriority_pid">os.getPriority([pid])</a></li>
 <li><a href="#os_os_homedir">os.homedir()</a></li>
 <li><a href="#os_os_hostname">os.hostname()</a></li>
 <li><a href="#os_os_loadavg">os.loadavg()</a></li>
 <li><a href="#os_os_networkinterfaces">os.networkInterfaces()</a></li>
 <li><a href="#os_os_platform">os.platform()</a></li>
 <li><a href="#os_os_release">os.release()</a></li>
+<li><a href="#os_os_setpriority_pid_priority">os.setPriority([pid, ]priority)</a></li>
 <li><a href="#os_os_tmpdir">os.tmpdir()</a></li>
 <li><a href="#os_os_totalmem">os.totalmem()</a></li>
 <li><a href="#os_os_type">os.type()</a></li>
@@ -147,6 +149,7 @@
 </ul>
 </li>
 <li><a href="#os_dlopen_constants">dlopen Constants</a></li>
+<li><a href="#os_priority_constants">Priority Constants</a></li>
 <li><a href="#os_libuv_constants">libuv Constants</a></li>
 </ul>
 </li>
@@ -175,7 +178,7 @@ It can be accessed using:</p>
 <li><code>\n</code> on POSIX</li>
 <li><code>\r\n</code> on Windows</li>
 </ul>
-<h2>os.arch()<span><a class="mark" href="#os_os_arch" id="os_os_arch">#</a></span></h2>
+<h2>os.arch()<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/os.js#L112">[src]</a><span><a class="mark" href="#os_os_arch" id="os_os_arch">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.5.0</span>
 </div>
@@ -197,7 +200,7 @@ architecture for which the Node.js binary was compiled.</p>
 <p>Returns an object containing commonly used operating system specific constants
 for error codes, process signals, and so on. The specific constants currently
 defined are described in <a href="#os_os_constants_1">OS Constants</a>.</p>
-<h2>os.cpus()<span><a class="mark" href="#os_os_cpus" id="os_os_cpus">#</a></span></h2>
+<h2>os.cpus()<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/os.js#L108">[src]</a><span><a class="mark" href="#os_os_cpus" id="os_os_cpus">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.3.3</span>
 </div>
@@ -315,7 +318,7 @@ each logical CPU core.</p>
 </code></pre>
 <p>Because <code>nice</code> values are UNIX-specific, on Windows the <code>nice</code> values of all
 processors are always 0.</p>
-<h2>os.endianness()<span><a class="mark" href="#os_os_endianness" id="os_os_endianness">#</a></span></h2>
+<h2>os.endianness()<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/os.js#L143">[src]</a><span><a class="mark" href="#os_os_endianness" id="os_os_endianness">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.9.4</span>
 </div>
@@ -338,6 +341,18 @@ CPU <em>for which the Node.js binary was compiled</em>.</p>
 </ul>
 <p>The <code>os.freemem()</code> method returns the amount of free system memory in bytes as
 an integer.</p>
+<h2>os.getPriority([pid])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/os.js#L226">[src]</a><span><a class="mark" href="#os_os_getpriority_pid" id="os_os_getpriority_pid">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v10.10.0</span>
+</div>
+<ul>
+<li><code>pid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> The process ID to retrieve scheduling priority for.
+<strong>Default</strong> <code>0</code>.</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
+</ul>
+<p>The <code>os.getPriority()</code> method returns the scheduling priority for the process
+specified by <code>pid</code>. If <code>pid</code> is not provided, or is <code>0</code>, the priority of the
+current process is returned.</p>
 <h2>os.homedir()<span><a class="mark" href="#os_os_homedir" id="os_os_homedir">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v2.3.0</span>
@@ -356,7 +371,7 @@ string.</p>
 </ul>
 <p>The <code>os.hostname()</code> method returns the hostname of the operating system as a
 string.</p>
-<h2>os.loadavg()<span><a class="mark" href="#os_os_loadavg" id="os_os_loadavg">#</a></span></h2>
+<h2>os.loadavg()<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/os.js#L87">[src]</a><span><a class="mark" href="#os_os_loadavg" id="os_os_loadavg">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.3.3</span>
 </div>
@@ -370,7 +385,7 @@ system and expressed as a fractional number. As a rule of thumb, the load
 average should ideally be less than the number of logical CPUs in the system.</p>
 <p>The load average is a UNIX-specific concept with no real equivalent on
 Windows platforms. On Windows, the return value is always <code>[0, 0, 0]</code>.</p>
-<h2>os.networkInterfaces()<span><a class="mark" href="#os_os_networkinterfaces" id="os_os_networkinterfaces">#</a></span></h2>
+<h2>os.networkInterfaces()<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/os.js#L197">[src]</a><span><a class="mark" href="#os_os_networkinterfaces" id="os_os_networkinterfaces">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.6.0</span>
 </div>
@@ -435,7 +450,7 @@ to <code>null</code>.</li>
   ]
 }
 </code></pre>
-<h2>os.platform()<span><a class="mark" href="#os_os_platform" id="os_os_platform">#</a></span></h2>
+<h2>os.platform()<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/os.js#L117">[src]</a><span><a class="mark" href="#os_os_platform" id="os_os_platform">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.5.0</span>
 </div>
@@ -470,7 +485,27 @@ release.</p>
 <p>On POSIX systems, the operating system release is determined by calling
 <a href="https://linux.die.net/man/3/uname"></a><a href="http://man7.org/linux/man-pages/man3/uname.3.html"><code>uname(3)</code></a>. On Windows, <code>GetVersionExW()</code> is used. Please see
 <a href="https://en.wikipedia.org/wiki/Uname#Examples">https://en.wikipedia.org/wiki/Uname#Examples</a> for more information.</p>
-<h2>os.tmpdir()<span><a class="mark" href="#os_os_tmpdir" id="os_os_tmpdir">#</a></span></h2>
+<h2>os.setPriority([pid, ]priority)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/os.js#L211">[src]</a><span><a class="mark" href="#os_os_setpriority_pid_priority" id="os_os_setpriority_pid_priority">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v10.10.0</span>
+</div>
+<ul>
+<li><code>pid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> The process ID to set scheduling priority for.
+<strong>Default</strong> <code>0</code>.</li>
+<li><code>priority</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> The scheduling priority to assign to the process.</li>
+</ul>
+<p>The <code>os.setPriority()</code> method attempts to set the scheduling priority for the
+process specified by <code>pid</code>. If <code>pid</code> is not provided, or is <code>0</code>, the priority
+of the current process is used.</p>
+<p>The <code>priority</code> input must be an integer between <code>-20</code> (high priority) and <code>19</code>
+(low priority). Due to differences between Unix priority levels and Windows
+priority classes, <code>priority</code> is mapped to one of six priority constants in
+<code>os.constants.priority</code>. When retrieving a process priority level, this range
+mapping may cause the return value to be slightly different on Windows. To avoid
+confusion, it is recommended to set <code>priority</code> to one of the priority constants.</p>
+<p>On Windows setting priority to <code>PRIORITY_HIGHEST</code> requires elevated user,
+otherwise the set priority will be silently reduced to <code>PRIORITY_HIGH</code>.</p>
+<h2>os.tmpdir()<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/os.js#L122">[src]</a><span><a class="mark" href="#os_os_tmpdir" id="os_os_tmpdir">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -504,8 +539,8 @@ as an integer.</p>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
 <p>The <code>os.type()</code> method returns a string identifying the operating system name
-as returned by <a href="https://linux.die.net/man/3/uname"></a><a href="http://man7.org/linux/man-pages/man3/uname.3.html"><code>uname(3)</code></a>. For example <code>'Linux'</code> on Linux, <code>'Darwin'</code> on macOS
-and <code>'Windows_NT'</code> on Windows.</p>
+as returned by <a href="https://linux.die.net/man/3/uname"></a><a href="http://man7.org/linux/man-pages/man3/uname.3.html"><code>uname(3)</code></a>. For example, <code>'Linux'</code> on Linux, <code>'Darwin'</code> on
+macOS, and <code>'Windows_NT'</code> on Windows.</p>
 <p>Please see <a href="https://en.wikipedia.org/wiki/Uname#Examples">https://en.wikipedia.org/wiki/Uname#Examples</a> for additional
 information about the output of running <a href="https://linux.die.net/man/3/uname"></a><a href="http://man7.org/linux/man-pages/man3/uname.3.html"><code>uname(3)</code></a> on various operating
 systems.</p>
@@ -525,7 +560,7 @@ systems.</p>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
 </ul>
 <p>The <code>os.uptime()</code> method returns the system uptime in number of seconds.</p>
-<h2>os.userInfo([options])<span><a class="mark" href="#os_os_userinfo_options" id="os_os_userinfo_options">#</a></span></h2>
+<h2>os.userInfo([options])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/os.js#L241">[src]</a><span><a class="mark" href="#os_os_userinfo_options" id="os_os_userinfo_options">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v6.0.0</span>
 </div>
@@ -1330,6 +1365,57 @@ information.</p>
     symbols from previously loaded libraries.</td>
   </tr>
 </tbody></table>
+<h3>Priority Constants<span><a class="mark" href="#os_priority_constants" id="os_priority_constants">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v10.10.0</span>
+</div>
+<p>The following process scheduling constants are exported by
+<code>os.constants.priority</code>:</p>
+<table>
+  <tbody><tr>
+    <th>Constant</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td><code>PRIORITY_LOW</code></td>
+    <td>The lowest process scheduling priority. This corresponds to
+    <code>IDLE_PRIORITY_CLASS</code> on Windows, and a nice value of
+    <code>19</code> on all other platforms.</td>
+  </tr>
+  <tr>
+    <td><code>PRIORITY_BELOW_NORMAL</code></td>
+    <td>The process scheduling priority above <code>PRIORITY_LOW</code> and
+    below <code>PRIORITY_NORMAL</code>. This corresponds to
+    <code>BELOW_NORMAL_PRIORITY_CLASS</code> on Windows, and a nice value of
+    <code>10</code> on all other platforms.</td>
+  </tr>
+  <tr>
+    <td><code>PRIORITY_NORMAL</code></td>
+    <td>The default process scheduling priority. This corresponds to
+    <code>NORMAL_PRIORITY_CLASS</code> on Windows, and a nice value of
+    <code>0</code> on all other platforms.</td>
+  </tr>
+  <tr>
+    <td><code>PRIORITY_ABOVE_NORMAL</code></td>
+    <td>The process scheduling priority above <code>PRIORITY_NORMAL</code> and
+    below <code>PRIORITY_HIGH</code>. This corresponds to
+    <code>ABOVE_NORMAL_PRIORITY_CLASS</code> on Windows, and a nice value of
+    <code>-7</code> on all other platforms.</td>
+  </tr>
+  <tr>
+    <td><code>PRIORITY_HIGH</code></td>
+    <td>The process scheduling priority above <code>PRIORITY_ABOVE_NORMAL</code>
+    and below <code>PRIORITY_HIGHEST</code>. This corresponds to
+    <code>HIGH_PRIORITY_CLASS</code> on Windows, and a nice value of
+    <code>-14</code> on all other platforms.</td>
+  </tr>
+  <tr>
+    <td><code>PRIORITY_HIGHEST</code></td>
+    <td>The highest process scheduling priority. This corresponds to
+    <code>REALTIME_PRIORITY_CLASS</code> on Windows, and a nice value of
+    <code>-20</code> on all other platforms.</td>
+  </tr>
+</tbody></table>
 <h3>libuv Constants<span><a class="mark" href="#os_libuv_constants" id="os_libuv_constants">#</a></span></h3>
 <table>
   <tbody><tr>
@@ -1347,6 +1433,5 @@ information.</p>
   <script src="assets/sh_main.js"></script>
   <script src="assets/sh_javascript.min.js"></script>
   <script>highlight(undefined, undefined, 'pre');</script>
-  <!-- __TRACKING__ -->
 </body>
 </html>

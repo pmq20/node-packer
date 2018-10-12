@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>C++ Addons | Node.js v10.9.0 Documentation</title>
+  <title>C++ Addons | Node.js v10.12.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -80,7 +80,7 @@
 
     <div id="column1" data-id="addons" class="interior">
       <header>
-        <h1>Node.js v10.9.0 Documentation</h1>
+        <h1>Node.js v10.12.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -477,6 +477,9 @@ outlined in this document (node-gyp, etc.). The only difference is the
 set of APIs that are used by the native code. Instead of using the V8
 or <a href="https://github.com/nodejs/nan">Native Abstractions for Node.js</a> APIs, the functions available
 in the N-API are used.</p>
+<p>Creating and maintaining an addon that benefits from the ABI stability
+provided by N-API carries with it certain
+<a href="n-api.html#n_api_implications_of_abi_stability">implementation considerations</a>.</p>
 <p>To use N-API in the above "Hello world" example, replace the content of
 <code>hello.cc</code> with the following. All other instructions remain the same.</p>
 <pre><code class="language-cpp">// hello.cc using N-API
@@ -578,7 +581,8 @@ void Add(const FunctionCallbackInfo&#x3C;Value>&#x26; args) {
   }
 
   // Perform the operation
-  double value = args[0]->NumberValue() + args[1]->NumberValue();
+  double value =
+      args[0].As&#x3C;Number>()->Value() + args[1].As&#x3C;Number>()->Value();
   Local&#x3C;Number> num = Number::New(isolate, value);
 
   // Set the return value (using the passed in
@@ -668,7 +672,7 @@ void CreateObject(const FunctionCallbackInfo&#x3C;Value>&#x26; args) {
   Isolate* isolate = args.GetIsolate();
 
   Local&#x3C;Object> obj = Object::New(isolate);
-  obj->Set(String::NewFromUtf8(isolate, "msg"), args[0]->ToString());
+  obj->Set(String::NewFromUtf8(isolate, "msg"), args[0]->ToString(isolate));
 
   args.GetReturnValue().Set(obj);
 }
@@ -698,6 +702,7 @@ functions and returning those back to JavaScript:</p>
 
 namespace demo {
 
+using v8::Context;
 using v8::Function;
 using v8::FunctionCallbackInfo;
 using v8::FunctionTemplate;
@@ -715,8 +720,9 @@ void MyFunction(const FunctionCallbackInfo&#x3C;Value>&#x26; args) {
 void CreateFunction(const FunctionCallbackInfo&#x3C;Value>&#x26; args) {
   Isolate* isolate = args.GetIsolate();
 
+  Local&#x3C;Context> context = isolate->GetCurrentContext();
   Local&#x3C;FunctionTemplate> tpl = FunctionTemplate::New(isolate, MyFunction);
-  Local&#x3C;Function> fn = tpl->GetFunction();
+  Local&#x3C;Function> fn = tpl->GetFunction(context).ToLocalChecked();
 
   // omit this to make it anonymous
   fn->SetName(String::NewFromUtf8(isolate, "theFunction"));
@@ -827,17 +833,20 @@ void MyObject::Init(Local&#x3C;Object> exports) {
   // Prototype
   NODE_SET_PROTOTYPE_METHOD(tpl, "plusOne", PlusOne);
 
-  constructor.Reset(isolate, tpl->GetFunction());
+  Local&#x3C;Context> context = isolate->GetCurrentContext();
+  constructor.Reset(isolate, tpl->GetFunction(context).ToLocalChecked());
   exports->Set(String::NewFromUtf8(isolate, "MyObject"),
-               tpl->GetFunction());
+               tpl->GetFunction(context).ToLocalChecked());
 }
 
 void MyObject::New(const FunctionCallbackInfo&#x3C;Value>&#x26; args) {
   Isolate* isolate = args.GetIsolate();
+  Local&#x3C;Context> context = isolate->GetCurrentContext();
 
   if (args.IsConstructCall()) {
     // Invoked as constructor: `new MyObject(...)`
-    double value = args[0]->IsUndefined() ? 0 : args[0]->NumberValue();
+    double value = args[0]->IsUndefined() ?
+        0 : args[0]->NumberValue(context).FromMaybe(0);
     MyObject* obj = new MyObject(value);
     obj->Wrap(args.This());
     args.GetReturnValue().Set(args.This());
@@ -845,7 +854,6 @@ void MyObject::New(const FunctionCallbackInfo&#x3C;Value>&#x26; args) {
     // Invoked as plain function `MyObject(...)`, turn into construct call.
     const int argc = 1;
     Local&#x3C;Value> argv[argc] = { args[0] };
-    Local&#x3C;Context> context = isolate->GetCurrentContext();
     Local&#x3C;Function> cons = Local&#x3C;Function>::New(isolate, constructor);
     Local&#x3C;Object> result =
         cons->NewInstance(context, argc, argv).ToLocalChecked();
@@ -890,6 +898,12 @@ console.log(obj.plusOne());
 console.log(obj.plusOne());
 // Prints: 13
 </code></pre>
+<p>The destructor for a wrapper object will run when the object is
+garbage-collected. For destructor testing, there are command-line flags that
+can be used to make it possible to force garbage collection. These flags are
+provided by the underlying V8 JavaScript engine. They are subject to change
+or removal at any time. They are not documented by Node.js or V8, and they
+should never be used outside of testing.</p>
 <h3>Factory of wrapped objects<span><a class="mark" href="#addons_factory_of_wrapped_objects" id="addons_factory_of_wrapped_objects">#</a></span></h3>
 <p>Alternatively, it is possible to use a factory pattern to avoid explicitly
 creating object instances using the JavaScript <code>new</code> operator:</p>
@@ -992,15 +1006,18 @@ void MyObject::Init(Isolate* isolate) {
   // Prototype
   NODE_SET_PROTOTYPE_METHOD(tpl, "plusOne", PlusOne);
 
-  constructor.Reset(isolate, tpl->GetFunction());
+  Local&#x3C;Context> context = isolate->GetCurrentContext();
+  constructor.Reset(isolate, tpl->GetFunction(context).ToLocalChecked());
 }
 
 void MyObject::New(const FunctionCallbackInfo&#x3C;Value>&#x26; args) {
   Isolate* isolate = args.GetIsolate();
+  Local&#x3C;Context> context = isolate->GetCurrentContext();
 
   if (args.IsConstructCall()) {
     // Invoked as constructor: `new MyObject(...)`
-    double value = args[0]->IsUndefined() ? 0 : args[0]->NumberValue();
+    double value = args[0]->IsUndefined() ?
+        0 : args[0]->NumberValue(context).FromMaybe(0);
     MyObject* obj = new MyObject(value);
     obj->Wrap(args.This());
     args.GetReturnValue().Set(args.This());
@@ -1009,7 +1026,6 @@ void MyObject::New(const FunctionCallbackInfo&#x3C;Value>&#x26; args) {
     const int argc = 1;
     Local&#x3C;Value> argv[argc] = { args[0] };
     Local&#x3C;Function> cons = Local&#x3C;Function>::New(isolate, constructor);
-    Local&#x3C;Context> context = isolate->GetCurrentContext();
     Local&#x3C;Object> instance =
         cons->NewInstance(context, argc, argv).ToLocalChecked();
     args.GetReturnValue().Set(instance);
@@ -1102,9 +1118,9 @@ void Add(const FunctionCallbackInfo&#x3C;Value>&#x26; args) {
   Isolate* isolate = args.GetIsolate();
 
   MyObject* obj1 = node::ObjectWrap::Unwrap&#x3C;MyObject>(
-      args[0]->ToObject());
+      args[0]->ToObject(isolate));
   MyObject* obj2 = node::ObjectWrap::Unwrap&#x3C;MyObject>(
-      args[1]->ToObject());
+      args[1]->ToObject(isolate));
 
   double sum = obj1->value() + obj2->value();
   args.GetReturnValue().Set(Number::New(isolate, sum));
@@ -1183,15 +1199,18 @@ void MyObject::Init(Isolate* isolate) {
   tpl->SetClassName(String::NewFromUtf8(isolate, "MyObject"));
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
-  constructor.Reset(isolate, tpl->GetFunction());
+  Local&#x3C;Context> context = isolate->GetCurrentContext();
+  constructor.Reset(isolate, tpl->GetFunction(context).ToLocalChecked());
 }
 
 void MyObject::New(const FunctionCallbackInfo&#x3C;Value>&#x26; args) {
   Isolate* isolate = args.GetIsolate();
+  Local&#x3C;Context> context = isolate->GetCurrentContext();
 
   if (args.IsConstructCall()) {
     // Invoked as constructor: `new MyObject(...)`
-    double value = args[0]->IsUndefined() ? 0 : args[0]->NumberValue();
+    double value = args[0]->IsUndefined() ?
+        0 : args[0]->NumberValue(context).FromMaybe(0);
     MyObject* obj = new MyObject(value);
     obj->Wrap(args.This());
     args.GetReturnValue().Set(args.This());
@@ -1199,7 +1218,6 @@ void MyObject::New(const FunctionCallbackInfo&#x3C;Value>&#x26; args) {
     // Invoked as plain function `MyObject(...)`, turn into construct call.
     const int argc = 1;
     Local&#x3C;Value> argv[argc] = { args[0] };
-    Local&#x3C;Context> context = isolate->GetCurrentContext();
     Local&#x3C;Function> cons = Local&#x3C;Function>::New(isolate, constructor);
     Local&#x3C;Object> instance =
         cons->NewInstance(context, argc, argv).ToLocalChecked();
@@ -1307,6 +1325,5 @@ require('./build/Release/addon');
   <script src="assets/sh_main.js"></script>
   <script src="assets/sh_javascript.min.js"></script>
   <script>highlight(undefined, undefined, 'pre');</script>
-  <!-- __TRACKING__ -->
 </body>
 </html>

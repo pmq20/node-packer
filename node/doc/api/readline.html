@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Readline | Node.js v10.9.0 Documentation</title>
+  <title>Readline | Node.js v10.12.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -80,7 +80,7 @@
 
     <div id="column1" data-id="readline" class="interior">
       <header>
-        <h1>Node.js v10.9.0 Documentation</h1>
+        <h1>Node.js v10.12.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -302,6 +302,8 @@ paused before the process was sent to the background.</p>
 <p>The <code>rl.close()</code> method closes the <code>readline.Interface</code> instance and
 relinquishes control over the <code>input</code> and <code>output</code> streams. When called,
 the <code>'close'</code> event will be emitted.</p>
+<p>Calling <code>rl.close()</code> does not immediately stop other events (including <code>'line'</code>)
+from being emitted by the <code>readline.Interface</code> instance.</p>
 <h3>rl.pause()<span><a class="mark" href="#readline_rl_pause" id="readline_rl_pause">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.3.4</span>
@@ -394,7 +396,7 @@ rl.write(null, { ctrl: true, name: 'u' });
 </code></pre>
 <p>The <code>rl.write()</code> method will write the data to the <code>readline</code> <code>Interface</code>'s
 <code>input</code> <em>as if it were provided by the user</em>.</p>
-<h2>readline.clearLine(stream, dir)<span><a class="mark" href="#readline_readline_clearline_stream_dir" id="readline_readline_clearline_stream_dir">#</a></span></h2>
+<h2>readline.clearLine(stream, dir)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/readline.js#L1110">[src]</a><span><a class="mark" href="#readline_readline_clearline_stream_dir" id="readline_readline_clearline_stream_dir">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.7.7</span>
 </div>
@@ -411,7 +413,7 @@ rl.write(null, { ctrl: true, name: 'u' });
 </ul>
 <p>The <code>readline.clearLine()</code> method clears current line of given <a href="tty.html">TTY</a> stream
 in a specified direction identified by <code>dir</code>.</p>
-<h2>readline.clearScreenDown(stream)<span><a class="mark" href="#readline_readline_clearscreendown_stream" id="readline_readline_clearscreendown_stream">#</a></span></h2>
+<h2>readline.clearScreenDown(stream)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/readline.js#L1130">[src]</a><span><a class="mark" href="#readline_readline_clearscreendown_stream" id="readline_readline_clearscreendown_stream">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.7.7</span>
 </div>
@@ -420,7 +422,7 @@ in a specified direction identified by <code>dir</code>.</p>
 </ul>
 <p>The <code>readline.clearScreenDown()</code> method clears the given <a href="tty.html">TTY</a> stream from
 the current position of the cursor down.</p>
-<h2>readline.createInterface(options)<span><a class="mark" href="#readline_readline_createinterface_options" id="readline_readline_createinterface_options">#</a></span></h2>
+<h2>readline.createInterface(options)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/readline.js#L68">[src]</a><span><a class="mark" href="#readline_readline_createinterface_options" id="readline_readline_createinterface_options">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -507,7 +509,7 @@ arguments:</p>
   callback(null, [['123'], linePartial]);
 }
 </code></pre>
-<h2>readline.cursorTo(stream, x, y)<span><a class="mark" href="#readline_readline_cursorto_stream_x_y" id="readline_readline_cursorto_stream_x_y">#</a></span></h2>
+<h2>readline.cursorTo(stream, x, y)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/readline.js#L1065">[src]</a><span><a class="mark" href="#readline_readline_cursorto_stream_x_y" id="readline_readline_cursorto_stream_x_y">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.7.7</span>
 </div>
@@ -518,7 +520,7 @@ arguments:</p>
 </ul>
 <p>The <code>readline.cursorTo()</code> method moves cursor to the specified position in a
 given <a href="tty.html">TTY</a> <code>stream</code>.</p>
-<h2>readline.emitKeypressEvents(stream[, interface])<span><a class="mark" href="#readline_readline_emitkeypressevents_stream_interface" id="readline_readline_emitkeypressevents_stream_interface">#</a></span></h2>
+<h2>readline.emitKeypressEvents(stream[, interface])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/readline.js#L993">[src]</a><span><a class="mark" href="#readline_readline_emitkeypressevents_stream_interface" id="readline_readline_emitkeypressevents_stream_interface">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.7.7</span>
 </div>
@@ -538,7 +540,7 @@ the <code>input</code> from emitting <code>'keypress'</code> events.</p>
 if (process.stdin.isTTY)
   process.stdin.setRawMode(true);
 </code></pre>
-<h2>readline.moveCursor(stream, dx, dy)<span><a class="mark" href="#readline_readline_movecursor_stream_dx_dy" id="readline_readline_movecursor_stream_dx_dy">#</a></span></h2>
+<h2>readline.moveCursor(stream, dx, dy)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/readline.js#L1086">[src]</a><span><a class="mark" href="#readline_readline_movecursor_stream_dx_dy" id="readline_readline_movecursor_stream_dx_dy">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.7.7</span>
 </div>
@@ -578,8 +580,7 @@ rl.on('line', (line) => {
 </code></pre>
 <h2>Example: Read File Stream Line-by-Line<span><a class="mark" href="#readline_example_read_file_stream_line_by_line" id="readline_example_read_file_stream_line_by_line">#</a></span></h2>
 <p>A common use case for <code>readline</code> is to consume input from a filesystem
-<a href="stream.html#stream_readable_streams">Readable</a> stream one line at a time, as illustrated in the following
-example:</p>
+<a href="stream.html#stream_readable_streams">Readable</a> stream one line at a time:</p>
 <pre><code class="language-js">const readline = require('readline');
 const fs = require('fs');
 
@@ -598,6 +599,5 @@ rl.on('line', (line) => {
   <script src="assets/sh_main.js"></script>
   <script src="assets/sh_javascript.min.js"></script>
   <script>highlight(undefined, undefined, 'pre');</script>
-  <!-- __TRACKING__ -->
 </body>
 </html>

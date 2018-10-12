@@ -333,7 +333,7 @@
               "desc": "<p>By default, binding a socket will cause it to block the Node.js process from\nexiting as long as the socket is open. The <code>socket.unref()</code> method can be used\nto exclude the socket from the reference counting that keeps the Node.js\nprocess active. The <code>socket.ref()</code> method adds the socket back to the reference\ncounting and restores the default behavior.</p>\n<p>Calling <code>socket.ref()</code> multiples times will have no additional effect.</p>\n<p>The <code>socket.ref()</code> method returns a reference to the socket so calls can be\nchained.</p>"
             },
             {
-              "textRaw": "socket.send(msg, [offset, length,] port [, address] [, callback])",
+              "textRaw": "socket.send(msg[, offset, length], port[, address][, callback])",
               "type": "method",
               "name": "send",
               "meta": {
@@ -603,7 +603,7 @@
             {
               "textRaw": "Change to asynchronous `socket.bind()` behavior",
               "name": "change_to_asynchronous_`socket.bind()`_behavior",
-              "desc": "<p>As of Node.js v0.10, <a href=\"#dgram_socket_bind_options_callback\"><code>dgram.Socket#bind()</code></a> changed to an asynchronous\nexecution model. Legacy code that assumes synchronous behavior, as in the\nfollowing example:</p>\n<pre><code class=\"language-js\">const s = dgram.createSocket('udp4');\ns.bind(1234);\ns.addMembership('224.0.0.114');\n</code></pre>\n<p>Must be changed to pass a callback function to the <a href=\"#dgram_socket_bind_options_callback\"><code>dgram.Socket#bind()</code></a>\nfunction:</p>\n<pre><code class=\"language-js\">const s = dgram.createSocket('udp4');\ns.bind(1234, () => {\n  s.addMembership('224.0.0.114');\n});\n</code></pre>",
+              "desc": "<p>As of Node.js v0.10, <a href=\"#dgram_socket_bind_options_callback\"><code>dgram.Socket#bind()</code></a> changed to an asynchronous\nexecution model. Legacy code would use synchronous behavior:</p>\n<pre><code class=\"language-js\">const s = dgram.createSocket('udp4');\ns.bind(1234);\ns.addMembership('224.0.0.114');\n</code></pre>\n<p>Such legacy code would need to be changed to pass a callback function to the\n<a href=\"#dgram_socket_bind_options_callback\"><code>dgram.Socket#bind()</code></a> function:</p>\n<pre><code class=\"language-js\">const s = dgram.createSocket('udp4');\ns.bind(1234, () => {\n  s.addMembership('224.0.0.114');\n});\n</code></pre>",
               "type": "module",
               "displayName": "Change to asynchronous `socket.bind()` behavior"
             }

@@ -43,6 +43,13 @@ class DOMException extends Error {
   }
 }
 
+Object.defineProperties(DOMException.prototype, {
+  [Symbol.toStringTag]: { configurable: true, value: 'DOMException' },
+  name: { enumerable: true, configurable: true },
+  message: { enumerable: true, configurable: true },
+  code: { enumerable: true, configurable: true }
+});
+
 for (const [name, codeName, value] of [
   ['IndexSizeError', 'INDEX_SIZE_ERR', 1],
   ['DOMStringSizeError', 'DOMSTRING_SIZE_ERR', 2],

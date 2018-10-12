@@ -1,6 +1,8 @@
 #ifndef SRC_NODE_CONTEXTIFY_H_
 #define SRC_NODE_CONTEXTIFY_H_
 
+#if defined(NODE_WANT_INTERNALS) && NODE_WANT_INTERNALS
+
 #include "node_internals.h"
 #include "node_context_data.h"
 
@@ -56,6 +58,8 @@ class ContextifyContext {
  private:
   static void MakeContext(const v8::FunctionCallbackInfo<v8::Value>& args);
   static void IsContext(const v8::FunctionCallbackInfo<v8::Value>& args);
+  static void CompileFunction(
+      const v8::FunctionCallbackInfo<v8::Value>& args);
   static void WeakCallback(
       const v8::WeakCallbackInfo<ContextifyContext>& data);
   static void PropertyGetterCallback(
@@ -100,5 +104,7 @@ class ContextifyContext {
 
 }  // namespace contextify
 }  // namespace node
+
+#endif  // defined(NODE_WANT_INTERNALS) && NODE_WANT_INTERNALS
 
 #endif  // SRC_NODE_CONTEXTIFY_H_

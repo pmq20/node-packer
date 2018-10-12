@@ -875,7 +875,7 @@
             ],
             "changes": []
           },
-          "desc": "<p>Not exported by the <code>zlib</code> module. It is documented here because it is the base\nclass of the compressor/decompressor classes.</p>",
+          "desc": "<p>Not exported by the <code>zlib</code> module. It is documented here because it is the base\nclass of the compressor/decompressor classes.</p>\n<p>This class inherits from <a href=\"stream.html#stream_class_stream_transform\"><code>stream.Transform</code></a>, allowing <code>zlib</code> objects to be\nused in pipes and similar stream operations.</p>",
           "properties": [
             {
               "textRaw": "`bytesRead` {number}",
@@ -933,7 +933,7 @@
               "desc": "<p>Close the underlying handle.</p>"
             },
             {
-              "textRaw": "zlib.flush([kind], callback)",
+              "textRaw": "zlib.flush([kind, ]callback)",
               "type": "method",
               "name": "flush",
               "meta": {

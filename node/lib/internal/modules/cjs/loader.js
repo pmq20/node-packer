@@ -23,6 +23,7 @@
 
 const { NativeModule } = require('internal/bootstrap/loaders');
 const util = require('util');
+const { pathToFileURL } = require('internal/url');
 const vm = require('vm');
 const assert = require('assert').ok;
 const fs = require('fs');
@@ -54,7 +55,6 @@ module.exports = Module;
 let asyncESM;
 let ModuleJob;
 let createDynamicModule;
-let getURLFromFilePath;
 let decorateErrorStack;
 
 function lazyLoadESM() {
@@ -63,7 +63,6 @@ function lazyLoadESM() {
   createDynamicModule = require(
     'internal/modules/esm/create_dynamic_module');
   decorateErrorStack = require('internal/util').decorateErrorStack;
-  getURLFromFilePath = require('internal/url').getURLFromFilePath;
 }
 
 const {
@@ -602,7 +601,7 @@ Module.prototype.load = function(filename) {
   if (experimentalModules) {
     if (asyncESM === undefined) lazyLoadESM();
     const ESMLoader = asyncESM.ESMLoader;
-    const url = getURLFromFilePath(filename);
+    const url = pathToFileURL(filename);
     const urlString = `${url}`;
     const exports = this.exports;
     if (ESMLoader.moduleMap.has(urlString) !== true) {
@@ -731,7 +730,7 @@ Module.runMain = function() {
   if (experimentalModules) {
     if (asyncESM === undefined) lazyLoadESM();
     asyncESM.loaderPromise.then((loader) => {
-      return loader.import(getURLFromFilePath(process.argv[1]).pathname);
+      return loader.import(pathToFileURL(process.argv[1]).pathname);
     })
     .catch((e) => {
       decorateErrorStack(e);
@@ -743,6 +742,13 @@ Module.runMain = function() {
   }
   // Handle any nextTicks added in the first tick of the program
   process._tickCallback();
+};
+
+Module.createRequireFromPath = (filename) => {
+  const m = new Module(filename);
+  m.filename = filename;
+  m.paths = Module._nodeModulePaths(path.dirname(filename));
+  return makeRequireFunction(m);
 };
 
 Module._initPaths = function() {

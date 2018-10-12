@@ -218,8 +218,8 @@ inline Environment::AsyncCallbackScope::~AsyncCallbackScope() {
   env_->makecallback_cntr_--;
 }
 
-inline bool Environment::AsyncCallbackScope::in_makecallback() const {
-  return env_->makecallback_cntr_ > 1;
+inline size_t Environment::makecallback_depth() const {
+  return makecallback_cntr_;
 }
 
 inline Environment::ImmediateInfo::ImmediateInfo(v8::Isolate* isolate)
@@ -302,6 +302,15 @@ inline Environment* Environment::GetCurrent(v8::Isolate* isolate) {
 }
 
 inline Environment* Environment::GetCurrent(v8::Local<v8::Context> context) {
+  if (UNLIKELY(context.IsEmpty() ||
+      context->GetNumberOfEmbedderDataFields() <
+          ContextEmbedderIndex::kContextTag ||
+      context->GetAlignedPointerFromEmbedderData(
+          ContextEmbedderIndex::kContextTag) !=
+          Environment::kNodeContextTagPtr)) {
+    return nullptr;
+  }
+
   return static_cast<Environment*>(
       context->GetAlignedPointerFromEmbedderData(
           ContextEmbedderIndex::kEnvironment));
@@ -416,15 +425,15 @@ inline void Environment::set_printed_error(bool value) {
 }
 
 inline void Environment::set_trace_sync_io(bool value) {
-  trace_sync_io_ = value;
+  options_->trace_sync_io = value;
 }
 
 inline bool Environment::abort_on_uncaught_exception() const {
-  return abort_on_uncaught_exception_;
+  return options_->abort_on_uncaught_exception;
 }
 
 inline void Environment::set_abort_on_uncaught_exception(bool value) {
-  abort_on_uncaught_exception_ = value;
+  options_->abort_on_uncaught_exception = value;
 }
 
 inline AliasedBuffer<uint32_t, v8::Uint32Array>&
@@ -557,6 +566,14 @@ Environment::fs_stats_field_bigint_array() {
 inline std::vector<std::unique_ptr<fs::FileHandleReadWrap>>&
 Environment::file_handle_read_wrap_freelist() {
   return file_handle_read_wrap_freelist_;
+}
+
+inline std::shared_ptr<EnvironmentOptions> Environment::options() {
+  return options_;
+}
+
+inline std::shared_ptr<PerIsolateOptions> IsolateData::options() {
+  return options_;
 }
 
 void Environment::CreateImmediate(native_immediate_callback cb,
@@ -693,13 +710,15 @@ inline v8::Local<v8::FunctionTemplate>
 inline void Environment::SetMethod(v8::Local<v8::Object> that,
                                    const char* name,
                                    v8::FunctionCallback callback) {
+  v8::Local<v8::Context> context = isolate()->GetCurrentContext();
   v8::Local<v8::Function> function =
-      NewFunctionTemplate(callback,
-                          v8::Local<v8::Signature>(),
+      NewFunctionTemplate(callback, v8::Local<v8::Signature>(),
                           // TODO(TimothyGu): Investigate if SetMethod is ever
                           // used for constructors.
                           v8::ConstructorBehavior::kAllow,
-                          v8::SideEffectType::kHasSideEffect)->GetFunction();
+                          v8::SideEffectType::kHasSideEffect)
+          ->GetFunction(context)
+          .ToLocalChecked();
   // kInternalized strings are created in the old space.
   const v8::NewStringType type = v8::NewStringType::kInternalized;
   v8::Local<v8::String> name_string =
@@ -711,13 +730,15 @@ inline void Environment::SetMethod(v8::Local<v8::Object> that,
 inline void Environment::SetMethodNoSideEffect(v8::Local<v8::Object> that,
                                                const char* name,
                                                v8::FunctionCallback callback) {
+  v8::Local<v8::Context> context = isolate()->GetCurrentContext();
   v8::Local<v8::Function> function =
-      NewFunctionTemplate(callback,
-                          v8::Local<v8::Signature>(),
+      NewFunctionTemplate(callback, v8::Local<v8::Signature>(),
                           // TODO(TimothyGu): Investigate if SetMethod is ever
                           // used for constructors.
                           v8::ConstructorBehavior::kAllow,
-                          v8::SideEffectType::kHasNoSideEffect)->GetFunction();
+                          v8::SideEffectType::kHasNoSideEffect)
+          ->GetFunction(context)
+          .ToLocalChecked();
   // kInternalized strings are created in the old space.
   const v8::NewStringType type = v8::NewStringType::kInternalized;
   v8::Local<v8::String> name_string =

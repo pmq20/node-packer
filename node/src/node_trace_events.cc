@@ -28,11 +28,11 @@ class NodeCategorySet : public BaseObject {
   const std::set<std::string>& GetCategories() const { return categories_; }
 
   void MemoryInfo(MemoryTracker* tracker) const override {
-    tracker->TrackThis(this);
     tracker->TrackField("categories", categories_);
   }
 
-  ADD_MEMORY_INFO_NAME(NodeCategorySet)
+  SET_MEMORY_INFO_NAME(NodeCategorySet)
+  SET_SELF_SIZE(NodeCategorySet)
 
  private:
   NodeCategorySet(Environment* env,
@@ -239,7 +239,7 @@ void Initialize(Local<Object> target,
   env->SetProtoMethod(category_set, "disable", NodeCategorySet::Disable);
 
   target->Set(FIXED_ONE_BYTE_STRING(env->isolate(), "CategorySet"),
-              category_set->GetFunction());
+              category_set->GetFunction(env->context()).ToLocalChecked());
 
   Local<String> isTraceCategoryEnabled =
       FIXED_ONE_BYTE_STRING(env->isolate(), "isTraceCategoryEnabled");

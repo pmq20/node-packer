@@ -202,10 +202,12 @@ void ContextifyContext::Init(Environment* env, Local<Object> target) {
   Local<FunctionTemplate> function_template =
       FunctionTemplate::New(env->isolate());
   function_template->InstanceTemplate()->SetInternalFieldCount(1);
-  env->set_script_data_constructor_function(function_template->GetFunction());
+  env->set_script_data_constructor_function(
+      function_template->GetFunction(env->context()).ToLocalChecked());
 
   env->SetMethod(target, "makeContext", MakeContext);
   env->SetMethod(target, "isContext", IsContext);
+  env->SetMethod(target, "compileFunction", CompileFunction);
 }
 
 
@@ -587,13 +589,11 @@ class ContextifyScript : public BaseObject {
  private:
   Persistent<UnboundScript> script_;
 
-  void MemoryInfo(MemoryTracker* tracker) const override {
-    tracker->TrackThis(this);
-  }
-
-  ADD_MEMORY_INFO_NAME(ContextifyScript)
-
  public:
+  SET_NO_MEMORY_INFO()
+  SET_MEMORY_INFO_NAME(ContextifyScript)
+  SET_SELF_SIZE(ContextifyScript)
+
   static void Init(Environment* env, Local<Object> target) {
     HandleScope scope(env->isolate());
     Local<String> class_name =
@@ -606,7 +606,8 @@ class ContextifyScript : public BaseObject {
     env->SetProtoMethod(script_tmpl, "runInContext", RunInContext);
     env->SetProtoMethod(script_tmpl, "runInThisContext", RunInThisContext);
 
-    target->Set(class_name, script_tmpl->GetFunction());
+    target->Set(class_name,
+                script_tmpl->GetFunction(env->context()).ToLocalChecked());
     env->set_script_context_constructor_template(script_tmpl);
   }
 
@@ -859,8 +860,10 @@ class ContextifyScript : public BaseObject {
     }
 
     Local<String> decorated_stack = String::Concat(
-        String::Concat(arrow.As<String>(),
-          FIXED_ONE_BYTE_STRING(env->isolate(), "\n")),
+        env->isolate(),
+        String::Concat(env->isolate(),
+                       arrow.As<String>(),
+                       FIXED_ONE_BYTE_STRING(env->isolate(), "\n")),
         stack.As<String>());
     err_obj->Set(env->stack_string(), decorated_stack);
     err_obj->SetPrivate(
@@ -944,6 +947,144 @@ class ContextifyScript : public BaseObject {
     MakeWeak();
   }
 };
+
+
+void ContextifyContext::CompileFunction(
+    const FunctionCallbackInfo<Value>& args) {
+  Environment* env = Environment::GetCurrent(args);
+  Isolate* isolate = env->isolate();
+  Local<Context> context = env->context();
+
+  // Argument 1: source code
+  CHECK(args[0]->IsString());
+  Local<String> code = args[0].As<String>();
+
+  // Argument 2: filename
+  CHECK(args[1]->IsString());
+  Local<String> filename = args[1].As<String>();
+
+  // Argument 3: line offset
+  CHECK(args[2]->IsNumber());
+  Local<Integer> line_offset = args[2].As<Integer>();
+
+  // Argument 4: column offset
+  CHECK(args[3]->IsNumber());
+  Local<Integer> column_offset = args[3].As<Integer>();
+
+  // Argument 5: cached data (optional)
+  Local<Uint8Array> cached_data_buf;
+  if (!args[4]->IsUndefined()) {
+    CHECK(args[4]->IsUint8Array());
+    cached_data_buf = args[4].As<Uint8Array>();
+  }
+
+  // Argument 6: produce cache data
+  CHECK(args[5]->IsBoolean());
+  bool produce_cached_data = args[5]->IsTrue();
+
+  // Argument 7: parsing context (optional)
+  Local<Context> parsing_context;
+  if (!args[6]->IsUndefined()) {
+    CHECK(args[6]->IsObject());
+    ContextifyContext* sandbox =
+        ContextifyContext::ContextFromContextifiedSandbox(
+            env, args[6].As<Object>());
+    CHECK_NOT_NULL(sandbox);
+    parsing_context = sandbox->context();
+  } else {
+    parsing_context = context;
+  }
+
+  // Argument 8: context extensions (optional)
+  Local<Array> context_extensions_buf;
+  if (!args[7]->IsUndefined()) {
+    CHECK(args[7]->IsArray());
+    context_extensions_buf = args[7].As<Array>();
+  }
+
+  // Argument 9: params for the function (optional)
+  Local<Array> params_buf;
+  if (!args[8]->IsUndefined()) {
+    CHECK(args[8]->IsArray());
+    params_buf = args[8].As<Array>();
+  }
+
+  // Read cache from cached data buffer
+  ScriptCompiler::CachedData* cached_data = nullptr;
+  if (!cached_data_buf.IsEmpty()) {
+    ArrayBuffer::Contents contents = cached_data_buf->Buffer()->GetContents();
+    uint8_t* data = static_cast<uint8_t*>(contents.Data());
+    cached_data = new ScriptCompiler::CachedData(
+      data + cached_data_buf->ByteOffset(), cached_data_buf->ByteLength());
+  }
+
+  ScriptOrigin origin(filename, line_offset, column_offset);
+  ScriptCompiler::Source source(code, origin, cached_data);
+  ScriptCompiler::CompileOptions options;
+  if (source.GetCachedData() == nullptr) {
+    options = ScriptCompiler::kNoCompileOptions;
+  } else {
+    options = ScriptCompiler::kConsumeCodeCache;
+  }
+
+  TryCatch try_catch(isolate);
+  Context::Scope scope(parsing_context);
+
+  // Read context extensions from buffer
+  std::vector<Local<Object>> context_extensions;
+  if (!context_extensions_buf.IsEmpty()) {
+    for (uint32_t n = 0; n < context_extensions_buf->Length(); n++) {
+      Local<Value> val;
+      if (!context_extensions_buf->Get(context, n).ToLocal(&val)) return;
+      CHECK(val->IsObject());
+      context_extensions.push_back(val.As<Object>());
+    }
+  }
+
+  // Read params from params buffer
+  std::vector<Local<String>> params;
+  if (!params_buf.IsEmpty()) {
+    for (uint32_t n = 0; n < params_buf->Length(); n++) {
+      Local<Value> val;
+      if (!params_buf->Get(context, n).ToLocal(&val)) return;
+      CHECK(val->IsString());
+      params.push_back(val.As<String>());
+    }
+  }
+
+  MaybeLocal<Function> maybe_fun = ScriptCompiler::CompileFunctionInContext(
+      context, &source, params.size(), params.data(),
+      context_extensions.size(), context_extensions.data(), options);
+
+  Local<Function> fun;
+  if (maybe_fun.IsEmpty() || !maybe_fun.ToLocal(&fun)) {
+    ContextifyScript::DecorateErrorStack(env, try_catch);
+    try_catch.ReThrow();
+    return;
+  }
+
+  if (produce_cached_data) {
+    const std::unique_ptr<ScriptCompiler::CachedData> cached_data(
+        ScriptCompiler::CreateCodeCacheForFunction(fun));
+    bool cached_data_produced = cached_data != nullptr;
+    if (cached_data_produced) {
+      MaybeLocal<Object> buf = Buffer::Copy(
+          env,
+          reinterpret_cast<const char*>(cached_data->data),
+          cached_data->length);
+      if (fun->Set(
+          parsing_context,
+          env->cached_data_string(),
+          buf.ToLocalChecked()).IsNothing()) return;
+    }
+    if (fun->Set(
+        parsing_context,
+        env->cached_data_produced_string(),
+        Boolean::New(isolate, cached_data_produced)).IsNothing()) return;
+  }
+
+  args.GetReturnValue().Set(fun);
+}
 
 
 void Initialize(Local<Object> target,

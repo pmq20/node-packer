@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>HTTP | Node.js v10.9.0 Documentation</title>
+  <title>HTTP | Node.js v10.12.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -80,7 +80,7 @@
 
     <div id="column1" data-id="http" class="interior">
       <header>
-        <h1>Node.js v10.9.0 Documentation</h1>
+        <h1>Node.js v10.12.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -359,7 +359,7 @@ const keepAliveAgent = new http.Agent({ keepAlive: true });
 options.agent = keepAliveAgent;
 http.request(options, onResponseCallback);
 </code></pre>
-<h3>agent.createConnection(options[, callback])<span><a class="mark" href="#http_agent_createconnection_options_callback" id="http_agent_createconnection_options_callback">#</a></span></h3>
+<h3>agent.createConnection(options[, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/https.js#L90">[src]</a><span><a class="mark" href="#http_agent_createconnection_options_callback" id="http_agent_createconnection_options_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.4</span>
 </div>
@@ -375,7 +375,7 @@ custom agents may override this method in case greater flexibility is desired.</
 <p>A socket/stream can be supplied in one of two ways: by returning the
 socket/stream from this function, or by passing the socket/stream to <code>callback</code>.</p>
 <p><code>callback</code> has a signature of <code>(err, stream)</code>.</p>
-<h3>agent.keepSocketAlive(socket)<span><a class="mark" href="#http_agent_keepsocketalive_socket" id="http_agent_keepsocketalive_socket">#</a></span></h3>
+<h3>agent.keepSocketAlive(socket)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/_http_agent.js#L316">[src]</a><span><a class="mark" href="#http_agent_keepsocketalive_socket" id="http_agent_keepsocketalive_socket">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.1.0</span>
 </div>
@@ -391,7 +391,7 @@ return true;
 <p>This method can be overridden by a particular <code>Agent</code> subclass. If this
 method returns a falsy value, the socket will be destroyed instead of persisting
 it for use with the next request.</p>
-<h3>agent.reuseSocket(socket, request)<span><a class="mark" href="#http_agent_reusesocket_socket_request" id="http_agent_reusesocket_socket_request">#</a></span></h3>
+<h3>agent.reuseSocket(socket, request)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/_http_agent.js#L323">[src]</a><span><a class="mark" href="#http_agent_reusesocket_socket_request" id="http_agent_reusesocket_socket_request">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.1.0</span>
 </div>
@@ -404,7 +404,7 @@ the keep-alive options. Default behavior is to:</p>
 <pre><code class="language-js">socket.ref();
 </code></pre>
 <p>This method can be overridden by a particular <code>Agent</code> subclass.</p>
-<h3>agent.destroy()<span><a class="mark" href="#http_agent_destroy" id="http_agent_destroy">#</a></span></h3>
+<h3>agent.destroy()<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/_http_agent.js#L328">[src]</a><span><a class="mark" href="#http_agent_destroy" id="http_agent_destroy">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.4</span>
 </div>
@@ -423,7 +423,7 @@ terminates them.</p>
 </ul>
 <p>An object which contains arrays of sockets currently awaiting use by
 the agent when <code>keepAlive</code> is enabled. Do not modify.</p>
-<h3>agent.getName(options)<span><a class="mark" href="#http_agent_getname_options" id="http_agent_getname_options">#</a></span></h3>
+<h3>agent.getName(options)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/https.js#L155">[src]</a><span><a class="mark" href="#http_agent_getname_options" id="http_agent_getname_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.4</span>
 </div>
@@ -508,8 +508,8 @@ the data is read it will consume memory that can eventually lead to a
 'process out of memory' error.</p>
 <p>Node.js does not check whether Content-Length and the length of the
 body which has been transmitted are equal or not.</p>
-<p>The request implements the <a href="stream.html#stream_class_stream_writable">Writable Stream</a> interface. This is an
-<a href="events.html#events_class_eventemitter"><code>EventEmitter</code></a> with the following events:</p>
+<p>The request inherits from <a href="">Stream</a>, and additionally implements the
+following:</p>
 <h3>Event: 'abort'<span><a class="mark" href="#http_event_abort" id="http_event_abort">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v1.4.1</span>
@@ -759,7 +759,6 @@ the optimization and kickstarts the request.</p>
 <p>Reads out a header on the request. Note that the name is case insensitive.
 The type of the return value depends on the arguments provided to
 <a href="#http_request_setheader_name_value"><code>request.setHeader()</code></a>.</p>
-<p>Example:</p>
 <pre><code class="language-js">request.setHeader('content-type', 'text/html');
 request.setHeader('Content-Length', Buffer.byteLength(body));
 request.setHeader('Set-Cookie', ['type=ninja', 'language=javascript']);
@@ -783,7 +782,6 @@ const setCookie = request.getHeader('set-cookie');
 <li><code>name</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
 <p>Removes a header that's already defined into headers object.</p>
-<p>Example:</p>
 <pre><code class="language-js">request.removeHeader('Content-Type');
 </code></pre>
 <h3>request.setHeader(name, value)<span><a class="mark" href="#http_request_setheader_name_value" id="http_request_setheader_name_value">#</a></span></h3>
@@ -800,7 +798,6 @@ here to send multiple headers with the same name. Non-string values will be
 stored without modification. Therefore, <a href="#http_request_getheader_name"><code>request.getHeader()</code></a> may return
 non-string values. However, the non-string values will be converted to strings
 for network transmission.</p>
-<p>Example:</p>
 <pre><code class="language-js">request.setHeader('Content-Type', 'application/json');
 </code></pre>
 <p>or</p>
@@ -848,7 +845,6 @@ Same as binding to the <code>'timeout'</code> event.</li>
 this property. In particular, the socket will not emit <code>'readable'</code> events
 because of how the protocol parser attaches to the socket. The <code>socket</code>
 may also be accessed via <code>request.connection</code>.</p>
-<p>Example:</p>
 <pre><code class="language-js">const http = require('http');
 const options = {
   host: 'www.google.com',
@@ -880,10 +876,12 @@ creating the request.</p>
 <p>The <code>encoding</code> argument is optional and only applies when <code>chunk</code> is a string.
 Defaults to <code>'utf8'</code>.</p>
 <p>The <code>callback</code> argument is optional and will be called when this chunk of data
-is flushed.</p>
+is flushed, but only if the chunk is non-empty.</p>
 <p>Returns <code>true</code> if the entire data was flushed successfully to the kernel
 buffer. Returns <code>false</code> if all or part of the data was queued in user memory.
 <code>'drain'</code> will be emitted when the buffer is free again.</p>
+<p>When <code>write</code> function is called with empty string or buffer, it does
+nothing and waits for more input.</p>
 <h2>Class: http.Server<span><a class="mark" href="#http_class_http_server" id="http_class_http_server">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.17</span>
@@ -1033,7 +1031,7 @@ is optional and clients cannot insist on a protocol change.</p>
 <p>After this event is emitted, the request's socket will not have a <code>'data'</code>
 event listener, meaning it will need to be bound in order to handle data
 sent to the server on that socket.</p>
-<h3>server.close([callback])<span><a class="mark" href="#http_server_close_callback" id="http_server_close_callback">#</a></span></h3>
+<h3>server.close([callback])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/net.js#L1561">[src]</a><span><a class="mark" href="#http_server_close_callback" id="http_server_close_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.90</span>
 </div>
@@ -1041,7 +1039,7 @@ sent to the server on that socket.</p>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
 </ul>
 <p>Stops the server from accepting new connections. See <a href="net.html#net_server_close_callback"><code>net.Server.close()</code></a>.</p>
-<h3>server.listen()<span><a class="mark" href="#http_server_listen" id="http_server_listen">#</a></span></h3>
+<h3>server.listen()<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/net.js#L1366">[src]</a><span><a class="mark" href="#http_server_listen" id="http_server_listen">#</a></span></h3>
 <p>Starts the HTTP server listening for connections.
 This method is identical to <a href="net.html#net_server_listen"><code>server.listen()</code></a> from <a href="net.html#net_class_net_server"><code>net.Server</code></a>.</p>
 <h3>server.listening<span><a class="mark" href="#http_server_listening" id="http_server_listening">#</a></span></h3>
@@ -1059,7 +1057,7 @@ This method is identical to <a href="net.html#net_server_listen"><code>server.li
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> <strong>Default:</strong> <code>2000</code></li>
 </ul>
 <p>Limits maximum incoming headers count. If set to 0, no limit will be applied.</p>
-<h3>server.setTimeout([msecs][, callback])<span><a class="mark" href="#http_server_settimeout_msecs_callback" id="http_server_settimeout_msecs_callback">#</a></span></h3>
+<h3>server.setTimeout([msecs][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/https.js#L81">[src]</a><span><a class="mark" href="#http_server_settimeout_msecs_callback" id="http_server_settimeout_msecs_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.9.12</span>
 </div>
@@ -1112,8 +1110,8 @@ affects new connections to the server, not any existing connections.</p>
 </div>
 <p>This object is created internally by an HTTP server — not by the user. It is
 passed as the second parameter to the <a href="#http_event_request"><code>'request'</code></a> event.</p>
-<p>The response implements, but does not inherit from, the <a href="stream.html#stream_class_stream_writable">Writable Stream</a>
-interface. This is an <a href="events.html#events_class_eventemitter"><code>EventEmitter</code></a> with the following events:</p>
+<p>The response inherits from <a href="">Stream</a>, and additionally implements the
+following:</p>
 <h3>Event: 'close'<span><a class="mark" href="#http_event_close_1" id="http_event_close_1">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.6.7</span>
@@ -1203,7 +1201,6 @@ as <code>false</code>. After <a href="#http_response_end_data_encoding_callback"
 <p>Reads out a header that's already been queued but not sent to the client.
 Note that the name is case insensitive. The type of the return value depends
 on the arguments provided to <a href="#http_response_setheader_name_value"><code>response.setHeader()</code></a>.</p>
-<p>Example:</p>
 <pre><code class="language-js">response.setHeader('Content-Type', 'text/html');
 response.setHeader('Content-Length', Buffer.byteLength(body));
 response.setHeader('Set-Cookie', ['type=ninja', 'language=javascript']);
@@ -1223,7 +1220,6 @@ const setCookie = response.getHeader('set-cookie');
 </ul>
 <p>Returns an array containing the unique names of the current outgoing headers.
 All header names are lowercase.</p>
-<p>Example:</p>
 <pre><code class="language-js">response.setHeader('Foo', 'bar');
 response.setHeader('Set-Cookie', ['foo=bar', 'bar=baz']);
 
@@ -1246,7 +1242,6 @@ are lowercase.</p>
 prototypically inherit from the JavaScript <code>Object</code>. This means that typical
 <code>Object</code> methods such as <code>obj.toString()</code>, <code>obj.hasOwnProperty()</code>, and others
 are not defined and <em>will not work</em>.</p>
-<p>Example:</p>
 <pre><code class="language-js">response.setHeader('Foo', 'bar');
 response.setHeader('Set-Cookie', ['foo=bar', 'bar=baz']);
 
@@ -1263,7 +1258,6 @@ const headers = response.getHeaders();
 </ul>
 <p>Returns <code>true</code> if the header identified by <code>name</code> is currently set in the
 outgoing headers. Note that the header name matching is case-insensitive.</p>
-<p>Example:</p>
 <pre><code class="language-js">const hasContentType = response.hasHeader('content-type');
 </code></pre>
 <h3>response.headersSent<span><a class="mark" href="#http_response_headerssent" id="http_response_headerssent">#</a></span></h3>
@@ -1282,7 +1276,6 @@ outgoing headers. Note that the header name matching is case-insensitive.</p>
 <li><code>name</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
 <p>Removes a header that's queued for implicit sending.</p>
-<p>Example:</p>
 <pre><code class="language-js">response.removeHeader('Content-Encoding');
 </code></pre>
 <h3>response.sendDate<span><a class="mark" href="#http_response_senddate" id="http_response_senddate">#</a></span></h3>
@@ -1310,7 +1303,6 @@ here to send multiple headers with the same name. Non-string values will be
 stored without modification. Therefore, <a href="#http_response_getheader_name"><code>response.getHeader()</code></a> may return
 non-string values. However, the non-string values will be converted to strings
 for network transmission.</p>
-<p>Example:</p>
 <pre><code class="language-js">response.setHeader('Content-Type', 'text/html');
 </code></pre>
 <p>or</p>
@@ -1363,7 +1355,6 @@ this property. In particular, the socket will not emit <code>'readable'</code> e
 because of how the protocol parser attaches to the socket. After
 <code>response.end()</code>, the property is nulled. The <code>socket</code> may also be accessed
 via <code>response.connection</code>.</p>
-<p>Example:</p>
 <pre><code class="language-js">const http = require('http');
 const server = http.createServer((req, res) => {
   const ip = res.socket.remoteAddress;
@@ -1381,7 +1372,6 @@ const server = http.createServer((req, res) => {
 <p>When using implicit headers (not calling <a href="#http_response_writehead_statuscode_statusmessage_headers"><code>response.writeHead()</code></a> explicitly),
 this property controls the status code that will be sent to the client when
 the headers get flushed.</p>
-<p>Example:</p>
 <pre><code class="language-js">response.statusCode = 404;
 </code></pre>
 <p>After response header was sent to the client, this property indicates the
@@ -1397,7 +1387,6 @@ status code which was sent out.</p>
 this property controls the status message that will be sent to the client when
 the headers get flushed. If this is left as <code>undefined</code> then the standard
 message for the status code will be used.</p>
-<p>Example:</p>
 <pre><code class="language-js">response.statusMessage = 'Not found';
 </code></pre>
 <p>After response header was sent to the client, this property indicates the
@@ -1460,7 +1449,6 @@ the request body should be sent. See the <a href="#http_event_checkcontinue"><co
 status code, like <code>404</code>. The last argument, <code>headers</code>, are the response headers.
 Optionally one can give a human-readable <code>statusMessage</code> as the second
 argument.</p>
-<p>Example:</p>
 <pre><code class="language-js">const body = 'hello world';
 response.writeHead(200, {
   'Content-Length': Buffer.byteLength(body),
@@ -1549,8 +1537,7 @@ to any listeners on the event.</p>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></li>
 </ul>
 <p>The request/response headers object.</p>
-<p>Key-value pairs of header names and values. Header names are lower-cased.
-Example:</p>
+<p>Key-value pairs of header names and values. Header names are lower-cased.</p>
 <pre><code class="language-js">// Prints something like:
 //
 // { 'user-agent': 'curl/7.22.0',
@@ -1588,8 +1575,7 @@ Probably either <code>'1.1'</code> or <code>'1.0'</code>.</p>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
 <p><strong>Only valid for request obtained from <a href="#http_class_http_server"><code>http.Server</code></a>.</strong></p>
-<p>The request method as a string. Read only. Example:
-<code>'GET'</code>, <code>'DELETE'</code>.</p>
+<p>The request method as a string. Read only. Examples: <code>'GET'</code>, <code>'DELETE'</code>.</p>
 <h3>message.rawHeaders<span><a class="mark" href="#http_message_rawheaders" id="http_message_rawheaders">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.6</span>
@@ -1688,7 +1674,7 @@ Accept: text/plain\r\n
 <pre><code class="language-js">'/status?name=ryan'
 </code></pre>
 <p>To parse the url into its parts <code>require('url').parse(request.url)</code>
-can be used. Example:</p>
+can be used:</p>
 <pre><code class="language-txt">$ node
 > require('url').parse('/status?name=ryan')
 Url {
@@ -1707,8 +1693,7 @@ Url {
 </code></pre>
 <p>To extract the parameters from the query string, the
 <code>require('querystring').parse</code> function can be used, or
-<code>true</code> can be passed as the second argument to <code>require('url').parse</code>.
-Example:</p>
+<code>true</code> can be passed as the second argument to <code>require('url').parse</code>:</p>
 <pre><code class="language-txt">$ node
 > require('url').parse('/status?name=ryan', true)
 Url {
@@ -1742,7 +1727,7 @@ Url {
 </ul>
 <p>A collection of all the standard HTTP response status codes, and the
 short description of each. For example, <code>http.STATUS_CODES[404] === 'Not Found'</code>.</p>
-<h2>http.createServer([options][, requestListener])<span><a class="mark" href="#http_http_createserver_options_requestlistener" id="http_http_createserver_options_requestlistener">#</a></span></h2>
+<h2>http.createServer([options][, requestListener])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/http.js#L36">[src]</a><span><a class="mark" href="#http_http_createserver_options_requestlistener" id="http_http_createserver_options_requestlistener">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1776,14 +1761,14 @@ to be used. Useful for extending the original <code>ServerResponse</code>. <stro
 <p>Returns a new instance of <a href="#http_class_http_server"><code>http.Server</code></a>.</p>
 <p>The <code>requestListener</code> is a function which is automatically
 added to the <a href="#http_event_request"><code>'request'</code></a> event.</p>
-<h2>http.get(options[, callback])<span><a class="mark" href="#http_http_get_options_callback" id="http_http_get_options_callback">#</a></span></h2>
-<h2>http.get(url[, options][, callback])<span><a class="mark" href="#http_http_get_url_options_callback" id="http_http_get_url_options_callback">#</a></span></h2>
+<h2>http.get(options[, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/http.js#L44">[src]</a><span><a class="mark" href="#http_http_get_options_callback" id="http_http_get_options_callback">#</a></span></h2>
+<h2>http.get(url[, options][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/http.js#L44">[src]</a><span><a class="mark" href="#http_http_get_url_options_callback" id="http_http_get_url_options_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
 <tr><td>v10.9.0</td>
-<td><p>allow both url and options to be passed to <code>http.get()</code></p></td></tr>
+<td><p>The <code>url</code> parameter can now be passed along with a separate <code>options</code> object.</p></td></tr>
 <tr><td>v7.5.0</td>
 <td><p>The <code>options</code> parameter can be a WHATWG <code>URL</code> object.</p></td></tr>
 <tr><td>v0.3.6</td>
@@ -1806,7 +1791,7 @@ automatically. Note that the callback must take care to consume the response
 data for reasons stated in <a href="#http_class_http_clientrequest"><code>http.ClientRequest</code></a> section.</p>
 <p>The <code>callback</code> is invoked with a single argument that is an instance of
 <a href="#http_class_http_incomingmessage"><code>http.IncomingMessage</code></a>.</p>
-<p>JSON Fetching Example:</p>
+<p>JSON fetching example:</p>
 <pre><code class="language-js">http.get('http://nodejs.org/dist/index.json', (res) => {
   const { statusCode } = res;
   const contentType = res.headers['content-type'];
@@ -1850,14 +1835,14 @@ data for reasons stated in <a href="#http_class_http_clientrequest"><code>http.C
 </ul>
 <p>Global instance of <code>Agent</code> which is used as the default for all HTTP client
 requests.</p>
-<h2>http.request(options[, callback])<span><a class="mark" href="#http_http_request_options_callback" id="http_http_request_options_callback">#</a></span></h2>
-<h2>http.request(url[, options][, callback])<span><a class="mark" href="#http_http_request_url_options_callback" id="http_http_request_url_options_callback">#</a></span></h2>
+<h2>http.request(options[, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/http.js#L40">[src]</a><span><a class="mark" href="#http_http_request_options_callback" id="http_http_request_options_callback">#</a></span></h2>
+<h2>http.request(url[, options][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/http.js#L40">[src]</a><span><a class="mark" href="#http_http_request_url_options_callback" id="http_http_request_url_options_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
 <tr><td>v10.9.0</td>
-<td><p>allow both url and options to be passed to <code>http.request()</code></p></td></tr>
+<td><p>The <code>url</code> parameter can now be passed along with a separate <code>options</code> object.</p></td></tr>
 <tr><td>v7.5.0</td>
 <td><p>The <code>options</code> parameter can be a WHATWG <code>URL</code> object.</p></td></tr>
 <tr><td>v0.3.6</td>
@@ -1926,7 +1911,6 @@ the <a href="#http_event_response"><code>'response'</code></a> event.</p>
 <p><code>http.request()</code> returns an instance of the <a href="#http_class_http_clientrequest"><code>http.ClientRequest</code></a>
 class. The <code>ClientRequest</code> instance is a writable stream. If one needs to
 upload a file with a POST request, then write to the <code>ClientRequest</code> object.</p>
-<p>Example:</p>
 <pre><code class="language-js">const postData = querystring.stringify({
   'msg': 'Hello World!'
 });
@@ -2056,6 +2040,5 @@ not abort the request or do anything besides add a <code>'timeout'</code> event.
   <script src="assets/sh_main.js"></script>
   <script src="assets/sh_javascript.min.js"></script>
   <script>highlight(undefined, undefined, 'pre');</script>
-  <!-- __TRACKING__ -->
 </body>
 </html>

@@ -123,7 +123,7 @@
                   "params": []
                 }
               ],
-              "desc": "<p>Returns the bound <code>address</code>, the address <code>family</code> name, and <code>port</code> of the server\nas reported by the operating system if listening on an IP socket\n(useful to find which port was assigned when getting an OS-assigned address):\n<code>{ port: 12346, family: 'IPv4', address: '127.0.0.1' }</code>.</p>\n<p>For a server listening on a pipe or UNIX domain socket, the name is returned\nas a string.</p>\n<p>Example:</p>\n<pre><code class=\"language-js\">const server = net.createServer((socket) => {\n  socket.end('goodbye\\n');\n}).on('error', (err) => {\n  // handle errors here\n  throw err;\n});\n\n// grab an arbitrary unused port.\nserver.listen(() => {\n  console.log('opened server on', server.address());\n});\n</code></pre>\n<p>Don't call <code>server.address()</code> until the <code>'listening'</code> event has been emitted.</p>"
+              "desc": "<p>Returns the bound <code>address</code>, the address <code>family</code> name, and <code>port</code> of the server\nas reported by the operating system if listening on an IP socket\n(useful to find which port was assigned when getting an OS-assigned address):\n<code>{ port: 12346, family: 'IPv4', address: '127.0.0.1' }</code>.</p>\n<p>For a server listening on a pipe or UNIX domain socket, the name is returned\nas a string.</p>\n<pre><code class=\"language-js\">const server = net.createServer((socket) => {\n  socket.end('goodbye\\n');\n}).on('error', (err) => {\n  // handle errors here\n  throw err;\n});\n\n// grab an arbitrary unused port.\nserver.listen(() => {\n  console.log('opened server on', server.address());\n});\n</code></pre>\n<p>Don't call <code>server.address()</code> until the <code>'listening'</code> event has been emitted.</p>"
             },
             {
               "textRaw": "server.close([callback])",
@@ -1229,7 +1229,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>The numeric representation of the local port. For example,\n<code>80</code> or <code>21</code>.</p>"
+              "desc": "<p>The numeric representation of the local port. For example, <code>80</code> or <code>21</code>.</p>"
             },
             {
               "textRaw": "socket.remoteAddress",
@@ -1262,7 +1262,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>The numeric representation of the remote port. For example,\n<code>80</code> or <code>21</code>.</p>"
+              "desc": "<p>The numeric representation of the remote port. For example, <code>80</code> or <code>21</code>.</p>"
             }
           ],
           "signatures": [

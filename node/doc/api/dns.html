@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>DNS | Node.js v10.9.0 Documentation</title>
+  <title>DNS | Node.js v10.12.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -80,7 +80,7 @@
 
     <div id="column1" data-id="dns" class="interior">
       <header>
-        <h1>Node.js v10.9.0 Documentation</h1>
+        <h1>Node.js v10.12.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -288,11 +288,13 @@ section if a custom port is used.</p>
   '[2001:4860:4860::8888]:1053'
 ]
 </code></pre>
-<h2>dns.lookup(hostname[, options], callback)<span><a class="mark" href="#dns_dns_lookup_hostname_options_callback" id="dns_dns_lookup_hostname_options_callback">#</a></span></h2>
+<h2>dns.lookup(hostname[, options], callback)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/dns.js#L87">[src]</a><span><a class="mark" href="#dns_dns_lookup_hostname_options_callback" id="dns_dns_lookup_hostname_options_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v8.5.0</td>
+<td><p>The <code>verbatim</code> option is supported now.</p></td></tr>
 <tr><td>v1.2.0</td>
 <td><p>The <code>all</code> option is supported now.</p></td></tr>
 <tr><td>v0.1.90</td>
@@ -375,7 +377,7 @@ configured. Loopback addresses are not considered.</li>
 found, then return IPv4 mapped IPv6 addresses. Note that it is not supported
 on some operating systems (e.g FreeBSD 10.1).</li>
 </ul>
-<h2>dns.lookupService(address, port, callback)<span><a class="mark" href="#dns_dns_lookupservice_address_port_callback" id="dns_dns_lookupservice_address_port_callback">#</a></span></h2>
+<h2>dns.lookupService(address, port, callback)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/dns.js#L162">[src]</a><span><a class="mark" href="#dns_dns_lookupservice_address_port_callback" id="dns_dns_lookupservice_address_port_callback">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.11.14</span>
 </div>
@@ -839,7 +841,7 @@ be an array of objects with the following properties:</p>
 <p><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></p>
 <ul>
 <li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&#x3C;Error></a></li>
-<li><code>records</code> {string[][]}</li>
+<li><code>records</code> {string<a href=""></a>}</li>
 </ul>
 </li>
 </ul>
@@ -1469,7 +1471,7 @@ on libuv's threadpool. This can have surprising negative performance
 implications for some applications, see the <a href="cli.html#cli_uv_threadpool_size_size"><code>UV_THREADPOOL_SIZE</code></a>
 documentation for more information.</p>
 <p>Note that various networking APIs will call <code>dns.lookup()</code> internally to resolve
-host names. If that is an issue, consider resolving the hostname to and address
+host names. If that is an issue, consider resolving the hostname to an address
 using <code>dns.resolve()</code> and using the address instead of a host name. Also, some
 networking APIs (such as <a href="net.html#net_socket_connect_options_connectlistener"><code>socket.connect()</code></a> and <a href="dgram.html#dgram_dgram_createsocket_options_callback"><code>dgram.createSocket()</code></a>)
 allow the default resolver, <code>dns.lookup()</code>, to be replaced.</p>
@@ -1488,6 +1490,5 @@ uses. For instance, <em>they do not use the configuration from <code>/etc/hosts<
   <script src="assets/sh_main.js"></script>
   <script src="assets/sh_javascript.min.js"></script>
   <script>highlight(undefined, undefined, 'pre');</script>
-  <!-- __TRACKING__ -->
 </body>
 </html>

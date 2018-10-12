@@ -7,7 +7,10 @@
 <!--name=vm-->
 
 The `vm` module provides APIs for compiling and running code within V8 Virtual
-Machine contexts.
+Machine contexts. **Note that the `vm` module is not a security mechanism. Do
+not use it to run untrusted code**. The term "sandbox" is used throughout these
+docs simply to refer to a separate context, and does not confer any security
+guarantees.
 
 JavaScript code can be compiled and run immediately or
 compiled, saved, and run later.
@@ -39,9 +42,6 @@ console.log(sandbox.y); // 17
 
 console.log(x); // 1; y is not defined.
 ```
-
-**The vm module is not a security mechanism. Do not use it to run untrusted
-code**.
 
 ## Class: vm.SourceTextModule
 <!-- YAML
@@ -636,6 +636,34 @@ console.log(globalVar);
 
 // 1000
 ```
+
+## vm.compileFunction(code[, params[, options]])
+<!-- YAML
+added: v10.10.0
+-->
+* `code` {string} The body of the function to compile.
+* `params` {string[]} An array of strings containing all parameters for the
+  function.
+* `options` {Object}
+  * `filename` {string} Specifies the filename used in stack traces produced
+    by this script. **Default:** `''`.
+  * `lineOffset` {number} Specifies the line number offset that is displayed
+    in stack traces produced by this script. **Default:** `0`.
+  * `columnOffset` {number} Specifies the column number offset that is displayed
+    in stack traces produced by this script. **Default:** `0`.
+  * `cachedData` {Buffer} Provides an optional `Buffer` with V8's code cache
+    data for the supplied source.
+  * `produceCachedData` {boolean} Specifies whether to produce new cache data.
+    **Default:** `false`.
+  * `parsingContext` {Object} The sandbox/context in which the said function
+    should be compiled in.
+  * `contextExtensions` {Object[]} An array containing a collection of context
+    extensions (objects wrapping the current scope) to be applied while
+    compiling. **Default:** `[]`.
+
+Compiles the given code into the provided context/sandbox (if no context is
+supplied, the current context is used), and returns it wrapped inside a
+function with the given `params`.
 
 ## vm.createContext([sandbox[, options]])
 <!-- YAML

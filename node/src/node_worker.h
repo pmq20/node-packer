@@ -12,7 +12,7 @@ namespace worker {
 // A worker thread, as represented in its parent thread.
 class Worker : public AsyncWrap {
  public:
-  Worker(Environment* env, v8::Local<v8::Object> wrap);
+  Worker(Environment* env, v8::Local<v8::Object> wrap, const std::string& url);
   ~Worker();
 
   // Run the worker. This is only called from the worker thread.
@@ -26,15 +26,15 @@ class Worker : public AsyncWrap {
   void JoinThread();
 
   void MemoryInfo(MemoryTracker* tracker) const override {
-    tracker->TrackThis(this);
-    tracker->TrackFieldWithSize("isolate_data", sizeof(IsolateData));
-    tracker->TrackFieldWithSize("env", sizeof(Environment));
-    tracker->TrackFieldWithSize("thread_exit_async", sizeof(uv_async_t));
+    tracker->TrackFieldWithSize(
+        "isolate_data", sizeof(IsolateData), "IsolateData");
+    tracker->TrackFieldWithSize("env", sizeof(Environment), "Environment");
+    tracker->TrackField("thread_exit_async", *thread_exit_async_);
     tracker->TrackField("parent_port", parent_port_);
   }
 
-
-  ADD_MEMORY_INFO_NAME(Worker)
+  SET_MEMORY_INFO_NAME(Worker)
+  SET_SELF_SIZE(Worker)
 
   bool is_stopped() const;
 
@@ -52,6 +52,7 @@ class Worker : public AsyncWrap {
   uv_loop_t loop_;
   DeleteFnPtr<IsolateData, FreeIsolateData> isolate_data_;
   DeleteFnPtr<Environment, FreeEnvironment> env_;
+  const std::string url_;
   v8::Isolate* isolate_ = nullptr;
   DeleteFnPtr<ArrayBufferAllocator, FreeArrayBufferAllocator>
       array_buffer_allocator_;

@@ -35,6 +35,7 @@ const debug = util.debuglog('tls');
 const tls_wrap = process.binding('tls_wrap');
 const { TCP, constants: TCPConstants } = process.binding('tcp_wrap');
 const { Pipe, constants: PipeConstants } = process.binding('pipe_wrap');
+const { owner_symbol } = require('internal/async_hooks').symbols;
 const {
   SecureContext: NativeSecureContext
 } = process.binding('crypto');
@@ -64,7 +65,8 @@ function onhandshakestart(now) {
   debug('onhandshakestart');
 
   const { lastHandshakeTime } = this;
-  assert(now >= lastHandshakeTime);
+  assert(now >= lastHandshakeTime,
+         `now (${now}) < lastHandshakeTime (${lastHandshakeTime})`);
 
   this.lastHandshakeTime = now;
 
@@ -77,7 +79,7 @@ function onhandshakestart(now) {
   else
     this.handshakes++;
 
-  const { owner } = this;
+  const owner = this[owner_symbol];
   if (this.handshakes > tls.CLIENT_RENEG_LIMIT) {
     owner._emitTLSError(new ERR_TLS_SESSION_ATTACK());
     return;
@@ -90,7 +92,7 @@ function onhandshakestart(now) {
 function onhandshakedone() {
   debug('onhandshakedone');
 
-  const owner = this.owner;
+  const owner = this[owner_symbol];
 
   // `newSession` callback wasn't called yet
   if (owner._newSessionPending) {
@@ -103,7 +105,7 @@ function onhandshakedone() {
 
 
 function loadSession(hello) {
-  const owner = this.owner;
+  const owner = this[owner_symbol];
 
   var once = false;
   function onSession(err, session) {
@@ -131,7 +133,7 @@ function loadSession(hello) {
 
 
 function loadSNI(info) {
-  const owner = this.owner;
+  const owner = this[owner_symbol];
   const servername = info.servername;
   if (!servername || !owner._SNICallback)
     return requestOCSP(owner, info);
@@ -213,7 +215,7 @@ function requestOCSPDone(socket) {
 
 
 function onnewsession(key, session) {
-  const owner = this.owner;
+  const owner = this[owner_symbol];
 
   if (!owner.server)
     return;
@@ -242,11 +244,11 @@ function onnewsession(key, session) {
 
 
 function onocspresponse(resp) {
-  this.owner.emit('OCSPResponse', resp);
+  this[owner_symbol].emit('OCSPResponse', resp);
 }
 
 function onerror(err) {
-  const owner = this.owner;
+  const owner = this[owner_symbol];
 
   if (owner._writableState.errorEmitted)
     return;
@@ -365,9 +367,9 @@ for (var n = 0; n < proxiedMethods.length; n++) {
 
 tls_wrap.TLSWrap.prototype.close = function close(cb) {
   let ssl;
-  if (this.owner) {
-    ssl = this.owner.ssl;
-    this.owner.ssl = null;
+  if (this[owner_symbol]) {
+    ssl = this[owner_symbol].ssl;
+    this[owner_symbol].ssl = null;
   }
 
   // Invoke `destroySSL` on close to clean up possibly pending write requests
@@ -406,7 +408,7 @@ TLSSocket.prototype._wrapHandle = function(wrap) {
     handle = options.pipe ?
       new Pipe(PipeConstants.SOCKET) :
       new TCP(TCPConstants.SOCKET);
-    handle.owner = this;
+    handle[owner_symbol] = this;
   }
 
   // Wrap socket's handle

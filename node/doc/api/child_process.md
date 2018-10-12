@@ -633,8 +633,6 @@ pipes between the parent and child. The value is one of the following:
    words, stdin, stdout, and stderr) a pipe is created. For fd 3 and up, the
    default is `'ignore'`.
 
-Example:
-
 ```js
 const { spawn } = require('child_process');
 
@@ -679,6 +677,10 @@ configuration at startup.
 <!-- YAML
 added: v0.11.12
 changes:
+  - version: v10.10.0
+    pr-url: https://github.com/nodejs/node/pull/22409
+    description: The `input` option can now be any `TypedArray` or a
+                 `DataView`.
   - version: v8.8.0
     pr-url: https://github.com/nodejs/node/pull/15380
     description: The `windowsHide` option is supported now.
@@ -694,8 +696,9 @@ changes:
 * `args` {string[]} List of string arguments.
 * `options` {Object}
   * `cwd` {string} Current working directory of the child process.
-  * `input` {string|Buffer|Uint8Array} The value which will be passed as stdin
-    to the spawned process. Supplying this value will override `stdio[0]`.
+  * `input` {string|Buffer|TypedArray|DataView} The value which will be passed
+    as stdin to the spawned process. Supplying this value will override
+    `stdio[0]`.
   * `stdio` {string|Array} Child's stdio configuration. `stderr` by default will
     be output to the parent process' stderr unless `stdio` is specified.
     **Default:** `'pipe'`.
@@ -741,6 +744,10 @@ arbitrary command execution.**
 <!-- YAML
 added: v0.11.12
 changes:
+  - version: v10.10.0
+    pr-url: https://github.com/nodejs/node/pull/22409
+    description: The `input` option can now be any `TypedArray` or a
+                 `DataView`.
   - version: v8.8.0
     pr-url: https://github.com/nodejs/node/pull/15380
     description: The `windowsHide` option is supported now.
@@ -752,8 +759,9 @@ changes:
 * `command` {string} The command to run.
 * `options` {Object}
   * `cwd` {string} Current working directory of the child process.
-  * `input` {string|Buffer|Uint8Array} The value which will be passed as stdin
-    to the spawned process. Supplying this value will override `stdio[0]`.
+  * `input` {string|Buffer|TypedArray|DataView} The value which will be passed
+    as stdin to the spawned process. Supplying this value will override
+    `stdio[0]`.
   * `stdio` {string|Array} Child's stdio configuration. `stderr` by default will
     be output to the parent process' stderr unless `stdio` is specified.
     **Default:** `'pipe'`.
@@ -795,6 +803,10 @@ metacharacters may be used to trigger arbitrary command execution.**
 <!-- YAML
 added: v0.11.12
 changes:
+  - version: v10.10.0
+    pr-url: https://github.com/nodejs/node/pull/22409
+    description: The `input` option can now be any `TypedArray` or a
+                 `DataView`.
   - version: v8.8.0
     pr-url: https://github.com/nodejs/node/pull/15380
     description: The `windowsHide` option is supported now.
@@ -813,8 +825,9 @@ changes:
 * `args` {string[]} List of string arguments.
 * `options` {Object}
   * `cwd` {string} Current working directory of the child process.
-  * `input` {string|Buffer|Uint8Array} The value which will be passed as stdin
-    to the spawned process. Supplying this value will override `stdio[0]`.
+  * `input` {string|Buffer|TypedArray|DataView} The value which will be passed
+    as stdin to the spawned process. Supplying this value will override
+    `stdio[0]`.
   * `argv0` {string} Explicitly set the value of `argv[0]` sent to the child
     process. This will be set to `command` if not specified.
   * `stdio` {string|Array} Child's stdio configuration.
@@ -1027,8 +1040,7 @@ See kill(2) for reference.
 
 Also note: on Linux, child processes of child processes will not be terminated
 when attempting to kill their parent. This is likely to happen when running a
-new process in a shell or with use of the `shell` option of `ChildProcess`, such
-as in this example:
+new process in a shell or with use of the `shell` option of `ChildProcess`:
 
 ```js
 'use strict';
@@ -1071,8 +1083,6 @@ added: v0.1.90
 * {integer}
 
 Returns the process identifier (PID) of the child process.
-
-Example:
 
 ```js
 const { spawn } = require('child_process');

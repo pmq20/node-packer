@@ -21,10 +21,52 @@ using v8::Value;
 
 namespace fs {
 
+// structure used to store state during a complex operation, e.g., mkdirp.
+class FSContinuationData : public MemoryRetainer {
+ public:
+  FSContinuationData(uv_fs_t* req, int mode, uv_fs_cb done_cb)
+      : req(req), mode(mode), done_cb(done_cb) {
+  }
+
+  uv_fs_t* req;
+  int mode;
+  std::vector<std::string> paths;
+
+  void PushPath(std::string&& path) {
+    paths.emplace_back(std::move(path));
+  }
+
+  void PushPath(const std::string& path) {
+    paths.push_back(path);
+  }
+
+  std::string PopPath() {
+    CHECK_GT(paths.size(), 0);
+    std::string path = std::move(paths.back());
+    paths.pop_back();
+    return path;
+  }
+
+  void Done(int result) {
+    req->result = result;
+    done_cb(req);
+  }
+
+  void MemoryInfo(MemoryTracker* tracker) const override {
+    tracker->TrackField("paths", paths);
+  }
+
+  SET_MEMORY_INFO_NAME(FSContinuationData)
+  SET_SELF_SIZE(FSContinuationData)
+
+ private:
+  uv_fs_cb done_cb;
+};
 
 class FSReqBase : public ReqWrap<uv_fs_t> {
  public:
   typedef MaybeStackBuffer<char, 64> FSReqBuffer;
+  std::unique_ptr<FSContinuationData> continuation_data = nullptr;
 
   FSReqBase(Environment* env, Local<Object> req, AsyncWrap::ProviderType type,
             bool use_bigint)
@@ -96,10 +138,11 @@ class FSReqWrap : public FSReqBase {
   void SetReturnValue(const FunctionCallbackInfo<Value>& args) override;
 
   void MemoryInfo(MemoryTracker* tracker) const override {
-    tracker->TrackThis(this);
+    tracker->TrackField("continuation_data", continuation_data);
   }
 
-  ADD_MEMORY_INFO_NAME(FSReqWrap)
+  SET_MEMORY_INFO_NAME(FSReqWrap)
+  SET_SELF_SIZE(FSReqWrap)
 
  private:
   DISALLOW_COPY_AND_ASSIGN(FSReqWrap);
@@ -160,11 +203,12 @@ class FSReqPromise : public FSReqBase {
   }
 
   void MemoryInfo(MemoryTracker* tracker) const override {
-    tracker->TrackThis(this);
     tracker->TrackField("stats_field_array", stats_field_array_);
+    tracker->TrackField("continuation_data", continuation_data);
   }
 
-  ADD_MEMORY_INFO_NAME(FSReqPromise)
+  SET_MEMORY_INFO_NAME(FSReqPromise)
+  SET_SELF_SIZE(FSReqPromise)
 
  private:
   bool finished_ = false;
@@ -200,12 +244,9 @@ class FileHandleReadWrap : public ReqWrap<uv_fs_t> {
     return static_cast<FileHandleReadWrap*>(ReqWrap::from_req(req));
   }
 
-  void MemoryInfo(MemoryTracker* tracker) const override {
-    tracker->TrackThis(this);
-    tracker->TrackField("buffer", buffer_);
-  }
-
-  ADD_MEMORY_INFO_NAME(FileHandleReadWrap)
+  void MemoryInfo(MemoryTracker* tracker) const override;
+  SET_MEMORY_INFO_NAME(FileHandleReadWrap)
+  SET_SELF_SIZE(FileHandleReadWrap)
 
  private:
   FileHandle* file_handle_;
@@ -254,11 +295,11 @@ class FileHandle : public AsyncWrap, public StreamBase {
   }
 
   void MemoryInfo(MemoryTracker* tracker) const override {
-    tracker->TrackThis(this);
     tracker->TrackField("current_read", current_read_);
   }
 
-  ADD_MEMORY_INFO_NAME(FileHandle)
+  SET_MEMORY_INFO_NAME(FileHandle)
+  SET_SELF_SIZE(FileHandle)
 
  private:
   // Synchronous close that emits a warning
@@ -287,12 +328,12 @@ class FileHandle : public AsyncWrap, public StreamBase {
     FileHandle* file_handle();
 
     void MemoryInfo(MemoryTracker* tracker) const override {
-      tracker->TrackThis(this);
       tracker->TrackField("promise", promise_);
       tracker->TrackField("ref", ref_);
     }
 
-    ADD_MEMORY_INFO_NAME(CloseReq)
+    SET_MEMORY_INFO_NAME(CloseReq)
+    SET_SELF_SIZE(CloseReq)
 
     void Resolve();
 

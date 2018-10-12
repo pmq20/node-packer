@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>URL | Node.js v10.9.0 Documentation</title>
+  <title>URL | Node.js v10.12.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -80,7 +80,7 @@
 
     <div id="column1" data-id="url" class="interior">
       <header>
-        <h1>Node.js v10.9.0 Documentation</h1>
+        <h1>Node.js v10.12.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -171,7 +171,9 @@
 </li>
 <li><a href="#url_url_domaintoascii_domain">url.domainToASCII(domain)</a></li>
 <li><a href="#url_url_domaintounicode_domain">url.domainToUnicode(domain)</a></li>
+<li><a href="#url_url_fileurltopath_url">url.fileURLToPath(url)</a></li>
 <li><a href="#url_url_format_url_options">url.format(URL[, options])</a></li>
+<li><a href="#url_url_pathtofileurl_path">url.pathToFileURL(path)</a></li>
 </ul>
 </li>
 <li>
@@ -453,6 +455,55 @@ to percent-encode may vary somewhat from what the <a href="#url_url_parse_urlstr
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
 <p>Gets and sets the port portion of the URL.</p>
+<p>The port value may be a number or a string containing a number in the range
+<code>0</code> to <code>65535</code> (inclusive). Setting the value to the default port of the
+<code>URL</code> objects given <code>protocol</code> will result in the <code>port</code> value becoming
+the empty string (<code>''</code>).</p>
+<p>The port value can be an empty string in which case the port depends on
+the protocol/scheme:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">protocol</th><th align="left">port</th></tr></thead><tbody><tr><td align="left">"ftp"</td><td align="left">21</td></tr><tr><td align="left">"file"</td><td align="left"></td></tr><tr><td align="left">"gopher"</td><td align="left">70</td></tr><tr><td align="left">"http"</td><td align="left">80</td></tr><tr><td align="left">"https"</td><td align="left">443</td></tr><tr><td align="left">"ws"</td><td align="left">80</td></tr><tr><td align="left">"wss"</td><td align="left">443</td></tr></tbody></table>
+<p>Upon assigning a value to the port, the value will first be converted to a
+string using <code>.toString()</code>.</p>
+<p>If that string is invalid but it begins with a number, the leading number is
+assigned to <code>port</code>.
+If the number lies outside the range denoted above, it is ignored.</p>
 <pre><code class="language-js">const myURL = new URL('https://example.org:8888');
 console.log(myURL.port);
 // Prints 8888
@@ -492,16 +543,6 @@ myURL.port = 1e10; // 10000000000, will be range-checked as described below
 console.log(myURL.port);
 // Prints 1234
 </code></pre>
-<p>The port value may be set as either a number or as a string containing a number
-in the range <code>0</code> to <code>65535</code> (inclusive). Setting the value to the default port
-of the <code>URL</code> objects given <code>protocol</code> will result in the <code>port</code> value becoming
-the empty string (<code>''</code>).</p>
-<p>Upon assigning a value to the port, the value will first be converted to a
-string using <code>.toString()</code>.</p>
-<p>If that string is invalid but it begins with a number, the leading number is
-assigned to <code>port</code>.
-Otherwise, or if the number lies outside the range denoted above,
-it is ignored.</p>
 <p>Note that numbers which contain a decimal point,
 such as floating-point numbers or numbers in scientific notation,
 are not an exception to this rule.
@@ -928,7 +969,26 @@ console.log(url.domainToUnicode('xn--fiq228c.com'));
 console.log(url.domainToUnicode('xn--iñvalid.com'));
 // Prints an empty string
 </code></pre>
-<h3>url.format(URL[, options])<span><a class="mark" href="#url_url_format_url_options" id="url_url_format_url_options">#</a></span></h3>
+<h3>url.fileURLToPath(url)<span><a class="mark" href="#url_url_fileurltopath_url" id="url_url_fileurltopath_url">#</a></span></h3>
+<ul>
+<li><code>url</code> <a href="url.html#url_the_whatwg_url_api" class="type">&#x3C;URL></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The file URL string or URL object to convert to a path.</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The fully-resolved platform-specific Node.js file path.</li>
+</ul>
+<p>This function ensures the correct decodings of percent-encoded characters as
+well as ensuring a cross-platform valid absolute path string.</p>
+<pre><code class="language-js">new URL('file:///C:/path/').pathname;    // Incorrect: /C:/path/
+fileURLToPath('file:///C:/path/');       // Correct:   C:\path\ (Windows)
+
+new URL('file://nas/foo.txt').pathname;  // Incorrect: /foo.txt
+fileURLToPath('file://nas/foo.txt');     // Correct:   \\nas\foo.txt (Windows)
+
+new URL('file:///你好.txt').pathname;    // Incorrect: /%E4%BD%A0%E5%A5%BD.txt
+fileURLToPath('file:///你好.txt');       // Correct:   /你好.txt (POSIX)
+
+new URL('file:///hello world').pathname; // Incorrect: /hello%20world
+fileURLToPath('file:///hello world');    // Correct:   /hello world (POSIX)
+</code></pre>
+<h3>url.format(URL[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/url.js#L569">[src]</a><span><a class="mark" href="#url_url_format_url_options" id="url_url_format_url_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v7.6.0</span>
 </div>
@@ -956,7 +1016,6 @@ Punycode encoded. <strong>Default:</strong> <code>false</code>.</li>
 string serializations of the URL. These are not, however, customizable in
 any way. The <code>url.format(URL[, options])</code> method allows for basic customization
 of the output.</p>
-<p>For example:</p>
 <pre><code class="language-js">const myURL = new URL('https://a:b@你好你好?abc#foo');
 
 console.log(myURL.href);
@@ -967,6 +1026,24 @@ console.log(myURL.toString());
 
 console.log(url.format(myURL, { fragment: false, unicode: true, auth: false }));
 // Prints 'https://你好你好/?abc'
+</code></pre>
+<h3>url.pathToFileURL(path)<span><a class="mark" href="#url_url_pathtofileurl_path" id="url_url_pathtofileurl_path">#</a></span></h3>
+<ul>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The path to convert to a File URL.</li>
+<li>Returns: <a href="url.html#url_the_whatwg_url_api" class="type">&#x3C;URL></a> The file URL object.</li>
+</ul>
+<p>This function ensures that <code>path</code> is resolved absolutely, and that the URL
+control characters are correctly encoded when converting into a File URL.</p>
+<pre><code class="language-js">new URL(__filename);                // Incorrect: throws (POSIX)
+new URL(__filename);                // Incorrect: C:\... (Windows)
+pathToFileURL(__filename);          // Correct:   file:///... (POSIX)
+pathToFileURL(__filename);          // Correct:   file:///C:/... (Windows)
+
+new URL('/foo#1', 'file:');         // Incorrect: file:///foo#1
+pathToFileURL('/foo#1');            // Correct:   file:///foo%231 (POSIX)
+
+new URL('/some/path%.js', 'file:'); // Incorrect: file:///some/path%
+pathToFileURL('/some/path%.js');    // Correct:   file:///some/path%25 (POSIX)
 </code></pre>
 <h2>Legacy URL API<span><a class="mark" href="#url_legacy_url_api" id="url_legacy_url_api">#</a></span></h2>
 <h3>Legacy `urlObject`<span><a class="mark" href="#url_legacy_urlobject" id="url_legacy_urlobject">#</a></span></h3>
@@ -1005,7 +1082,7 @@ components.</p>
 is everything following the <code>host</code> (including the <code>port</code>) and before the start
 of the <code>query</code> or <code>hash</code> components, delimited by either the ASCII question
 mark (<code>?</code>) or hash (<code>#</code>) characters.</p>
-<p>For example <code>'/p/a/t/h'</code>.</p>
+<p>For example: <code>'/p/a/t/h'</code>.</p>
 <p>No decoding of the path string is performed.</p>
 <h4>urlObject.port<span><a class="mark" href="#url_urlobject_port" id="url_urlobject_port">#</a></span></h4>
 <p>The <code>port</code> property is the numeric port portion of the <code>host</code> component.</p>
@@ -1030,7 +1107,7 @@ URL, including the leading ASCII question mark (<code>?</code>) character.</p>
 <p>The <code>slashes</code> property is a <code>boolean</code> with a value of <code>true</code> if two ASCII
 forward-slash characters (<code>/</code>) are required following the colon in the
 <code>protocol</code>.</p>
-<h3>url.format(urlObject)<span><a class="mark" href="#url_url_format_urlobject" id="url_url_format_urlobject">#</a></span></h3>
+<h3>url.format(urlObject)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/url.js#L569">[src]</a><span><a class="mark" href="#url_url_format_urlobject" id="url_url_format_urlobject">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1139,7 +1216,7 @@ character, the literal string <code>#</code> is appended to <code>result</code>.
 string, an <a href="errors.html#errors_class_error"><code>Error</code></a> is thrown.</li>
 <li><code>result</code> is returned.</li>
 </ul>
-<h3>url.parse(urlString[, parseQueryString[, slashesDenoteHost]])<span><a class="mark" href="#url_url_parse_urlstring_parsequerystring_slashesdenotehost" id="url_url_parse_urlstring_parsequerystring_slashesdenotehost">#</a></span></h3>
+<h3>url.parse(urlString[, parseQueryString[, slashesDenoteHost]])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/url.js#L150">[src]</a><span><a class="mark" href="#url_url_parse_urlstring_parsequerystring_slashesdenotehost" id="url_url_parse_urlstring_parsequerystring_slashesdenotehost">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1167,7 +1244,7 @@ For instance, given <code>//foo/bar</code>, the result would be
 object.</p>
 <p>A <code>TypeError</code> is thrown if <code>urlString</code> is not a string.</p>
 <p>A <code>URIError</code> is thrown if the <code>auth</code> property is present but cannot be decoded.</p>
-<h3>url.resolve(from, to)<span><a class="mark" href="#url_url_resolve_from_to" id="url_url_resolve_from_to">#</a></span></h3>
+<h3>url.resolve(from, to)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/url.js#L660">[src]</a><span><a class="mark" href="#url_url_resolve_from_to" id="url_url_resolve_from_to">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1189,7 +1266,6 @@ object.</p>
 </ul>
 <p>The <code>url.resolve()</code> method resolves a target URL relative to a base URL in a
 manner similar to that of a Web browser resolving an anchor tag HREF.</p>
-<p>For example:</p>
 <pre><code class="language-js">const url = require('url');
 url.resolve('/one/two/three', 'four');         // '/one/two/four'
 url.resolve('http://example.com/', '/one');    // 'http://example.com/one'
@@ -1240,7 +1316,7 @@ The <em>C0 control percent-encode set</em> is used for host and path under certa
 specific conditions, in addition to all other cases.</p>
 <p>When non-ASCII characters appear within a hostname, the hostname is encoded
 using the <a href="https://tools.ietf.org/html/rfc5891#section-4.4">Punycode</a> algorithm. Note, however, that a hostname <em>may</em> contain
-<em>both</em> Punycode encoded and percent-encoded characters. For example:</p>
+<em>both</em> Punycode encoded and percent-encoded characters:</p>
 <pre><code class="language-js">const myURL = new URL('https://%CF%80.com/foo');
 console.log(myURL.href);
 // Prints https://xn--1xa.com/foo
@@ -1253,6 +1329,5 @@ console.log(myURL.origin);
   <script src="assets/sh_main.js"></script>
   <script src="assets/sh_javascript.min.js"></script>
   <script>highlight(undefined, undefined, 'pre');</script>
-  <!-- __TRACKING__ -->
 </body>
 </html>

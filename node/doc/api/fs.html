@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>File System | Node.js v10.9.0 Documentation</title>
+  <title>File System | Node.js v10.12.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -80,7 +80,7 @@
 
     <div id="column1" data-id="fs" class="interior">
       <header>
-        <h1>Node.js v10.9.0 Documentation</h1>
+        <h1>Node.js v10.12.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -126,6 +126,19 @@
 </li>
 <li><a href="#fs_file_descriptors">File Descriptors</a></li>
 <li><a href="#fs_threadpool_usage">Threadpool Usage</a></li>
+<li>
+<p><a href="#fs_class_fs_dirent">Class: fs.Dirent</a></p>
+<ul>
+<li><a href="#fs_dirent_isblockdevice">dirent.isBlockDevice()</a></li>
+<li><a href="#fs_dirent_ischaracterdevice">dirent.isCharacterDevice()</a></li>
+<li><a href="#fs_dirent_isdirectory">dirent.isDirectory()</a></li>
+<li><a href="#fs_dirent_isfifo">dirent.isFIFO()</a></li>
+<li><a href="#fs_dirent_isfile">dirent.isFile()</a></li>
+<li><a href="#fs_dirent_issocket">dirent.isSocket()</a></li>
+<li><a href="#fs_dirent_issymboliclink">dirent.isSymbolicLink()</a></li>
+<li><a href="#fs_dirent_name">dirent.name</a></li>
+</ul>
+</li>
 <li>
 <p><a href="#fs_class_fs_fswatcher">Class: fs.FSWatcher</a></p>
 <ul>
@@ -230,8 +243,8 @@
 <li><a href="#fs_fs_linksync_existingpath_newpath">fs.linkSync(existingPath, newPath)</a></li>
 <li><a href="#fs_fs_lstat_path_options_callback">fs.lstat(path[, options], callback)</a></li>
 <li><a href="#fs_fs_lstatsync_path_options">fs.lstatSync(path[, options])</a></li>
-<li><a href="#fs_fs_mkdir_path_mode_callback">fs.mkdir(path[, mode], callback)</a></li>
-<li><a href="#fs_fs_mkdirsync_path_mode">fs.mkdirSync(path[, mode])</a></li>
+<li><a href="#fs_fs_mkdir_path_options_callback">fs.mkdir(path[, options], callback)</a></li>
+<li><a href="#fs_fs_mkdirsync_path_options">fs.mkdirSync(path[, options])</a></li>
 <li><a href="#fs_fs_mkdtemp_prefix_options_callback">fs.mkdtemp(prefix[, options], callback)</a></li>
 <li><a href="#fs_fs_mkdtempsync_prefix_options">fs.mkdtempSync(prefix[, options])</a></li>
 <li><a href="#fs_fs_open_path_flags_mode_callback">fs.open(path, flags[, mode], callback)</a></li>
@@ -314,7 +327,7 @@
 <li><a href="#fs_fspromises_lchown_path_uid_gid">fsPromises.lchown(path, uid, gid)</a></li>
 <li><a href="#fs_fspromises_link_existingpath_newpath">fsPromises.link(existingPath, newPath)</a></li>
 <li><a href="#fs_fspromises_lstat_path_options">fsPromises.lstat(path[, options])</a></li>
-<li><a href="#fs_fspromises_mkdir_path_mode">fsPromises.mkdir(path[, mode])</a></li>
+<li><a href="#fs_fspromises_mkdir_path_options">fsPromises.mkdir(path[, options])</a></li>
 <li><a href="#fs_fspromises_mkdtemp_prefix_options">fsPromises.mkdtemp(prefix[, options])</a></li>
 <li><a href="#fs_fspromises_open_path_flags_mode">fsPromises.open(path, flags[, mode])</a></li>
 <li><a href="#fs_fspromises_readdir_path_options">fsPromises.readdir(path[, options])</a></li>
@@ -568,6 +581,81 @@ eventually cause an application to crash.</p>
 synchronous use libuv's threadpool, which can have surprising and negative
 performance implications for some applications. See the
 <a href="cli.html#cli_uv_threadpool_size_size"><code>UV_THREADPOOL_SIZE</code></a> documentation for more information.</p>
+<h2>Class: fs.Dirent<span><a class="mark" href="#fs_class_fs_dirent" id="fs_class_fs_dirent">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v10.10.0</span>
+</div>
+<p>When <a href="#fs_fs_readdir_path_options_callback"><code>fs.readdir()</code></a> or <a href="#fs_fs_readdirsync_path_options"><code>fs.readdirSync()</code></a> is called with the
+<code>withFileTypes</code> option set to <code>true</code>, the resulting array is filled with
+<code>fs.Dirent</code> objects, rather than strings or <code>Buffers</code>.</p>
+<h3>dirent.isBlockDevice()<span><a class="mark" href="#fs_dirent_isblockdevice" id="fs_dirent_isblockdevice">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v10.10.0</span>
+</div>
+<ul>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a></li>
+</ul>
+<p>Returns <code>true</code> if the <code>fs.Dirent</code> object describes a block device.</p>
+<h3>dirent.isCharacterDevice()<span><a class="mark" href="#fs_dirent_ischaracterdevice" id="fs_dirent_ischaracterdevice">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v10.10.0</span>
+</div>
+<ul>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a></li>
+</ul>
+<p>Returns <code>true</code> if the <code>fs.Dirent</code> object describes a character device.</p>
+<h3>dirent.isDirectory()<span><a class="mark" href="#fs_dirent_isdirectory" id="fs_dirent_isdirectory">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v10.10.0</span>
+</div>
+<ul>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a></li>
+</ul>
+<p>Returns <code>true</code> if the <code>fs.Dirent</code> object describes a file system
+directory.</p>
+<h3>dirent.isFIFO()<span><a class="mark" href="#fs_dirent_isfifo" id="fs_dirent_isfifo">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v10.10.0</span>
+</div>
+<ul>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a></li>
+</ul>
+<p>Returns <code>true</code> if the <code>fs.Dirent</code> object describes a first-in-first-out
+(FIFO) pipe.</p>
+<h3>dirent.isFile()<span><a class="mark" href="#fs_dirent_isfile" id="fs_dirent_isfile">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v10.10.0</span>
+</div>
+<ul>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a></li>
+</ul>
+<p>Returns <code>true</code> if the <code>fs.Dirent</code> object describes a regular file.</p>
+<h3>dirent.isSocket()<span><a class="mark" href="#fs_dirent_issocket" id="fs_dirent_issocket">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v10.10.0</span>
+</div>
+<ul>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a></li>
+</ul>
+<p>Returns <code>true</code> if the <code>fs.Dirent</code> object describes a socket.</p>
+<h3>dirent.isSymbolicLink()<span><a class="mark" href="#fs_dirent_issymboliclink" id="fs_dirent_issymboliclink">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v10.10.0</span>
+</div>
+<ul>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a></li>
+</ul>
+<p>Returns <code>true</code> if the <code>fs.Dirent</code> object describes a symbolic link.</p>
+<h3>dirent.name<span><a class="mark" href="#fs_dirent_name" id="fs_dirent_name">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v10.10.0</span>
+</div>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a></li>
+</ul>
+<p>The file name that this <code>fs.Dirent</code> object refers to. The type of this
+value is determined by the <code>options.encoding</code> passed to <a href="#fs_fs_readdir_path_options_callback"><code>fs.readdir()</code></a> or
+<a href="#fs_fs_readdirsync_path_options"><code>fs.readdirSync()</code></a>.</p>
 <h2>Class: fs.FSWatcher<span><a class="mark" href="#fs_class_fs_fswatcher" id="fs_class_fs_fswatcher">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.5.8</span>
@@ -961,10 +1049,10 @@ for writing.</p>
 <span>Added in: v0.1.93</span>
 </div>
 <p>The path to the file the stream is writing to as specified in the first
-argument to <code>fs.createWriteStream()</code>. If <code>path</code> is passed as a string, then
+argument to <a href="#fs_fs_createwritestream_path_options"><code>fs.createWriteStream()</code></a>. If <code>path</code> is passed as a string, then
 <code>writeStream.path</code> will be a string. If <code>path</code> is passed as a <code>Buffer</code>, then
 <code>writeStream.path</code> will be a <code>Buffer</code>.</p>
-<h2>fs.access(path[, mode], callback)<span><a class="mark" href="#fs_fs_access_path_mode_callback" id="fs_fs_access_path_mode_callback">#</a></span></h2>
+<h2>fs.access(path[, mode], callback)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L167">[src]</a><span><a class="mark" href="#fs_fs_access_path_mode_callback" id="fs_fs_access_path_mode_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1093,7 +1181,7 @@ and handle the error, if any.</p>
 <p>In general, check for the accessibility of a file only if the file will not be
 used directly, for example when its accessibility is a signal from another
 process.</p>
-<h2>fs.accessSync(path[, mode])<span><a class="mark" href="#fs_fs_accesssync_path_mode" id="fs_fs_accesssync_path_mode">#</a></span></h2>
+<h2>fs.accessSync(path[, mode])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L182">[src]</a><span><a class="mark" href="#fs_fs_accesssync_path_mode" id="fs_fs_accesssync_path_mode">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1124,7 +1212,7 @@ the method will return <code>undefined</code>.</p>
   console.error('no access!');
 }
 </code></pre>
-<h2>fs.appendFile(path, data[, options], callback)<span><a class="mark" href="#fs_fs_appendfile_path_data_options_callback" id="fs_fs_appendfile_path_data_options_callback">#</a></span></h2>
+<h2>fs.appendFile(path, data[, options], callback)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L1209">[src]</a><span><a class="mark" href="#fs_fs_appendfile_path_data_options_callback" id="fs_fs_appendfile_path_data_options_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1162,13 +1250,12 @@ the method will return <code>undefined</code>.</p>
 </ul>
 <p>Asynchronously append data to a file, creating the file if it does not yet
 exist. <code>data</code> can be a string or a <a href="buffer.html#buffer_buffer"><code>Buffer</code></a>.</p>
-<p>Example:</p>
 <pre><code class="language-js">fs.appendFile('message.txt', 'data to append', (err) => {
   if (err) throw err;
   console.log('The "data to append" was appended to file!');
 });
 </code></pre>
-<p>If <code>options</code> is a string, then it specifies the encoding. Example:</p>
+<p>If <code>options</code> is a string, then it specifies the encoding:</p>
 <pre><code class="language-js">fs.appendFile('message.txt', 'data to append', 'utf8', callback);
 </code></pre>
 <p>The <code>path</code> may be specified as a numeric file descriptor that has been opened
@@ -1184,7 +1271,7 @@ not be closed automatically.</p>
   });
 });
 </code></pre>
-<h2>fs.appendFileSync(path, data[, options])<span><a class="mark" href="#fs_fs_appendfilesync_path_data_options" id="fs_fs_appendfilesync_path_data_options">#</a></span></h2>
+<h2>fs.appendFileSync(path, data[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L1223">[src]</a><span><a class="mark" href="#fs_fs_appendfilesync_path_data_options" id="fs_fs_appendfilesync_path_data_options">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1212,7 +1299,6 @@ not be closed automatically.</p>
 </ul>
 <p>Synchronously append data to a file, creating the file if it does not yet
 exist. <code>data</code> can be a string or a <a href="buffer.html#buffer_buffer"><code>Buffer</code></a>.</p>
-<p>Example:</p>
 <pre><code class="language-js">try {
   fs.appendFileSync('message.txt', 'data to append');
   console.log('The "data to append" was appended to file!');
@@ -1220,7 +1306,7 @@ exist. <code>data</code> can be a string or a <a href="buffer.html#buffer_buffer
   /* Handle the error */
 }
 </code></pre>
-<p>If <code>options</code> is a string, then it specifies the encoding. Example:</p>
+<p>If <code>options</code> is a string, then it specifies the encoding:</p>
 <pre><code class="language-js">fs.appendFileSync('message.txt', 'data to append', 'utf8');
 </code></pre>
 <p>The <code>path</code> may be specified as a numeric file descriptor that has been opened
@@ -1238,7 +1324,7 @@ try {
     fs.closeSync(fd);
 }
 </code></pre>
-<h2>fs.chmod(path, mode, callback)<span><a class="mark" href="#fs_fs_chmod_path_mode_callback" id="fs_fs_chmod_path_mode_callback">#</a></span></h2>
+<h2>fs.chmod(path, mode, callback)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L1002">[src]</a><span><a class="mark" href="#fs_fs_chmod_path_mode_callback" id="fs_fs_chmod_path_mode_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1387,7 +1473,7 @@ exposed in <code>fs.constants</code>.</p>
 <p>Caveats: on Windows only the write permission can be changed, and the
 distinction among the permissions of group, owner or others is not
 implemented.</p>
-<h2>fs.chmodSync(path, mode)<span><a class="mark" href="#fs_fs_chmodsync_path_mode" id="fs_fs_chmodsync_path_mode">#</a></span></h2>
+<h2>fs.chmodSync(path, mode)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L1013">[src]</a><span><a class="mark" href="#fs_fs_chmodsync_path_mode" id="fs_fs_chmodsync_path_mode">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1406,7 +1492,7 @@ implemented.</p>
 <p>For detailed information, see the documentation of the asynchronous version of
 this API: <a href="#fs_fs_chmod_path_mode_callback"><code>fs.chmod()</code></a>.</p>
 <p>See also: <a href="http://man7.org/linux/man-pages/man2/chmod.2.html"><code>chmod(2)</code></a>.</p>
-<h2>fs.chown(path, uid, gid, callback)<span><a class="mark" href="#fs_fs_chown_path_uid_gid_callback" id="fs_fs_chown_path_uid_gid_callback">#</a></span></h2>
+<h2>fs.chown(path, uid, gid, callback)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L1064">[src]</a><span><a class="mark" href="#fs_fs_chown_path_uid_gid_callback" id="fs_fs_chown_path_uid_gid_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1436,7 +1522,7 @@ this API: <a href="#fs_fs_chmod_path_mode_callback"><code>fs.chmod()</code></a>.
 <p>Asynchronously changes owner and group of a file. No arguments other than a
 possible exception are given to the completion callback.</p>
 <p>See also: <a href="http://man7.org/linux/man-pages/man2/chown.2.html"><code>chown(2)</code></a>.</p>
-<h2>fs.chownSync(path, uid, gid)<span><a class="mark" href="#fs_fs_chownsync_path_uid_gid" id="fs_fs_chownsync_path_uid_gid">#</a></span></h2>
+<h2>fs.chownSync(path, uid, gid)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L1076">[src]</a><span><a class="mark" href="#fs_fs_chownsync_path_uid_gid" id="fs_fs_chownsync_path_uid_gid">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1456,7 +1542,7 @@ possible exception are given to the completion callback.</p>
 <p>Synchronously changes owner and group of a file. Returns <code>undefined</code>.
 This is the synchronous version of <a href="#fs_fs_chown_path_uid_gid_callback"><code>fs.chown()</code></a>.</p>
 <p>See also: <a href="http://man7.org/linux/man-pages/man2/chown.2.html"><code>chown(2)</code></a>.</p>
-<h2>fs.close(fd, callback)<span><a class="mark" href="#fs_fs_close_fd_callback" id="fs_fs_close_fd_callback">#</a></span></h2>
+<h2>fs.close(fd, callback)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L389">[src]</a><span><a class="mark" href="#fs_fs_close_fd_callback" id="fs_fs_close_fd_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1481,7 +1567,7 @@ This is the synchronous version of <a href="#fs_fs_chown_path_uid_gid_callback">
 </ul>
 <p>Asynchronous <a href="http://man7.org/linux/man-pages/man2/close.2.html"><code>close(2)</code></a>. No arguments other than a possible exception are given
 to the completion callback.</p>
-<h2>fs.closeSync(fd)<span><a class="mark" href="#fs_fs_closesync_fd" id="fs_fs_closesync_fd">#</a></span></h2>
+<h2>fs.closeSync(fd)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L396">[src]</a><span><a class="mark" href="#fs_fs_closesync_fd" id="fs_fs_closesync_fd">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.21</span>
 </div>
@@ -1496,7 +1582,7 @@ to the completion callback.</p>
 <p>Returns an object containing commonly used constants for file system
 operations. The specific constants currently defined are described in
 <a href="#fs_fs_constants_1">FS Constants</a>.</p>
-<h2>fs.copyFile(src, dest[, flags], callback)<span><a class="mark" href="#fs_fs_copyfile_src_dest_flags_callback" id="fs_fs_copyfile_src_dest_flags_callback">#</a></span></h2>
+<h2>fs.copyFile(src, dest[, flags], callback)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L1687">[src]</a><span><a class="mark" href="#fs_fs_copyfile_src_dest_flags_callback" id="fs_fs_copyfile_src_dest_flags_callback">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v8.5.0</span>
 </div>
@@ -1525,7 +1611,6 @@ fallback copy mechanism is used.</li>
 create a copy-on-write reflink. If the platform does not support copy-on-write,
 then the operation will fail.</li>
 </ul>
-<p>Example:</p>
 <pre><code class="language-js">const fs = require('fs');
 
 // destination.txt will be created or overwritten by default.
@@ -1534,15 +1619,14 @@ fs.copyFile('source.txt', 'destination.txt', (err) => {
   console.log('source.txt was copied to destination.txt');
 });
 </code></pre>
-<p>If the third argument is a number, then it specifies <code>flags</code>, as shown in the
-following example.</p>
+<p>If the third argument is a number, then it specifies <code>flags</code>:</p>
 <pre><code class="language-js">const fs = require('fs');
 const { COPYFILE_EXCL } = fs.constants;
 
 // By using COPYFILE_EXCL, the operation will fail if destination.txt exists.
 fs.copyFile('source.txt', 'destination.txt', COPYFILE_EXCL, callback);
 </code></pre>
-<h2>fs.copyFileSync(src, dest[, flags])<span><a class="mark" href="#fs_fs_copyfilesync_src_dest_flags" id="fs_fs_copyfilesync_src_dest_flags">#</a></span></h2>
+<h2>fs.copyFileSync(src, dest[, flags])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L1709">[src]</a><span><a class="mark" href="#fs_fs_copyfilesync_src_dest_flags" id="fs_fs_copyfilesync_src_dest_flags">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v8.5.0</span>
 </div>
@@ -1569,22 +1653,20 @@ fallback copy mechanism is used.</li>
 create a copy-on-write reflink. If the platform does not support copy-on-write,
 then the operation will fail.</li>
 </ul>
-<p>Example:</p>
 <pre><code class="language-js">const fs = require('fs');
 
 // destination.txt will be created or overwritten by default.
 fs.copyFileSync('source.txt', 'destination.txt');
 console.log('source.txt was copied to destination.txt');
 </code></pre>
-<p>If the third argument is a number, then it specifies <code>flags</code>, as shown in the
-following example.</p>
+<p>If the third argument is a number, then it specifies <code>flags</code>:</p>
 <pre><code class="language-js">const fs = require('fs');
 const { COPYFILE_EXCL } = fs.constants;
 
 // By using COPYFILE_EXCL, the operation will fail if destination.txt exists.
 fs.copyFileSync('source.txt', 'destination.txt', COPYFILE_EXCL);
 </code></pre>
-<h2>fs.createReadStream(path[, options])<span><a class="mark" href="#fs_fs_createreadstream_path_options" id="fs_fs_createreadstream_path_options">#</a></span></h2>
+<h2>fs.createReadStream(path[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L1724">[src]</a><span><a class="mark" href="#fs_fs_createreadstream_path_options" id="fs_fs_createreadstream_path_options">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1629,6 +1711,24 @@ The <code>encoding</code> can be any one of those accepted by <a href="buffer.ht
 the specified file descriptor. This means that no <code>'open'</code> event will be
 emitted. <code>fd</code> should be blocking; non-blocking <code>fd</code>s should be passed to
 <a href="net.html#net_class_net_socket"><code>net.Socket</code></a>.</p>
+<p>If <code>fd</code> points to a character device that only supports blocking reads
+(such as keyboard or sound card), read operations do not finish until data is
+available. This can prevent the process from exiting and the stream from
+closing naturally.</p>
+<pre><code class="language-js">const fs = require('fs');
+// Create a stream from some character  device.
+const stream = fs.createReadStream('/dev/input/event0');
+setTimeout(() => {
+  stream.close(); // This may not close the stream.
+  // Artificially marking end-of-stream, as if the underlying resource had
+  // indicated end-of-file by itself, allows the stream to close.
+  // This does not cancel pending read operations, and if there is such an
+  // operation, the process may still not be able to exit successfully
+  // until it finishes.
+  stream.push(null);
+  stream.read(0);
+}, 100);
+</code></pre>
 <p>If <code>autoClose</code> is false, then the file descriptor won't be closed, even if
 there's an error. It is the application's responsibility to close it and make
 sure there's no file descriptor leak. If <code>autoClose</code> is set to true (default
@@ -1640,7 +1740,7 @@ file was created.</p>
 <pre><code class="language-js">fs.createReadStream('sample.txt', { start: 90, end: 99 });
 </code></pre>
 <p>If <code>options</code> is a string, then it specifies the encoding.</p>
-<h2>fs.createWriteStream(path[, options])<span><a class="mark" href="#fs_fs_createwritestream_path_options" id="fs_fs_createwritestream_path_options">#</a></span></h2>
+<h2>fs.createWriteStream(path[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L1728">[src]</a><span><a class="mark" href="#fs_fs_createwritestream_path_options" id="fs_fs_createwritestream_path_options">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1689,7 +1789,7 @@ file descriptor leak.</p>
 <code>'open'</code> event will be emitted. <code>fd</code> should be blocking; non-blocking <code>fd</code>s
 should be passed to <a href="net.html#net_class_net_socket"><code>net.Socket</code></a>.</p>
 <p>If <code>options</code> is a string, then it specifies the encoding.</p>
-<h2>fs.exists(path, callback)<span><a class="mark" href="#fs_fs_exists_path_callback" id="fs_fs_exists_path_callback">#</a></span></h2>
+<h2>fs.exists(path, callback)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L196">[src]</a><span><a class="mark" href="#fs_fs_exists_path_callback" id="fs_fs_exists_path_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1714,7 +1814,7 @@ should be passed to <a href="net.html#net_class_net_socket"><code>net.Socket</co
 </li>
 </ul>
 <p>Test whether or not the given path exists by checking with the file system.
-Then call the <code>callback</code> argument with either true or false. Example:</p>
+Then call the <code>callback</code> argument with either true or false:</p>
 <pre><code class="language-js">fs.exists('/etc/passwd', (exists) => {
   console.log(exists ? 'it\'s there' : 'no passwd!');
 });
@@ -1787,7 +1887,7 @@ and handle the error, if any.</p>
 <p>In general, check for the existence of a file only if the file won’t be
 used directly, for example when its existence is a signal from another
 process.</p>
-<h2>fs.existsSync(path)<span><a class="mark" href="#fs_fs_existssync_path" id="fs_fs_existssync_path">#</a></span></h2>
+<h2>fs.existsSync(path)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L222">[src]</a><span><a class="mark" href="#fs_fs_existssync_path" id="fs_fs_existssync_path">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1809,7 +1909,7 @@ this API: <a href="fs.html#fs_fs_exists_path_callback"><code>fs.exists()</code><
 <p><code>fs.exists()</code> is deprecated, but <code>fs.existsSync()</code> is not. The <code>callback</code>
 parameter to <code>fs.exists()</code> accepts parameters that are inconsistent with other
 Node.js callbacks. <code>fs.existsSync()</code> does not use a callback.</p>
-<h2>fs.fchmod(fd, mode, callback)<span><a class="mark" href="#fs_fs_fchmod_fd_mode_callback" id="fs_fs_fchmod_fd_mode_callback">#</a></span></h2>
+<h2>fs.fchmod(fd, mode, callback)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L952">[src]</a><span><a class="mark" href="#fs_fs_fchmod_fd_mode_callback" id="fs_fs_fchmod_fd_mode_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1835,7 +1935,7 @@ Node.js callbacks. <code>fs.existsSync()</code> does not use a callback.</p>
 </ul>
 <p>Asynchronous <a href="http://man7.org/linux/man-pages/man2/fchmod.2.html"><code>fchmod(2)</code></a>. No arguments other than a possible exception
 are given to the completion callback.</p>
-<h2>fs.fchmodSync(fd, mode)<span><a class="mark" href="#fs_fs_fchmodsync_fd_mode" id="fs_fs_fchmodsync_fd_mode">#</a></span></h2>
+<h2>fs.fchmodSync(fd, mode)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L962">[src]</a><span><a class="mark" href="#fs_fs_fchmodsync_fd_mode" id="fs_fs_fchmodsync_fd_mode">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.4.7</span>
 </div>
@@ -1844,7 +1944,7 @@ are given to the completion callback.</p>
 <li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
 </ul>
 <p>Synchronous <a href="http://man7.org/linux/man-pages/man2/fchmod.2.html"><code>fchmod(2)</code></a>. Returns <code>undefined</code>.</p>
-<h2>fs.fchown(fd, uid, gid, callback)<span><a class="mark" href="#fs_fs_fchown_fd_uid_gid_callback" id="fs_fs_fchown_fd_uid_gid_callback">#</a></span></h2>
+<h2>fs.fchown(fd, uid, gid, callback)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L1044">[src]</a><span><a class="mark" href="#fs_fs_fchown_fd_uid_gid_callback" id="fs_fs_fchown_fd_uid_gid_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1871,7 +1971,7 @@ are given to the completion callback.</p>
 </ul>
 <p>Asynchronous <a href="http://man7.org/linux/man-pages/man2/fchown.2.html"><code>fchown(2)</code></a>. No arguments other than a possible exception are given
 to the completion callback.</p>
-<h2>fs.fchownSync(fd, uid, gid)<span><a class="mark" href="#fs_fs_fchownsync_fd_uid_gid" id="fs_fs_fchownsync_fd_uid_gid">#</a></span></h2>
+<h2>fs.fchownSync(fd, uid, gid)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L1054">[src]</a><span><a class="mark" href="#fs_fs_fchownsync_fd_uid_gid" id="fs_fs_fchownsync_fd_uid_gid">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.4.7</span>
 </div>
@@ -1881,7 +1981,7 @@ to the completion callback.</p>
 <li><code>gid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
 </ul>
 <p>Synchronous <a href="http://man7.org/linux/man-pages/man2/fchown.2.html"><code>fchown(2)</code></a>. Returns <code>undefined</code>.</p>
-<h2>fs.fdatasync(fd, callback)<span><a class="mark" href="#fs_fs_fdatasync_fd_callback" id="fs_fs_fdatasync_fd_callback">#</a></span></h2>
+<h2>fs.fdatasync(fd, callback)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L680">[src]</a><span><a class="mark" href="#fs_fs_fdatasync_fd_callback" id="fs_fs_fdatasync_fd_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1906,7 +2006,7 @@ to the completion callback.</p>
 </ul>
 <p>Asynchronous <a href="http://man7.org/linux/man-pages/man2/fdatasync.2.html"><code>fdatasync(2)</code></a>. No arguments other than a possible exception are
 given to the completion callback.</p>
-<h2>fs.fdatasyncSync(fd)<span><a class="mark" href="#fs_fs_fdatasyncsync_fd" id="fs_fs_fdatasyncsync_fd">#</a></span></h2>
+<h2>fs.fdatasyncSync(fd)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L687">[src]</a><span><a class="mark" href="#fs_fs_fdatasyncsync_fd" id="fs_fs_fdatasyncsync_fd">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.96</span>
 </div>
@@ -1914,7 +2014,7 @@ given to the completion callback.</p>
 <li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
 </ul>
 <p>Synchronous <a href="http://man7.org/linux/man-pages/man2/fdatasync.2.html"><code>fdatasync(2)</code></a>. Returns <code>undefined</code>.</p>
-<h2>fs.fstat(fd[, options], callback)<span><a class="mark" href="#fs_fs_fstat_fd_options_callback" id="fs_fs_fstat_fd_options_callback">#</a></span></h2>
+<h2>fs.fstat(fd[, options], callback)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L787">[src]</a><span><a class="mark" href="#fs_fs_fstat_fd_options_callback" id="fs_fs_fstat_fd_options_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1950,7 +2050,7 @@ given to the completion callback.</p>
 <p>Asynchronous <a href="http://man7.org/linux/man-pages/man2/fstat.2.html"><code>fstat(2)</code></a>. The callback gets two arguments <code>(err, stats)</code> where
 <code>stats</code> is an <a href="#fs_class_fs_stats"><code>fs.Stats</code></a> object. <code>fstat()</code> is identical to <a href="fs.html#fs_fs_stat_path_options_callback"><code>stat()</code></a>,
 except that the file to be stat-ed is specified by the file descriptor <code>fd</code>.</p>
-<h2>fs.fstatSync(fd[, options])<span><a class="mark" href="#fs_fs_fstatsync_fd_options" id="fs_fs_fstatsync_fd_options">#</a></span></h2>
+<h2>fs.fstatSync(fd[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L824">[src]</a><span><a class="mark" href="#fs_fs_fstatsync_fd_options" id="fs_fs_fstatsync_fd_options">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1974,7 +2074,7 @@ except that the file to be stat-ed is specified by the file descriptor <code>fd<
 <li>Returns: <a href="fs.html#fs_class_fs_stats" class="type">&#x3C;fs.Stats></a></li>
 </ul>
 <p>Synchronous <a href="http://man7.org/linux/man-pages/man2/fstat.2.html"><code>fstat(2)</code></a>.</p>
-<h2>fs.fsync(fd, callback)<span><a class="mark" href="#fs_fs_fsync_fd_callback" id="fs_fs_fsync_fd_callback">#</a></span></h2>
+<h2>fs.fsync(fd, callback)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L694">[src]</a><span><a class="mark" href="#fs_fs_fsync_fd_callback" id="fs_fs_fsync_fd_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1999,7 +2099,7 @@ except that the file to be stat-ed is specified by the file descriptor <code>fd<
 </ul>
 <p>Asynchronous <a href="http://man7.org/linux/man-pages/man2/fsync.2.html"><code>fsync(2)</code></a>. No arguments other than a possible exception are given
 to the completion callback.</p>
-<h2>fs.fsyncSync(fd)<span><a class="mark" href="#fs_fs_fsyncsync_fd" id="fs_fs_fsyncsync_fd">#</a></span></h2>
+<h2>fs.fsyncSync(fd)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L701">[src]</a><span><a class="mark" href="#fs_fs_fsyncsync_fd" id="fs_fs_fsyncsync_fd">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.96</span>
 </div>
@@ -2007,7 +2107,7 @@ to the completion callback.</p>
 <li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
 </ul>
 <p>Synchronous <a href="http://man7.org/linux/man-pages/man2/fsync.2.html"><code>fsync(2)</code></a>. Returns <code>undefined</code>.</p>
-<h2>fs.ftruncate(fd[, len], callback)<span><a class="mark" href="#fs_fs_ftruncate_fd_len_callback" id="fs_fs_ftruncate_fd_len_callback">#</a></span></h2>
+<h2>fs.ftruncate(fd[, len], callback)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L641">[src]</a><span><a class="mark" href="#fs_fs_ftruncate_fd_len_callback" id="fs_fs_ftruncate_fd_len_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2051,7 +2151,7 @@ fs.ftruncate(fd, 4, (err) => {
 // Prints: Node
 </code></pre>
 <p>If the file previously was shorter than <code>len</code> bytes, it is extended, and the
-extended part is filled with null bytes (<code>'\0'</code>). For example,</p>
+extended part is filled with null bytes (<code>'\0'</code>):</p>
 <pre><code class="language-js">console.log(fs.readFileSync('temp.txt', 'utf8'));
 // Prints: Node.js
 
@@ -2067,7 +2167,7 @@ fs.ftruncate(fd, 10, (err) => {
 // ('Node.js\0\0\0' in UTF8)
 </code></pre>
 <p>The last three bytes are null bytes (<code>'\0'</code>), to compensate the over-truncation.</p>
-<h2>fs.ftruncateSync(fd[, len])<span><a class="mark" href="#fs_fs_ftruncatesync_fd_len" id="fs_fs_ftruncatesync_fd_len">#</a></span></h2>
+<h2>fs.ftruncateSync(fd[, len])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L654">[src]</a><span><a class="mark" href="#fs_fs_ftruncatesync_fd_len" id="fs_fs_ftruncatesync_fd_len">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.8.6</span>
 </div>
@@ -2078,7 +2178,7 @@ fs.ftruncate(fd, 10, (err) => {
 <p>Returns <code>undefined</code>.</p>
 <p>For detailed information, see the documentation of the asynchronous version of
 this API: <a href="#fs_fs_ftruncate_fd_len_callback"><code>fs.ftruncate()</code></a>.</p>
-<h2>fs.futimes(fd, atime, mtime, callback)<span><a class="mark" href="#fs_fs_futimes_fd_atime_mtime_callback" id="fs_fs_futimes_fd_atime_mtime_callback">#</a></span></h2>
+<h2>fs.futimes(fd, atime, mtime, callback)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L1109">[src]</a><span><a class="mark" href="#fs_fs_futimes_fd_atime_mtime_callback" id="fs_fs_futimes_fd_atime_mtime_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2109,7 +2209,7 @@ this API: <a href="#fs_fs_ftruncate_fd_len_callback"><code>fs.ftruncate()</code>
 descriptor. See <a href="#fs_fs_utimes_path_atime_mtime_callback"><code>fs.utimes()</code></a>.</p>
 <p>This function does not work on AIX versions before 7.1, it will return the
 error <code>UV_ENOSYS</code>.</p>
-<h2>fs.futimesSync(fd, atime, mtime)<span><a class="mark" href="#fs_fs_futimessync_fd_atime_mtime" id="fs_fs_futimessync_fd_atime_mtime">#</a></span></h2>
+<h2>fs.futimesSync(fd, atime, mtime)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L1118">[src]</a><span><a class="mark" href="#fs_fs_futimessync_fd_atime_mtime" id="fs_fs_futimessync_fd_atime_mtime">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2163,7 +2263,7 @@ are given to the completion callback.</p>
 <li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
 </ul>
 <p>Synchronous <a href="https://www.freebsd.org/cgi/man.cgi?query=lchmod&#x26;sektion=2"><code>lchmod(2)</code></a>. Returns <code>undefined</code>.</p>
-<h2>fs.lchown(path, uid, gid, callback)<span><a class="mark" href="#fs_fs_lchown_path_uid_gid_callback" id="fs_fs_lchown_path_uid_gid_callback">#</a></span></h2>
+<h2>fs.lchown(path, uid, gid, callback)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L1023">[src]</a><span><a class="mark" href="#fs_fs_lchown_path_uid_gid_callback" id="fs_fs_lchown_path_uid_gid_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2190,7 +2290,7 @@ are given to the completion callback.</p>
 </ul>
 <p>Asynchronous <a href="http://man7.org/linux/man-pages/man2/lchown.2.html"><code>lchown(2)</code></a>. No arguments other than a possible exception are given
 to the completion callback.</p>
-<h2>fs.lchownSync(path, uid, gid)<span><a class="mark" href="#fs_fs_lchownsync_path_uid_gid" id="fs_fs_lchownsync_path_uid_gid">#</a></span></h2>
+<h2>fs.lchownSync(path, uid, gid)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L1034">[src]</a><span><a class="mark" href="#fs_fs_lchownsync_path_uid_gid" id="fs_fs_lchownsync_path_uid_gid">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2206,7 +2306,7 @@ to the completion callback.</p>
 <li><code>gid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
 </ul>
 <p>Synchronous <a href="http://man7.org/linux/man-pages/man2/lchown.2.html"><code>lchown(2)</code></a>. Returns <code>undefined</code>.</p>
-<h2>fs.link(existingPath, newPath, callback)<span><a class="mark" href="#fs_fs_link_existingpath_newpath_callback" id="fs_fs_link_existingpath_newpath_callback">#</a></span></h2>
+<h2>fs.link(existingPath, newPath, callback)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L905">[src]</a><span><a class="mark" href="#fs_fs_link_existingpath_newpath_callback" id="fs_fs_link_existingpath_newpath_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2234,7 +2334,7 @@ to the completion callback.</p>
 </ul>
 <p>Asynchronous <a href="http://man7.org/linux/man-pages/man2/link.2.html"><code>link(2)</code></a>. No arguments other than a possible exception are given to
 the completion callback.</p>
-<h2>fs.linkSync(existingPath, newPath)<span><a class="mark" href="#fs_fs_linksync_existingpath_newpath" id="fs_fs_linksync_existingpath_newpath">#</a></span></h2>
+<h2>fs.linkSync(existingPath, newPath)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L921">[src]</a><span><a class="mark" href="#fs_fs_linksync_existingpath_newpath" id="fs_fs_linksync_existingpath_newpath">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2251,7 +2351,7 @@ the completion callback.</p>
 <li><code>newPath</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="url.html#url_the_whatwg_url_api" class="type">&#x3C;URL></a></li>
 </ul>
 <p>Synchronous <a href="http://man7.org/linux/man-pages/man2/link.2.html"><code>link(2)</code></a>. Returns <code>undefined</code>.</p>
-<h2>fs.lstat(path[, options], callback)<span><a class="mark" href="#fs_fs_lstat_path_options_callback" id="fs_fs_lstat_path_options_callback">#</a></span></h2>
+<h2>fs.lstat(path[, options], callback)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L798">[src]</a><span><a class="mark" href="#fs_fs_lstat_path_options_callback" id="fs_fs_lstat_path_options_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2290,7 +2390,7 @@ the completion callback.</p>
 <code>stats</code> is a <a href="#fs_class_fs_stats"><code>fs.Stats</code></a> object. <code>lstat()</code> is identical to <code>stat()</code>,
 except that if <code>path</code> is a symbolic link, then the link itself is stat-ed,
 not the file that it refers to.</p>
-<h2>fs.lstatSync(path[, options])<span><a class="mark" href="#fs_fs_lstatsync_path_options" id="fs_fs_lstatsync_path_options">#</a></span></h2>
+<h2>fs.lstatSync(path[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L832">[src]</a><span><a class="mark" href="#fs_fs_lstatsync_path_options" id="fs_fs_lstatsync_path_options">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2316,11 +2416,13 @@ not the file that it refers to.</p>
 <li>Returns: <a href="fs.html#fs_class_fs_stats" class="type">&#x3C;fs.Stats></a></li>
 </ul>
 <p>Synchronous <a href="http://man7.org/linux/man-pages/man2/lstat.2.html"><code>lstat(2)</code></a>.</p>
-<h2>fs.mkdir(path[, mode], callback)<span><a class="mark" href="#fs_fs_mkdir_path_mode_callback" id="fs_fs_mkdir_path_mode_callback">#</a></span></h2>
+<h2>fs.mkdir(path[, options], callback)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L708">[src]</a><span><a class="mark" href="#fs_fs_mkdir_path_options_callback" id="fs_fs_mkdir_path_options_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v10.12.0</td>
+<td><p>The second argument can now be an <code>options</code> object with <code>recursive</code> and <code>mode</code> properties.</p></td></tr>
 <tr><td>v10.0.0</td>
 <td><p>The <code>callback</code> parameter is no longer optional. Not passing it will throw a <code>TypeError</code> at runtime.</p></td></tr>
 <tr><td>v7.6.0</td>
@@ -2334,7 +2436,13 @@ not the file that it refers to.</p>
 </div>
 <ul>
 <li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="url.html#url_the_whatwg_url_api" class="type">&#x3C;URL></a></li>
+<li>
+<p><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></p>
+<ul>
+<li><code>recursive</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> <strong>Default:</strong> <code>false</code></li>
 <li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> Not supported on Windows. <strong>Default:</strong> <code>0o777</code>.</li>
+</ul>
+</li>
 <li>
 <p><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></p>
 <ul>
@@ -2344,12 +2452,22 @@ not the file that it refers to.</p>
 </ul>
 <p>Asynchronously creates a directory. No arguments other than a possible exception
 are given to the completion callback.</p>
+<p>The optional <code>options</code> argument can be an integer specifying mode (permission
+and sticky bits), or an object with a <code>mode</code> property and a <code>recursive</code>
+property indicating whether parent folders should be created.</p>
+<pre><code class="language-js">// Creates /tmp/a/apple, regardless of whether `/tmp` and /tmp/a exist.
+fs.mkdir('/tmp/a/apple', { recursive: true }, (err) => {
+  if (err) throw err;
+});
+</code></pre>
 <p>See also: <a href="http://man7.org/linux/man-pages/man2/mkdir.2.html"><code>mkdir(2)</code></a>.</p>
-<h2>fs.mkdirSync(path[, mode])<span><a class="mark" href="#fs_fs_mkdirsync_path_mode" id="fs_fs_mkdirsync_path_mode">#</a></span></h2>
+<h2>fs.mkdirSync(path[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L732">[src]</a><span><a class="mark" href="#fs_fs_mkdirsync_path_options" id="fs_fs_mkdirsync_path_options">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v10.12.0</td>
+<td><p>The second argument can now be an <code>options</code> object with <code>recursive</code> and <code>mode</code> properties.</p></td></tr>
 <tr><td>v7.6.0</td>
 <td><p>The <code>path</code> parameter can be a WHATWG <code>URL</code> object using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p></td></tr>
 <tr><td>v0.1.21</td>
@@ -2359,12 +2477,18 @@ are given to the completion callback.</p>
 </div>
 <ul>
 <li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="url.html#url_the_whatwg_url_api" class="type">&#x3C;URL></a></li>
+<li>
+<p><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></p>
+<ul>
+<li><code>recursive</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> <strong>Default:</strong> <code>false</code></li>
 <li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> Not supported on Windows. <strong>Default:</strong> <code>0o777</code>.</li>
 </ul>
+</li>
+</ul>
 <p>Synchronously creates a directory. Returns <code>undefined</code>.
-This is the synchronous version of <a href="#fs_fs_mkdir_path_mode_callback"><code>fs.mkdir()</code></a>.</p>
+This is the synchronous version of <a href="#fs_fs_mkdir_path_options_callback"><code>fs.mkdir()</code></a>.</p>
 <p>See also: <a href="http://man7.org/linux/man-pages/man2/mkdir.2.html"><code>mkdir(2)</code></a>.</p>
-<h2>fs.mkdtemp(prefix[, options], callback)<span><a class="mark" href="#fs_fs_mkdtemp_prefix_options_callback" id="fs_fs_mkdtemp_prefix_options_callback">#</a></span></h2>
+<h2>fs.mkdtemp(prefix[, options], callback)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L1659">[src]</a><span><a class="mark" href="#fs_fs_mkdtemp_prefix_options_callback" id="fs_fs_mkdtemp_prefix_options_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2436,7 +2560,7 @@ fs.mkdtemp(`${tmpDir}${sep}`, (err, folder) => {
   // the /tmp directory.
 });
 </code></pre>
-<h2>fs.mkdtempSync(prefix[, options])<span><a class="mark" href="#fs_fs_mkdtempsync_prefix_options" id="fs_fs_mkdtempsync_prefix_options">#</a></span></h2>
+<h2>fs.mkdtempSync(prefix[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L1672">[src]</a><span><a class="mark" href="#fs_fs_mkdtempsync_prefix_options" id="fs_fs_mkdtempsync_prefix_options">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v5.10.0</span>
 </div>
@@ -2455,7 +2579,7 @@ fs.mkdtemp(`${tmpDir}${sep}`, (err, folder) => {
 this API: <a href="#fs_fs_mkdtemp_prefix_options_callback"><code>fs.mkdtemp()</code></a>.</p>
 <p>The optional <code>options</code> argument can be a string specifying an encoding, or an
 object with an <code>encoding</code> property specifying the character encoding to use.</p>
-<h2>fs.open(path, flags[, mode], callback)<span><a class="mark" href="#fs_fs_open_path_flags_mode_callback" id="fs_fs_open_path_flags_mode_callback">#</a></span></h2>
+<h2>fs.open(path, flags[, mode], callback)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L404">[src]</a><span><a class="mark" href="#fs_fs_open_path_flags_mode_callback" id="fs_fs_open_path_flags_mode_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2492,7 +2616,7 @@ a colon, Node.js will open a file system stream, as described by
 <a href="https://docs.microsoft.com/en-us/windows/desktop/FileIO/using-streams">this MSDN page</a>.</p>
 <p>Functions based on <code>fs.open()</code> exhibit this behavior as well:
 <code>fs.writeFile()</code>, <code>fs.readFile()</code>, etc.</p>
-<h2>fs.openSync(path, flags[, mode])<span><a class="mark" href="#fs_fs_opensync_path_flags_mode" id="fs_fs_opensync_path_flags_mode">#</a></span></h2>
+<h2>fs.openSync(path, flags[, mode])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L426">[src]</a><span><a class="mark" href="#fs_fs_opensync_path_flags_mode" id="fs_fs_opensync_path_flags_mode">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2513,11 +2637,13 @@ a colon, Node.js will open a file system stream, as described by
 <p>Returns an integer representing the file descriptor.</p>
 <p>For detailed information, see the documentation of the asynchronous version of
 this API: <a href="#fs_fs_open_path_flags_mode_callback"><code>fs.open()</code></a>.</p>
-<h2>fs.read(fd, buffer, offset, length, position, callback)<span><a class="mark" href="#fs_fs_read_fd_buffer_offset_length_position_callback" id="fs_fs_read_fd_buffer_offset_length_position_callback">#</a></span></h2>
+<h2>fs.read(fd, buffer, offset, length, position, callback)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L440">[src]</a><span><a class="mark" href="#fs_fs_read_fd_buffer_offset_length_position_callback" id="fs_fs_read_fd_buffer_offset_length_position_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v10.10.0</td>
+<td><p>The <code>buffer</code> parameter can now be any <code>TypedArray</code>, or a <code>DataView</code>.</p></td></tr>
 <tr><td>v7.4.0</td>
 <td><p>The <code>buffer</code> parameter can now be a <code>Uint8Array</code>.</p></td></tr>
 <tr><td>v6.0.0</td>
@@ -2529,7 +2655,7 @@ this API: <a href="#fs_fs_open_path_flags_mode_callback"><code>fs.open()</code><
 </div>
 <ul>
 <li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
-<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&#x3C;Uint8Array></a></li>
+<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a></li>
 <li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
 <li><code>length</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
 <li><code>position</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
@@ -2553,11 +2679,13 @@ If <code>position</code> is an integer, the file position will remain unchanged.
 <p>The callback is given the three arguments, <code>(err, bytesRead, buffer)</code>.</p>
 <p>If this method is invoked as its <a href="util.html#util_util_promisify_original"><code>util.promisify()</code></a>ed version, it returns
 a <code>Promise</code> for an <code>Object</code> with <code>bytesRead</code> and <code>buffer</code> properties.</p>
-<h2>fs.readdir(path[, options], callback)<span><a class="mark" href="#fs_fs_readdir_path_options_callback" id="fs_fs_readdir_path_options_callback">#</a></span></h2>
+<h2>fs.readdir(path[, options], callback)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L753">[src]</a><span><a class="mark" href="#fs_fs_readdir_path_options_callback" id="fs_fs_readdir_path_options_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v10.10.0</td>
+<td><p>New option <code>withFileTypes</code> was added.</p></td></tr>
 <tr><td>v10.0.0</td>
 <td><p>The <code>callback</code> parameter is no longer optional. Not passing it will throw a <code>TypeError</code> at runtime.</p></td></tr>
 <tr><td>v7.6.0</td>
@@ -2577,13 +2705,14 @@ a <code>Promise</code> for an <code>Object</code> with <code>bytesRead</code> an
 <p><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></p>
 <ul>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> <strong>Default:</strong> <code>'utf8'</code></li>
+<li><code>withFileTypes</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> <strong>Default:</strong> <code>false</code></li>
 </ul>
 </li>
 <li>
 <p><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></p>
 <ul>
 <li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&#x3C;Error></a></li>
-<li><code>files</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string[]></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer[]></a></li>
+<li><code>files</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string[]></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer[]></a> | <a href="fs.html#fs_class_fs_dirent" class="type">&#x3C;fs.Dirent[]></a></li>
 </ul>
 </li>
 </ul>
@@ -2594,11 +2723,15 @@ the names of the files in the directory excluding <code>'.'</code> and <code>'..
 object with an <code>encoding</code> property specifying the character encoding to use for
 the filenames passed to the callback. If the <code>encoding</code> is set to <code>'buffer'</code>,
 the filenames returned will be passed as <code>Buffer</code> objects.</p>
-<h2>fs.readdirSync(path[, options])<span><a class="mark" href="#fs_fs_readdirsync_path_options" id="fs_fs_readdirsync_path_options">#</a></span></h2>
+<p>If <code>options.withFileTypes</code> is set to <code>true</code>, the <code>files</code> array will contain
+<a href="#fs_class_fs_dirent"><code>fs.Dirent</code></a> objects.</p>
+<h2>fs.readdirSync(path[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L775">[src]</a><span><a class="mark" href="#fs_fs_readdirsync_path_options" id="fs_fs_readdirsync_path_options">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v10.10.0</td>
+<td><p>New option <code>withFileTypes</code> was added.</p></td></tr>
 <tr><td>v7.6.0</td>
 <td><p>The <code>path</code> parameter can be a WHATWG <code>URL</code> object using <code>file:</code> protocol. Support is currently still <em>experimental</em>.</p></td></tr>
 <tr><td>v0.1.21</td>
@@ -2612,16 +2745,19 @@ the filenames returned will be passed as <code>Buffer</code> objects.</p>
 <p><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></p>
 <ul>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> <strong>Default:</strong> <code>'utf8'</code></li>
+<li><code>withFileTypes</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> <strong>Default:</strong> <code>false</code></li>
 </ul>
 </li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string[]></a> An array of filenames excluding <code>'.'</code> and <code>'..'</code>.</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string[]></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer[]></a> | <a href="fs.html#fs_class_fs_dirent" class="type">&#x3C;fs.Dirent[]></a></li>
 </ul>
 <p>Synchronous <a href="http://man7.org/linux/man-pages/man3/readdir.3.html"><code>readdir(3)</code></a>.</p>
 <p>The optional <code>options</code> argument can be a string specifying an encoding, or an
 object with an <code>encoding</code> property specifying the character encoding to use for
 the filenames returned. If the <code>encoding</code> is set to <code>'buffer'</code>,
 the filenames returned will be passed as <code>Buffer</code> objects.</p>
-<h2>fs.readFile(path[, options], callback)<span><a class="mark" href="#fs_fs_readfile_path_options_callback" id="fs_fs_readfile_path_options_callback">#</a></span></h2>
+<p>If <code>options.withFileTypes</code> is set to <code>true</code>, the result will contain
+<a href="#fs_class_fs_dirent"><code>fs.Dirent</code></a> objects.</p>
+<h2>fs.readFile(path[, options], callback)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L274">[src]</a><span><a class="mark" href="#fs_fs_readfile_path_options_callback" id="fs_fs_readfile_path_options_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2658,7 +2794,7 @@ the filenames returned will be passed as <code>Buffer</code> objects.</p>
 </ul>
 </li>
 </ul>
-<p>Asynchronously reads the entire contents of a file. Example:</p>
+<p>Asynchronously reads the entire contents of a file.</p>
 <pre><code class="language-js">fs.readFile('/etc/passwd', (err, data) => {
   if (err) throw err;
   console.log(data);
@@ -2667,7 +2803,7 @@ the filenames returned will be passed as <code>Buffer</code> objects.</p>
 <p>The callback is passed two arguments <code>(err, data)</code>, where <code>data</code> is the
 contents of the file.</p>
 <p>If no encoding is specified, then the raw buffer is returned.</p>
-<p>If <code>options</code> is a string, then it specifies the encoding. Example:</p>
+<p>If <code>options</code> is a string, then it specifies the encoding:</p>
 <pre><code class="language-js">fs.readFile('/etc/passwd', 'utf8', callback);
 </code></pre>
 <p>When the path is a directory, the behavior of <code>fs.readFile()</code> and
@@ -2689,7 +2825,7 @@ fs.readFile('&#x3C;directory>', (err, data) => {
 automatically.</p>
 <p>The <code>fs.readFile()</code> function buffers the entire file. To minimize memory costs,
 when possible prefer streaming via <code>fs.createReadStream()</code>.</p>
-<h2>fs.readFileSync(path[, options])<span><a class="mark" href="#fs_fs_readfilesync_path_options" id="fs_fs_readfilesync_path_options">#</a></span></h2>
+<h2>fs.readFileSync(path[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L338">[src]</a><span><a class="mark" href="#fs_fs_readfilesync_path_options" id="fs_fs_readfilesync_path_options">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2728,7 +2864,7 @@ fs.readFileSync('&#x3C;directory>');
 //  FreeBSD
 fs.readFileSync('&#x3C;directory>'); // => &#x3C;data>
 </code></pre>
-<h2>fs.readlink(path[, options], callback)<span><a class="mark" href="#fs_fs_readlink_path_options_callback" id="fs_fs_readlink_path_options_callback">#</a></span></h2>
+<h2>fs.readlink(path[, options], callback)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L852">[src]</a><span><a class="mark" href="#fs_fs_readlink_path_options_callback" id="fs_fs_readlink_path_options_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2765,7 +2901,7 @@ fs.readFileSync('&#x3C;directory>'); // => &#x3C;data>
 object with an <code>encoding</code> property specifying the character encoding to use for
 the link path passed to the callback. If the <code>encoding</code> is set to <code>'buffer'</code>,
 the link path returned will be passed as a <code>Buffer</code> object.</p>
-<h2>fs.readlinkSync(path[, options])<span><a class="mark" href="#fs_fs_readlinksync_path_options" id="fs_fs_readlinksync_path_options">#</a></span></h2>
+<h2>fs.readlinkSync(path[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L862">[src]</a><span><a class="mark" href="#fs_fs_readlinksync_path_options" id="fs_fs_readlinksync_path_options">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2792,11 +2928,13 @@ the link path returned will be passed as a <code>Buffer</code> object.</p>
 object with an <code>encoding</code> property specifying the character encoding to use for
 the link path returned. If the <code>encoding</code> is set to <code>'buffer'</code>,
 the link path returned will be passed as a <code>Buffer</code> object.</p>
-<h2>fs.readSync(fd, buffer, offset, length, position)<span><a class="mark" href="#fs_fs_readsync_fd_buffer_offset_length_position" id="fs_fs_readsync_fd_buffer_offset_length_position">#</a></span></h2>
+<h2>fs.readSync(fd, buffer, offset, length, position)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L472">[src]</a><span><a class="mark" href="#fs_fs_readsync_fd_buffer_offset_length_position" id="fs_fs_readsync_fd_buffer_offset_length_position">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v10.10.0</td>
+<td><p>The <code>buffer</code> parameter can now be any <code>TypedArray</code> or a <code>DataView</code>.</p></td></tr>
 <tr><td>v6.0.0</td>
 <td><p>The <code>length</code> parameter can now be <code>0</code>.</p></td></tr>
 <tr><td>v0.1.21</td>
@@ -2806,7 +2944,7 @@ the link path returned will be passed as a <code>Buffer</code> object.</p>
 </div>
 <ul>
 <li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
-<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&#x3C;Uint8Array></a></li>
+<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a></li>
 <li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
 <li><code>length</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
 <li><code>position</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
@@ -2815,7 +2953,7 @@ the link path returned will be passed as a <code>Buffer</code> object.</p>
 <p>Returns the number of <code>bytesRead</code>.</p>
 <p>For detailed information, see the documentation of the asynchronous version of
 this API: <a href="#fs_fs_read_fd_buffer_offset_length_position_callback"><code>fs.read()</code></a>.</p>
-<h2>fs.realpath(path[, options], callback)<span><a class="mark" href="#fs_fs_realpath_path_options_callback" id="fs_fs_realpath_path_options_callback">#</a></span></h2>
+<h2>fs.realpath(path[, options], callback)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L1519">[src]</a><span><a class="mark" href="#fs_fs_realpath_path_options_callback" id="fs_fs_realpath_path_options_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2906,7 +3044,7 @@ the path returned will be passed as a <code>Buffer</code> object.</p>
 <p>On Linux, when Node.js is linked against musl libc, the procfs file system must
 be mounted on <code>/proc</code> in order for this function to work. Glibc does not have
 this restriction.</p>
-<h2>fs.realpathSync(path[, options])<span><a class="mark" href="#fs_fs_realpathsync_path_options" id="fs_fs_realpathsync_path_options">#</a></span></h2>
+<h2>fs.realpathSync(path[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L1373">[src]</a><span><a class="mark" href="#fs_fs_realpathsync_path_options" id="fs_fs_realpathsync_path_options">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2960,7 +3098,7 @@ the path returned will be passed as a <code>Buffer</code> object.</p>
 <p>On Linux, when Node.js is linked against musl libc, the procfs file system must
 be mounted on <code>/proc</code> in order for this function to work. Glibc does not have
 this restriction.</p>
-<h2>fs.rename(oldPath, newPath, callback)<span><a class="mark" href="#fs_fs_rename_oldpath_newpath_callback" id="fs_fs_rename_oldpath_newpath_callback">#</a></span></h2>
+<h2>fs.rename(oldPath, newPath, callback)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L570">[src]</a><span><a class="mark" href="#fs_fs_rename_oldpath_newpath_callback" id="fs_fs_rename_oldpath_newpath_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2996,7 +3134,7 @@ given to the completion callback.</p>
   console.log('Rename complete!');
 });
 </code></pre>
-<h2>fs.renameSync(oldPath, newPath)<span><a class="mark" href="#fs_fs_renamesync_oldpath_newpath" id="fs_fs_renamesync_oldpath_newpath">#</a></span></h2>
+<h2>fs.renameSync(oldPath, newPath)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L583">[src]</a><span><a class="mark" href="#fs_fs_renamesync_oldpath_newpath" id="fs_fs_renamesync_oldpath_newpath">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -3013,7 +3151,7 @@ given to the completion callback.</p>
 <li><code>newPath</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="url.html#url_the_whatwg_url_api" class="type">&#x3C;URL></a></li>
 </ul>
 <p>Synchronous <a href="http://man7.org/linux/man-pages/man2/rename.2.html"><code>rename(2)</code></a>. Returns <code>undefined</code>.</p>
-<h2>fs.rmdir(path, callback)<span><a class="mark" href="#fs_fs_rmdir_path_callback" id="fs_fs_rmdir_path_callback">#</a></span></h2>
+<h2>fs.rmdir(path, callback)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L663">[src]</a><span><a class="mark" href="#fs_fs_rmdir_path_callback" id="fs_fs_rmdir_path_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -3042,7 +3180,7 @@ given to the completion callback.</p>
 to the completion callback.</p>
 <p>Using <code>fs.rmdir()</code> on a file (not a directory) results in an <code>ENOENT</code> error on
 Windows and an <code>ENOTDIR</code> error on POSIX.</p>
-<h2>fs.rmdirSync(path)<span><a class="mark" href="#fs_fs_rmdirsync_path" id="fs_fs_rmdirsync_path">#</a></span></h2>
+<h2>fs.rmdirSync(path)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L672">[src]</a><span><a class="mark" href="#fs_fs_rmdirsync_path" id="fs_fs_rmdirsync_path">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -3060,7 +3198,7 @@ Windows and an <code>ENOTDIR</code> error on POSIX.</p>
 <p>Synchronous <a href="http://man7.org/linux/man-pages/man2/rmdir.2.html"><code>rmdir(2)</code></a>. Returns <code>undefined</code>.</p>
 <p>Using <code>fs.rmdirSync()</code> on a file (not a directory) results in an <code>ENOENT</code> error
 on Windows and an <code>ENOTDIR</code> error on POSIX.</p>
-<h2>fs.stat(path[, options], callback)<span><a class="mark" href="#fs_fs_stat_path_options_callback" id="fs_fs_stat_path_options_callback">#</a></span></h2>
+<h2>fs.stat(path[, options], callback)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L811">[src]</a><span><a class="mark" href="#fs_fs_stat_path_options_callback" id="fs_fs_stat_path_options_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -3104,7 +3242,7 @@ Instead, user code should open/read/write the file directly and handle the
 error raised if the file is not available.</p>
 <p>To check if a file exists without manipulating it afterwards, <a href="#fs_fs_access_path_mode_callback"><code>fs.access()</code></a>
 is recommended.</p>
-<h2>fs.statSync(path[, options])<span><a class="mark" href="#fs_fs_statsync_path_options" id="fs_fs_statsync_path_options">#</a></span></h2>
+<h2>fs.statSync(path[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L842">[src]</a><span><a class="mark" href="#fs_fs_statsync_path_options" id="fs_fs_statsync_path_options">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -3130,7 +3268,7 @@ is recommended.</p>
 <li>Returns: <a href="fs.html#fs_class_fs_stats" class="type">&#x3C;fs.Stats></a></li>
 </ul>
 <p>Synchronous <a href="http://man7.org/linux/man-pages/man2/stat.2.html"><code>stat(2)</code></a>.</p>
-<h2>fs.symlink(target, path[, type], callback)<span><a class="mark" href="#fs_fs_symlink_target_path_type_callback" id="fs_fs_symlink_target_path_type_callback">#</a></span></h2>
+<h2>fs.symlink(target, path[, type], callback)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L873">[src]</a><span><a class="mark" href="#fs_fs_symlink_target_path_type_callback" id="fs_fs_symlink_target_path_type_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -3163,7 +3301,7 @@ will automatically be normalized to absolute path.</p>
 <pre><code class="language-js">fs.symlink('./foo', './new-port', callback);
 </code></pre>
 <p>It creates a symbolic link named "new-port" that points to "foo".</p>
-<h2>fs.symlinkSync(target, path[, type])<span><a class="mark" href="#fs_fs_symlinksync_target_path_type" id="fs_fs_symlinksync_target_path_type">#</a></span></h2>
+<h2>fs.symlinkSync(target, path[, type])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L890">[src]</a><span><a class="mark" href="#fs_fs_symlinksync_target_path_type" id="fs_fs_symlinksync_target_path_type">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -3183,7 +3321,7 @@ will automatically be normalized to absolute path.</p>
 <p>Returns <code>undefined</code>.</p>
 <p>For detailed information, see the documentation of the asynchronous version of
 this API: <a href="#fs_fs_symlink_target_path_type_callback"><code>fs.symlink()</code></a>.</p>
-<h2>fs.truncate(path[, len], callback)<span><a class="mark" href="#fs_fs_truncate_path_len_callback" id="fs_fs_truncate_path_len_callback">#</a></span></h2>
+<h2>fs.truncate(path[, len], callback)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L594">[src]</a><span><a class="mark" href="#fs_fs_truncate_path_len_callback" id="fs_fs_truncate_path_len_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -3212,7 +3350,7 @@ given to the completion callback. A file descriptor can also be passed as the
 first argument. In this case, <code>fs.ftruncate()</code> is called.</p>
 <p>Passing a file descriptor is deprecated and may result in an error being thrown
 in the future.</p>
-<h2>fs.truncateSync(path[, len])<span><a class="mark" href="#fs_fs_truncatesync_path_len" id="fs_fs_truncatesync_path_len">#</a></span></h2>
+<h2>fs.truncateSync(path[, len])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L620">[src]</a><span><a class="mark" href="#fs_fs_truncatesync_path_len" id="fs_fs_truncatesync_path_len">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.8.6</span>
 </div>
@@ -3224,7 +3362,7 @@ in the future.</p>
 passed as the first argument. In this case, <code>fs.ftruncateSync()</code> is called.</p>
 <p>Passing a file descriptor is deprecated and may result in an error being thrown
 in the future.</p>
-<h2>fs.unlink(path, callback)<span><a class="mark" href="#fs_fs_unlink_path_callback" id="fs_fs_unlink_path_callback">#</a></span></h2>
+<h2>fs.unlink(path, callback)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L935">[src]</a><span><a class="mark" href="#fs_fs_unlink_path_callback" id="fs_fs_unlink_path_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -3260,7 +3398,7 @@ fs.unlink('path/file.txt', (err) => {
 <p><code>fs.unlink()</code> will not work on a directory, empty or otherwise. To remove a
 directory, use <a href="#fs_fs_rmdir_path_callback"><code>fs.rmdir()</code></a>.</p>
 <p>See also: <a href="http://man7.org/linux/man-pages/man2/unlink.2.html"><code>unlink(2)</code></a>.</p>
-<h2>fs.unlinkSync(path)<span><a class="mark" href="#fs_fs_unlinksync_path" id="fs_fs_unlinksync_path">#</a></span></h2>
+<h2>fs.unlinkSync(path)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L944">[src]</a><span><a class="mark" href="#fs_fs_unlinksync_path" id="fs_fs_unlinksync_path">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -3276,7 +3414,7 @@ directory, use <a href="#fs_fs_rmdir_path_callback"><code>fs.rmdir()</code></a>.
 <li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="url.html#url_the_whatwg_url_api" class="type">&#x3C;URL></a></li>
 </ul>
 <p>Synchronous <a href="http://man7.org/linux/man-pages/man2/unlink.2.html"><code>unlink(2)</code></a>. Returns <code>undefined</code>.</p>
-<h2>fs.unwatchFile(filename[, listener])<span><a class="mark" href="#fs_fs_unwatchfile_filename_listener" id="fs_fs_unwatchfile_filename_listener">#</a></span></h2>
+<h2>fs.unwatchFile(filename[, listener])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L1305">[src]</a><span><a class="mark" href="#fs_fs_unwatchfile_filename_listener" id="fs_fs_unwatchfile_filename_listener">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.31</span>
 </div>
@@ -3293,7 +3431,7 @@ no-op, not an error.</p>
 <p>Using <a href="#fs_fs_watch_filename_options_listener"><code>fs.watch()</code></a> is more efficient than <code>fs.watchFile()</code> and
 <code>fs.unwatchFile()</code>. <code>fs.watch()</code> should be used instead of <code>fs.watchFile()</code>
 and <code>fs.unwatchFile()</code> when possible.</p>
-<h2>fs.utimes(path, atime, mtime, callback)<span><a class="mark" href="#fs_fs_utimes_path_atime_mtime_callback" id="fs_fs_utimes_path_atime_mtime_callback">#</a></span></h2>
+<h2>fs.utimes(path, atime, mtime, callback)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L1086">[src]</a><span><a class="mark" href="#fs_fs_utimes_path_atime_mtime_callback" id="fs_fs_utimes_path_atime_mtime_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -3332,7 +3470,7 @@ numeric string like <code>'123456789.0'</code>.</li>
 <li>If the value can not be converted to a number, or is <code>NaN</code>, <code>Infinity</code> or
 <code>-Infinity</code>, an <code>Error</code> will be thrown.</li>
 </ul>
-<h2>fs.utimesSync(path, atime, mtime)<span><a class="mark" href="#fs_fs_utimessync_path_atime_mtime" id="fs_fs_utimessync_path_atime_mtime">#</a></span></h2>
+<h2>fs.utimesSync(path, atime, mtime)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L1099">[src]</a><span><a class="mark" href="#fs_fs_utimessync_path_atime_mtime" id="fs_fs_utimessync_path_atime_mtime">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -3356,7 +3494,7 @@ numeric string like <code>'123456789.0'</code>.</li>
 <p>Returns <code>undefined</code>.</p>
 <p>For detailed information, see the documentation of the asynchronous version of
 this API: <a href="#fs_fs_utimes_path_atime_mtime_callback"><code>fs.utimes()</code></a>.</p>
-<h2>fs.watch(filename[, options][, listener])<span><a class="mark" href="#fs_fs_watch_filename_options_listener" id="fs_fs_watch_filename_options_listener">#</a></span></h2>
+<h2>fs.watch(filename[, options][, listener])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L1236">[src]</a><span><a class="mark" href="#fs_fs_watch_filename_options_listener" id="fs_fs_watch_filename_options_listener">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -3455,7 +3593,7 @@ always provided in the callback, and have some fallback logic if it is <code>nul
   }
 });
 </code></pre>
-<h2>fs.watchFile(filename[, options], listener)<span><a class="mark" href="#fs_fs_watchfile_filename_options_listener" id="fs_fs_watchfile_filename_options_listener">#</a></span></h2>
+<h2>fs.watchFile(filename[, options], listener)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L1266">[src]</a><span><a class="mark" href="#fs_fs_watchfile_filename_options_listener" id="fs_fs_watchfile_filename_options_listener">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -3519,11 +3657,13 @@ event (its disappearance).</p>
 <li>the file is deleted, followed by a restore</li>
 <li>the file is renamed twice - the second time back to its original name</li>
 </ul>
-<h2>fs.write(fd, buffer[, offset[, length[, position]]], callback)<span><a class="mark" href="#fs_fs_write_fd_buffer_offset_length_position_callback" id="fs_fs_write_fd_buffer_offset_length_position_callback">#</a></span></h2>
+<h2>fs.write(fd, buffer[, offset[, length[, position]]], callback)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L499">[src]</a><span><a class="mark" href="#fs_fs_write_fd_buffer_offset_length_position_callback" id="fs_fs_write_fd_buffer_offset_length_position_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v10.10.0</td>
+<td><p>The <code>buffer</code> parameter can now be any <code>TypedArray</code> or a <code>DataView</code></p></td></tr>
 <tr><td>v10.0.0</td>
 <td><p>The <code>callback</code> parameter is no longer optional. Not passing it will throw a <code>TypeError</code> at runtime.</p></td></tr>
 <tr><td>v7.4.0</td>
@@ -3539,7 +3679,7 @@ event (its disappearance).</p>
 </div>
 <ul>
 <li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
-<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&#x3C;Uint8Array></a></li>
+<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a></li>
 <li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
 <li><code>length</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
 <li><code>position</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
@@ -3548,7 +3688,7 @@ event (its disappearance).</p>
 <ul>
 <li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&#x3C;Error></a></li>
 <li><code>bytesWritten</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
-<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&#x3C;Uint8Array></a></li>
+<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a></li>
 </ul>
 </li>
 </ul>
@@ -3563,11 +3703,12 @@ at the current position. See <a href="http://man7.org/linux/man-pages/man2/pwrit
 <p>If this method is invoked as its <a href="util.html#util_util_promisify_original"><code>util.promisify()</code></a>ed version, it returns
 a <code>Promise</code> for an <code>Object</code> with <code>bytesWritten</code> and <code>buffer</code> properties.</p>
 <p>It is unsafe to use <code>fs.write()</code> multiple times on the same file without waiting
-for the callback. For this scenario, <code>fs.createWriteStream()</code> is recommended.</p>
+for the callback. For this scenario, <a href="#fs_fs_createwritestream_path_options"><code>fs.createWriteStream()</code></a> is
+recommended.</p>
 <p>On Linux, positional writes don't work when the file is opened in append mode.
 The kernel ignores the position argument and always appends the data to
 the end of the file.</p>
-<h2>fs.write(fd, string[, position[, encoding]], callback)<span><a class="mark" href="#fs_fs_write_fd_string_position_encoding_callback" id="fs_fs_write_fd_string_position_encoding_callback">#</a></span></h2>
+<h2>fs.write(fd, string[, position[, encoding]], callback)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L499">[src]</a><span><a class="mark" href="#fs_fs_write_fd_string_position_encoding_callback" id="fs_fs_write_fd_string_position_encoding_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -3587,7 +3728,7 @@ the end of the file.</p>
 <li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
 <li><code>string</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 <li><code>position</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> <strong>Default:</strong> <code>'utf8'</code></li>
 <li>
 <p><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></p>
 <ul>
@@ -3608,15 +3749,18 @@ specifies how many <em>bytes</em> the passed string required to be written. Byte
 written is not necessarily the same as string characters written. See
 <a href="buffer.html#buffer_class_method_buffer_bytelength_string_encoding"><code>Buffer.byteLength</code></a>.</p>
 <p>It is unsafe to use <code>fs.write()</code> multiple times on the same file without waiting
-for the callback. For this scenario, <code>fs.createWriteStream()</code> is recommended.</p>
+for the callback. For this scenario, <a href="#fs_fs_createwritestream_path_options"><code>fs.createWriteStream()</code></a> is
+recommended.</p>
 <p>On Linux, positional writes don't work when the file is opened in append mode.
 The kernel ignores the position argument and always appends the data to
 the end of the file.</p>
-<h2>fs.writeFile(file, data[, options], callback)<span><a class="mark" href="#fs_fs_writefile_file_data_options_callback" id="fs_fs_writefile_file_data_options_callback">#</a></span></h2>
+<h2>fs.writeFile(file, data[, options], callback)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L1155">[src]</a><span><a class="mark" href="#fs_fs_writefile_file_data_options_callback" id="fs_fs_writefile_file_data_options_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v10.10.0</td>
+<td><p>The <code>data</code> parameter can now be any <code>TypedArray</code> or a <code>DataView</code>.</p></td></tr>
 <tr><td>v10.0.0</td>
 <td><p>The <code>callback</code> parameter is no longer optional. Not passing it will throw a <code>TypeError</code> at runtime.</p></td></tr>
 <tr><td>v7.4.0</td>
@@ -3632,7 +3776,7 @@ the end of the file.</p>
 </div>
 <ul>
 <li><code>file</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="url.html#url_the_whatwg_url_api" class="type">&#x3C;URL></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> filename or file descriptor</li>
-<li><code>data</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&#x3C;Uint8Array></a></li>
+<li><code>data</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a></li>
 <li>
 <p><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></p>
 <ul>
@@ -3651,26 +3795,28 @@ the end of the file.</p>
 <p>Asynchronously writes data to a file, replacing the file if it already exists.
 <code>data</code> can be a string or a buffer.</p>
 <p>The <code>encoding</code> option is ignored if <code>data</code> is a buffer.</p>
-<p>Example:</p>
-<pre><code class="language-js">fs.writeFile('message.txt', 'Hello Node.js', (err) => {
+<pre><code class="language-js">const data = new Uint8Array(Buffer.from('Hello Node.js'));
+fs.writeFile('message.txt', data, (err) => {
   if (err) throw err;
   console.log('The file has been saved!');
 });
 </code></pre>
-<p>If <code>options</code> is a string, then it specifies the encoding. Example:</p>
+<p>If <code>options</code> is a string, then it specifies the encoding:</p>
 <pre><code class="language-js">fs.writeFile('message.txt', 'Hello Node.js', 'utf8', callback);
 </code></pre>
 <p>Any specified file descriptor has to support writing.</p>
 <p>It is unsafe to use <code>fs.writeFile()</code> multiple times on the same file without
-waiting for the callback. For this scenario, <code>fs.createWriteStream()</code> is
+waiting for the callback. For this scenario, <a href="#fs_fs_createwritestream_path_options"><code>fs.createWriteStream()</code></a> is
 recommended.</p>
 <p>If a file descriptor is specified as the <code>file</code>, it will not be closed
 automatically.</p>
-<h2>fs.writeFileSync(file, data[, options])<span><a class="mark" href="#fs_fs_writefilesync_file_data_options" id="fs_fs_writefilesync_file_data_options">#</a></span></h2>
+<h2>fs.writeFileSync(file, data[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L1182">[src]</a><span><a class="mark" href="#fs_fs_writefilesync_file_data_options" id="fs_fs_writefilesync_file_data_options">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v10.10.0</td>
+<td><p>The <code>data</code> parameter can now be any <code>TypedArray</code> or a <code>DataView</code>.</p></td></tr>
 <tr><td>v7.4.0</td>
 <td><p>The <code>data</code> parameter can now be a <code>Uint8Array</code>.</p></td></tr>
 <tr><td>v5.0.0</td>
@@ -3682,7 +3828,7 @@ automatically.</p>
 </div>
 <ul>
 <li><code>file</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="url.html#url_the_whatwg_url_api" class="type">&#x3C;URL></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> filename or file descriptor</li>
-<li><code>data</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&#x3C;Uint8Array></a></li>
+<li><code>data</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a></li>
 <li>
 <p><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></p>
 <ul>
@@ -3695,11 +3841,13 @@ automatically.</p>
 <p>Returns <code>undefined</code>.</p>
 <p>For detailed information, see the documentation of the asynchronous version of
 this API: <a href="#fs_fs_writefile_file_data_options_callback"><code>fs.writeFile()</code></a>.</p>
-<h2>fs.writeSync(fd, buffer[, offset[, length[, position]]])<span><a class="mark" href="#fs_fs_writesync_fd_buffer_offset_length_position" id="fs_fs_writesync_fd_buffer_offset_length_position">#</a></span></h2>
+<h2>fs.writeSync(fd, buffer[, offset[, length[, position]]])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L544">[src]</a><span><a class="mark" href="#fs_fs_writesync_fd_buffer_offset_length_position" id="fs_fs_writesync_fd_buffer_offset_length_position">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v10.10.0</td>
+<td><p>The <code>buffer</code> parameter can now be any <code>TypedArray</code> or a <code>DataView</code>.</p></td></tr>
 <tr><td>v7.4.0</td>
 <td><p>The <code>buffer</code> parameter can now be a <code>Uint8Array</code>.</p></td></tr>
 <tr><td>v7.2.0</td>
@@ -3711,13 +3859,15 @@ this API: <a href="#fs_fs_writefile_file_data_options_callback"><code>fs.writeFi
 </div>
 <ul>
 <li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
-<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&#x3C;Uint8Array></a></li>
+<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a></li>
 <li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
 <li><code>length</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
 <li><code>position</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> The number of bytes written.</li>
 </ul>
-<h2>fs.writeSync(fd, string[, position[, encoding]])<span><a class="mark" href="#fs_fs_writesync_fd_string_position_encoding" id="fs_fs_writesync_fd_string_position_encoding">#</a></span></h2>
+<p>For detailed information, see the documentation of the asynchronous version of
+this API: <a href="#fs_fs_write_fd_buffer_offset_length_position_callback"><code>fs.write(fd, buffer...)</code></a>.</p>
+<h2>fs.writeSync(fd, string[, position[, encoding]])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/fs.js#L544">[src]</a><span><a class="mark" href="#fs_fs_writesync_fd_string_position_encoding" id="fs_fs_writesync_fd_string_position_encoding">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -3734,11 +3884,10 @@ this API: <a href="#fs_fs_writefile_file_data_options_callback"><code>fs.writeFi
 <li><code>string</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 <li><code>position</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> The number of bytes written.</li>
 </ul>
-<p>Returns the number of bytes written.</p>
 <p>For detailed information, see the documentation of the asynchronous version of
-this API: <a href="#fs_fs_write_fd_buffer_offset_length_position_callback"><code>fs.write()</code></a>.</p>
+this API: <a href="#fs_fs_write_fd_string_position_encoding_callback"><code>fs.write(fd, string...)</code></a>.</p>
 <h2>fs Promises API<span><a class="mark" href="#fs_fs_promises_api" id="fs_fs_promises_api">#</a></span></h2>
 <p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
 <p>The <code>fs.promises</code> API provides an alternative set of asynchronous file system
@@ -3953,7 +4102,7 @@ async function doTruncate() {
 doTruncate().catch(console.error);
 </code></pre>
 <p>If the file previously was shorter than <code>len</code> bytes, it is extended, and the
-extended part is filled with null bytes (<code>'\0'</code>). For example,</p>
+extended part is filled with null bytes (<code>'\0'</code>):</p>
 <pre><code class="language-js">const fs = require('fs');
 const fsPromises = fs.promises;
 
@@ -4012,7 +4161,7 @@ should be written. If <code>typeof position !== 'number'</code>, the data will b
 at the current position. See <a href="http://man7.org/linux/man-pages/man2/pwrite.2.html"><code>pwrite(2)</code></a>.</p>
 <p>It is unsafe to use <code>filehandle.write()</code> multiple times on the same file
 without waiting for the <code>Promise</code> to be resolved (or rejected). For this
-scenario, <code>fs.createWriteStream</code> is strongly recommended.</p>
+scenario, <a href="#fs_fs_createwritestream_path_options"><code>fs.createWriteStream()</code></a> is strongly recommended.</p>
 <p>On Linux, positional writes do not work when the file is opened in append mode.
 The kernel ignores the position argument and always appends the data to
 the end of the file.</p>
@@ -4145,7 +4294,6 @@ fallback copy mechanism is used.</li>
 create a copy-on-write reflink. If the platform does not support copy-on-write,
 then the operation will fail.</li>
 </ul>
-<p>Example:</p>
 <pre><code class="language-js">const fsPromises = require('fs').promises;
 
 // destination.txt will be created or overwritten by default.
@@ -4153,8 +4301,7 @@ fsPromises.copyFile('source.txt', 'destination.txt')
   .then(() => console.log('source.txt was copied to destination.txt'))
   .catch(() => console.log('The file could not be copied'));
 </code></pre>
-<p>If the third argument is a number, then it specifies <code>flags</code>, as shown in the
-following example.</p>
+<p>If the third argument is a number, then it specifies <code>flags</code>:</p>
 <pre><code class="language-js">const fs = require('fs');
 const fsPromises = fs.promises;
 const { COPYFILE_EXCL } = fs.constants;
@@ -4230,17 +4377,26 @@ no arguments upon success.</p>
 </ul>
 <p>Asynchronous <a href="http://man7.org/linux/man-pages/man2/lstat.2.html"><code>lstat(2)</code></a>. The <code>Promise</code> is resolved with the <a href="#fs_class_fs_stats"><code>fs.Stats</code></a> object
 for the given symbolic link <code>path</code>.</p>
-<h3>fsPromises.mkdir(path[, mode])<span><a class="mark" href="#fs_fspromises_mkdir_path_mode" id="fs_fspromises_mkdir_path_mode">#</a></span></h3>
+<h3>fsPromises.mkdir(path[, options])<span><a class="mark" href="#fs_fspromises_mkdir_path_options" id="fs_fspromises_mkdir_path_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v10.0.0</span>
 </div>
 <ul>
 <li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="url.html#url_the_whatwg_url_api" class="type">&#x3C;URL></a></li>
-<li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> <strong>Default:</strong> <code>0o777</code></li>
+<li>
+<p><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></p>
+<ul>
+<li><code>recursive</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> <strong>Default:</strong> <code>false</code></li>
+<li><code>mode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> Not supported on Windows. <strong>Default:</strong> <code>0o777</code>.</li>
+</ul>
+</li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise" class="type">&#x3C;Promise></a></li>
 </ul>
 <p>Asynchronously creates a directory then resolves the <code>Promise</code> with no
 arguments upon success.</p>
+<p>The optional <code>options</code> argument can be an integer specifying mode (permission
+and sticky bits), or an object with a <code>mode</code> property and a <code>recursive</code>
+property indicating whether parent folders should be created.</p>
 <h3>fsPromises.mkdtemp(prefix[, options])<span><a class="mark" href="#fs_fspromises_mkdtemp_prefix_options" id="fs_fspromises_mkdtemp_prefix_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v10.0.0</span>
@@ -4288,7 +4444,15 @@ a colon, Node.js will open a file system stream, as described by
 <a href="https://docs.microsoft.com/en-us/windows/desktop/FileIO/using-streams">this MSDN page</a>.</p>
 <h3>fsPromises.readdir(path[, options])<span><a class="mark" href="#fs_fspromises_readdir_path_options" id="fs_fspromises_readdir_path_options">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v10.0.0</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v10.11.0</td>
+<td><p>New option <code>withFileTypes</code> was added.</p></td></tr>
+<tr><td>v10.0.0</td>
+<td><p><span>Added in: v10.0.0</span></p></td></tr>
+</tbody></table>
+</details>
 </div>
 <ul>
 <li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="url.html#url_the_whatwg_url_api" class="type">&#x3C;URL></a></li>
@@ -4296,6 +4460,7 @@ a colon, Node.js will open a file system stream, as described by
 <p><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></p>
 <ul>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> <strong>Default:</strong> <code>'utf8'</code></li>
+<li><code>withFileTypes</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> <strong>Default:</strong> <code>false</code></li>
 </ul>
 </li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise" class="type">&#x3C;Promise></a></li>
@@ -4306,6 +4471,8 @@ of the names of the files in the directory excluding <code>'.'</code> and <code>
 object with an <code>encoding</code> property specifying the character encoding to use for
 the filenames. If the <code>encoding</code> is set to <code>'buffer'</code>, the filenames returned
 will be passed as <code>Buffer</code> objects.</p>
+<p>If <code>options.withFileTypes</code> is set to <code>true</code>, the resolved array will contain
+<a href="#fs_class_fs_dirent"><code>fs.Dirent</code></a> objects.</p>
 <h3>fsPromises.readFile(path[, options])<span><a class="mark" href="#fs_fspromises_readfile_path_options" id="fs_fspromises_readfile_path_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v10.0.0</span>
@@ -4834,7 +5001,7 @@ fs.open('&#x3C;directory>', 'a+', (err, fd) => {
 <p>On Windows, opening an existing hidden file using the <code>'w'</code> flag (either
 through <code>fs.open()</code> or <code>fs.writeFile()</code> or <code>fsPromises.open()</code>) will fail with
 <code>EPERM</code>. Existing hidden files can be opened for writing with the <code>'r+'</code> flag.</p>
-<p>A call to <code>fs.ftruncate()</code> or <code>fsPromises.ftruncate()</code> can be used to reset
+<p>A call to <code>fs.ftruncate()</code> or <code>filehandle.truncate()</code> can be used to reset
 the file contents.</p>
       </div>
     </div>
@@ -4842,6 +5009,5 @@ the file contents.</p>
   <script src="assets/sh_main.js"></script>
   <script src="assets/sh_javascript.min.js"></script>
   <script>highlight(undefined, undefined, 'pre');</script>
-  <!-- __TRACKING__ -->
 </body>
 </html>

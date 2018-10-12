@@ -192,6 +192,19 @@ added: v0.3.3
 The `os.freemem()` method returns the amount of free system memory in bytes as
 an integer.
 
+## os.getPriority([pid])
+<!-- YAML
+added: v10.10.0
+-->
+
+* `pid` {integer} The process ID to retrieve scheduling priority for.
+  **Default** `0`.
+* Returns: {integer}
+
+The `os.getPriority()` method returns the scheduling priority for the process
+specified by `pid`. If `pid` is not provided, or is `0`, the priority of the
+current process is returned.
+
 ## os.homedir()
 <!-- YAML
 added: v2.3.0
@@ -338,6 +351,29 @@ On POSIX systems, the operating system release is determined by calling
 [uname(3)][]. On Windows, `GetVersionExW()` is used. Please see
 https://en.wikipedia.org/wiki/Uname#Examples for more information.
 
+## os.setPriority([pid, ]priority)
+<!-- YAML
+added: v10.10.0
+-->
+
+* `pid` {integer} The process ID to set scheduling priority for.
+  **Default** `0`.
+* `priority` {integer} The scheduling priority to assign to the process.
+
+The `os.setPriority()` method attempts to set the scheduling priority for the
+process specified by `pid`. If `pid` is not provided, or is `0`, the priority
+of the current process is used.
+
+The `priority` input must be an integer between `-20` (high priority) and `19`
+(low priority). Due to differences between Unix priority levels and Windows
+priority classes, `priority` is mapped to one of six priority constants in
+`os.constants.priority`. When retrieving a process priority level, this range
+mapping may cause the return value to be slightly different on Windows. To avoid
+confusion, it is recommended to set `priority` to one of the priority constants.
+
+On Windows setting priority to `PRIORITY_HIGHEST` requires elevated user,
+otherwise the set priority will be silently reduced to `PRIORITY_HIGH`.
+
 ## os.tmpdir()
 <!-- YAML
 added: v0.9.9
@@ -371,8 +407,8 @@ added: v0.3.3
 * Returns: {string}
 
 The `os.type()` method returns a string identifying the operating system name
-as returned by [uname(3)][]. For example `'Linux'` on Linux, `'Darwin'` on macOS
-and `'Windows_NT'` on Windows.
+as returned by [uname(3)][]. For example, `'Linux'` on Linux, `'Darwin'` on
+macOS, and `'Windows_NT'` on Windows.
 
 Please see https://en.wikipedia.org/wiki/Uname#Examples for additional
 information about the output of running [uname(3)][] on various operating
@@ -1205,6 +1241,60 @@ information.
     <td><code>RTLD_DEEPBIND</code></td>
     <td>Make a self-contained library use its own symbols in preference to
     symbols from previously loaded libraries.</td>
+  </tr>
+</table>
+
+### Priority Constants
+<!-- YAML
+added: v10.10.0
+-->
+
+The following process scheduling constants are exported by
+`os.constants.priority`:
+
+<table>
+  <tr>
+    <th>Constant</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td><code>PRIORITY_LOW</code></td>
+    <td>The lowest process scheduling priority. This corresponds to
+    <code>IDLE_PRIORITY_CLASS</code> on Windows, and a nice value of
+    <code>19</code> on all other platforms.</td>
+  </tr>
+  <tr>
+    <td><code>PRIORITY_BELOW_NORMAL</code></td>
+    <td>The process scheduling priority above <code>PRIORITY_LOW</code> and
+    below <code>PRIORITY_NORMAL</code>. This corresponds to
+    <code>BELOW_NORMAL_PRIORITY_CLASS</code> on Windows, and a nice value of
+    <code>10</code> on all other platforms.</td>
+  </tr>
+  <tr>
+    <td><code>PRIORITY_NORMAL</code></td>
+    <td>The default process scheduling priority. This corresponds to
+    <code>NORMAL_PRIORITY_CLASS</code> on Windows, and a nice value of
+    <code>0</code> on all other platforms.</td>
+  </tr>
+  <tr>
+    <td><code>PRIORITY_ABOVE_NORMAL</code></td>
+    <td>The process scheduling priority above <code>PRIORITY_NORMAL</code> and
+    below <code>PRIORITY_HIGH</code>. This corresponds to
+    <code>ABOVE_NORMAL_PRIORITY_CLASS</code> on Windows, and a nice value of
+    <code>-7</code> on all other platforms.</td>
+  </tr>
+  <tr>
+    <td><code>PRIORITY_HIGH</code></td>
+    <td>The process scheduling priority above <code>PRIORITY_ABOVE_NORMAL</code>
+    and below <code>PRIORITY_HIGHEST</code>. This corresponds to
+    <code>HIGH_PRIORITY_CLASS</code> on Windows, and a nice value of
+    <code>-14</code> on all other platforms.</td>
+  </tr>
+  <tr>
+    <td><code>PRIORITY_HIGHEST</code></td>
+    <td>The highest process scheduling priority. This corresponds to
+    <code>REALTIME_PRIORITY_CLASS</code> on Windows, and a nice value of
+    <code>-20</code> on all other platforms.</td>
   </tr>
 </table>
 

@@ -29,10 +29,16 @@ const {
   symlink,
   truncate,
   unlink,
-  utimes
+  utimes,
+  writeFile
 } = fsPromises;
 
 const tmpDir = tmpdir.path;
+
+let dirc = 0;
+function nextdir() {
+  return `test${++dirc}`;
+}
 
 // fs.promises should not be enumerable as long as it causes a warning to be
 // emitted.
@@ -56,6 +62,13 @@ function verifyStatObject(stat) {
   assert.strictEqual(typeof stat, 'object');
   assert.strictEqual(typeof stat.dev, 'number');
   assert.strictEqual(typeof stat.mode, 'number');
+}
+
+async function getHandle(dest) {
+  await copyFile(fixtures.path('baz.js'), dest);
+  await access(dest, 'r');
+
+  return open(dest, 'r+');
 }
 
 {
@@ -86,6 +99,19 @@ function verifyStatObject(stat) {
 
     await handle.datasync();
     await handle.sync();
+
+    // test fs.read promises when length to read is zero bytes
+    {
+      const dest = path.resolve(tmpDir, 'test1.js');
+      const handle = await getHandle(dest);
+      const buf = Buffer.from('DAWGS WIN');
+      const bufLen = buf.length;
+      await handle.write(buf);
+      const ret = await handle.read(Buffer.alloc(bufLen), 0, 0, 0);
+      assert.strictEqual(ret.bytesRead, 0);
+
+      await unlink(dest);
+    }
 
     const buf = Buffer.from('hello fsPromises');
     const bufLen = buf.length;
@@ -197,15 +223,95 @@ function verifyStatObject(stat) {
 
     await unlink(newLink2);
 
-    const newdir = path.resolve(tmpDir, 'dir');
-    await mkdir(newdir);
-    stats = await stat(newdir);
-    assert(stats.isDirectory());
+    // testing readdir lists both files and directories
+    {
+      const newDir = path.resolve(tmpDir, 'dir');
+      const newFile = path.resolve(tmpDir, 'foo.js');
 
-    const list = await readdir(tmpDir);
-    assert.deepStrictEqual(list, ['baz2.js', 'dir']);
+      await mkdir(newDir);
+      await writeFile(newFile, 'DAWGS WIN!', 'utf8');
 
-    await rmdir(newdir);
+      stats = await stat(newDir);
+      assert(stats.isDirectory());
+      const list = await readdir(tmpDir);
+      assert.notStrictEqual(list.indexOf('dir'), -1);
+      assert.notStrictEqual(list.indexOf('foo.js'), -1);
+      await rmdir(newDir);
+      await unlink(newFile);
+    }
+
+    // mkdir when options is number.
+    {
+      const dir = path.join(tmpDir, nextdir());
+      await mkdir(dir, 777);
+      stats = await stat(dir);
+      assert(stats.isDirectory());
+    }
+
+    // mkdir when options is string.
+    {
+      const dir = path.join(tmpDir, nextdir());
+      await mkdir(dir, '777');
+      stats = await stat(dir);
+      assert(stats.isDirectory());
+    }
+
+    // mkdirp when folder does not yet exist.
+    {
+      const dir = path.join(tmpDir, nextdir(), nextdir());
+      await mkdir(dir, { recursive: true });
+      stats = await stat(dir);
+      assert(stats.isDirectory());
+    }
+
+    // mkdirp when path is a file.
+    {
+      const dir = path.join(tmpDir, nextdir(), nextdir());
+      await mkdir(path.dirname(dir));
+      await writeFile(dir);
+      try {
+        await mkdir(dir, { recursive: true });
+        throw new Error('unreachable');
+      } catch (err) {
+        assert.notStrictEqual(err.message, 'unreachable');
+        assert.strictEqual(err.code, 'EEXIST');
+        assert.strictEqual(err.syscall, 'mkdir');
+      }
+    }
+
+    // mkdirp ./
+    {
+      const dir = path.resolve(tmpDir, `${nextdir()}/./${nextdir()}`);
+      await mkdir(dir, { recursive: true });
+      stats = await stat(dir);
+      assert(stats.isDirectory());
+    }
+
+    // mkdirp ../
+    {
+      const dir = path.resolve(tmpDir, `${nextdir()}/../${nextdir()}`);
+      await mkdir(dir, { recursive: true });
+      stats = await stat(dir);
+      assert(stats.isDirectory());
+    }
+
+    // mkdirp require recursive option to be a boolean.
+    // Anything else generates an error.
+    {
+      const dir = path.join(tmpDir, nextdir(), nextdir());
+      ['', 1, {}, [], null, Symbol('test'), () => {}].forEach((recursive) => {
+        assert.rejects(
+          // mkdir() expects to get a boolean value for options.recursive.
+          async () => mkdir(dir, { recursive }),
+          {
+            code: 'ERR_INVALID_ARG_TYPE',
+            name: 'TypeError [ERR_INVALID_ARG_TYPE]',
+            message: 'The "recursive" argument must be of type boolean. ' +
+              `Received type ${typeof recursive}`
+          }
+        );
+      });
+    }
 
     await mkdtemp(path.resolve(tmpDir, 'FOO'));
     assert.rejects(

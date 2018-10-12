@@ -125,6 +125,36 @@
           "desc": "<p>The <code>os.freemem()</code> method returns the amount of free system memory in bytes as\nan integer.</p>"
         },
         {
+          "textRaw": "os.getPriority([pid])",
+          "type": "method",
+          "name": "getPriority",
+          "meta": {
+            "added": [
+              "v10.10.0"
+            ],
+            "changes": []
+          },
+          "signatures": [
+            {
+              "return": {
+                "textRaw": "Returns: {integer}",
+                "name": "return",
+                "type": "integer"
+              },
+              "params": [
+                {
+                  "textRaw": "`pid` {integer} The process ID to retrieve scheduling priority for. **Default** `0`.",
+                  "name": "pid",
+                  "type": "integer",
+                  "desc": "The process ID to retrieve scheduling priority for. **Default** `0`.",
+                  "optional": true
+                }
+              ]
+            }
+          ],
+          "desc": "<p>The <code>os.getPriority()</code> method returns the scheduling priority for the process\nspecified by <code>pid</code>. If <code>pid</code> is not provided, or is <code>0</code>, the priority of the\ncurrent process is returned.</p>"
+        },
+        {
           "textRaw": "os.homedir()",
           "type": "method",
           "name": "homedir",
@@ -257,6 +287,37 @@
           "desc": "<p>The <code>os.release()</code> method returns a string identifying the operating system\nrelease.</p>\n<p>On POSIX systems, the operating system release is determined by calling\n<a href=\"https://linux.die.net/man/3/uname\"><a href=\"http://man7.org/linux/man-pages/man3/uname.3.html\"><code>uname(3)</code></a></a>. On Windows, <code>GetVersionExW()</code> is used. Please see\n<a href=\"https://en.wikipedia.org/wiki/Uname#Examples\">https://en.wikipedia.org/wiki/Uname#Examples</a> for more information.</p>"
         },
         {
+          "textRaw": "os.setPriority([pid, ]priority)",
+          "type": "method",
+          "name": "setPriority",
+          "meta": {
+            "added": [
+              "v10.10.0"
+            ],
+            "changes": []
+          },
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`pid` {integer} The process ID to set scheduling priority for. **Default** `0`.",
+                  "name": "pid",
+                  "type": "integer",
+                  "desc": "The process ID to set scheduling priority for. **Default** `0`.",
+                  "optional": true
+                },
+                {
+                  "textRaw": "`priority` {integer} The scheduling priority to assign to the process.",
+                  "name": "priority",
+                  "type": "integer",
+                  "desc": "The scheduling priority to assign to the process."
+                }
+              ]
+            }
+          ],
+          "desc": "<p>The <code>os.setPriority()</code> method attempts to set the scheduling priority for the\nprocess specified by <code>pid</code>. If <code>pid</code> is not provided, or is <code>0</code>, the priority\nof the current process is used.</p>\n<p>The <code>priority</code> input must be an integer between <code>-20</code> (high priority) and <code>19</code>\n(low priority). Due to differences between Unix priority levels and Windows\npriority classes, <code>priority</code> is mapped to one of six priority constants in\n<code>os.constants.priority</code>. When retrieving a process priority level, this range\nmapping may cause the return value to be slightly different on Windows. To avoid\nconfusion, it is recommended to set <code>priority</code> to one of the priority constants.</p>\n<p>On Windows setting priority to <code>PRIORITY_HIGHEST</code> requires elevated user,\notherwise the set priority will be silently reduced to <code>PRIORITY_HIGH</code>.</p>"
+        },
+        {
           "textRaw": "os.tmpdir()",
           "type": "method",
           "name": "tmpdir",
@@ -326,7 +387,7 @@
               "params": []
             }
           ],
-          "desc": "<p>The <code>os.type()</code> method returns a string identifying the operating system name\nas returned by <a href=\"https://linux.die.net/man/3/uname\"><a href=\"http://man7.org/linux/man-pages/man3/uname.3.html\"><code>uname(3)</code></a></a>. For example <code>'Linux'</code> on Linux, <code>'Darwin'</code> on macOS\nand <code>'Windows_NT'</code> on Windows.</p>\n<p>Please see <a href=\"https://en.wikipedia.org/wiki/Uname#Examples\">https://en.wikipedia.org/wiki/Uname#Examples</a> for additional\ninformation about the output of running <a href=\"https://linux.die.net/man/3/uname\"><a href=\"http://man7.org/linux/man-pages/man3/uname.3.html\"><code>uname(3)</code></a></a> on various operating\nsystems.</p>"
+          "desc": "<p>The <code>os.type()</code> method returns a string identifying the operating system name\nas returned by <a href=\"https://linux.die.net/man/3/uname\"><a href=\"http://man7.org/linux/man-pages/man3/uname.3.html\"><code>uname(3)</code></a></a>. For example, <code>'Linux'</code> on Linux, <code>'Darwin'</code> on\nmacOS, and <code>'Windows_NT'</code> on Windows.</p>\n<p>Please see <a href=\"https://en.wikipedia.org/wiki/Uname#Examples\">https://en.wikipedia.org/wiki/Uname#Examples</a> for additional\ninformation about the output of running <a href=\"https://linux.die.net/man/3/uname\"><a href=\"http://man7.org/linux/man-pages/man3/uname.3.html\"><code>uname(3)</code></a></a> on various operating\nsystems.</p>"
         },
         {
           "textRaw": "os.uptime()",
@@ -446,6 +507,19 @@
               "desc": "<p>If available on the operating system, the following constants\nare exported in <code>os.constants.dlopen</code>. See <a href=\"http://man7.org/linux/man-pages/man3/dlopen.3.html\"><code>dlopen(3)</code></a> for detailed\ninformation.</p>\n<table>\n  <tr>\n    <th>Constant</th>\n    <th>Description</th>\n  </tr>\n  <tr>\n    <td><code>RTLD_LAZY</code></td>\n    <td>Perform lazy binding. Node.js sets this flag by default.</td>\n  </tr>\n  <tr>\n    <td><code>RTLD_NOW</code></td>\n    <td>Resolve all undefined symbols in the library before dlopen(3)\n    returns.</td>\n  </tr>\n  <tr>\n    <td><code>RTLD_GLOBAL</code></td>\n    <td>Symbols defined by the library will be made available for symbol\n    resolution of subsequently loaded libraries.</td>\n  </tr>\n  <tr>\n    <td><code>RTLD_LOCAL</code></td>\n    <td>The converse of <code>RTLD_GLOBAL</code>. This is the default behavior\n    if neither flag is specified.</td>\n  </tr>\n  <tr>\n    <td><code>RTLD_DEEPBIND</code></td>\n    <td>Make a self-contained library use its own symbols in preference to\n    symbols from previously loaded libraries.</td>\n  </tr>\n</table>",
               "type": "module",
               "displayName": "dlopen Constants"
+            },
+            {
+              "textRaw": "Priority Constants",
+              "name": "priority_constants",
+              "meta": {
+                "added": [
+                  "v10.10.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>The following process scheduling constants are exported by\n<code>os.constants.priority</code>:</p>\n<table>\n  <tr>\n    <th>Constant</th>\n    <th>Description</th>\n  </tr>\n  <tr>\n    <td><code>PRIORITY_LOW</code></td>\n    <td>The lowest process scheduling priority. This corresponds to\n    <code>IDLE_PRIORITY_CLASS</code> on Windows, and a nice value of\n    <code>19</code> on all other platforms.</td>\n  </tr>\n  <tr>\n    <td><code>PRIORITY_BELOW_NORMAL</code></td>\n    <td>The process scheduling priority above <code>PRIORITY_LOW</code> and\n    below <code>PRIORITY_NORMAL</code>. This corresponds to\n    <code>BELOW_NORMAL_PRIORITY_CLASS</code> on Windows, and a nice value of\n    <code>10</code> on all other platforms.</td>\n  </tr>\n  <tr>\n    <td><code>PRIORITY_NORMAL</code></td>\n    <td>The default process scheduling priority. This corresponds to\n    <code>NORMAL_PRIORITY_CLASS</code> on Windows, and a nice value of\n    <code>0</code> on all other platforms.</td>\n  </tr>\n  <tr>\n    <td><code>PRIORITY_ABOVE_NORMAL</code></td>\n    <td>The process scheduling priority above <code>PRIORITY_NORMAL</code> and\n    below <code>PRIORITY_HIGH</code>. This corresponds to\n    <code>ABOVE_NORMAL_PRIORITY_CLASS</code> on Windows, and a nice value of\n    <code>-7</code> on all other platforms.</td>\n  </tr>\n  <tr>\n    <td><code>PRIORITY_HIGH</code></td>\n    <td>The process scheduling priority above <code>PRIORITY_ABOVE_NORMAL</code>\n    and below <code>PRIORITY_HIGHEST</code>. This corresponds to\n    <code>HIGH_PRIORITY_CLASS</code> on Windows, and a nice value of\n    <code>-14</code> on all other platforms.</td>\n  </tr>\n  <tr>\n    <td><code>PRIORITY_HIGHEST</code></td>\n    <td>The highest process scheduling priority. This corresponds to\n    <code>REALTIME_PRIORITY_CLASS</code> on Windows, and a nice value of\n    <code>-20</code> on all other platforms.</td>\n  </tr>\n</table>",
+              "type": "module",
+              "displayName": "Priority Constants"
             },
             {
               "textRaw": "libuv Constants",

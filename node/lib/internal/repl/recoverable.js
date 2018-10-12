@@ -5,7 +5,7 @@ const { tokTypes: tt } = acorn;
 
 // If the error is that we've unexpectedly ended the input,
 // then let the user try to recover by adding more input.
-// Note: `e` (the original exception) is not used by the current implemention,
+// Note: `e` (the original exception) is not used by the current implementation,
 // but may be needed in the future.
 function isRecoverableError(e, code) {
   let recoverable = false;
@@ -63,7 +63,7 @@ function isRecoverableError(e, code) {
   // Try to parse the code with acorn.  If the parse fails, ignore the acorn
   // error and return the recoverable status.
   try {
-    acorn.parse(code, { plugins: { replRecoverable: true } });
+    acorn.parse(code, { plugins: { replRecoverable: true }, ecmaVersion: 10 });
 
     // Odd case: the underlying JS engine (V8, Chakra) rejected this input
     // but Acorn detected no issue.  Presume that additional text won't

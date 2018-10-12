@@ -26,11 +26,13 @@ const { codes: {
   ERR_INVALID_ARG_TYPE,
   ERR_INVALID_RETURN_VALUE
 } } = require('internal/errors');
-const { AssertionError, errorCache } = require('internal/assert');
+const { AssertionError } = require('internal/assert');
 const { openSync, closeSync, readSync } = require('fs');
 const { inspect, types: { isPromise, isRegExp } } = require('util');
 const { EOL } = require('internal/constants');
 const { NativeModule } = require('internal/bootstrap/loaders');
+
+const errorCache = new Map();
 
 let isDeepEqual;
 let isDeepStrictEqual;
@@ -86,8 +88,9 @@ function innerFail(obj) {
 function fail(actual, expected, message, operator, stackStartFn) {
   const argsLen = arguments.length;
 
+  let internalMessage;
   if (argsLen === 0) {
-    message = 'Failed';
+    internalMessage = 'Failed';
   } else if (argsLen === 1) {
     message = actual;
     actual = undefined;
@@ -105,13 +108,23 @@ function fail(actual, expected, message, operator, stackStartFn) {
       operator = '!=';
   }
 
-  innerFail({
+  if (message instanceof Error) throw message;
+
+  const errArgs = {
     actual,
     expected,
-    message,
-    operator,
+    operator: operator === undefined ? 'fail' : operator,
     stackStartFn: stackStartFn || fail
-  });
+  };
+  if (message !== undefined) {
+    errArgs.message = message;
+  }
+  const err = new AssertionError(errArgs);
+  if (internalMessage) {
+    err.message = internalMessage;
+    err.generatedMessage = true;
+  }
+  throw err;
 }
 
 assert.fail = fail;
@@ -557,12 +570,12 @@ function expectedException(actual, expected, msg) {
   return expected.call({}, actual) === true;
 }
 
-function getActual(block) {
-  if (typeof block !== 'function') {
-    throw new ERR_INVALID_ARG_TYPE('block', 'Function', block);
+function getActual(fn) {
+  if (typeof fn !== 'function') {
+    throw new ERR_INVALID_ARG_TYPE('fn', 'Function', fn);
   }
   try {
-    block();
+    fn();
   } catch (e) {
     return e;
   }
@@ -579,20 +592,21 @@ function checkIsPromise(obj) {
     typeof obj.catch === 'function';
 }
 
-async function waitForActual(block) {
+async function waitForActual(promiseFn) {
   let resultPromise;
-  if (typeof block === 'function') {
-    // Return a rejected promise if `block` throws synchronously.
-    resultPromise = block();
+  if (typeof promiseFn === 'function') {
+    // Return a rejected promise if `promiseFn` throws synchronously.
+    resultPromise = promiseFn();
     // Fail in case no promise is returned.
     if (!checkIsPromise(resultPromise)) {
       throw new ERR_INVALID_RETURN_VALUE('instance of Promise',
-                                         'block', resultPromise);
+                                         'promiseFn', resultPromise);
     }
-  } else if (checkIsPromise(block)) {
-    resultPromise = block;
+  } else if (checkIsPromise(promiseFn)) {
+    resultPromise = promiseFn;
   } else {
-    throw new ERR_INVALID_ARG_TYPE('block', ['Function', 'Promise'], block);
+    throw new ERR_INVALID_ARG_TYPE(
+      'promiseFn', ['Function', 'Promise'], promiseFn);
   }
 
   try {
@@ -672,20 +686,20 @@ function expectsNoError(stackStartFn, actual, error, message) {
   throw actual;
 }
 
-assert.throws = function throws(block, ...args) {
-  expectsError(throws, getActual(block), ...args);
+assert.throws = function throws(promiseFn, ...args) {
+  expectsError(throws, getActual(promiseFn), ...args);
 };
 
-assert.rejects = async function rejects(block, ...args) {
-  expectsError(rejects, await waitForActual(block), ...args);
+assert.rejects = async function rejects(promiseFn, ...args) {
+  expectsError(rejects, await waitForActual(promiseFn), ...args);
 };
 
-assert.doesNotThrow = function doesNotThrow(block, ...args) {
-  expectsNoError(doesNotThrow, getActual(block), ...args);
+assert.doesNotThrow = function doesNotThrow(fn, ...args) {
+  expectsNoError(doesNotThrow, getActual(fn), ...args);
 };
 
-assert.doesNotReject = async function doesNotReject(block, ...args) {
-  expectsNoError(doesNotReject, await waitForActual(block), ...args);
+assert.doesNotReject = async function doesNotReject(fn, ...args) {
+  expectsNoError(doesNotReject, await waitForActual(fn), ...args);
 };
 
 assert.ifError = function ifError(err) {

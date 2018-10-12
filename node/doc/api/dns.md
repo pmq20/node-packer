@@ -130,6 +130,9 @@ section if a custom port is used.
 <!-- YAML
 added: v0.1.90
 changes:
+  - version: v8.5.0
+    pr-url: https://github.com/nodejs/node/pull/14731
+    description: The `verbatim` option is supported now.
   - version: v1.2.0
     pr-url: https://github.com/nodejs/node/pull/744
     description: The `all` option is supported now.
@@ -1078,7 +1081,7 @@ implications for some applications, see the [`UV_THREADPOOL_SIZE`][]
 documentation for more information.
 
 Note that various networking APIs will call `dns.lookup()` internally to resolve
-host names. If that is an issue, consider resolving the hostname to and address
+host names. If that is an issue, consider resolving the hostname to an address
 using `dns.resolve()` and using the address instead of a host name. Also, some
 networking APIs (such as [`socket.connect()`][] and [`dgram.createSocket()`][])
 allow the default resolver, `dns.lookup()`, to be replaced.

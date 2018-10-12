@@ -37,14 +37,17 @@ const {
   ERR_SOCKET_CANNOT_SEND,
   ERR_SOCKET_DGRAM_NOT_RUNNING
 } = errors.codes;
-const { validateString } = require('internal/validators');
+const {
+  validateString,
+  validateNumber
+} = require('internal/validators');
 const { Buffer } = require('buffer');
 const util = require('util');
 const { isUint8Array } = require('internal/util/types');
 const EventEmitter = require('events');
 const {
   defaultTriggerAsyncIdScope,
-  symbols: { async_id_symbol }
+  symbols: { async_id_symbol, owner_symbol }
 } = require('internal/async_hooks');
 const { UV_UDP_REUSEADDR } = process.binding('constants').os;
 
@@ -79,7 +82,7 @@ function Socket(type, listener) {
   }
 
   var handle = newHandle(type, lookup);
-  handle.owner = this;
+  handle[owner_symbol] = this;
 
   this[async_id_symbol] = handle.getAsyncId();
   this.type = type;
@@ -133,7 +136,7 @@ function replaceHandle(self, newHandle) {
   newHandle.lookup = oldHandle.lookup;
   newHandle.bind = oldHandle.bind;
   newHandle.send = oldHandle.send;
-  newHandle.owner = self;
+  newHandle[owner_symbol] = self;
 
   // Replace the existing handle by the handle we got from master.
   oldHandle.close();
@@ -258,18 +261,9 @@ Socket.prototype.sendto = function(buffer,
                                    port,
                                    address,
                                    callback) {
-  if (typeof offset !== 'number') {
-    throw new ERR_INVALID_ARG_TYPE('offset', 'number', offset);
-  }
-
-  if (typeof length !== 'number') {
-    throw new ERR_INVALID_ARG_TYPE('length', 'number', length);
-  }
-
-  if (typeof port !== 'number') {
-    throw new ERR_INVALID_ARG_TYPE('port', 'number', port);
-  }
-
+  validateNumber(offset, 'offset');
+  validateNumber(length, 'length');
+  validateNumber(port, 'port');
   validateString(address, 'address');
 
   this.send(buffer, offset, length, port, address, callback);
@@ -530,9 +524,7 @@ Socket.prototype.setBroadcast = function(arg) {
 
 
 Socket.prototype.setTTL = function(ttl) {
-  if (typeof ttl !== 'number') {
-    throw new ERR_INVALID_ARG_TYPE('ttl', 'number', ttl);
-  }
+  validateNumber(ttl, 'ttl');
 
   var err = this[kStateSymbol].handle.setTTL(ttl);
   if (err) {
@@ -544,9 +536,7 @@ Socket.prototype.setTTL = function(ttl) {
 
 
 Socket.prototype.setMulticastTTL = function(ttl) {
-  if (typeof ttl !== 'number') {
-    throw new ERR_INVALID_ARG_TYPE('ttl', 'number', ttl);
-  }
+  validateNumber(ttl, 'ttl');
 
   var err = this[kStateSymbol].handle.setMulticastTTL(ttl);
   if (err) {
@@ -630,7 +620,7 @@ function stopReceiving(socket) {
 
 
 function onMessage(nread, handle, buf, rinfo) {
-  var self = handle.owner;
+  var self = handle[owner_symbol];
   if (nread < 0) {
     return self.emit('error', errnoException(nread, 'recvmsg'));
   }
@@ -738,6 +728,14 @@ Socket.prototype._healthCheck = function() {
 Socket.prototype._stopReceiving = function() {
   stopReceiving(this);
 };
+
+
+// Legacy alias on the C++ wrapper object. This is not public API, so we may
+// want to runtime-deprecate it at some point. There's no hurry, though.
+Object.defineProperty(UDP.prototype, 'owner', {
+  get() { return this[owner_symbol]; },
+  set(v) { return this[owner_symbol] = v; }
+});
 
 
 module.exports = {

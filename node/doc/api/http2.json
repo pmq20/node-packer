@@ -5,9 +5,21 @@
     {
       "textRaw": "HTTP/2",
       "name": "http/2",
+      "meta": {
+        "added": [
+          "v8.4.0"
+        ],
+        "changes": [
+          {
+            "version": "v10.10.0",
+            "pr-url": "https://github.com/nodejs/node/pull/22466",
+            "description": "HTTP/2 is now Stable. Previously, it had been Experimental."
+          }
+        ]
+      },
       "introduced_in": "v8.4.0",
-      "stability": 1,
-      "stabilityText": "Experimental",
+      "stability": 2,
+      "stabilityText": "Stable",
       "desc": "<p>The <code>http2</code> module provides an implementation of the <a href=\"https://tools.ietf.org/html/rfc7540\">HTTP/2</a> protocol. It\ncan be accessed using:</p>\n<pre><code class=\"language-js\">const http2 = require('http2');\n</code></pre>",
       "modules": [
         {
@@ -32,7 +44,7 @@
             {
               "textRaw": "Headers Object",
               "name": "headers_object",
-              "desc": "<p>Headers are represented as own-properties on JavaScript objects. The property\nkeys will be serialized to lower-case. Property values should be strings (if\nthey are not they will be coerced to strings) or an <code>Array</code> of strings (in order\nto send more than one value per header field).</p>\n<pre><code class=\"language-js\">const headers = {\n  ':status': '200',\n  'content-type': 'text-plain',\n  'ABC': ['has', 'more', 'than', 'one', 'value']\n};\n\nstream.respond(headers);\n</code></pre>\n<p>Header objects passed to callback functions will have a <code>null</code> prototype. This\nmeans that normal JavaScript object methods such as\n<code>Object.prototype.toString()</code> and <code>Object.prototype.hasOwnProperty()</code> will\nnot work.</p>\n<p>For incoming headers:</p>\n<ul>\n<li>The <code>:status</code> header is converted to <code>number</code>.</li>\n<li>Duplicates of <code>:status</code>, <code>:method</code>, <code>:authority</code>, <code>:scheme</code>, <code>:path</code>,\n<code>age</code>, <code>authorization</code>, <code>access-control-allow-credentials</code>,\n<code>access-control-max-age</code>, <code>access-control-request-method</code>, <code>content-encoding</code>,\n<code>content-language</code>, <code>content-length</code>, <code>content-location</code>, <code>content-md5</code>,\n<code>content-range</code>, <code>content-type</code>, <code>date</code>, <code>dnt</code>, <code>etag</code>, <code>expires</code>, <code>from</code>,\n<code>if-match</code>, <code>if-modified-since</code>, <code>if-none-match</code>, <code>if-range</code>,\n<code>if-unmodified-since</code>, <code>last-modified</code>, <code>location</code>, <code>max-forwards</code>,\n<code>proxy-authorization</code>, <code>range</code>, <code>referer</code>,<code>retry-after</code>, <code>tk</code>,\n<code>upgrade-insecure-requests</code>, <code>user-agent</code> or <code>x-content-type-options</code> are\ndiscarded.</li>\n<li><code>set-cookie</code> is always an array. Duplicates are added to the array.</li>\n<li><code>cookie</code>: the values are joined together with '; '.</li>\n<li>For all other headers, the values are joined together with ', '.</li>\n</ul>\n<pre><code class=\"language-js\">const http2 = require('http2');\nconst server = http2.createServer();\nserver.on('stream', (stream, headers) => {\n  console.log(headers[':path']);\n  console.log(headers.ABC);\n});\n</code></pre>",
+              "desc": "<p>Headers are represented as own-properties on JavaScript objects. The property\nkeys will be serialized to lower-case. Property values should be strings (if\nthey are not they will be coerced to strings) or an <code>Array</code> of strings (in order\nto send more than one value per header field).</p>\n<pre><code class=\"language-js\">const headers = {\n  ':status': '200',\n  'content-type': 'text-plain',\n  'ABC': ['has', 'more', 'than', 'one', 'value']\n};\n\nstream.respond(headers);\n</code></pre>\n<p>Header objects passed to callback functions will have a <code>null</code> prototype. This\nmeans that normal JavaScript object methods such as\n<code>Object.prototype.toString()</code> and <code>Object.prototype.hasOwnProperty()</code> will\nnot work.</p>\n<p>For incoming headers:</p>\n<ul>\n<li>The <code>:status</code> header is converted to <code>number</code>.</li>\n<li>Duplicates of <code>:status</code>, <code>:method</code>, <code>:authority</code>, <code>:scheme</code>, <code>:path</code>,\n<code>:protocol</code>, <code>age</code>, <code>authorization</code>, <code>access-control-allow-credentials</code>,\n<code>access-control-max-age</code>, <code>access-control-request-method</code>, <code>content-encoding</code>,\n<code>content-language</code>, <code>content-length</code>, <code>content-location</code>, <code>content-md5</code>,\n<code>content-range</code>, <code>content-type</code>, <code>date</code>, <code>dnt</code>, <code>etag</code>, <code>expires</code>, <code>from</code>,\n<code>if-match</code>, <code>if-modified-since</code>, <code>if-none-match</code>, <code>if-range</code>,\n<code>if-unmodified-since</code>, <code>last-modified</code>, <code>location</code>, <code>max-forwards</code>,\n<code>proxy-authorization</code>, <code>range</code>, <code>referer</code>,<code>retry-after</code>, <code>tk</code>,\n<code>upgrade-insecure-requests</code>, <code>user-agent</code> or <code>x-content-type-options</code> are\ndiscarded.</li>\n<li><code>set-cookie</code> is always an array. Duplicates are added to the array.</li>\n<li><code>cookie</code>: the values are joined together with '; '.</li>\n<li>For all other headers, the values are joined together with ', '.</li>\n</ul>\n<pre><code class=\"language-js\">const http2 = require('http2');\nconst server = http2.createServer();\nserver.on('stream', (stream, headers) => {\n  console.log(headers[':path']);\n  console.log(headers.ABC);\n});\n</code></pre>",
               "type": "module",
               "displayName": "Headers Object"
             },
@@ -51,7 +63,7 @@
                   }
                 ]
               },
-              "desc": "<p>The <code>http2.getDefaultSettings()</code>, <code>http2.getPackedSettings()</code>,\n<code>http2.createServer()</code>, <code>http2.createSecureServer()</code>,\n<code>http2session.settings()</code>, <code>http2session.localSettings</code>, and\n<code>http2session.remoteSettings</code> APIs either return or receive as input an\nobject that defines configuration settings for an <code>Http2Session</code> object.\nThese objects are ordinary JavaScript objects containing the following\nproperties.</p>\n<ul>\n<li><code>headerTableSize</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number&gt;</a> Specifies the maximum number of bytes used for\nheader compression. The minimum allowed value is 0. The maximum allowed value\nis 2<sup>32</sup>-1. <strong>Default:</strong> <code>4,096 octets</code>.</li>\n<li><code>enablePush</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type\" class=\"type\">&lt;boolean&gt;</a> Specifies <code>true</code> if HTTP/2 Push Streams are to be\npermitted on the <code>Http2Session</code> instances.</li>\n<li><code>initialWindowSize</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number&gt;</a> Specifies the <em>senders</em> initial window size\nfor stream-level flow control. The minimum allowed value is 0. The maximum\nallowed value is 2<sup>32</sup>-1. <strong>Default:</strong> <code>65,535 bytes</code>.</li>\n<li><code>maxFrameSize</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number&gt;</a> Specifies the size of the largest frame payload.\nThe minimum allowed value is 16,384. The maximum allowed value\nis 2<sup>24</sup>-1. <strong>Default:</strong> <code>16,384 bytes</code>.</li>\n<li><code>maxConcurrentStreams</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number&gt;</a> Specifies the maximum number of concurrent\nstreams permitted on an <code>Http2Session</code>. There is no default value which\nimplies, at least theoretically, 2<sup>31</sup>-1 streams may be open\nconcurrently at any given time in an <code>Http2Session</code>. The minimum value\nis 0. The maximum allowed value is 2<sup>31</sup>-1.</li>\n<li><code>maxHeaderListSize</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number&gt;</a> Specifies the maximum size (uncompressed octets)\nof header list that will be accepted. The minimum allowed value is 0. The\nmaximum allowed value is 2<sup>32</sup>-1. <strong>Default:</strong> <code>65535</code>.</li>\n</ul>\n<p>All additional properties on the settings object are ignored.</p>",
+              "desc": "<p>The <code>http2.getDefaultSettings()</code>, <code>http2.getPackedSettings()</code>,\n<code>http2.createServer()</code>, <code>http2.createSecureServer()</code>,\n<code>http2session.settings()</code>, <code>http2session.localSettings</code>, and\n<code>http2session.remoteSettings</code> APIs either return or receive as input an\nobject that defines configuration settings for an <code>Http2Session</code> object.\nThese objects are ordinary JavaScript objects containing the following\nproperties.</p>\n<ul>\n<li><code>headerTableSize</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number&gt;</a> Specifies the maximum number of bytes used for\nheader compression. The minimum allowed value is 0. The maximum allowed value\nis 2<sup>32</sup>-1. <strong>Default:</strong> <code>4,096 octets</code>.</li>\n<li><code>enablePush</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type\" class=\"type\">&lt;boolean&gt;</a> Specifies <code>true</code> if HTTP/2 Push Streams are to be\npermitted on the <code>Http2Session</code> instances.</li>\n<li><code>initialWindowSize</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number&gt;</a> Specifies the <em>senders</em> initial window size\nfor stream-level flow control. The minimum allowed value is 0. The maximum\nallowed value is 2<sup>32</sup>-1. <strong>Default:</strong> <code>65,535 bytes</code>.</li>\n<li><code>maxFrameSize</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number&gt;</a> Specifies the size of the largest frame payload.\nThe minimum allowed value is 16,384. The maximum allowed value\nis 2<sup>24</sup>-1. <strong>Default:</strong> <code>16,384 bytes</code>.</li>\n<li><code>maxConcurrentStreams</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number&gt;</a> Specifies the maximum number of concurrent\nstreams permitted on an <code>Http2Session</code>. There is no default value which\nimplies, at least theoretically, 2<sup>31</sup>-1 streams may be open\nconcurrently at any given time in an <code>Http2Session</code>. The minimum value\nis 0. The maximum allowed value is 2<sup>31</sup>-1.</li>\n<li><code>maxHeaderListSize</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number&gt;</a> Specifies the maximum size (uncompressed octets)\nof header list that will be accepted. The minimum allowed value is 0. The\nmaximum allowed value is 2<sup>32</sup>-1. <strong>Default:</strong> <code>65535</code>.</li>\n<li><code>enableConnectProtocol</code><a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type\" class=\"type\">&lt;boolean&gt;</a> Specifies <code>true</code> if the \"Extended Connect\nProtocol\" defined by <a href=\"https://tools.ietf.org/html/rfc8441\">RFC 8441</a> is to be enabled. This setting is only\nmeaningful if sent by the server. Once the <code>enableConnectProtocol</code> setting\nhas been enabled for a given <code>Http2Session</code>, it cannot be disabled.</li>\n</ul>\n<p>All additional properties on the settings object are ignored.</p>",
               "type": "module",
               "displayName": "Settings Object"
             },
@@ -89,6 +101,13 @@
               "desc": "<p>The <code>CONNECT</code> method is used to allow an HTTP/2 server to be used as a proxy\nfor TCP/IP connections.</p>\n<p>A simple TCP Server:</p>\n<pre><code class=\"language-js\">const net = require('net');\n\nconst server = net.createServer((socket) => {\n  let name = '';\n  socket.setEncoding('utf8');\n  socket.on('data', (chunk) => name += chunk);\n  socket.on('end', () => socket.end(`hello ${name}`));\n});\n\nserver.listen(8000);\n</code></pre>\n<p>An HTTP/2 CONNECT proxy:</p>\n<pre><code class=\"language-js\">const http2 = require('http2');\nconst { NGHTTP2_REFUSED_STREAM } = http2.constants;\nconst net = require('net');\n\nconst proxy = http2.createServer();\nproxy.on('stream', (stream, headers) => {\n  if (headers[':method'] !== 'CONNECT') {\n    // Only accept CONNECT requests\n    stream.close(NGHTTP2_REFUSED_STREAM);\n    return;\n  }\n  const auth = new URL(`tcp://${headers[':authority']}`);\n  // It's a very good idea to verify that hostname and port are\n  // things this proxy should be connecting to.\n  const socket = net.connect(auth.port, auth.hostname, () => {\n    stream.respond();\n    socket.pipe(stream);\n    stream.pipe(socket);\n  });\n  socket.on('error', (error) => {\n    stream.close(http2.constants.NGHTTP2_CONNECT_ERROR);\n  });\n});\n\nproxy.listen(8001);\n</code></pre>\n<p>An HTTP/2 CONNECT client:</p>\n<pre><code class=\"language-js\">const http2 = require('http2');\n\nconst client = http2.connect('http://localhost:8001');\n\n// Must not specify the ':path' and ':scheme' headers\n// for CONNECT requests or an error will be thrown.\nconst req = client.request({\n  ':method': 'CONNECT',\n  ':authority': `localhost:${port}`\n});\n\nreq.on('response', (headers) => {\n  console.log(headers[http2.constants.HTTP2_HEADER_STATUS]);\n});\nlet data = '';\nreq.setEncoding('utf8');\nreq.on('data', (chunk) => data += chunk);\nreq.on('end', () => {\n  console.log(`The server says: ${data}`);\n  client.close();\n});\nreq.end('Jane');\n</code></pre>",
               "type": "module",
               "displayName": "Supporting the CONNECT method"
+            },
+            {
+              "textRaw": "The Extended CONNECT Protocol",
+              "name": "the_extended_connect_protocol",
+              "desc": "<p><a href=\"https://tools.ietf.org/html/rfc8441\">RFC 8441</a> defines an \"Extended CONNECT Protocol\" extension to HTTP/2 that\nmay be used to bootstrap the use of an <code>Http2Stream</code> using the <code>CONNECT</code>\nmethod as a tunnel for other communication protocols (such as WebSockets).</p>\n<p>The use of the Extended CONNECT Protocol is enabled by HTTP/2 servers by using\nthe <code>enableConnectProtocol</code> setting:</p>\n<pre><code class=\"language-js\">const http2 = require('http2');\nconst settings = { enableConnectProtocol: true };\nconst server = http2.createServer({ settings });\n</code></pre>\n<p>Once the client receives the <code>SETTINGS</code> frame from the server indicating that\nthe extended CONNECT may be used, it may send <code>CONNECT</code> requests that use the\n<code>':protocol'</code>  HTTP/2 pseudo-header:</p>\n<pre><code class=\"language-js\">const http2 = require('http2');\nconst client = http2.connect('http://localhost:8080');\nclient.on('remoteSettings', (settings) => {\n  if (settings.enableConnectProtocol) {\n    const req = client.request({ ':method': 'CONNECT', ':protocol': 'foo' });\n    // ...\n  }\n});\n</code></pre>",
+              "type": "module",
+              "displayName": "The Extended CONNECT Protocol"
             }
           ],
           "classes": [
@@ -254,6 +273,26 @@
                   "desc": "<p>The <code>'localSettings'</code> event is emitted when an acknowledgment <code>SETTINGS</code> frame\nhas been received.</p>\n<p>When using <code>http2session.settings()</code> to submit new settings, the modified\nsettings do not take effect until the <code>'localSettings'</code> event is emitted.</p>\n<pre><code class=\"language-js\">session.settings({ enablePush: false });\n\nsession.on('localSettings', (settings) => {\n  /* Use the new settings */\n});\n</code></pre>"
                 },
                 {
+                  "textRaw": "Event: 'ping'",
+                  "type": "event",
+                  "name": "ping",
+                  "meta": {
+                    "added": [
+                      "v10.12.0"
+                    ],
+                    "changes": []
+                  },
+                  "params": [
+                    {
+                      "textRaw": "`payload` {Buffer} The `PING` frame 8-byte payload",
+                      "name": "payload",
+                      "type": "Buffer",
+                      "desc": "The `PING` frame 8-byte payload"
+                    }
+                  ],
+                  "desc": "<p>The <code>'ping'</code> event is emitted whenever a <code>PING</code> frame is received from the\nconnected peer.</p>"
+                },
+                {
                   "textRaw": "Event: 'remoteSettings'",
                   "type": "event",
                   "name": "remoteSettings",
@@ -408,7 +447,7 @@
                     ],
                     "changes": []
                   },
-                  "desc": "<p>If the <code>Http2Session</code> is connected to a <code>TLSSocket</code>, the <code>originSet</code> property\nwill return an <code>Array</code> of origins for which the <code>Http2Session</code> may be\nconsidered authoritative.</p>"
+                  "desc": "<p>If the <code>Http2Session</code> is connected to a <code>TLSSocket</code>, the <code>originSet</code> property\nwill return an <code>Array</code> of origins for which the <code>Http2Session</code> may be\nconsidered authoritative.</p>\n<p>The <code>originSet</code> property is only available when using a secure TLS connection.</p>"
                 },
                 {
                   "textRaw": "`pendingSettingsAck` {boolean}",
@@ -496,7 +535,7 @@
                   "desc": "<p>Gracefully closes the <code>Http2Session</code>, allowing any existing streams to\ncomplete on their own and preventing new <code>Http2Stream</code> instances from being\ncreated. Once closed, <code>http2session.destroy()</code> <em>might</em> be called if there\nare no open <code>Http2Stream</code> instances.</p>\n<p>If specified, the <code>callback</code> function is registered as a handler for the\n<code>'close'</code> event.</p>"
                 },
                 {
-                  "textRaw": "http2session.destroy([error,][code])",
+                  "textRaw": "http2session.destroy([error][, code])",
                   "type": "method",
                   "name": "destroy",
                   "meta": {
@@ -528,7 +567,7 @@
                   "desc": "<p>Immediately terminates the <code>Http2Session</code> and the associated <code>net.Socket</code> or\n<code>tls.TLSSocket</code>.</p>\n<p>Once destroyed, the <code>Http2Session</code> will emit the <code>'close'</code> event. If <code>error</code>\nis not undefined, an <code>'error'</code> event will be emitted immediately before the\n<code>'close'</code> event.</p>\n<p>If there are any remaining open <code>Http2Streams</code> associated with the\n<code>Http2Session</code>, those will also be destroyed.</p>"
                 },
                 {
-                  "textRaw": "http2session.goaway([code, [lastStreamID, [opaqueData]]])",
+                  "textRaw": "http2session.goaway([code[, lastStreamID[, opaqueData]]])",
                   "type": "method",
                   "name": "goaway",
                   "meta": {
@@ -728,6 +767,27 @@
                     }
                   ],
                   "desc": "<p>Submits an <code>ALTSVC</code> frame (as defined by <a href=\"https://tools.ietf.org/html/rfc7838\">RFC 7838</a>) to the connected client.</p>\n<pre><code class=\"language-js\">const http2 = require('http2');\n\nconst server = http2.createServer();\nserver.on('session', (session) => {\n  // Set altsvc for origin https://example.org:80\n  session.altsvc('h2=\":8000\"', 'https://example.org:80');\n});\n\nserver.on('stream', (stream) => {\n  // Set altsvc for a specific stream\n  stream.session.altsvc('h2=\":8000\"', stream.id);\n});\n</code></pre>\n<p>Sending an <code>ALTSVC</code> frame with a specific stream ID indicates that the alternate\nservice is associated with the origin of the given <code>Http2Stream</code>.</p>\n<p>The <code>alt</code> and origin string <em>must</em> contain only ASCII bytes and are\nstrictly interpreted as a sequence of ASCII bytes. The special value <code>'clear'</code>\nmay be passed to clear any previously set alternative service for a given\ndomain.</p>\n<p>When a string is passed for the <code>originOrStream</code> argument, it will be parsed as\na URL and the origin will be derived. For instance, the origin for the\nHTTP URL <code>'https://example.org/foo/bar'</code> is the ASCII string\n<code>'https://example.org'</code>. An error will be thrown if either the given string\ncannot be parsed as a URL or if a valid origin cannot be derived.</p>\n<p>A <code>URL</code> object, or any object with an <code>origin</code> property, may be passed as\n<code>originOrStream</code>, in which case the value of the <code>origin</code> property will be\nused. The value of the <code>origin</code> property <em>must</em> be a properly serialized\nASCII origin.</p>"
+                },
+                {
+                  "textRaw": "serverhttp2session.origin(...origins)",
+                  "type": "method",
+                  "name": "origin",
+                  "meta": {
+                    "added": [
+                      "v10.12.0"
+                    ],
+                    "changes": []
+                  },
+                  "signatures": [
+                    {
+                      "params": [
+                        {
+                          "name": "...origins"
+                        }
+                      ]
+                    }
+                  ],
+                  "desc": "<p>Submits an <code>ORIGIN</code> frame (as defined by <a href=\"https://tools.ietf.org/html/rfc8336\">RFC 8336</a>) to the connected client\nto advertise the set of origins for which the server is capable of providing\nauthoritative responses.</p>\n<pre><code class=\"language-js\">const http2 = require('http2');\nconst options = getSecureOptionsSomehow();\nconst server = http2.createSecureServer(options);\nserver.on('stream', (stream) => {\n  stream.respond();\n  stream.end('ok');\n});\nserver.on('session', (session) => {\n  session.origin('https://example.com', 'https://example.org');\n});\n</code></pre>\n<p>When a string is passed as an <code>origin</code>, it will be parsed as a URL and the\norigin will be derived. For instance, the origin for the HTTP URL\n<code>'https://example.org/foo/bar'</code> is the ASCII string\n<code>'https://example.org'</code>. An error will be thrown if either the given string\ncannot be parsed as a URL or if a valid origin cannot be derived.</p>\n<p>A <code>URL</code> object, or any object with an <code>origin</code> property, may be passed as\nan <code>origin</code>, in which case the value of the <code>origin</code> property will be\nused. The value of the <code>origin</code> property <em>must</em> be a properly serialized\nASCII origin.</p>\n<p>Alternatively, the <code>origins</code> option may be used when creating a new HTTP/2\nserver using the <code>http2.createSecureServer()</code> method:</p>\n<pre><code class=\"language-js\">const http2 = require('http2');\nconst options = getSecureOptionsSomehow();\noptions.origins = ['https://example.com', 'https://example.org'];\nconst server = http2.createSecureServer(options);\nserver.on('stream', (stream) => {\n  stream.respond();\n  stream.end('ok');\n});\n</code></pre>"
                 }
               ],
               "modules": [
@@ -779,6 +839,25 @@
                     }
                   ],
                   "desc": "<p>The <code>'altsvc'</code> event is emitted whenever an <code>ALTSVC</code> frame is received by\nthe client. The event is emitted with the <code>ALTSVC</code> value, origin, and stream\nID. If no <code>origin</code> is provided in the <code>ALTSVC</code> frame, <code>origin</code> will\nbe an empty string.</p>\n<pre><code class=\"language-js\">const http2 = require('http2');\nconst client = http2.connect('https://example.org');\n\nclient.on('altsvc', (alt, origin, streamId) => {\n  console.log(alt);\n  console.log(origin);\n  console.log(streamId);\n});\n</code></pre>"
+                },
+                {
+                  "textRaw": "Event: 'origin'",
+                  "type": "event",
+                  "name": "origin",
+                  "meta": {
+                    "added": [
+                      "v10.12.0"
+                    ],
+                    "changes": []
+                  },
+                  "params": [
+                    {
+                      "textRaw": "`origins` {string[]}",
+                      "name": "origins",
+                      "type": "string[]"
+                    }
+                  ],
+                  "desc": "<p>The <code>'origin'</code>  event is emitted whenever an <code>ORIGIN</code> frame is received by\nthe client. The event is emitted with an array of <code>origin</code> strings. The\n<code>http2session.originSet</code> will be updated to include the received\norigins.</p>\n<pre><code class=\"language-js\">const http2 = require('http2');\nconst client = http2.connect('https://example.org');\n\nclient.on('origin', (origins) => {\n  for (let n = 0; n &#x3C; origins.length; n++)\n    console.log(origins[n]);\n});\n</code></pre>\n<p>The <code>'origin'</code> event is only emitted when using a secure TLS connection.</p>"
                 }
               ],
               "methods": [
@@ -847,7 +926,7 @@
                       ]
                     }
                   ],
-                  "desc": "<p>For HTTP/2 Client <code>Http2Session</code> instances only, the <code>http2session.request()</code>\ncreates and returns an <code>Http2Stream</code> instance that can be used to send an\nHTTP/2 request to the connected server.</p>\n<p>This method is only available if <code>http2session.type</code> is equal to\n<code>http2.constants.NGHTTP2_SESSION_CLIENT</code>.</p>\n<pre><code class=\"language-js\">const http2 = require('http2');\nconst clientSession = http2.connect('https://localhost:1234');\nconst {\n  HTTP2_HEADER_PATH,\n  HTTP2_HEADER_STATUS\n} = http2.constants;\n\nconst req = clientSession.request({ [HTTP2_HEADER_PATH]: '/' });\nreq.on('response', (headers) => {\n  console.log(headers[HTTP2_HEADER_STATUS]);\n  req.on('data', (chunk) => { /* .. */ });\n  req.on('end', () => { /* .. */ });\n});\n</code></pre>\n<p>When the <code>options.waitForTrailers</code> option is set, the <code>'wantTrailers'</code> event\nis emitted immediately after queuing the last chunk of payload data to be sent.\nThe <code>http2stream.sendTrailers()</code> method can then be called to send trailing\nheaders to the peer.</p>\n<p>It is important to note that when <code>options.waitForTrailers</code> is set, the\n<code>Http2Stream</code> will <em>not</em> automatically close when the final <code>DATA</code> frame is\ntransmitted. User code <em>must</em> call either <code>http2stream.sendTrailers()</code> or\n<code>http2stream.close()</code> to close the <code>Http2Stream</code>.</p>\n<p>The <code>:method</code> and <code>:path</code> pseudo-headers are not specified within <code>headers</code>,\nthey respectively default to:</p>\n<ul>\n<li><code>:method</code> = <code>'GET'</code></li>\n<li><code>:path</code> = <code>/</code></li>\n</ul>"
+                  "desc": "<p>For HTTP/2 Client <code>Http2Session</code> instances only, the <code>http2session.request()</code>\ncreates and returns an <code>Http2Stream</code> instance that can be used to send an\nHTTP/2 request to the connected server.</p>\n<p>This method is only available if <code>http2session.type</code> is equal to\n<code>http2.constants.NGHTTP2_SESSION_CLIENT</code>.</p>\n<pre><code class=\"language-js\">const http2 = require('http2');\nconst clientSession = http2.connect('https://localhost:1234');\nconst {\n  HTTP2_HEADER_PATH,\n  HTTP2_HEADER_STATUS\n} = http2.constants;\n\nconst req = clientSession.request({ [HTTP2_HEADER_PATH]: '/' });\nreq.on('response', (headers) => {\n  console.log(headers[HTTP2_HEADER_STATUS]);\n  req.on('data', (chunk) => { /* .. */ });\n  req.on('end', () => { /* .. */ });\n});\n</code></pre>\n<p>When the <code>options.waitForTrailers</code> option is set, the <code>'wantTrailers'</code> event\nis emitted immediately after queuing the last chunk of payload data to be sent.\nThe <code>http2stream.sendTrailers()</code> method can then be called to send trailing\nheaders to the peer.</p>\n<p>When <code>options.waitForTrailers</code> is set, the <code>Http2Stream</code> will not automatically\nclose when the final <code>DATA</code> frame is transmitted. User code must call either\n<code>http2stream.sendTrailers()</code> or <code>http2stream.close()</code> to close the\n<code>Http2Stream</code>.</p>\n<p>The <code>:method</code> and <code>:path</code> pseudo-headers are not specified within <code>headers</code>,\nthey respectively default to:</p>\n<ul>\n<li><code>:method</code> = <code>'GET'</code></li>\n<li><code>:path</code> = <code>/</code></li>\n</ul>"
                 }
               ]
             },
@@ -1021,6 +1100,18 @@
                     "changes": []
                   },
                   "desc": "<p>Set to <code>true</code> if the <code>Http2Stream</code> instance has been destroyed and is no longer\nusable.</p>"
+                },
+                {
+                  "textRaw": "`endAfterHeaders` {boolean}",
+                  "type": "boolean",
+                  "name": "endAfterHeaders",
+                  "meta": {
+                    "added": [
+                      "v10.11.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<p>Set the <code>true</code> if the <code>END_STREAM</code> flag was set in the request or response\nHEADERS frame received, indicating that no additional data should be received\nand the readable side of the <code>Http2Stream</code> will be closed.</p>"
                 },
                 {
                   "textRaw": "`pending` {boolean}",
@@ -1454,7 +1545,7 @@
                       ]
                     }
                   ],
-                  "desc": "<pre><code class=\"language-js\">const http2 = require('http2');\nconst server = http2.createServer();\nserver.on('stream', (stream) => {\n  stream.respond({ ':status': 200 });\n  stream.end('some data');\n});\n</code></pre>\n<p>When the <code>options.waitForTrailers</code> option is set, the <code>'wantTrailers'</code> event\nwill be emitted immediately after queuing the last chunk of payload data to be\nsent. The <code>http2stream.sendTrailers()</code> method can then be used to sent trailing\nheader fields to the peer.</p>\n<p>It is important to note that when <code>options.waitForTrailers</code> is set, the\n<code>Http2Stream</code> will <em>not</em> automatically close when the final <code>DATA</code> frame is\ntransmitted. User code <em>must</em> call either <code>http2stream.sendTrailers()</code> or\n<code>http2stream.close()</code> to close the <code>Http2Stream</code>.</p>\n<pre><code class=\"language-js\">const http2 = require('http2');\nconst server = http2.createServer();\nserver.on('stream', (stream) => {\n  stream.respond({ ':status': 200 }, { waitForTrailers: true });\n  stream.on('wantTrailers', () => {\n    stream.sendTrailers({ ABC: 'some value to send' });\n  });\n  stream.end('some data');\n});\n</code></pre>"
+                  "desc": "<pre><code class=\"language-js\">const http2 = require('http2');\nconst server = http2.createServer();\nserver.on('stream', (stream) => {\n  stream.respond({ ':status': 200 });\n  stream.end('some data');\n});\n</code></pre>\n<p>When the <code>options.waitForTrailers</code> option is set, the <code>'wantTrailers'</code> event\nwill be emitted immediately after queuing the last chunk of payload data to be\nsent. The <code>http2stream.sendTrailers()</code> method can then be used to sent trailing\nheader fields to the peer.</p>\n<p>When <code>options.waitForTrailers</code> is set, the <code>Http2Stream</code> will not automatically\nclose when the final <code>DATA</code> frame is transmitted. User code must call either\n<code>http2stream.sendTrailers()</code> or <code>http2stream.close()</code> to close the\n<code>Http2Stream</code>.</p>\n<pre><code class=\"language-js\">const http2 = require('http2');\nconst server = http2.createServer();\nserver.on('stream', (stream) => {\n  stream.respond({ ':status': 200 }, { waitForTrailers: true });\n  stream.on('wantTrailers', () => {\n    stream.sendTrailers({ ABC: 'some value to send' });\n  });\n  stream.end('some data');\n});\n</code></pre>"
                 },
                 {
                   "textRaw": "http2stream.respondWithFD(fd[, headers[, options]])",
@@ -1521,7 +1612,7 @@
                       ]
                     }
                   ],
-                  "desc": "<p>Initiates a response whose data is read from the given file descriptor. No\nvalidation is performed on the given file descriptor. If an error occurs while\nattempting to read data using the file descriptor, the <code>Http2Stream</code> will be\nclosed using an <code>RST_STREAM</code> frame using the standard <code>INTERNAL_ERROR</code> code.</p>\n<p>When used, the <code>Http2Stream</code> object's <code>Duplex</code> interface will be closed\nautomatically.</p>\n<pre><code class=\"language-js\">const http2 = require('http2');\nconst fs = require('fs');\n\nconst server = http2.createServer();\nserver.on('stream', (stream) => {\n  const fd = fs.openSync('/some/file', 'r');\n\n  const stat = fs.fstatSync(fd);\n  const headers = {\n    'content-length': stat.size,\n    'last-modified': stat.mtime.toUTCString(),\n    'content-type': 'text/plain'\n  };\n  stream.respondWithFD(fd, headers);\n  stream.on('close', () => fs.closeSync(fd));\n});\n</code></pre>\n<p>The optional <code>options.statCheck</code> function may be specified to give user code\nan opportunity to set additional content headers based on the <code>fs.Stat</code> details\nof the given fd. If the <code>statCheck</code> function is provided, the\n<code>http2stream.respondWithFD()</code> method will perform an <code>fs.fstat()</code> call to\ncollect details on the provided file descriptor.</p>\n<p>The <code>offset</code> and <code>length</code> options may be used to limit the response to a\nspecific range subset. This can be used, for instance, to support HTTP Range\nrequests.</p>\n<p>The file descriptor is not closed when the stream is closed, so it will need\nto be closed manually once it is no longer needed.\nNote that using the same file descriptor concurrently for multiple streams\nis not supported and may result in data loss. Re-using a file descriptor\nafter a stream has finished is supported.</p>\n<p>When the <code>options.waitForTrailers</code> option is set, the <code>'wantTrailers'</code> event\nwill be emitted immediately after queuing the last chunk of payload data to be\nsent. The <code>http2stream.sendTrailers()</code> method can then be used to sent trailing\nheader fields to the peer.</p>\n<p>It is important to note that when <code>options.waitForTrailers</code> is set, the\n<code>Http2Stream</code> will <em>not</em> automatically close when the final <code>DATA</code> frame is\ntransmitted. User code <em>must</em> call either <code>http2stream.sendTrailers()</code> or\n<code>http2stream.close()</code> to close the <code>Http2Stream</code>.</p>\n<pre><code class=\"language-js\">const http2 = require('http2');\nconst fs = require('fs');\n\nconst server = http2.createServer();\nserver.on('stream', (stream) => {\n  const fd = fs.openSync('/some/file', 'r');\n\n  const stat = fs.fstatSync(fd);\n  const headers = {\n    'content-length': stat.size,\n    'last-modified': stat.mtime.toUTCString(),\n    'content-type': 'text/plain'\n  };\n  stream.respondWithFD(fd, headers, { waitForTrailers: true });\n  stream.on('wantTrailers', () => {\n    stream.sendTrailers({ ABC: 'some value to send' });\n  });\n\n  stream.on('close', () => fs.closeSync(fd));\n});\n</code></pre>"
+                  "desc": "<p>Initiates a response whose data is read from the given file descriptor. No\nvalidation is performed on the given file descriptor. If an error occurs while\nattempting to read data using the file descriptor, the <code>Http2Stream</code> will be\nclosed using an <code>RST_STREAM</code> frame using the standard <code>INTERNAL_ERROR</code> code.</p>\n<p>When used, the <code>Http2Stream</code> object's <code>Duplex</code> interface will be closed\nautomatically.</p>\n<pre><code class=\"language-js\">const http2 = require('http2');\nconst fs = require('fs');\n\nconst server = http2.createServer();\nserver.on('stream', (stream) => {\n  const fd = fs.openSync('/some/file', 'r');\n\n  const stat = fs.fstatSync(fd);\n  const headers = {\n    'content-length': stat.size,\n    'last-modified': stat.mtime.toUTCString(),\n    'content-type': 'text/plain'\n  };\n  stream.respondWithFD(fd, headers);\n  stream.on('close', () => fs.closeSync(fd));\n});\n</code></pre>\n<p>The optional <code>options.statCheck</code> function may be specified to give user code\nan opportunity to set additional content headers based on the <code>fs.Stat</code> details\nof the given fd. If the <code>statCheck</code> function is provided, the\n<code>http2stream.respondWithFD()</code> method will perform an <code>fs.fstat()</code> call to\ncollect details on the provided file descriptor.</p>\n<p>The <code>offset</code> and <code>length</code> options may be used to limit the response to a\nspecific range subset. This can be used, for instance, to support HTTP Range\nrequests.</p>\n<p>The file descriptor is not closed when the stream is closed, so it will need\nto be closed manually once it is no longer needed.\nNote that using the same file descriptor concurrently for multiple streams\nis not supported and may result in data loss. Re-using a file descriptor\nafter a stream has finished is supported.</p>\n<p>When the <code>options.waitForTrailers</code> option is set, the <code>'wantTrailers'</code> event\nwill be emitted immediately after queuing the last chunk of payload data to be\nsent. The <code>http2stream.sendTrailers()</code> method can then be used to sent trailing\nheader fields to the peer.</p>\n<p>When <code>options.waitForTrailers</code> is set, the <code>Http2Stream</code> will not automatically\nclose when the final <code>DATA</code> frame is transmitted. User code <em>must</em> call either\n<code>http2stream.sendTrailers()</code> or <code>http2stream.close()</code> to close the\n<code>Http2Stream</code>.</p>\n<pre><code class=\"language-js\">const http2 = require('http2');\nconst fs = require('fs');\n\nconst server = http2.createServer();\nserver.on('stream', (stream) => {\n  const fd = fs.openSync('/some/file', 'r');\n\n  const stat = fs.fstatSync(fd);\n  const headers = {\n    'content-length': stat.size,\n    'last-modified': stat.mtime.toUTCString(),\n    'content-type': 'text/plain'\n  };\n  stream.respondWithFD(fd, headers, { waitForTrailers: true });\n  stream.on('wantTrailers', () => {\n    stream.sendTrailers({ ABC: 'some value to send' });\n  });\n\n  stream.on('close', () => fs.closeSync(fd));\n});\n</code></pre>"
                 },
                 {
                   "textRaw": "http2stream.respondWithFile(path[, headers[, options]])",
@@ -1593,7 +1684,7 @@
                       ]
                     }
                   ],
-                  "desc": "<p>Sends a regular file as the response. The <code>path</code> must specify a regular file\nor an <code>'error'</code> event will be emitted on the <code>Http2Stream</code> object.</p>\n<p>When used, the <code>Http2Stream</code> object's <code>Duplex</code> interface will be closed\nautomatically.</p>\n<p>The optional <code>options.statCheck</code> function may be specified to give user code\nan opportunity to set additional content headers based on the <code>fs.Stat</code> details\nof the given file:</p>\n<p>If an error occurs while attempting to read the file data, the <code>Http2Stream</code>\nwill be closed using an <code>RST_STREAM</code> frame using the standard <code>INTERNAL_ERROR</code>\ncode. If the <code>onError</code> callback is defined, then it will be called. Otherwise\nthe stream will be destroyed.</p>\n<p>Example using a file path:</p>\n<pre><code class=\"language-js\">const http2 = require('http2');\nconst server = http2.createServer();\nserver.on('stream', (stream) => {\n  function statCheck(stat, headers) {\n    headers['last-modified'] = stat.mtime.toUTCString();\n  }\n\n  function onError(err) {\n    if (err.code === 'ENOENT') {\n      stream.respond({ ':status': 404 });\n    } else {\n      stream.respond({ ':status': 500 });\n    }\n    stream.end();\n  }\n\n  stream.respondWithFile('/some/file',\n                         { 'content-type': 'text/plain' },\n                         { statCheck, onError });\n});\n</code></pre>\n<p>The <code>options.statCheck</code> function may also be used to cancel the send operation\nby returning <code>false</code>. For instance, a conditional request may check the stat\nresults to determine if the file has been modified to return an appropriate\n<code>304</code> response:</p>\n<pre><code class=\"language-js\">const http2 = require('http2');\nconst server = http2.createServer();\nserver.on('stream', (stream) => {\n  function statCheck(stat, headers) {\n    // Check the stat here...\n    stream.respond({ ':status': 304 });\n    return false; // Cancel the send operation\n  }\n  stream.respondWithFile('/some/file',\n                         { 'content-type': 'text/plain' },\n                         { statCheck });\n});\n</code></pre>\n<p>The <code>content-length</code> header field will be automatically set.</p>\n<p>The <code>offset</code> and <code>length</code> options may be used to limit the response to a\nspecific range subset. This can be used, for instance, to support HTTP Range\nrequests.</p>\n<p>The <code>options.onError</code> function may also be used to handle all the errors\nthat could happen before the delivery of the file is initiated. The\ndefault behavior is to destroy the stream.</p>\n<p>When the <code>options.waitForTrailers</code> option is set, the <code>'wantTrailers'</code> event\nwill be emitted immediately after queuing the last chunk of payload data to be\nsent. The <code>http2stream.sendTrilers()</code> method can then be used to sent trailing\nheader fields to the peer.</p>\n<p>It is important to note that when <code>options.waitForTrailers</code> is set, the\n<code>Http2Stream</code> will <em>not</em> automatically close when the final <code>DATA</code> frame is\ntransmitted. User code <em>must</em> call either <code>http2stream.sendTrailers()</code> or\n<code>http2stream.close()</code> to close the <code>Http2Stream</code>.</p>\n<pre><code class=\"language-js\">const http2 = require('http2');\nconst server = http2.createServer();\nserver.on('stream', (stream) => {\n  stream.respondWithFile('/some/file',\n                         { 'content-type': 'text/plain' },\n                         { waitForTrailers: true });\n  stream.on('wantTrailers', () => {\n    stream.sendTrailers({ ABC: 'some value to send' });\n  });\n});\n</code></pre>"
+                  "desc": "<p>Sends a regular file as the response. The <code>path</code> must specify a regular file\nor an <code>'error'</code> event will be emitted on the <code>Http2Stream</code> object.</p>\n<p>When used, the <code>Http2Stream</code> object's <code>Duplex</code> interface will be closed\nautomatically.</p>\n<p>The optional <code>options.statCheck</code> function may be specified to give user code\nan opportunity to set additional content headers based on the <code>fs.Stat</code> details\nof the given file:</p>\n<p>If an error occurs while attempting to read the file data, the <code>Http2Stream</code>\nwill be closed using an <code>RST_STREAM</code> frame using the standard <code>INTERNAL_ERROR</code>\ncode. If the <code>onError</code> callback is defined, then it will be called. Otherwise\nthe stream will be destroyed.</p>\n<p>Example using a file path:</p>\n<pre><code class=\"language-js\">const http2 = require('http2');\nconst server = http2.createServer();\nserver.on('stream', (stream) => {\n  function statCheck(stat, headers) {\n    headers['last-modified'] = stat.mtime.toUTCString();\n  }\n\n  function onError(err) {\n    if (err.code === 'ENOENT') {\n      stream.respond({ ':status': 404 });\n    } else {\n      stream.respond({ ':status': 500 });\n    }\n    stream.end();\n  }\n\n  stream.respondWithFile('/some/file',\n                         { 'content-type': 'text/plain' },\n                         { statCheck, onError });\n});\n</code></pre>\n<p>The <code>options.statCheck</code> function may also be used to cancel the send operation\nby returning <code>false</code>. For instance, a conditional request may check the stat\nresults to determine if the file has been modified to return an appropriate\n<code>304</code> response:</p>\n<pre><code class=\"language-js\">const http2 = require('http2');\nconst server = http2.createServer();\nserver.on('stream', (stream) => {\n  function statCheck(stat, headers) {\n    // Check the stat here...\n    stream.respond({ ':status': 304 });\n    return false; // Cancel the send operation\n  }\n  stream.respondWithFile('/some/file',\n                         { 'content-type': 'text/plain' },\n                         { statCheck });\n});\n</code></pre>\n<p>The <code>content-length</code> header field will be automatically set.</p>\n<p>The <code>offset</code> and <code>length</code> options may be used to limit the response to a\nspecific range subset. This can be used, for instance, to support HTTP Range\nrequests.</p>\n<p>The <code>options.onError</code> function may also be used to handle all the errors\nthat could happen before the delivery of the file is initiated. The\ndefault behavior is to destroy the stream.</p>\n<p>When the <code>options.waitForTrailers</code> option is set, the <code>'wantTrailers'</code> event\nwill be emitted immediately after queuing the last chunk of payload data to be\nsent. The <code>http2stream.sendTrilers()</code> method can then be used to sent trailing\nheader fields to the peer.</p>\n<p>When <code>options.waitForTrailers</code> is set, the <code>Http2Stream</code> will not automatically\nclose when the final <code>DATA</code> frame is transmitted. User code must call either\n<code>http2stream.sendTrailers()</code> or <code>http2stream.close()</code> to close the\n<code>Http2Stream</code>.</p>\n<pre><code class=\"language-js\">const http2 = require('http2');\nconst server = http2.createServer();\nserver.on('stream', (stream) => {\n  stream.respondWithFile('/some/file',\n                         { 'content-type': 'text/plain' },\n                         { waitForTrailers: true });\n  stream.on('wantTrailers', () => {\n    stream.sendTrailers({ ABC: 'some value to send' });\n  });\n});\n</code></pre>"
                 }
               ],
               "properties": [
@@ -1733,7 +1824,7 @@
                     "changes": []
                   },
                   "params": [],
-                  "desc": "<p>The <code>'timeout'</code> event is emitted when there is no activity on the Server for\na given number of milliseconds set using <code>http2server.setTimeout()</code>.</p>"
+                  "desc": "<p>The <code>'timeout'</code> event is emitted when there is no activity on the Server for\na given number of milliseconds set using <code>http2server.setTimeout()</code>.\n<strong>Default:</strong> 2 minutes.</p>"
                 }
               ],
               "methods": [
@@ -1760,6 +1851,42 @@
                     }
                   ],
                   "desc": "<p>Stops the server from accepting new connections.  See <a href=\"net.html#net_server_close_callback\"><code>net.Server.close()</code></a>.</p>\n<p>Note that this is not analogous to restricting new requests since HTTP/2\nconnections are persistent. To achieve a similar graceful shutdown behavior,\nconsider also using <a href=\"#http2_http2session_close_callback\"><code>http2session.close()</code></a> on active sessions.</p>"
+                },
+                {
+                  "textRaw": "server.setTimeout([msecs][, callback])",
+                  "type": "method",
+                  "name": "setTimeout",
+                  "meta": {
+                    "added": [
+                      "v8.4.0"
+                    ],
+                    "changes": []
+                  },
+                  "signatures": [
+                    {
+                      "return": {
+                        "textRaw": "Returns: {Http2Server}",
+                        "name": "return",
+                        "type": "Http2Server"
+                      },
+                      "params": [
+                        {
+                          "textRaw": "`msecs` {number} **Default:** `120000` (2 minutes)",
+                          "name": "msecs",
+                          "type": "number",
+                          "default": "`120000` (2 minutes)",
+                          "optional": true
+                        },
+                        {
+                          "textRaw": "`callback` {Function}",
+                          "name": "callback",
+                          "type": "Function",
+                          "optional": true
+                        }
+                      ]
+                    }
+                  ],
+                  "desc": "<p>Used to set the timeout value for http2 server requests,\nand sets a callback function that is called when there is no activity\non the <code>Http2Server</code> after <code>msecs</code> milliseconds.</p>\n<p>The given callback is registered as a listener on the <code>'timeout'</code> event.</p>\n<p>In case of no callback function were assigned, a new <code>ERR_INVALID_CALLBACK</code>\nerror will be thrown.</p>"
                 }
               ]
             },
@@ -1873,7 +2000,7 @@
                     "changes": []
                   },
                   "params": [],
-                  "desc": "<p>The <code>'timeout'</code> event is emitted when there is no activity on the Server for\na given number of milliseconds set using <code>http2secureServer.setTimeout()</code>.</p>"
+                  "desc": "<p>The <code>'timeout'</code> event is emitted when there is no activity on the Server for\na given number of milliseconds set using <code>http2secureServer.setTimeout()</code>.\n<strong>Default:</strong> 2 minutes.</p>"
                 },
                 {
                   "textRaw": "Event: 'unknownProtocol'",
@@ -1913,6 +2040,42 @@
                     }
                   ],
                   "desc": "<p>Stops the server from accepting new connections.  See <a href=\"tls.html#tls_server_close_callback\"><code>tls.Server.close()</code></a>.</p>\n<p>Note that this is not analogous to restricting new requests since HTTP/2\nconnections are persistent. To achieve a similar graceful shutdown behavior,\nconsider also using <a href=\"#http2_http2session_close_callback\"><code>http2session.close()</code></a> on active sessions.</p>"
+                },
+                {
+                  "textRaw": "server.setTimeout([msecs][, callback])",
+                  "type": "method",
+                  "name": "setTimeout",
+                  "meta": {
+                    "added": [
+                      "v8.4.0"
+                    ],
+                    "changes": []
+                  },
+                  "signatures": [
+                    {
+                      "return": {
+                        "textRaw": "Returns: {Http2SecureServer}",
+                        "name": "return",
+                        "type": "Http2SecureServer"
+                      },
+                      "params": [
+                        {
+                          "textRaw": "`msecs` {number} **Default:** `120000` (2 minutes)",
+                          "name": "msecs",
+                          "type": "number",
+                          "default": "`120000` (2 minutes)",
+                          "optional": true
+                        },
+                        {
+                          "textRaw": "`callback` {Function}",
+                          "name": "callback",
+                          "type": "Function",
+                          "optional": true
+                        }
+                      ]
+                    }
+                  ],
+                  "desc": "<p>Used to set the timeout value for http2 secure server requests,\nand sets a callback function that is called when there is no activity\non the <code>Http2SecureServer</code> after <code>msecs</code> milliseconds.</p>\n<p>The given callback is registered as a listener on the <code>'timeout'</code> event.</p>\n<p>In case of no callback function were assigned, a new <code>ERR_INVALID_CALLBACK</code>\nerror will be thrown.</p>"
                 }
               ]
             }
@@ -2091,6 +2254,11 @@
                 ],
                 "changes": [
                   {
+                    "version": "v10.12.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/22956",
+                    "description": "Added the `origins` option to automatically send an `ORIGIN` frame on `Http2Session` startup."
+                  },
+                  {
                     "version": "v8.9.3",
                     "pr-url": "https://github.com/nodejs/node/pull/17105",
                     "description": "Added the `maxOutstandingPings` option with a default limit of 10."
@@ -2208,6 +2376,12 @@
                           "textRaw": "...: Any [`tls.createServer()`][] options can be provided. For servers, the identity options (`pfx` or `key`/`cert`) are usually required.",
                           "name": "...",
                           "desc": "Any [`tls.createServer()`][] options can be provided. For servers, the identity options (`pfx` or `key`/`cert`) are usually required."
+                        },
+                        {
+                          "textRaw": "`origins` {string[]} An array of origin strings to send within an `ORIGIN` frame immediately following creation of a new server `Http2Session`.",
+                          "name": "origins",
+                          "type": "string[]",
+                          "desc": "An array of origin strings to send within an `ORIGIN` frame immediately following creation of a new server `Http2Session`."
                         }
                       ]
                     },
@@ -2555,7 +2729,7 @@
                     ],
                     "changes": []
                   },
-                  "desc": "<p>The request/response headers object.</p>\n<p>Key-value pairs of header names and values. Header names are lower-cased.\nExample:</p>\n<pre><code class=\"language-js\">// Prints something like:\n//\n// { 'user-agent': 'curl/7.22.0',\n//   host: '127.0.0.1:8000',\n//   accept: '*/*' }\nconsole.log(request.headers);\n</code></pre>\n<p>See <a href=\"#http2_headers_object\">HTTP/2 Headers Object</a>.</p>\n<p>In HTTP/2, the request path, hostname, protocol, and method are represented as\nspecial headers prefixed with the <code>:</code> character (e.g. <code>':path'</code>). These special\nheaders will be included in the <code>request.headers</code> object. Care must be taken not\nto inadvertently modify these special headers or errors may occur. For instance,\nremoving all headers from the request will cause errors to occur:</p>\n<pre><code class=\"language-js\">removeAllHeaders(request.headers);\nassert(request.url);   // Fails because the :path header has been removed\n</code></pre>"
+                  "desc": "<p>The request/response headers object.</p>\n<p>Key-value pairs of header names and values. Header names are lower-cased.</p>\n<pre><code class=\"language-js\">// Prints something like:\n//\n// { 'user-agent': 'curl/7.22.0',\n//   host: '127.0.0.1:8000',\n//   accept: '*/*' }\nconsole.log(request.headers);\n</code></pre>\n<p>See <a href=\"#http2_headers_object\">HTTP/2 Headers Object</a>.</p>\n<p>In HTTP/2, the request path, hostname, protocol, and method are represented as\nspecial headers prefixed with the <code>:</code> character (e.g. <code>':path'</code>). These special\nheaders will be included in the <code>request.headers</code> object. Care must be taken not\nto inadvertently modify these special headers or errors may occur. For instance,\nremoving all headers from the request will cause errors to occur:</p>\n<pre><code class=\"language-js\">removeAllHeaders(request.headers);\nassert(request.url);   // Fails because the :path header has been removed\n</code></pre>"
                 },
                 {
                   "textRaw": "`httpVersion` {string}",
@@ -2579,7 +2753,7 @@
                     ],
                     "changes": []
                   },
-                  "desc": "<p>The request method as a string. Read-only. Example:\n<code>'GET'</code>, <code>'DELETE'</code>.</p>"
+                  "desc": "<p>The request method as a string. Read-only. Examples: <code>'GET'</code>, <code>'DELETE'</code>.</p>"
                 },
                 {
                   "textRaw": "`rawHeaders` {string[]}",
@@ -2651,7 +2825,7 @@
                     ],
                     "changes": []
                   },
-                  "desc": "<p>Request URL string. This contains only the URL that is\npresent in the actual HTTP request. If the request is:</p>\n<pre><code class=\"language-txt\">GET /status?name=ryan HTTP/1.1\\r\\n\nAccept: text/plain\\r\\n\n\\r\\n\n</code></pre>\n<p>Then <code>request.url</code> will be:</p>\n<!-- eslint-disable semi -->\n<pre><code class=\"language-js\">'/status?name=ryan'\n</code></pre>\n<p>To parse the url into its parts <code>require('url').parse(request.url)</code>\ncan be used. Example:</p>\n<pre><code class=\"language-txt\">$ node\n> require('url').parse('/status?name=ryan')\nUrl {\n  protocol: null,\n  slashes: null,\n  auth: null,\n  host: null,\n  port: null,\n  hostname: null,\n  hash: null,\n  search: '?name=ryan',\n  query: 'name=ryan',\n  pathname: '/status',\n  path: '/status?name=ryan',\n  href: '/status?name=ryan' }\n</code></pre>\n<p>To extract the parameters from the query string, the\n<code>require('querystring').parse</code> function can be used, or\n<code>true</code> can be passed as the second argument to <code>require('url').parse</code>.\nExample:</p>\n<pre><code class=\"language-txt\">$ node\n> require('url').parse('/status?name=ryan', true)\nUrl {\n  protocol: null,\n  slashes: null,\n  auth: null,\n  host: null,\n  port: null,\n  hostname: null,\n  hash: null,\n  search: '?name=ryan',\n  query: { name: 'ryan' },\n  pathname: '/status',\n  path: '/status?name=ryan',\n  href: '/status?name=ryan' }\n</code></pre>"
+                  "desc": "<p>Request URL string. This contains only the URL that is\npresent in the actual HTTP request. If the request is:</p>\n<pre><code class=\"language-txt\">GET /status?name=ryan HTTP/1.1\\r\\n\nAccept: text/plain\\r\\n\n\\r\\n\n</code></pre>\n<p>Then <code>request.url</code> will be:</p>\n<!-- eslint-disable semi -->\n<pre><code class=\"language-js\">'/status?name=ryan'\n</code></pre>\n<p>To parse the url into its parts <code>require('url').parse(request.url)</code>\ncan be used:</p>\n<pre><code class=\"language-txt\">$ node\n> require('url').parse('/status?name=ryan')\nUrl {\n  protocol: null,\n  slashes: null,\n  auth: null,\n  host: null,\n  port: null,\n  hostname: null,\n  hash: null,\n  search: '?name=ryan',\n  query: 'name=ryan',\n  pathname: '/status',\n  path: '/status?name=ryan',\n  href: '/status?name=ryan' }\n</code></pre>\n<p>To extract the parameters from the query string, the\n<code>require('querystring').parse</code> function can be used, or\n<code>true</code> can be passed as the second argument to <code>require('url').parse</code>.</p>\n<pre><code class=\"language-txt\">$ node\n> require('url').parse('/status?name=ryan', true)\nUrl {\n  protocol: null,\n  slashes: null,\n  auth: null,\n  host: null,\n  port: null,\n  hostname: null,\n  hash: null,\n  search: '?name=ryan',\n  query: { name: 'ryan' },\n  pathname: '/status',\n  path: '/status?name=ryan',\n  href: '/status?name=ryan' }\n</code></pre>"
                 }
               ],
               "methods": [
@@ -2724,7 +2898,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>This object is created internally by an HTTP server — not by the user. It is\npassed as the second parameter to the <a href=\"#http2_event_request\"><code>'request'</code></a> event.</p>\n<p>The response implements, but does not inherit from, the <a href=\"stream.html#stream_writable_streams\">Writable Stream</a>\ninterface. This is an <a href=\"events.html#events_class_eventemitter\"><code>EventEmitter</code></a> with the following events:</p>",
+              "desc": "<p>This object is created internally by an HTTP server — not by the user. It is\npassed as the second parameter to the <a href=\"#http2_event_request\"><code>'request'</code></a> event.</p>\n<p>The response inherits from <a href=\"\">Stream</a>, and additionally implements the\nfollowing:</p>",
               "events": [
                 {
                   "textRaw": "Event: 'close'",
@@ -2850,7 +3024,7 @@
                       ]
                     }
                   ],
-                  "desc": "<p>Reads out a header that has already been queued but not sent to the client.\nNote that the name is case insensitive.</p>\n<p>Example:</p>\n<pre><code class=\"language-js\">const contentType = response.getHeader('content-type');\n</code></pre>"
+                  "desc": "<p>Reads out a header that has already been queued but not sent to the client.\nNote that the name is case insensitive.</p>\n<pre><code class=\"language-js\">const contentType = response.getHeader('content-type');\n</code></pre>"
                 },
                 {
                   "textRaw": "response.getHeaderNames()",
@@ -2872,7 +3046,7 @@
                       "params": []
                     }
                   ],
-                  "desc": "<p>Returns an array containing the unique names of the current outgoing headers.\nAll header names are lowercase.</p>\n<p>Example:</p>\n<pre><code class=\"language-js\">response.setHeader('Foo', 'bar');\nresponse.setHeader('Set-Cookie', ['foo=bar', 'bar=baz']);\n\nconst headerNames = response.getHeaderNames();\n// headerNames === ['foo', 'set-cookie']\n</code></pre>"
+                  "desc": "<p>Returns an array containing the unique names of the current outgoing headers.\nAll header names are lowercase.</p>\n<pre><code class=\"language-js\">response.setHeader('Foo', 'bar');\nresponse.setHeader('Set-Cookie', ['foo=bar', 'bar=baz']);\n\nconst headerNames = response.getHeaderNames();\n// headerNames === ['foo', 'set-cookie']\n</code></pre>"
                 },
                 {
                   "textRaw": "response.getHeaders()",
@@ -2894,7 +3068,7 @@
                       "params": []
                     }
                   ],
-                  "desc": "<p>Returns a shallow copy of the current outgoing headers. Since a shallow copy\nis used, array values may be mutated without additional calls to various\nheader-related http module methods. The keys of the returned object are the\nheader names and the values are the respective header values. All header names\nare lowercase.</p>\n<p>The object returned by the <code>response.getHeaders()</code> method <em>does not</em>\nprototypically inherit from the JavaScript <code>Object</code>. This means that typical\n<code>Object</code> methods such as <code>obj.toString()</code>, <code>obj.hasOwnProperty()</code>, and others\nare not defined and <em>will not work</em>.</p>\n<p>Example:</p>\n<pre><code class=\"language-js\">response.setHeader('Foo', 'bar');\nresponse.setHeader('Set-Cookie', ['foo=bar', 'bar=baz']);\n\nconst headers = response.getHeaders();\n// headers === { foo: 'bar', 'set-cookie': ['foo=bar', 'bar=baz'] }\n</code></pre>"
+                  "desc": "<p>Returns a shallow copy of the current outgoing headers. Since a shallow copy\nis used, array values may be mutated without additional calls to various\nheader-related http module methods. The keys of the returned object are the\nheader names and the values are the respective header values. All header names\nare lowercase.</p>\n<p>The object returned by the <code>response.getHeaders()</code> method <em>does not</em>\nprototypically inherit from the JavaScript <code>Object</code>. This means that typical\n<code>Object</code> methods such as <code>obj.toString()</code>, <code>obj.hasOwnProperty()</code>, and others\nare not defined and <em>will not work</em>.</p>\n<pre><code class=\"language-js\">response.setHeader('Foo', 'bar');\nresponse.setHeader('Set-Cookie', ['foo=bar', 'bar=baz']);\n\nconst headers = response.getHeaders();\n// headers === { foo: 'bar', 'set-cookie': ['foo=bar', 'bar=baz'] }\n</code></pre>"
                 },
                 {
                   "textRaw": "response.hasHeader(name)",
@@ -2922,7 +3096,7 @@
                       ]
                     }
                   ],
-                  "desc": "<p>Returns <code>true</code> if the header identified by <code>name</code> is currently set in the\noutgoing headers. Note that the header name matching is case-insensitive.</p>\n<p>Example:</p>\n<pre><code class=\"language-js\">const hasContentType = response.hasHeader('content-type');\n</code></pre>"
+                  "desc": "<p>Returns <code>true</code> if the header identified by <code>name</code> is currently set in the\noutgoing headers. Note that the header name matching is case-insensitive.</p>\n<pre><code class=\"language-js\">const hasContentType = response.hasHeader('content-type');\n</code></pre>"
                 },
                 {
                   "textRaw": "response.removeHeader(name)",
@@ -2945,7 +3119,7 @@
                       ]
                     }
                   ],
-                  "desc": "<p>Removes a header that has been queued for implicit sending.</p>\n<p>Example:</p>\n<pre><code class=\"language-js\">response.removeHeader('Content-Encoding');\n</code></pre>"
+                  "desc": "<p>Removes a header that has been queued for implicit sending.</p>\n<pre><code class=\"language-js\">response.removeHeader('Content-Encoding');\n</code></pre>"
                 },
                 {
                   "textRaw": "response.setHeader(name, value)",
@@ -2973,7 +3147,7 @@
                       ]
                     }
                   ],
-                  "desc": "<p>Sets a single header value for implicit headers. If this header already exists\nin the to-be-sent headers, its value will be replaced. Use an array of strings\nhere to send multiple headers with the same name.</p>\n<p>Example:</p>\n<pre><code class=\"language-js\">response.setHeader('Content-Type', 'text/html');\n</code></pre>\n<p>or</p>\n<pre><code class=\"language-js\">response.setHeader('Set-Cookie', ['type=ninja', 'language=javascript']);\n</code></pre>\n<p>Attempting to set a header field name or value that contains invalid characters\nwill result in a <a href=\"errors.html#errors_class_typeerror\"><code>TypeError</code></a> being thrown.</p>\n<p>When headers have been set with <a href=\"#http2_response_setheader_name_value\"><code>response.setHeader()</code></a>, they will be merged\nwith any headers passed to <a href=\"#http2_response_writehead_statuscode_statusmessage_headers\"><code>response.writeHead()</code></a>, with the headers passed\nto <a href=\"#http2_response_writehead_statuscode_statusmessage_headers\"><code>response.writeHead()</code></a> given precedence.</p>\n<pre><code class=\"language-js\">// returns content-type = text/plain\nconst server = http2.createServer((req, res) => {\n  res.setHeader('Content-Type', 'text/html');\n  res.setHeader('X-Foo', 'bar');\n  res.writeHead(200, { 'Content-Type': 'text/plain' });\n  res.end('ok');\n});\n</code></pre>"
+                  "desc": "<p>Sets a single header value for implicit headers. If this header already exists\nin the to-be-sent headers, its value will be replaced. Use an array of strings\nhere to send multiple headers with the same name.</p>\n<pre><code class=\"language-js\">response.setHeader('Content-Type', 'text/html');\n</code></pre>\n<p>or</p>\n<pre><code class=\"language-js\">response.setHeader('Set-Cookie', ['type=ninja', 'language=javascript']);\n</code></pre>\n<p>Attempting to set a header field name or value that contains invalid characters\nwill result in a <a href=\"errors.html#errors_class_typeerror\"><code>TypeError</code></a> being thrown.</p>\n<p>When headers have been set with <a href=\"#http2_response_setheader_name_value\"><code>response.setHeader()</code></a>, they will be merged\nwith any headers passed to <a href=\"#http2_response_writehead_statuscode_statusmessage_headers\"><code>response.writeHead()</code></a>, with the headers passed\nto <a href=\"#http2_response_writehead_statuscode_statusmessage_headers\"><code>response.writeHead()</code></a> given precedence.</p>\n<pre><code class=\"language-js\">// returns content-type = text/plain\nconst server = http2.createServer((req, res) => {\n  res.setHeader('Content-Type', 'text/html');\n  res.setHeader('X-Foo', 'bar');\n  res.writeHead(200, { 'Content-Type': 'text/plain' });\n  res.end('ok');\n});\n</code></pre>"
                 },
                 {
                   "textRaw": "response.setTimeout(msecs[, callback])",
@@ -3099,7 +3273,7 @@
                       ]
                     }
                   ],
-                  "desc": "<p>Sends a response header to the request. The status code is a 3-digit HTTP\nstatus code, like <code>404</code>. The last argument, <code>headers</code>, are the response headers.</p>\n<p>For compatibility with <a href=\"http.html\">HTTP/1</a>, a human-readable <code>statusMessage</code> may be\npassed as the second argument. However, because the <code>statusMessage</code> has no\nmeaning within HTTP/2, the argument will have no effect and a process warning\nwill be emitted.</p>\n<p>Example:</p>\n<pre><code class=\"language-js\">const body = 'hello world';\nresponse.writeHead(200, {\n  'Content-Length': Buffer.byteLength(body),\n  'Content-Type': 'text/plain' });\n</code></pre>\n<p>Note that Content-Length is given in bytes not characters. The\n<code>Buffer.byteLength()</code> API may be used to determine the number of bytes in a\ngiven encoding. On outbound messages, Node.js does not check if Content-Length\nand the length of the body being transmitted are equal or not. However, when\nreceiving messages, Node.js will automatically reject messages when the\nContent-Length does not match the actual payload size.</p>\n<p>This method may be called at most one time on a message before\n<a href=\"#http2_response_end_data_encoding_callback\"><code>response.end()</code></a> is called.</p>\n<p>If <a href=\"#http2_response_write_chunk_encoding_callback\"><code>response.write()</code></a> or <a href=\"#http2_response_end_data_encoding_callback\"><code>response.end()</code></a> are called before calling\nthis, the implicit/mutable headers will be calculated and call this function.</p>\n<p>When headers have been set with <a href=\"#http2_response_setheader_name_value\"><code>response.setHeader()</code></a>, they will be merged\nwith any headers passed to <a href=\"#http2_response_writehead_statuscode_statusmessage_headers\"><code>response.writeHead()</code></a>, with the headers passed\nto <a href=\"#http2_response_writehead_statuscode_statusmessage_headers\"><code>response.writeHead()</code></a> given precedence.</p>\n<pre><code class=\"language-js\">// returns content-type = text/plain\nconst server = http2.createServer((req, res) => {\n  res.setHeader('Content-Type', 'text/html');\n  res.setHeader('X-Foo', 'bar');\n  res.writeHead(200, { 'Content-Type': 'text/plain' });\n  res.end('ok');\n});\n</code></pre>\n<p>Attempting to set a header field name or value that contains invalid characters\nwill result in a <a href=\"errors.html#errors_class_typeerror\"><code>TypeError</code></a> being thrown.</p>"
+                  "desc": "<p>Sends a response header to the request. The status code is a 3-digit HTTP\nstatus code, like <code>404</code>. The last argument, <code>headers</code>, are the response headers.</p>\n<p>For compatibility with <a href=\"http.html\">HTTP/1</a>, a human-readable <code>statusMessage</code> may be\npassed as the second argument. However, because the <code>statusMessage</code> has no\nmeaning within HTTP/2, the argument will have no effect and a process warning\nwill be emitted.</p>\n<pre><code class=\"language-js\">const body = 'hello world';\nresponse.writeHead(200, {\n  'Content-Length': Buffer.byteLength(body),\n  'Content-Type': 'text/plain' });\n</code></pre>\n<p>Note that Content-Length is given in bytes not characters. The\n<code>Buffer.byteLength()</code> API may be used to determine the number of bytes in a\ngiven encoding. On outbound messages, Node.js does not check if Content-Length\nand the length of the body being transmitted are equal or not. However, when\nreceiving messages, Node.js will automatically reject messages when the\nContent-Length does not match the actual payload size.</p>\n<p>This method may be called at most one time on a message before\n<a href=\"#http2_response_end_data_encoding_callback\"><code>response.end()</code></a> is called.</p>\n<p>If <a href=\"#http2_response_write_chunk_encoding_callback\"><code>response.write()</code></a> or <a href=\"#http2_response_end_data_encoding_callback\"><code>response.end()</code></a> are called before calling\nthis, the implicit/mutable headers will be calculated and call this function.</p>\n<p>When headers have been set with <a href=\"#http2_response_setheader_name_value\"><code>response.setHeader()</code></a>, they will be merged\nwith any headers passed to <a href=\"#http2_response_writehead_statuscode_statusmessage_headers\"><code>response.writeHead()</code></a>, with the headers passed\nto <a href=\"#http2_response_writehead_statuscode_statusmessage_headers\"><code>response.writeHead()</code></a> given precedence.</p>\n<pre><code class=\"language-js\">// returns content-type = text/plain\nconst server = http2.createServer((req, res) => {\n  res.setHeader('Content-Type', 'text/html');\n  res.setHeader('X-Foo', 'bar');\n  res.writeHead(200, { 'Content-Type': 'text/plain' });\n  res.end('ok');\n});\n</code></pre>\n<p>Attempting to set a header field name or value that contains invalid characters\nwill result in a <a href=\"errors.html#errors_class_typeerror\"><code>TypeError</code></a> being thrown.</p>"
                 },
                 {
                   "textRaw": "response.createPushResponse(headers, callback)",
@@ -3121,14 +3295,28 @@
                           "desc": "An object describing the headers"
                         },
                         {
-                          "textRaw": "`callback` {Function}",
+                          "textRaw": "`callback` {Function} Called once `http2stream.pushStream()` is finished, or either when the attempt to create the pushed `Http2Stream` has failed or has been rejected, or the state of `Http2ServerRequest` is closed prior to calling the `http2stream.pushStream()` method",
                           "name": "callback",
-                          "type": "Function"
+                          "type": "Function",
+                          "desc": "Called once `http2stream.pushStream()` is finished, or either when the attempt to create the pushed `Http2Stream` has failed or has been rejected, or the state of `Http2ServerRequest` is closed prior to calling the `http2stream.pushStream()` method",
+                          "options": [
+                            {
+                              "textRaw": "`err` {Error}",
+                              "name": "err",
+                              "type": "Error"
+                            },
+                            {
+                              "textRaw": "`stream` {ServerHttp2Stream} The newly-created `ServerHttp2Stream` object",
+                              "name": "stream",
+                              "type": "ServerHttp2Stream",
+                              "desc": "The newly-created `ServerHttp2Stream` object"
+                            }
+                          ]
                         }
                       ]
                     }
                   ],
-                  "desc": "<p>Call <a href=\"#http2_http2stream_pushstream_headers_options_callback\"><code>http2stream.pushStream()</code></a> with the given headers, and wraps the\ngiven newly created <a href=\"#http2_class_http2stream\"><code>Http2Stream</code></a> on <code>Http2ServerResponse</code>.</p>\n<p>The callback will be called with an error with code <code>ERR_HTTP2_INVALID_STREAM</code>\nif the stream is closed.</p>"
+                  "desc": "<p>Call <a href=\"#http2_http2stream_pushstream_headers_options_callback\"><code>http2stream.pushStream()</code></a> with the given headers, and wrap the\ngiven <a href=\"#http2_class_http2stream\"><code>Http2Stream</code></a> on a newly created <code>Http2ServerResponse</code> as the callback\nparameter if successful. When <code>Http2ServerRequest</code> is closed, the callback is\ncalled with an error <code>ERR_HTTP2_INVALID_STREAM</code>.</p>"
                 }
               ],
               "properties": [
@@ -3190,7 +3378,7 @@
                     ],
                     "changes": []
                   },
-                  "desc": "<p>Returns a <code>Proxy</code> object that acts as a <code>net.Socket</code> (or <code>tls.TLSSocket</code>) but\napplies getters, setters, and methods based on HTTP/2 logic.</p>\n<p><code>destroyed</code>, <code>readable</code>, and <code>writable</code> properties will be retrieved from and\nset on <code>response.stream</code>.</p>\n<p><code>destroy</code>, <code>emit</code>, <code>end</code>, <code>on</code> and <code>once</code> methods will be called on\n<code>response.stream</code>.</p>\n<p><code>setTimeout</code> method will be called on <code>response.stream.session</code>.</p>\n<p><code>pause</code>, <code>read</code>, <code>resume</code>, and <code>write</code> will throw an error with code\n<code>ERR_HTTP2_NO_SOCKET_MANIPULATION</code>. See <a href=\"#http2_http2session_and_sockets\"><code>Http2Session</code> and Sockets</a> for\nmore information.</p>\n<p>All other interactions will be routed directly to the socket.</p>\n<p>Example:</p>\n<pre><code class=\"language-js\">const http2 = require('http2');\nconst server = http2.createServer((req, res) => {\n  const ip = req.socket.remoteAddress;\n  const port = req.socket.remotePort;\n  res.end(`Your IP address is ${ip} and your source port is ${port}.`);\n}).listen(3000);\n</code></pre>"
+                  "desc": "<p>Returns a <code>Proxy</code> object that acts as a <code>net.Socket</code> (or <code>tls.TLSSocket</code>) but\napplies getters, setters, and methods based on HTTP/2 logic.</p>\n<p><code>destroyed</code>, <code>readable</code>, and <code>writable</code> properties will be retrieved from and\nset on <code>response.stream</code>.</p>\n<p><code>destroy</code>, <code>emit</code>, <code>end</code>, <code>on</code> and <code>once</code> methods will be called on\n<code>response.stream</code>.</p>\n<p><code>setTimeout</code> method will be called on <code>response.stream.session</code>.</p>\n<p><code>pause</code>, <code>read</code>, <code>resume</code>, and <code>write</code> will throw an error with code\n<code>ERR_HTTP2_NO_SOCKET_MANIPULATION</code>. See <a href=\"#http2_http2session_and_sockets\"><code>Http2Session</code> and Sockets</a> for\nmore information.</p>\n<p>All other interactions will be routed directly to the socket.</p>\n<pre><code class=\"language-js\">const http2 = require('http2');\nconst server = http2.createServer((req, res) => {\n  const ip = req.socket.remoteAddress;\n  const port = req.socket.remotePort;\n  res.end(`Your IP address is ${ip} and your source port is ${port}.`);\n}).listen(3000);\n</code></pre>"
                 },
                 {
                   "textRaw": "`statusCode` {number}",
@@ -3202,7 +3390,7 @@
                     ],
                     "changes": []
                   },
-                  "desc": "<p>When using implicit headers (not calling <a href=\"#http2_response_writehead_statuscode_statusmessage_headers\"><code>response.writeHead()</code></a> explicitly),\nthis property controls the status code that will be sent to the client when\nthe headers get flushed.</p>\n<p>Example:</p>\n<pre><code class=\"language-js\">response.statusCode = 404;\n</code></pre>\n<p>After response header was sent to the client, this property indicates the\nstatus code which was sent out.</p>"
+                  "desc": "<p>When using implicit headers (not calling <a href=\"#http2_response_writehead_statuscode_statusmessage_headers\"><code>response.writeHead()</code></a> explicitly),\nthis property controls the status code that will be sent to the client when\nthe headers get flushed.</p>\n<pre><code class=\"language-js\">response.statusCode = 404;\n</code></pre>\n<p>After response header was sent to the client, this property indicates the\nstatus code which was sent out.</p>"
                 },
                 {
                   "textRaw": "`statusMessage` {string}",

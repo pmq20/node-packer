@@ -38,9 +38,6 @@ tasks.
 
 Takes `whitelist` and concats that with predefined `knownGlobals`.
 
-### arrayStream
-A stream to push an array into a REPL
-
 ### busyLoop(time)
 * `time` [&lt;number>]
 
@@ -161,11 +158,6 @@ Indicates `hasCrypto` and `crypto` with fips.
 
 Indicates if [internationalization] is supported.
 
-### hasSmallICU
-* [&lt;boolean>]
-
-Indicates `hasIntl` and `small-icu` are supported.
-
 ### hasIPv6
 * [&lt;boolean>]
 
@@ -175,24 +167,6 @@ Indicates whether `IPv6` is supported on this platform.
 * [&lt;boolean>]
 
 Indicates if there are multiple localhosts available.
-
-### hijackStderr(listener)
-* `listener` [&lt;Function>]: a listener with a single parameter
-  called `data`.
-
-Eavesdrop to `process.stderr.write` calls. Once `process.stderr.write` is
-called, `listener` will also be called and the `data` of `write` function will
-be passed to `listener`. What's more, `process.stderr.writeTimes` is a count of
-the number of calls.
-
-### hijackStdout(listener)
-* `listener` [&lt;Function>]: a listener with a single parameter
-  called `data`.
-
-Eavesdrop to `process.stdout.write` calls. Once `process.stdout.write` is
-called, `listener` will also be called and the `data` of `write` function will
-be passed to `listener`. What's more, `process.stdout.writeTimes` is a count of
-the number of calls.
 
 ### inFreeBSDJail
 * [&lt;boolean>]
@@ -244,16 +218,6 @@ Platform check for Windows.
 * [&lt;boolean>]
 
 Platform check for Windows 32-bit on Windows 64-bit.
-
-### isCPPSymbolsNotMapped
-* [&lt;boolean>]
-
-Platform check for C++ symbols are mapped or not.
-
-### leakedGlobals()
-* return [&lt;Array>]
-
-Indicates whether any globals are not on the `knownGlobals` list.
 
 ### localhostIPv4
 * [&lt;string>]
@@ -317,21 +281,6 @@ otherwise.
 ### noWarnCode
 See `common.expectWarning()` for usage.
 
-### onGC(target, listener)
-* `target` [&lt;Object>]
-* `listener` [&lt;Object>]
-  * `ongc` [&lt;Function>]
-
-Installs a GC listener for the collection of `target`.
-
-This uses `async_hooks` for GC tracking. This means that it enables
-`async_hooks` tracking, which may affect the test functionality. It also
-means that between a `global.gc()` call and the listener being invoked
-a full `setImmediate()` invocation passes.
-
-`listener` is an object to make it easier to use a closure; the target object
-should not be in scope when `listener.ongc()` is created.
-
 ### opensslCli
 * [&lt;boolean>]
 
@@ -358,15 +307,16 @@ A port number for tests to use if one is needed.
 
 Logs '1..0 # Skipped: ' + `msg`
 
-### restoreStderr()
+### pwdCommand
+* [&lt;array>] First two argument for the `spawn`/`exec` functions.
 
-Restore the original `process.stderr.write`. Used to restore `stderr` to its
-original state after calling [`common.hijackStdErr()`][].
+Platform normalized `pwd` command options. Usage example:
+```js
+const common = require('../common');
+const { spawn } = require('child_process');
 
-### restoreStdout()
-
-Restore the original `process.stdout.write`. Used to restore `stdout` to its
-original state after calling [`common.hijackStdOut()`][].
+spawn(...common.pwdCommand, { stdio: ['pipe'] });
+```
 
 ### rootDir
 * [&lt;string>]
@@ -401,17 +351,24 @@ was disabled at compile time.
 Skip the rest of the tests in the current file when the Node.js executable
 was compiled with a pointer size smaller than 64 bits.
 
-### spawnPwd(options)
-* `options` [&lt;Object>]
-* return [&lt;Object>]
+### skipIfWorker()
 
-Platform normalizes the `pwd` command.
+Skip the rest of the tests in the current file when not running on a main
+thread.
 
-### spawnSyncPwd(options)
-* `options` [&lt;Object>]
-* return [&lt;Object>]
+## ArrayStream Module
 
-Synchronous version of `spawnPwd`.
+The `ArrayStream` module provides a simple `Stream` that pushes elements from
+a given array.
+
+<!-- eslint-disable no-undef, node-core/required-modules -->
+```js
+const ArrayStream = require('../common/arraystream');
+const stream = new ArrayStream();
+stream.run(['a', 'b', 'c']);
+```
+
+It can be used within tests as a simple mock stream.
 
 ## Countdown Module
 
@@ -585,6 +542,52 @@ validateSnapshotNodes('TLSWRAP', [
 ]);
 ```
 
+## hijackstdio Module
+
+The `hijackstdio` module provides utility functions for temporarily redirecting
+`stdout` and `stderr` output.
+
+<!-- eslint-disable no-undef, node-core/required-modules -->
+```js
+const { hijackStdout, restoreStdout } = require('../common/hijackstdio');
+
+hijackStdout((data) => {
+  /* Do something with data */
+  restoreStdout();
+});
+
+console.log('this is sent to the hijacked listener');
+```
+
+### hijackStderr(listener)
+* `listener` [&lt;Function>]: a listener with a single parameter
+  called `data`.
+
+Eavesdrop to `process.stderr.write()` calls. Once `process.stderr.write()` is
+called, `listener` will also be called and the `data` of `write` function will
+be passed to `listener`. What's more, `process.stderr.writeTimes` is a count of
+the number of calls.
+
+### hijackStdout(listener)
+* `listener` [&lt;Function>]: a listener with a single parameter
+  called `data`.
+
+Eavesdrop to `process.stdout.write()` calls. Once `process.stdout.write()` is
+called, `listener` will also be called and the `data` of `write` function will
+be passed to `listener`. What's more, `process.stdout.writeTimes` is a count of
+the number of calls.
+
+### restoreStderr()
+
+Restore the original `process.stderr.write()`. Used to restore `stderr` to its
+original state after calling [`hijackstdio.hijackStdErr()`][].
+
+### restoreStdout()
+
+Restore the original `process.stdout.write()`. Used to restore `stdout` to its
+original state after calling [`hijackstdio.hijackStdOut()`][].
+
+
 ## HTTP/2 Module
 
 The http2.js module provides a handful of utilities for creating mock HTTP/2
@@ -730,6 +733,34 @@ via `NODE_TEST_*` environment variables. For example, to configure
 `internet.addresses.INET_HOST`, set the environment
 variable `NODE_TEST_INET_HOST` to a specified host.
 
+## ongc Module
+
+The `ongc` module allows a garbage collection listener to be installed. The
+module exports a single `onGC()` function.
+
+```js
+require('../common');
+const onGC = require('../common/ongc');
+
+onGC({}, { ongc() { console.log('collected'); } });
+```
+
+### onGC(target, listener)
+* `target` [&lt;Object>]
+* `listener` [&lt;Object>]
+  * `ongc` [&lt;Function>]
+
+Installs a GC listener for the collection of `target`.
+
+This uses `async_hooks` for GC tracking. This means that it enables
+`async_hooks` tracking, which may affect the test functionality. It also
+means that between a `global.gc()` call and the listener being invoked
+a full `setImmediate()` invocation passes.
+
+`listener` is an object to make it easier to use a closure; the target object
+should not be in scope when `listener.ongc()` is created.
+
+
 ## tmpdir Module
 
 The `tmpdir` module supports the use of a temporary directory for testing.
@@ -762,6 +793,6 @@ implementation with tests from
 [&lt;boolean>]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type
 [&lt;number>]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type
 [&lt;string>]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type
-[`common.hijackStdErr()`]: #hijackstderrlistener
-[`common.hijackStdOut()`]: #hijackstdoutlistener
+[`hijackstdio.hijackStdErr()`]: #hijackstderrlistener
+[`hijackstdio.hijackStdOut()`]: #hijackstdoutlistener
 [internationalization]: https://github.com/nodejs/node/wiki/Intl

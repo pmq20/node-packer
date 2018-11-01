@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Assert | Node.js v10.12.0 Documentation</title>
+  <title>Assert | Node.js v10.13.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -80,7 +80,7 @@
 
     <div id="column1" data-id="assert" class="interior">
       <header>
-        <h1>Node.js v10.12.0 Documentation</h1>
+        <h1>Node.js v10.13.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -163,7 +163,7 @@ test invariants.</p>
 <a href="#assert_strict_mode"><code>strict mode</code></a>.</p>
 <p>For more information about the used equality comparisons see
 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Equality_comparisons_and_sameness">MDN's guide on equality comparisons and sameness</a>.</p>
-<h2>Class: assert.AssertionError<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/assert.js#L133">[src]</a><span><a class="mark" href="#assert_class_assert_assertionerror" id="assert_class_assert_assertionerror">#</a></span></h2>
+<h2>Class: assert.AssertionError<a class="srclink" href="https://github.com/nodejs/node/blob/ab4af087e83d91a46354d765306d3543b1d85423/lib/assert.js#L133">[src]</a><span><a class="mark" href="#assert_class_assert_assertionerror" id="assert_class_assert_assertionerror">#</a></span></h2>
 <p>A subclass of <code>Error</code> that indicates the failure of an assertion. All errors
 thrown by the <code>assert</code> module will be instances of the <code>AssertionError</code> class.</p>
 <h3>new assert.AssertionError(options)<span><a class="mark" href="#assert_new_assert_assertionerror_options" id="assert_new_assert_assertionerror_options">#</a></span></h3>
@@ -284,7 +284,7 @@ lax:</p>
 <pre><code class="language-js">// WARNING: This does not throw an AssertionError!
 assert.deepEqual(/a/gi, new Date());
 </code></pre>
-<h2>assert(value[, message])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/assert.js#L72">[src]</a><span><a class="mark" href="#assert_assert_value_message" id="assert_assert_value_message">#</a></span></h2>
+<h2>assert(value[, message])<a class="srclink" href="https://github.com/nodejs/node/blob/ab4af087e83d91a46354d765306d3543b1d85423/lib/assert.js#L72">[src]</a><span><a class="mark" href="#assert_assert_value_message" id="assert_assert_value_message">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.5.9</span>
 </div>
@@ -293,7 +293,7 @@ assert.deepEqual(/a/gi, new Date());
 <li><code>message</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&#x3C;Error></a></li>
 </ul>
 <p>An alias of <a href="#assert_assert_ok_value_message"><code>assert.ok()</code></a>.</p>
-<h2>assert.deepEqual(actual, expected[, message])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/assert.js#L392">[src]</a><span><a class="mark" href="#assert_assert_deepequal_actual_expected_message" id="assert_assert_deepequal_actual_expected_message">#</a></span></h2>
+<h2>assert.deepEqual(actual, expected[, message])<a class="srclink" href="https://github.com/nodejs/node/blob/ab4af087e83d91a46354d765306d3543b1d85423/lib/assert.js#L392">[src]</a><span><a class="mark" href="#assert_assert_deepequal_actual_expected_message" id="assert_assert_deepequal_actual_expected_message">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -377,7 +377,7 @@ property set equal to the value of the <code>message</code> parameter. If the <c
 parameter is undefined, a default error message is assigned. If the <code>message</code>
 parameter is an instance of an <a href="errors.html#errors_class_error"><code>Error</code></a> then it will be thrown instead of the
 <code>AssertionError</code>.</p>
-<h2>assert.deepStrictEqual(actual, expected[, message])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/assert.js#L420">[src]</a><span><a class="mark" href="#assert_assert_deepstrictequal_actual_expected_message" id="assert_assert_deepstrictequal_actual_expected_message">#</a></span></h2>
+<h2>assert.deepStrictEqual(actual, expected[, message])<a class="srclink" href="https://github.com/nodejs/node/blob/ab4af087e83d91a46354d765306d3543b1d85423/lib/assert.js#L420">[src]</a><span><a class="mark" href="#assert_assert_deepstrictequal_actual_expected_message" id="assert_assert_deepstrictequal_actual_expected_message">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -515,7 +515,7 @@ property set equal to the value of the <code>message</code> parameter. If the <c
 parameter is undefined, a default error message is assigned. If the <code>message</code>
 parameter is an instance of an <a href="errors.html#errors_class_error"><code>Error</code></a> then it will be thrown instead of the
 <code>AssertionError</code>.</p>
-<h2>assert.doesNotReject(asyncFn[, error][, message])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/assert.js#L701">[src]</a><span><a class="mark" href="#assert_assert_doesnotreject_asyncfn_error_message" id="assert_assert_doesnotreject_asyncfn_error_message">#</a></span></h2>
+<h2>assert.doesNotReject(asyncFn[, error][, message])<a class="srclink" href="https://github.com/nodejs/node/blob/ab4af087e83d91a46354d765306d3543b1d85423/lib/assert.js#L701">[src]</a><span><a class="mark" href="#assert_assert_doesnotreject_asyncfn_error_message" id="assert_assert_doesnotreject_asyncfn_error_message">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v10.0.0</span>
 </div>
@@ -554,7 +554,7 @@ function. See <a href="#assert_assert_throws_fn_error_message"><code>assert.thro
     // ...
   });
 </code></pre>
-<h2>assert.doesNotThrow(fn[, error][, message])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/assert.js#L697">[src]</a><span><a class="mark" href="#assert_assert_doesnotthrow_fn_error_message" id="assert_assert_doesnotthrow_fn_error_message">#</a></span></h2>
+<h2>assert.doesNotThrow(fn[, error][, message])<a class="srclink" href="https://github.com/nodejs/node/blob/ab4af087e83d91a46354d765306d3543b1d85423/lib/assert.js#L697">[src]</a><span><a class="mark" href="#assert_assert_doesnotthrow_fn_error_message" id="assert_assert_doesnotthrow_fn_error_message">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -619,7 +619,7 @@ message:</p>
 );
 // Throws: AssertionError: Got unwanted exception: Whoops
 </code></pre>
-<h2>assert.equal(actual, expected[, message])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/assert.js#L363">[src]</a><span><a class="mark" href="#assert_assert_equal_actual_expected_message" id="assert_assert_equal_actual_expected_message">#</a></span></h2>
+<h2>assert.equal(actual, expected[, message])<a class="srclink" href="https://github.com/nodejs/node/blob/ab4af087e83d91a46354d765306d3543b1d85423/lib/assert.js#L363">[src]</a><span><a class="mark" href="#assert_assert_equal_actual_expected_message" id="assert_assert_equal_actual_expected_message">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.21</span>
 </div>
@@ -651,7 +651,7 @@ property set equal to the value of the <code>message</code> parameter. If the <c
 parameter is undefined, a default error message is assigned. If the <code>message</code>
 parameter is an instance of an <a href="errors.html#errors_class_error"><code>Error</code></a> then it will be thrown instead of the
 <code>AssertionError</code>.</p>
-<h2>assert.fail([message])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/assert.js#L88">[src]</a><span><a class="mark" href="#assert_assert_fail_message" id="assert_assert_fail_message">#</a></span></h2>
+<h2>assert.fail([message])<a class="srclink" href="https://github.com/nodejs/node/blob/ab4af087e83d91a46354d765306d3543b1d85423/lib/assert.js#L88">[src]</a><span><a class="mark" href="#assert_assert_fail_message" id="assert_assert_fail_message">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.21</span>
 </div>
@@ -674,7 +674,7 @@ assert.fail(new TypeError('need array'));
 </code></pre>
 <p>Using <code>assert.fail()</code> with more than two arguments is possible but deprecated.
 See below for further details.</p>
-<h2>assert.fail(actual, expected[, message[, operator[, stackStartFn]]])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/assert.js#L88">[src]</a><span><a class="mark" href="#assert_assert_fail_actual_expected_message_operator_stackstartfn" id="assert_assert_fail_actual_expected_message_operator_stackstartfn">#</a></span></h2>
+<h2>assert.fail(actual, expected[, message[, operator[, stackStartFn]]])<a class="srclink" href="https://github.com/nodejs/node/blob/ab4af087e83d91a46354d765306d3543b1d85423/lib/assert.js#L88">[src]</a><span><a class="mark" href="#assert_assert_fail_actual_expected_message_operator_stackstartfn" id="assert_assert_fail_actual_expected_message_operator_stackstartfn">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -732,7 +732,7 @@ suppressFrame();
 //     at ContextifyScript.Script.runInThisContext (vm.js:44:33)
 //     ...
 </code></pre>
-<h2>assert.ifError(value)<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/assert.js#L705">[src]</a><span><a class="mark" href="#assert_assert_iferror_value" id="assert_assert_iferror_value">#</a></span></h2>
+<h2>assert.ifError(value)<a class="srclink" href="https://github.com/nodejs/node/blob/ab4af087e83d91a46354d765306d3543b1d85423/lib/assert.js#L705">[src]</a><span><a class="mark" href="#assert_assert_iferror_value" id="assert_assert_iferror_value">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -777,7 +777,7 @@ let err;
 //     at ifErrorFrame
 //     at errorFrame
 </code></pre>
-<h2>assert.notDeepEqual(actual, expected[, message])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/assert.js#L406">[src]</a><span><a class="mark" href="#assert_assert_notdeepequal_actual_expected_message" id="assert_assert_notdeepequal_actual_expected_message">#</a></span></h2>
+<h2>assert.notDeepEqual(actual, expected[, message])<a class="srclink" href="https://github.com/nodejs/node/blob/ab4af087e83d91a46354d765306d3543b1d85423/lib/assert.js#L406">[src]</a><span><a class="mark" href="#assert_assert_notdeepequal_actual_expected_message" id="assert_assert_notdeepequal_actual_expected_message">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -843,7 +843,7 @@ property set equal to the value of the <code>message</code> parameter. If the <c
 parameter is undefined, a default error message is assigned. If the <code>message</code>
 parameter is an instance of an <a href="errors.html#errors_class_error"><code>Error</code></a> then it will be thrown instead of the
 <code>AssertionError</code>.</p>
-<h2>assert.notDeepStrictEqual(actual, expected[, message])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/assert.js#L434">[src]</a><span><a class="mark" href="#assert_assert_notdeepstrictequal_actual_expected_message" id="assert_assert_notdeepstrictequal_actual_expected_message">#</a></span></h2>
+<h2>assert.notDeepStrictEqual(actual, expected[, message])<a class="srclink" href="https://github.com/nodejs/node/blob/ab4af087e83d91a46354d765306d3543b1d85423/lib/assert.js#L434">[src]</a><span><a class="mark" href="#assert_assert_notdeepstrictequal_actual_expected_message" id="assert_assert_notdeepstrictequal_actual_expected_message">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -883,7 +883,7 @@ a <code>message</code> property set equal to the value of the <code>message</cod
 <code>message</code> parameter is undefined, a default error message is assigned. If the
 <code>message</code> parameter is an instance of an <a href="errors.html#errors_class_error"><code>Error</code></a> then it will be thrown
 instead of the <code>AssertionError</code>.</p>
-<h2>assert.notEqual(actual, expected[, message])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/assert.js#L378">[src]</a><span><a class="mark" href="#assert_assert_notequal_actual_expected_message" id="assert_assert_notequal_actual_expected_message">#</a></span></h2>
+<h2>assert.notEqual(actual, expected[, message])<a class="srclink" href="https://github.com/nodejs/node/blob/ab4af087e83d91a46354d765306d3543b1d85423/lib/assert.js#L378">[src]</a><span><a class="mark" href="#assert_assert_notequal_actual_expected_message" id="assert_assert_notequal_actual_expected_message">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.21</span>
 </div>
@@ -914,7 +914,7 @@ set equal to the value of the <code>message</code> parameter. If the <code>messa
 undefined, a default error message is assigned. If the <code>message</code> parameter is an
 instance of an <a href="errors.html#errors_class_error"><code>Error</code></a> then it will be thrown instead of the
 <code>AssertionError</code>.</p>
-<h2>assert.notStrictEqual(actual, expected[, message])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/assert.js#L459">[src]</a><span><a class="mark" href="#assert_assert_notstrictequal_actual_expected_message" id="assert_assert_notstrictequal_actual_expected_message">#</a></span></h2>
+<h2>assert.notStrictEqual(actual, expected[, message])<a class="srclink" href="https://github.com/nodejs/node/blob/ab4af087e83d91a46354d765306d3543b1d85423/lib/assert.js#L459">[src]</a><span><a class="mark" href="#assert_assert_notstrictequal_actual_expected_message" id="assert_assert_notstrictequal_actual_expected_message">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -949,7 +949,7 @@ property set equal to the value of the <code>message</code> parameter. If the <c
 parameter is undefined, a default error message is assigned. If the <code>message</code>
 parameter is an instance of an <a href="errors.html#errors_class_error"><code>Error</code></a> then it will be thrown instead of the
 <code>AssertionError</code>.</p>
-<h2>assert.ok(value[, message])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/assert.js#L356">[src]</a><span><a class="mark" href="#assert_assert_ok_value_message" id="assert_assert_ok_value_message">#</a></span></h2>
+<h2>assert.ok(value[, message])<a class="srclink" href="https://github.com/nodejs/node/blob/ab4af087e83d91a46354d765306d3543b1d85423/lib/assert.js#L356">[src]</a><span><a class="mark" href="#assert_assert_ok_value_message" id="assert_assert_ok_value_message">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1015,7 +1015,7 @@ assert(0);
 //
 //   assert(0)
 </code></pre>
-<h2>assert.rejects(asyncFn[, error][, message])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/assert.js#L693">[src]</a><span><a class="mark" href="#assert_assert_rejects_asyncfn_error_message" id="assert_assert_rejects_asyncfn_error_message">#</a></span></h2>
+<h2>assert.rejects(asyncFn[, error][, message])<a class="srclink" href="https://github.com/nodejs/node/blob/ab4af087e83d91a46354d765306d3543b1d85423/lib/assert.js#L693">[src]</a><span><a class="mark" href="#assert_assert_rejects_asyncfn_error_message" id="assert_assert_rejects_asyncfn_error_message">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v10.0.0</span>
 </div>
@@ -1064,7 +1064,7 @@ argument, then <code>error</code> is assumed to be omitted and the string will b
 <code>message</code> instead. This can lead to easy-to-miss mistakes. Please read the
 example in <a href="#assert_assert_throws_fn_error_message"><code>assert.throws()</code></a> carefully if using a string as the second
 argument gets considered.</p>
-<h2>assert.strictEqual(actual, expected[, message])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/assert.js#L447">[src]</a><span><a class="mark" href="#assert_assert_strictequal_actual_expected_message" id="assert_assert_strictequal_actual_expected_message">#</a></span></h2>
+<h2>assert.strictEqual(actual, expected[, message])<a class="srclink" href="https://github.com/nodejs/node/blob/ab4af087e83d91a46354d765306d3543b1d85423/lib/assert.js#L447">[src]</a><span><a class="mark" href="#assert_assert_strictequal_actual_expected_message" id="assert_assert_strictequal_actual_expected_message">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1105,7 +1105,7 @@ assert.strictEqual(1, '1');
 <code>message</code> parameter is undefined, a default error message is assigned. If the
 <code>message</code> parameter is an instance of an <a href="errors.html#errors_class_error"><code>Error</code></a> then it will be thrown
 instead of the <code>AssertionError</code>.</p>
-<h2>assert.throws(fn[, error][, message])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/assert.js#L689">[src]</a><span><a class="mark" href="#assert_assert_throws_fn_error_message" id="assert_assert_throws_fn_error_message">#</a></span></h2>
+<h2>assert.throws(fn[, error][, message])<a class="srclink" href="https://github.com/nodejs/node/blob/ab4af087e83d91a46354d765306d3543b1d85423/lib/assert.js#L689">[src]</a><span><a class="mark" href="#assert_assert_throws_fn_error_message" id="assert_assert_throws_fn_error_message">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>

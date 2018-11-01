@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>HTTPS | Node.js v10.12.0 Documentation</title>
+  <title>HTTPS | Node.js v10.13.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -80,7 +80,7 @@
 
     <div id="column1" data-id="https" class="interior">
       <header>
-        <h1>Node.js v10.12.0 Documentation</h1>
+        <h1>Node.js v10.13.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -147,19 +147,19 @@
 <p></p><div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><p></p>
 <p>HTTPS is the HTTP protocol over TLS/SSL. In Node.js this is implemented as a
 separate module.</p>
-<h2>Class: https.Agent<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/https.js#L136">[src]</a><span><a class="mark" href="#https_class_https_agent" id="https_class_https_agent">#</a></span></h2>
+<h2>Class: https.Agent<a class="srclink" href="https://github.com/nodejs/node/blob/ab4af087e83d91a46354d765306d3543b1d85423/lib/https.js#L136">[src]</a><span><a class="mark" href="#https_class_https_agent" id="https_class_https_agent">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.4.5</span>
 </div>
 <p>An <a href="#https_class_https_agent"><code>Agent</code></a> object for HTTPS similar to <a href="http.html#http_class_http_agent"><code>http.Agent</code></a>. See
 <a href="#https_https_request_options_callback"><code>https.request()</code></a> for more information.</p>
-<h2>Class: https.Server<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/https.js#L43">[src]</a><span><a class="mark" href="#https_class_https_server" id="https_class_https_server">#</a></span></h2>
+<h2>Class: https.Server<a class="srclink" href="https://github.com/nodejs/node/blob/ab4af087e83d91a46354d765306d3543b1d85423/lib/https.js#L43">[src]</a><span><a class="mark" href="#https_class_https_server" id="https_class_https_server">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.3.4</span>
 </div>
 <p>This class is a subclass of <code>tls.Server</code> and emits events same as
 <a href="http.html#http_class_http_server"><code>http.Server</code></a>. See <a href="http.html#http_class_http_server"><code>http.Server</code></a> for more information.</p>
-<h3>server.close([callback])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/net.js#L1561">[src]</a><span><a class="mark" href="#https_server_close_callback" id="https_server_close_callback">#</a></span></h3>
+<h3>server.close([callback])<a class="srclink" href="https://github.com/nodejs/node/blob/ab4af087e83d91a46354d765306d3543b1d85423/lib/net.js#L1561">[src]</a><span><a class="mark" href="#https_server_close_callback" id="https_server_close_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.90</span>
 </div>
@@ -167,7 +167,7 @@ separate module.</p>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
 </ul>
 <p>See <a href="http.html#http_server_close_callback"><code>server.close()</code></a> from the HTTP module for details.</p>
-<h3>server.listen()<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/net.js#L1366">[src]</a><span><a class="mark" href="#https_server_listen" id="https_server_listen">#</a></span></h3>
+<h3>server.listen()<a class="srclink" href="https://github.com/nodejs/node/blob/ab4af087e83d91a46354d765306d3543b1d85423/lib/net.js#L1366">[src]</a><span><a class="mark" href="#https_server_listen" id="https_server_listen">#</a></span></h3>
 <p>Starts the HTTPS server listening for encrypted connections.
 This method is identical to <a href="net.html#net_server_listen"><code>server.listen()</code></a> from <a href="net.html#net_class_net_server"><code>net.Server</code></a>.</p>
 <h3>server.maxHeadersCount<span><a class="mark" href="#https_server_maxheaderscount" id="https_server_maxheaderscount">#</a></span></h3>
@@ -175,7 +175,7 @@ This method is identical to <a href="net.html#net_server_listen"><code>server.li
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> <strong>Default:</strong> <code>2000</code></li>
 </ul>
 <p>See <a href="http.html#http_server_maxheaderscount"><code>http.Server#maxHeadersCount</code></a>.</p>
-<h3>server.setTimeout([msecs][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/https.js#L81">[src]</a><span><a class="mark" href="#https_server_settimeout_msecs_callback" id="https_server_settimeout_msecs_callback">#</a></span></h3>
+<h3>server.setTimeout([msecs][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/ab4af087e83d91a46354d765306d3543b1d85423/lib/https.js#L81">[src]</a><span><a class="mark" href="#https_server_settimeout_msecs_callback" id="https_server_settimeout_msecs_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.2</span>
 </div>
@@ -200,7 +200,7 @@ This method is identical to <a href="net.html#net_server_listen"><code>server.li
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> <strong>Default:</strong> <code>5000</code> (5 seconds)</li>
 </ul>
 <p>See <a href="http.html#http_server_keepalivetimeout"><code>http.Server#keepAliveTimeout</code></a>.</p>
-<h2>https.createServer([options][, requestListener])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/https.js#L83">[src]</a><span><a class="mark" href="#https_https_createserver_options_requestlistener" id="https_https_createserver_options_requestlistener">#</a></span></h2>
+<h2>https.createServer([options][, requestListener])<a class="srclink" href="https://github.com/nodejs/node/blob/ab4af087e83d91a46354d765306d3543b1d85423/lib/https.js#L83">[src]</a><span><a class="mark" href="#https_https_createserver_options_requestlistener" id="https_https_createserver_options_requestlistener">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.3.4</span>
 </div>
@@ -237,8 +237,8 @@ https.createServer(options, (req, res) => {
   res.end('hello world\n');
 }).listen(8000);
 </code></pre>
-<h2>https.get(options[, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/https.js#L283">[src]</a><span><a class="mark" href="#https_https_get_options_callback" id="https_https_get_options_callback">#</a></span></h2>
-<h2>https.get(url[, options][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/https.js#L283">[src]</a><span><a class="mark" href="#https_https_get_url_options_callback" id="https_https_get_url_options_callback">#</a></span></h2>
+<h2>https.get(options[, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/ab4af087e83d91a46354d765306d3543b1d85423/lib/https.js#L283">[src]</a><span><a class="mark" href="#https_https_get_options_callback" id="https_https_get_options_callback">#</a></span></h2>
+<h2>https.get(url[, options][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/ab4af087e83d91a46354d765306d3543b1d85423/lib/https.js#L283">[src]</a><span><a class="mark" href="#https_https_get_url_options_callback" id="https_https_get_url_options_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -281,8 +281,8 @@ https.get('https://encrypted.google.com/', (res) => {
 <span>Added in: v0.5.9</span>
 </div>
 <p>Global instance of <a href="#https_class_https_agent"><code>https.Agent</code></a> for all HTTPS client requests.</p>
-<h2>https.request(options[, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/https.js#L258">[src]</a><span><a class="mark" href="#https_https_request_options_callback" id="https_https_request_options_callback">#</a></span></h2>
-<h2>https.request(url[, options][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/4a276cc2a960b3f9a138ac3a99c9249a63b4d472/lib/https.js#L258">[src]</a><span><a class="mark" href="#https_https_request_url_options_callback" id="https_https_request_url_options_callback">#</a></span></h2>
+<h2>https.request(options[, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/ab4af087e83d91a46354d765306d3543b1d85423/lib/https.js#L258">[src]</a><span><a class="mark" href="#https_https_request_options_callback" id="https_https_request_options_callback">#</a></span></h2>
+<h2>https.request(url[, options][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/ab4af087e83d91a46354d765306d3543b1d85423/lib/https.js#L258">[src]</a><span><a class="mark" href="#https_https_request_url_options_callback" id="https_https_request_url_options_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>

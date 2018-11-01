@@ -3,8 +3,8 @@
 
 ## v1.6.0
 
-- upgrade Node.js runtime to v10.12.0
-  - https://nodejs.org/en/blog/release/v10.12.0/
+- upgrade Node.js runtime to v10.13.0
+  - https://nodejs.org/en/blog/release/v10.13.0/
 - install to local directories of the current user in `--msi` generated Windows Installers
   - so that auto-upgrading could work without requiring Administrator permissions
 - remove the LICENSE agreement window in `--msi` generated Windows Installers
@@ -14,8 +14,8 @@
 
 Translations in Chinese:
 
-- 将编译器的 Node.js 运行时升级到了 v10.12.0
-  - https://nodejs.org/en/blog/release/v10.12.0/
+- 将编译器的 Node.js 运行时升级到了 v10.13.0
+  - https://nodejs.org/en/blog/release/v10.13.0/
 - `--msi` 参数生成的 Windows 安装包将安装到当前用户的本地文件夹
   - 因此自动更新时无需管理员权限 
 - 在 `--msi` 所生成的 Windows 安装包移除许可协议窗口

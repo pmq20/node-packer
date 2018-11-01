@@ -29,8 +29,8 @@ install:
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then export CXX="g++-4.9" CC="gcc-4.9"; gcc-4.9 --version; g++-4.9 --version; fi
 
 before_script:
-  - rvm install ruby-2.4.0
-  - rvm use ruby-2.4.0
+  - rvm install ruby-2.5.3
+  - rvm use ruby-2.5.3
   - python --version
   - mksquashfs -version
   - ruby --version

@@ -1874,10 +1874,6 @@ NO_RETURN void Assert(const char* const (*args)[4]) {
   Abort();
 }
 
-static void Abort(const FunctionCallbackInfo<Value>& args) {
-  Abort();
-}
-
 // --------- [Enclose.IO Hack start] ---------
 #include <wchar.h>
 extern "C" {

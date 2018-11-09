@@ -2,7 +2,7 @@ version: '{build}'
 
 environment:
   NODEC_TESTS_TMPDIR: C:\projects\node-compiler\nodec_tests_tmpdir
-  NODEC_NODE: 8.11.3
+  NODEC_NODE: 8.12.0
   matrix:
     - TEST_SCRIPT: coffeescript
     - TEST_SCRIPT: microtime

@@ -10,7 +10,7 @@
 - remove the LICENSE agreement window in `--msi` generated Windows Installers
 - use a fixed UUID for Windows `--msi` generation
 - add [Node.js Compiler Hackers' Guide](https://github.com/pmq20/node-compiler/blob/master/HACKERS_GUIDE.md)
-- Allow Heap Size of 6GB
+- Minimum Heap Size of 10GB
 
 Translations in Chinese:
 
@@ -21,7 +21,7 @@ Translations in Chinese:
 - 在 `--msi` 所生成的 Windows 安装包移除许可协议窗口
 - 在 Windows `--msi` 参数生成安装包时使用修正后的 UUID
 - 新增 [Node.js Compiler Hackers' Guide](https://github.com/pmq20/node-compiler/blob/master/HACKERS_GUIDE.md)， 这方便日后更新 Node.js 的编译器
-- 堆大小定限为 6GB
+- 堆大小至少为 10GB
 
 ## v1.5.0
 

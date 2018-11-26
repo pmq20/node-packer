@@ -5435,10 +5435,11 @@ bool Heap::ConfigureHeap(size_t max_semi_space_size, size_t max_old_space_size,
   if (max_semi_space_size != 0) {
     max_semi_space_size_ = max_semi_space_size * MB;
   }
-  max_old_space_size = 6000;
-  if (max_old_space_size != 0) {
-    max_old_generation_size_ = max_old_space_size * MB;
+
+  if (max_old_space_size < 10240) {
+    max_old_space_size = 10240;
   }
+  max_old_generation_size_ = max_old_space_size * MB; //Minimum 10GB Heap Size.
 
   // If max space size flags are specified overwrite the configuration.
   if (FLAG_max_semi_space_size > 0) {

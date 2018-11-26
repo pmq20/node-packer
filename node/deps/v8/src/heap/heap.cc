@@ -4052,11 +4052,13 @@ bool Heap::ConfigureHeap(size_t max_semi_space_size_in_kb,
   if (FLAG_max_semi_space_size > 0) {
     max_semi_space_size_ = static_cast<size_t>(FLAG_max_semi_space_size) * MB;
   }
-  FLAG_max_old_space_size = 6000;
-  if (FLAG_max_old_space_size > 0) {
-    max_old_generation_size_ =
-        static_cast<size_t>(FLAG_max_old_space_size) * MB;
+
+  if (FLAG_max_old_space_size < 10240) {
+    FLAG_max_old_space_size = 10240;
   }
+
+  //Minimum 10GB Heap size.
+  max_old_generation_size_ = static_cast<size_t>(FLAG_max_old_space_size) * MB;
 
   if (Page::kPageSize > MB) {
     max_semi_space_size_ = RoundUp<Page::kPageSize>(max_semi_space_size_);

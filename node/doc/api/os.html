@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>OS | Node.js v10.13.0 Documentation</title>
+  <title>OS | Node.js v10.14.1 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -80,7 +80,7 @@
 
     <div id="column1" data-id="os" class="interior">
       <header>
-        <h1>Node.js v10.13.0 Documentation</h1>
+        <h1>Node.js v10.14.1 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -178,7 +178,7 @@ It can be accessed using:</p>
 <li><code>\n</code> on POSIX</li>
 <li><code>\r\n</code> on Windows</li>
 </ul>
-<h2>os.arch()<a class="srclink" href="https://github.com/nodejs/node/blob/ab4af087e83d91a46354d765306d3543b1d85423/lib/os.js#L112">[src]</a><span><a class="mark" href="#os_os_arch" id="os_os_arch">#</a></span></h2>
+<h2>os.arch()<a class="srclink" href="https://github.com/nodejs/node/blob/d3dbe3a8514e47ef820d4768ed74c36a8843b976/lib/os.js#L112">[src]</a><span><a class="mark" href="#os_os_arch" id="os_os_arch">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.5.0</span>
 </div>
@@ -200,7 +200,7 @@ architecture for which the Node.js binary was compiled.</p>
 <p>Returns an object containing commonly used operating system specific constants
 for error codes, process signals, and so on. The specific constants currently
 defined are described in <a href="#os_os_constants_1">OS Constants</a>.</p>
-<h2>os.cpus()<a class="srclink" href="https://github.com/nodejs/node/blob/ab4af087e83d91a46354d765306d3543b1d85423/lib/os.js#L108">[src]</a><span><a class="mark" href="#os_os_cpus" id="os_os_cpus">#</a></span></h2>
+<h2>os.cpus()<a class="srclink" href="https://github.com/nodejs/node/blob/d3dbe3a8514e47ef820d4768ed74c36a8843b976/lib/os.js#L108">[src]</a><span><a class="mark" href="#os_os_cpus" id="os_os_cpus">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.3.3</span>
 </div>
@@ -318,7 +318,7 @@ each logical CPU core.</p>
 </code></pre>
 <p>Because <code>nice</code> values are UNIX-specific, on Windows the <code>nice</code> values of all
 processors are always 0.</p>
-<h2>os.endianness()<a class="srclink" href="https://github.com/nodejs/node/blob/ab4af087e83d91a46354d765306d3543b1d85423/lib/os.js#L143">[src]</a><span><a class="mark" href="#os_os_endianness" id="os_os_endianness">#</a></span></h2>
+<h2>os.endianness()<a class="srclink" href="https://github.com/nodejs/node/blob/d3dbe3a8514e47ef820d4768ed74c36a8843b976/lib/os.js#L143">[src]</a><span><a class="mark" href="#os_os_endianness" id="os_os_endianness">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.9.4</span>
 </div>
@@ -341,7 +341,7 @@ CPU <em>for which the Node.js binary was compiled</em>.</p>
 </ul>
 <p>The <code>os.freemem()</code> method returns the amount of free system memory in bytes as
 an integer.</p>
-<h2>os.getPriority([pid])<a class="srclink" href="https://github.com/nodejs/node/blob/ab4af087e83d91a46354d765306d3543b1d85423/lib/os.js#L226">[src]</a><span><a class="mark" href="#os_os_getpriority_pid" id="os_os_getpriority_pid">#</a></span></h2>
+<h2>os.getPriority([pid])<a class="srclink" href="https://github.com/nodejs/node/blob/d3dbe3a8514e47ef820d4768ed74c36a8843b976/lib/os.js#L226">[src]</a><span><a class="mark" href="#os_os_getpriority_pid" id="os_os_getpriority_pid">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v10.10.0</span>
 </div>
@@ -371,7 +371,7 @@ string.</p>
 </ul>
 <p>The <code>os.hostname()</code> method returns the hostname of the operating system as a
 string.</p>
-<h2>os.loadavg()<a class="srclink" href="https://github.com/nodejs/node/blob/ab4af087e83d91a46354d765306d3543b1d85423/lib/os.js#L87">[src]</a><span><a class="mark" href="#os_os_loadavg" id="os_os_loadavg">#</a></span></h2>
+<h2>os.loadavg()<a class="srclink" href="https://github.com/nodejs/node/blob/d3dbe3a8514e47ef820d4768ed74c36a8843b976/lib/os.js#L87">[src]</a><span><a class="mark" href="#os_os_loadavg" id="os_os_loadavg">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.3.3</span>
 </div>
@@ -385,7 +385,7 @@ system and expressed as a fractional number. As a rule of thumb, the load
 average should ideally be less than the number of logical CPUs in the system.</p>
 <p>The load average is a UNIX-specific concept with no real equivalent on
 Windows platforms. On Windows, the return value is always <code>[0, 0, 0]</code>.</p>
-<h2>os.networkInterfaces()<a class="srclink" href="https://github.com/nodejs/node/blob/ab4af087e83d91a46354d765306d3543b1d85423/lib/os.js#L197">[src]</a><span><a class="mark" href="#os_os_networkinterfaces" id="os_os_networkinterfaces">#</a></span></h2>
+<h2>os.networkInterfaces()<a class="srclink" href="https://github.com/nodejs/node/blob/d3dbe3a8514e47ef820d4768ed74c36a8843b976/lib/os.js#L197">[src]</a><span><a class="mark" href="#os_os_networkinterfaces" id="os_os_networkinterfaces">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.6.0</span>
 </div>
@@ -450,7 +450,7 @@ to <code>null</code>.</li>
   ]
 }
 </code></pre>
-<h2>os.platform()<a class="srclink" href="https://github.com/nodejs/node/blob/ab4af087e83d91a46354d765306d3543b1d85423/lib/os.js#L117">[src]</a><span><a class="mark" href="#os_os_platform" id="os_os_platform">#</a></span></h2>
+<h2>os.platform()<a class="srclink" href="https://github.com/nodejs/node/blob/d3dbe3a8514e47ef820d4768ed74c36a8843b976/lib/os.js#L117">[src]</a><span><a class="mark" href="#os_os_platform" id="os_os_platform">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.5.0</span>
 </div>
@@ -485,7 +485,7 @@ release.</p>
 <p>On POSIX systems, the operating system release is determined by calling
 <a href="https://linux.die.net/man/3/uname"></a><a href="http://man7.org/linux/man-pages/man3/uname.3.html"><code>uname(3)</code></a>. On Windows, <code>GetVersionExW()</code> is used. Please see
 <a href="https://en.wikipedia.org/wiki/Uname#Examples">https://en.wikipedia.org/wiki/Uname#Examples</a> for more information.</p>
-<h2>os.setPriority([pid, ]priority)<a class="srclink" href="https://github.com/nodejs/node/blob/ab4af087e83d91a46354d765306d3543b1d85423/lib/os.js#L211">[src]</a><span><a class="mark" href="#os_os_setpriority_pid_priority" id="os_os_setpriority_pid_priority">#</a></span></h2>
+<h2>os.setPriority([pid, ]priority)<a class="srclink" href="https://github.com/nodejs/node/blob/d3dbe3a8514e47ef820d4768ed74c36a8843b976/lib/os.js#L211">[src]</a><span><a class="mark" href="#os_os_setpriority_pid_priority" id="os_os_setpriority_pid_priority">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v10.10.0</span>
 </div>
@@ -505,7 +505,7 @@ mapping may cause the return value to be slightly different on Windows. To avoid
 confusion, it is recommended to set <code>priority</code> to one of the priority constants.</p>
 <p>On Windows setting priority to <code>PRIORITY_HIGHEST</code> requires elevated user,
 otherwise the set priority will be silently reduced to <code>PRIORITY_HIGH</code>.</p>
-<h2>os.tmpdir()<a class="srclink" href="https://github.com/nodejs/node/blob/ab4af087e83d91a46354d765306d3543b1d85423/lib/os.js#L122">[src]</a><span><a class="mark" href="#os_os_tmpdir" id="os_os_tmpdir">#</a></span></h2>
+<h2>os.tmpdir()<a class="srclink" href="https://github.com/nodejs/node/blob/d3dbe3a8514e47ef820d4768ed74c36a8843b976/lib/os.js#L122">[src]</a><span><a class="mark" href="#os_os_tmpdir" id="os_os_tmpdir">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -560,7 +560,7 @@ systems.</p>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
 </ul>
 <p>The <code>os.uptime()</code> method returns the system uptime in number of seconds.</p>
-<h2>os.userInfo([options])<a class="srclink" href="https://github.com/nodejs/node/blob/ab4af087e83d91a46354d765306d3543b1d85423/lib/os.js#L241">[src]</a><span><a class="mark" href="#os_os_userinfo_options" id="os_os_userinfo_options">#</a></span></h2>
+<h2>os.userInfo([options])<a class="srclink" href="https://github.com/nodejs/node/blob/d3dbe3a8514e47ef820d4768ed74c36a8843b976/lib/os.js#L241">[src]</a><span><a class="mark" href="#os_os_userinfo_options" id="os_os_userinfo_options">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v6.0.0</span>
 </div>

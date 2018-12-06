@@ -29249,6 +29249,19 @@
               "desc": "<p>Limits maximum incoming headers count. If set to 0, no limit will be applied.</p>"
             },
             {
+              "textRaw": "`headersTimeout` {number} **Default:** `40000`",
+              "type": "number",
+              "name": "headersTimeout",
+              "meta": {
+                "added": [
+                  "v10.14.0"
+                ],
+                "changes": []
+              },
+              "default": "`40000`",
+              "desc": "<p>Limit the amount of time the parser will wait to receive the complete HTTP\nheaders.</p>\n<p>In case of inactivity, the rules defined in <a href=\"\">server.timeout</a> apply. However,\nthat inactivity based timeout would still allow the connection to be kept open\nif the headers are being sent very slowly (by default, up to a byte per 2\nminutes). In order to prevent this, whenever header data arrives an additional\ncheck is made that more than <code>server.headersTimeout</code> milliseconds has not\npassed since the connection was established. If the check fails, a <code>'timeout'</code>\nevent is emitted on the server object, and (by default) the socket is destroyed.\nSee <a href=\"\">server.timeout</a> for more information on how timeout behaviour can be\ncustomised.</p>"
+            },
+            {
               "textRaw": "`timeout` {number} Timeout in milliseconds. **Default:** `120000` (2 minutes).",
               "type": "number",
               "name": "timeout",
@@ -34070,6 +34083,13 @@
               "name": "maxHeadersCount",
               "default": "`2000`",
               "desc": "<p>See <a href=\"http.html#http_server_maxheaderscount\"><code>http.Server#maxHeadersCount</code></a>.</p>"
+            },
+            {
+              "textRaw": "`headersTimeout` {number} **Default:** `40000`",
+              "type": "number",
+              "name": "headersTimeout",
+              "default": "`40000`",
+              "desc": "<p>See <a href=\"http.html#http_server_headerstimeout\"><code>http.Server#headersTimeout</code></a>.</p>"
             },
             {
               "textRaw": "`timeout` {number} **Default:** `120000` (2 minutes)",

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>About this Documentation | Node.js v8.12.0 Documentation</title>
+  <title>About this Documentation | Node.js v8.14.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -82,7 +82,7 @@
 
     <div id="column1" data-id="all" class="interior">
       <header>
-        <h1>Node.js v8.12.0 Documentation</h1>
+        <h1>Node.js v8.14.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -127,9 +127,15 @@
 </ul>
 </li>
 <li><span class="stability_2"><a href="#assert_assert">Assert</a></span><ul>
+<li><span class="stability_undefined"><a href="#assert_strict_mode">Strict mode</a></span></li>
+<li><span class="stability_0"><a href="#assert_legacy_mode">Legacy mode</a></span></li>
 <li><span class="stability_undefined"><a href="#assert_assert_value_message">assert(value[, message])</a></span></li>
 <li><span class="stability_undefined"><a href="#assert_assert_deepequal_actual_expected_message">assert.deepEqual(actual, expected[, message])</a></span></li>
-<li><span class="stability_undefined"><a href="#assert_assert_deepstrictequal_actual_expected_message">assert.deepStrictEqual(actual, expected[, message])</a></span></li>
+<li><span class="stability_undefined"><a href="#assert_assert_deepstrictequal_actual_expected_message">assert.deepStrictEqual(actual, expected[, message])</a></span><ul>
+<li><span class="stability_undefined"><a href="#assert_comparison_details">Comparison details</a></span></li>
+</ul>
+</li>
+<li><span class="stability_undefined"><a href="#assert_assert_doesnotreject_block_error_message">assert.doesNotReject(block[, error][, message])</a></span></li>
 <li><span class="stability_undefined"><a href="#assert_assert_doesnotthrow_block_error_message">assert.doesNotThrow(block[, error][, message])</a></span></li>
 <li><span class="stability_undefined"><a href="#assert_assert_equal_actual_expected_message">assert.equal(actual, expected[, message])</a></span></li>
 <li><span class="stability_undefined"><a href="#assert_assert_fail_message">assert.fail(message)</a></span></li>
@@ -141,6 +147,7 @@
 <li><span class="stability_undefined"><a href="#assert_assert_notstrictequal_actual_expected_message">assert.notStrictEqual(actual, expected[, message])</a></span></li>
 <li><span class="stability_undefined"><a href="#assert_assert_ok_value_message">assert.ok(value[, message])</a></span></li>
 <li><span class="stability_undefined"><a href="#assert_assert_strictequal_actual_expected_message">assert.strictEqual(actual, expected[, message])</a></span></li>
+<li><span class="stability_undefined"><a href="#assert_assert_rejects_block_error_message">assert.rejects(block[, error][, message])</a></span></li>
 <li><span class="stability_undefined"><a href="#assert_assert_throws_block_error_message">assert.throws(block[, error][, message])</a></span></li>
 <li><span class="stability_undefined"><a href="#assert_caveats">Caveats</a></span></li>
 </ul>
@@ -927,6 +934,7 @@
 <li><span class="stability_undefined"><a href="#deprecations_dep0079_custom_inspection_function_on_objects_via_inspect">DEP0079: Custom inspection function on Objects via .inspect()</a></span></li>
 <li><span class="stability_undefined"><a href="#deprecations_dep0085_asynchooks_sensitive_api">DEP0085: AsyncHooks Sensitive API</a></span></li>
 <li><span class="stability_undefined"><a href="#deprecations_dep0086_remove_runinasyncidscope">DEP0086: Remove runInAsyncIdScope</a></span></li>
+<li><span class="stability_undefined"><a href="#deprecations_dep0089_require_assert">DEP0089: require(&#39;assert&#39;)</a></span></li>
 <li><span class="stability_undefined"><a href="#deprecations_dep0098_asynchooks_embedder_asyncresource_emit_span_class_type_lt_before_after_gt_span_apis">DEP0098: AsyncHooks Embedder AsyncResource.emit<span class="type">&lt;Before,After&gt;</span> APIs</a></span></li>
 </ul>
 </li>
@@ -1076,13 +1084,16 @@
 <li><span class="stability_undefined"><a href="#errors_err_http2_invalid_connection_headers">ERR_HTTP2_INVALID_CONNECTION_HEADERS</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_invalid_header_value">ERR_HTTP2_INVALID_HEADER_VALUE</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_invalid_info_status">ERR_HTTP2_INVALID_INFO_STATUS</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_invalid_origin">ERR_HTTP2_INVALID_ORIGIN</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_invalid_packed_settings_length">ERR_HTTP2_INVALID_PACKED_SETTINGS_LENGTH</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_invalid_pseudoheader">ERR_HTTP2_INVALID_PSEUDOHEADER</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_invalid_session">ERR_HTTP2_INVALID_SESSION</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_invalid_setting_value">ERR_HTTP2_INVALID_SETTING_VALUE</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_invalid_stream">ERR_HTTP2_INVALID_STREAM</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_max_pending_settings_ack">ERR_HTTP2_MAX_PENDING_SETTINGS_ACK</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_nested_push">ERR_HTTP2_NESTED_PUSH</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_no_socket_manipulation">ERR_HTTP2_NO_SOCKET_MANIPULATION</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_origin_length">ERR_HTTP2_ORIGIN_LENGTH</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_out_of_streams">ERR_HTTP2_OUT_OF_STREAMS</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_payload_forbidden">ERR_HTTP2_PAYLOAD_FORBIDDEN</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_ping_cancel">ERR_HTTP2_PING_CANCEL</a></span></li>
@@ -1091,12 +1102,16 @@
 <li><span class="stability_undefined"><a href="#errors_err_http2_push_disabled">ERR_HTTP2_PUSH_DISABLED</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_send_file">ERR_HTTP2_SEND_FILE</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_session_error">ERR_HTTP2_SESSION_ERROR</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_settings_cancel">ERR_HTTP2_SETTINGS_CANCEL</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_socket_bound">ERR_HTTP2_SOCKET_BOUND</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_socket_unbound">ERR_HTTP2_SOCKET_UNBOUND</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_status_101">ERR_HTTP2_STATUS_101</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_status_invalid">ERR_HTTP2_STATUS_INVALID</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_stream_cancel">ERR_HTTP2_STREAM_CANCEL</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_stream_error">ERR_HTTP2_STREAM_ERROR</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_stream_self_dependency">ERR_HTTP2_STREAM_SELF_DEPENDENCY</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_trailers_already_sent">ERR_HTTP2_TRAILERS_ALREADY_SENT</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_trailers_not_ready">ERR_HTTP2_TRAILERS_NOT_READY</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_unsupported_protocol">ERR_HTTP2_UNSUPPORTED_PROTOCOL</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_index_out_of_range">ERR_INDEX_OUT_OF_RANGE</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_invalid_arg_type">ERR_INVALID_ARG_TYPE</a></span></li>
@@ -1376,6 +1391,7 @@
 <li><span class="stability_undefined"><a href="#http_server_listen">server.listen()</a></span></li>
 <li><span class="stability_undefined"><a href="#http_server_listening">server.listening</a></span></li>
 <li><span class="stability_undefined"><a href="#http_server_maxheaderscount">server.maxHeadersCount</a></span></li>
+<li><span class="stability_undefined"><a href="#http_server_headerstimeout">server.headersTimeout</a></span></li>
 <li><span class="stability_undefined"><a href="#http_server_settimeout_msecs_callback">server.setTimeout([msecs][, callback])</a></span></li>
 <li><span class="stability_undefined"><a href="#http_server_timeout">server.timeout</a></span></li>
 <li><span class="stability_undefined"><a href="#http_server_keepalivetimeout">server.keepAliveTimeout</a></span></li>
@@ -1408,6 +1424,7 @@
 <li><span class="stability_undefined"><a href="#http_class_http_incomingmessage">Class: http.IncomingMessage</a></span><ul>
 <li><span class="stability_undefined"><a href="#http_event_aborted">Event: &#39;aborted&#39;</a></span></li>
 <li><span class="stability_undefined"><a href="#http_event_close_2">Event: &#39;close&#39;</a></span></li>
+<li><span class="stability_undefined"><a href="#http_message_aborted">message.aborted</a></span></li>
 <li><span class="stability_undefined"><a href="#http_message_destroy_error">message.destroy([error])</a></span></li>
 <li><span class="stability_undefined"><a href="#http_message_headers">message.headers</a></span></li>
 <li><span class="stability_undefined"><a href="#http_message_httpversion">message.httpVersion</a></span></li>
@@ -1430,7 +1447,7 @@
 <li><span class="stability_undefined"><a href="#http_http_request_options_callback">http.request(options[, callback])</a></span></li>
 </ul>
 </li>
-<li><span class="stability_1"><a href="#http2_http_2">HTTP/2</a></span><ul>
+<li><span class="stability_undefined"><a href="#http2_http_2">HTTP/2</a></span><ul>
 <li><span class="stability_undefined"><a href="#http2_core_api">Core API</a></span><ul>
 <li><span class="stability_undefined"><a href="#http2_server_side_example">Server-side example</a></span></li>
 <li><span class="stability_undefined"><a href="#http2_client_side_example">Client-side example</a></span></li>
@@ -1442,6 +1459,7 @@
 <li><span class="stability_undefined"><a href="#http2_event_frameerror">Event: &#39;frameError&#39;</a></span></li>
 <li><span class="stability_undefined"><a href="#http2_event_goaway">Event: &#39;goaway&#39;</a></span></li>
 <li><span class="stability_undefined"><a href="#http2_event_localsettings">Event: &#39;localSettings&#39;</a></span></li>
+<li><span class="stability_undefined"><a href="#http2_event_ping">Event: &#39;ping&#39;</a></span></li>
 <li><span class="stability_undefined"><a href="#http2_event_remotesettings">Event: &#39;remoteSettings&#39;</a></span></li>
 <li><span class="stability_undefined"><a href="#http2_event_stream">Event: &#39;stream&#39;</a></span></li>
 <li><span class="stability_undefined"><a href="#http2_event_timeout">Event: &#39;timeout&#39;</a></span></li>
@@ -1470,10 +1488,12 @@
 <li><span class="stability_undefined"><a href="#http2_class_serverhttp2session">Class: ServerHttp2Session</a></span><ul>
 <li><span class="stability_undefined"><a href="#http2_serverhttp2session_altsvc_alt_originorstream">serverhttp2session.altsvc(alt, originOrStream)</a></span></li>
 <li><span class="stability_undefined"><a href="#http2_specifying_alternative_services">Specifying alternative services</a></span></li>
+<li><span class="stability_undefined"><a href="#http2_serverhttp2session_origin_origins">serverhttp2session.origin(...origins)</a></span></li>
 </ul>
 </li>
 <li><span class="stability_undefined"><a href="#http2_class_clienthttp2session">Class: ClientHttp2Session</a></span><ul>
 <li><span class="stability_undefined"><a href="#http2_event_altsvc">Event: &#39;altsvc&#39;</a></span></li>
+<li><span class="stability_undefined"><a href="#http2_event_origin">Event: &#39;origin&#39;</a></span></li>
 <li><span class="stability_undefined"><a href="#http2_clienthttp2session_request_headers_options">clienthttp2session.request(headers[, options])</a></span></li>
 </ul>
 </li>
@@ -1489,10 +1509,12 @@
 <li><span class="stability_undefined"><a href="#http2_event_frameerror_1">Event: &#39;frameError&#39;</a></span></li>
 <li><span class="stability_undefined"><a href="#http2_event_timeout_1">Event: &#39;timeout&#39;</a></span></li>
 <li><span class="stability_undefined"><a href="#http2_event_trailers">Event: &#39;trailers&#39;</a></span></li>
+<li><span class="stability_undefined"><a href="#http2_event_wanttrailers">Event: &#39;wantTrailers&#39;</a></span></li>
 <li><span class="stability_undefined"><a href="#http2_http2stream_aborted">http2stream.aborted</a></span></li>
 <li><span class="stability_undefined"><a href="#http2_http2stream_close_code_callback">http2stream.close(code[, callback])</a></span></li>
 <li><span class="stability_undefined"><a href="#http2_http2stream_closed">http2stream.closed</a></span></li>
 <li><span class="stability_undefined"><a href="#http2_http2stream_destroyed">http2stream.destroyed</a></span></li>
+<li><span class="stability_undefined"><a href="#http2_http2stream_endafterheaders">http2stream.endAfterHeaders</a></span></li>
 <li><span class="stability_undefined"><a href="#http2_http2stream_pending">http2stream.pending</a></span></li>
 <li><span class="stability_undefined"><a href="#http2_http2stream_priority_options">http2stream.priority(options)</a></span></li>
 <li><span class="stability_undefined"><a href="#http2_http2stream_rstcode">http2stream.rstCode</a></span></li>
@@ -1502,6 +1524,7 @@
 <li><span class="stability_undefined"><a href="#http2_http2stream_session">http2stream.session</a></span></li>
 <li><span class="stability_undefined"><a href="#http2_http2stream_settimeout_msecs_callback">http2stream.setTimeout(msecs, callback)</a></span></li>
 <li><span class="stability_undefined"><a href="#http2_http2stream_state">http2stream.state</a></span></li>
+<li><span class="stability_undefined"><a href="#http2_http2stream_sendtrailers_headers">http2stream.sendTrailers(headers)</a></span></li>
 </ul>
 </li>
 <li><span class="stability_undefined"><a href="#http2_class_clienthttp2stream">Class: ClientHttp2Stream</a></span><ul>
@@ -1526,10 +1549,10 @@
 <li><span class="stability_undefined"><a href="#http2_event_request">Event: &#39;request&#39;</a></span></li>
 <li><span class="stability_undefined"><a href="#http2_event_session">Event: &#39;session&#39;</a></span></li>
 <li><span class="stability_undefined"><a href="#http2_event_sessionerror">Event: &#39;sessionError&#39;</a></span></li>
-<li><span class="stability_undefined"><a href="#http2_event_streamerror">Event: &#39;streamError&#39;</a></span></li>
 <li><span class="stability_undefined"><a href="#http2_event_stream_1">Event: &#39;stream&#39;</a></span></li>
 <li><span class="stability_undefined"><a href="#http2_event_timeout_2">Event: &#39;timeout&#39;</a></span></li>
 <li><span class="stability_undefined"><a href="#http2_server_close_callback">server.close([callback])</a></span></li>
+<li><span class="stability_undefined"><a href="#http2_server_settimeout_msecs_callback">server.setTimeout([msecs][, callback])</a></span></li>
 </ul>
 </li>
 <li><span class="stability_undefined"><a href="#http2_class_http2secureserver">Class: Http2SecureServer</a></span><ul>
@@ -1541,6 +1564,7 @@
 <li><span class="stability_undefined"><a href="#http2_event_timeout_3">Event: &#39;timeout&#39;</a></span></li>
 <li><span class="stability_undefined"><a href="#http2_event_unknownprotocol">Event: &#39;unknownProtocol&#39;</a></span></li>
 <li><span class="stability_undefined"><a href="#http2_server_close_callback_1">server.close([callback])</a></span></li>
+<li><span class="stability_undefined"><a href="#http2_server_settimeout_msecs_callback_1">server.setTimeout([msecs][, callback])</a></span></li>
 </ul>
 </li>
 <li><span class="stability_undefined"><a href="#http2_http2_createserver_options_onrequesthandler">http2.createServer(options[, onRequestHandler])</a></span></li>
@@ -1567,6 +1591,7 @@
 <li><span class="stability_undefined"><a href="#http2_class_http2_http2serverrequest">Class: http2.Http2ServerRequest</a></span><ul>
 <li><span class="stability_undefined"><a href="#http2_event_aborted_1">Event: &#39;aborted&#39;</a></span></li>
 <li><span class="stability_undefined"><a href="#http2_event_close_2">Event: &#39;close&#39;</a></span></li>
+<li><span class="stability_undefined"><a href="#http2_request_aborted">request.aborted</a></span></li>
 <li><span class="stability_undefined"><a href="#http2_request_destroy_error">request.destroy([error])</a></span></li>
 <li><span class="stability_undefined"><a href="#http2_request_headers">request.headers</a></span></li>
 <li><span class="stability_undefined"><a href="#http2_request_httpversion">request.httpVersion</a></span></li>
@@ -1616,6 +1641,7 @@
 <li><span class="stability_undefined"><a href="#https_class_https_server">Class: https.Server</a></span><ul>
 <li><span class="stability_undefined"><a href="#https_server_close_callback">server.close([callback])</a></span></li>
 <li><span class="stability_undefined"><a href="#https_server_listen">server.listen()</a></span></li>
+<li><span class="stability_undefined"><a href="#https_server_headerstimeout">server.headersTimeout</a></span></li>
 <li><span class="stability_undefined"><a href="#https_server_settimeout_msecs_callback">server.setTimeout([msecs][, callback])</a></span></li>
 <li><span class="stability_undefined"><a href="#https_server_timeout">server.timeout</a></span></li>
 <li><span class="stability_undefined"><a href="#https_server_keepalivetimeout">server.keepAliveTimeout</a></span></li>
@@ -2725,6 +2751,44 @@ the server is working.</p>
 <!--introduced_in=v0.10.0-->
 <div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><p>The <code>assert</code> module provides a simple set of assertion tests that can be used to
 test invariants.</p>
+<p>A <code>strict</code> and a <code>legacy</code> mode exist, while it is recommended to only use
+<a href="#assert_strict_mode"><code>strict mode</code></a>.</p>
+<p>For more information about the used equality comparisons see
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Equality_comparisons_and_sameness">MDN&#39;s guide on equality comparisons and sameness</a>.</p>
+<h2>Strict mode<span><a class="mark" href="#assert_strict_mode" id="assert_strict_mode">#</a></span></h2>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>V8.13.0</td>
+<td><p>Added strict mode to the assert module.</p>
+</td></tr>
+<tr><td>V8.13.0</td>
+<td><p><span>Added in: V8.13.0</span></p>
+</td></tr>
+</table>
+</details>
+</div><p>When using the <code>strict mode</code>, any <code>assert</code> function will use the equality used in
+the strict function mode. So <a href="#assert_assert_deepequal_actual_expected_message"><code>assert.deepEqual()</code></a> will, for example, work the
+same as <a href="#assert_assert_deepstrictequal_actual_expected_message"><code>assert.deepStrictEqual()</code></a>.</p>
+<p>It can be accessed using:</p>
+<pre><code class="lang-js">const assert = require(&#39;assert&#39;).strict;
+</code></pre>
+<h2>Legacy mode<span><a class="mark" href="#assert_legacy_mode" id="assert_legacy_mode">#</a></span></h2>
+<div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use strict mode instead.</div><p>When accessing <code>assert</code> directly instead of using the <code>strict</code> property, the
+<a href="https://tc39.github.io/ecma262/#sec-abstract-equality-comparison">Abstract Equality Comparison</a> will be used for any function without a
+&quot;strict&quot; in its name (e.g. <a href="#assert_assert_deepequal_actual_expected_message"><code>assert.deepEqual()</code></a>).</p>
+<p>It can be accessed using:</p>
+<pre><code class="lang-js">const assert = require(&#39;assert&#39;);
+</code></pre>
+<p>It is recommended to use the <a href="#assert_strict_mode"><code>strict mode</code></a> instead as the
+<a href="https://tc39.github.io/ecma262/#sec-abstract-equality-comparison">Abstract Equality Comparison</a> can often have surprising results. Especially
+in case of <a href="#assert_assert_deepequal_actual_expected_message"><code>assert.deepEqual()</code></a> as the used comparison rules there are very
+lax.</p>
+<p>E.g.</p>
+<pre><code class="lang-js">// WARNING: This does not throw an AssertionError!
+assert.deepEqual(/a/gi, new Date());
+</code></pre>
 <h2>assert(value[, message])<span><a class="mark" href="#assert_assert_value_message" id="assert_assert_value_message">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.5.9</span>
@@ -2760,7 +2824,10 @@ test invariants.</p>
 <li><code>expected</code> <span class="type">&lt;any&gt;</span></li>
 <li><code>message</code> <span class="type">&lt;any&gt;</span></li>
 </ul>
-<p>Tests for deep equality between the <code>actual</code> and <code>expected</code> parameters.
+<p><strong>Strict mode</strong></p>
+<p>An alias of <a href="#assert_assert_deepstrictequal_actual_expected_message"><code>assert.deepStrictEqual()</code></a>.</p>
+<p><strong>Legacy mode</strong></p>
+<div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="#assert_assert_deepstrictequal_actual_expected_message"><code>assert.deepStrictEqual()</code></a> instead.</div><p>Tests for deep equality between the <code>actual</code> and <code>expected</code> parameters.
 Primitive values are compared with the <a href="https://tc39.github.io/ecma262/#sec-abstract-equality-comparison">Abstract Equality Comparison</a>
 ( <code>==</code> ).</p>
 <p>Only <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Enumerability_and_ownership_of_properties">enumerable &quot;own&quot; properties</a> are considered. The
@@ -2845,16 +2912,25 @@ parameter is undefined, a default error message is assigned.</p>
 <li><code>message</code> <span class="type">&lt;any&gt;</span></li>
 </ul>
 <p>Generally identical to <code>assert.deepEqual()</code> with a few exceptions:</p>
-<ol>
+<h3>Comparison details<span><a class="mark" href="#assert_comparison_details" id="assert_comparison_details">#</a></span></h3>
+<div class="signature"><ul>
 <li>Primitive values are compared using the <a href="https://tc39.github.io/ecma262/#sec-strict-equality-comparison">Strict Equality Comparison</a>
-( <code>===</code> ). Set values and Map keys are compared using the <a href="https://tc39.github.io/ecma262/#sec-samevaluezero">SameValueZero</a>
+( <code>===</code> ).</li>
+<li>Set values and Map keys are compared using the <a href="https://tc39.github.io/ecma262/#sec-samevaluezero">SameValueZero</a>
 comparison. (Which means they are free of the <a href="#fs_caveats">caveats</a>).</li>
-<li><a href="https://tc39.github.io/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots"><code>[[Prototype]]</code></a> of objects are compared using
-the <a href="https://tc39.github.io/ecma262/#sec-strict-equality-comparison">Strict Equality Comparison</a> too.</li>
 <li><a href="https://tc39.github.io/ecma262/#sec-object.prototype.tostring">Type tags</a> of objects should be the same.</li>
+<li><a href="https://tc39.github.io/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots"><code>[[Prototype]]</code></a> of objects are compared using
+the <a href="https://tc39.github.io/ecma262/#sec-strict-equality-comparison">Strict Equality Comparison</a>.</li>
+<li>Only <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Enumerability_and_ownership_of_properties">enumerable &quot;own&quot; properties</a> are considered.</li>
+<li><a href="errors.html#errors_class_error"><code>Error</code></a> messages are always compared, even though this property is
+non-enumerable.</li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Glossary/Primitive#Primitive_wrapper_objects_in_JavaScript">Object wrappers</a> are compared both as objects and unwrapped values.</li>
-</ol>
-<pre><code class="lang-js">const assert = require(&#39;assert&#39;);
+<li>Object properties are compared unordered.</li>
+<li>Map keys and Set items are compared unordered.</li>
+<li>Recursion stops when both sides differ or both sides encounter a circular
+reference.</li>
+</ul>
+</div><pre><code class="lang-js">const assert = require(&#39;assert&#39;).strict;
 
 assert.deepEqual({ a: 1 }, { a: &#39;1&#39; });
 // OK, because 1 == &#39;1&#39;
@@ -2890,6 +2966,36 @@ assert.deepStrictEqual(new String(&#39;foo&#39;), Object(&#39;foo&#39;));
 <p>If the values are not equal, an <code>AssertionError</code> is thrown with a <code>message</code>
 property set equal to the value of the <code>message</code> parameter. If the <code>message</code>
 parameter is undefined, a default error message is assigned.</p>
+<h2>assert.doesNotReject(block[, error][, message])<span><a class="mark" href="#assert_assert_doesnotreject_block_error_message" id="assert_assert_doesnotreject_block_error_message">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: V8.13.0</span>
+</div><ul>
+<li><code>block</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>error</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp" class="type">&lt;RegExp&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>message</code> <span class="type">&lt;any&gt;</span></li>
+</ul>
+<p>Awaits for the promise returned by function <code>block</code> to complete and not be
+rejected. See <a href="#assert_assert_rejects_block_error_message"><code>assert.rejects()</code></a> for more details.</p>
+<p>When <code>assert.doesNotReject()</code> is called, it will immediately call the <code>block</code>
+function, and awaits for completion.</p>
+<p>Besides the async nature to await the completion behaves identical to
+[<code>assert.doesNotThrow()</code>][].</p>
+<pre><code class="lang-js">(async () =&gt; {
+  await assert.doesNotReject(
+    async () =&gt; {
+      throw new TypeError(&#39;Wrong value&#39;);
+    },
+    SyntaxError
+  );
+})();
+</code></pre>
+<pre><code class="lang-js">assert.doesNotReject(
+  () =&gt; Promise.reject(new TypeError(&#39;Wrong value&#39;)),
+  SyntaxError
+).then(() =&gt; {
+  // ...
+});
+</code></pre>
 <h2>assert.doesNotThrow(block[, error][, message])<span><a class="mark" href="#assert_assert_doesnotthrow_block_error_message" id="assert_assert_doesnotthrow_block_error_message">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -2961,7 +3067,10 @@ message:</p>
 <li><code>expected</code> <span class="type">&lt;any&gt;</span></li>
 <li><code>message</code> <span class="type">&lt;any&gt;</span></li>
 </ul>
-<p>Tests shallow, coercive equality between the <code>actual</code> and <code>expected</code> parameters
+<p><strong>Strict mode</strong></p>
+<p>An alias of <a href="#assert_assert_strictequal_actual_expected_message"><code>assert.strictEqual()</code></a>.</p>
+<p><strong>Legacy mode</strong></p>
+<div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="#assert_assert_strictequal_actual_expected_message"><code>assert.strictEqual()</code></a> instead.</div><p>Tests shallow, coercive equality between the <code>actual</code> and <code>expected</code> parameters
 using the <a href="https://tc39.github.io/ecma262/#sec-abstract-equality-comparison">Abstract Equality Comparison</a> ( <code>==</code> ).</p>
 <pre><code class="lang-js">const assert = require(&#39;assert&#39;);
 
@@ -2996,7 +3105,7 @@ default to <code>&#39;!=&#39;</code>. If <code>message</code> is provided only i
 message, the other arguments will be stored as properties on the thrown object.
 If <code>stackStartFunction</code> is provided, all stack frames above that function will
 be removed from stacktrace (see <a href="errors.html#errors_error_capturestacktrace_targetobject_constructoropt"><code>Error.captureStackTrace</code></a>).</p>
-<pre><code class="lang-js">const assert = require(&#39;assert&#39;);
+<pre><code class="lang-js">const assert = require(&#39;assert&#39;).strict;
 
 assert.fail(1, 2, undefined, &#39;&gt;&#39;);
 // AssertionError [ERR_ASSERTION]: 1 &gt; 2
@@ -3036,7 +3145,7 @@ suppressFrame();
 </ul>
 <p>Throws <code>value</code> if <code>value</code> is truthy. This is useful when testing the <code>error</code>
 argument in callbacks.</p>
-<pre><code class="lang-js">const assert = require(&#39;assert&#39;);
+<pre><code class="lang-js">const assert = require(&#39;assert&#39;).strict;
 
 assert.ifError(null);
 // OK
@@ -3057,7 +3166,10 @@ assert.ifError(new Error());
 <li><code>expected</code> <span class="type">&lt;any&gt;</span></li>
 <li><code>message</code> <span class="type">&lt;any&gt;</span></li>
 </ul>
-<p>Tests for any deep inequality. Opposite of <a href="#assert_assert_deepequal_actual_expected_message"><code>assert.deepEqual()</code></a>.</p>
+<p><strong>Strict mode</strong></p>
+<p>An alias of <a href="#assert_assert_notdeepstrictequal_actual_expected_message"><code>assert.notDeepStrictEqual()</code></a>.</p>
+<p><strong>Legacy mode</strong></p>
+<div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="#assert_assert_notdeepstrictequal_actual_expected_message"><code>assert.notDeepStrictEqual()</code></a> instead.</div><p>Tests for any deep inequality. Opposite of <a href="#assert_assert_deepequal_actual_expected_message"><code>assert.deepEqual()</code></a>.</p>
 <pre><code class="lang-js">const assert = require(&#39;assert&#39;);
 
 const obj1 = {
@@ -3101,7 +3213,7 @@ parameter is undefined, a default error message is assigned.</p>
 <li><code>message</code> <span class="type">&lt;any&gt;</span></li>
 </ul>
 <p>Tests for deep strict inequality. Opposite of <a href="#assert_assert_deepstrictequal_actual_expected_message"><code>assert.deepStrictEqual()</code></a>.</p>
-<pre><code class="lang-js">const assert = require(&#39;assert&#39;);
+<pre><code class="lang-js">const assert = require(&#39;assert&#39;).strict;
 
 assert.notDeepEqual({ a: 1 }, { a: &#39;1&#39; });
 // AssertionError: { a: 1 } notDeepEqual { a: &#39;1&#39; }
@@ -3120,7 +3232,10 @@ the <code>message</code> parameter is undefined, a default error message is assi
 <li><code>expected</code> <span class="type">&lt;any&gt;</span></li>
 <li><code>message</code> <span class="type">&lt;any&gt;</span></li>
 </ul>
-<p>Tests shallow, coercive inequality with the <a href="https://tc39.github.io/ecma262/#sec-abstract-equality-comparison">Abstract Equality Comparison</a>
+<p><strong>Strict mode</strong></p>
+<p>An alias of <a href="#assert_assert_notstrictequal_actual_expected_message"><code>assert.notStrictEqual()</code></a>.</p>
+<p><strong>Legacy mode</strong></p>
+<div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="#assert_assert_notstrictequal_actual_expected_message"><code>assert.notStrictEqual()</code></a> instead.</div><p>Tests shallow, coercive inequality with the <a href="https://tc39.github.io/ecma262/#sec-abstract-equality-comparison">Abstract Equality Comparison</a>
 ( <code>!=</code> ).</p>
 <pre><code class="lang-js">const assert = require(&#39;assert&#39;);
 
@@ -3146,7 +3261,7 @@ parameter is undefined, a default error message is assigned.</p>
 </ul>
 <p>Tests strict inequality as determined by the <a href="https://tc39.github.io/ecma262/#sec-strict-equality-comparison">Strict Equality Comparison</a>
 ( <code>!==</code> ).</p>
-<pre><code class="lang-js">const assert = require(&#39;assert&#39;);
+<pre><code class="lang-js">const assert = require(&#39;assert&#39;).strict;
 
 assert.notStrictEqual(1, 2);
 // OK
@@ -3172,7 +3287,7 @@ assert.notStrictEqual(1, &#39;1&#39;);
 <p>If <code>value</code> is not truthy, an <code>AssertionError</code> is thrown with a <code>message</code>
 property set equal to the value of the <code>message</code> parameter. If the <code>message</code>
 parameter is <code>undefined</code>, a default error message is assigned.</p>
-<pre><code class="lang-js">const assert = require(&#39;assert&#39;);
+<pre><code class="lang-js">const assert = require(&#39;assert&#39;).strict;
 
 assert.ok(true);
 // OK
@@ -3195,7 +3310,7 @@ assert.ok(false, &#39;it\&#39;s false&#39;);
 </ul>
 <p>Tests strict equality as determined by the <a href="https://tc39.github.io/ecma262/#sec-strict-equality-comparison">Strict Equality Comparison</a>
 ( <code>===</code> ).</p>
-<pre><code class="lang-js">const assert = require(&#39;assert&#39;);
+<pre><code class="lang-js">const assert = require(&#39;assert&#39;).strict;
 
 assert.strictEqual(1, 2);
 // AssertionError: 1 === 2
@@ -3209,11 +3324,47 @@ assert.strictEqual(1, &#39;1&#39;);
 <p>If the values are not strictly equal, an <code>AssertionError</code> is thrown with a
 <code>message</code> property set equal to the value of the <code>message</code> parameter. If the
 <code>message</code> parameter is undefined, a default error message is assigned.</p>
+<h2>assert.rejects(block[, error][, message])<span><a class="mark" href="#assert_assert_rejects_block_error_message" id="assert_assert_rejects_block_error_message">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: V8.13.0</span>
+</div><ul>
+<li><code>block</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>error</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp" class="type">&lt;RegExp&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
+<li><code>message</code> <span class="type">&lt;any&gt;</span></li>
+</ul>
+<p>Awaits for promise returned by function <code>block</code> to be rejected.</p>
+<p>When <code>assert.rejects()</code> is called, it will immediately call the <code>block</code>
+function, and awaits for completion.</p>
+<p>Besides the async nature to await the completion behaves identical to
+<a href="#assert_assert_throws_block_error_message"><code>assert.throws()</code></a>.</p>
+<p>If specified, <code>error</code> can be a constructor, <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions"><code>RegExp</code></a>, a validation
+function, or an object where each property will be tested for.</p>
+<p>If specified, <code>message</code> will be the message provided by the <code>AssertionError</code> if
+the block fails to reject.</p>
+<pre><code class="lang-js">(async () =&gt; {
+  await assert.rejects(
+    async () =&gt; {
+      throw new Error(&#39;Wrong value&#39;);
+    },
+    Error
+  );
+})();
+</code></pre>
+<pre><code class="lang-js">assert.rejects(
+  () =&gt; Promise.reject(new Error(&#39;Wrong value&#39;)),
+  Error
+).then(() =&gt; {
+  // ...
+});
+</code></pre>
 <h2>assert.throws(block[, error][, message])<span><a class="mark" href="#assert_assert_throws_block_error_message" id="assert_assert_throws_block_error_message">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tr><th>Version</th><th>Changes</th></tr>
+<tr><td>V8.13.0</td>
+<td><p>The <code>error</code> parameter can now be an object as well.</p>
+</td></tr>
 <tr><td>v4.2.0</td>
 <td><p>The <code>error</code> parameter can now be an arrow function.</p>
 </td></tr>
@@ -3224,12 +3375,12 @@ assert.strictEqual(1, &#39;1&#39;);
 </details>
 </div><ul>
 <li><code>block</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
-<li><code>error</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp" class="type">&lt;RegExp&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li><code>error</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp" class="type">&lt;RegExp&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> | <span class="type">&lt;object&gt;</span></li>
 <li><code>message</code> <span class="type">&lt;any&gt;</span></li>
 </ul>
 <p>Expects the function <code>block</code> to throw an error.</p>
-<p>If specified, <code>error</code> can be a constructor, <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions"><code>RegExp</code></a>, or validation
-function.</p>
+<p>If specified, <code>error</code> can be a constructor, <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions"><code>RegExp</code></a>, a validation
+function, or an object where each property will be tested for.</p>
 <p>If specified, <code>message</code> will be the message provided by the <code>AssertionError</code> if
 the block fails to throw.</p>
 <p>Validate instanceof using constructor:</p>
@@ -3261,16 +3412,54 @@ the block fails to throw.</p>
   &#39;unexpected error&#39;
 );
 </code></pre>
+<p>Custom error object / error instance:</p>
+<pre><code class="lang-js">assert.throws(
+  () =&gt; {
+    const err = new TypeError(&#39;Wrong value&#39;);
+    err.code = 404;
+    throw err;
+  },
+  {
+    name: &#39;TypeError&#39;,
+    message: &#39;Wrong value&#39;
+    // Note that only properties on the error object will be tested!
+  }
+);
+</code></pre>
 <p>Note that <code>error</code> can not be a string. If a string is provided as the second
 argument, then <code>error</code> is assumed to be omitted and the string will be used for
-<code>message</code> instead. This can lead to easy-to-miss mistakes:</p>
+<code>message</code> instead. This can lead to easy-to-miss mistakes. Please read the
+example below carefully if using a string as the second argument gets
+considered:</p>
 <!-- eslint-disable no-restricted-syntax -->
-<pre><code class="lang-js">// THIS IS A MISTAKE! DO NOT DO THIS!
-assert.throws(myFunction, &#39;missing foo&#39;, &#39;did not throw with expected message&#39;);
+<pre><code class="lang-js">function throwingFirst() {
+  throw new Error(&#39;First&#39;);
+}
+function throwingSecond() {
+  throw new Error(&#39;Second&#39;);
+}
+function notThrowing() {}
 
-// Do this instead.
-assert.throws(myFunction, /missing foo/, &#39;did not throw with expected message&#39;);
+// The second argument is a string and the input function threw an Error.
+// In that case both cases do not throw as neither is going to try to
+// match for the error message thrown by the input function!
+assert.throws(throwingFirst, &#39;Second&#39;);
+assert.throws(throwingSecond, &#39;Second&#39;);
+
+// The string is only used (as message) in case the function does not throw:
+assert.throws(notThrowing, &#39;Second&#39;);
+// AssertionError [ERR_ASSERTION]: Missing expected exception: Second
+
+// If it was intended to match for the error message do this instead:
+assert.throws(throwingSecond, /Second$/);
+// Does not throw because the error messages match.
+assert.throws(throwingFirst, /Second$/);
+// Throws a error:
+// Error: First
+//     at throwingFirst (repl:2:9)
 </code></pre>
+<p>Due to the confusing notation, it is recommended not to use a string as the
+second argument. This might lead to difficult-to-spot errors.</p>
 <h2>Caveats<span><a class="mark" href="#assert_caveats" id="assert_caveats">#</a></span></h2>
 <p>For the following cases, consider using ES2015 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is"><code>Object.is()</code></a>,
 which uses the <a href="https://tc39.github.io/ecma262/#sec-samevaluezero">SameValueZero</a> comparison.</p>
@@ -3416,10 +3605,10 @@ unintentional side effects.</p>
 <p>Because printing to the console is an asynchronous operation, <code>console.log()</code>
 will cause the AsyncHooks callbacks to be called. Using <code>console.log()</code> or
 similar asynchronous operations inside an AsyncHooks callback function will thus
-cause an infinite recursion. An easily solution to this when debugging is
-to use a synchronous logging operation such as <code>fs.writeSync(1, msg)</code>. This
-will print to stdout because <code>1</code> is the file descriptor for stdout and will
-not invoke AsyncHooks recursively because it is synchronous.</p>
+cause an infinite recursion. An easy solution to this when debugging is to use a
+synchronous logging operation such as <code>fs.writeSync(1, msg)</code>. This will print to
+stdout because <code>1</code> is the file descriptor for stdout and will not invoke
+AsyncHooks recursively because it is synchronous.</p>
 <pre><code class="lang-js">const fs = require(&#39;fs&#39;);
 const util = require(&#39;util&#39;);
 
@@ -3771,8 +3960,8 @@ the details of the V8 <a href="https://docs.google.com/document/d/1rda3yKGHimKIh
 like I/O, connection pooling, or managing callback queues may use the <code>AsyncWrap</code>
 JavaScript API so that all the appropriate callbacks are called.</p>
 <h3><code>class AsyncResource()</code><span><a class="mark" href="#async_hooks_class_asyncresource" id="async_hooks_class_asyncresource">#</a></span></h3>
-<p>The class <code>AsyncResource</code> was designed to be extended by the embedder&#39;s async
-resources. Using this users can easily trigger the lifetime events of their
+<p>The class <code>AsyncResource</code> is designed to be extended by the embedder&#39;s async
+resources. Using this, users can easily trigger the lifetime events of their
 own resources.</p>
 <p>The <code>init</code> hook will trigger when an <code>AsyncResource</code> is instantiated.</p>
 <p>The following is an overview of the <code>AsyncResource</code> API.</p>
@@ -13204,7 +13393,7 @@ const cert2 = crypto.Certificate();
 <span>Added in: v0.11.8</span>
 </div><ul>
 <li><code>spkac</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a></li>
-<li>Returns <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> The challenge component of the <code>spkac</code> data structure, which
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> The challenge component of the <code>spkac</code> data structure, which
 includes a public key and a challenge.</li>
 </ul>
 <pre><code class="lang-js">const cert = require(&#39;crypto&#39;).Certificate();
@@ -13218,7 +13407,7 @@ console.log(challenge.toString(&#39;utf8&#39;));
 <span>Added in: v0.11.8</span>
 </div><ul>
 <li><code>spkac</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a></li>
-<li>Returns <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> The public key component of the <code>spkac</code> data structure,
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> The public key component of the <code>spkac</code> data structure,
 which includes a public key and a challenge.</li>
 </ul>
 <pre><code class="lang-js">const cert = require(&#39;crypto&#39;).Certificate();
@@ -13232,8 +13421,8 @@ console.log(publicKey);
 <span>Added in: v0.11.8</span>
 </div><ul>
 <li><code>spkac</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a></li>
-<li>Returns <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <code>true</code> if the given <code>spkac</code> data structure is valid, <code>false</code>
-otherwise.</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <code>true</code> if the given <code>spkac</code> data structure is valid,
+<code>false</code> otherwise.</li>
 </ul>
 <pre><code class="lang-js">const cert = require(&#39;crypto&#39;).Certificate();
 const spkac = getSpkacSomehow();
@@ -13296,10 +13485,11 @@ console.log(encrypted);
 <span>Added in: v0.1.94</span>
 </div><ul>
 <li><code>outputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Any remaining enciphered contents.
+If <code>outputEncoding</code> parameter is one of <code>&#39;latin1&#39;</code>, <code>&#39;base64&#39;</code> or <code>&#39;hex&#39;</code>,
+a string is returned. If an <code>outputEncoding</code> is not provided, a <a href="buffer.html#buffer_class_buffer"><code>Buffer</code></a>
+is returned.</li>
 </ul>
-<p>Returns any remaining enciphered contents. If <code>outputEncoding</code>
-parameter is one of <code>&#39;latin1&#39;</code>, <code>&#39;base64&#39;</code> or <code>&#39;hex&#39;</code>, a string is returned.
-If an <code>outputEncoding</code> is not provided, a <a href="buffer.html#buffer_class_buffer"><code>Buffer</code></a> is returned.</p>
 <p>Once the <code>cipher.final()</code> method has been called, the <code>Cipher</code> object can no
 longer be used to encrypt data. Attempts to call <code>cipher.final()</code> more than
 once will result in an error being thrown.</p>
@@ -13308,7 +13498,7 @@ once will result in an error being thrown.</p>
 <span>Added in: v1.0.0</span>
 </div><ul>
 <li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
-<li>Returns the <span class="type">&lt;Cipher&gt;</span> for method chaining.</li>
+<li>Returns the <a href="crypto.html#crypto_class_cipher" class="type">&lt;Cipher&gt;</a> for method chaining.</li>
 </ul>
 <p>When using an authenticated encryption mode (only <code>GCM</code> is currently
 supported), the <code>cipher.setAAD()</code> method sets the value used for the
@@ -13317,9 +13507,12 @@ supported), the <code>cipher.setAAD()</code> method sets the value used for the
 <h3>cipher.getAuthTag()<span><a class="mark" href="#crypto_cipher_getauthtag" id="crypto_cipher_getauthtag">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v1.0.0</span>
-</div><p>When using an authenticated encryption mode (only <code>GCM</code> is currently
-supported), the <code>cipher.getAuthTag()</code> method returns a <a href="buffer.html#buffer_class_buffer"><code>Buffer</code></a> containing
-the <em>authentication tag</em> that has been computed from the given data.</p>
+</div><ul>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> When using an authenticated encryption mode (only <code>GCM</code> is
+currently supported), the <code>cipher.getAuthTag()</code> method returns a <a href="buffer.html#buffer_class_buffer"><code>Buffer</code></a>
+containing the <em>authentication tag</em> that has been computed from the given
+data.</li>
+</ul>
 <p>The <code>cipher.getAuthTag()</code> method should only be called after encryption has
 been completed using the <a href="#crypto_cipher_final_outputencoding"><code>cipher.final()</code></a> method.</p>
 <h3>cipher.setAutoPadding([autoPadding])<span><a class="mark" href="#crypto_cipher_setautopadding_autopadding" id="crypto_cipher_setautopadding_autopadding">#</a></span></h3>
@@ -13327,7 +13520,7 @@ been completed using the <a href="#crypto_cipher_final_outputencoding"><code>cip
 <span>Added in: v0.7.1</span>
 </div><ul>
 <li><code>autoPadding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <strong>Default:</strong> <code>true</code></li>
-<li>Returns the <span class="type">&lt;Cipher&gt;</span> for method chaining.</li>
+<li>Returns: <a href="crypto.html#crypto_class_cipher" class="type">&lt;Cipher&gt;</a> for method chaining.</li>
 </ul>
 <p>When using block encryption algorithms, the <code>Cipher</code> class will automatically
 add padding to the input data to the appropriate block size. To disable the
@@ -13355,6 +13548,7 @@ using <code>0x0</code> instead of PKCS padding.</p>
 <li><code>data</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a></li>
 <li><code>inputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 <li><code>outputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>Updates the cipher with <code>data</code>. If the <code>inputEncoding</code> argument is given,
 its value must be one of <code>&#39;utf8&#39;</code>, <code>&#39;ascii&#39;</code>, or <code>&#39;latin1&#39;</code> and the <code>data</code>
@@ -13429,10 +13623,11 @@ console.log(decrypted);
 <span>Added in: v0.1.94</span>
 </div><ul>
 <li><code>outputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Any remaining deciphered contents.
+If <code>outputEncoding</code> parameter is one of <code>&#39;latin1&#39;</code>, <code>&#39;ascii&#39;</code> or <code>&#39;utf8&#39;</code>,
+a string is returned. If an <code>outputEncoding</code> is not provided, a <a href="buffer.html#buffer_class_buffer"><code>Buffer</code></a>
+is returned.</li>
 </ul>
-<p>Returns any remaining deciphered contents. If <code>outputEncoding</code>
-parameter is one of <code>&#39;latin1&#39;</code>, <code>&#39;ascii&#39;</code> or <code>&#39;utf8&#39;</code>, a string is returned.
-If an <code>outputEncoding</code> is not provided, a <a href="buffer.html#buffer_class_buffer"><code>Buffer</code></a> is returned.</p>
 <p>Once the <code>decipher.final()</code> method has been called, the <code>Decipher</code> object can
 no longer be used to decrypt data. Attempts to call <code>decipher.final()</code> more
 than once will result in an error being thrown.</p>
@@ -13451,7 +13646,7 @@ than once will result in an error being thrown.</p>
 </details>
 </div><ul>
 <li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a></li>
-<li>Returns the <span class="type">&lt;Cipher&gt;</span> for method chaining.</li>
+<li>Returns: <a href="crypto.html#crypto_class_cipher" class="type">&lt;Cipher&gt;</a> for method chaining.</li>
 </ul>
 <p>When using an authenticated encryption mode (only <code>GCM</code> is currently
 supported), the <code>decipher.setAAD()</code> method sets the value used for the
@@ -13472,7 +13667,7 @@ supported), the <code>decipher.setAAD()</code> method sets the value used for th
 </details>
 </div><ul>
 <li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a></li>
-<li>Returns the <span class="type">&lt;Cipher&gt;</span> for method chaining.</li>
+<li>Returns: <a href="crypto.html#crypto_class_cipher" class="type">&lt;Cipher&gt;</a> for method chaining.</li>
 </ul>
 <p>When using an authenticated encryption mode (only <code>GCM</code> is currently
 supported), the <code>decipher.setAuthTag()</code> method is used to pass in the
@@ -13493,7 +13688,7 @@ authentication tags of that length, see <a href="http://nvlpubs.nist.gov/nistpub
 <span>Added in: v0.7.1</span>
 </div><ul>
 <li><code>autoPadding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <strong>Default:</strong> <code>true</code></li>
-<li>Returns the <span class="type">&lt;Cipher&gt;</span> for method chaining.</li>
+<li>Returns: <a href="crypto.html#crypto_class_cipher" class="type">&lt;Cipher&gt;</a> for method chaining.</li>
 </ul>
 <p>When data has been encrypted without standard block padding, calling
 <code>decipher.setAutoPadding(false)</code> will disable automatic padding to prevent
@@ -13519,6 +13714,7 @@ multiple of the ciphers block size.</p>
 <li><code>data</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a></li>
 <li><code>inputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 <li><code>outputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>Updates the decipher with <code>data</code>. If the <code>inputEncoding</code> argument is given,
 its value must be one of <code>&#39;latin1&#39;</code>, <code>&#39;base64&#39;</code>, or <code>&#39;hex&#39;</code> and the <code>data</code>
@@ -13564,6 +13760,7 @@ assert.strictEqual(aliceSecret.toString(&#39;hex&#39;), bobSecret.toString(&#39;
 <li><code>otherPublicKey</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a></li>
 <li><code>inputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 <li><code>outputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>Computes the shared secret using <code>otherPublicKey</code> as the other
 party&#39;s public key and returns the computed shared secret. The supplied
@@ -13579,6 +13776,7 @@ provided, <code>otherPublicKey</code> is expected to be a <a href="buffer.html#b
 <span>Added in: v0.5.0</span>
 </div><ul>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>Generates private and public Diffie-Hellman key values, and returns
 the public key in the specified <code>encoding</code>. This key should be
@@ -13590,6 +13788,7 @@ or <code>&#39;base64&#39;</code>. If <code>encoding</code> is provided a string 
 <span>Added in: v0.5.0</span>
 </div><ul>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>Returns the Diffie-Hellman generator in the specified <code>encoding</code>, which can
 be <code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code>, or <code>&#39;base64&#39;</code>. If <code>encoding</code> is provided a string is
@@ -13599,6 +13798,7 @@ returned; otherwise a <a href="buffer.html#buffer_class_buffer"><code>Buffer</co
 <span>Added in: v0.5.0</span>
 </div><ul>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>Returns the Diffie-Hellman prime in the specified <code>encoding</code>, which can
 be <code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code>, or <code>&#39;base64&#39;</code>. If <code>encoding</code> is provided a string is
@@ -13608,6 +13808,7 @@ returned; otherwise a <a href="buffer.html#buffer_class_buffer"><code>Buffer</co
 <span>Added in: v0.5.0</span>
 </div><ul>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>Returns the Diffie-Hellman private key in the specified <code>encoding</code>,
 which can be <code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code>, or <code>&#39;base64&#39;</code>. If <code>encoding</code> is provided a
@@ -13617,6 +13818,7 @@ string is returned; otherwise a <a href="buffer.html#buffer_class_buffer"><code>
 <span>Added in: v0.5.0</span>
 </div><ul>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>Returns the Diffie-Hellman public key in the specified <code>encoding</code>, which
 can be <code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code>, or <code>&#39;base64&#39;</code>. If <code>encoding</code> is provided a
@@ -13698,6 +13900,7 @@ assert.strictEqual(aliceSecret.toString(&#39;hex&#39;), bobSecret.toString(&#39;
 <li><code>otherPublicKey</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a></li>
 <li><code>inputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 <li><code>outputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>Computes the shared secret using <code>otherPublicKey</code> as the other
 party&#39;s public key and returns the computed shared secret. The supplied
@@ -13714,6 +13917,7 @@ provided, <code>otherPublicKey</code> is expected to be a <a href="buffer.html#b
 </div><ul>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 <li><code>format</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> <strong>Default:</strong> <code>uncompressed</code></li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>Generates private and public EC Diffie-Hellman key values, and returns
 the public key in the specified <code>format</code> and <code>encoding</code>. This key should be
@@ -13729,19 +13933,19 @@ is returned.</p>
 <span>Added in: v0.11.14</span>
 </div><ul>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The EC Diffie-Hellman private key in the specified
+<code>encoding</code>, which can be <code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code>, or <code>&#39;base64&#39;</code>. If <code>encoding</code>
+is provided a string is returned; otherwise a <a href="buffer.html#buffer_class_buffer"><code>Buffer</code></a> is returned.</li>
 </ul>
-<p>Returns the EC Diffie-Hellman private key in the specified <code>encoding</code>,
-which can be <code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code>, or <code>&#39;base64&#39;</code>. If <code>encoding</code> is provided
-a string is returned; otherwise a <a href="buffer.html#buffer_class_buffer"><code>Buffer</code></a> is returned.</p>
 <h3>ecdh.getPublicKey([encoding][, format])<span><a class="mark" href="#crypto_ecdh_getpublickey_encoding_format" id="crypto_ecdh_getpublickey_encoding_format">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.14</span>
 </div><ul>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 <li><code>format</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> <strong>Default:</strong> <code>uncompressed</code></li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The EC Diffie-Hellman public key in the specified
+<code>encoding</code> and <code>format</code>.</li>
 </ul>
-<p>Returns the EC Diffie-Hellman public key in the specified <code>encoding</code> and
-<code>format</code>.</p>
 <p>The <code>format</code> argument specifies point encoding and can be <code>&#39;compressed&#39;</code> or
 <code>&#39;uncompressed&#39;</code>. If <code>format</code> is not specified the point will be returned in
 <code>&#39;uncompressed&#39;</code> format.</p>
@@ -13851,6 +14055,7 @@ console.log(hash.digest(&#39;hex&#39;));
 <span>Added in: v0.1.92</span>
 </div><ul>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>Calculates the digest of all of the data passed to be hashed (using the
 <a href="#crypto_hash_update_data_inputencoding"><code>hash.update()</code></a> method). The <code>encoding</code> can be <code>&#39;hex&#39;</code>, <code>&#39;latin1&#39;</code> or
@@ -13932,6 +14137,7 @@ console.log(hmac.digest(&#39;hex&#39;));
 <span>Added in: v0.1.94</span>
 </div><ul>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>Calculates the HMAC digest of all of the data passed using <a href="#crypto_hmac_update_data_inputencoding"><code>hmac.update()</code></a>.
 The <code>encoding</code> can be <code>&#39;hex&#39;</code>, <code>&#39;latin1&#39;</code> or <code>&#39;base64&#39;</code>. If <code>encoding</code> is
@@ -14032,6 +14238,7 @@ console.log(sign.sign(privateKey, &#39;hex&#39;));
 </ul>
 </li>
 <li><code>outputFormat</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>Calculates the signature on all the data passed through using either
 <a href="#crypto_sign_update_data_inputencoding"><code>sign.update()</code></a> or <a href="stream.html#stream_writable_write_chunk_encoding_callback"><code>sign.write()</code></a>.</p>
@@ -14159,6 +14366,8 @@ encoding of <code>&#39;utf8&#39;</code> is enforced. If <code>data</code> is a <
 <li><code>object</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
 <li><code>signature</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a></li>
 <li><code>signatureFormat</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <code>true</code> or <code>false</code> depending on the validity of the
+signature for the data and public key.</li>
 </ul>
 <p>Verifies the provided data using the given <code>object</code> and <code>signature</code>.
 The <code>object</code> argument can be either a string containing a PEM encoded object,
@@ -14185,8 +14394,6 @@ the <code>signatureFormat</code> which can be <code>&#39;latin1&#39;</code>, <co
 If a <code>signatureFormat</code> is specified, the <code>signature</code> is expected to be a
 string; otherwise <code>signature</code> is expected to be a <a href="buffer.html#buffer_class_buffer"><code>Buffer</code></a>,
 <code>TypedArray</code>, or <code>DataView</code>.</p>
-<p>Returns <code>true</code> or <code>false</code> depending on the validity of the signature for
-the data and public key.</p>
 <p>The <code>verify</code> object can not be used again after <code>verify.verify()</code> has been
 called. Multiple calls to <code>verify.verify()</code> will result in an error being
 thrown.</p>
@@ -14194,9 +14401,11 @@ thrown.</p>
 <h3>crypto.constants<span><a class="mark" href="#crypto_crypto_constants" id="crypto_crypto_constants">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v6.3.0</span>
-</div><p>Returns an object containing commonly used constants for crypto and security
-related operations. The specific constants currently defined are described in
-<a href="#crypto_crypto_constants_1">Crypto Constants</a>.</p>
+</div><ul>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> An object containing commonly used constants for crypto and
+security related operations. The specific constants currently defined are
+described in <a href="#crypto_crypto_constants_1">Crypto Constants</a>.</li>
+</ul>
 <h3>crypto.DEFAULT_ENCODING<span><a class="mark" href="#crypto_crypto_default_encoding" id="crypto_crypto_default_encoding">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.9.3</span>
@@ -14219,6 +14428,7 @@ currently in use. Setting to true requires a FIPS build of Node.js.</p>
 <li><code>algorithm</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 <li><code>password</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a></li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> <a href="stream.html#stream_new_stream_transform_options"><code>stream.transform</code> options</a></li>
+<li>Returns: <a href="crypto.html#crypto_class_cipher" class="type">&lt;Cipher&gt;</a></li>
 </ul>
 <p>Creates and returns a <code>Cipher</code> object that uses the given <code>algorithm</code> and
 <code>password</code>. Optional <code>options</code> argument controls stream behavior.</p>
@@ -14260,6 +14470,7 @@ Adversaries</a> for details.</p>
 <li><code>key</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a></li>
 <li><code>iv</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a></li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> <a href="stream.html#stream_new_stream_transform_options"><code>stream.transform</code> options</a></li>
+<li>Returns: <a href="crypto.html#crypto_class_cipher" class="type">&lt;Cipher&gt;</a></li>
 </ul>
 <p>Creates and returns a <code>Cipher</code> object, with the given <code>algorithm</code>, <code>key</code> and
 initialization vector (<code>iv</code>). Optional <code>options</code> argument controls stream behavior.</p>
@@ -14289,6 +14500,7 @@ called.</p>
 <li><code>algorithm</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 <li><code>password</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a></li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> <a href="stream.html#stream_new_stream_transform_options"><code>stream.transform</code> options</a></li>
+<li>Returns: <a href="crypto.html#crypto_class_decipher" class="type">&lt;Decipher&gt;</a></li>
 </ul>
 <p>Creates and returns a <code>Decipher</code> object that uses the given <code>algorithm</code> and
 <code>password</code> (key). Optional <code>options</code> argument controls stream behavior.</p>
@@ -14320,6 +14532,7 @@ to create the <code>Decipher</code> object.</p>
 <li><code>key</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a></li>
 <li><code>iv</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a></li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> <a href="stream.html#stream_new_stream_transform_options"><code>stream.transform</code> options</a></li>
+<li>Returns: <a href="crypto.html#crypto_class_decipher" class="type">&lt;Decipher&gt;</a></li>
 </ul>
 <p>Creates and returns a <code>Decipher</code> object that uses the given <code>algorithm</code>, <code>key</code>
 and initialization vector (<code>iv</code>). Optional <code>options</code> argument controls stream
@@ -14395,6 +14608,7 @@ and description of each available elliptic curve.</p>
 </div><ul>
 <li><code>algorithm</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> <a href="stream.html#stream_new_stream_transform_options"><code>stream.transform</code> options</a></li>
+<li>Returns: <a href="crypto.html#crypto_class_hash" class="type">&lt;Hash&gt;</a></li>
 </ul>
 <p>Creates and returns a <code>Hash</code> object that can be used to generate hash digests
 using the given <code>algorithm</code>. Optional <code>options</code> argument controls stream
@@ -14427,6 +14641,7 @@ input.on(&#39;readable&#39;, () =&gt; {
 <li><code>algorithm</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 <li><code>key</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a></li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> <a href="stream.html#stream_new_stream_transform_options"><code>stream.transform</code> options</a></li>
+<li>Returns: <a href="crypto.html#crypto_class_hmac" class="type">&lt;Hmac&gt;</a></li>
 </ul>
 <p>Creates and returns an <code>Hmac</code> object that uses the given <code>algorithm</code> and <code>key</code>.
 Optional <code>options</code> argument controls stream behavior.</p>
@@ -14458,6 +14673,7 @@ input.on(&#39;readable&#39;, () =&gt; {
 </div><ul>
 <li><code>algorithm</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> <a href="stream.html#stream_constructor_new_stream_writable_options"><code>stream.Writable</code> options</a></li>
+<li>Returns: <a href="crypto.html#crypto_class_sign" class="type">&lt;Sign&gt;</a></li>
 </ul>
 <p>Creates and returns a <code>Sign</code> object that uses the given <code>algorithm</code>.
 Use <a href="#crypto_crypto_gethashes"><code>crypto.getHashes()</code></a> to obtain an array of names of the available
@@ -14469,6 +14685,7 @@ signing algorithms. Optional <code>options</code> argument controls the
 </div><ul>
 <li><code>algorithm</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> <a href="stream.html#stream_constructor_new_stream_writable_options"><code>stream.Writable</code> options</a></li>
+<li>Returns: <a href="crypto.html#crypto_class_verify" class="type">&lt;Verify&gt;</a></li>
 </ul>
 <p>Creates and returns a <code>Verify</code> object that uses the given algorithm.
 Use <a href="#crypto_crypto_gethashes"><code>crypto.getHashes()</code></a> to obtain an array of names of the available
@@ -14477,7 +14694,10 @@ signing algorithms. Optional <code>options</code> argument controls the
 <h3>crypto.getCiphers()<span><a class="mark" href="#crypto_crypto_getciphers" id="crypto_crypto_getciphers">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.9.3</span>
-</div><p>Returns an array with the names of the supported cipher algorithms.</p>
+</div><ul>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string[]&gt;</a> An array with the names of the supported cipher
+algorithms.</li>
+</ul>
 <p>Example:</p>
 <pre><code class="lang-js">const ciphers = crypto.getCiphers();
 console.log(ciphers); // [&#39;aes-128-cbc&#39;, &#39;aes-128-ccm&#39;, ...]
@@ -14485,7 +14705,9 @@ console.log(ciphers); // [&#39;aes-128-cbc&#39;, &#39;aes-128-ccm&#39;, ...]
 <h3>crypto.getCurves()<span><a class="mark" href="#crypto_crypto_getcurves" id="crypto_crypto_getcurves">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v2.3.0</span>
-</div><p>Returns an array with the names of the supported elliptic curves.</p>
+</div><ul>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string[]&gt;</a> An array with the names of the supported elliptic curves.</li>
+</ul>
 <p>Example:</p>
 <pre><code class="lang-js">const curves = crypto.getCurves();
 console.log(curves); // [&#39;Oakley-EC2N-3&#39;, &#39;Oakley-EC2N-4&#39;, ...]
@@ -14495,6 +14717,7 @@ console.log(curves); // [&#39;Oakley-EC2N-3&#39;, &#39;Oakley-EC2N-4&#39;, ...]
 <span>Added in: v0.7.5</span>
 </div><ul>
 <li><code>groupName</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
 </ul>
 <p>Creates a predefined <code>DiffieHellman</code> key exchange object. The
 supported groups are: <code>&#39;modp1&#39;</code>, <code>&#39;modp2&#39;</code>, <code>&#39;modp5&#39;</code> (defined in
@@ -14523,8 +14746,10 @@ console.log(aliceSecret === bobSecret);
 <h3>crypto.getHashes()<span><a class="mark" href="#crypto_crypto_gethashes" id="crypto_crypto_gethashes">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.9.3</span>
-</div><p>Returns an array of the names of the supported hash algorithms,
-such as <code>RSA-SHA256</code>.</p>
+</div><ul>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string[]&gt;</a> An array of the names of the supported hash algorithms,
+such as <code>&#39;RSA-SHA256&#39;</code>.</li>
+</ul>
 <p>Example:</p>
 <pre><code class="lang-js">const hashes = crypto.getHashes();
 console.log(hashes); // [&#39;DSA&#39;, &#39;DSA-SHA&#39;, &#39;DSA-SHA1&#39;, ...]
@@ -14607,6 +14832,7 @@ negative performance implications for some applications, see the
 <li><code>iterations</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
 <li><code>keylen</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
 <li><code>digest</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
 </ul>
 <p>Provides a synchronous Password-Based Key Derivation Function 2 (PBKDF2)
 implementation. A selected HMAC digest algorithm specified by <code>digest</code> is
@@ -14714,6 +14940,7 @@ be passed instead of a public key.</p>
 <li><code>buf</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
 </ul>
 </li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> if the <code>callback</code> function is not provided.</li>
 </ul>
 <p>Generates cryptographically strong pseudo-random data. The <code>size</code> argument
 is a number indicating the number of bytes to generate.</p>
@@ -14755,9 +14982,9 @@ client request.</p>
 <li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&lt;Uint8Array&gt;</a> Must be supplied.</li>
 <li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> <strong>Default:</strong> <code>0</code></li>
 <li><code>size</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> <strong>Default:</strong> <code>buffer.length - offset</code></li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
 </ul>
 <p>Synchronous version of <a href="#crypto_crypto_randomfill_buffer_offset_size_callback"><code>crypto.randomFill()</code></a>.</p>
-<p>Returns <code>buffer</code></p>
 <pre><code class="lang-js">const buf = Buffer.alloc(10);
 console.log(crypto.randomFillSync(buf).toString(&#39;hex&#39;));
 
@@ -14838,6 +15065,7 @@ is a bit field taking one of or a mix of the following flags (defined in
 </div><ul>
 <li><code>a</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a></li>
 <li><code>b</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
 </ul>
 <p>This function is based on a constant-time algorithm.
 Returns true if <code>a</code> is equal to <code>b</code>, without leaking timing information that
@@ -15810,6 +16038,12 @@ API instead.</p>
 <p><code>runInAsyncIdScope</code> doesn&#39;t emit the <code>before</code> or <code>after</code> event and can thus
 cause a lot of issues. See <a href="https://github.com/nodejs/node/issues/14328">https://github.com/nodejs/node/issues/14328</a> for more
 details.</p>
+<p><a id="DEP0089"></a></p>
+<h3>DEP0089: require(&#39;assert&#39;)<span><a class="mark" href="#deprecations_dep0089_require_assert" id="deprecations_dep0089_require_assert">#</a></span></h3>
+<p>Type: Documentation-only</p>
+<p>Importing assert directly is not recommended as the exposed functions will use
+loose equality checks. Use <code>require(&#39;assert&#39;).strict</code> instead. The API is the
+same as the legacy assert but it will always use strict equality checks.</p>
 <p><a id="DEP0098"></a></p>
 <h3>DEP0098: AsyncHooks Embedder AsyncResource.emit<span class="type">&lt;Before,After&gt;</span> APIs<span><a class="mark" href="#deprecations_dep0098_asynchooks_embedder_asyncresource_emit_span_class_type_lt_before_after_gt_span_apis" id="deprecations_dep0098_asynchooks_embedder_asyncresource_emit_span_class_type_lt_before_after_gt_span_apis">#</a></span></h3>
 <p>Type: Runtime</p>
@@ -17739,6 +17973,9 @@ requests and responses.</p>
 <h3>ERR_HTTP2_INVALID_INFO_STATUS<span><a class="mark" href="#errors_err_http2_invalid_info_status" id="errors_err_http2_invalid_info_status">#</a></span><span><a class="mark" href="#ERR_HTTP2_INVALID_INFO_STATUS" id="ERR_HTTP2_INVALID_INFO_STATUS">#</a></span></h3>
 <p>An invalid HTTP informational status code has been specified. Informational
 status codes must be an integer between <code>100</code> and <code>199</code> (inclusive).</p>
+<p><a id="ERR_HTTP2_INVALID_ORIGIN"></a></p>
+<h3>ERR_HTTP2_INVALID_ORIGIN<span><a class="mark" href="#errors_err_http2_invalid_origin" id="errors_err_http2_invalid_origin">#</a></span><span><a class="mark" href="#ERR_HTTP2_INVALID_ORIGIN" id="ERR_HTTP2_INVALID_ORIGIN">#</a></span></h3>
+<p>HTTP/2 <code>ORIGIN</code> frames require a valid origin.</p>
 <p><a id="ERR_HTTP2_INVALID_PACKED_SETTINGS_LENGTH"></a></p>
 <h3>ERR_HTTP2_INVALID_PACKED_SETTINGS_LENGTH<span><a class="mark" href="#errors_err_http2_invalid_packed_settings_length" id="errors_err_http2_invalid_packed_settings_length">#</a></span><span><a class="mark" href="#ERR_HTTP2_INVALID_PACKED_SETTINGS_LENGTH" id="ERR_HTTP2_INVALID_PACKED_SETTINGS_LENGTH">#</a></span></h3>
 <p>Input <code>Buffer</code> and <code>Uint8Array</code> instances passed to the
@@ -17765,10 +18002,17 @@ required to send an acknowledgment that it has received and applied the new
 <code>SETTINGS</code>. By default, a maximum number of unacknowledged <code>SETTINGS</code> frames may
 be sent at any given time. This error code is used when that limit has been
 reached.</p>
+<p><a id="ERR_HTTP2_NESTED_PUSH"></a></p>
+<h3>ERR_HTTP2_NESTED_PUSH<span><a class="mark" href="#errors_err_http2_nested_push" id="errors_err_http2_nested_push">#</a></span><span><a class="mark" href="#ERR_HTTP2_NESTED_PUSH" id="ERR_HTTP2_NESTED_PUSH">#</a></span></h3>
+<p>An attempt was made to initiate a new push stream from within a push stream.
+Nested push streams are not permitted.</p>
 <p><a id="ERR_HTTP2_NO_SOCKET_MANIPULATION"></a></p>
 <h3>ERR_HTTP2_NO_SOCKET_MANIPULATION<span><a class="mark" href="#errors_err_http2_no_socket_manipulation" id="errors_err_http2_no_socket_manipulation">#</a></span><span><a class="mark" href="#ERR_HTTP2_NO_SOCKET_MANIPULATION" id="ERR_HTTP2_NO_SOCKET_MANIPULATION">#</a></span></h3>
 <p>An attempt was made to directly manipulate (read, write, pause, resume, etc.) a
 socket attached to an <code>Http2Session</code>.</p>
+<p><a id="ERR_HTTP2_ORIGIN_LENGTH"></a></p>
+<h3>ERR_HTTP2_ORIGIN_LENGTH<span><a class="mark" href="#errors_err_http2_origin_length" id="errors_err_http2_origin_length">#</a></span><span><a class="mark" href="#ERR_HTTP2_ORIGIN_LENGTH" id="ERR_HTTP2_ORIGIN_LENGTH">#</a></span></h3>
+<p>HTTP/2 <code>ORIGIN</code> frames are limited to a length of 16382 bytes.</p>
 <p><a id="ERR_HTTP2_OUT_OF_STREAMS"></a></p>
 <h3>ERR_HTTP2_OUT_OF_STREAMS<span><a class="mark" href="#errors_err_http2_out_of_streams" id="errors_err_http2_out_of_streams">#</a></span><span><a class="mark" href="#ERR_HTTP2_OUT_OF_STREAMS" id="ERR_HTTP2_OUT_OF_STREAMS">#</a></span></h3>
 <p>The number of streams created on a single HTTP/2 session reached the maximum
@@ -17798,10 +18042,17 @@ send something other than a regular file.</p>
 <p><a id="ERR_HTTP2_SESSION_ERROR"></a></p>
 <h3>ERR_HTTP2_SESSION_ERROR<span><a class="mark" href="#errors_err_http2_session_error" id="errors_err_http2_session_error">#</a></span><span><a class="mark" href="#ERR_HTTP2_SESSION_ERROR" id="ERR_HTTP2_SESSION_ERROR">#</a></span></h3>
 <p>The <code>Http2Session</code> closed with a non-zero error code.</p>
+<p><a id="ERR_HTTP2_SETTINGS_CANCEL"></a></p>
+<h3>ERR_HTTP2_SETTINGS_CANCEL<span><a class="mark" href="#errors_err_http2_settings_cancel" id="errors_err_http2_settings_cancel">#</a></span><span><a class="mark" href="#ERR_HTTP2_SETTINGS_CANCEL" id="ERR_HTTP2_SETTINGS_CANCEL">#</a></span></h3>
+<p>The <code>Http2Session</code> settings canceled.</p>
 <p><a id="ERR_HTTP2_SOCKET_BOUND"></a></p>
 <h3>ERR_HTTP2_SOCKET_BOUND<span><a class="mark" href="#errors_err_http2_socket_bound" id="errors_err_http2_socket_bound">#</a></span><span><a class="mark" href="#ERR_HTTP2_SOCKET_BOUND" id="ERR_HTTP2_SOCKET_BOUND">#</a></span></h3>
 <p>An attempt was made to connect a <code>Http2Session</code> object to a <code>net.Socket</code> or
 <code>tls.TLSSocket</code> that had already been bound to another <code>Http2Session</code> object.</p>
+<p><a id="ERR_HTTP2_SOCKET_UNBOUND"></a></p>
+<h3>ERR_HTTP2_SOCKET_UNBOUND<span><a class="mark" href="#errors_err_http2_socket_unbound" id="errors_err_http2_socket_unbound">#</a></span><span><a class="mark" href="#ERR_HTTP2_SOCKET_UNBOUND" id="ERR_HTTP2_SOCKET_UNBOUND">#</a></span></h3>
+<p>An attempt was made to use the <code>socket</code> property of an <code>Http2Session</code> that
+has already been closed.</p>
 <p><a id="ERR_HTTP2_STATUS_101"></a></p>
 <h3>ERR_HTTP2_STATUS_101<span><a class="mark" href="#errors_err_http2_status_101" id="errors_err_http2_status_101">#</a></span><span><a class="mark" href="#ERR_HTTP2_STATUS_101" id="ERR_HTTP2_STATUS_101">#</a></span></h3>
 <p>Use of the <code>101</code> Informational status code is forbidden in HTTP/2.</p>
@@ -17821,6 +18072,15 @@ peer.</p>
 <p>When setting the priority for an HTTP/2 stream, the stream may be marked as
 a dependency for a parent stream. This error code is used when an attempt is
 made to mark a stream and dependent of itself.</p>
+<p><a id="ERR_HTTP2_TRAILERS_ALREADY_SENT"></a></p>
+<h3>ERR_HTTP2_TRAILERS_ALREADY_SENT<span><a class="mark" href="#errors_err_http2_trailers_already_sent" id="errors_err_http2_trailers_already_sent">#</a></span><span><a class="mark" href="#ERR_HTTP2_TRAILERS_ALREADY_SENT" id="ERR_HTTP2_TRAILERS_ALREADY_SENT">#</a></span></h3>
+<p>Trailing headers have already been sent on the <code>Http2Stream</code>.</p>
+<p><a id="ERR_HTTP2_TRAILERS_NOT_READY"></a></p>
+<h3>ERR_HTTP2_TRAILERS_NOT_READY<span><a class="mark" href="#errors_err_http2_trailers_not_ready" id="errors_err_http2_trailers_not_ready">#</a></span><span><a class="mark" href="#ERR_HTTP2_TRAILERS_NOT_READY" id="ERR_HTTP2_TRAILERS_NOT_READY">#</a></span></h3>
+<p>The <code>http2stream.sendTrailers()</code> method cannot be called until after the
+<code>&#39;wantTrailers&#39;</code> event is emitted on an <code>Http2Stream</code> object. The
+<code>&#39;wantTrailers&#39;</code> event will only be emitted if the <code>waitForTrailers</code> option
+is set for the <code>Http2Stream</code>.</p>
 <p><a id="ERR_HTTP2_UNSUPPORTED_PROTOCOL"></a></p>
 <h3>ERR_HTTP2_UNSUPPORTED_PROTOCOL<span><a class="mark" href="#errors_err_http2_unsupported_protocol" id="errors_err_http2_unsupported_protocol">#</a></span><span><a class="mark" href="#ERR_HTTP2_UNSUPPORTED_PROTOCOL" id="ERR_HTTP2_UNSUPPORTED_PROTOCOL">#</a></span></h3>
 <p><code>http2.connect()</code> was passed a URL that uses any protocol other than <code>http:</code> or
@@ -22455,6 +22715,23 @@ connections.</p>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> <strong>Default:</strong> <code>2000</code></li>
 </ul>
 <p>Limits maximum incoming headers count. If set to 0 - no limit will be applied.</p>
+<h3>server.headersTimeout<span><a class="mark" href="#http_server_headerstimeout" id="http_server_headerstimeout">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.14.0</span>
+</div><ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> <strong>Default:</strong> <code>40000</code></li>
+</ul>
+<p>Limit the amount of time the parser will wait to receive the complete HTTP
+headers.</p>
+<p>In case of inactivity, the rules defined in [server.timeout][] apply. However,
+that inactivity based timeout would still allow the connection to be kept open
+if the headers are being sent very slowly (by default, up to a byte per 2
+minutes). In order to prevent this, whenever header data arrives an additional
+check is made that more than <code>server.headersTimeout</code> milliseconds has not
+passed since the connection was established. If the check fails, a <code>&#39;timeout&#39;</code>
+event is emitted on the server object, and (by default) the socket is destroyed.
+See [server.timeout][] for more information on how timeout behaviour can be
+customised.</p>
 <h3>server.setTimeout([msecs][, callback])<span><a class="mark" href="#http_server_settimeout_msecs_callback" id="http_server_settimeout_msecs_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.9.12</span>
@@ -22846,12 +23123,20 @@ following additional events, methods, and properties.</p>
 <h3>Event: &#39;aborted&#39;<span><a class="mark" href="#http_event_aborted" id="http_event_aborted">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.3.8</span>
-</div><p>Emitted when the request has been aborted and the network socket has closed.</p>
+</div><p>Emitted when the request has been aborted.</p>
 <h3>Event: &#39;close&#39;<span><a class="mark" href="#http_event_close_2" id="http_event_close_2">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.4.2</span>
 </div><p>Indicates that the underlying connection was closed.
 Just like <code>&#39;end&#39;</code>, this event occurs only once per response.</p>
+<h3>message.aborted<span><a class="mark" href="#http_message_aborted" id="http_message_aborted">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.13.0</span>
+</div><ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
+</ul>
+<p>The <code>message.aborted</code> property will be <code>true</code> if the request has
+been aborted.</p>
 <h3>message.destroy([error])<span><a class="mark" href="#http_message_destroy_error" id="http_message_destroy_error">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.3.0</span>
@@ -23334,8 +23619,20 @@ not abort the request or do anything besides add a <code>timeout</code> event.</
 <!-- [end-include:http.md] -->
 <!-- [start-include:http2.md] -->
 <h1>HTTP/2<span><a class="mark" href="#http2_http_2" id="http2_http_2">#</a></span></h1>
-<!--introduced_in=v8.4.0-->
-<div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p>The <code>http2</code> module provides an implementation of the <a href="https://tools.ietf.org/html/rfc7540">HTTP/2</a> protocol. It
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v8.13.0</td>
+<td><p>HTTP/2 is now Stable. Previously, it had been Experimental.</p>
+</td></tr>
+<tr><td>v8.4.0</td>
+<td><p><span>Added in: v8.4.0</span></p>
+</td></tr>
+</table>
+</details>
+</div><!--introduced_in=v8.4.0-->
+<div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><p>The <code>http2</code> module provides an implementation of the <a href="https://tools.ietf.org/html/rfc7540">HTTP/2</a> protocol. It
 can be accessed using:</p>
 <pre><code class="lang-js">const http2 = require(&#39;http2&#39;);
 </code></pre>
@@ -23419,6 +23716,10 @@ depending on whether it is operating as a server or a client. The
 have occasion to work with the <code>Http2Session</code> object directly, with most
 actions typically taken through interactions with either the <code>Http2Server</code> or
 <code>Http2Stream</code> objects.</p>
+<p>User code will not create <code>Http2Session</code> instances directly. Server-side
+<code>Http2Session</code> instances are created by the <code>Http2Server</code> instance when a
+new HTTP/2 connection is received. Client-side <code>Http2Session</code> instances are
+created using the <code>http2.connect()</code> method.</p>
 <h4>Http2Session and Sockets<span><a class="mark" href="#http2_http2session_and_sockets" id="http2_http2session_and_sockets">#</a></span></h4>
 <p>Every <code>Http2Session</code> instance is associated with exactly one <a href="net.html#net_class_net_socket"><code>net.Socket</code></a> or
 <a href="#tls_class_tls_tlssocket"><code>tls.TLSSocket</code></a> when it is created. When either the <code>Socket</code> or the
@@ -23433,32 +23734,39 @@ solely on the API of the <code>Http2Session</code>.</p>
 <h4>Event: &#39;close&#39;<span><a class="mark" href="#http2_event_close" id="http2_event_close">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
-</div><p>The <code>&#39;close&#39;</code> event is emitted once the <code>Http2Session</code> has been destroyed.</p>
+</div><p>The <code>&#39;close&#39;</code> event is emitted once the <code>Http2Session</code> has been destroyed. Its
+listener does not expect any arguments.</p>
 <h4>Event: &#39;connect&#39;<span><a class="mark" href="#http2_event_connect" id="http2_event_connect">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
-</div><p>The <code>&#39;connect&#39;</code> event is emitted once the <code>Http2Session</code> has been successfully
+</div><ul>
+<li><code>session</code> <a href="http2.html#http2_class_http2session" class="type">&lt;Http2Session&gt;</a></li>
+<li><code>socket</code> <a href="net.html#net_class_net_socket" class="type">&lt;net.Socket&gt;</a></li>
+</ul>
+<p>The <code>&#39;connect&#39;</code> event is emitted once the <code>Http2Session</code> has been successfully
 connected to the remote peer and communication may begin.</p>
 <p><em>Note</em>: User code will typically not listen for this event directly.</p>
 <h4>Event: &#39;error&#39;<span><a class="mark" href="#http2_event_error" id="http2_event_error">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
-</div><p>The <code>&#39;error&#39;</code> event is emitted when an error occurs during the processing of
+</div><ul>
+<li><code>error</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+</ul>
+<p>The <code>&#39;error&#39;</code> event is emitted when an error occurs during the processing of
 an <code>Http2Session</code>.</p>
 <h4>Event: &#39;frameError&#39;<span><a class="mark" href="#http2_event_frameerror" id="http2_event_frameerror">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
-</div><p>The <code>&#39;frameError&#39;</code> event is emitted when an error occurs while attempting to
+</div><ul>
+<li><code>type</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> The frame type.</li>
+<li><code>code</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> The error code.</li>
+<li><code>id</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> The stream id (or <code>0</code> if the frame isn&#39;t associated with a
+stream).</li>
+</ul>
+<p>The <code>&#39;frameError&#39;</code> event is emitted when an error occurs while attempting to
 send a frame on the session. If the frame that could not be sent is associated
 with a specific <code>Http2Stream</code>, an attempt to emit <code>&#39;frameError&#39;</code> event on the
 <code>Http2Stream</code> is made.</p>
-<p>When invoked, the handler function will receive three arguments:</p>
-<ul>
-<li>An integer identifying the frame type.</li>
-<li>An integer identifying the error code.</li>
-<li>An integer identifying the stream (or 0 if the frame is not associated with
-a stream).</li>
-</ul>
 <p>If the <code>&#39;frameError&#39;</code> event is associated with a stream, the stream will be
 closed and destroyed immediately following the <code>&#39;frameError&#39;</code> event. If the
 event is not associated with a stream, the <code>Http2Session</code> will be shut down
@@ -23466,23 +23774,24 @@ immediately following the <code>&#39;frameError&#39;</code> event.</p>
 <h4>Event: &#39;goaway&#39;<span><a class="mark" href="#http2_event_goaway" id="http2_event_goaway">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
-</div><p>The <code>&#39;goaway&#39;</code> event is emitted when a GOAWAY frame is received. When invoked,
-the handler function will receive three arguments:</p>
-<ul>
-<li><code>errorCode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> The HTTP/2 error code specified in the GOAWAY frame.</li>
+</div><ul>
+<li><code>errorCode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> The HTTP/2 error code specified in the <code>GOAWAY</code> frame.</li>
 <li><code>lastStreamID</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> The ID of the last stream the remote peer successfully
 processed (or <code>0</code> if no ID is specified).</li>
-<li><code>opaqueData</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> If additional opaque data was included in the GOAWAY
+<li><code>opaqueData</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> If additional opaque data was included in the <code>GOAWAY</code>
 frame, a <code>Buffer</code> instance will be passed containing that data.</li>
 </ul>
-<p><em>Note</em>: The <code>Http2Session</code> instance will be shut down automatically when the
-<code>&#39;goaway&#39;</code> event is emitted.</p>
+<p>The <code>&#39;goaway&#39;</code> event is emitted when a <code>GOAWAY</code> frame is received.</p>
+<p>The <code>Http2Session</code> instance will be shut down automatically when the <code>&#39;goaway&#39;</code>
+event is emitted.</p>
 <h4>Event: &#39;localSettings&#39;<span><a class="mark" href="#http2_event_localsettings" id="http2_event_localsettings">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
-</div><p>The <code>&#39;localSettings&#39;</code> event is emitted when an acknowledgment SETTINGS frame
-has been received. When invoked, the handler function will receive a copy of
-the local settings.</p>
+</div><ul>
+<li><code>settings</code> <a href="http2.html#http2_settings_object" class="type">&lt;HTTP/2 Settings Object&gt;</a> A copy of the <code>SETTINGS</code> frame received.</li>
+</ul>
+<p>The <code>&#39;localSettings&#39;</code> event is emitted when an acknowledgment <code>SETTINGS</code> frame
+has been received.</p>
 <p><em>Note</em>: When using <code>http2session.settings()</code> to submit new settings, the
 modified settings do not take effect until the <code>&#39;localSettings&#39;</code> event is
 emitted.</p>
@@ -23492,12 +23801,22 @@ session.on(&#39;localSettings&#39;, (settings) =&gt; {
   /** use the new settings **/
 });
 </code></pre>
+<h4>Event: &#39;ping&#39;<span><a class="mark" href="#http2_event_ping" id="http2_event_ping">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v8.13.0</span>
+</div><ul>
+<li><code>payload</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> The <code>PING</code> frame 8-byte payload</li>
+</ul>
+<p>The <code>&#39;ping&#39;</code> event is emitted whenever a <code>PING</code> frame is received from the
+connected peer.</p>
 <h4>Event: &#39;remoteSettings&#39;<span><a class="mark" href="#http2_event_remotesettings" id="http2_event_remotesettings">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
-</div><p>The <code>&#39;remoteSettings&#39;</code> event is emitted when a new SETTINGS frame is received
-from the connected peer. When invoked, the handler function will receive a copy
-of the remote settings.</p>
+</div><ul>
+<li><code>settings</code> <a href="http2.html#http2_settings_object" class="type">&lt;HTTP/2 Settings Object&gt;</a> A copy of the <code>SETTINGS</code> frame received.</li>
+</ul>
+<p>The <code>&#39;remoteSettings&#39;</code> event is emitted when a new <code>SETTINGS</code> frame is received
+from the connected peer.</p>
 <pre><code class="lang-js">session.on(&#39;remoteSettings&#39;, (settings) =&gt; {
   /** use the new settings **/
 });
@@ -23505,10 +23824,14 @@ of the remote settings.</p>
 <h4>Event: &#39;stream&#39;<span><a class="mark" href="#http2_event_stream" id="http2_event_stream">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
-</div><p>The <code>&#39;stream&#39;</code> event is emitted when a new <code>Http2Stream</code> is created. When
-invoked, the handler function will receive a reference to the <code>Http2Stream</code>
-object, a <a href="#http2_headers_object">HTTP/2 Headers Object</a>, and numeric flags associated with the
-creation of the stream.</p>
+</div><ul>
+<li><code>stream</code> <a href="http2.html#http2_class_http2stream" class="type">&lt;Http2Stream&gt;</a> A reference to the stream</li>
+<li><code>headers</code> <a href="http2.html#http2_headers_object" class="type">&lt;HTTP/2 Headers Object&gt;</a> An object describing the headers</li>
+<li><code>flags</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> The associated numeric flags</li>
+<li><code>rawHeaders</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a> An array containing the raw header names followed by
+their respective values.</li>
+</ul>
+<p>The <code>&#39;stream&#39;</code> event is emitted when a new <code>Http2Stream</code> is created.</p>
 <pre><code class="lang-js">const http2 = require(&#39;http2&#39;);
 session.on(&#39;stream&#39;, (stream, headers, flags) =&gt; {
   const method = headers[&#39;:method&#39;];
@@ -23632,7 +23955,7 @@ or stream.</p>
 <li><code>code</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> An HTTP/2 error code</li>
 <li><code>lastStreamID</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> The numeric ID of the last processed <code>Http2Stream</code></li>
 <li><code>opaqueData</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a> A <code>TypedArray</code> or <code>DataView</code>
-instance containing additional data to be carried within the GOAWAY frame.</li>
+instance containing additional data to be carried within the <code>GOAWAY</code> frame.</li>
 </ul>
 <p>Transmits a <code>GOAWAY</code> frame to the connected peer <em>without</em> shutting down the
 <code>Http2Session</code>.</p>
@@ -23653,6 +23976,7 @@ instance containing additional data to be carried within the GOAWAY frame.</li>
 <p>If the <code>Http2Session</code> is connected to a <code>TLSSocket</code>, the <code>originSet</code> property
 will return an Array of origins for which the <code>Http2Session</code> may be
 considered authoritative.</p>
+<p>The <code>originSet</code> property is only available when using a secure TLS connection.</p>
 <h4>http2session.pendingSettingsAck<span><a class="mark" href="#http2_http2session_pendingsettingsack" id="http2_http2session_pendingsettingsack">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
@@ -23660,7 +23984,7 @@ considered authoritative.</p>
 <li>Value: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
 </ul>
 <p>Indicates whether or not the <code>Http2Session</code> is currently waiting for an
-acknowledgment for a sent SETTINGS frame. Will be <code>true</code> after calling the
+acknowledgment for a sent <code>SETTINGS</code> frame. Will be <code>true</code> after calling the
 <code>http2session.settings()</code> method. Will be <code>false</code> once all sent SETTINGS
 frames have been acknowledged.</p>
 <h4>http2session.ping([payload, ]callback)<span><a class="mark" href="#http2_http2session_ping_payload_callback" id="http2_http2session_ping_payload_callback">#</a></span></h4>
@@ -23770,9 +24094,9 @@ inbound header compression state table.</li>
 <p>Once called, the <code>http2session.pendingSettingsAck</code> property will be <code>true</code>
 while the session is waiting for the remote peer to acknowledge the new
 settings.</p>
-<p><em>Note</em>: The new settings will not become effective until the SETTINGS
+<p><em>Note</em>: The new settings will not become effective until the <code>SETTINGS</code>
 acknowledgment is received and the <code>&#39;localSettings&#39;</code> event is emitted. It
-is possible to send multiple SETTINGS frames while acknowledgment is still
+is possible to send multiple <code>SETTINGS</code> frames while acknowledgment is still
 pending.</p>
 <h4>http2session.type<span><a class="mark" href="#http2_http2session_type" id="http2_http2session_type">#</a></span></h4>
 <div class="api_metadata">
@@ -23844,6 +24168,47 @@ h2=&quot;:82&quot;&#39;</code></p>
 <a href="https://www.iana.org/assignments/tls-extensiontype-values/tls-extensiontype-values.xhtml#alpn-protocol-ids">ALPN Protocol ID</a>.</p>
 <p>The syntax of these values is not validated by the Node.js implementation and
 are passed through as provided by the user or received from the peer.</p>
+<h4>serverhttp2session.origin(...origins)<span><a class="mark" href="#http2_serverhttp2session_origin_origins" id="http2_serverhttp2session_origin_origins">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v8.13.0</span>
+</div><ul>
+<li><code>origins</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="url.html#url_the_whatwg_url_api" class="type">&lt;URL&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> One or more URL Strings passed as
+separate arguments.</li>
+</ul>
+<p>Submits an <code>ORIGIN</code> frame (as defined by <a href="https://tools.ietf.org/html/rfc8336">RFC 8336</a>) to the connected client
+to advertise the set of origins for which the server is capable of providing
+authoritative responses.</p>
+<pre><code class="lang-js">const http2 = require(&#39;http2&#39;);
+const options = getSecureOptionsSomehow();
+const server = http2.createSecureServer(options);
+server.on(&#39;stream&#39;, (stream) =&gt; {
+  stream.respond();
+  stream.end(&#39;ok&#39;);
+});
+server.on(&#39;session&#39;, (session) =&gt; {
+  session.origin(&#39;https://example.com&#39;, &#39;https://example.org&#39;);
+});
+</code></pre>
+<p>When a string is passed as an <code>origin</code>, it will be parsed as a URL and the
+origin will be derived. For instance, the origin for the HTTP URL
+<code>&#39;https://example.org/foo/bar&#39;</code> is the ASCII string
+<code>&#39;https://example.org&#39;</code>. An error will be thrown if either the given string
+cannot be parsed as a URL or if a valid origin cannot be derived.</p>
+<p>A <code>URL</code> object, or any object with an <code>origin</code> property, may be passed as
+an <code>origin</code>, in which case the value of the <code>origin</code> property will be
+used. The value of the <code>origin</code> property <em>must</em> be a properly serialized
+ASCII origin.</p>
+<p>Alternatively, the <code>origins</code> option may be used when creating a new HTTP/2
+server using the <code>http2.createSecureServer()</code> method:</p>
+<pre><code class="lang-js">const http2 = require(&#39;http2&#39;);
+const options = getSecureOptionsSomehow();
+options.origins = [&#39;https://example.com&#39;, &#39;https://example.org&#39;];
+const server = http2.createSecureServer(options);
+server.on(&#39;stream&#39;, (stream) =&gt; {
+  stream.respond();
+  stream.end(&#39;ok&#39;);
+});
+</code></pre>
 <h3>Class: ClientHttp2Session<span><a class="mark" href="#http2_class_clienthttp2session" id="http2_class_clienthttp2session">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
@@ -23851,9 +24216,9 @@ are passed through as provided by the user or received from the peer.</p>
 <div class="api_metadata">
 <span>Added in: v8.11.2</span>
 </div><ul>
-<li><code>alt</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
-<li><code>origin</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
-<li><code>streamId</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+<li><code>alt</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>origin</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li><code>streamId</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
 </ul>
 <p>The <code>&#39;altsvc&#39;</code> event is emitted whenever an <code>ALTSVC</code> frame is received by
 the client. The event is emitted with the <code>ALTSVC</code> value, origin, and stream
@@ -23868,6 +24233,25 @@ client.on(&#39;altsvc&#39;, (alt, origin, streamId) =&gt; {
   console.log(streamId);
 });
 </code></pre>
+<h4>Event: &#39;origin&#39;<span><a class="mark" href="#http2_event_origin" id="http2_event_origin">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v8.13.0</span>
+</div><ul>
+<li><code>origins</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string[]&gt;</a></li>
+</ul>
+<p>The <code>&#39;origin&#39;</code>  event is emitted whenever an <code>ORIGIN</code> frame is received by
+the client. The event is emitted with an array of <code>origin</code> strings. The
+<code>http2session.originSet</code> will be updated to include the received
+origins.</p>
+<pre><code class="lang-js">const http2 = require(&#39;http2&#39;);
+const client = http2.connect(&#39;https://example.org&#39;);
+
+client.on(&#39;origin&#39;, (origins) =&gt; {
+  for (let n = 0; n &lt; origins.length; n++)
+    console.log(origins[n]);
+});
+</code></pre>
+<p>The <code>&#39;origin&#39;</code> event is only emitted when using a secure TLS connection.</p>
 <h4>clienthttp2session.request(headers[, options])<span><a class="mark" href="#http2_clienthttp2session_request_headers_options" id="http2_clienthttp2session_request_headers_options">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
@@ -23887,8 +24271,8 @@ created stream is dependent on.</li>
 <li><code>weight</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Specifies the relative dependency of a stream in relation
 to other streams with the same <code>parent</code>. The value is a number between <code>1</code>
 and <code>256</code> (inclusive).</li>
-<li><code>getTrailers</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> Callback function invoked to collect trailer
-headers.</li>
+<li><code>waitForTrailers</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> When <code>true</code>, the <code>Http2Stream</code> will emit the
+<code>&#39;wantTrailers&#39;</code> event after the final <code>DATA</code> frame has been sent.</li>
 </ul>
 </li>
 <li><p>Returns: <a href="http2.html#http2_class_clienthttp2stream" class="type">&lt;ClientHttp2Stream&gt;</a></p>
@@ -23913,14 +24297,14 @@ req.on(&#39;response&#39;, (headers) =&gt; {
   req.on(&#39;end&#39;, () =&gt; { /** .. **/ });
 });
 </code></pre>
-<p>When set, the <code>options.getTrailers()</code> function is called immediately after
-queuing the last chunk of payload data to be sent. The callback is passed a
-single object (with a <code>null</code> prototype) that the listener may use to specify
-the trailing header fields to send to the peer.</p>
-<p><em>Note</em>: The HTTP/1 specification forbids trailers from containing HTTP/2
-pseudo-header fields (e.g. <code>&#39;:method&#39;</code>, <code>&#39;:path&#39;</code>, etc). An <code>&#39;error&#39;</code> event
-will be emitted if the <code>getTrailers</code> callback attempts to set such header
-fields.</p>
+<p>When the <code>options.waitForTrailers</code> option is set, the <code>&#39;wantTrailers&#39;</code> event
+is emitted immediately after queuing the last chunk of payload data to be sent.
+The <code>http2stream.sendTrailers()</code> method can then be called to send trailing
+headers to the peer.</p>
+<p>When <code>options.waitForTrailers</code> is set, the <code>Http2Stream</code> will not automatically
+close when the final <code>DATA</code> frame is transmitted. User code must call either
+<code>http2stream.sendTrailers()</code> or <code>http2stream.close()</code> to close the
+<code>Http2Stream</code>.</p>
 <p>The <code>:method</code> and <code>:path</code> pseudo-headers are not specified within <code>headers</code>,
 they respectively default to:</p>
 <ul>
@@ -24004,7 +24388,10 @@ code specified when closing the stream. If the code is any value other than
 <h4>Event: &#39;error&#39;<span><a class="mark" href="#http2_event_error_1" id="http2_event_error_1">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
-</div><p>The <code>&#39;error&#39;</code> event is emitted when an error occurs during the processing of
+</div><ul>
+<li><code>error</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+</ul>
+<p>The <code>&#39;error&#39;</code> event is emitted when an error occurs during the processing of
 an <code>Http2Stream</code>.</p>
 <h4>Event: &#39;frameError&#39;<span><a class="mark" href="#http2_event_frameerror_1" id="http2_event_frameerror_1">#</a></span></h4>
 <div class="api_metadata">
@@ -24026,10 +24413,20 @@ error code. The <code>Http2Stream</code> instance will be destroyed immediately 
 </div><p>The <code>&#39;trailers&#39;</code> event is emitted when a block of headers associated with
 trailing header fields is received. The listener callback is passed the
 <a href="#http2_headers_object">HTTP/2 Headers Object</a> and flags associated with the headers.</p>
+<p>Note that this event might not be emitted if <code>http2stream.end()</code> is called
+before trailers are received and the incoming data is not being read or
+listened for.</p>
 <pre><code class="lang-js">stream.on(&#39;trailers&#39;, (headers, flags) =&gt; {
   console.log(headers);
 });
 </code></pre>
+<h4>Event: &#39;wantTrailers&#39;<span><a class="mark" href="#http2_event_wanttrailers" id="http2_event_wanttrailers">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v8.13.0</span>
+</div><p>The <code>&#39;wantTrailers&#39;</code> event is emitted when the <code>Http2Stream</code> has queued the
+final <code>DATA</code> frame to be sent on a frame and the <code>Http2Stream</code> is ready to send
+trailing headers. When initiating a request or response, the <code>waitForTrailers</code>
+option must be set for this event to be emitted.</p>
 <h4>http2stream.aborted<span><a class="mark" href="#http2_http2stream_aborted" id="http2_http2stream_aborted">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
@@ -24065,6 +24462,15 @@ connected HTTP/2 peer.</p>
 </ul>
 <p>Set to <code>true</code> if the <code>Http2Stream</code> instance has been destroyed and is no longer
 usable.</p>
+<h4>http2stream.endAfterHeaders<span><a class="mark" href="#http2_http2stream_endafterheaders" id="http2_http2stream_endafterheaders">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v8.13.0</span>
+</div><ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
+</ul>
+<p>Set the <code>true</code> if the <code>END_STREAM</code> flag was set in the request or response
+HEADERS frame received, indicating that no additional data should be received
+and the readable side of the <code>Http2Stream</code> will be closed.</p>
 <h4>http2stream.pending<span><a class="mark" href="#http2_http2stream_pending" id="http2_http2stream_pending">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.11.2</span>
@@ -24172,6 +24578,30 @@ instances that depend on this <code>Http2Stream</code> as specified using
 </li>
 </ul>
 <p>A current state of this <code>Http2Stream</code>.</p>
+<h4>http2stream.sendTrailers(headers)<span><a class="mark" href="#http2_http2stream_sendtrailers_headers" id="http2_http2stream_sendtrailers_headers">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v8.13.0</span>
+</div><ul>
+<li><code>headers</code> <a href="http2.html#http2_headers_object" class="type">&lt;HTTP/2 Headers Object&gt;</a></li>
+</ul>
+<p>Sends a trailing <code>HEADERS</code> frame to the connected HTTP/2 peer. This method
+will cause the <code>Http2Stream</code> to be immediately closed and must only be
+called after the <code>&#39;wantTrailers&#39;</code>  event has been emitted. When sending a
+request or sending a response, the <code>options.waitForTrailers</code> option must be set
+in order to keep the <code>Http2Stream</code> open after the final <code>DATA</code> frame so that
+trailers can be sent.</p>
+<pre><code class="lang-js">const http2 = require(&#39;http2&#39;);
+const server = http2.createServer();
+server.on(&#39;stream&#39;, (stream) =&gt; {
+  stream.respond(undefined, { waitForTrailers: true });
+  stream.on(&#39;wantTrailers&#39;, () =&gt; {
+    stream.sendTrailers({ xyz: &#39;abc&#39; });
+  });
+  stream.end(&#39;Hello World&#39;);
+});
+</code></pre>
+<p>The HTTP/1 specification forbids trailers from containing HTTP/2 pseudo-header
+fields (e.g. <code>&#39;:method&#39;</code>, <code>&#39;:path&#39;</code>, etc).</p>
 <h3>Class: ClientHttp2Stream<span><a class="mark" href="#http2_class_clienthttp2stream" id="http2_class_clienthttp2stream">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
@@ -24300,6 +24730,8 @@ server.on(&#39;stream&#39;, (stream) =&gt; {
 <p>Setting the weight of a push stream is not allowed in the <code>HEADERS</code> frame. Pass
 a <code>weight</code> value to <code>http2stream.priority</code> with the <code>silent</code> option set to
 <code>true</code> to enable server-side bandwidth balancing between concurrent streams.</p>
+<p>Calling <code>http2stream.pushStream()</code> from within a pushed stream is not permitted
+and will throw an error.</p>
 <h4>http2stream.respond([headers[, options]])<span><a class="mark" href="#http2_http2stream_respond_headers_options" id="http2_http2stream_respond_headers_options">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
@@ -24308,11 +24740,10 @@ a <code>weight</code> value to <code>http2stream.priority</code> with the <code>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
 <li><code>endStream</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Set to <code>true</code> to indicate that the response will not
 include payload data.</li>
-<li><code>getTrailers</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> Callback function invoked to collect trailer
-headers.</li>
+<li><code>waitForTrailers</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> When <code>true</code>, the <code>Http2Stream</code> will emit the
+<code>&#39;wantTrailers&#39;</code> event after the final <code>DATA</code> frame has been sent.</li>
 </ul>
 </li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Undefined_type" class="type">&lt;undefined&gt;</a></li>
 </ul>
 <pre><code class="lang-js">const http2 = require(&#39;http2&#39;);
 const server = http2.createServer();
@@ -24321,25 +24752,24 @@ server.on(&#39;stream&#39;, (stream) =&gt; {
   stream.end(&#39;some data&#39;);
 });
 </code></pre>
-<p>When set, the <code>options.getTrailers()</code> function is called immediately after
-queuing the last chunk of payload data to be sent. The callback is passed a
-single object (with a <code>null</code> prototype) that the listener may use to specify
-the trailing header fields to send to the peer.</p>
+<p>When the <code>options.waitForTrailers</code> option is set, the <code>&#39;wantTrailers&#39;</code> event
+will be emitted immediately after queuing the last chunk of payload data to be
+sent. The <code>http2stream.sendTrailers()</code> method can then be used to sent trailing
+header fields to the peer.</p>
+<p>When <code>options.waitForTrailers</code> is set, the <code>Http2Stream</code> will not automatically
+close when the final <code>DATA</code> frame is transmitted. User code must call either
+<code>http2stream.sendTrailers()</code> or <code>http2stream.close()</code> to close the
+<code>Http2Stream</code>.</p>
 <pre><code class="lang-js">const http2 = require(&#39;http2&#39;);
 const server = http2.createServer();
 server.on(&#39;stream&#39;, (stream) =&gt; {
-  stream.respond({ &#39;:status&#39;: 200 }, {
-    getTrailers(trailers) {
-      trailers.ABC = &#39;some value to send&#39;;
-    }
+  stream.respond({ &#39;:status&#39;: 200 }, { waitForTrailers: true });
+  stream.on(&#39;wantTrailers&#39;, () =&gt; {
+    stream.sendTrailers({ ABC: &#39;some value to send&#39; });
   });
   stream.end(&#39;some data&#39;);
 });
 </code></pre>
-<p><em>Note</em>: The HTTP/1 specification forbids trailers from containing HTTP/2
-pseudo-header fields (e.g. <code>&#39;:status&#39;</code>, <code>&#39;:path&#39;</code>, etc). An <code>&#39;error&#39;</code> event
-will be emitted if the <code>getTrailers</code> callback attempts to set such header
-fields.</p>
 <h4>http2stream.respondWithFD(fd[, headers[, options]])<span><a class="mark" href="#http2_http2stream_respondwithfd_fd_headers_options" id="http2_http2stream_respondwithfd_fd_headers_options">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
@@ -24348,8 +24778,8 @@ fields.</p>
 <li><code>headers</code> <a href="http2.html#http2_headers_object" class="type">&lt;HTTP/2 Headers Object&gt;</a></li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
 <li><code>statCheck</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
-<li><code>getTrailers</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> Callback function invoked to collect trailer
-headers.</li>
+<li><code>waitForTrailers</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> When <code>true</code>, the <code>Http2Stream</code> will emit the
+<code>&#39;wantTrailers&#39;</code> event after the final <code>DATA</code> frame has been sent.</li>
 <li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> The offset position at which to begin reading.</li>
 <li><code>length</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> The amount of data from the fd to send.</li>
 </ul>
@@ -24391,10 +24821,14 @@ to be closed manually once it is no longer needed.
 Note that using the same file descriptor concurrently for multiple streams
 is not supported and may result in data loss. Re-using a file descriptor
 after a stream has finished is supported.</p>
-<p>When set, the <code>options.getTrailers()</code> function is called immediately after
-queuing the last chunk of payload data to be sent. The callback is passed a
-single object (with a <code>null</code> prototype) that the listener may use to specify
-the trailing header fields to send to the peer.</p>
+<p>When the <code>options.waitForTrailers</code> option is set, the <code>&#39;wantTrailers&#39;</code> event
+will be emitted immediately after queuing the last chunk of payload data to be
+sent. The <code>http2stream.sendTrailers()</code> method can then be used to sent trailing
+header fields to the peer.</p>
+<p>When <code>options.waitForTrailers</code> is set, the <code>Http2Stream</code> will not automatically
+close when the final <code>DATA</code> frame is transmitted. User code <em>must</em> call either
+<code>http2stream.sendTrailers()</code> or <code>http2stream.close()</code> to close the
+<code>Http2Stream</code>.</p>
 <pre><code class="lang-js">const http2 = require(&#39;http2&#39;);
 const fs = require(&#39;fs&#39;);
 
@@ -24408,19 +24842,14 @@ server.on(&#39;stream&#39;, (stream) =&gt; {
     &#39;last-modified&#39;: stat.mtime.toUTCString(),
     &#39;content-type&#39;: &#39;text/plain&#39;
   };
-  stream.respondWithFD(fd, headers, {
-    getTrailers(trailers) {
-      trailers.ABC = &#39;some value to send&#39;;
-    }
+  stream.respondWithFD(fd, headers, { waitForTrailers: true });
+  stream.on(&#39;wantTrailers&#39;, () =&gt; {
+    stream.sendTrailers({ ABC: &#39;some value to send&#39; });
   });
 
   stream.on(&#39;close&#39;, () =&gt; fs.closeSync(fd));
 });
 </code></pre>
-<p><em>Note</em>: The HTTP/1 specification forbids trailers from containing HTTP/2
-pseudo-header fields (e.g. <code>&#39;:status&#39;</code>, <code>&#39;:path&#39;</code>, etc). An <code>&#39;error&#39;</code> event
-will be emitted if the <code>getTrailers</code> callback attempts to set such header
-fields.</p>
 <h4>http2stream.respondWithFile(path[, headers[, options]])<span><a class="mark" href="#http2_http2stream_respondwithfile_path_headers_options" id="http2_http2stream_respondwithfile_path_headers_options">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
@@ -24431,8 +24860,8 @@ fields.</p>
 <li><code>statCheck</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
 <li><code>onError</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> Callback function invoked in the case of an
 Error before send.</li>
-<li><code>getTrailers</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> Callback function invoked to collect trailer
-headers.</li>
+<li><code>waitForTrailers</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> When <code>true</code>, the <code>Http2Stream</code> will emit the
+<code>&#39;wantTrailers&#39;</code> event after the final <code>DATA</code> frame has been sent.</li>
 <li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> The offset position at which to begin reading.</li>
 <li><code>length</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> The amount of data from the fd to send.</li>
 </ul>
@@ -24495,34 +24924,34 @@ requests.</p>
 <p>The <code>options.onError</code> function may also be used to handle all the errors
 that could happen before the delivery of the file is initiated. The
 default behavior is to destroy the stream.</p>
-<p>When set, the <code>options.getTrailers()</code> function is called immediately after
-queuing the last chunk of payload data to be sent. The callback is passed a
-single object (with a <code>null</code> prototype) that the listener may use to specify
-the trailing header fields to send to the peer.</p>
+<p>When the <code>options.waitForTrailers</code> option is set, the <code>&#39;wantTrailers&#39;</code> event
+will be emitted immediately after queuing the last chunk of payload data to be
+sent. The <code>http2stream.sendTrilers()</code> method can then be used to sent trailing
+header fields to the peer.</p>
+<p>When <code>options.waitForTrailers</code> is set, the <code>Http2Stream</code> will not automatically
+close when the final <code>DATA</code> frame is transmitted. User code must call either
+<code>http2stream.sendTrailers()</code> or <code>http2stream.close()</code> to close the
+<code>Http2Stream</code>.</p>
 <pre><code class="lang-js">const http2 = require(&#39;http2&#39;);
 const server = http2.createServer();
 server.on(&#39;stream&#39;, (stream) =&gt; {
-  function getTrailers(trailers) {
-    trailers.ABC = &#39;some value to send&#39;;
-  }
   stream.respondWithFile(&#39;/some/file&#39;,
                          { &#39;content-type&#39;: &#39;text/plain&#39; },
-                         { getTrailers });
+                         { waitForTrailers: true });
+  stream.on(&#39;wantTrailers&#39;, () =&gt; {
+    stream.sendTrailers({ ABC: &#39;some value to send&#39; });
+  });
 });
 </code></pre>
-<p><em>Note</em>: The HTTP/1 specification forbids trailers from containing HTTP/2
-pseudo-header fields (e.g. <code>&#39;:status&#39;</code>, <code>&#39;:path&#39;</code>, etc). An <code>&#39;error&#39;</code> event
-will be emitted if the <code>getTrailers</code> callback attempts to set such header
-fields.</p>
 <h3>Class: Http2Server<span><a class="mark" href="#http2_class_http2server" id="http2_class_http2server">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
 </div><ul>
 <li>Extends: <a href="net.html#net_class_net_server" class="type">&lt;net.Server&gt;</a></li>
 </ul>
-<p>In <code>Http2Server</code>, there are no <code>&#39;clientError&#39;</code> events as there are in
-HTTP1. However, there are <code>&#39;sessionError&#39;</code>,  and <code>&#39;streamError&#39;</code> events for
-errors emitted on the socket, or from <code>Http2Session</code> or <code>Http2Stream</code> instances.</p>
+<p>Instances of <code>Http2Server</code> are created using the <code>http2.createServer()</code>
+function. The <code>Http2Server</code> class is not exported directly by the <code>http2</code>
+module.</p>
 <h4>Event: &#39;checkContinue&#39;<span><a class="mark" href="#http2_event_checkcontinue" id="http2_event_checkcontinue">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.5.0</span>
@@ -24560,11 +24989,6 @@ per session. See the <a href="#http2_compatibility_api">Compatibility API</a>.</
 <span>Added in: v8.4.0</span>
 </div><p>The <code>&#39;sessionError&#39;</code> event is emitted when an <code>&#39;error&#39;</code> event is emitted by
 an <code>Http2Session</code> object associated with the <code>Http2Server</code>.</p>
-<h4>Event: &#39;streamError&#39;<span><a class="mark" href="#http2_event_streamerror" id="http2_event_streamerror">#</a></span></h4>
-<div class="api_metadata">
-<span>Added in: v8.5.0</span>
-</div><p>If a <code>ServerHttp2Stream</code> emits an <code>&#39;error&#39;</code> event, it will be forwarded here.
-The stream will already be destroyed when this event is triggered.</p>
 <h4>Event: &#39;stream&#39;<span><a class="mark" href="#http2_event_stream_1" id="http2_event_stream_1">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
@@ -24595,7 +25019,8 @@ server.on(&#39;stream&#39;, (stream, headers, flags) =&gt; {
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
 </div><p>The <code>&#39;timeout&#39;</code> event is emitted when there is no activity on the Server for
-a given number of milliseconds set using <code>http2server.setTimeout()</code>.</p>
+a given number of milliseconds set using <code>http2server.setTimeout()</code>.
+<strong>Default:</strong> 2 minutes.</p>
 <h4>server.close([callback])<span><a class="mark" href="#http2_server_close_callback" id="http2_server_close_callback">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
@@ -24606,12 +25031,29 @@ a given number of milliseconds set using <code>http2server.setTimeout()</code>.<
 <p>Note that this is not analogous to restricting new requests since HTTP/2
 connections are persistent. To achieve a similar graceful shutdown behavior,
 consider also using <a href="#http2_http2session_close_callback"><code>http2session.close()</code></a> on active sessions.</p>
+<h4>server.setTimeout([msecs][, callback])<span><a class="mark" href="#http2_server_settimeout_msecs_callback" id="http2_server_settimeout_msecs_callback">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v8.4.0</span>
+</div><ul>
+<li><code>msecs</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> <strong>Default:</strong> <code>120000</code> (2 minutes)</li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li>Returns: <a href="http2.html#http2_class_http2server" class="type">&lt;Http2Server&gt;</a></li>
+</ul>
+<p>Used to set the timeout value for http2 server requests,
+and sets a callback function that is called when there is no activity
+on the <code>Http2Server</code> after <code>msecs</code> milliseconds.</p>
+<p>The given callback is registered as a listener on the <code>&#39;timeout&#39;</code> event.</p>
+<p>In case of no callback function were assigned, a new <code>ERR_INVALID_CALLBACK</code>
+error will be thrown.</p>
 <h3>Class: Http2SecureServer<span><a class="mark" href="#http2_class_http2secureserver" id="http2_class_http2secureserver">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
 </div><ul>
 <li>Extends: <a href="tls.html#tls_class_tls_server" class="type">&lt;tls.Server&gt;</a></li>
 </ul>
+<p>Instances of <code>Http2SecureServer</code> are created using the
+<code>http2.createSecureServer()</code> function. The <code>Http2SecureServer</code> class is not
+exported directly by the <code>http2</code> module.</p>
 <h4>Event: &#39;checkContinue&#39;<span><a class="mark" href="#http2_event_checkcontinue_1" id="http2_event_checkcontinue_1">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.5.0</span>
@@ -24681,7 +25123,8 @@ server.on(&#39;stream&#39;, (stream, headers, flags) =&gt; {
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
 </div><p>The <code>&#39;timeout&#39;</code> event is emitted when there is no activity on the Server for
-a given number of milliseconds set using <code>http2secureServer.setTimeout()</code>.</p>
+a given number of milliseconds set using <code>http2secureServer.setTimeout()</code>.
+<strong>Default:</strong> 2 minutes.</p>
 <h4>Event: &#39;unknownProtocol&#39;<span><a class="mark" href="#http2_event_unknownprotocol" id="http2_event_unknownprotocol">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
@@ -24699,6 +25142,20 @@ the connection is terminated. See the <a href="#http2_compatibility_api">Compati
 <p>Note that this is not analogous to restricting new requests since HTTP/2
 connections are persistent. To achieve a similar graceful shutdown behavior,
 consider also using <a href="#http2_http2session_close_callback"><code>http2session.close()</code></a> on active sessions.</p>
+<h4>server.setTimeout([msecs][, callback])<span><a class="mark" href="#http2_server_settimeout_msecs_callback_1" id="http2_server_settimeout_msecs_callback_1">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v8.4.0</span>
+</div><ul>
+<li><code>msecs</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> <strong>Default:</strong> <code>120000</code> (2 minutes)</li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+<li>Returns: <span class="type">&lt;Http2SecureServer&gt;</span></li>
+</ul>
+<p>Used to set the timeout value for http2 secure server requests,
+and sets a callback function that is called when there is no activity
+on the <code>Http2SecureServer</code> after <code>msecs</code> milliseconds.</p>
+<p>The given callback is registered as a listener on the <code>&#39;timeout&#39;</code> event.</p>
+<p>In case of no callback function were assigned, a new <code>ERR_INVALID_CALLBACK</code>
+error will be thrown.</p>
 <h3>http2.createServer(options[, onRequestHandler])<span><a class="mark" href="#http2_http2_createserver_options_onrequesthandler" id="http2_http2_createserver_options_onrequesthandler">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -24729,7 +25186,7 @@ This is a credit based limit, existing <code>Http2Stream</code>s may cause this
 limit to be exceeded, but new <code>Http2Stream</code> instances will be rejected
 while this limit is exceeded. The current number of <code>Http2Stream</code> sessions,
 the current memory use of the header compression tables, current data
-queued to be sent, and unacknowledged PING and SETTINGS frames are all
+queued to be sent, and unacknowledged <code>PING</code> and <code>SETTINGS</code> frames are all
 counted towards the current limit. <strong>Default:</strong> <code>10</code>.</li>
 <li><code>maxHeaderListPairs</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Sets the maximum number of header entries.
 The minimum value is <code>4</code>. <strong>Default:</strong> <code>128</code>.</li>
@@ -24740,7 +25197,7 @@ serialized, compressed block of headers. Attempts to send headers that
 exceed this limit will result in a <code>&#39;frameError&#39;</code> event being emitted
 and the stream being closed and destroyed.</li>
 <li><code>paddingStrategy</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Identifies the strategy used for determining the
- amount of padding to use for HEADERS and DATA frames. <strong>Default:</strong>
+ amount of padding to use for <code>HEADERS</code> and <code>DATA</code> frames. <strong>Default:</strong>
  <code>http2.constants.PADDING_STRATEGY_NONE</code>. Value may be one of:<ul>
 <li><code>http2.constants.PADDING_STRATEGY_NONE</code> - Specifies that no padding is
 to be applied.</li>
@@ -24760,7 +25217,7 @@ and the total frame length will <em>not</em> necessarily be aligned at 8 bytes.<
 </ul>
 </li>
 <li><code>peerMaxConcurrentStreams</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Sets the maximum number of concurrent
-streams for the remote peer as if a SETTINGS frame had been received. Will
+streams for the remote peer as if a <code>SETTINGS</code> frame had been received. Will
 be overridden if the remote peer sets its own value for
 <code>maxConcurrentStreams</code>. <strong>Default:</strong> <code>100</code>.</li>
 <li><code>selectPadding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> When <code>options.paddingStrategy</code> is equal to
@@ -24816,6 +25273,9 @@ server.listen(80);
 <details class="changelog"><summary>History</summary>
 <table>
 <tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v8.13.0</td>
+<td><p>Added the <code>origins</code> option to automatically send an <code>ORIGIN</code> frame on <code>Http2Session</code> startup.</p>
+</td></tr>
 <tr><td>v8.9.3</td>
 <td><p>Added the <code>maxOutstandingPings</code> option with a default limit of 10.</p>
 </td></tr>
@@ -24842,7 +25302,7 @@ credit based limit, existing <code>Http2Stream</code>s may cause this
 limit to be exceeded, but new <code>Http2Stream</code> instances will be rejected
 while this limit is exceeded. The current number of <code>Http2Stream</code> sessions,
 the current memory use of the header compression tables, current data
-queued to be sent, and unacknowledged PING and SETTINGS frames are all
+queued to be sent, and unacknowledged <code>PING</code> and <code>SETTINGS</code> frames are all
 counted towards the current limit. <strong>Default:</strong> <code>10</code>.</li>
 <li><code>maxHeaderListPairs</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Sets the maximum number of header entries.
 The minimum value is <code>4</code>. <strong>Default:</strong> <code>128</code>.</li>
@@ -24853,7 +25313,7 @@ serialized, compressed block of headers. Attempts to send headers that
 exceed this limit will result in a <code>&#39;frameError&#39;</code> event being emitted
 and the stream being closed and destroyed.</li>
 <li><code>paddingStrategy</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Identifies the strategy used for determining the
- amount of padding to use for HEADERS and DATA frames. <strong>Default:</strong>
+ amount of padding to use for <code>HEADERS</code> and <code>DATA</code> frames. <strong>Default:</strong>
  <code>http2.constants.PADDING_STRATEGY_NONE</code>. Value may be one of:<ul>
 <li><code>http2.constants.PADDING_STRATEGY_NONE</code> - Specifies that no padding is
 to be applied.</li>
@@ -24873,7 +25333,7 @@ and the total frame length will <em>not</em> necessarily be aligned at 8 bytes.<
 </ul>
 </li>
 <li><code>peerMaxConcurrentStreams</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Sets the maximum number of concurrent
-streams for the remote peer as if a SETTINGS frame had been received. Will
+streams for the remote peer as if a <code>SETTINGS</code> frame had been received. Will
 be overridden if the remote peer sets its own value for
 <code>maxConcurrentStreams</code>. <strong>Default:</strong> <code>100</code>.</li>
 <li><code>selectPadding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> When <code>options.paddingStrategy</code> is equal to
@@ -24883,6 +25343,8 @@ used to determine the padding. See <a href="#http2_using_options_selectpadding">
 remote peer upon connection.</li>
 <li>...: Any <a href="#tls_tls_createserver_options_secureconnectionlistener"><code>tls.createServer()</code></a> options can be provided. For
 servers, the identity options (<code>pfx</code> or <code>key</code>/<code>cert</code>) are usually required.</li>
+<li><code>origins</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string[]&gt;</a> An array of origin strings to send within an <code>ORIGIN</code>
+frame immediately following creation of a new server <code>Http2Session</code>.</li>
 </ul>
 </li>
 <li><code>onRequestHandler</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> See <a href="#http2_compatibility_api">Compatibility API</a></li>
@@ -24891,6 +25353,7 @@ servers, the identity options (<code>pfx</code> or <code>key</code>/<code>cert</
 <p>Returns a <code>tls.Server</code> instance that creates and manages <code>Http2Session</code>
 instances.</p>
 <pre><code class="lang-js">const http2 = require(&#39;http2&#39;);
+const fs = require(&#39;fs&#39;);
 
 const options = {
   key: fs.readFileSync(&#39;server-key.pem&#39;),
@@ -24938,7 +25401,7 @@ This is a credit based limit, existing <code>Http2Stream</code>s may cause this
 limit to be exceeded, but new <code>Http2Stream</code> instances will be rejected
 while this limit is exceeded. The current number of <code>Http2Stream</code> sessions,
 the current memory use of the header compression tables, current data
-queued to be sent, and unacknowledged PING and SETTINGS frames are all
+queued to be sent, and unacknowledged <code>PING</code> and <code>SETTINGS</code> frames are all
 counted towards the current limit. <strong>Default:</strong> <code>10</code>.</li>
 <li><code>maxHeaderListPairs</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Sets the maximum number of header entries.
 The minimum value is <code>1</code>. <strong>Default:</strong> <code>128</code>.</li>
@@ -24953,7 +25416,7 @@ serialized, compressed block of headers. Attempts to send headers that
 exceed this limit will result in a <code>&#39;frameError&#39;</code> event being emitted
 and the stream being closed and destroyed.</li>
 <li><code>paddingStrategy</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Identifies the strategy used for determining the
- amount of padding to use for HEADERS and DATA frames. <strong>Default:</strong>
+ amount of padding to use for <code>HEADERS</code> and <code>DATA</code> frames. <strong>Default:</strong>
  <code>http2.constants.PADDING_STRATEGY_NONE</code>. Value may be one of:<ul>
 <li><code>http2.constants.PADDING_STRATEGY_NONE</code> - Specifies that no padding is
 to be applied.</li>
@@ -24973,7 +25436,7 @@ and the total frame length will <em>not</em> necessarily be aligned at 8 bytes.<
 </ul>
 </li>
 <li><code>peerMaxConcurrentStreams</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Sets the maximum number of concurrent
-streams for the remote peer as if a SETTINGS frame had been received. Will
+streams for the remote peer as if a <code>SETTINGS</code> frame had been received. Will
 be overridden if the remote peer sets its own value for
 <code>maxConcurrentStreams</code>. <strong>Default:</strong> <code>100</code>.</li>
 <li><code>selectPadding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> When <code>options.paddingStrategy</code> is equal to
@@ -25139,6 +25602,23 @@ stream.respond(headers);
 prototype. This means that normal JavaScript object methods such as
 <code>Object.prototype.toString()</code> and <code>Object.prototype.hasOwnProperty()</code> will
 not work.</p>
+<p>For incoming headers:</p>
+<ul>
+<li>The <code>:status</code> header is converted to <code>number</code>.</li>
+<li>Duplicates of <code>:status</code>, <code>:method</code>, <code>:authority</code>, <code>:scheme</code>, <code>:path</code>,
+<code>age</code>, <code>authorization</code>, <code>access-control-allow-credentials</code>,
+<code>access-control-max-age</code>, <code>access-control-request-method</code>, <code>content-encoding</code>,
+<code>content-language</code>, <code>content-length</code>, <code>content-location</code>, <code>content-md5</code>,
+<code>content-range</code>, <code>content-type</code>, <code>date</code>, <code>dnt</code>, <code>etag</code>, <code>expires</code>, <code>from</code>,
+<code>if-match</code>, <code>if-modified-since</code>, <code>if-none-match</code>, <code>if-range</code>,
+<code>if-unmodified-since</code>, <code>last-modified</code>, <code>location</code>, <code>max-forwards</code>,
+<code>proxy-authorization</code>, <code>range</code>, <code>referer</code>,<code>retry-after</code>, <code>tk</code>,
+<code>upgrade-insecure-requests</code>, <code>user-agent</code> or <code>x-content-type-options</code> are
+discarded.</li>
+<li><code>set-cookie</code> is always an array. Duplicates are added to the array.</li>
+<li><code>cookie</code>: the values are joined together with &#39;; &#39;.</li>
+<li>For all other headers, the values are joined together with &#39;, &#39;.</li>
+</ul>
 <pre><code class="lang-js">const http2 = require(&#39;http2&#39;);
 const server = http2.createServer();
 server.on(&#39;stream&#39;, (stream, headers) =&gt; {
@@ -25192,7 +25672,7 @@ maximum allowed value is 2<sup>32</sup>-1. <strong>Default:</strong> <code>65535
 <p>When <code>options.paddingStrategy</code> is equal to
 <code>http2.constants.PADDING_STRATEGY_CALLBACK</code>, the HTTP/2 implementation will
 consult the <code>options.selectPadding</code> callback function, if provided, to determine
-the specific amount of padding to use per HEADERS and DATA frame.</p>
+the specific amount of padding to use per <code>HEADERS</code> and <code>DATA</code> frame.</p>
 <p>The <code>options.selectPadding</code> function receives two numeric arguments,
 <code>frameLen</code> and <code>maxFrameLen</code> and must return a number <code>N</code> such that
 <code>frameLen &lt;= N &lt;= maxFrameLen</code>.</p>
@@ -25205,7 +25685,7 @@ const server = http2.createServer({
 });
 </code></pre>
 <p><em>Note</em>: The <code>options.selectPadding</code> function is invoked once for <em>every</em>
-HEADERS and DATA frame. This has a definite noticeable impact on
+<code>HEADERS</code> and <code>DATA</code> frame. This has a definite noticeable impact on
 performance.</p>
 <h3>Error Handling<span><a class="mark" href="#http2_error_handling" id="http2_error_handling">#</a></span></h3>
 <p>There are several types of error conditions that may arise when using the
@@ -25397,6 +25877,14 @@ abnormally aborted in mid-communication.</p>
 <span>Added in: v8.4.0</span>
 </div><p>Indicates that the underlying <a href="#http2_class_http2stream"><code>Http2Stream</code></a> was closed.
 Just like <code>&#39;end&#39;</code>, this event occurs only once per response.</p>
+<h4>request.aborted<span><a class="mark" href="#http2_request_aborted" id="http2_request_aborted">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v8.13.0</span>
+</div><ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
+</ul>
+<p>The <code>request.aborted</code> property will be <code>true</code> if the request has
+been aborted.</p>
 <h4>request.destroy([error])<span><a class="mark" href="#http2_request_destroy_error" id="http2_request_destroy_error">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
@@ -25913,10 +26401,21 @@ will result in a <a href="errors.html#errors_class_typeerror"><code>TypeError</c
 <h4>response.createPushResponse(headers, callback)<span><a class="mark" href="#http2_response_createpushresponse_headers_callback" id="http2_response_createpushresponse_headers_callback">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
-</div><p>Call <a href="#http2_http2stream_pushstream_headers_options_callback"><code>http2stream.pushStream()</code></a> with the given headers, and wraps the
-given newly created <a href="#http2_class_http2stream"><code>Http2Stream</code></a> on <code>Http2ServerRespose</code>.</p>
-<p>The callback will be called with an error with code <code>ERR_HTTP2_STREAM_CLOSED</code>
-if the stream is closed.</p>
+</div><ul>
+<li><code>headers</code> <a href="http2.html#http2_headers_object" class="type">&lt;HTTP/2 Headers Object&gt;</a> An object describing the headers</li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> Called once <code>http2stream.pushStream()</code> is finished,
+or either when the attempt to create the pushed <code>Http2Stream</code> has failed or
+has been rejected, or the state of <code>Http2ServerRequest</code> is closed prior to
+calling the <code>http2stream.pushStream()</code> method<ul>
+<li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&lt;Error&gt;</a></li>
+<li><code>stream</code> <a href="http2.html#http2_class_serverhttp2stream" class="type">&lt;ServerHttp2Stream&gt;</a> The newly-created <code>ServerHttp2Stream</code> object</li>
+</ul>
+</li>
+</ul>
+<p>Call <a href="#http2_http2stream_pushstream_headers_options_callback"><code>http2stream.pushStream()</code></a> with the given headers, and wrap the
+given <a href="#http2_class_http2stream"><code>Http2Stream</code></a> on a newly created <code>Http2ServerResponse</code> as the callback
+parameter if successful. When <code>Http2ServerRequest</code> is closed, the callback is
+called with an error <code>ERR_HTTP2_INVALID_STREAM</code>.</p>
 <h2>Collecting HTTP/2 Performance Metrics<span><a class="mark" href="#http2_collecting_http_2_performance_metrics" id="http2_collecting_http_2_performance_metrics">#</a></span></h2>
 <p>The <a href="perf_hooks.html">Performance Observer</a> API can be used to collect basic performance
 metrics for each <code>Http2Session</code> and <code>Http2Stream</code> instance.</p>
@@ -25939,9 +26438,9 @@ obs.observe({ entryTypes: [&#39;http2&#39;] });
 <p>If <code>name</code> is equal to <code>Http2Stream</code>, the <code>PerformanceEntry</code> will contain the
 following additional properties:</p>
 <ul>
-<li><code>bytesRead</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> The number of DATA frame bytes received for this
+<li><code>bytesRead</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> The number of <code>DATA</code> frame bytes received for this
 <code>Http2Stream</code>.</li>
-<li><code>bytesWritten</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> The number of DATA frame bytes sent for this
+<li><code>bytesWritten</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> The number of <code>DATA</code> frame bytes sent for this
 <code>Http2Stream</code>.</li>
 <li><code>id</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> The identifier of the associated <code>Http2Stream</code></li>
 <li><code>timeToFirstByte</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> The number of milliseconds elapsed between the
@@ -25997,6 +26496,11 @@ for more information.</p>
 <h3>server.listen()<span><a class="mark" href="#https_server_listen" id="https_server_listen">#</a></span></h3>
 <p>Starts the HTTPS server listening for encrypted connections.
 This method is identical to <a href="net.html#net_server_listen"><code>server.listen()</code></a> from <a href="net.html#net_class_net_server"><code>net.Server</code></a>.</p>
+<h3>server.headersTimeout<span><a class="mark" href="#https_server_headerstimeout" id="https_server_headerstimeout">#</a></span></h3>
+<div class="signature"><ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> <strong>Default:</strong> <code>40000</code></li>
+</ul>
+</div><p>See <a href="http.html#http_server_headerstimeout"><code>http.Server#headersTimeout</code></a>.</p>
 <h3>server.setTimeout([msecs][, callback])<span><a class="mark" href="#https_server_settimeout_msecs_callback" id="https_server_settimeout_msecs_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.2</span>
@@ -32856,10 +33360,10 @@ are both stream instances.</p>
 <p>The <code>stream</code> module can be accessed using:</p>
 <pre><code class="lang-js">const stream = require(&#39;stream&#39;);
 </code></pre>
-<p>While it is important for all Node.js users to understand how streams work,
-the <code>stream</code> module itself is most useful for developers that are creating new
-types of stream instances. Developers who are primarily <em>consuming</em> stream
-objects will rarely (if ever) have need to use the <code>stream</code> module directly.</p>
+<p>While it is important to understand how streams work, the <code>stream</code> module itself
+is most useful for developers that are creating new types of stream instances.
+Developers who are primarily <em>consuming</em> stream objects will rarely need to use
+the <code>stream</code> module directly.</p>
 <h2>Organization of this Document<span><a class="mark" href="#stream_organization_of_this_document" id="stream_organization_of_this_document">#</a></span></h2>
 <p>This document is divided into two primary sections with a third section for
 additional notes. The first section explains the elements of the stream API that

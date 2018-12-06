@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Deprecated APIs | Node.js v8.12.0 Documentation</title>
+  <title>Deprecated APIs | Node.js v8.14.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -82,7 +82,7 @@
 
     <div id="column1" data-id="deprecations" class="interior">
       <header>
-        <h1>Node.js v8.12.0 Documentation</h1>
+        <h1>Node.js v8.14.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -188,6 +188,7 @@
 <li><span class="stability_undefined"><a href="#deprecations_dep0079_custom_inspection_function_on_objects_via_inspect">DEP0079: Custom inspection function on Objects via .inspect()</a></span></li>
 <li><span class="stability_undefined"><a href="#deprecations_dep0085_asynchooks_sensitive_api">DEP0085: AsyncHooks Sensitive API</a></span></li>
 <li><span class="stability_undefined"><a href="#deprecations_dep0086_remove_runinasyncidscope">DEP0086: Remove runInAsyncIdScope</a></span></li>
+<li><span class="stability_undefined"><a href="#deprecations_dep0089_require_assert">DEP0089: require(&#39;assert&#39;)</a></span></li>
 <li><span class="stability_undefined"><a href="#deprecations_dep0098_asynchooks_embedder_asyncresource_emit_span_class_type_lt_before_after_gt_span_apis">DEP0098: AsyncHooks Embedder AsyncResource.emit<span class="type">&lt;Before,After&gt;</span> APIs</a></span></li>
 </ul>
 </li>
@@ -633,6 +634,12 @@ API instead.</p>
 <p><code>runInAsyncIdScope</code> doesn&#39;t emit the <code>before</code> or <code>after</code> event and can thus
 cause a lot of issues. See <a href="https://github.com/nodejs/node/issues/14328">https://github.com/nodejs/node/issues/14328</a> for more
 details.</p>
+<p><a id="DEP0089"></a></p>
+<h3>DEP0089: require(&#39;assert&#39;)<span><a class="mark" href="#deprecations_dep0089_require_assert" id="deprecations_dep0089_require_assert">#</a></span></h3>
+<p>Type: Documentation-only</p>
+<p>Importing assert directly is not recommended as the exposed functions will use
+loose equality checks. Use <code>require(&#39;assert&#39;).strict</code> instead. The API is the
+same as the legacy assert but it will always use strict equality checks.</p>
 <p><a id="DEP0098"></a></p>
 <h3>DEP0098: AsyncHooks Embedder AsyncResource.emit<span class="type">&lt;Before,After&gt;</span> APIs<span><a class="mark" href="#deprecations_dep0098_asynchooks_embedder_asyncresource_emit_span_class_type_lt_before_after_gt_span_apis" id="deprecations_dep0098_asynchooks_embedder_asyncresource_emit_span_class_type_lt_before_after_gt_span_apis">#</a></span></h3>
 <p>Type: Runtime</p>

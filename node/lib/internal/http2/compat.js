@@ -7,7 +7,6 @@ const constants = binding.constants;
 const errors = require('internal/errors');
 const { kSocket } = require('internal/http2/util');
 
-const kFinish = Symbol('finish');
 const kBeginSend = Symbol('begin-send');
 const kState = Symbol('state');
 const kStream = Symbol('stream');
@@ -19,6 +18,7 @@ const kTrailers = Symbol('trailers');
 const kRawTrailers = Symbol('rawTrailers');
 const kProxySocket = Symbol('proxySocket');
 const kSetHeader = Symbol('setHeader');
+const kAborted = Symbol('aborted');
 
 const {
   HTTP2_HEADER_AUTHORITY,
@@ -103,9 +103,7 @@ function onStreamError(error) {
   //
   // errors in compatibility mode are
   // not forwarded to the request
-  // and response objects. However,
-  // they are forwarded to 'streamError'
-  // on the server by Http2Stream
+  // and response objects.
 }
 
 function onRequestPause() {
@@ -125,6 +123,7 @@ function onStreamDrain() {
 function onStreamAbortedRequest() {
   const request = this[kRequest];
   if (request !== undefined && request[kState].closed === false) {
+    request[kAborted] = true;
     request.emit('aborted');
   }
 }
@@ -209,6 +208,34 @@ const proxySocketHandler = {
   }
 };
 
+function onStreamCloseRequest() {
+  const req = this[kRequest];
+
+  if (req === undefined)
+    return;
+
+  const state = req[kState];
+  state.closed = true;
+
+  req.push(null);
+  // if the user didn't interact with incoming data and didn't pipe it,
+  // dump it for compatibility with http1
+  if (!state.didRead && !req._readableState.resumeScheduled)
+    req.resume();
+
+  this[kProxySocket] = null;
+  this[kRequest] = undefined;
+
+  req.emit('close');
+}
+
+function onStreamTimeout(kind) {
+  return function onStreamTimeout() {
+    const obj = this[kind];
+    obj.emit('timeout');
+  };
+}
+
 class Http2ServerRequest extends Readable {
   constructor(stream, headers, options, rawHeaders) {
     super(options);
@@ -221,19 +248,23 @@ class Http2ServerRequest extends Readable {
     this[kTrailers] = {};
     this[kRawTrailers] = [];
     this[kStream] = stream;
+    this[kAborted] = false;
     stream[kProxySocket] = null;
     stream[kRequest] = this;
 
     // Pause the stream..
-    stream.pause();
-    stream.on('data', onStreamData);
     stream.on('trailers', onStreamTrailers);
     stream.on('end', onStreamEnd);
     stream.on('error', onStreamError);
     stream.on('aborted', onStreamAbortedRequest);
-    stream.on('close', this[kFinish].bind(this));
+    stream.on('close', onStreamCloseRequest);
+    stream.on('timeout', onStreamTimeout(kRequest));
     this.on('pause', onRequestPause);
     this.on('resume', onRequestResume);
+  }
+
+  get aborted() {
+    return this[kAborted];
   }
 
   get complete() {
@@ -289,8 +320,12 @@ class Http2ServerRequest extends Readable {
   _read(nread) {
     const state = this[kState];
     if (!state.closed) {
-      state.didRead = true;
-      process.nextTick(resumeStream, this[kStream]);
+      if (!state.didRead) {
+        state.didRead = true;
+        this[kStream].on('data', onStreamData);
+      } else {
+        process.nextTick(resumeStream, this[kStream]);
+      }
     } else {
       this.emit('error', new errors.Error('ERR_HTTP2_INVALID_STREAM'));
     }
@@ -328,20 +363,32 @@ class Http2ServerRequest extends Readable {
       return;
     this[kStream].setTimeout(msecs, callback);
   }
+}
 
-  [kFinish]() {
-    const state = this[kState];
-    if (state.closed)
-      return;
-    state.closed = true;
-    this.push(null);
-    this[kStream][kRequest] = undefined;
-    // if the user didn't interact with incoming data and didn't pipe it,
-    // dump it for compatibility with http1
-    if (!state.didRead && !this._readableState.resumeScheduled)
-      this.resume();
-    this.emit('close');
-  }
+function onStreamTrailersReady() {
+  this.sendTrailers(this[kResponse][kTrailers]);
+}
+
+function onStreamCloseResponse() {
+  const res = this[kResponse];
+
+  if (res === undefined)
+    return;
+
+  const state = res[kState];
+
+  if (this.headRequest !== state.headRequest)
+    return;
+
+  state.closed = true;
+
+  this[kProxySocket] = null;
+
+  this.removeListener('wantTrailers', onStreamTrailersReady);
+  this[kResponse] = undefined;
+
+  res.emit('finish');
+  res.emit('close');
 }
 
 class Http2ServerResponse extends Stream {
@@ -362,7 +409,9 @@ class Http2ServerResponse extends Stream {
     this.writable = true;
     stream.on('drain', onStreamDrain);
     stream.on('aborted', onStreamAbortedResponse);
-    stream.on('close', this[kFinish].bind(this));
+    stream.on('close', onStreamCloseResponse);
+    stream.on('wantTrailers', onStreamTrailersReady);
+    stream.on('timeout', onStreamTimeout(kResponse));
   }
 
   // User land modules such as finalhandler just check truthiness of this
@@ -593,7 +642,7 @@ class Http2ServerResponse extends Stream {
       this.writeHead(this[kState].statusCode);
 
     if (isFinished)
-      this[kFinish]();
+      onStreamCloseResponse.call(stream);
     else
       stream.end();
   }
@@ -632,21 +681,9 @@ class Http2ServerResponse extends Stream {
     headers[HTTP2_HEADER_STATUS] = state.statusCode;
     const options = {
       endStream: state.ending,
-      getTrailers: (trailers) => Object.assign(trailers, this[kTrailers])
+      waitForTrailers: true,
     };
     this[kStream].respond(headers, options);
-  }
-
-  [kFinish]() {
-    const stream = this[kStream];
-    const state = this[kState];
-    if (state.closed || stream.headRequest !== state.headRequest)
-      return;
-    state.closed = true;
-    this[kProxySocket] = null;
-    stream[kResponse] = undefined;
-    this.emit('finish');
-    this.emit('close');
   }
 
   // TODO doesn't support callbacks

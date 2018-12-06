@@ -122,6 +122,13 @@
           ],
           "properties": [
             {
+              "textRaw": "`headersTimeout` {number} **Default:** `40000` ",
+              "type": "number",
+              "name": "headersTimeout",
+              "default": "`40000`",
+              "desc": "<p>See <a href=\"http.html#http_server_headerstimeout\"><code>http.Server#headersTimeout</code></a>.</p>\n"
+            },
+            {
               "textRaw": "`timeout` {number} **Default:** `120000` (2 minutes) ",
               "type": "number",
               "name": "timeout",

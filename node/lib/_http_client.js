@@ -39,7 +39,11 @@ const { Buffer } = require('buffer');
 const { urlToOptions, searchParamsSymbol } = require('internal/url');
 const { outHeadersKey, ondrain } = require('internal/http');
 const { nextTick } = require('internal/process/next_tick');
+const is_reused_symbol = require('internal/freelist').symbols.is_reused_symbol;
 
+const REVERT_CVE_2018_12116 = process.REVERT_CVE_2018_12116;
+
+// DO NOT USE: this is insecure. See CVE-2018-12116.
 // The actual list of disallowed characters in regexp form is more like:
 //    /[^A-Za-z0-9\-._~!$&'()*+,;=/:@]/
 // with an additional rule for ignoring percentage-escaped characters, but
@@ -67,6 +71,7 @@ function isInvalidPath(s) {
     if (s.charCodeAt(i) <= 32) return true;
   return false;
 }
+const INVALID_PATH_REGEX = /[^\u0021-\u00ff]/;
 
 function validateHost(host, name) {
   if (host != null && typeof host !== 'string') {
@@ -118,11 +123,16 @@ function ClientRequest(options, cb) {
   if (options.path) {
     path = String(options.path);
     var invalidPath;
-    if (path.length <= 39) { // Determined experimentally in V8 5.4
-      invalidPath = isInvalidPath(path);
+    if (REVERT_CVE_2018_12116) {
+      if (path.length <= 39) { // Determined experimentally in V8 5.4
+        invalidPath = isInvalidPath(path);
+      } else {
+        invalidPath = /[\u0000-\u0020]/.test(path);
+      }
     } else {
-      invalidPath = /[\u0000-\u0020]/.test(path);
+      invalidPath = INVALID_PATH_REGEX.test(path);
     }
+
     if (invalidPath)
       throw new TypeError('Request path contains unescaped characters');
   }
@@ -299,6 +309,7 @@ ClientRequest.prototype.abort = function abort() {
   if (!this.aborted) {
     process.nextTick(emitAbortNT.bind(this));
   }
+
   // Mark as aborting so we can avoid sending queued request data
   // This is used as a truthy flag elsewhere. The use of Date.now is for
   // debugging purposes only.
@@ -350,7 +361,10 @@ function socketCloseListener() {
   req.emit('close');
   if (req.res && req.res.readable) {
     // Socket closed before we emitted 'end' below.
-    if (!req.res.complete) req.res.emit('aborted');
+    if (!req.res.complete) {
+      req.res.aborted = true;
+      req.res.emit('aborted');
+    }
     var res = req.res;
     res.on('end', function() {
       res.emit('close');
@@ -614,7 +628,7 @@ function tickOnSocket(req, socket) {
   var parser = parsers.alloc();
   req.socket = socket;
   req.connection = socket;
-  parser.reinitialize(HTTPParser.RESPONSE);
+  parser.reinitialize(HTTPParser.RESPONSE, parser[is_reused_symbol]);
   parser.socket = socket;
   parser.incoming = null;
   parser.outgoing = req;

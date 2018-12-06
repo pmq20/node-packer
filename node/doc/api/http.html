@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>HTTP | Node.js v8.12.0 Documentation</title>
+  <title>HTTP | Node.js v8.14.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -82,7 +82,7 @@
 
     <div id="column1" data-id="http" class="interior">
       <header>
-        <h1>Node.js v8.12.0 Documentation</h1>
+        <h1>Node.js v8.14.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -166,6 +166,7 @@
 <li><span class="stability_undefined"><a href="#http_server_listen">server.listen()</a></span></li>
 <li><span class="stability_undefined"><a href="#http_server_listening">server.listening</a></span></li>
 <li><span class="stability_undefined"><a href="#http_server_maxheaderscount">server.maxHeadersCount</a></span></li>
+<li><span class="stability_undefined"><a href="#http_server_headerstimeout">server.headersTimeout</a></span></li>
 <li><span class="stability_undefined"><a href="#http_server_settimeout_msecs_callback">server.setTimeout([msecs][, callback])</a></span></li>
 <li><span class="stability_undefined"><a href="#http_server_timeout">server.timeout</a></span></li>
 <li><span class="stability_undefined"><a href="#http_server_keepalivetimeout">server.keepAliveTimeout</a></span></li>
@@ -198,6 +199,7 @@
 <li><span class="stability_undefined"><a href="#http_class_http_incomingmessage">Class: http.IncomingMessage</a></span><ul>
 <li><span class="stability_undefined"><a href="#http_event_aborted">Event: &#39;aborted&#39;</a></span></li>
 <li><span class="stability_undefined"><a href="#http_event_close_2">Event: &#39;close&#39;</a></span></li>
+<li><span class="stability_undefined"><a href="#http_message_aborted">message.aborted</a></span></li>
 <li><span class="stability_undefined"><a href="#http_message_destroy_error">message.destroy([error])</a></span></li>
 <li><span class="stability_undefined"><a href="#http_message_headers">message.headers</a></span></li>
 <li><span class="stability_undefined"><a href="#http_message_httpversion">message.httpVersion</a></span></li>
@@ -931,6 +933,23 @@ connections.</p>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> <strong>Default:</strong> <code>2000</code></li>
 </ul>
 <p>Limits maximum incoming headers count. If set to 0 - no limit will be applied.</p>
+<h3>server.headersTimeout<span><a class="mark" href="#http_server_headerstimeout" id="http_server_headerstimeout">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.14.0</span>
+</div><ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> <strong>Default:</strong> <code>40000</code></li>
+</ul>
+<p>Limit the amount of time the parser will wait to receive the complete HTTP
+headers.</p>
+<p>In case of inactivity, the rules defined in [server.timeout][] apply. However,
+that inactivity based timeout would still allow the connection to be kept open
+if the headers are being sent very slowly (by default, up to a byte per 2
+minutes). In order to prevent this, whenever header data arrives an additional
+check is made that more than <code>server.headersTimeout</code> milliseconds has not
+passed since the connection was established. If the check fails, a <code>&#39;timeout&#39;</code>
+event is emitted on the server object, and (by default) the socket is destroyed.
+See [server.timeout][] for more information on how timeout behaviour can be
+customised.</p>
 <h3>server.setTimeout([msecs][, callback])<span><a class="mark" href="#http_server_settimeout_msecs_callback" id="http_server_settimeout_msecs_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.9.12</span>
@@ -1322,12 +1341,20 @@ following additional events, methods, and properties.</p>
 <h3>Event: &#39;aborted&#39;<span><a class="mark" href="#http_event_aborted" id="http_event_aborted">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.3.8</span>
-</div><p>Emitted when the request has been aborted and the network socket has closed.</p>
+</div><p>Emitted when the request has been aborted.</p>
 <h3>Event: &#39;close&#39;<span><a class="mark" href="#http_event_close_2" id="http_event_close_2">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.4.2</span>
 </div><p>Indicates that the underlying connection was closed.
 Just like <code>&#39;end&#39;</code>, this event occurs only once per response.</p>
+<h3>message.aborted<span><a class="mark" href="#http_message_aborted" id="http_message_aborted">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.13.0</span>
+</div><ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
+</ul>
+<p>The <code>message.aborted</code> property will be <code>true</code> if the request has
+been aborted.</p>
 <h3>message.destroy([error])<span><a class="mark" href="#http_message_destroy_error" id="http_message_destroy_error">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.3.0</span>

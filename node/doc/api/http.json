@@ -1074,6 +1074,19 @@
               "desc": "<p>Limits maximum incoming headers count. If set to 0 - no limit will be applied.</p>\n"
             },
             {
+              "textRaw": "`headersTimeout` {number} **Default:** `40000` ",
+              "type": "number",
+              "name": "headersTimeout",
+              "meta": {
+                "added": [
+                  "v8.14.0"
+                ],
+                "changes": []
+              },
+              "default": "`40000`",
+              "desc": "<p>Limit the amount of time the parser will wait to receive the complete HTTP\nheaders.</p>\n<p>In case of inactivity, the rules defined in [server.timeout][] apply. However,\nthat inactivity based timeout would still allow the connection to be kept open\nif the headers are being sent very slowly (by default, up to a byte per 2\nminutes). In order to prevent this, whenever header data arrives an additional\ncheck is made that more than <code>server.headersTimeout</code> milliseconds has not\npassed since the connection was established. If the check fails, a <code>&#39;timeout&#39;</code>\nevent is emitted on the server object, and (by default) the socket is destroyed.\nSee [server.timeout][] for more information on how timeout behaviour can be\ncustomised.</p>\n"
+            },
+            {
               "textRaw": "`timeout` {number} Timeout in milliseconds. **Default:** `120000` (2 minutes). ",
               "type": "number",
               "name": "timeout",
@@ -1692,7 +1705,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Emitted when the request has been aborted and the network socket has closed.</p>\n",
+              "desc": "<p>Emitted when the request has been aborted.</p>\n",
               "params": []
             },
             {
@@ -1709,79 +1722,19 @@
               "params": []
             }
           ],
-          "methods": [
-            {
-              "textRaw": "message.destroy([error])",
-              "type": "method",
-              "name": "destroy",
-              "meta": {
-                "added": [
-                  "v0.3.0"
-                ],
-                "changes": []
-              },
-              "signatures": [
-                {
-                  "params": [
-                    {
-                      "textRaw": "`error` {Error} ",
-                      "name": "error",
-                      "type": "Error",
-                      "optional": true
-                    }
-                  ]
-                },
-                {
-                  "params": [
-                    {
-                      "name": "error",
-                      "optional": true
-                    }
-                  ]
-                }
-              ],
-              "desc": "<p>Calls <code>destroy()</code> on the socket that received the <code>IncomingMessage</code>. If <code>error</code>\nis provided, an <code>&#39;error&#39;</code> event is emitted and <code>error</code> is passed as an argument\nto any listeners on the event.</p>\n"
-            },
-            {
-              "textRaw": "message.setTimeout(msecs, callback)",
-              "type": "method",
-              "name": "setTimeout",
-              "meta": {
-                "added": [
-                  "v0.5.9"
-                ],
-                "changes": []
-              },
-              "signatures": [
-                {
-                  "params": [
-                    {
-                      "textRaw": "`msecs` {number} ",
-                      "name": "msecs",
-                      "type": "number"
-                    },
-                    {
-                      "textRaw": "`callback` {Function} ",
-                      "name": "callback",
-                      "type": "Function"
-                    }
-                  ]
-                },
-                {
-                  "params": [
-                    {
-                      "name": "msecs"
-                    },
-                    {
-                      "name": "callback"
-                    }
-                  ]
-                }
-              ],
-              "desc": "<p>Calls <code>message.connection.setTimeout(msecs, callback)</code>.</p>\n<p>Returns <code>message</code>.</p>\n"
-            }
-          ],
           "properties": [
+            {
+              "textRaw": "`aborted` {boolean} ",
+              "type": "boolean",
+              "name": "aborted",
+              "meta": {
+                "added": [
+                  "v8.13.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>The <code>message.aborted</code> property will be <code>true</code> if the request has\nbeen aborted.</p>\n"
+            },
             {
               "textRaw": "`headers` {Object} ",
               "type": "Object",
@@ -1901,6 +1854,78 @@
                 "changes": []
               },
               "desc": "<p><strong>Only valid for request obtained from <a href=\"#http_class_http_server\"><code>http.Server</code></a>.</strong></p>\n<p>Request URL string. This contains only the URL that is\npresent in the actual HTTP request. If the request is:</p>\n<pre><code class=\"lang-txt\">GET /status?name=ryan HTTP/1.1\\r\\n\nAccept: text/plain\\r\\n\n\\r\\n\n</code></pre>\n<p>Then <code>request.url</code> will be:</p>\n<!-- eslint-disable semi -->\n<pre><code class=\"lang-js\">&#39;/status?name=ryan&#39;\n</code></pre>\n<p>To parse the url into its parts <code>require(&#39;url&#39;).parse(request.url)</code>\ncan be used. Example:</p>\n<pre><code class=\"lang-txt\">$ node\n&gt; require(&#39;url&#39;).parse(&#39;/status?name=ryan&#39;)\nUrl {\n  protocol: null,\n  slashes: null,\n  auth: null,\n  host: null,\n  port: null,\n  hostname: null,\n  hash: null,\n  search: &#39;?name=ryan&#39;,\n  query: &#39;name=ryan&#39;,\n  pathname: &#39;/status&#39;,\n  path: &#39;/status?name=ryan&#39;,\n  href: &#39;/status?name=ryan&#39; }\n</code></pre>\n<p>To extract the parameters from the query string, the\n<code>require(&#39;querystring&#39;).parse</code> function can be used, or\n<code>true</code> can be passed as the second argument to <code>require(&#39;url&#39;).parse</code>.\nExample:</p>\n<pre><code class=\"lang-txt\">$ node\n&gt; require(&#39;url&#39;).parse(&#39;/status?name=ryan&#39;, true)\nUrl {\n  protocol: null,\n  slashes: null,\n  auth: null,\n  host: null,\n  port: null,\n  hostname: null,\n  hash: null,\n  search: &#39;?name=ryan&#39;,\n  query: { name: &#39;ryan&#39; },\n  pathname: &#39;/status&#39;,\n  path: &#39;/status?name=ryan&#39;,\n  href: &#39;/status?name=ryan&#39; }\n</code></pre>\n"
+            }
+          ],
+          "methods": [
+            {
+              "textRaw": "message.destroy([error])",
+              "type": "method",
+              "name": "destroy",
+              "meta": {
+                "added": [
+                  "v0.3.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`error` {Error} ",
+                      "name": "error",
+                      "type": "Error",
+                      "optional": true
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "error",
+                      "optional": true
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Calls <code>destroy()</code> on the socket that received the <code>IncomingMessage</code>. If <code>error</code>\nis provided, an <code>&#39;error&#39;</code> event is emitted and <code>error</code> is passed as an argument\nto any listeners on the event.</p>\n"
+            },
+            {
+              "textRaw": "message.setTimeout(msecs, callback)",
+              "type": "method",
+              "name": "setTimeout",
+              "meta": {
+                "added": [
+                  "v0.5.9"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`msecs` {number} ",
+                      "name": "msecs",
+                      "type": "number"
+                    },
+                    {
+                      "textRaw": "`callback` {Function} ",
+                      "name": "callback",
+                      "type": "Function"
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "msecs"
+                    },
+                    {
+                      "name": "callback"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Calls <code>message.connection.setTimeout(msecs, callback)</code>.</p>\n<p>Returns <code>message</code>.</p>\n"
             }
           ]
         }

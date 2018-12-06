@@ -219,11 +219,13 @@ class ModuleWrap;
   V(onnewsessiondone_string, "onnewsessiondone")                              \
   V(onocspresponse_string, "onocspresponse")                                  \
   V(ongoawaydata_string, "ongoawaydata")                                      \
+  V(onorigin_string, "onorigin")                                              \
   V(onpriority_string, "onpriority")                                          \
   V(onread_string, "onread")                                                  \
   V(onreadstart_string, "onreadstart")                                        \
   V(onreadstop_string, "onreadstop")                                          \
   V(onselect_string, "onselect")                                              \
+  V(onping_string, "onping")                                                  \
   V(onsettings_string, "onsettings")                                          \
   V(onshutdown_string, "onshutdown")                                          \
   V(onsignal_string, "onsignal")                                              \
@@ -617,8 +619,8 @@ class Environment {
   inline char* http_parser_buffer() const;
   inline void set_http_parser_buffer(char* buffer);
 
-  inline http2::http2_state* http2_state() const;
-  inline void set_http2_state(std::unique_ptr<http2::http2_state> state);
+  inline http2::Http2State* http2_state() const;
+  inline void set_http2_state(std::unique_ptr<http2::Http2State> state);
 
   inline double* fs_stats_field_array() const;
   inline void set_fs_stats_field_array(double* fields);
@@ -759,7 +761,7 @@ class Environment {
   double* heap_space_statistics_buffer_ = nullptr;
 
   char* http_parser_buffer_;
-  std::unique_ptr<http2::http2_state> http2_state_;
+  std::unique_ptr<http2::Http2State> http2_state_;
 
   double* fs_stats_field_array_;
 

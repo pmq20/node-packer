@@ -407,9 +407,16 @@
             {
               "textRaw": "ERR_HTTP2_INVALID_INFO_STATUS",
               "name": "err_http2_invalid_info_status",
-              "desc": "<p>An invalid HTTP informational status code has been specified. Informational\nstatus codes must be an integer between <code>100</code> and <code>199</code> (inclusive).</p>\n<p><a id=\"ERR_HTTP2_INVALID_PACKED_SETTINGS_LENGTH\"></a></p>\n",
+              "desc": "<p>An invalid HTTP informational status code has been specified. Informational\nstatus codes must be an integer between <code>100</code> and <code>199</code> (inclusive).</p>\n<p><a id=\"ERR_HTTP2_INVALID_ORIGIN\"></a></p>\n",
               "type": "module",
               "displayName": "ERR_HTTP2_INVALID_INFO_STATUS"
+            },
+            {
+              "textRaw": "ERR_HTTP2_INVALID_ORIGIN",
+              "name": "err_http2_invalid_origin",
+              "desc": "<p>HTTP/2 <code>ORIGIN</code> frames require a valid origin.</p>\n<p><a id=\"ERR_HTTP2_INVALID_PACKED_SETTINGS_LENGTH\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_HTTP2_INVALID_ORIGIN"
             },
             {
               "textRaw": "ERR_HTTP2_INVALID_PACKED_SETTINGS_LENGTH",
@@ -449,16 +456,30 @@
             {
               "textRaw": "ERR_HTTP2_MAX_PENDING_SETTINGS_ACK",
               "name": "err_http2_max_pending_settings_ack",
-              "desc": "<p>Whenever an HTTP/2 <code>SETTINGS</code> frame is sent to a connected peer, the peer is\nrequired to send an acknowledgment that it has received and applied the new\n<code>SETTINGS</code>. By default, a maximum number of unacknowledged <code>SETTINGS</code> frames may\nbe sent at any given time. This error code is used when that limit has been\nreached.</p>\n<p><a id=\"ERR_HTTP2_NO_SOCKET_MANIPULATION\"></a></p>\n",
+              "desc": "<p>Whenever an HTTP/2 <code>SETTINGS</code> frame is sent to a connected peer, the peer is\nrequired to send an acknowledgment that it has received and applied the new\n<code>SETTINGS</code>. By default, a maximum number of unacknowledged <code>SETTINGS</code> frames may\nbe sent at any given time. This error code is used when that limit has been\nreached.</p>\n<p><a id=\"ERR_HTTP2_NESTED_PUSH\"></a></p>\n",
               "type": "module",
               "displayName": "ERR_HTTP2_MAX_PENDING_SETTINGS_ACK"
             },
             {
+              "textRaw": "ERR_HTTP2_NESTED_PUSH",
+              "name": "err_http2_nested_push",
+              "desc": "<p>An attempt was made to initiate a new push stream from within a push stream.\nNested push streams are not permitted.</p>\n<p><a id=\"ERR_HTTP2_NO_SOCKET_MANIPULATION\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_HTTP2_NESTED_PUSH"
+            },
+            {
               "textRaw": "ERR_HTTP2_NO_SOCKET_MANIPULATION",
               "name": "err_http2_no_socket_manipulation",
-              "desc": "<p>An attempt was made to directly manipulate (read, write, pause, resume, etc.) a\nsocket attached to an <code>Http2Session</code>.</p>\n<p><a id=\"ERR_HTTP2_OUT_OF_STREAMS\"></a></p>\n",
+              "desc": "<p>An attempt was made to directly manipulate (read, write, pause, resume, etc.) a\nsocket attached to an <code>Http2Session</code>.</p>\n<p><a id=\"ERR_HTTP2_ORIGIN_LENGTH\"></a></p>\n",
               "type": "module",
               "displayName": "ERR_HTTP2_NO_SOCKET_MANIPULATION"
+            },
+            {
+              "textRaw": "ERR_HTTP2_ORIGIN_LENGTH",
+              "name": "err_http2_origin_length",
+              "desc": "<p>HTTP/2 <code>ORIGIN</code> frames are limited to a length of 16382 bytes.</p>\n<p><a id=\"ERR_HTTP2_OUT_OF_STREAMS\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_HTTP2_ORIGIN_LENGTH"
             },
             {
               "textRaw": "ERR_HTTP2_OUT_OF_STREAMS",
@@ -512,16 +533,30 @@
             {
               "textRaw": "ERR_HTTP2_SESSION_ERROR",
               "name": "err_http2_session_error",
-              "desc": "<p>The <code>Http2Session</code> closed with a non-zero error code.</p>\n<p><a id=\"ERR_HTTP2_SOCKET_BOUND\"></a></p>\n",
+              "desc": "<p>The <code>Http2Session</code> closed with a non-zero error code.</p>\n<p><a id=\"ERR_HTTP2_SETTINGS_CANCEL\"></a></p>\n",
               "type": "module",
               "displayName": "ERR_HTTP2_SESSION_ERROR"
             },
             {
+              "textRaw": "ERR_HTTP2_SETTINGS_CANCEL",
+              "name": "err_http2_settings_cancel",
+              "desc": "<p>The <code>Http2Session</code> settings canceled.</p>\n<p><a id=\"ERR_HTTP2_SOCKET_BOUND\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_HTTP2_SETTINGS_CANCEL"
+            },
+            {
               "textRaw": "ERR_HTTP2_SOCKET_BOUND",
               "name": "err_http2_socket_bound",
-              "desc": "<p>An attempt was made to connect a <code>Http2Session</code> object to a <code>net.Socket</code> or\n<code>tls.TLSSocket</code> that had already been bound to another <code>Http2Session</code> object.</p>\n<p><a id=\"ERR_HTTP2_STATUS_101\"></a></p>\n",
+              "desc": "<p>An attempt was made to connect a <code>Http2Session</code> object to a <code>net.Socket</code> or\n<code>tls.TLSSocket</code> that had already been bound to another <code>Http2Session</code> object.</p>\n<p><a id=\"ERR_HTTP2_SOCKET_UNBOUND\"></a></p>\n",
               "type": "module",
               "displayName": "ERR_HTTP2_SOCKET_BOUND"
+            },
+            {
+              "textRaw": "ERR_HTTP2_SOCKET_UNBOUND",
+              "name": "err_http2_socket_unbound",
+              "desc": "<p>An attempt was made to use the <code>socket</code> property of an <code>Http2Session</code> that\nhas already been closed.</p>\n<p><a id=\"ERR_HTTP2_STATUS_101\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_HTTP2_SOCKET_UNBOUND"
             },
             {
               "textRaw": "ERR_HTTP2_STATUS_101",
@@ -554,9 +589,23 @@
             {
               "textRaw": "ERR_HTTP2_STREAM_SELF_DEPENDENCY",
               "name": "err_http2_stream_self_dependency",
-              "desc": "<p>When setting the priority for an HTTP/2 stream, the stream may be marked as\na dependency for a parent stream. This error code is used when an attempt is\nmade to mark a stream and dependent of itself.</p>\n<p><a id=\"ERR_HTTP2_UNSUPPORTED_PROTOCOL\"></a></p>\n",
+              "desc": "<p>When setting the priority for an HTTP/2 stream, the stream may be marked as\na dependency for a parent stream. This error code is used when an attempt is\nmade to mark a stream and dependent of itself.</p>\n<p><a id=\"ERR_HTTP2_TRAILERS_ALREADY_SENT\"></a></p>\n",
               "type": "module",
               "displayName": "ERR_HTTP2_STREAM_SELF_DEPENDENCY"
+            },
+            {
+              "textRaw": "ERR_HTTP2_TRAILERS_ALREADY_SENT",
+              "name": "err_http2_trailers_already_sent",
+              "desc": "<p>Trailing headers have already been sent on the <code>Http2Stream</code>.</p>\n<p><a id=\"ERR_HTTP2_TRAILERS_NOT_READY\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_HTTP2_TRAILERS_ALREADY_SENT"
+            },
+            {
+              "textRaw": "ERR_HTTP2_TRAILERS_NOT_READY",
+              "name": "err_http2_trailers_not_ready",
+              "desc": "<p>The <code>http2stream.sendTrailers()</code> method cannot be called until after the\n<code>&#39;wantTrailers&#39;</code> event is emitted on an <code>Http2Stream</code> object. The\n<code>&#39;wantTrailers&#39;</code> event will only be emitted if the <code>waitForTrailers</code> option\nis set for the <code>Http2Stream</code>.</p>\n<p><a id=\"ERR_HTTP2_UNSUPPORTED_PROTOCOL\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_HTTP2_TRAILERS_NOT_READY"
             },
             {
               "textRaw": "ERR_HTTP2_UNSUPPORTED_PROTOCOL",

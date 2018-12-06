@@ -7,18 +7,19 @@
 
 #include <stdarg.h>
 
-#include "src/allocation.h"
 #include "src/base/compiler-specific.h"
 #include "src/base/hashmap.h"
 
 namespace v8 {
 namespace internal {
 
+class Name;
+
 // Provides a storage of strings allocated in C++ heap, to hold them
 // forever, even if they disappear from JS heap or external storage.
 class StringsStorage {
  public:
-  explicit StringsStorage(Heap* heap);
+  StringsStorage();
   ~StringsStorage();
 
   const char* GetCopy(const char* src);
@@ -27,6 +28,7 @@ class StringsStorage {
   const char* GetVFormatted(const char* format, va_list args);
   const char* GetName(Name* name);
   const char* GetName(int index);
+  const char* GetConsName(const char* prefix, Name* name);
   const char* GetFunctionName(Name* name);
   const char* GetFunctionName(const char* name);
 
@@ -37,7 +39,6 @@ class StringsStorage {
   const char* AddOrDisposeString(char* str, int len);
   base::CustomMatcherHashMap::Entry* GetEntry(const char* str, int len);
 
-  uint32_t hash_seed_;
   base::CustomMatcherHashMap names_;
 
   DISALLOW_COPY_AND_ASSIGN(StringsStorage);

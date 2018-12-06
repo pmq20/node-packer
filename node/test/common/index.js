@@ -47,7 +47,8 @@ exports.isSunOS = process.platform === 'sunos';
 exports.isFreeBSD = process.platform === 'freebsd';
 exports.isOpenBSD = process.platform === 'openbsd';
 exports.isLinux = process.platform === 'linux';
-exports.isOSX = process.platform === 'darwin';
+const isOSX = exports.isOSX = process.platform === 'darwin';
+exports.isOSXMojave = isOSX && (os.release().startsWith('18'));
 
 exports.enoughTestMem = os.totalmem() > 0x70000000; /* 1.75 Gb */
 const cpus = os.cpus();
@@ -691,6 +692,11 @@ exports.expectsError = function expectsError(fn, settings, exact) {
     fn = undefined;
   }
   function innerFn(error) {
+    if (arguments.length !== 1) {
+      // Do not use `assert.strictEqual()` to prevent `util.inspect` from
+      // always being called.
+      assert.fail(`Expected one argument, got ${util.inspect(arguments)}`);
+    }
     assert.strictEqual(error.code, settings.code);
     const descriptor = Object.getOwnPropertyDescriptor(error, 'message');
     assert.strictEqual(descriptor.enumerable,

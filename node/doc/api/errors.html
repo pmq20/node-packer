@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Errors | Node.js v8.12.0 Documentation</title>
+  <title>Errors | Node.js v8.14.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -82,7 +82,7 @@
 
     <div id="column1" data-id="errors" class="interior">
       <header>
-        <h1>Node.js v8.12.0 Documentation</h1>
+        <h1>Node.js v8.14.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -174,13 +174,16 @@
 <li><span class="stability_undefined"><a href="#errors_err_http2_invalid_connection_headers">ERR_HTTP2_INVALID_CONNECTION_HEADERS</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_invalid_header_value">ERR_HTTP2_INVALID_HEADER_VALUE</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_invalid_info_status">ERR_HTTP2_INVALID_INFO_STATUS</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_invalid_origin">ERR_HTTP2_INVALID_ORIGIN</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_invalid_packed_settings_length">ERR_HTTP2_INVALID_PACKED_SETTINGS_LENGTH</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_invalid_pseudoheader">ERR_HTTP2_INVALID_PSEUDOHEADER</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_invalid_session">ERR_HTTP2_INVALID_SESSION</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_invalid_setting_value">ERR_HTTP2_INVALID_SETTING_VALUE</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_invalid_stream">ERR_HTTP2_INVALID_STREAM</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_max_pending_settings_ack">ERR_HTTP2_MAX_PENDING_SETTINGS_ACK</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_nested_push">ERR_HTTP2_NESTED_PUSH</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_no_socket_manipulation">ERR_HTTP2_NO_SOCKET_MANIPULATION</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_origin_length">ERR_HTTP2_ORIGIN_LENGTH</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_out_of_streams">ERR_HTTP2_OUT_OF_STREAMS</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_payload_forbidden">ERR_HTTP2_PAYLOAD_FORBIDDEN</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_ping_cancel">ERR_HTTP2_PING_CANCEL</a></span></li>
@@ -189,12 +192,16 @@
 <li><span class="stability_undefined"><a href="#errors_err_http2_push_disabled">ERR_HTTP2_PUSH_DISABLED</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_send_file">ERR_HTTP2_SEND_FILE</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_session_error">ERR_HTTP2_SESSION_ERROR</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_settings_cancel">ERR_HTTP2_SETTINGS_CANCEL</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_socket_bound">ERR_HTTP2_SOCKET_BOUND</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_socket_unbound">ERR_HTTP2_SOCKET_UNBOUND</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_status_101">ERR_HTTP2_STATUS_101</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_status_invalid">ERR_HTTP2_STATUS_INVALID</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_stream_cancel">ERR_HTTP2_STREAM_CANCEL</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_stream_error">ERR_HTTP2_STREAM_ERROR</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_stream_self_dependency">ERR_HTTP2_STREAM_SELF_DEPENDENCY</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_trailers_already_sent">ERR_HTTP2_TRAILERS_ALREADY_SENT</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_trailers_not_ready">ERR_HTTP2_TRAILERS_NOT_READY</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_http2_unsupported_protocol">ERR_HTTP2_UNSUPPORTED_PROTOCOL</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_index_out_of_range">ERR_INDEX_OUT_OF_RANGE</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_invalid_arg_type">ERR_INVALID_ARG_TYPE</a></span></li>
@@ -839,6 +846,9 @@ requests and responses.</p>
 <h3>ERR_HTTP2_INVALID_INFO_STATUS<span><a class="mark" href="#errors_err_http2_invalid_info_status" id="errors_err_http2_invalid_info_status">#</a></span><span><a class="mark" href="#ERR_HTTP2_INVALID_INFO_STATUS" id="ERR_HTTP2_INVALID_INFO_STATUS">#</a></span></h3>
 <p>An invalid HTTP informational status code has been specified. Informational
 status codes must be an integer between <code>100</code> and <code>199</code> (inclusive).</p>
+<p><a id="ERR_HTTP2_INVALID_ORIGIN"></a></p>
+<h3>ERR_HTTP2_INVALID_ORIGIN<span><a class="mark" href="#errors_err_http2_invalid_origin" id="errors_err_http2_invalid_origin">#</a></span><span><a class="mark" href="#ERR_HTTP2_INVALID_ORIGIN" id="ERR_HTTP2_INVALID_ORIGIN">#</a></span></h3>
+<p>HTTP/2 <code>ORIGIN</code> frames require a valid origin.</p>
 <p><a id="ERR_HTTP2_INVALID_PACKED_SETTINGS_LENGTH"></a></p>
 <h3>ERR_HTTP2_INVALID_PACKED_SETTINGS_LENGTH<span><a class="mark" href="#errors_err_http2_invalid_packed_settings_length" id="errors_err_http2_invalid_packed_settings_length">#</a></span><span><a class="mark" href="#ERR_HTTP2_INVALID_PACKED_SETTINGS_LENGTH" id="ERR_HTTP2_INVALID_PACKED_SETTINGS_LENGTH">#</a></span></h3>
 <p>Input <code>Buffer</code> and <code>Uint8Array</code> instances passed to the
@@ -865,10 +875,17 @@ required to send an acknowledgment that it has received and applied the new
 <code>SETTINGS</code>. By default, a maximum number of unacknowledged <code>SETTINGS</code> frames may
 be sent at any given time. This error code is used when that limit has been
 reached.</p>
+<p><a id="ERR_HTTP2_NESTED_PUSH"></a></p>
+<h3>ERR_HTTP2_NESTED_PUSH<span><a class="mark" href="#errors_err_http2_nested_push" id="errors_err_http2_nested_push">#</a></span><span><a class="mark" href="#ERR_HTTP2_NESTED_PUSH" id="ERR_HTTP2_NESTED_PUSH">#</a></span></h3>
+<p>An attempt was made to initiate a new push stream from within a push stream.
+Nested push streams are not permitted.</p>
 <p><a id="ERR_HTTP2_NO_SOCKET_MANIPULATION"></a></p>
 <h3>ERR_HTTP2_NO_SOCKET_MANIPULATION<span><a class="mark" href="#errors_err_http2_no_socket_manipulation" id="errors_err_http2_no_socket_manipulation">#</a></span><span><a class="mark" href="#ERR_HTTP2_NO_SOCKET_MANIPULATION" id="ERR_HTTP2_NO_SOCKET_MANIPULATION">#</a></span></h3>
 <p>An attempt was made to directly manipulate (read, write, pause, resume, etc.) a
 socket attached to an <code>Http2Session</code>.</p>
+<p><a id="ERR_HTTP2_ORIGIN_LENGTH"></a></p>
+<h3>ERR_HTTP2_ORIGIN_LENGTH<span><a class="mark" href="#errors_err_http2_origin_length" id="errors_err_http2_origin_length">#</a></span><span><a class="mark" href="#ERR_HTTP2_ORIGIN_LENGTH" id="ERR_HTTP2_ORIGIN_LENGTH">#</a></span></h3>
+<p>HTTP/2 <code>ORIGIN</code> frames are limited to a length of 16382 bytes.</p>
 <p><a id="ERR_HTTP2_OUT_OF_STREAMS"></a></p>
 <h3>ERR_HTTP2_OUT_OF_STREAMS<span><a class="mark" href="#errors_err_http2_out_of_streams" id="errors_err_http2_out_of_streams">#</a></span><span><a class="mark" href="#ERR_HTTP2_OUT_OF_STREAMS" id="ERR_HTTP2_OUT_OF_STREAMS">#</a></span></h3>
 <p>The number of streams created on a single HTTP/2 session reached the maximum
@@ -898,10 +915,17 @@ send something other than a regular file.</p>
 <p><a id="ERR_HTTP2_SESSION_ERROR"></a></p>
 <h3>ERR_HTTP2_SESSION_ERROR<span><a class="mark" href="#errors_err_http2_session_error" id="errors_err_http2_session_error">#</a></span><span><a class="mark" href="#ERR_HTTP2_SESSION_ERROR" id="ERR_HTTP2_SESSION_ERROR">#</a></span></h3>
 <p>The <code>Http2Session</code> closed with a non-zero error code.</p>
+<p><a id="ERR_HTTP2_SETTINGS_CANCEL"></a></p>
+<h3>ERR_HTTP2_SETTINGS_CANCEL<span><a class="mark" href="#errors_err_http2_settings_cancel" id="errors_err_http2_settings_cancel">#</a></span><span><a class="mark" href="#ERR_HTTP2_SETTINGS_CANCEL" id="ERR_HTTP2_SETTINGS_CANCEL">#</a></span></h3>
+<p>The <code>Http2Session</code> settings canceled.</p>
 <p><a id="ERR_HTTP2_SOCKET_BOUND"></a></p>
 <h3>ERR_HTTP2_SOCKET_BOUND<span><a class="mark" href="#errors_err_http2_socket_bound" id="errors_err_http2_socket_bound">#</a></span><span><a class="mark" href="#ERR_HTTP2_SOCKET_BOUND" id="ERR_HTTP2_SOCKET_BOUND">#</a></span></h3>
 <p>An attempt was made to connect a <code>Http2Session</code> object to a <code>net.Socket</code> or
 <code>tls.TLSSocket</code> that had already been bound to another <code>Http2Session</code> object.</p>
+<p><a id="ERR_HTTP2_SOCKET_UNBOUND"></a></p>
+<h3>ERR_HTTP2_SOCKET_UNBOUND<span><a class="mark" href="#errors_err_http2_socket_unbound" id="errors_err_http2_socket_unbound">#</a></span><span><a class="mark" href="#ERR_HTTP2_SOCKET_UNBOUND" id="ERR_HTTP2_SOCKET_UNBOUND">#</a></span></h3>
+<p>An attempt was made to use the <code>socket</code> property of an <code>Http2Session</code> that
+has already been closed.</p>
 <p><a id="ERR_HTTP2_STATUS_101"></a></p>
 <h3>ERR_HTTP2_STATUS_101<span><a class="mark" href="#errors_err_http2_status_101" id="errors_err_http2_status_101">#</a></span><span><a class="mark" href="#ERR_HTTP2_STATUS_101" id="ERR_HTTP2_STATUS_101">#</a></span></h3>
 <p>Use of the <code>101</code> Informational status code is forbidden in HTTP/2.</p>
@@ -921,6 +945,15 @@ peer.</p>
 <p>When setting the priority for an HTTP/2 stream, the stream may be marked as
 a dependency for a parent stream. This error code is used when an attempt is
 made to mark a stream and dependent of itself.</p>
+<p><a id="ERR_HTTP2_TRAILERS_ALREADY_SENT"></a></p>
+<h3>ERR_HTTP2_TRAILERS_ALREADY_SENT<span><a class="mark" href="#errors_err_http2_trailers_already_sent" id="errors_err_http2_trailers_already_sent">#</a></span><span><a class="mark" href="#ERR_HTTP2_TRAILERS_ALREADY_SENT" id="ERR_HTTP2_TRAILERS_ALREADY_SENT">#</a></span></h3>
+<p>Trailing headers have already been sent on the <code>Http2Stream</code>.</p>
+<p><a id="ERR_HTTP2_TRAILERS_NOT_READY"></a></p>
+<h3>ERR_HTTP2_TRAILERS_NOT_READY<span><a class="mark" href="#errors_err_http2_trailers_not_ready" id="errors_err_http2_trailers_not_ready">#</a></span><span><a class="mark" href="#ERR_HTTP2_TRAILERS_NOT_READY" id="ERR_HTTP2_TRAILERS_NOT_READY">#</a></span></h3>
+<p>The <code>http2stream.sendTrailers()</code> method cannot be called until after the
+<code>&#39;wantTrailers&#39;</code> event is emitted on an <code>Http2Stream</code> object. The
+<code>&#39;wantTrailers&#39;</code> event will only be emitted if the <code>waitForTrailers</code> option
+is set for the <code>Http2Stream</code>.</p>
 <p><a id="ERR_HTTP2_UNSUPPORTED_PROTOCOL"></a></p>
 <h3>ERR_HTTP2_UNSUPPORTED_PROTOCOL<span><a class="mark" href="#errors_err_http2_unsupported_protocol" id="errors_err_http2_unsupported_protocol">#</a></span><span><a class="mark" href="#ERR_HTTP2_UNSUPPORTED_PROTOCOL" id="ERR_HTTP2_UNSUPPORTED_PROTOCOL">#</a></span></h3>
 <p><code>http2.connect()</code> was passed a URL that uses any protocol other than <code>http:</code> or

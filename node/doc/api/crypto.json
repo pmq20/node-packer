@@ -21,7 +21,7 @@
           "name": "`crypto`_module_methods_and_properties",
           "properties": [
             {
-              "textRaw": "crypto.constants",
+              "textRaw": "`constants` Returns: {Object} An object containing commonly used constants for crypto and security related operations. The specific constants currently defined are described in [Crypto Constants][]. ",
               "name": "constants",
               "meta": {
                 "added": [
@@ -29,7 +29,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Returns an object containing commonly used constants for crypto and security\nrelated operations. The specific constants currently defined are described in\n<a href=\"#crypto_crypto_constants_1\">Crypto Constants</a>.</p>\n"
+              "desc": "Returns: {Object} An object containing commonly used constants for crypto and security related operations. The specific constants currently defined are described in [Crypto Constants][]."
             },
             {
               "textRaw": "crypto.DEFAULT_ENCODING",
@@ -67,6 +67,11 @@
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {Cipher} ",
+                    "name": "return",
+                    "type": "Cipher"
+                  },
                   "params": [
                     {
                       "textRaw": "`algorithm` {string} ",
@@ -122,6 +127,11 @@
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {Cipher} ",
+                    "name": "return",
+                    "type": "Cipher"
+                  },
                   "params": [
                     {
                       "textRaw": "`algorithm` {string} ",
@@ -215,6 +225,11 @@
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {Decipher} ",
+                    "name": "return",
+                    "type": "Decipher"
+                  },
                   "params": [
                     {
                       "textRaw": "`algorithm` {string} ",
@@ -270,6 +285,11 @@
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {Decipher} ",
+                    "name": "return",
+                    "type": "Decipher"
+                  },
                   "params": [
                     {
                       "textRaw": "`algorithm` {string} ",
@@ -475,6 +495,11 @@
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {Hash} ",
+                    "name": "return",
+                    "type": "Hash"
+                  },
                   "params": [
                     {
                       "textRaw": "`algorithm` {string} ",
@@ -516,6 +541,11 @@
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {Hmac} ",
+                    "name": "return",
+                    "type": "Hmac"
+                  },
                   "params": [
                     {
                       "textRaw": "`algorithm` {string} ",
@@ -565,6 +595,11 @@
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {Sign} ",
+                    "name": "return",
+                    "type": "Sign"
+                  },
                   "params": [
                     {
                       "textRaw": "`algorithm` {string} ",
@@ -606,6 +641,11 @@
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {Verify} ",
+                    "name": "return",
+                    "type": "Verify"
+                  },
                   "params": [
                     {
                       "textRaw": "`algorithm` {string} ",
@@ -645,12 +685,21 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Returns an array with the names of the supported cipher algorithms.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const ciphers = crypto.getCiphers();\nconsole.log(ciphers); // [&#39;aes-128-cbc&#39;, &#39;aes-128-ccm&#39;, ...]\n</code></pre>\n",
               "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {string[]} An array with the names of the supported cipher algorithms. ",
+                    "name": "return",
+                    "type": "string[]",
+                    "desc": "An array with the names of the supported cipher algorithms."
+                  },
+                  "params": []
+                },
                 {
                   "params": []
                 }
-              ]
+              ],
+              "desc": "<p>Example:</p>\n<pre><code class=\"lang-js\">const ciphers = crypto.getCiphers();\nconsole.log(ciphers); // [&#39;aes-128-cbc&#39;, &#39;aes-128-ccm&#39;, ...]\n</code></pre>\n"
             },
             {
               "textRaw": "crypto.getCurves()",
@@ -662,12 +711,21 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Returns an array with the names of the supported elliptic curves.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const curves = crypto.getCurves();\nconsole.log(curves); // [&#39;Oakley-EC2N-3&#39;, &#39;Oakley-EC2N-4&#39;, ...]\n</code></pre>\n",
               "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {string[]} An array with the names of the supported elliptic curves. ",
+                    "name": "return",
+                    "type": "string[]",
+                    "desc": "An array with the names of the supported elliptic curves."
+                  },
+                  "params": []
+                },
                 {
                   "params": []
                 }
-              ]
+              ],
+              "desc": "<p>Example:</p>\n<pre><code class=\"lang-js\">const curves = crypto.getCurves();\nconsole.log(curves); // [&#39;Oakley-EC2N-3&#39;, &#39;Oakley-EC2N-4&#39;, ...]\n</code></pre>\n"
             },
             {
               "textRaw": "crypto.getDiffieHellman(groupName)",
@@ -681,6 +739,11 @@
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {Object} ",
+                    "name": "return",
+                    "type": "Object"
+                  },
                   "params": [
                     {
                       "textRaw": "`groupName` {string} ",
@@ -709,12 +772,21 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Returns an array of the names of the supported hash algorithms,\nsuch as <code>RSA-SHA256</code>.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const hashes = crypto.getHashes();\nconsole.log(hashes); // [&#39;DSA&#39;, &#39;DSA-SHA&#39;, &#39;DSA-SHA1&#39;, ...]\n</code></pre>\n",
               "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {string[]} An array of the names of the supported hash algorithms, such as `'RSA-SHA256'`. ",
+                    "name": "return",
+                    "type": "string[]",
+                    "desc": "An array of the names of the supported hash algorithms, such as `'RSA-SHA256'`."
+                  },
+                  "params": []
+                },
                 {
                   "params": []
                 }
-              ]
+              ],
+              "desc": "<p>Example:</p>\n<pre><code class=\"lang-js\">const hashes = crypto.getHashes();\nconsole.log(hashes); // [&#39;DSA&#39;, &#39;DSA-SHA&#39;, &#39;DSA-SHA1&#39;, ...]\n</code></pre>\n"
             },
             {
               "textRaw": "crypto.pbkdf2(password, salt, iterations, keylen, digest, callback)",
@@ -837,6 +909,11 @@
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {Buffer} ",
+                    "name": "return",
+                    "type": "Buffer"
+                  },
                   "params": [
                     {
                       "textRaw": "`password` {string} ",
@@ -1155,6 +1232,12 @@
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {Buffer} if the `callback` function is not provided. ",
+                    "name": "return",
+                    "type": "Buffer",
+                    "desc": "if the `callback` function is not provided."
+                  },
                   "params": [
                     {
                       "textRaw": "`size` {number} ",
@@ -1207,6 +1290,11 @@
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {Buffer} ",
+                    "name": "return",
+                    "type": "Buffer"
+                  },
                   "params": [
                     {
                       "textRaw": "`buffer` {Buffer|Uint8Array} Must be supplied. ",
@@ -1246,7 +1334,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Synchronous version of <a href=\"#crypto_crypto_randomfill_buffer_offset_size_callback\"><code>crypto.randomFill()</code></a>.</p>\n<p>Returns <code>buffer</code></p>\n<pre><code class=\"lang-js\">const buf = Buffer.alloc(10);\nconsole.log(crypto.randomFillSync(buf).toString(&#39;hex&#39;));\n\ncrypto.randomFillSync(buf, 5);\nconsole.log(buf.toString(&#39;hex&#39;));\n\n// The above is equivalent to the following:\ncrypto.randomFillSync(buf, 5, 5);\nconsole.log(buf.toString(&#39;hex&#39;));\n</code></pre>\n"
+              "desc": "<p>Synchronous version of <a href=\"#crypto_crypto_randomfill_buffer_offset_size_callback\"><code>crypto.randomFill()</code></a>.</p>\n<pre><code class=\"lang-js\">const buf = Buffer.alloc(10);\nconsole.log(crypto.randomFillSync(buf).toString(&#39;hex&#39;));\n\ncrypto.randomFillSync(buf, 5);\nconsole.log(buf.toString(&#39;hex&#39;));\n\n// The above is equivalent to the following:\ncrypto.randomFillSync(buf, 5, 5);\nconsole.log(buf.toString(&#39;hex&#39;));\n</code></pre>\n"
             },
             {
               "textRaw": "crypto.randomFill(buffer[, offset][, size], callback)",
@@ -1363,6 +1451,11 @@
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {boolean} ",
+                    "name": "return",
+                    "type": "boolean"
+                  },
                   "params": [
                     {
                       "textRaw": "`a` {Buffer | TypedArray | DataView} ",
@@ -1497,7 +1590,7 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns {Buffer} The challenge component of the `spkac` data structure, which includes a public key and a challenge. ",
+                    "textRaw": "Returns: {Buffer} The challenge component of the `spkac` data structure, which includes a public key and a challenge. ",
                     "name": "return",
                     "type": "Buffer",
                     "desc": "The challenge component of the `spkac` data structure, which includes a public key and a challenge."
@@ -1533,7 +1626,7 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns {Buffer} The public key component of the `spkac` data structure, which includes a public key and a challenge. ",
+                    "textRaw": "Returns: {Buffer} The public key component of the `spkac` data structure, which includes a public key and a challenge. ",
                     "name": "return",
                     "type": "Buffer",
                     "desc": "The public key component of the `spkac` data structure, which includes a public key and a challenge."
@@ -1569,7 +1662,7 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns {boolean} `true` if the given `spkac` data structure is valid, `false` otherwise. ",
+                    "textRaw": "Returns: {boolean} `true` if the given `spkac` data structure is valid, `false` otherwise. ",
                     "name": "return",
                     "type": "boolean",
                     "desc": "`true` if the given `spkac` data structure is valid, `false` otherwise."
@@ -1618,6 +1711,12 @@
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {Buffer | string} Any remaining enciphered contents. If `outputEncoding` parameter is one of `'latin1'`, `'base64'` or `'hex'`, a string is returned. If an `outputEncoding` is not provided, a [`Buffer`][] is returned. ",
+                    "name": "return",
+                    "type": "Buffer | string",
+                    "desc": "Any remaining enciphered contents. If `outputEncoding` parameter is one of `'latin1'`, `'base64'` or `'hex'`, a string is returned. If an `outputEncoding` is not provided, a [`Buffer`][] is returned."
+                  },
                   "params": [
                     {
                       "textRaw": "`outputEncoding` {string} ",
@@ -1636,7 +1735,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Returns any remaining enciphered contents. If <code>outputEncoding</code>\nparameter is one of <code>&#39;latin1&#39;</code>, <code>&#39;base64&#39;</code> or <code>&#39;hex&#39;</code>, a string is returned.\nIf an <code>outputEncoding</code> is not provided, a <a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>\n<p>Once the <code>cipher.final()</code> method has been called, the <code>Cipher</code> object can no\nlonger be used to encrypt data. Attempts to call <code>cipher.final()</code> more than\nonce will result in an error being thrown.</p>\n"
+              "desc": "<p>Once the <code>cipher.final()</code> method has been called, the <code>Cipher</code> object can no\nlonger be used to encrypt data. Attempts to call <code>cipher.final()</code> more than\nonce will result in an error being thrown.</p>\n"
             },
             {
               "textRaw": "cipher.setAAD(buffer)",
@@ -1683,12 +1782,21 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>When using an authenticated encryption mode (only <code>GCM</code> is currently\nsupported), the <code>cipher.getAuthTag()</code> method returns a <a href=\"buffer.html\"><code>Buffer</code></a> containing\nthe <em>authentication tag</em> that has been computed from the given data.</p>\n<p>The <code>cipher.getAuthTag()</code> method should only be called after encryption has\nbeen completed using the <a href=\"#crypto_cipher_final_outputencoding\"><code>cipher.final()</code></a> method.</p>\n",
               "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {Buffer} When using an authenticated encryption mode (only `GCM` is currently supported), the `cipher.getAuthTag()` method returns a [`Buffer`][] containing the _authentication tag_ that has been computed from the given data. ",
+                    "name": "return",
+                    "type": "Buffer",
+                    "desc": "When using an authenticated encryption mode (only `GCM` is currently supported), the `cipher.getAuthTag()` method returns a [`Buffer`][] containing the _authentication tag_ that has been computed from the given data."
+                  },
+                  "params": []
+                },
                 {
                   "params": []
                 }
-              ]
+              ],
+              "desc": "<p>The <code>cipher.getAuthTag()</code> method should only be called after encryption has\nbeen completed using the <a href=\"#crypto_cipher_final_outputencoding\"><code>cipher.final()</code></a> method.</p>\n"
             },
             {
               "textRaw": "cipher.setAutoPadding([autoPadding])",
@@ -1703,9 +1811,10 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns the {Cipher} for method chaining. ",
+                    "textRaw": "Returns: {Cipher} for method chaining. ",
                     "name": "return",
-                    "desc": "the {Cipher} for method chaining."
+                    "type": "Cipher",
+                    "desc": "for method chaining."
                   },
                   "params": [
                     {
@@ -1746,6 +1855,11 @@
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {Buffer | string} ",
+                    "name": "return",
+                    "type": "Buffer | string"
+                  },
                   "params": [
                     {
                       "textRaw": "`data` {string | Buffer | TypedArray | DataView} ",
@@ -1810,6 +1924,12 @@
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {Buffer | string} Any remaining deciphered contents. If `outputEncoding` parameter is one of `'latin1'`, `'ascii'` or `'utf8'`, a string is returned. If an `outputEncoding` is not provided, a [`Buffer`][] is returned. ",
+                    "name": "return",
+                    "type": "Buffer | string",
+                    "desc": "Any remaining deciphered contents. If `outputEncoding` parameter is one of `'latin1'`, `'ascii'` or `'utf8'`, a string is returned. If an `outputEncoding` is not provided, a [`Buffer`][] is returned."
+                  },
                   "params": [
                     {
                       "textRaw": "`outputEncoding` {string} ",
@@ -1828,7 +1948,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Returns any remaining deciphered contents. If <code>outputEncoding</code>\nparameter is one of <code>&#39;latin1&#39;</code>, <code>&#39;ascii&#39;</code> or <code>&#39;utf8&#39;</code>, a string is returned.\nIf an <code>outputEncoding</code> is not provided, a <a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>\n<p>Once the <code>decipher.final()</code> method has been called, the <code>Decipher</code> object can\nno longer be used to decrypt data. Attempts to call <code>decipher.final()</code> more\nthan once will result in an error being thrown.</p>\n"
+              "desc": "<p>Once the <code>decipher.final()</code> method has been called, the <code>Decipher</code> object can\nno longer be used to decrypt data. Attempts to call <code>decipher.final()</code> more\nthan once will result in an error being thrown.</p>\n"
             },
             {
               "textRaw": "decipher.setAAD(buffer)",
@@ -1849,9 +1969,10 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns the {Cipher} for method chaining. ",
+                    "textRaw": "Returns: {Cipher} for method chaining. ",
                     "name": "return",
-                    "desc": "the {Cipher} for method chaining."
+                    "type": "Cipher",
+                    "desc": "for method chaining."
                   },
                   "params": [
                     {
@@ -1890,9 +2011,10 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns the {Cipher} for method chaining. ",
+                    "textRaw": "Returns: {Cipher} for method chaining. ",
                     "name": "return",
-                    "desc": "the {Cipher} for method chaining."
+                    "type": "Cipher",
+                    "desc": "for method chaining."
                   },
                   "params": [
                     {
@@ -1925,9 +2047,10 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns the {Cipher} for method chaining. ",
+                    "textRaw": "Returns: {Cipher} for method chaining. ",
                     "name": "return",
-                    "desc": "the {Cipher} for method chaining."
+                    "type": "Cipher",
+                    "desc": "for method chaining."
                   },
                   "params": [
                     {
@@ -1968,6 +2091,11 @@
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {Buffer | string} ",
+                    "name": "return",
+                    "type": "Buffer | string"
+                  },
                   "params": [
                     {
                       "textRaw": "`data` {string | Buffer | TypedArray | DataView} ",
@@ -2032,6 +2160,11 @@
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {Buffer | string} ",
+                    "name": "return",
+                    "type": "Buffer | string"
+                  },
                   "params": [
                     {
                       "textRaw": "`otherPublicKey` {string | Buffer | TypedArray | DataView} ",
@@ -2082,6 +2215,11 @@
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {Buffer | string} ",
+                    "name": "return",
+                    "type": "Buffer | string"
+                  },
                   "params": [
                     {
                       "textRaw": "`encoding` {string} ",
@@ -2114,6 +2252,11 @@
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {Buffer | string} ",
+                    "name": "return",
+                    "type": "Buffer | string"
+                  },
                   "params": [
                     {
                       "textRaw": "`encoding` {string} ",
@@ -2146,6 +2289,11 @@
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {Buffer | string} ",
+                    "name": "return",
+                    "type": "Buffer | string"
+                  },
                   "params": [
                     {
                       "textRaw": "`encoding` {string} ",
@@ -2178,6 +2326,11 @@
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {Buffer | string} ",
+                    "name": "return",
+                    "type": "Buffer | string"
+                  },
                   "params": [
                     {
                       "textRaw": "`encoding` {string} ",
@@ -2210,6 +2363,11 @@
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {Buffer | string} ",
+                    "name": "return",
+                    "type": "Buffer | string"
+                  },
                   "params": [
                     {
                       "textRaw": "`encoding` {string} ",
@@ -2355,6 +2513,11 @@
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {Buffer | string} ",
+                    "name": "return",
+                    "type": "Buffer | string"
+                  },
                   "params": [
                     {
                       "textRaw": "`otherPublicKey` {string | Buffer | TypedArray | DataView} ",
@@ -2405,6 +2568,11 @@
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {Buffer | string} ",
+                    "name": "return",
+                    "type": "Buffer | string"
+                  },
                   "params": [
                     {
                       "textRaw": "`encoding` {string} ",
@@ -2448,6 +2616,12 @@
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {Buffer | string} The EC Diffie-Hellman private key in the specified `encoding`, which can be `'latin1'`, `'hex'`, or `'base64'`. If `encoding` is provided a string is returned; otherwise a [`Buffer`][] is returned. ",
+                    "name": "return",
+                    "type": "Buffer | string",
+                    "desc": "The EC Diffie-Hellman private key in the specified `encoding`, which can be `'latin1'`, `'hex'`, or `'base64'`. If `encoding` is provided a string is returned; otherwise a [`Buffer`][] is returned."
+                  },
                   "params": [
                     {
                       "textRaw": "`encoding` {string} ",
@@ -2466,7 +2640,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Returns the EC Diffie-Hellman private key in the specified <code>encoding</code>,\nwhich can be <code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code>, or <code>&#39;base64&#39;</code>. If <code>encoding</code> is provided\na string is returned; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>\n"
+              "desc": "<p>The <code>format</code> argument specifies point encoding and can be <code>&#39;compressed&#39;</code> or\n<code>&#39;uncompressed&#39;</code>. If <code>format</code> is not specified the point will be returned in\n<code>&#39;uncompressed&#39;</code> format.</p>\n<p>The <code>encoding</code> argument can be <code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code>, or <code>&#39;base64&#39;</code>. If\n<code>encoding</code> is specified, a string is returned; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a> is\nreturned.</p>\n"
             },
             {
               "textRaw": "ecdh.getPublicKey([encoding][, format])",
@@ -2480,6 +2654,12 @@
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {Buffer | string} The EC Diffie-Hellman public key in the specified `encoding` and `format`. ",
+                    "name": "return",
+                    "type": "Buffer | string",
+                    "desc": "The EC Diffie-Hellman public key in the specified `encoding` and `format`."
+                  },
                   "params": [
                     {
                       "textRaw": "`encoding` {string} ",
@@ -2509,7 +2689,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Returns the EC Diffie-Hellman public key in the specified <code>encoding</code> and\n<code>format</code>.</p>\n<p>The <code>format</code> argument specifies point encoding and can be <code>&#39;compressed&#39;</code> or\n<code>&#39;uncompressed&#39;</code>. If <code>format</code> is not specified the point will be returned in\n<code>&#39;uncompressed&#39;</code> format.</p>\n<p>The <code>encoding</code> argument can be <code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code>, or <code>&#39;base64&#39;</code>. If\n<code>encoding</code> is specified, a string is returned; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a> is\nreturned.</p>\n"
+              "desc": "<p>The <code>format</code> argument specifies point encoding and can be <code>&#39;compressed&#39;</code> or\n<code>&#39;uncompressed&#39;</code>. If <code>format</code> is not specified the point will be returned in\n<code>&#39;uncompressed&#39;</code> format.</p>\n<p>The <code>encoding</code> argument can be <code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code>, or <code>&#39;base64&#39;</code>. If\n<code>encoding</code> is specified, a string is returned; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a> is\nreturned.</p>\n"
             },
             {
               "textRaw": "ecdh.setPrivateKey(privateKey[, encoding])",
@@ -2622,6 +2802,11 @@
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {Buffer | string} ",
+                    "name": "return",
+                    "type": "Buffer | string"
+                  },
                   "params": [
                     {
                       "textRaw": "`encoding` {string} ",
@@ -2714,6 +2899,11 @@
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {Buffer | string} ",
+                    "name": "return",
+                    "type": "Buffer | string"
+                  },
                   "params": [
                     {
                       "textRaw": "`encoding` {string} ",
@@ -2812,6 +3002,11 @@
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {Buffer | string} ",
+                    "name": "return",
+                    "type": "Buffer | string"
+                  },
                   "params": [
                     {
                       "textRaw": "`privateKey` {string | Object} ",
@@ -2976,6 +3171,12 @@
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {boolean} `true` or `false` depending on the validity of the signature for the data and public key. ",
+                    "name": "return",
+                    "type": "boolean",
+                    "desc": "`true` or `false` depending on the validity of the signature for the data and public key."
+                  },
                   "params": [
                     {
                       "textRaw": "`object` {string | Object} ",
@@ -3010,7 +3211,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Verifies the provided data using the given <code>object</code> and <code>signature</code>.\nThe <code>object</code> argument can be either a string containing a PEM encoded object,\nwhich can be an RSA public key, a DSA public key, or an X.509 certificate,\nor an object with one or more of the following properties:</p>\n<ul>\n<li><code>key</code>: {string} - PEM encoded public key (required)</li>\n<li><p><code>padding</code>: {integer} - Optional padding value for RSA, one of the following:</p>\n<ul>\n<li><code>crypto.constants.RSA_PKCS1_PADDING</code> (default)</li>\n<li><code>crypto.constants.RSA_PKCS1_PSS_PADDING</code></li>\n</ul>\n<p>Note that <code>RSA_PKCS1_PSS_PADDING</code> will use MGF1 with the same hash function\nused to verify the message as specified in section 3.1 of <a href=\"https://www.rfc-editor.org/rfc/rfc4055.txt\">RFC 4055</a>.</p>\n</li>\n<li><code>saltLength</code>: {integer} - salt length for when padding is\n<code>RSA_PKCS1_PSS_PADDING</code>. The special value\n<code>crypto.constants.RSA_PSS_SALTLEN_DIGEST</code> sets the salt length to the digest\nsize, <code>crypto.constants.RSA_PSS_SALTLEN_AUTO</code> (default) causes it to be\ndetermined automatically.</li>\n</ul>\n<p>The <code>signature</code> argument is the previously calculated signature for the data, in\nthe <code>signatureFormat</code> which can be <code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code> or <code>&#39;base64&#39;</code>.\nIf a <code>signatureFormat</code> is specified, the <code>signature</code> is expected to be a\nstring; otherwise <code>signature</code> is expected to be a <a href=\"buffer.html\"><code>Buffer</code></a>,\n<code>TypedArray</code>, or <code>DataView</code>.</p>\n<p>Returns <code>true</code> or <code>false</code> depending on the validity of the signature for\nthe data and public key.</p>\n<p>The <code>verify</code> object can not be used again after <code>verify.verify()</code> has been\ncalled. Multiple calls to <code>verify.verify()</code> will result in an error being\nthrown.</p>\n"
+              "desc": "<p>Verifies the provided data using the given <code>object</code> and <code>signature</code>.\nThe <code>object</code> argument can be either a string containing a PEM encoded object,\nwhich can be an RSA public key, a DSA public key, or an X.509 certificate,\nor an object with one or more of the following properties:</p>\n<ul>\n<li><code>key</code>: {string} - PEM encoded public key (required)</li>\n<li><p><code>padding</code>: {integer} - Optional padding value for RSA, one of the following:</p>\n<ul>\n<li><code>crypto.constants.RSA_PKCS1_PADDING</code> (default)</li>\n<li><code>crypto.constants.RSA_PKCS1_PSS_PADDING</code></li>\n</ul>\n<p>Note that <code>RSA_PKCS1_PSS_PADDING</code> will use MGF1 with the same hash function\nused to verify the message as specified in section 3.1 of <a href=\"https://www.rfc-editor.org/rfc/rfc4055.txt\">RFC 4055</a>.</p>\n</li>\n<li><code>saltLength</code>: {integer} - salt length for when padding is\n<code>RSA_PKCS1_PSS_PADDING</code>. The special value\n<code>crypto.constants.RSA_PSS_SALTLEN_DIGEST</code> sets the salt length to the digest\nsize, <code>crypto.constants.RSA_PSS_SALTLEN_AUTO</code> (default) causes it to be\ndetermined automatically.</li>\n</ul>\n<p>The <code>signature</code> argument is the previously calculated signature for the data, in\nthe <code>signatureFormat</code> which can be <code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code> or <code>&#39;base64&#39;</code>.\nIf a <code>signatureFormat</code> is specified, the <code>signature</code> is expected to be a\nstring; otherwise <code>signature</code> is expected to be a <a href=\"buffer.html\"><code>Buffer</code></a>,\n<code>TypedArray</code>, or <code>DataView</code>.</p>\n<p>The <code>verify</code> object can not be used again after <code>verify.verify()</code> has been\ncalled. Multiple calls to <code>verify.verify()</code> will result in an error being\nthrown.</p>\n"
             }
           ]
         }

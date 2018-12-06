@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Crypto | Node.js v8.12.0 Documentation</title>
+  <title>Crypto | Node.js v8.14.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -82,7 +82,7 @@
 
     <div id="column1" data-id="crypto" class="interior">
       <header>
-        <h1>Node.js v8.12.0 Documentation</h1>
+        <h1>Node.js v8.14.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -283,7 +283,7 @@ const cert2 = crypto.Certificate();
 <span>Added in: v0.11.8</span>
 </div><ul>
 <li><code>spkac</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a></li>
-<li>Returns <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> The challenge component of the <code>spkac</code> data structure, which
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> The challenge component of the <code>spkac</code> data structure, which
 includes a public key and a challenge.</li>
 </ul>
 <pre><code class="lang-js">const cert = require(&#39;crypto&#39;).Certificate();
@@ -297,7 +297,7 @@ console.log(challenge.toString(&#39;utf8&#39;));
 <span>Added in: v0.11.8</span>
 </div><ul>
 <li><code>spkac</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a></li>
-<li>Returns <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> The public key component of the <code>spkac</code> data structure,
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> The public key component of the <code>spkac</code> data structure,
 which includes a public key and a challenge.</li>
 </ul>
 <pre><code class="lang-js">const cert = require(&#39;crypto&#39;).Certificate();
@@ -311,8 +311,8 @@ console.log(publicKey);
 <span>Added in: v0.11.8</span>
 </div><ul>
 <li><code>spkac</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a></li>
-<li>Returns <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <code>true</code> if the given <code>spkac</code> data structure is valid, <code>false</code>
-otherwise.</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <code>true</code> if the given <code>spkac</code> data structure is valid,
+<code>false</code> otherwise.</li>
 </ul>
 <pre><code class="lang-js">const cert = require(&#39;crypto&#39;).Certificate();
 const spkac = getSpkacSomehow();
@@ -375,10 +375,11 @@ console.log(encrypted);
 <span>Added in: v0.1.94</span>
 </div><ul>
 <li><code>outputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Any remaining enciphered contents.
+If <code>outputEncoding</code> parameter is one of <code>&#39;latin1&#39;</code>, <code>&#39;base64&#39;</code> or <code>&#39;hex&#39;</code>,
+a string is returned. If an <code>outputEncoding</code> is not provided, a <a href="buffer.html"><code>Buffer</code></a>
+is returned.</li>
 </ul>
-<p>Returns any remaining enciphered contents. If <code>outputEncoding</code>
-parameter is one of <code>&#39;latin1&#39;</code>, <code>&#39;base64&#39;</code> or <code>&#39;hex&#39;</code>, a string is returned.
-If an <code>outputEncoding</code> is not provided, a <a href="buffer.html"><code>Buffer</code></a> is returned.</p>
 <p>Once the <code>cipher.final()</code> method has been called, the <code>Cipher</code> object can no
 longer be used to encrypt data. Attempts to call <code>cipher.final()</code> more than
 once will result in an error being thrown.</p>
@@ -387,7 +388,7 @@ once will result in an error being thrown.</p>
 <span>Added in: v1.0.0</span>
 </div><ul>
 <li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
-<li>Returns the <span class="type">&lt;Cipher&gt;</span> for method chaining.</li>
+<li>Returns the <a href="crypto.html#crypto_class_cipher" class="type">&lt;Cipher&gt;</a> for method chaining.</li>
 </ul>
 <p>When using an authenticated encryption mode (only <code>GCM</code> is currently
 supported), the <code>cipher.setAAD()</code> method sets the value used for the
@@ -396,9 +397,12 @@ supported), the <code>cipher.setAAD()</code> method sets the value used for the
 <h3>cipher.getAuthTag()<span><a class="mark" href="#crypto_cipher_getauthtag" id="crypto_cipher_getauthtag">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v1.0.0</span>
-</div><p>When using an authenticated encryption mode (only <code>GCM</code> is currently
-supported), the <code>cipher.getAuthTag()</code> method returns a <a href="buffer.html"><code>Buffer</code></a> containing
-the <em>authentication tag</em> that has been computed from the given data.</p>
+</div><ul>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> When using an authenticated encryption mode (only <code>GCM</code> is
+currently supported), the <code>cipher.getAuthTag()</code> method returns a <a href="buffer.html"><code>Buffer</code></a>
+containing the <em>authentication tag</em> that has been computed from the given
+data.</li>
+</ul>
 <p>The <code>cipher.getAuthTag()</code> method should only be called after encryption has
 been completed using the <a href="#crypto_cipher_final_outputencoding"><code>cipher.final()</code></a> method.</p>
 <h3>cipher.setAutoPadding([autoPadding])<span><a class="mark" href="#crypto_cipher_setautopadding_autopadding" id="crypto_cipher_setautopadding_autopadding">#</a></span></h3>
@@ -406,7 +410,7 @@ been completed using the <a href="#crypto_cipher_final_outputencoding"><code>cip
 <span>Added in: v0.7.1</span>
 </div><ul>
 <li><code>autoPadding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <strong>Default:</strong> <code>true</code></li>
-<li>Returns the <span class="type">&lt;Cipher&gt;</span> for method chaining.</li>
+<li>Returns: <a href="crypto.html#crypto_class_cipher" class="type">&lt;Cipher&gt;</a> for method chaining.</li>
 </ul>
 <p>When using block encryption algorithms, the <code>Cipher</code> class will automatically
 add padding to the input data to the appropriate block size. To disable the
@@ -434,6 +438,7 @@ using <code>0x0</code> instead of PKCS padding.</p>
 <li><code>data</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a></li>
 <li><code>inputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 <li><code>outputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>Updates the cipher with <code>data</code>. If the <code>inputEncoding</code> argument is given,
 its value must be one of <code>&#39;utf8&#39;</code>, <code>&#39;ascii&#39;</code>, or <code>&#39;latin1&#39;</code> and the <code>data</code>
@@ -508,10 +513,11 @@ console.log(decrypted);
 <span>Added in: v0.1.94</span>
 </div><ul>
 <li><code>outputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Any remaining deciphered contents.
+If <code>outputEncoding</code> parameter is one of <code>&#39;latin1&#39;</code>, <code>&#39;ascii&#39;</code> or <code>&#39;utf8&#39;</code>,
+a string is returned. If an <code>outputEncoding</code> is not provided, a <a href="buffer.html"><code>Buffer</code></a>
+is returned.</li>
 </ul>
-<p>Returns any remaining deciphered contents. If <code>outputEncoding</code>
-parameter is one of <code>&#39;latin1&#39;</code>, <code>&#39;ascii&#39;</code> or <code>&#39;utf8&#39;</code>, a string is returned.
-If an <code>outputEncoding</code> is not provided, a <a href="buffer.html"><code>Buffer</code></a> is returned.</p>
 <p>Once the <code>decipher.final()</code> method has been called, the <code>Decipher</code> object can
 no longer be used to decrypt data. Attempts to call <code>decipher.final()</code> more
 than once will result in an error being thrown.</p>
@@ -530,7 +536,7 @@ than once will result in an error being thrown.</p>
 </details>
 </div><ul>
 <li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a></li>
-<li>Returns the <span class="type">&lt;Cipher&gt;</span> for method chaining.</li>
+<li>Returns: <a href="crypto.html#crypto_class_cipher" class="type">&lt;Cipher&gt;</a> for method chaining.</li>
 </ul>
 <p>When using an authenticated encryption mode (only <code>GCM</code> is currently
 supported), the <code>decipher.setAAD()</code> method sets the value used for the
@@ -551,7 +557,7 @@ supported), the <code>decipher.setAAD()</code> method sets the value used for th
 </details>
 </div><ul>
 <li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a></li>
-<li>Returns the <span class="type">&lt;Cipher&gt;</span> for method chaining.</li>
+<li>Returns: <a href="crypto.html#crypto_class_cipher" class="type">&lt;Cipher&gt;</a> for method chaining.</li>
 </ul>
 <p>When using an authenticated encryption mode (only <code>GCM</code> is currently
 supported), the <code>decipher.setAuthTag()</code> method is used to pass in the
@@ -572,7 +578,7 @@ authentication tags of that length, see <a href="http://nvlpubs.nist.gov/nistpub
 <span>Added in: v0.7.1</span>
 </div><ul>
 <li><code>autoPadding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <strong>Default:</strong> <code>true</code></li>
-<li>Returns the <span class="type">&lt;Cipher&gt;</span> for method chaining.</li>
+<li>Returns: <a href="crypto.html#crypto_class_cipher" class="type">&lt;Cipher&gt;</a> for method chaining.</li>
 </ul>
 <p>When data has been encrypted without standard block padding, calling
 <code>decipher.setAutoPadding(false)</code> will disable automatic padding to prevent
@@ -598,6 +604,7 @@ multiple of the ciphers block size.</p>
 <li><code>data</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a></li>
 <li><code>inputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 <li><code>outputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>Updates the decipher with <code>data</code>. If the <code>inputEncoding</code> argument is given,
 its value must be one of <code>&#39;latin1&#39;</code>, <code>&#39;base64&#39;</code>, or <code>&#39;hex&#39;</code> and the <code>data</code>
@@ -643,6 +650,7 @@ assert.strictEqual(aliceSecret.toString(&#39;hex&#39;), bobSecret.toString(&#39;
 <li><code>otherPublicKey</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a></li>
 <li><code>inputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 <li><code>outputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>Computes the shared secret using <code>otherPublicKey</code> as the other
 party&#39;s public key and returns the computed shared secret. The supplied
@@ -658,6 +666,7 @@ provided, <code>otherPublicKey</code> is expected to be a <a href="buffer.html">
 <span>Added in: v0.5.0</span>
 </div><ul>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>Generates private and public Diffie-Hellman key values, and returns
 the public key in the specified <code>encoding</code>. This key should be
@@ -669,6 +678,7 @@ or <code>&#39;base64&#39;</code>. If <code>encoding</code> is provided a string 
 <span>Added in: v0.5.0</span>
 </div><ul>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>Returns the Diffie-Hellman generator in the specified <code>encoding</code>, which can
 be <code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code>, or <code>&#39;base64&#39;</code>. If <code>encoding</code> is provided a string is
@@ -678,6 +688,7 @@ returned; otherwise a <a href="buffer.html"><code>Buffer</code></a> is returned.
 <span>Added in: v0.5.0</span>
 </div><ul>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>Returns the Diffie-Hellman prime in the specified <code>encoding</code>, which can
 be <code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code>, or <code>&#39;base64&#39;</code>. If <code>encoding</code> is provided a string is
@@ -687,6 +698,7 @@ returned; otherwise a <a href="buffer.html"><code>Buffer</code></a> is returned.
 <span>Added in: v0.5.0</span>
 </div><ul>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>Returns the Diffie-Hellman private key in the specified <code>encoding</code>,
 which can be <code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code>, or <code>&#39;base64&#39;</code>. If <code>encoding</code> is provided a
@@ -696,6 +708,7 @@ string is returned; otherwise a <a href="buffer.html"><code>Buffer</code></a> is
 <span>Added in: v0.5.0</span>
 </div><ul>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>Returns the Diffie-Hellman public key in the specified <code>encoding</code>, which
 can be <code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code>, or <code>&#39;base64&#39;</code>. If <code>encoding</code> is provided a
@@ -777,6 +790,7 @@ assert.strictEqual(aliceSecret.toString(&#39;hex&#39;), bobSecret.toString(&#39;
 <li><code>otherPublicKey</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a></li>
 <li><code>inputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 <li><code>outputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>Computes the shared secret using <code>otherPublicKey</code> as the other
 party&#39;s public key and returns the computed shared secret. The supplied
@@ -793,6 +807,7 @@ provided, <code>otherPublicKey</code> is expected to be a <a href="buffer.html">
 </div><ul>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 <li><code>format</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> <strong>Default:</strong> <code>uncompressed</code></li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>Generates private and public EC Diffie-Hellman key values, and returns
 the public key in the specified <code>format</code> and <code>encoding</code>. This key should be
@@ -808,19 +823,19 @@ is returned.</p>
 <span>Added in: v0.11.14</span>
 </div><ul>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The EC Diffie-Hellman private key in the specified
+<code>encoding</code>, which can be <code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code>, or <code>&#39;base64&#39;</code>. If <code>encoding</code>
+is provided a string is returned; otherwise a <a href="buffer.html"><code>Buffer</code></a> is returned.</li>
 </ul>
-<p>Returns the EC Diffie-Hellman private key in the specified <code>encoding</code>,
-which can be <code>&#39;latin1&#39;</code>, <code>&#39;hex&#39;</code>, or <code>&#39;base64&#39;</code>. If <code>encoding</code> is provided
-a string is returned; otherwise a <a href="buffer.html"><code>Buffer</code></a> is returned.</p>
 <h3>ecdh.getPublicKey([encoding][, format])<span><a class="mark" href="#crypto_ecdh_getpublickey_encoding_format" id="crypto_ecdh_getpublickey_encoding_format">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.14</span>
 </div><ul>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 <li><code>format</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> <strong>Default:</strong> <code>uncompressed</code></li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The EC Diffie-Hellman public key in the specified
+<code>encoding</code> and <code>format</code>.</li>
 </ul>
-<p>Returns the EC Diffie-Hellman public key in the specified <code>encoding</code> and
-<code>format</code>.</p>
 <p>The <code>format</code> argument specifies point encoding and can be <code>&#39;compressed&#39;</code> or
 <code>&#39;uncompressed&#39;</code>. If <code>format</code> is not specified the point will be returned in
 <code>&#39;uncompressed&#39;</code> format.</p>
@@ -930,6 +945,7 @@ console.log(hash.digest(&#39;hex&#39;));
 <span>Added in: v0.1.92</span>
 </div><ul>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>Calculates the digest of all of the data passed to be hashed (using the
 <a href="#crypto_hash_update_data_inputencoding"><code>hash.update()</code></a> method). The <code>encoding</code> can be <code>&#39;hex&#39;</code>, <code>&#39;latin1&#39;</code> or
@@ -1011,6 +1027,7 @@ console.log(hmac.digest(&#39;hex&#39;));
 <span>Added in: v0.1.94</span>
 </div><ul>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>Calculates the HMAC digest of all of the data passed using <a href="#crypto_hmac_update_data_inputencoding"><code>hmac.update()</code></a>.
 The <code>encoding</code> can be <code>&#39;hex&#39;</code>, <code>&#39;latin1&#39;</code> or <code>&#39;base64&#39;</code>. If <code>encoding</code> is
@@ -1111,6 +1128,7 @@ console.log(sign.sign(privateKey, &#39;hex&#39;));
 </ul>
 </li>
 <li><code>outputFormat</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
 <p>Calculates the signature on all the data passed through using either
 <a href="#crypto_sign_update_data_inputencoding"><code>sign.update()</code></a> or <a href="stream.html#stream_writable_write_chunk_encoding_callback"><code>sign.write()</code></a>.</p>
@@ -1238,6 +1256,8 @@ encoding of <code>&#39;utf8&#39;</code> is enforced. If <code>data</code> is a <
 <li><code>object</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
 <li><code>signature</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a></li>
 <li><code>signatureFormat</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> <code>true</code> or <code>false</code> depending on the validity of the
+signature for the data and public key.</li>
 </ul>
 <p>Verifies the provided data using the given <code>object</code> and <code>signature</code>.
 The <code>object</code> argument can be either a string containing a PEM encoded object,
@@ -1264,8 +1284,6 @@ the <code>signatureFormat</code> which can be <code>&#39;latin1&#39;</code>, <co
 If a <code>signatureFormat</code> is specified, the <code>signature</code> is expected to be a
 string; otherwise <code>signature</code> is expected to be a <a href="buffer.html"><code>Buffer</code></a>,
 <code>TypedArray</code>, or <code>DataView</code>.</p>
-<p>Returns <code>true</code> or <code>false</code> depending on the validity of the signature for
-the data and public key.</p>
 <p>The <code>verify</code> object can not be used again after <code>verify.verify()</code> has been
 called. Multiple calls to <code>verify.verify()</code> will result in an error being
 thrown.</p>
@@ -1273,9 +1291,11 @@ thrown.</p>
 <h3>crypto.constants<span><a class="mark" href="#crypto_crypto_constants" id="crypto_crypto_constants">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v6.3.0</span>
-</div><p>Returns an object containing commonly used constants for crypto and security
-related operations. The specific constants currently defined are described in
-<a href="#crypto_crypto_constants_1">Crypto Constants</a>.</p>
+</div><ul>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> An object containing commonly used constants for crypto and
+security related operations. The specific constants currently defined are
+described in <a href="#crypto_crypto_constants_1">Crypto Constants</a>.</li>
+</ul>
 <h3>crypto.DEFAULT_ENCODING<span><a class="mark" href="#crypto_crypto_default_encoding" id="crypto_crypto_default_encoding">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.9.3</span>
@@ -1298,6 +1318,7 @@ currently in use. Setting to true requires a FIPS build of Node.js.</p>
 <li><code>algorithm</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 <li><code>password</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a></li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> <a href="stream.html#stream_new_stream_transform_options"><code>stream.transform</code> options</a></li>
+<li>Returns: <a href="crypto.html#crypto_class_cipher" class="type">&lt;Cipher&gt;</a></li>
 </ul>
 <p>Creates and returns a <code>Cipher</code> object that uses the given <code>algorithm</code> and
 <code>password</code>. Optional <code>options</code> argument controls stream behavior.</p>
@@ -1339,6 +1360,7 @@ Adversaries</a> for details.</p>
 <li><code>key</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a></li>
 <li><code>iv</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a></li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> <a href="stream.html#stream_new_stream_transform_options"><code>stream.transform</code> options</a></li>
+<li>Returns: <a href="crypto.html#crypto_class_cipher" class="type">&lt;Cipher&gt;</a></li>
 </ul>
 <p>Creates and returns a <code>Cipher</code> object, with the given <code>algorithm</code>, <code>key</code> and
 initialization vector (<code>iv</code>). Optional <code>options</code> argument controls stream behavior.</p>
@@ -1368,6 +1390,7 @@ called.</p>
 <li><code>algorithm</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 <li><code>password</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a></li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> <a href="stream.html#stream_new_stream_transform_options"><code>stream.transform</code> options</a></li>
+<li>Returns: <a href="crypto.html#crypto_class_decipher" class="type">&lt;Decipher&gt;</a></li>
 </ul>
 <p>Creates and returns a <code>Decipher</code> object that uses the given <code>algorithm</code> and
 <code>password</code> (key). Optional <code>options</code> argument controls stream behavior.</p>
@@ -1399,6 +1422,7 @@ to create the <code>Decipher</code> object.</p>
 <li><code>key</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a></li>
 <li><code>iv</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a></li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> <a href="stream.html#stream_new_stream_transform_options"><code>stream.transform</code> options</a></li>
+<li>Returns: <a href="crypto.html#crypto_class_decipher" class="type">&lt;Decipher&gt;</a></li>
 </ul>
 <p>Creates and returns a <code>Decipher</code> object that uses the given <code>algorithm</code>, <code>key</code>
 and initialization vector (<code>iv</code>). Optional <code>options</code> argument controls stream
@@ -1474,6 +1498,7 @@ and description of each available elliptic curve.</p>
 </div><ul>
 <li><code>algorithm</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> <a href="stream.html#stream_new_stream_transform_options"><code>stream.transform</code> options</a></li>
+<li>Returns: <a href="crypto.html#crypto_class_hash" class="type">&lt;Hash&gt;</a></li>
 </ul>
 <p>Creates and returns a <code>Hash</code> object that can be used to generate hash digests
 using the given <code>algorithm</code>. Optional <code>options</code> argument controls stream
@@ -1506,6 +1531,7 @@ input.on(&#39;readable&#39;, () =&gt; {
 <li><code>algorithm</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 <li><code>key</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> | <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a></li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> <a href="stream.html#stream_new_stream_transform_options"><code>stream.transform</code> options</a></li>
+<li>Returns: <a href="crypto.html#crypto_class_hmac" class="type">&lt;Hmac&gt;</a></li>
 </ul>
 <p>Creates and returns an <code>Hmac</code> object that uses the given <code>algorithm</code> and <code>key</code>.
 Optional <code>options</code> argument controls stream behavior.</p>
@@ -1537,6 +1563,7 @@ input.on(&#39;readable&#39;, () =&gt; {
 </div><ul>
 <li><code>algorithm</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> <a href="stream.html#stream_constructor_new_stream_writable_options"><code>stream.Writable</code> options</a></li>
+<li>Returns: <a href="crypto.html#crypto_class_sign" class="type">&lt;Sign&gt;</a></li>
 </ul>
 <p>Creates and returns a <code>Sign</code> object that uses the given <code>algorithm</code>.
 Use <a href="#crypto_crypto_gethashes"><code>crypto.getHashes()</code></a> to obtain an array of names of the available
@@ -1548,6 +1575,7 @@ signing algorithms. Optional <code>options</code> argument controls the
 </div><ul>
 <li><code>algorithm</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> <a href="stream.html#stream_constructor_new_stream_writable_options"><code>stream.Writable</code> options</a></li>
+<li>Returns: <a href="crypto.html#crypto_class_verify" class="type">&lt;Verify&gt;</a></li>
 </ul>
 <p>Creates and returns a <code>Verify</code> object that uses the given algorithm.
 Use <a href="#crypto_crypto_gethashes"><code>crypto.getHashes()</code></a> to obtain an array of names of the available
@@ -1556,7 +1584,10 @@ signing algorithms. Optional <code>options</code> argument controls the
 <h3>crypto.getCiphers()<span><a class="mark" href="#crypto_crypto_getciphers" id="crypto_crypto_getciphers">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.9.3</span>
-</div><p>Returns an array with the names of the supported cipher algorithms.</p>
+</div><ul>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string[]&gt;</a> An array with the names of the supported cipher
+algorithms.</li>
+</ul>
 <p>Example:</p>
 <pre><code class="lang-js">const ciphers = crypto.getCiphers();
 console.log(ciphers); // [&#39;aes-128-cbc&#39;, &#39;aes-128-ccm&#39;, ...]
@@ -1564,7 +1595,9 @@ console.log(ciphers); // [&#39;aes-128-cbc&#39;, &#39;aes-128-ccm&#39;, ...]
 <h3>crypto.getCurves()<span><a class="mark" href="#crypto_crypto_getcurves" id="crypto_crypto_getcurves">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v2.3.0</span>
-</div><p>Returns an array with the names of the supported elliptic curves.</p>
+</div><ul>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string[]&gt;</a> An array with the names of the supported elliptic curves.</li>
+</ul>
 <p>Example:</p>
 <pre><code class="lang-js">const curves = crypto.getCurves();
 console.log(curves); // [&#39;Oakley-EC2N-3&#39;, &#39;Oakley-EC2N-4&#39;, ...]
@@ -1574,6 +1607,7 @@ console.log(curves); // [&#39;Oakley-EC2N-3&#39;, &#39;Oakley-EC2N-4&#39;, ...]
 <span>Added in: v0.7.5</span>
 </div><ul>
 <li><code>groupName</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
 </ul>
 <p>Creates a predefined <code>DiffieHellman</code> key exchange object. The
 supported groups are: <code>&#39;modp1&#39;</code>, <code>&#39;modp2&#39;</code>, <code>&#39;modp5&#39;</code> (defined in
@@ -1602,8 +1636,10 @@ console.log(aliceSecret === bobSecret);
 <h3>crypto.getHashes()<span><a class="mark" href="#crypto_crypto_gethashes" id="crypto_crypto_gethashes">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.9.3</span>
-</div><p>Returns an array of the names of the supported hash algorithms,
-such as <code>RSA-SHA256</code>.</p>
+</div><ul>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string[]&gt;</a> An array of the names of the supported hash algorithms,
+such as <code>&#39;RSA-SHA256&#39;</code>.</li>
+</ul>
 <p>Example:</p>
 <pre><code class="lang-js">const hashes = crypto.getHashes();
 console.log(hashes); // [&#39;DSA&#39;, &#39;DSA-SHA&#39;, &#39;DSA-SHA1&#39;, ...]
@@ -1686,6 +1722,7 @@ negative performance implications for some applications, see the
 <li><code>iterations</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
 <li><code>keylen</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
 <li><code>digest</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
 </ul>
 <p>Provides a synchronous Password-Based Key Derivation Function 2 (PBKDF2)
 implementation. A selected HMAC digest algorithm specified by <code>digest</code> is
@@ -1793,6 +1830,7 @@ be passed instead of a public key.</p>
 <li><code>buf</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
 </ul>
 </li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> if the <code>callback</code> function is not provided.</li>
 </ul>
 <p>Generates cryptographically strong pseudo-random data. The <code>size</code> argument
 is a number indicating the number of bytes to generate.</p>
@@ -1834,9 +1872,9 @@ client request.</p>
 <li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&lt;Uint8Array&gt;</a> Must be supplied.</li>
 <li><code>offset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> <strong>Default:</strong> <code>0</code></li>
 <li><code>size</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> <strong>Default:</strong> <code>buffer.length - offset</code></li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a></li>
 </ul>
 <p>Synchronous version of <a href="#crypto_crypto_randomfill_buffer_offset_size_callback"><code>crypto.randomFill()</code></a>.</p>
-<p>Returns <code>buffer</code></p>
 <pre><code class="lang-js">const buf = Buffer.alloc(10);
 console.log(crypto.randomFillSync(buf).toString(&#39;hex&#39;));
 
@@ -1917,6 +1955,7 @@ is a bit field taking one of or a mix of the following flags (defined in
 </div><ul>
 <li><code>a</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a></li>
 <li><code>b</code> <a href="buffer.html#buffer_class_buffer" class="type">&lt;Buffer&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&lt;TypedArray&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&lt;DataView&gt;</a></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
 </ul>
 <p>This function is based on a constant-time algorithm.
 Returns true if <code>a</code> is equal to <code>b</code>, without leaking timing information that

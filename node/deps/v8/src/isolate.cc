@@ -1532,9 +1532,17 @@ void Isolate::PrintCurrentStackTrace(FILE* out) {
 
     Handle<Object> receiver(frame->receiver(), this);
     Handle<JSFunction> function(frame->function(), this);
-    Handle<AbstractCode> code(AbstractCode::cast(frame->LookupCode()), this);
-    const int offset =
-        static_cast<int>(frame->pc() - code->instruction_start());
+    Handle<AbstractCode> code;
+    int offset;
+    if (frame->is_interpreted()) {
+      InterpretedFrame* interpreted_frame = reinterpret_cast<InterpretedFrame*>(frame);
+      code = handle(AbstractCode::cast(interpreted_frame->GetBytecodeArray()),
+                    this);
+      offset = interpreted_frame->GetBytecodeOffset();
+    } else {
+      code = handle(AbstractCode::cast(frame->LookupCode()), this);
+      offset = static_cast<int>(frame->pc() - code->instruction_start());
+    }
 
     JSStackFrame site(this, receiver, function, code, offset);
     Handle<String> line = site.ToString().ToHandleChecked();
@@ -2689,7 +2697,6 @@ bool Isolate::Init(StartupDeserializer* des) {
   call_descriptor_data_ =
       new CallInterfaceDescriptorData[CallDescriptors::NUMBER_OF_DESCRIPTORS];
   access_compiler_data_ = new AccessCompilerData();
-  cpu_profiler_ = new CpuProfiler(this);
   heap_profiler_ = new HeapProfiler(heap());
   interpreter_ = new interpreter::Interpreter(this);
   compiler_dispatcher_ =
@@ -2960,6 +2967,10 @@ bool Isolate::use_optimizer() {
   return FLAG_opt && !serializer_enabled_ &&
          CpuFeatures::SupportsCrankshaft() &&
          !is_precise_count_code_coverage() && !is_block_count_code_coverage();
+}
+
+bool Isolate::NeedsDetailedOptimizedCodeLineInfo() const {
+  return NeedsSourcePositionsForProfiling() || FLAG_detailed_line_info;
 }
 
 bool Isolate::NeedsSourcePositionsForProfiling() const {
@@ -3684,6 +3695,13 @@ void Isolate::PrintWithTimestamp(const char* format, ...) {
   va_start(arguments, format);
   base::OS::VPrint(format, arguments);
   va_end(arguments);
+}
+
+CpuProfiler* Isolate::EnsureCpuProfiler() {
+  if (!cpu_profiler_) {
+    cpu_profiler_ = new CpuProfiler(this);
+  }
+  return cpu_profiler_;
 }
 
 bool StackLimitCheck::JsHasOverflowed(uintptr_t gap) const {

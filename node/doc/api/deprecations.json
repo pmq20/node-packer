@@ -204,9 +204,16 @@
             {
               "textRaw": "DEP0086: Remove runInAsyncIdScope",
               "name": "dep0086:_remove_runinasyncidscope",
-              "desc": "<p>Type: Runtime</p>\n<p><code>runInAsyncIdScope</code> doesn&#39;t emit the <code>before</code> or <code>after</code> event and can thus\ncause a lot of issues. See <a href=\"https://github.com/nodejs/node/issues/14328\">https://github.com/nodejs/node/issues/14328</a> for more\ndetails.</p>\n<p><a id=\"DEP0098\"></a></p>\n",
+              "desc": "<p>Type: Runtime</p>\n<p><code>runInAsyncIdScope</code> doesn&#39;t emit the <code>before</code> or <code>after</code> event and can thus\ncause a lot of issues. See <a href=\"https://github.com/nodejs/node/issues/14328\">https://github.com/nodejs/node/issues/14328</a> for more\ndetails.</p>\n<p><a id=\"DEP0089\"></a></p>\n",
               "type": "module",
               "displayName": "DEP0086: Remove runInAsyncIdScope"
+            },
+            {
+              "textRaw": "DEP0089: require('assert')",
+              "name": "dep0089:_require('assert')",
+              "desc": "<p>Type: Documentation-only</p>\n<p>Importing assert directly is not recommended as the exposed functions will use\nloose equality checks. Use <code>require(&#39;assert&#39;).strict</code> instead. The API is the\nsame as the legacy assert but it will always use strict equality checks.</p>\n<p><a id=\"DEP0098\"></a></p>\n",
+              "type": "module",
+              "displayName": "DEP0089: require('assert')"
             },
             {
               "textRaw": "DEP0098: AsyncHooks Embedder AsyncResource.emit{Before,After} APIs",

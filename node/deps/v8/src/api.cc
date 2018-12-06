@@ -8418,7 +8418,7 @@ HeapProfiler* Isolate::GetHeapProfiler() {
 
 CpuProfiler* Isolate::GetCpuProfiler() {
   i::CpuProfiler* cpu_profiler =
-      reinterpret_cast<i::Isolate*>(this)->cpu_profiler();
+      reinterpret_cast<i::Isolate*>(this)->EnsureCpuProfiler();
   return reinterpret_cast<CpuProfiler*>(cpu_profiler);
 }
 
@@ -8877,6 +8877,40 @@ void Isolate::GetStackSample(const RegisterState& state, void** frames,
   sample_info->frames_count = 0;
   sample_info->vm_state = OTHER;
   sample_info->external_callback_entry = nullptr;
+}
+
+int64_t Isolate::AdjustAmountOfExternalAllocatedMemoryCustom(
+    int64_t change_in_bytes) {
+  const int64_t kMemoryReducerActivationLimit = 1024 * 1024;
+  typedef internal::Internals I;
+  int64_t* external_memory = reinterpret_cast<int64_t*>(
+      reinterpret_cast<uint8_t*>(this) + I::kExternalMemoryOffset);
+  int64_t* external_memory_limit = reinterpret_cast<int64_t*>(
+      reinterpret_cast<uint8_t*>(this) + I::kExternalMemoryLimitOffset);
+  int64_t* external_memory_at_last_mc =
+      reinterpret_cast<int64_t*>(reinterpret_cast<uint8_t*>(this) +
+                                 I::kExternalMemoryAtLastMarkCompactOffset);
+  const int64_t amount = *external_memory + change_in_bytes;
+
+  *external_memory = amount;
+
+  int64_t allocation_diff_since_last_mc =
+      *external_memory_at_last_mc - *external_memory;
+  allocation_diff_since_last_mc = allocation_diff_since_last_mc < 0
+                                      ? -allocation_diff_since_last_mc
+                                      : allocation_diff_since_last_mc;
+  if (allocation_diff_since_last_mc > kMemoryReducerActivationLimit) {
+    CheckMemoryPressure();
+  }
+
+  if (change_in_bytes < 0) {
+    *external_memory_limit += change_in_bytes;
+  }
+
+  if (change_in_bytes > 0 && amount > *external_memory_limit) {
+    ReportExternalAllocationLimitReached();
+  }
+  return *external_memory;
 }
 
 size_t Isolate::NumberOfPhantomHandleResetsSinceLastCall() {
@@ -10138,15 +10172,7 @@ Local<String> CpuProfileNode::GetFunctionName() const {
   const i::CodeEntry* entry = node->entry();
   i::Handle<i::String> name =
       isolate->factory()->InternalizeUtf8String(entry->name());
-  if (!entry->has_name_prefix()) {
-    return ToApiHandle<String>(name);
-  } else {
-    // We do not expect this to fail. Change this if it does.
-    i::Handle<i::String> cons = isolate->factory()->NewConsString(
-        isolate->factory()->InternalizeUtf8String(entry->name_prefix()),
-        name).ToHandleChecked();
-    return ToApiHandle<String>(cons);
-  }
+  return ToApiHandle<String>(name);
 }
 
 int debug::Coverage::BlockData::StartOffset() const { return block_->start; }
@@ -10237,7 +10263,7 @@ const char* CpuProfileNode::GetScriptResourceNameStr() const {
 }
 
 int CpuProfileNode::GetLineNumber() const {
-  return reinterpret_cast<const i::ProfileNode*>(this)->entry()->line_number();
+  return reinterpret_cast<const i::ProfileNode*>(this)->line_number();
 }
 
 
@@ -10370,9 +10396,14 @@ void CpuProfiler::CollectSample() {
 
 void CpuProfiler::StartProfiling(Local<String> title, bool record_samples) {
   reinterpret_cast<i::CpuProfiler*>(this)->StartProfiling(
-      *Utils::OpenHandle(*title), record_samples);
+      *Utils::OpenHandle(*title), record_samples, kLeafNodeLineNumbers);
 }
 
+void CpuProfiler::StartProfiling(Local<String> title, CpuProfilingMode mode,
+                                 bool record_samples) {
+  reinterpret_cast<i::CpuProfiler*>(this)->StartProfiling(
+      *Utils::OpenHandle(*title), record_samples, mode);
+}
 
 CpuProfile* CpuProfiler::StopProfiling(Local<String> title) {
   return reinterpret_cast<CpuProfile*>(

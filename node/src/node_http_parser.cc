@@ -464,6 +464,9 @@ class Parser : public AsyncWrap {
   static void Reinitialize(const FunctionCallbackInfo<Value>& args) {
     Environment* env = Environment::GetCurrent(args);
 
+    CHECK(args[0]->IsInt32());
+    CHECK(args[1]->IsBoolean());
+    bool isReused = args[1]->IsTrue();
     http_parser_type type =
         static_cast<http_parser_type>(args[0]->Int32Value());
 
@@ -472,8 +475,12 @@ class Parser : public AsyncWrap {
     ASSIGN_OR_RETURN_UNWRAP(&parser, args.Holder());
     // Should always be called from the same context.
     CHECK_EQ(env, parser->env());
-    // The parser is being reused. Reset the async id and call init() callbacks.
-    parser->AsyncReset();
+    // This parser has either just been created or it is being reused.
+    // We must only call AsyncReset for the latter case, because AsyncReset has
+    // already been called via the constructor for the former case.
+    if (isReused) {
+      parser->AsyncReset();
+    }
     parser->Init(type);
   }
 
@@ -614,6 +621,8 @@ class Parser : public AsyncWrap {
     size_t nparsed =
       http_parser_execute(&parser_, &settings, data, len);
 
+    enum http_errno err = HTTP_PARSER_ERRNO(&parser_);
+
     Save();
 
     // Unassign the 'buffer_' variable
@@ -628,9 +637,7 @@ class Parser : public AsyncWrap {
     Local<Integer> nparsed_obj = Integer::New(env()->isolate(), nparsed);
     // If there was a parse error in one of the callbacks
     // TODO(bnoordhuis) What if there is an error on EOF?
-    if (!parser_.upgrade && nparsed != len) {
-      enum http_errno err = HTTP_PARSER_ERRNO(&parser_);
-
+    if ((!parser_.upgrade && nparsed != len) || err != HPE_OK) {
       Local<Value> e = Exception::Error(env()->parse_error_string());
       Local<Object> obj = e->ToObject(env()->isolate());
       obj->Set(env()->bytes_parsed_string(), nparsed_obj);

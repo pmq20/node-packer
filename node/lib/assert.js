@@ -25,6 +25,7 @@ const { isSet, isMap, isDate, isRegExp } = process.binding('util');
 const { objectToString } = require('internal/util');
 const { isArrayBufferView } = require('internal/util/types');
 const errors = require('internal/errors');
+const { inspect } = require('util');
 
 // The assert module provides functions that throw
 // AssertionError's when particular conditions are not met. The
@@ -38,22 +39,26 @@ const assert = module.exports = ok;
 // both the actual and expected values to the assertion error for
 // display purposes.
 
-function innerFail(actual, expected, message, operator, stackStartFunction) {
-  throw new errors.AssertionError({
-    message,
-    actual,
-    expected,
-    operator,
-    stackStartFunction
-  });
+function innerFail(obj) {
+  throw new errors.AssertionError(obj);
 }
 
-function fail(actual, expected, message, operator, stackStartFunction) {
-  if (arguments.length === 1)
+function fail(actual, expected, message, operator, stackStartFn) {
+  const argsLen = arguments.length;
+
+  if (argsLen === 1) {
     message = actual;
-  if (arguments.length === 2)
+  } else if (argsLen === 2) {
     operator = '!=';
-  innerFail(actual, expected, message, operator, stackStartFunction || fail);
+  }
+
+  innerFail({
+    actual,
+    expected,
+    message,
+    operator,
+    stackStartFn: stackStartFn || fail
+  });
 }
 assert.fail = fail;
 
@@ -67,7 +72,15 @@ assert.AssertionError = errors.AssertionError;
 // Pure assertion tests whether a value is truthy, as determined
 // by !!value.
 function ok(value, message) {
-  if (!value) innerFail(value, true, message, '==', ok);
+  if (!value) {
+    innerFail({
+      actual: value,
+      expected: true,
+      message,
+      operator: '==',
+      stackStartFn: ok
+    });
+  }
 }
 assert.ok = ok;
 
@@ -75,7 +88,15 @@ assert.ok = ok;
 /* eslint-disable no-restricted-properties */
 assert.equal = function equal(actual, expected, message) {
   // eslint-disable-next-line eqeqeq
-  if (actual != expected) innerFail(actual, expected, message, '==', equal);
+  if (actual != expected) {
+    innerFail({
+      actual,
+      expected,
+      message,
+      operator: '==',
+      stackStartFn: equal
+    });
+  }
 };
 
 // The non-equality assertion tests for whether two objects are not
@@ -83,21 +104,39 @@ assert.equal = function equal(actual, expected, message) {
 assert.notEqual = function notEqual(actual, expected, message) {
   // eslint-disable-next-line eqeqeq
   if (actual == expected) {
-    innerFail(actual, expected, message, '!=', notEqual);
+    innerFail({
+      actual,
+      expected,
+      message,
+      operator: '!=',
+      stackStartFn: notEqual
+    });
   }
 };
 
 // The equivalence assertion tests a deep equality relation.
 assert.deepEqual = function deepEqual(actual, expected, message) {
   if (!innerDeepEqual(actual, expected, false)) {
-    innerFail(actual, expected, message, 'deepEqual', deepEqual);
+    innerFail({
+      actual,
+      expected,
+      message,
+      operator: 'deepEqual',
+      stackStartFn: deepEqual
+    });
   }
 };
 /* eslint-enable */
 
 assert.deepStrictEqual = function deepStrictEqual(actual, expected, message) {
   if (!innerDeepEqual(actual, expected, true)) {
-    innerFail(actual, expected, message, 'deepStrictEqual', deepStrictEqual);
+    innerFail({
+      actual,
+      expected,
+      message,
+      operator: 'deepStrictEqual',
+      stackStartFn: deepStrictEqual
+    });
   }
 };
 
@@ -572,22 +611,39 @@ function objEquiv(a, b, strict, keys, memos) {
 // The non-equivalence assertion tests for any deep inequality.
 assert.notDeepEqual = function notDeepEqual(actual, expected, message) {
   if (innerDeepEqual(actual, expected, false)) {
-    innerFail(actual, expected, message, 'notDeepEqual', notDeepEqual);
+    innerFail({
+      actual,
+      expected,
+      message,
+      operator: 'notDeepEqual',
+      stackStartFn: notDeepEqual
+    });
   }
 };
 
 assert.notDeepStrictEqual = notDeepStrictEqual;
 function notDeepStrictEqual(actual, expected, message) {
   if (innerDeepEqual(actual, expected, true)) {
-    innerFail(actual, expected, message, 'notDeepStrictEqual',
-              notDeepStrictEqual);
+    innerFail({
+      actual,
+      expected,
+      message,
+      operator: 'notDeepStrictEqual',
+      stackStartFn: notDeepStrictEqual
+    });
   }
 }
 
 // The strict equality assertion tests strict equality, as determined by ===.
 assert.strictEqual = function strictEqual(actual, expected, message) {
   if (actual !== expected) {
-    innerFail(actual, expected, message, '===', strictEqual);
+    innerFail({
+      actual,
+      expected,
+      message,
+      operator: '===',
+      stackStartFn: strictEqual
+    });
   }
 };
 
@@ -595,14 +651,50 @@ assert.strictEqual = function strictEqual(actual, expected, message) {
 // determined by !==.
 assert.notStrictEqual = function notStrictEqual(actual, expected, message) {
   if (actual === expected) {
-    innerFail(actual, expected, message, '!==', notStrictEqual);
+    innerFail({
+      actual,
+      expected,
+      message,
+      operator: '!==',
+      stackStartFn: notStrictEqual
+    });
   }
 };
 
-function expectedException(actual, expected) {
+function compareExceptionKey(actual, expected, key, msg) {
+  if (!innerDeepEqual(actual[key], expected[key], true)) {
+    innerFail({
+      actual: actual[key],
+      expected: expected[key],
+      message: msg || `${key}: expected ${inspect(expected[key])}, ` +
+                      `not ${inspect(actual[key])}`,
+      operator: 'throws',
+      stackStartFn: assert.throws
+    });
+  }
+}
+
+function expectedException(actual, expected, msg) {
   if (typeof expected !== 'function') {
-    // Should be a RegExp, if not fail hard
-    return expected.test(actual);
+    if (expected instanceof RegExp)
+      return expected.test(actual);
+    // assert.doesNotThrow does not accept objects.
+    if (arguments.length === 2) {
+      throw new errors.TypeError('ERR_INVALID_ARG_TYPE', 'expected',
+                                 ['Function', 'RegExp'], expected);
+    }
+    // The name and message could be non enumerable. Therefore test them
+    // explicitly.
+    if ('name' in expected) {
+      compareExceptionKey(actual, expected, 'name', msg);
+    }
+    if ('message' in expected) {
+      compareExceptionKey(actual, expected, 'message', msg);
+    }
+    for (const key of Object.keys(expected)) {
+      compareExceptionKey(actual, expected, key, msg);
+    }
+    return true;
   }
   // Guard instanceof against arrow functions as they don't have a prototype.
   if (expected.prototype !== undefined && actual instanceof expected) {
@@ -614,7 +706,11 @@ function expectedException(actual, expected) {
   return expected.call({}, actual) === true;
 }
 
-function tryBlock(block) {
+function getActual(block) {
+  if (typeof block !== 'function') {
+    throw new errors.TypeError('ERR_INVALID_ARG_TYPE', 'block', 'Function',
+                               block);
+  }
   try {
     block();
   } catch (e) {
@@ -622,48 +718,119 @@ function tryBlock(block) {
   }
 }
 
-function innerThrows(shouldThrow, block, expected, message) {
-  var details = '';
-
+async function waitForActual(block) {
   if (typeof block !== 'function') {
-    throw new errors.TypeError('ERR_INVALID_ARG_TYPE', 'block', 'function',
-                               block);
+    throw new errors.ERR_INVALID_ARG_TYPE('block', 'Function', block);
   }
 
-  if (typeof expected === 'string') {
-    message = expected;
-    expected = null;
+  // Return a rejected promise if `block` throws synchronously.
+  const resultPromise = block();
+  try {
+    await resultPromise;
+  } catch (e) {
+    return e;
+  }
+  return errors.NO_EXCEPTION_SENTINEL;
+}
+
+// Expected to throw an error.
+function expectsError(stackStartFn, actual, error, message) {
+  if (typeof error === 'string') {
+    if (arguments.length === 4) {
+      throw new errors.TypeError('ERR_INVALID_ARG_TYPE',
+                                 'error',
+                                 ['Function', 'RegExp'],
+                                 error);
+    }
+    message = error;
+    error = null;
   }
 
-  const actual = tryBlock(block);
-
-  if (shouldThrow === true) {
-    if (actual === undefined) {
-      if (expected && expected.name) {
-        details += ` (${expected.name})`;
-      }
-      details += message ? `: ${message}` : '.';
-      fail(actual, expected, `Missing expected exception${details}`, fail);
+  if (actual === undefined) {
+    let details = '';
+    if (error && error.name) {
+      details += ` (${error.name})`;
     }
-    if (expected && expectedException(actual, expected) === false) {
-      throw actual;
-    }
-  } else if (actual !== undefined) {
-    if (!expected || expectedException(actual, expected)) {
-      details = message ? `: ${message}` : '.';
-      fail(actual, expected, `Got unwanted exception${details}`, fail);
-    }
+    details += message ? `: ${message}` : '.';
+    const fnType = stackStartFn === rejects ? 'rejection' : 'exception';
+    innerFail({
+      actual,
+      expected: error,
+      operator: stackStartFn.name,
+      message: `Missing expected ${fnType}${details}`,
+      stackStartFn
+    });
+  }
+  if (error && expectedException(actual, error, message) === false) {
     throw actual;
   }
 }
 
-// Expected to throw an error.
-assert.throws = function throws(block, error, message) {
-  innerThrows(true, block, error, message);
-};
+function expectsNoError(stackStartFn, actual, error, message) {
+  if (actual === undefined)
+    return;
 
-assert.doesNotThrow = function doesNotThrow(block, error, message) {
-  innerThrows(false, block, error, message);
-};
+  if (typeof error === 'string') {
+    message = error;
+    error = null;
+  }
+
+  if (!error || expectedException(actual, error)) {
+    const details = message ? `: ${message}` : '.';
+    const fnType = stackStartFn === doesNotReject ? 'rejection' : 'exception';
+    innerFail({
+      actual,
+      expected: error,
+      operator: stackStartFn.name,
+      message: `Got unwanted ${fnType}${details}\n${actual.message}`,
+      stackStartFn
+    });
+  }
+  throw actual;
+}
+
+function throws(block, ...args) {
+  expectsError(throws, getActual(block), ...args);
+}
+
+assert.throws = throws;
+
+async function rejects(block, ...args) {
+  expectsError(rejects, await waitForActual(block), ...args);
+}
+
+assert.rejects = rejects;
+
+function doesNotThrow(block, ...args) {
+  expectsNoError(doesNotThrow, getActual(block), ...args);
+}
+
+assert.doesNotThrow = doesNotThrow;
+
+async function doesNotReject(block, ...args) {
+  expectsNoError(doesNotReject, await waitForActual(block), ...args);
+}
+
+assert.doesNotReject = doesNotReject;
 
 assert.ifError = function ifError(err) { if (err) throw err; };
+
+// Expose a strict only variant of assert
+function strict(value, message) {
+  if (!value) {
+    innerFail({
+      actual: value,
+      expected: true,
+      message,
+      operator: '==',
+      stackStartFn: strict
+    });
+  }
+}
+assert.strict = Object.assign(strict, assert, {
+  equal: assert.strictEqual,
+  deepEqual: assert.deepStrictEqual,
+  notEqual: assert.notStrictEqual,
+  notDeepEqual: assert.notDeepStrictEqual
+});
+assert.strict.strict = assert.strict;

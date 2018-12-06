@@ -80,7 +80,7 @@ class AssertionError extends Error {
     if (typeof options !== 'object' || options === null) {
       throw new exports.TypeError('ERR_INVALID_ARG_TYPE', 'options', 'object');
     }
-    var { actual, expected, message, operator, stackStartFunction } = options;
+    var { actual, expected, message, operator, stackStartFn } = options;
     if (message) {
       super(message);
     } else {
@@ -99,7 +99,7 @@ class AssertionError extends Error {
     this.actual = actual;
     this.expected = expected;
     this.operator = operator;
-    Error.captureStackTrace(this, stackStartFunction);
+    Error.captureStackTrace(this, stackStartFn);
   }
 }
 
@@ -311,6 +311,7 @@ E('ERR_HTTP2_INVALID_CONNECTION_HEADERS',
 E('ERR_HTTP2_INVALID_HEADER_VALUE', 'Invalid value "%s" for header "%s"');
 E('ERR_HTTP2_INVALID_INFO_STATUS',
   (code) => `Invalid informational status code: ${code}`);
+E('ERR_HTTP2_INVALID_ORIGIN', 'HTTP/2 ORIGIN frames require a valid origin');
 E('ERR_HTTP2_INVALID_PACKED_SETTINGS_LENGTH',
   'Packed settings length must be a multiple of six');
 E('ERR_HTTP2_INVALID_PSEUDOHEADER',
@@ -321,8 +322,12 @@ E('ERR_HTTP2_INVALID_SETTING_VALUE',
 E('ERR_HTTP2_INVALID_STREAM', 'The stream has been destroyed');
 E('ERR_HTTP2_MAX_PENDING_SETTINGS_ACK',
   (max) => `Maximum number of pending settings acknowledgements (${max})`);
+E('ERR_HTTP2_NESTED_PUSH',
+  'A push stream cannot initiate another push stream.', Error);
 E('ERR_HTTP2_NO_SOCKET_MANIPULATION',
   'HTTP/2 sockets should not be directly manipulated (e.g. read and written)');
+E('ERR_HTTP2_ORIGIN_LENGTH',
+  'HTTP/2 ORIGIN frames are limited to 16382 bytes');
 E('ERR_HTTP2_OUT_OF_STREAMS',
   'No stream ID is available because maximum stream ID has been reached');
 E('ERR_HTTP2_PAYLOAD_FORBIDDEN',
@@ -333,16 +338,23 @@ E('ERR_HTTP2_PSEUDOHEADER_NOT_ALLOWED', 'Cannot set HTTP/2 pseudo-headers');
 E('ERR_HTTP2_PUSH_DISABLED', 'HTTP/2 client has disabled push streams');
 E('ERR_HTTP2_SEND_FILE', 'Only regular files can be sent');
 E('ERR_HTTP2_SESSION_ERROR', 'Session closed with error code %s');
+E('ERR_HTTP2_SETTINGS_CANCEL', 'HTTP2 session settings canceled');
 E('ERR_HTTP2_SOCKET_BOUND',
   'The socket is already bound to an Http2Session');
+E('ERR_HTTP2_SOCKET_UNBOUND',
+  'The socket has been disconnected from the Http2Session');
 E('ERR_HTTP2_STATUS_101',
   'HTTP status code 101 (Switching Protocols) is forbidden in HTTP/2');
 E('ERR_HTTP2_STATUS_INVALID', 'Invalid status code: %s');
 E('ERR_HTTP2_STREAM_CANCEL', 'The pending stream has been canceled');
 E('ERR_HTTP2_STREAM_ERROR', 'Stream closed with error code %s');
 E('ERR_HTTP2_STREAM_SELF_DEPENDENCY', 'A stream cannot depend on itself');
-E('ERR_HTTP2_UNSUPPORTED_PROTOCOL',
-  (protocol) => `protocol "${protocol}" is unsupported.`);
+E('ERR_HTTP2_TRAILERS_ALREADY_SENT',
+  'Trailing headers have already been sent');
+E('ERR_HTTP2_TRAILERS_NOT_READY',
+  'Trailing headers cannot be sent until after the wantTrailers event is ' +
+  'emitted');
+E('ERR_HTTP2_UNSUPPORTED_PROTOCOL', 'protocol "%s" is unsupported.');
 E('ERR_HTTP_HEADERS_SENT',
   'Cannot render headers after they are sent to the client');
 E('ERR_HTTP_INVALID_CHAR', 'Invalid character in statusMessage.');

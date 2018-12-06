@@ -1,4 +1,4 @@
-/* Copyright Joyent, Inc. and other Node contributors. All rights reserved.
+/* Copyright libuv project contributors. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -19,7 +19,15 @@
  * IN THE SOFTWARE.
  */
 
-#include <assert.h>
+#ifndef UV_MVS_H
+#define UV_MVS_H
 
-#include "uv.h"
-#include "internal.h"
+#define UV_PLATFORM_SEM_T long
+
+#define UV_PLATFORM_LOOP_FIELDS                                               \
+  void* ep;                                                                   \
+
+#define UV_PLATFORM_FS_EVENT_FIELDS                                           \
+  char rfis_rftok[8];                                                         \
+
+#endif /* UV_MVS_H */

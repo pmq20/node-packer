@@ -37,11 +37,12 @@ const {
   _checkInvalidHeaderChar: checkInvalidHeaderChar
 } = require('_http_common');
 const { OutgoingMessage } = require('_http_outgoing');
-const { outHeadersKey, ondrain } = require('internal/http');
+const { outHeadersKey, ondrain, nowDate } = require('internal/http');
 const {
   defaultTriggerAsyncIdScope,
   getOrSetAsyncId
 } = require('internal/async_hooks');
+const is_reused_symbol = require('internal/freelist').symbols.is_reused_symbol;
 const { IncomingMessage } = require('_http_incoming');
 
 const kServerResponse = Symbol('ServerResponse');
@@ -295,6 +296,7 @@ function Server(options, requestListener) {
   this.keepAliveTimeout = 5000;
   this._pendingResponseData = 0;
   this.maxHeadersCount = null;
+  this.headersTimeout = 40 * 1000; // 40 seconds
 }
 util.inherits(Server, net.Server);
 
@@ -331,8 +333,11 @@ function connectionListenerInternal(server, socket) {
   socket.on('timeout', socketOnTimeout);
 
   var parser = parsers.alloc();
-  parser.reinitialize(HTTPParser.REQUEST);
+  parser.reinitialize(HTTPParser.REQUEST, parser[is_reused_symbol]);
   parser.socket = socket;
+
+  // We are starting to wait for our headers.
+  parser.parsingHeadersStart = nowDate();
   socket.parser = parser;
   parser.incoming = null;
 
@@ -436,6 +441,7 @@ function socketOnClose(socket, state) {
 function abortIncoming(incoming) {
   while (incoming.length) {
     var req = incoming.shift();
+    req.aborted = true;
     req.emit('aborted');
     req.emit('close');
   }
@@ -473,7 +479,20 @@ function socketOnData(server, socket, parser, state, d) {
 
 function onParserExecute(server, socket, parser, state, ret) {
   socket._unrefTimer();
+  const start = parser.parsingHeadersStart;
   debug('SERVER socketOnParserExecute %d', ret);
+
+  // If we have not parsed the headers, destroy the socket
+  // after server.headersTimeout to protect from DoS attacks.
+  // start === 0 means that we have parsed headers.
+  if (start !== 0 && nowDate() - start > server.headersTimeout) {
+    const serverTimeout = server.emit('timeout', socket);
+
+    if (!serverTimeout)
+      socket.destroy();
+    return;
+  }
+
   onParserExecuteCommon(server, socket, parser, state, ret, undefined);
 }
 
@@ -576,6 +595,9 @@ function resOnFinish(req, res, socket, state, server) {
 // to the user.
 function parserOnIncoming(server, socket, state, req, keepAlive) {
   resetSocketTimeout(server, socket, state);
+
+  // Set to zero to communicate that we have finished parsing.
+  socket.parser.parsingHeadersStart = 0;
 
   state.incoming.push(req);
 

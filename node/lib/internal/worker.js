@@ -12,7 +12,6 @@ const {
   ERR_WORKER_UNSUPPORTED_EXTENSION,
 } = require('internal/errors').codes;
 
-const { internalBinding } = require('internal/bootstrap/loaders');
 const { MessagePort, MessageChannel } = internalBinding('messaging');
 const {
   handle_onclose: handleOnCloseSymbol,
@@ -72,7 +71,6 @@ Object.setPrototypeOf(MessagePort.prototype, EventEmitter.prototype);
 // Finally, purge methods we don't want to be public.
 delete MessagePort.prototype.stop;
 delete MessagePort.prototype.drain;
-delete MessagePort.prototype.hasRef;
 MessagePort.prototype.ref = MessagePortPrototype.ref;
 MessagePort.prototype.unref = MessagePortPrototype.unref;
 

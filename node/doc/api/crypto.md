@@ -848,7 +848,7 @@ const crypto = require('crypto');
 const alice = crypto.createECDH('secp256k1');
 const bob = crypto.createECDH('secp256k1');
 
-// Note: This is a shortcut way to specify one of Alice's previous private
+// This is a shortcut way of specifying one of Alice's previous private
 // keys. It would be unwise to use such a predictable private key in a real
 // application.
 alice.setPrivateKey(
@@ -1298,6 +1298,8 @@ added: v0.9.3
 deprecated: v10.0.0
 -->
 
+> Stability: 0 - Deprecated
+
 The default encoding to use for functions that can take either strings
 or [buffers][`Buffer`]. The default value is `'buffer'`, which makes methods
 default to [`Buffer`][] objects.
@@ -1314,6 +1316,8 @@ This property is deprecated.
 added: v6.0.0
 deprecated: v10.0.0
 -->
+
+> Stability: 0 - Deprecated
 
 Property for checking and controlling whether a FIPS compliant crypto provider
 is currently in use. Setting to true requires a FIPS build of Node.js.
@@ -1551,6 +1555,7 @@ changes:
 * `generator` {number | string | Buffer | TypedArray | DataView} **Default:**
   `2`
 * `generatorEncoding` {string}
+* Returns: {DiffieHellman}
 
 Creates a `DiffieHellman` key exchange object using the supplied `prime` and an
 optional specific `generator`.
@@ -1574,6 +1579,7 @@ added: v0.5.0
 * `primeLength` {number}
 * `generator` {number | string | Buffer | TypedArray | DataView} **Default:**
   `2`
+* Returns: {DiffieHellman}
 
 Creates a `DiffieHellman` key exchange object and generates a prime of
 `primeLength` bits using an optional specific numeric `generator`.
@@ -1584,6 +1590,7 @@ If `generator` is not specified, the value `2` is used.
 added: v0.11.14
 -->
 * `curveName` {string}
+* Returns: {ECDH}
 
 Creates an Elliptic Curve Diffie-Hellman (`ECDH`) key exchange object using a
 predefined curve specified by the `curveName` string. Use
@@ -1836,7 +1843,7 @@ console.log(curves); // ['Oakley-EC2N-3', 'Oakley-EC2N-4', ...]
 added: v0.7.5
 -->
 * `groupName` {string}
-* Returns: {Object}
+* Returns: {DiffieHellman}
 
 Creates a predefined `DiffieHellman` key exchange object. The
 supported groups are: `'modp1'`, `'modp2'`, `'modp5'` (defined in

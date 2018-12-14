@@ -46,6 +46,11 @@
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {https.Server}",
+                    "name": "return",
+                    "type": "https.Server"
+                  },
                   "params": [
                     {
                       "textRaw": "`callback` {Function}",
@@ -81,6 +86,11 @@
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {https.Server}",
+                    "name": "return",
+                    "type": "https.Server"
+                  },
                   "params": [
                     {
                       "textRaw": "`msecs` {number} **Default:** `120000` (2 minutes)",
@@ -158,6 +168,11 @@
           },
           "signatures": [
             {
+              "return": {
+                "textRaw": "Returns: {https.Server}",
+                "name": "return",
+                "type": "https.Server"
+              },
               "params": [
                 {
                   "textRaw": "`options` {Object} Accepts `options` from [`tls.createServer()`][], [`tls.createSecureContext()`][] and [`http.createServer()`][].",

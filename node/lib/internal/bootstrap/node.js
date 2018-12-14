@@ -28,13 +28,6 @@
   const isMainThread = internalBinding('worker').threadId === 0;
 
   function startup() {
-    const EventEmitter = NativeModule.require('events');
-
-    const origProcProto = Object.getPrototypeOf(process);
-    Object.setPrototypeOf(origProcProto, EventEmitter.prototype);
-
-    EventEmitter.call(process);
-
     setupProcessObject();
 
     // Do this good and early, since it handles errors.
@@ -120,13 +113,18 @@
       NativeModule.require('internal/inspector_async_hook').setup();
     }
 
-    const options = internalBinding('options');
-    if (options.getOptions('--help')) {
+    const { getOptions } = internalBinding('options');
+    const helpOption = getOptions('--help');
+    const completionBashOption = getOptions('--completion-bash');
+    const experimentalModulesOption = getOptions('--experimental-modules');
+    const experimentalVMModulesOption = getOptions('--experimental-vm-modules');
+    const experimentalWorkerOption = getOptions('--experimental-worker');
+    if (helpOption) {
       NativeModule.require('internal/print_help').print(process.stdout);
       return;
     }
 
-    if (options.getOptions('--completion-bash')) {
+    if (completionBashOption) {
       NativeModule.require('internal/bash_completion').print(process.stdout);
       return;
     }
@@ -144,7 +142,7 @@
       setupGlobalURL();
     }
 
-    if (process.binding('config').experimentalWorker) {
+    if (experimentalWorkerOption) {
       setupDOMException();
     }
 
@@ -176,9 +174,8 @@
         'DeprecationWarning', 'DEP0062', startup, true);
     }
 
-    if (process.binding('config').experimentalModules ||
-        process.binding('config').experimentalVMModules) {
-      if (process.binding('config').experimentalModules) {
+    if (experimentalModulesOption || experimentalVMModulesOption) {
+      if (experimentalModulesOption) {
         process.emitWarning(
           'The ESM module loader is experimental.',
           'ExperimentalWarning', undefined);
@@ -331,6 +328,11 @@
   }
 
   function setupProcessObject() {
+    const EventEmitter = NativeModule.require('events');
+    const origProcProto = Object.getPrototypeOf(process);
+    Object.setPrototypeOf(origProcProto, EventEmitter.prototype);
+    EventEmitter.call(process);
+
     _setupProcessObject(pushValueToArray);
 
     function pushValueToArray() {
@@ -504,7 +506,9 @@
           const { kExpandStackSymbol } = NativeModule.require('internal/util');
           if (typeof er[kExpandStackSymbol] === 'function')
             er[kExpandStackSymbol]();
-        } catch (er) {}
+        } catch {
+          // Nothing to be done about it at this point.
+        }
         return false;
       }
 
@@ -548,7 +552,7 @@
   function tryGetCwd(path) {
     try {
       return process.cwd();
-    } catch (ex) {
+    } catch {
       // getcwd(3) can fail if the current working directory has been deleted.
       // Fall back to the directory name of the (absolute) executable path.
       // It's not really correct but what are the alternatives?

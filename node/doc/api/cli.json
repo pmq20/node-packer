@@ -196,7 +196,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Set the <code>host:port</code> to be used when the inspector is activated.\nUseful when activating the inspector by sending the <code>SIGUSR1</code> signal.</p>\n<p>Default host is <code>127.0.0.1</code>.</p>",
+              "desc": "<p>Set the <code>host:port</code> to be used when the inspector is activated.\nUseful when activating the inspector by sending the <code>SIGUSR1</code> signal.</p>\n<p>Default host is <code>127.0.0.1</code>.</p>\n<p>See the <a href=\"#inspector_security\">security warning</a> below regarding the <code>host</code>\nparameter usage.</p>",
               "type": "module",
               "displayName": "`--inspect-port=[host:]port`"
             },
@@ -209,14 +209,29 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Activate inspector on <code>host:port</code>. Default is <code>127.0.0.1:9229</code>.</p>\n<p>V8 inspector integration allows tools such as Chrome DevTools and IDEs to debug\nand profile Node.js instances. The tools attach to Node.js instances via a\ntcp port and communicate using the <a href=\"https://chromedevtools.github.io/devtools-protocol/\">Chrome DevTools Protocol</a>.</p>",
+              "desc": "<p>Activate inspector on <code>host:port</code>. Default is <code>127.0.0.1:9229</code>.</p>\n<p>V8 inspector integration allows tools such as Chrome DevTools and IDEs to debug\nand profile Node.js instances. The tools attach to Node.js instances via a\ntcp port and communicate using the <a href=\"https://chromedevtools.github.io/devtools-protocol/\">Chrome DevTools Protocol</a>.</p>\n<p><a id=\"inspector_security\"></a></p>",
+              "modules": [
+                {
+                  "textRaw": "Warning: binding inspector to a public IP:port combination is insecure",
+                  "name": "warning:_binding_inspector_to_a_public_ip:port_combination_is_insecure",
+                  "desc": "<p>Binding the inspector to a public IP (including <code>0.0.0.0</code>) with an open port is\ninsecure, as it allows external hosts to connect to the inspector and perform\na <a href=\"https://www.owasp.org/index.php/Code_Injection\">remote code execution</a> attack.</p>\n<p>If you specify a host, make sure that at least one of the following is true:\neither the host is not public, or the port is properly firewalled to disallow\nunwanted connections.</p>\n<p><strong>More specifically, <code>--inspect=0.0.0.0</code> is insecure if the port (<code>9229</code> by\ndefault) is not firewall-protected.</strong></p>\n<p>See the <a href=\"https://nodejs.org/en/docs/guides/debugging-getting-started/#security-implications\">debugging security implications</a> section for more information.</p>",
+                  "type": "module",
+                  "displayName": "Warning: binding inspector to a public IP:port combination is insecure"
+                }
+              ],
               "type": "module",
               "displayName": "`--inspect[=[host:]port]`"
             },
             {
               "textRaw": "`--loader=file`",
               "name": "`--loader=file`",
-              "desc": "<!--\nadded: v9.0.0\n-->\n<p>Specify the <code>file</code> of the custom <a href=\"esm.html#esm_loader_hooks\">experimental ECMAScript Module</a> loader.</p>",
+              "meta": {
+                "added": [
+                  "v9.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Specify the <code>file</code> of the custom <a href=\"esm.html#esm_loader_hooks\">experimental ECMAScript Module</a> loader.</p>",
               "type": "module",
               "displayName": "`--loader=file`"
             },
@@ -698,7 +713,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>When set, the well known \"root\" CAs (like VeriSign) will be extended with the\nextra certificates in <code>file</code>. The file should consist of one or more trusted\ncertificates in PEM format. A message will be emitted (once) with\n<a href=\"process.html#process_process_emitwarning_warning_type_code_ctor\"><code>process.emitWarning()</code></a> if the file is missing or\nmalformed, but any errors are otherwise ignored.</p>\n<p>Note that neither the well known nor extra certificates are used when the <code>ca</code>\noptions property is explicitly specified for a TLS or HTTPS client or server.</p>",
+              "desc": "<p>When set, the well known \"root\" CAs (like VeriSign) will be extended with the\nextra certificates in <code>file</code>. The file should consist of one or more trusted\ncertificates in PEM format. A message will be emitted (once) with\n<a href=\"process.html#process_process_emitwarning_warning_type_code_ctor\"><code>process.emitWarning()</code></a> if the file is missing or\nmalformed, but any errors are otherwise ignored.</p>\n<p>Note that neither the well known nor extra certificates are used when the <code>ca</code>\noptions property is explicitly specified for a TLS or HTTPS client or server.</p>\n<p>This environment variable is ignored when <code>node</code> runs as setuid root or\nhas Linux file capabilities set.</p>",
               "type": "module",
               "displayName": "`NODE_EXTRA_CA_CERTS=file`"
             },
@@ -737,7 +752,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>A space-separated list of command line options. <code>options...</code> are interpreted as\nif they had been specified on the command line before the actual command line\n(so they can be overridden). Node.js will exit with an error if an option\nthat is not allowed in the environment is used, such as <code>-p</code> or a script file.</p>\n<p>Node options that are allowed are:</p>\n<ul>\n<li><code>--enable-fips</code></li>\n<li><code>--experimental-modules</code></li>\n<li><code>--experimental-repl-await</code></li>\n<li><code>--experimental-vm-modules</code></li>\n<li><code>--experimental-worker</code></li>\n<li><code>--force-fips</code></li>\n<li><code>--icu-data-dir</code></li>\n<li><code>--inspect</code></li>\n<li><code>--inspect-brk</code></li>\n<li><code>--inspect-port</code></li>\n<li><code>--loader</code></li>\n<li><code>--napi-modules</code></li>\n<li><code>--no-deprecation</code></li>\n<li><code>--no-force-async-hooks-checks</code></li>\n<li><code>--no-warnings</code></li>\n<li><code>--openssl-config</code></li>\n<li><code>--pending-deprecation</code></li>\n<li><code>--redirect-warnings</code></li>\n<li><code>--require</code>, <code>-r</code></li>\n<li><code>--throw-deprecation</code></li>\n<li><code>--title</code></li>\n<li><code>--tls-cipher-list</code></li>\n<li><code>--trace-deprecation</code></li>\n<li><code>--trace-event-categories</code></li>\n<li><code>--trace-event-file-pattern</code></li>\n<li><code>--trace-events-enabled</code></li>\n<li><code>--trace-sync-io</code></li>\n<li><code>--trace-warnings</code></li>\n<li><code>--track-heap-objects</code></li>\n<li><code>--use-bundled-ca</code></li>\n<li><code>--use-openssl-ca</code></li>\n<li><code>--v8-pool-size</code></li>\n<li><code>--zero-fill-buffers</code></li>\n</ul>\n<p>V8 options that are allowed are:</p>\n<ul>\n<li><code>--abort-on-uncaught-exception</code></li>\n<li><code>--max-old-space-size</code></li>\n<li><code>--perf-basic-prof</code></li>\n<li><code>--perf-prof</code></li>\n<li><code>--stack-trace-limit</code></li>\n</ul>",
+              "desc": "<p>A space-separated list of command line options. <code>options...</code> are interpreted as\nif they had been specified on the command line before the actual command line\n(so they can be overridden). Node.js will exit with an error if an option\nthat is not allowed in the environment is used, such as <code>-p</code> or a script file.</p>\n<p>Node.js options that are allowed are:</p>\n<ul>\n<li><code>--enable-fips</code></li>\n<li><code>--experimental-modules</code></li>\n<li><code>--experimental-repl-await</code></li>\n<li><code>--experimental-vm-modules</code></li>\n<li><code>--experimental-worker</code></li>\n<li><code>--force-fips</code></li>\n<li><code>--icu-data-dir</code></li>\n<li><code>--inspect</code></li>\n<li><code>--inspect-brk</code></li>\n<li><code>--inspect-port</code></li>\n<li><code>--loader</code></li>\n<li><code>--napi-modules</code></li>\n<li><code>--no-deprecation</code></li>\n<li><code>--no-force-async-hooks-checks</code></li>\n<li><code>--no-warnings</code></li>\n<li><code>--openssl-config</code></li>\n<li><code>--pending-deprecation</code></li>\n<li><code>--redirect-warnings</code></li>\n<li><code>--require</code>, <code>-r</code></li>\n<li><code>--throw-deprecation</code></li>\n<li><code>--title</code></li>\n<li><code>--tls-cipher-list</code></li>\n<li><code>--trace-deprecation</code></li>\n<li><code>--trace-event-categories</code></li>\n<li><code>--trace-event-file-pattern</code></li>\n<li><code>--trace-events-enabled</code></li>\n<li><code>--trace-sync-io</code></li>\n<li><code>--trace-warnings</code></li>\n<li><code>--track-heap-objects</code></li>\n<li><code>--use-bundled-ca</code></li>\n<li><code>--use-openssl-ca</code></li>\n<li><code>--v8-pool-size</code></li>\n<li><code>--zero-fill-buffers</code></li>\n</ul>\n<p>V8 options that are allowed are:</p>\n<ul>\n<li><code>--abort-on-uncaught-exception</code></li>\n<li><code>--max-old-space-size</code></li>\n<li><code>--perf-basic-prof</code></li>\n<li><code>--perf-prof</code></li>\n<li><code>--stack-trace-limit</code></li>\n</ul>",
               "type": "module",
               "displayName": "`NODE_OPTIONS=options...`"
             },

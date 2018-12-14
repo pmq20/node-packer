@@ -599,13 +599,13 @@ The type of the return value depends on the arguments provided to
 ```js
 request.setHeader('content-type', 'text/html');
 request.setHeader('Content-Length', Buffer.byteLength(body));
-request.setHeader('Set-Cookie', ['type=ninja', 'language=javascript']);
+request.setHeader('Cookie', ['type=ninja', 'language=javascript']);
 const contentType = request.getHeader('Content-Type');
 // contentType is 'text/html'
 const contentLength = request.getHeader('Content-Length');
 // contentLength is of type number
-const setCookie = request.getHeader('set-cookie');
-// setCookie is of type string[]
+const cookie = request.getHeader('Cookie');
+// cookie is of type string[]
 ```
 
 ### request.maxHeadersCount
@@ -649,7 +649,7 @@ request.setHeader('Content-Type', 'application/json');
 or
 
 ```js
-request.setHeader('Set-Cookie', ['type=ninja', 'language=javascript']);
+request.setHeader('Cookie', ['type=ninja', 'language=javascript']);
 ```
 
 ### request.setNoDelay([noDelay])
@@ -1515,6 +1515,34 @@ added: v10.1.0
 
 The `message.aborted` property will be `true` if the request has
 been aborted.
+
+### message.complete
+<!-- YAML
+added: v0.3.0
+-->
+
+* {boolean}
+
+The `message.complete` property will be `true` if a complete HTTP message has
+been received and successfully parsed.
+
+This property is particularly useful as a means of determining if a client or
+server fully transmitted a message before a connection was terminated:
+
+```js
+const req = http.request({
+  host: '127.0.0.1',
+  port: 8080,
+  method: 'POST'
+}, (res) => {
+  res.resume();
+  res.on('end', () => {
+    if (!res.complete)
+      console.error(
+        'The connection was terminated while the message was still being sent');
+  });
+});
+```
 
 ### message.destroy([error])
 <!-- YAML

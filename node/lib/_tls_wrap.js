@@ -32,9 +32,9 @@ const common = require('_tls_common');
 const { StreamWrap } = require('_stream_wrap');
 const { Buffer } = require('buffer');
 const debug = util.debuglog('tls');
-const tls_wrap = process.binding('tls_wrap');
-const { TCP, constants: TCPConstants } = process.binding('tcp_wrap');
-const { Pipe, constants: PipeConstants } = process.binding('pipe_wrap');
+const { TCP, constants: TCPConstants } = internalBinding('tcp_wrap');
+const tls_wrap = internalBinding('tls_wrap');
+const { Pipe, constants: PipeConstants } = internalBinding('pipe_wrap');
 const { owner_symbol } = require('internal/async_hooks').symbols;
 const {
   SecureContext: NativeSecureContext
@@ -250,8 +250,10 @@ function onocspresponse(resp) {
 function onerror(err) {
   const owner = this[owner_symbol];
 
-  if (owner._writableState.errorEmitted)
+  if (owner._hadError)
     return;
+
+  owner._hadError = true;
 
   // Destroy socket if error happened before handshake's finish
   if (!owner._secureEstablished) {
@@ -267,8 +269,6 @@ function onerror(err) {
     // Throw error
     owner._emitTLSError(err);
   }
-
-  owner._writableState.errorEmitted = true;
 }
 
 function initRead(tls, wrapped) {

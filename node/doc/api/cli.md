@@ -144,6 +144,9 @@ Useful when activating the inspector by sending the `SIGUSR1` signal.
 
 Default host is `127.0.0.1`.
 
+See the [security warning](#inspector_security) below regarding the `host`
+parameter usage.
+
 ### `--inspect[=[host:]port]`
 <!-- YAML
 added: v6.3.0
@@ -155,8 +158,24 @@ V8 inspector integration allows tools such as Chrome DevTools and IDEs to debug
 and profile Node.js instances. The tools attach to Node.js instances via a
 tcp port and communicate using the [Chrome DevTools Protocol][].
 
+<a id="inspector_security"></a>
+#### Warning: binding inspector to a public IP:port combination is insecure
+
+Binding the inspector to a public IP (including `0.0.0.0`) with an open port is
+insecure, as it allows external hosts to connect to the inspector and perform
+a [remote code execution][] attack.
+
+If you specify a host, make sure that at least one of the following is true:
+either the host is not public, or the port is properly firewalled to disallow
+unwanted connections.
+
+**More specifically, `--inspect=0.0.0.0` is insecure if the port (`9229` by
+default) is not firewall-protected.**
+
+See the [debugging security implications][] section for more information.
+
 ### `--loader=file`
-<!--
+<!-- YAML
 added: v9.0.0
 -->
 
@@ -525,6 +544,9 @@ malformed, but any errors are otherwise ignored.
 Note that neither the well known nor extra certificates are used when the `ca`
 options property is explicitly specified for a TLS or HTTPS client or server.
 
+This environment variable is ignored when `node` runs as setuid root or
+has Linux file capabilities set.
+
 ### `NODE_ICU_DATA=file`
 <!-- YAML
 added: v0.11.15
@@ -550,7 +572,7 @@ if they had been specified on the command line before the actual command line
 (so they can be overridden). Node.js will exit with an error if an option
 that is not allowed in the environment is used, such as `-p` or a script file.
 
-Node options that are allowed are:
+Node.js options that are allowed are:
 - `--enable-fips`
 - `--experimental-modules`
 - `--experimental-repl-await`
@@ -738,6 +760,8 @@ greater than `4` (its current default value). For more information, see the
 [ScriptCoverage]: https://chromedevtools.github.io/devtools-protocol/tot/Profiler#type-ScriptCoverage
 [V8 JavaScript code coverage]: https://v8project.blogspot.com/2017/12/javascript-code-coverage.html
 [debugger]: debugger.html
+[debugging security implications]: https://nodejs.org/en/docs/guides/debugging-getting-started/#security-implications
 [emit_warning]: process.html#process_process_emitwarning_warning_type_code_ctor
 [experimental ECMAScript Module]: esm.html#esm_loader_hooks
 [libuv threadpool documentation]: http://docs.libuv.org/en/latest/threadpool.html
+[remote code execution]: https://www.owasp.org/index.php/Code_Injection

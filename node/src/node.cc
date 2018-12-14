@@ -73,6 +73,10 @@
 #include "../deps/v8/src/third_party/vtune/v8-vtune.h"
 #endif
 
+#ifdef NODE_ENABLE_LARGE_CODE_PAGES
+#include "large_pages/node_large_page.h"
+#endif
+
 #include <errno.h>
 #include <fcntl.h>  // _O_RDWR
 #include <limits.h>  // PATH_MAX
@@ -236,24 +240,7 @@ class NodeTraceStateObserver :
     trace_process->SetString("napi", node_napi_version);
 
 #if HAVE_OPENSSL
-    // Stupid code to slice out the version string.
-    {  // NOLINT(whitespace/braces)
-      size_t i, j, k;
-      int c;
-      for (i = j = 0, k = sizeof(OPENSSL_VERSION_TEXT) - 1; i < k; ++i) {
-        c = OPENSSL_VERSION_TEXT[i];
-        if ('0' <= c && c <= '9') {
-          for (j = i + 1; j < k; ++j) {
-            c = OPENSSL_VERSION_TEXT[j];
-            if (c == ' ')
-              break;
-          }
-          break;
-        }
-      }
-      trace_process->SetString("openssl",
-                              std::string(&OPENSSL_VERSION_TEXT[i], j - i));
-    }
+    trace_process->SetString("openssl", crypto::GetOpenSSLVersion());
 #endif
     trace_process->EndDictionary();
 
@@ -292,19 +279,22 @@ static struct {
 #if NODE_USE_V8_PLATFORM
   void Initialize(int thread_pool_size) {
     tracing_agent_.reset(new tracing::Agent());
+    node::tracing::TraceEventHelper::SetAgent(tracing_agent_.get());
     auto controller = tracing_agent_->GetTracingController();
     controller->AddTraceStateObserver(new NodeTraceStateObserver(controller));
-    tracing::TraceEventHelper::SetTracingController(controller);
     StartTracingAgent();
+    // Tracing must be initialized before platform threads are created.
     platform_ = new NodePlatform(thread_pool_size, controller);
     V8::InitializePlatform(platform_);
   }
 
   void Dispose() {
-    tracing_agent_.reset(nullptr);
     platform_->Shutdown();
     delete platform_;
     platform_ = nullptr;
+    // Destroy tracing after the platform (and platform threads) have been
+    // stopped.
+    tracing_agent_.reset(nullptr);
   }
 
   void DrainVMTasks(Isolate* isolate) {
@@ -1039,14 +1029,14 @@ static MaybeLocal<Value> ExecuteString(Environment* env,
 }
 
 
-NO_RETURN void Abort() {
+[[noreturn]] void Abort() {
   DumpBacktrace(stderr);
   fflush(stderr);
   ABORT_NO_BACKTRACE();
 }
 
 
-NO_RETURN void Assert(const char* const (*args)[4]) {
+[[noreturn]] void Assert(const char* const (*args)[4]) {
   auto filename = (*args)[0];
   auto linenum = (*args)[1];
   auto message = (*args)[2];
@@ -1406,7 +1396,7 @@ static void OnFatalError(const char* location, const char* message) {
 }
 
 
-NO_RETURN void FatalError(const char* location, const char* message) {
+[[noreturn]] void FatalError(const char* location, const char* message) {
   OnFatalError(location, message);
   // to suppress compiler warning
   ABORT();
@@ -1446,9 +1436,8 @@ void FatalException(Isolate* isolate,
     fatal_try_catch.SetVerbose(false);
 
     // This will return true if the JS layer handled it, false otherwise
-    Local<Value> caught =
-        fatal_exception_function.As<Function>()
-            ->Call(process_object, 1, &error);
+    MaybeLocal<Value> caught = fatal_exception_function.As<Function>()->Call(
+        env->context(), process_object, 1, &error);
 
     if (fatal_try_catch.HasTerminated())
       return;
@@ -1457,7 +1446,7 @@ void FatalException(Isolate* isolate,
       // The fatal exception function threw, so we must exit
       ReportException(env, fatal_try_catch);
       exit(7);
-    } else if (caught->IsFalse()) {
+    } else if (caught.ToLocalChecked()->IsFalse()) {
       ReportException(env, error, message);
 
       // fatal_exception_function call before may have set a new exit code ->
@@ -1814,26 +1803,10 @@ void SetupProcessObject(Environment* env,
       FIXED_ONE_BYTE_STRING(env->isolate(), node_napi_version));
 
 #if HAVE_OPENSSL
-  // Stupid code to slice out the version string.
-  {  // NOLINT(whitespace/braces)
-    size_t i, j, k;
-    int c;
-    for (i = j = 0, k = sizeof(OPENSSL_VERSION_TEXT) - 1; i < k; ++i) {
-      c = OPENSSL_VERSION_TEXT[i];
-      if ('0' <= c && c <= '9') {
-        for (j = i + 1; j < k; ++j) {
-          c = OPENSSL_VERSION_TEXT[j];
-          if (c == ' ')
-            break;
-        }
-        break;
-      }
-    }
-    READONLY_PROPERTY(
-        versions,
-        "openssl",
-        OneByteString(env->isolate(), &OPENSSL_VERSION_TEXT[i], j - i));
-  }
+  READONLY_PROPERTY(
+      versions,
+      "openssl",
+      OneByteString(env->isolate(), crypto::GetOpenSSLVersion().c_str()));
 #endif
 
   // process.arch
@@ -2907,7 +2880,7 @@ MultiIsolatePlatform* GetMainThreadMultiIsolatePlatform() {
 
 MultiIsolatePlatform* CreatePlatform(
     int thread_pool_size,
-    TracingController* tracing_controller) {
+    node::tracing::TracingController* tracing_controller) {
   return new NodePlatform(thread_pool_size, tracing_controller);
 }
 
@@ -3090,6 +3063,14 @@ int Start(int argc, char** argv) {
   performance::performance_node_start = PERFORMANCE_NOW();
 
   CHECK_GT(argc, 0);
+
+#ifdef NODE_ENABLE_LARGE_CODE_PAGES
+  if (node::IsLargePagesEnabled()) {
+    if (node::MapStaticCodeToLargePages() != 0) {
+      fprintf(stderr, "Reverting to default page size\n");
+    }
+  }
+#endif
 
   // Hack around with the argv pointer. Used for process.title = "blah".
   argv = uv_setup_args(argc, argv);

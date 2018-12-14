@@ -133,7 +133,7 @@
                   "params": []
                 }
               ],
-              "desc": "<p>Disables further sending of messages on either side of the connection.\nThis method can be called once you know that no further communication\nwill happen over this <code>MessagePort</code>.</p>"
+              "desc": "<p>Disables further sending of messages on either side of the connection.\nThis method can be called when no further communication will happen over this\n<code>MessagePort</code>.</p>"
             },
             {
               "textRaw": "port.postMessage(value[, transferList])",
@@ -382,7 +382,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Stop all JavaScript execution in the worker thread as soon as possible.\n<code>callback</code> is an optional function that is invoked once this operation is known\nto have completed.</p>\n<p><strong>Warning</strong>: Currently, not all code in the internals of Node.js is prepared to\nexpect termination at arbitrary points in time and may crash if it encounters\nthat condition. Consequently, you should currently only call <code>.terminate()</code> if\nit is known that the Worker thread is not accessing Node.js core modules other\nthan what is exposed in the <code>worker</code> module.</p>"
+              "desc": "<p>Stop all JavaScript execution in the worker thread as soon as possible.\n<code>callback</code> is an optional function that is invoked once this operation is known\nto have completed.</p>\n<p><strong>Warning</strong>: Currently, not all code in the internals of Node.js is prepared to\nexpect termination at arbitrary points in time and may crash if it encounters\nthat condition. Consequently, only call <code>.terminate()</code> if it is known that the\nWorker thread is not accessing Node.js core modules other than what is exposed\nin the <code>worker</code> module.</p>"
             },
             {
               "textRaw": "worker.unref()",

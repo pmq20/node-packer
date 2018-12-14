@@ -28,7 +28,7 @@ const {
 const { isArrayBufferView } = require('internal/util/types');
 const debug = util.debuglog('child_process');
 const { Buffer } = require('buffer');
-const { Pipe, constants: PipeConstants } = process.binding('pipe_wrap');
+const { Pipe, constants: PipeConstants } = internalBinding('pipe_wrap');
 const {
   ERR_INVALID_ARG_VALUE,
   ERR_CHILD_PROCESS_IPC_REQUIRED,
@@ -67,6 +67,11 @@ exports.fork = function fork(modulePath /* , args, options */) {
   var pos = 1;
   if (pos < arguments.length && Array.isArray(arguments[pos])) {
     args = arguments[pos++];
+  }
+
+  if (pos < arguments.length &&
+      (arguments[pos] === undefined || arguments[pos] === null)) {
+    pos++;
   }
 
   if (pos < arguments.length && arguments[pos] != null) {

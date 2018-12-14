@@ -1,11 +1,5 @@
 # Node.js Changelog
 
-<!--lint disable maximum-line-length-->
-
-To make the changelog easier to both use and manage, it has been split into
-multiple files organized according to significant major and minor Node.js
-release lines.
-
 Select a Node.js version below to view the changelog history:
 
 * [Node.js 10](doc/changelogs/CHANGELOG_V10.md) — **Long Term Support**
@@ -23,6 +17,7 @@ Select a Node.js version below to view the changelog history:
 Please use the following table to find the changelog for a specific Node.js
 release.
 
+<!--lint disable maximum-line-length-->
 <table>
 <tr>
   <th title="Current"><a href="doc/changelogs/CHANGELOG_V10.md">10</a><sup>Current</sup></th>
@@ -31,7 +26,8 @@ release.
 </tr>
 <tr>
     <td valign="top">
-<b><a href="doc/changelogs/CHANGELOG_V10.md#10.14.1">10.14.1</a></b><br/>
+<b><a href="doc/changelogs/CHANGELOG_V10.md#10.14.2">10.14.2</a></b><br/>
+<a href="doc/changelogs/CHANGELOG_V10.md#10.14.1">10.14.1</a><br/>
 <a href="doc/changelogs/CHANGELOG_V10.md#10.14.0">10.14.0</a><br/>
 <a href="doc/changelogs/CHANGELOG_V10.md#10.13.0">10.13.0</a><br/>
 <a href="doc/changelogs/CHANGELOG_V10.md#10.12.0">10.12.0</a><br/>
@@ -119,10 +115,9 @@ release.
 
 ### Notes
 
-* Release streams marked with `LTS` are currently covered by the
-  [Node.js Long Term Support plan](https://github.com/nodejs/Release).
-* Release versions displayed in **bold** text represent the most
-  recent actively supported release.
+* The [Node.js Long Term Support plan](https://github.com/nodejs/Release) covers
+  LTS releases.
+* Release versions in **bold** text are the most recent supported releases.
 
 ----
 ----

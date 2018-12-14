@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>URL | Node.js v10.14.1 Documentation</title>
+  <title>URL | Node.js v10.14.2 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -74,13 +74,12 @@
 <div class="line"></div>
 <ul>
 <li><a href="https://github.com/nodejs/node" class="nav-https-github-com-nodejs-node">GitHub Repo &#x26; Issue Tracker</a></li>
-<li><a href="https://groups.google.com/forum/#!forum/nodejs" class="nav-https-groups-google-com-forum-forum-nodejs">Mailing List</a></li>
 </ul>
     </div>
 
     <div id="column1" data-id="url" class="interior">
       <header>
-        <h1>Node.js v10.14.1 Documentation</h1>
+        <h1>Node.js v10.14.2 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -95,7 +94,8 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v10.x/api/url.html">10.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v11.x/api/url.html">11.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v10.x/api/url.html">10.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v9.x/api/url.html">9.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v8.x/api/url.html">8.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v7.x/api/url.html">7.x</a></li>
@@ -232,38 +232,38 @@ Node.js specific, and a newer API that implements the same
 backwards compatibility with existing applications. New application code
 should use the WHATWG API.</p>
 <p>A comparison between the WHATWG and Legacy APIs is provided below. Above the URL
-<code>'http://user:pass@sub.host.com:8080/p/a/t/h?query=string#hash'</code>, properties of
-an object returned by the legacy <code>url.parse()</code> are shown. Below it are
+<code>'http://user:pass@sub.example.com:8080/p/a/t/h?query=string#hash'</code>, properties
+of an object returned by the legacy <code>url.parse()</code> are shown. Below it are
 properties of a WHATWG <code>URL</code> object.</p>
 <p>WHATWG URL's <code>origin</code> property includes <code>protocol</code> and <code>host</code>, but not
 <code>username</code> or <code>password</code>.</p>
-<pre><code class="language-txt">┌─────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                            href                                             │
-├──────────┬──┬─────────────────────┬─────────────────────┬───────────────────────────┬───────┤
-│ protocol │  │        auth         │        host         │           path            │ hash  │
-│          │  │                     ├──────────────┬──────┼──────────┬────────────────┤       │
-│          │  │                     │   hostname   │ port │ pathname │     search     │       │
-│          │  │                     │              │      │          ├─┬──────────────┤       │
-│          │  │                     │              │      │          │ │    query     │       │
-"  https:   //    user   :   pass   @ sub.host.com : 8080   /p/a/t/h  ?  query=string   #hash "
-│          │  │          │          │   hostname   │ port │          │                │       │
-│          │  │          │          ├──────────────┴──────┤          │                │       │
-│ protocol │  │ username │ password │        host         │          │                │       │
-├──────────┴──┼──────────┴──────────┼─────────────────────┤          │                │       │
-│   origin    │                     │       origin        │ pathname │     search     │ hash  │
-├─────────────┴─────────────────────┴─────────────────────┴──────────┴────────────────┴───────┤
-│                                            href                                             │
-└─────────────────────────────────────────────────────────────────────────────────────────────┘
+<pre><code class="language-txt">┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                              href                                              │
+├──────────┬──┬─────────────────────┬────────────────────────┬───────────────────────────┬───────┤
+│ protocol │  │        auth         │          host          │           path            │ hash  │
+│          │  │                     ├─────────────────┬──────┼──────────┬────────────────┤       │
+│          │  │                     │    hostname     │ port │ pathname │     search     │       │
+│          │  │                     │                 │      │          ├─┬──────────────┤       │
+│          │  │                     │                 │      │          │ │    query     │       │
+"  https:   //    user   :   pass   @ sub.example.com : 8080   /p/a/t/h  ?  query=string   #hash "
+│          │  │          │          │    hostname     │ port │          │                │       │
+│          │  │          │          ├─────────────────┴──────┤          │                │       │
+│ protocol │  │ username │ password │          host          │          │                │       │
+├──────────┴──┼──────────┴──────────┼────────────────────────┤          │                │       │
+│   origin    │                     │         origin         │ pathname │     search     │ hash  │
+├─────────────┴─────────────────────┴────────────────────────┴──────────┴────────────────┴───────┤
+│                                              href                                              │
+└────────────────────────────────────────────────────────────────────────────────────────────────┘
 (all spaces in the "" line should be ignored — they are purely for formatting)
 </code></pre>
 <p>Parsing the URL string using the WHATWG API:</p>
 <pre><code class="language-js">const myURL =
-  new URL('https://user:pass@sub.host.com:8080/p/a/t/h?query=string#hash');
+  new URL('https://user:pass@sub.example.com:8080/p/a/t/h?query=string#hash');
 </code></pre>
 <p>Parsing the URL string using the Legacy API:</p>
 <pre><code class="language-js">const url = require('url');
 const myURL =
-  url.parse('https://user:pass@sub.host.com:8080/p/a/t/h?query=string#hash');
+  url.parse('https://user:pass@sub.example.com:8080/p/a/t/h?query=string#hash');
 </code></pre>
 <h2>The WHATWG URL API<span><a class="mark" href="#url_the_whatwg_url_api" id="url_the_whatwg_url_api">#</a></span></h2>
 <h3>Class: URL<span><a class="mark" href="#url_class_url" id="url_class_url">#</a></span></h3>
@@ -307,31 +307,31 @@ instance:</p>
 </code></pre>
 <p>Unicode characters appearing within the hostname of <code>input</code> will be
 automatically converted to ASCII using the <a href="https://tools.ietf.org/html/rfc5891#section-4.4">Punycode</a> algorithm.</p>
-<pre><code class="language-js">const myURL = new URL('https://你好你好');
-// https://xn--6qqa088eba/
+<pre><code class="language-js">const myURL = new URL('https://測試');
+// https://xn--g6w251d/
 </code></pre>
 <p>This feature is only available if the <code>node</code> executable was compiled with
 <a href="intl.html#intl_options_for_building_node_js">ICU</a> enabled. If not, the domain names are passed through unchanged.</p>
 <p>In cases where it is not known in advance if <code>input</code> is an absolute URL
 and a <code>base</code> is provided, it is advised to validate that the <code>origin</code> of
 the <code>URL</code> object is what is expected.</p>
-<pre><code class="language-js">let myURL = new URL('http://anotherExample.org/', 'https://example.org/');
-// http://anotherexample.org/
+<pre><code class="language-js">let myURL = new URL('http://Example.com/', 'https://example.org/');
+// http://example.com/
 
-myURL = new URL('https://anotherExample.org/', 'https://example.org/');
-// https://anotherexample.org/
+myURL = new URL('https://Example.com/', 'https://example.org/');
+// https://example.com/
 
-myURL = new URL('foo://anotherExample.org/', 'https://example.org/');
-// foo://anotherExample.org/
+myURL = new URL('foo://Example.com/', 'https://example.org/');
+// foo://Example.com/
 
-myURL = new URL('http:anotherExample.org/', 'https://example.org/');
-// http://anotherexample.org/
+myURL = new URL('http:Example.com/', 'https://example.org/');
+// http://example.com/
 
-myURL = new URL('https:anotherExample.org/', 'https://example.org/');
-// https://example.org/anotherExample.org/
+myURL = new URL('https:Example.com/', 'https://example.org/');
+// https://example.org/Example.com/
 
-myURL = new URL('foo:anotherExample.org/', 'https://example.org/');
-// foo:anotherExample.org/
+myURL = new URL('foo:Example.com/', 'https://example.org/');
+// foo:Example.com/
 </code></pre>
 <h4>url.hash<span><a class="mark" href="#url_url_hash" id="url_url_hash">#</a></span></h4>
 <ul>
@@ -409,12 +409,12 @@ will be thrown.</p>
 console.log(myURL.origin);
 // Prints https://example.org
 </code></pre>
-<pre><code class="language-js">const idnURL = new URL('https://你好你好');
+<pre><code class="language-js">const idnURL = new URL('https://測試');
 console.log(idnURL.origin);
-// Prints https://xn--6qqa088eba
+// Prints https://xn--g6w251d
 
 console.log(idnURL.hostname);
-// Prints xn--6qqa088eba
+// Prints xn--g6w251d
 </code></pre>
 <h4>url.password<span><a class="mark" href="#url_url_password" id="url_url_password">#</a></span></h4>
 <ul>
@@ -988,7 +988,7 @@ fileURLToPath('file:///你好.txt');       // Correct:   /你好.txt (POSIX)
 new URL('file:///hello world').pathname; // Incorrect: /hello%20world
 fileURLToPath('file:///hello world');    // Correct:   /hello world (POSIX)
 </code></pre>
-<h3>url.format(URL[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/d3dbe3a8514e47ef820d4768ed74c36a8843b976/lib/url.js#L569">[src]</a><span><a class="mark" href="#url_url_format_url_options" id="url_url_format_url_options">#</a></span></h3>
+<h3>url.format(URL[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/4128793a150dbcc63e03738ddd30f1768608aa11/lib/url.js#L569">[src]</a><span><a class="mark" href="#url_url_format_url_options" id="url_url_format_url_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v7.6.0</span>
 </div>
@@ -1016,16 +1016,16 @@ Punycode encoded. <strong>Default:</strong> <code>false</code>.</li>
 string serializations of the URL. These are not, however, customizable in
 any way. The <code>url.format(URL[, options])</code> method allows for basic customization
 of the output.</p>
-<pre><code class="language-js">const myURL = new URL('https://a:b@你好你好?abc#foo');
+<pre><code class="language-js">const myURL = new URL('https://a:b@測試?abc#foo');
 
 console.log(myURL.href);
-// Prints https://a:b@xn--6qqa088eba/?abc#foo
+// Prints https://a:b@xn--g6w251d/?abc#foo
 
 console.log(myURL.toString());
-// Prints https://a:b@xn--6qqa088eba/?abc#foo
+// Prints https://a:b@xn--g6w251d/?abc#foo
 
 console.log(url.format(myURL, { fragment: false, unicode: true, auth: false }));
-// Prints 'https://你好你好/?abc'
+// Prints 'https://測試/?abc'
 </code></pre>
 <h3>url.pathToFileURL(path)<span><a class="mark" href="#url_url_pathtofileurl_path" id="url_url_pathtofileurl_path">#</a></span></h3>
 <ul>
@@ -1063,15 +1063,15 @@ leading <code>#</code> character.</p>
 <h4>urlObject.host<span><a class="mark" href="#url_urlobject_host" id="url_urlobject_host">#</a></span></h4>
 <p>The <code>host</code> property is the full lower-cased host portion of the URL, including
 the <code>port</code> if specified.</p>
-<p>For example: <code>'sub.host.com:8080'</code>.</p>
+<p>For example: <code>'sub.example.com:8080'</code>.</p>
 <h4>urlObject.hostname<span><a class="mark" href="#url_urlobject_hostname" id="url_urlobject_hostname">#</a></span></h4>
 <p>The <code>hostname</code> property is the lower-cased host name portion of the <code>host</code>
 component <em>without</em> the <code>port</code> included.</p>
-<p>For example: <code>'sub.host.com'</code>.</p>
+<p>For example: <code>'sub.example.com'</code>.</p>
 <h4>urlObject.href<span><a class="mark" href="#url_urlobject_href" id="url_urlobject_href">#</a></span></h4>
 <p>The <code>href</code> property is the full URL string that was parsed with both the
 <code>protocol</code> and <code>host</code> components converted to lower-case.</p>
-<p>For example: <code>'http://user:pass@sub.host.com:8080/p/a/t/h?query=string#hash'</code>.</p>
+<p>For example: <code>'http://user:pass@sub.example.com:8080/p/a/t/h?query=string#hash'</code>.</p>
 <h4>urlObject.path<span><a class="mark" href="#url_urlobject_path" id="url_urlobject_path">#</a></span></h4>
 <p>The <code>path</code> property is a concatenation of the <code>pathname</code> and <code>search</code>
 components.</p>
@@ -1107,7 +1107,7 @@ URL, including the leading ASCII question mark (<code>?</code>) character.</p>
 <p>The <code>slashes</code> property is a <code>boolean</code> with a value of <code>true</code> if two ASCII
 forward-slash characters (<code>/</code>) are required following the colon in the
 <code>protocol</code>.</p>
-<h3>url.format(urlObject)<a class="srclink" href="https://github.com/nodejs/node/blob/d3dbe3a8514e47ef820d4768ed74c36a8843b976/lib/url.js#L569">[src]</a><span><a class="mark" href="#url_url_format_urlobject" id="url_url_format_urlobject">#</a></span></h3>
+<h3>url.format(urlObject)<a class="srclink" href="https://github.com/nodejs/node/blob/4128793a150dbcc63e03738ddd30f1768608aa11/lib/url.js#L569">[src]</a><span><a class="mark" href="#url_url_format_urlobject" id="url_url_format_urlobject">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1216,7 +1216,7 @@ character, the literal string <code>#</code> is appended to <code>result</code>.
 string, an <a href="errors.html#errors_class_error"><code>Error</code></a> is thrown.</li>
 <li><code>result</code> is returned.</li>
 </ul>
-<h3>url.parse(urlString[, parseQueryString[, slashesDenoteHost]])<a class="srclink" href="https://github.com/nodejs/node/blob/d3dbe3a8514e47ef820d4768ed74c36a8843b976/lib/url.js#L150">[src]</a><span><a class="mark" href="#url_url_parse_urlstring_parsequerystring_slashesdenotehost" id="url_url_parse_urlstring_parsequerystring_slashesdenotehost">#</a></span></h3>
+<h3>url.parse(urlString[, parseQueryString[, slashesDenoteHost]])<a class="srclink" href="https://github.com/nodejs/node/blob/4128793a150dbcc63e03738ddd30f1768608aa11/lib/url.js#L150">[src]</a><span><a class="mark" href="#url_url_parse_urlstring_parsequerystring_slashesdenotehost" id="url_url_parse_urlstring_parsequerystring_slashesdenotehost">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1244,7 +1244,7 @@ For instance, given <code>//foo/bar</code>, the result would be
 object.</p>
 <p>A <code>TypeError</code> is thrown if <code>urlString</code> is not a string.</p>
 <p>A <code>URIError</code> is thrown if the <code>auth</code> property is present but cannot be decoded.</p>
-<h3>url.resolve(from, to)<a class="srclink" href="https://github.com/nodejs/node/blob/d3dbe3a8514e47ef820d4768ed74c36a8843b976/lib/url.js#L660">[src]</a><span><a class="mark" href="#url_url_resolve_from_to" id="url_url_resolve_from_to">#</a></span></h3>
+<h3>url.resolve(from, to)<a class="srclink" href="https://github.com/nodejs/node/blob/4128793a150dbcc63e03738ddd30f1768608aa11/lib/url.js#L660">[src]</a><span><a class="mark" href="#url_url_resolve_from_to" id="url_url_resolve_from_to">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1317,11 +1317,11 @@ specific conditions, in addition to all other cases.</p>
 <p>When non-ASCII characters appear within a hostname, the hostname is encoded
 using the <a href="https://tools.ietf.org/html/rfc5891#section-4.4">Punycode</a> algorithm. Note, however, that a hostname <em>may</em> contain
 <em>both</em> Punycode encoded and percent-encoded characters:</p>
-<pre><code class="language-js">const myURL = new URL('https://%CF%80.com/foo');
+<pre><code class="language-js">const myURL = new URL('https://%CF%80.example.com/foo');
 console.log(myURL.href);
-// Prints https://xn--1xa.com/foo
+// Prints https://xn--1xa.example.com/foo
 console.log(myURL.origin);
-// Prints https://π.com
+// Prints https://xn--1xa.example.com
 </code></pre>
       </div>
     </div>

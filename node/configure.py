@@ -1,3 +1,4 @@
+import json
 import sys
 import errno
 import optparse
@@ -50,6 +51,8 @@ valid_mips_arch = ('loongson', 'r1', 'r2', 'r6', 'rx')
 valid_mips_fpu = ('fp32', 'fp64', 'fpxx')
 valid_mips_float_abi = ('soft', 'hard')
 valid_intl_modes = ('none', 'small-icu', 'full-icu', 'system-icu')
+with open ('tools/icu/icu_versions.json') as f:
+  icu_versions = json.load(f)
 
 # create option groups
 shared_optgroup = optparse.OptionGroup(parser, "Shared libraries",
@@ -387,6 +390,12 @@ parser.add_option('--with-etw',
     dest='with_etw',
     help='build with ETW (default is true on Windows)')
 
+parser.add_option('--use-largepages',
+    action='store_true',
+    dest='node_use_large_pages',
+    help='build with Large Pages support. This feature is supported only on Linux kernel' +
+         '>= 2.6.38 with Transparent Huge pages enabled')
+
 intl_optgroup.add_option('--with-intl',
     action='store',
     dest='with_intl',
@@ -418,7 +427,9 @@ intl_optgroup.add_option('--with-icu-locales',
 intl_optgroup.add_option('--with-icu-source',
     action='store',
     dest='with_icu_source',
-    help='Intl mode: optional local path to icu/ dir, or path/URL of icu source archive.')
+    help='Intl mode: optional local path to icu/ dir, or path/URL of '
+        'the icu4c source archive. '
+        'v%d.x or later recommended.' % icu_versions["minimum_icu"])
 
 parser.add_option('--with-ltcg',
     action='store_true',
@@ -1007,6 +1018,24 @@ def configure_node(o):
   else:
     o['variables']['node_use_dtrace'] = 'false'
 
+  if options.node_use_large_pages and flavor != 'linux':
+    raise Exception(
+      'Large pages are supported only on Linux Systems.')
+  if options.node_use_large_pages and flavor == 'linux':
+    if options.shared or options.enable_static:
+      raise Exception(
+        'Large pages are supported only while creating node executable.')
+    if target_arch!="x64":
+      raise Exception(
+        'Large pages are supported only x64 platform.')
+    # Example full version string: 2.6.32-696.28.1.el6.x86_64
+    FULL_KERNEL_VERSION=os.uname()[2]
+    KERNEL_VERSION=FULL_KERNEL_VERSION.split('-')[0]
+    if KERNEL_VERSION < "2.6.38":
+      raise Exception(
+        'Large pages need Linux kernel version >= 2.6.38')
+  o['variables']['node_use_large_pages'] = b(options.node_use_large_pages)
+
   if options.no_ifaddrs:
     o['defines'] += ['SUNOS_NO_IFADDRS']
 
@@ -1252,13 +1281,9 @@ def glob_to_var(dir_base, dir_sub, patch_dir):
   return list
 
 def configure_intl(o):
-  icus = [
-    {
-      'url': 'https://sourceforge.net/projects/icu/files/ICU4C/62.1/icu4c-62_1-src.zip',
-      'md5': '408854f7b9b58311b68fab4b4dfc80be',
-    },
-  ]
   def icu_download(path):
+    with open('tools/icu/current_ver.dep') as f:
+      icus = json.load(f)
     # download ICU, if needed
     if not os.access(options.download_path, os.W_OK):
       error('''Cannot write to desired download path.
@@ -1449,6 +1474,9 @@ def configure_intl(o):
       icu_ver_major = m.group(1)
   if not icu_ver_major:
     error('Could not read U_ICU_VERSION_SHORT version from %s' % uvernum_h)
+  elif int(icu_ver_major) < icu_versions["minimum_icu"]:
+    error('icu4c v%d.x is too old, v%d.x or later is required.' % (int(icu_ver_major),
+                                                                  icu_versions["minimum_icu"]))
   icu_endianness = sys.byteorder[0];
   o['variables']['icu_ver_major'] = icu_ver_major
   o['variables']['icu_endianness'] = icu_endianness

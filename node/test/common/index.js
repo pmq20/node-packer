@@ -29,7 +29,6 @@ const os = require('os');
 const { exec, execSync, spawnSync } = require('child_process');
 const util = require('util');
 const Timer = process.binding('timer_wrap').Timer;
-const { fixturesDir } = require('./fixtures');
 const tmpdir = require('./tmpdir');
 const {
   bits,
@@ -48,7 +47,6 @@ const isMainThread = (() => {
 })();
 
 const isWindows = process.platform === 'win32';
-const isWOW64 = isWindows && (process.env.PROCESSOR_ARCHITEW6432 !== undefined);
 const isAIX = process.platform === 'aix';
 const isLinuxPPCBE = (process.platform === 'linux') &&
                      (process.arch === 'ppc64') &&
@@ -58,6 +56,8 @@ const isFreeBSD = process.platform === 'freebsd';
 const isOpenBSD = process.platform === 'openbsd';
 const isLinux = process.platform === 'linux';
 const isOSX = process.platform === 'darwin';
+
+const isOSXMojave = isOSX && (os.release().startsWith('18'));
 
 const enoughTestMem = os.totalmem() > 0x70000000; /* 1.75 Gb */
 const cpus = os.cpus();
@@ -174,13 +174,10 @@ function childShouldThrowAndAbort() {
   });
 }
 
-function ddCommand(filename, kilobytes) {
-  if (isWindows) {
-    const p = path.resolve(fixturesDir, 'create-file.js');
-    return `"${process.argv[0]}" "${p}" "${filename}" ${kilobytes * 1024}`;
-  } else {
-    return `dd if=/dev/zero of="${filename}" bs=1024 count=${kilobytes}`;
-  }
+function createZeroFilledFile(filename) {
+  const fd = fs.openSync(filename, 'w');
+  fs.ftruncateSync(fd, 10 * 1024 * 1024);
+  fs.closeSync(fd);
 }
 
 
@@ -313,12 +310,6 @@ function mustCallAtLeast(fn, minimum) {
   return _mustCallInner(fn, minimum, 'minimum');
 }
 
-function mustCallAsync(fn, exact) {
-  return mustCall((...args) => {
-    return Promise.resolve(fn(...args)).then(mustCall((val) => val));
-  }, exact);
-}
-
 function _mustCallInner(fn, criteria = 1, field) {
   if (process._exiting)
     throw new Error('Cannot use common.mustCall*() in process exit handler');
@@ -380,7 +371,7 @@ function canCreateSymLink() {
     try {
       const output = execSync(`${whoamiPath} /priv`, { timout: 1000 });
       return output.includes('SeCreateSymbolicLinkPrivilege');
-    } catch (e) {
+    } catch {
       return false;
     }
   }
@@ -464,7 +455,7 @@ function isAlive(pid) {
   try {
     process.kill(pid, 'SIGCONT');
     return true;
-  } catch (e) {
+  } catch {
     return false;
   }
 }
@@ -673,7 +664,7 @@ function getTTYfd() {
   if (ttyFd === undefined) {
     try {
       return fs.openSync('/dev/tty');
-    } catch (e) {
+    } catch {
       // There aren't any tty fd's available to use.
       return -1;
     }
@@ -687,7 +678,7 @@ function runWithInvalidFD(func) {
   // be an valid one.
   try {
     while (fs.fstatSync(fd--) && fd > 0);
-  } catch (e) {
+  } catch {
     return func(fd);
   }
 
@@ -700,7 +691,7 @@ module.exports = {
   busyLoop,
   canCreateSymLink,
   childShouldThrowAndAbort,
-  ddCommand,
+  createZeroFilledFile,
   disableCrashOnUnhandledRejection,
   enoughTestCpu,
   enoughTestMem,
@@ -722,12 +713,11 @@ module.exports = {
   isMainThread,
   isOpenBSD,
   isOSX,
+  isOSXMojave,
   isSunOS,
   isWindows,
-  isWOW64,
   localIPv6Hosts,
   mustCall,
-  mustCallAsync,
   mustCallAtLeast,
   mustNotCall,
   nodeProcessAborted,

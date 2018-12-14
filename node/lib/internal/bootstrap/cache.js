@@ -6,8 +6,9 @@
 // cannot be tampered with even with --expose-internals
 
 const {
-  NativeModule, internalBinding
+  NativeModule
 } = require('internal/bootstrap/loaders');
+const { hasTracing } = process.binding('config');
 
 function getCodeCache(id) {
   const cached = NativeModule.getCached(id);
@@ -41,6 +42,37 @@ const cannotUseCache = [
   'internal/bootstrap/loaders',
   'internal/bootstrap/node'
 ].concat(depsModule);
+
+// Skip modules that cannot be required when they are not
+// built into the binary.
+if (process.config.variables.v8_enable_inspector !== 1) {
+  cannotUseCache.push('inspector');
+  cannotUseCache.push('internal/util/inspector');
+}
+if (!hasTracing) {
+  cannotUseCache.push('trace_events');
+}
+if (!process.versions.openssl) {
+  cannotUseCache.push('crypto');
+  cannotUseCache.push('https');
+  cannotUseCache.push('http2');
+  cannotUseCache.push('tls');
+  cannotUseCache.push('_tls_common');
+  cannotUseCache.push('_tls_wrap');
+  cannotUseCache.push('internal/crypto/certificate');
+  cannotUseCache.push('internal/crypto/cipher');
+  cannotUseCache.push('internal/crypto/diffiehellman');
+  cannotUseCache.push('internal/crypto/hash');
+  cannotUseCache.push('internal/crypto/keygen');
+  cannotUseCache.push('internal/crypto/pbkdf2');
+  cannotUseCache.push('internal/crypto/random');
+  cannotUseCache.push('internal/crypto/scrypt');
+  cannotUseCache.push('internal/crypto/sig');
+  cannotUseCache.push('internal/crypto/util');
+  cannotUseCache.push('internal/http2/core');
+  cannotUseCache.push('internal/http2/compat');
+  cannotUseCache.push('internal/streams/lazy_transform');
+}
 
 module.exports = {
   cachableBuiltins: Object.keys(NativeModule._source).filter(

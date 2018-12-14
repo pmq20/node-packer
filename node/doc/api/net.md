@@ -167,7 +167,7 @@ The number of concurrent connections on the server.
 
 This becomes `null` when sending a socket to a child with
 [`child_process.fork()`][]. To poll forks and get current number of active
-connections use asynchronous [`server.getConnections()`][] instead.
+connections, use asynchronous [`server.getConnections()`][] instead.
 
 ### server.getConnections(callback)
 <!-- YAML
@@ -658,9 +658,9 @@ called with `{port: port, host: host}` as `options`.
 added: v6.1.0
 -->
 
-If `true` -
+If `true`,
 [`socket.connect(options[, connectListener])`][`socket.connect(options)`]
-was called and haven't yet finished. Will be set to `false` before emitting
+was called and has not yet finished. Will be set to `true` before emitting
 `'connect'` event and/or calling
 [`socket.connect(options[, connectListener])`][`socket.connect(options)`]'s
 callback.
@@ -684,13 +684,14 @@ listeners for that event will receive `exception` as an argument.
 * {boolean} Indicates if the connection is destroyed or not. Once a
   connection is destroyed no further data can be transferred using it.
 
-### socket.end([data][, encoding])
+### socket.end([data][, encoding][, callback])
 <!-- YAML
 added: v0.1.90
 -->
 
 * `data` {string|Buffer|Uint8Array}
 * `encoding` {string} Only used when data is `string`. **Default:** `'utf8'`.
+* `callback` {Function} Optional callback for when the socket is finished.
 * Returns: {net.Socket} The socket itself.
 
 Half-closes the socket. i.e., it sends a FIN packet. It is possible the
@@ -885,6 +886,7 @@ added: v0.7.0
 -->
 * `options` {Object}
 * `connectListener` {Function}
+
 Alias to
 [`net.createConnection(options[, connectListener])`][`net.createConnection(options)`].
 
@@ -1027,10 +1029,6 @@ then returns the `net.Socket` that starts the connection.
 <!-- YAML
 added: v0.5.0
 -->
-* `options` {Object}
-* `connectionListener` {Function}
-
-Creates a new TCP or [IPC][] server.
 
 * `options` {Object}
   * `allowHalfOpen` {boolean} Indicates whether half-opened TCP
@@ -1040,6 +1038,8 @@ Creates a new TCP or [IPC][] server.
 * `connectionListener` {Function} Automatically set as a listener for the
   [`'connection'`][] event.
 * Returns: {net.Server}
+
+Creates a new TCP or [IPC][] server.
 
 If `allowHalfOpen` is set to `true`, when the other end of the socket
 sends a FIN packet, the server will only send a FIN packet back when
@@ -1168,7 +1168,7 @@ Returns `true` if input is a version 6 IP address, otherwise returns `false`.
 [`socket.connect(path)`]: #net_socket_connect_path_connectlistener
 [`socket.connect(port, host)`]: #net_socket_connect_port_host_connectlistener
 [`socket.destroy()`]: #net_socket_destroy_exception
-[`socket.end()`]: #net_socket_end_data_encoding
+[`socket.end()`]: #net_socket_end_data_encoding_callback
 [`socket.pause()`]: #net_socket_pause
 [`socket.resume()`]: #net_socket_resume
 [`socket.setEncoding()`]: #net_socket_setencoding_encoding

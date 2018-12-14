@@ -45,6 +45,8 @@
                 ],
                 "changes": []
               },
+              "stability": 0,
+              "stabilityText": "Deprecated",
               "desc": "<p>The default encoding to use for functions that can take either strings\nor <a href=\"buffer.html\">buffers</a>. The default value is <code>'buffer'</code>, which makes methods\ndefault to <a href=\"buffer.html\"><code>Buffer</code></a> objects.</p>\n<p>The <code>crypto.DEFAULT_ENCODING</code> mechanism is provided for backwards compatibility\nwith legacy programs that expect <code>'latin1'</code> to be the default encoding.</p>\n<p>New applications should expect the default to be <code>'buffer'</code>.</p>\n<p>This property is deprecated.</p>"
             },
             {
@@ -59,6 +61,8 @@
                 ],
                 "changes": []
               },
+              "stability": 0,
+              "stabilityText": "Deprecated",
               "desc": "<p>Property for checking and controlling whether a FIPS compliant crypto provider\nis currently in use. Setting to true requires a FIPS build of Node.js.</p>\n<p>This property is deprecated. Please use <code>crypto.setFips()</code> and\n<code>crypto.getFips()</code> instead.</p>"
             }
           ],
@@ -354,6 +358,11 @@
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {DiffieHellman}",
+                    "name": "return",
+                    "type": "DiffieHellman"
+                  },
                   "params": [
                     {
                       "textRaw": "`prime` {string | Buffer | TypedArray | DataView}",
@@ -396,6 +405,11 @@
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {DiffieHellman}",
+                    "name": "return",
+                    "type": "DiffieHellman"
+                  },
                   "params": [
                     {
                       "textRaw": "`primeLength` {number}",
@@ -426,6 +440,11 @@
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {ECDH}",
+                    "name": "return",
+                    "type": "ECDH"
+                  },
                   "params": [
                     {
                       "textRaw": "`curveName` {string}",
@@ -892,9 +911,9 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns: {Object}",
+                    "textRaw": "Returns: {DiffieHellman}",
                     "name": "return",
-                    "type": "Object"
+                    "type": "DiffieHellman"
                   },
                   "params": [
                     {
@@ -3002,7 +3021,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Sets the EC Diffie-Hellman public key. Key encoding can be <code>'latin1'</code>,\n<code>'hex'</code> or <code>'base64'</code>. If <code>encoding</code> is provided <code>publicKey</code> is expected to\nbe a string; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a>, <code>TypedArray</code>, or <code>DataView</code> is expected.</p>\n<p>Note that there is not normally a reason to call this method because <code>ECDH</code>\nonly requires a private key and the other party's public key to compute the\nshared secret. Typically either <a href=\"#crypto_ecdh_generatekeys_encoding_format\"><code>ecdh.generateKeys()</code></a> or\n<a href=\"#crypto_ecdh_setprivatekey_privatekey_encoding\"><code>ecdh.setPrivateKey()</code></a> will be called. The <a href=\"#crypto_ecdh_setprivatekey_privatekey_encoding\"><code>ecdh.setPrivateKey()</code></a> method\nattempts to generate the public point/key associated with the private key being\nset.</p>\n<p>Example (obtaining a shared secret):</p>\n<pre><code class=\"language-js\">const crypto = require('crypto');\nconst alice = crypto.createECDH('secp256k1');\nconst bob = crypto.createECDH('secp256k1');\n\n// Note: This is a shortcut way to specify one of Alice's previous private\n// keys. It would be unwise to use such a predictable private key in a real\n// application.\nalice.setPrivateKey(\n  crypto.createHash('sha256').update('alice', 'utf8').digest()\n);\n\n// Bob uses a newly generated cryptographically strong\n// pseudorandom key pair\nbob.generateKeys();\n\nconst aliceSecret = alice.computeSecret(bob.getPublicKey(), null, 'hex');\nconst bobSecret = bob.computeSecret(alice.getPublicKey(), null, 'hex');\n\n// aliceSecret and bobSecret should be the same shared secret value\nconsole.log(aliceSecret === bobSecret);\n</code></pre>"
+              "desc": "<p>Sets the EC Diffie-Hellman public key. Key encoding can be <code>'latin1'</code>,\n<code>'hex'</code> or <code>'base64'</code>. If <code>encoding</code> is provided <code>publicKey</code> is expected to\nbe a string; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a>, <code>TypedArray</code>, or <code>DataView</code> is expected.</p>\n<p>Note that there is not normally a reason to call this method because <code>ECDH</code>\nonly requires a private key and the other party's public key to compute the\nshared secret. Typically either <a href=\"#crypto_ecdh_generatekeys_encoding_format\"><code>ecdh.generateKeys()</code></a> or\n<a href=\"#crypto_ecdh_setprivatekey_privatekey_encoding\"><code>ecdh.setPrivateKey()</code></a> will be called. The <a href=\"#crypto_ecdh_setprivatekey_privatekey_encoding\"><code>ecdh.setPrivateKey()</code></a> method\nattempts to generate the public point/key associated with the private key being\nset.</p>\n<p>Example (obtaining a shared secret):</p>\n<pre><code class=\"language-js\">const crypto = require('crypto');\nconst alice = crypto.createECDH('secp256k1');\nconst bob = crypto.createECDH('secp256k1');\n\n// This is a shortcut way of specifying one of Alice's previous private\n// keys. It would be unwise to use such a predictable private key in a real\n// application.\nalice.setPrivateKey(\n  crypto.createHash('sha256').update('alice', 'utf8').digest()\n);\n\n// Bob uses a newly generated cryptographically strong\n// pseudorandom key pair\nbob.generateKeys();\n\nconst aliceSecret = alice.computeSecret(bob.getPublicKey(), null, 'hex');\nconst bobSecret = bob.computeSecret(alice.getPublicKey(), null, 'hex');\n\n// aliceSecret and bobSecret should be the same shared secret value\nconsole.log(aliceSecret === bobSecret);\n</code></pre>"
             }
           ]
         },

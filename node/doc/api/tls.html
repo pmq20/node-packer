@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>TLS (SSL) | Node.js v10.14.1 Documentation</title>
+  <title>TLS (SSL) | Node.js v10.14.2 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -74,13 +74,12 @@
 <div class="line"></div>
 <ul>
 <li><a href="https://github.com/nodejs/node" class="nav-https-github-com-nodejs-node">GitHub Repo &#x26; Issue Tracker</a></li>
-<li><a href="https://groups.google.com/forum/#!forum/nodejs" class="nav-https-groups-google-com-forum-forum-nodejs">Mailing List</a></li>
 </ul>
     </div>
 
     <div id="column1" data-id="tls" class="interior">
       <header>
-        <h1>Node.js v10.14.1 Documentation</h1>
+        <h1>Node.js v10.14.2 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -95,7 +94,8 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v10.x/api/tls.html">10.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v11.x/api/tls.html">11.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v10.x/api/tls.html">10.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v9.x/api/tls.html">9.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v8.x/api/tls.html">8.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v7.x/api/tls.html">7.x</a></li>
@@ -492,7 +492,7 @@ from the <a href="#tls_tls_createsecurecontext_options"><code>tls.createSecureCo
 </ul>
 <p>The <code>server.addContext()</code> method adds a secure context that will be used if
 the client request's SNI name matches the supplied <code>hostname</code> (or wildcard).</p>
-<h3>server.address()<a class="srclink" href="https://github.com/nodejs/node/blob/d3dbe3a8514e47ef820d4768ed74c36a8843b976/lib/net.js#L1474">[src]</a><span><a class="mark" href="#tls_server_address" id="tls_server_address">#</a></span></h3>
+<h3>server.address()<a class="srclink" href="https://github.com/nodejs/node/blob/4128793a150dbcc63e03738ddd30f1768608aa11/lib/net.js#L1485">[src]</a><span><a class="mark" href="#tls_server_address" id="tls_server_address">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.6.0</span>
 </div>
@@ -502,13 +502,14 @@ the client request's SNI name matches the supplied <code>hostname</code> (or wil
 <p>Returns the bound address, the address family name, and port of the
 server as reported by the operating system. See <a href="net.html#net_server_address"><code>net.Server.address()</code></a> for
 more information.</p>
-<h3>server.close([callback])<a class="srclink" href="https://github.com/nodejs/node/blob/d3dbe3a8514e47ef820d4768ed74c36a8843b976/lib/net.js#L1561">[src]</a><span><a class="mark" href="#tls_server_close_callback" id="tls_server_close_callback">#</a></span></h3>
+<h3>server.close([callback])<a class="srclink" href="https://github.com/nodejs/node/blob/4128793a150dbcc63e03738ddd30f1768608aa11/lib/net.js#L1572">[src]</a><span><a class="mark" href="#tls_server_close_callback" id="tls_server_close_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.3.2</span>
 </div>
 <ul>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> A listener callback that will be registered to listen
 for the server instance's <code>'close'</code> event.</li>
+<li>Returns: <a href="tls.html#tls_class_tls_server" class="type">&#x3C;tls.Server></a></li>
 </ul>
 <p>The <code>server.close()</code> method stops the server from accepting new connections.</p>
 <p>This function operates asynchronously. The <code>'close'</code> event will be emitted
@@ -531,7 +532,7 @@ when the server has no more open connections.</p>
 </ul>
 <p>Returns a <code>Buffer</code> instance holding the keys currently used for
 encryption/decryption of the <a href="https://www.ietf.org/rfc/rfc5077.txt">TLS Session Tickets</a>.</p>
-<h3>server.listen()<a class="srclink" href="https://github.com/nodejs/node/blob/d3dbe3a8514e47ef820d4768ed74c36a8843b976/lib/net.js#L1366">[src]</a><span><a class="mark" href="#tls_server_listen" id="tls_server_listen">#</a></span></h3>
+<h3>server.listen()<a class="srclink" href="https://github.com/nodejs/node/blob/4128793a150dbcc63e03738ddd30f1768608aa11/lib/net.js#L1370">[src]</a><span><a class="mark" href="#tls_server_listen" id="tls_server_listen">#</a></span></h3>
 <p>Starts the server listening for encrypted connections.
 This method is identical to <a href="net.html#net_server_listen"><code>server.listen()</code></a> from <a href="net.html#net_class_net_server"><code>net.Server</code></a>.</p>
 <h3>server.setTicketKeys(keys)<span><a class="mark" href="#tls_server_setticketkeys_keys" id="tls_server_setticketkeys_keys">#</a></span></h3>
@@ -773,7 +774,6 @@ sockets that have not completed the handshaking process. The value <code>null</c
 be returned for server sockets or disconnected client sockets.</p>
 <p>Example responses include:</p>
 <ul>
-<li><code>SSLv3</code></li>
 <li><code>TLSv1</code></li>
 <li><code>TLSv1.1</code></li>
 <li><code>TLSv1.2</code></li>
@@ -878,7 +878,7 @@ and its integrity is verified; large fragments can span multiple roundtrips
 and their processing can be delayed due to packet loss or reordering. However,
 smaller fragments add extra TLS framing bytes and CPU overhead, which may
 decrease overall server throughput.</p>
-<h2>tls.checkServerIdentity(hostname, cert)<a class="srclink" href="https://github.com/nodejs/node/blob/d3dbe3a8514e47ef820d4768ed74c36a8843b976/lib/tls.js#L170">[src]</a><span><a class="mark" href="#tls_tls_checkserveridentity_hostname_cert" id="tls_tls_checkserveridentity_hostname_cert">#</a></span></h2>
+<h2>tls.checkServerIdentity(hostname, cert)<a class="srclink" href="https://github.com/nodejs/node/blob/4128793a150dbcc63e03738ddd30f1768608aa11/lib/tls.js#L170">[src]</a><span><a class="mark" href="#tls_tls_checkserveridentity_hostname_cert" id="tls_tls_checkserveridentity_hostname_cert">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.8.4</span>
 </div>
@@ -971,7 +971,7 @@ the format <code>[len][name][len][name]...</code> e.g. <code>0x05hello0x05world<
 first byte is the length of the next protocol name. Passing an array is
 usually much simpler, e.g. <code>['hello', 'world']</code>.</li>
 <li><code>servername</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Server name for the SNI (Server Name Indication) TLS
-extension.</li>
+extension. It must be a host name, and not an IP address.</li>
 <li><code>checkServerIdentity(servername, cert)</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> A callback function
 to be used (instead of the builtin <code>tls.checkServerIdentity()</code> function)
 when checking the server's hostname (or the provided <code>servername</code> when
@@ -994,6 +994,7 @@ will be created by passing the entire <code>options</code> object to
 </ul>
 </li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
+<li>Returns: <a href="tls.html#tls_class_tls_tlssocket" class="type">&#x3C;tls.TLSSocket></a></li>
 </ul>
 <p>The <code>callback</code> function, if specified, will be added as a listener for the
 <a href="#tls_event_secureconnect"><code>'secureConnect'</code></a> event.</p>
@@ -1060,6 +1061,7 @@ socket.on('end', () => {
 <li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Default value for <code>options.path</code>.</li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> See <a href="#tls_tls_connect_options_callback"><code>tls.connect()</code></a>.</li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> See <a href="#tls_tls_connect_options_callback"><code>tls.connect()</code></a>.</li>
+<li>Returns: <a href="tls.html#tls_class_tls_tlssocket" class="type">&#x3C;tls.TLSSocket></a></li>
 </ul>
 <p>Same as <a href="#tls_tls_connect_options_callback"><code>tls.connect()</code></a> except that <code>path</code> can be provided
 as an argument instead of an option.</p>
@@ -1073,6 +1075,7 @@ as an argument instead of an option.</p>
 <li><code>host</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Default value for <code>options.host</code>.</li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> See <a href="#tls_tls_connect_options_callback"><code>tls.connect()</code></a>.</li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> See <a href="#tls_tls_connect_options_callback"><code>tls.connect()</code></a>.</li>
+<li>Returns: <a href="tls.html#tls_class_tls_tlssocket" class="type">&#x3C;tls.TLSSocket></a></li>
 </ul>
 <p>Same as <a href="#tls_tls_connect_options_callback"><code>tls.connect()</code></a> except that <code>port</code> and <code>host</code> can be provided
 as arguments instead of options.</p>
@@ -1244,6 +1247,7 @@ servers, the identity options (<code>pfx</code> or <code>key</code>/<code>cert</
 </ul>
 </li>
 <li><code>secureConnectionListener</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
+<li>Returns: <a href="tls.html#tls_class_tls_server" class="type">&#x3C;tls.Server></a></li>
 </ul>
 <p>Creates a new <a href="#tls_class_tls_server"><code>tls.Server</code></a>. The <code>secureConnectionListener</code>, if provided, is
 automatically set as a listener for the <a href="#tls_event_secureconnection"><code>'secureConnection'</code></a> event.</p>

@@ -350,7 +350,7 @@
                   }
                 ]
               },
-              "desc": "<p>Type: End-of-Life</p>\n<p>Calling an asynchronous function without a callback throws a <code>TypeError</code>\nin Node.js 10.0.0 onwards. (See <a href=\"https://github.com/nodejs/node/pull/12562.\">https://github.com/nodejs/node/pull/12562.</a>)</p>\n<p><a id=\"DEP0014\"></a></p>",
+              "desc": "<p>Type: End-of-Life</p>\n<p>Calling an asynchronous function without a callback throws a <code>TypeError</code>\nin Node.js 10.0.0 onwards. (See <a href=\"https://github.com/nodejs/node/pull/12562\">https://github.com/nodejs/node/pull/12562</a>.)</p>\n<p><a id=\"DEP0014\"></a></p>",
               "type": "module",
               "displayName": "DEP0013: fs asynchronous function without callback"
             },
@@ -2015,7 +2015,7 @@
                   }
                 ]
               },
-              "desc": "<p>Type: End-of-Life</p>\n<p>The AsyncHooks Sensitive API was never documented and had various minor issues.\n(See <a href=\"https://github.com/nodejs/node/issues/15572.\">https://github.com/nodejs/node/issues/15572.</a>) Use the <code>AsyncResource</code>\nAPI instead.</p>\n<p><a id=\"DEP0086\"></a></p>",
+              "desc": "<p>Type: End-of-Life</p>\n<p>The AsyncHooks Sensitive API was never documented and had various minor issues.\n(See <a href=\"https://github.com/nodejs/node/issues/15572\">https://github.com/nodejs/node/issues/15572</a>.) Use the <code>AsyncResource</code>\nAPI instead.</p>\n<p><a id=\"DEP0086\"></a></p>",
               "type": "module",
               "displayName": "DEP0085: AsyncHooks Sensitive API"
             },
@@ -2039,7 +2039,7 @@
                   }
                 ]
               },
-              "desc": "<p>Type: End-of-Life</p>\n<p><code>runInAsyncIdScope</code> doesn't emit the <code>'before'</code> or <code>'after'</code> event and can thus\ncause a lot of issues. See <a href=\"https://github.com/nodejs/node/issues/14328\">https://github.com/nodejs/node/issues/14328</a> for more\ndetails.</p>\n<p><a id=\"DEP0089\"></a></p>",
+              "desc": "<p>Type: End-of-Life</p>\n<p><code>runInAsyncIdScope</code> doesn't emit the <code>'before'</code> or <code>'after'</code> event and can thus\ncause a lot of issues. See <a href=\"https://github.com/nodejs/node/issues/14328\">https://github.com/nodejs/node/issues/14328</a> for\nmore details.</p>\n<p><a id=\"DEP0089\"></a></p>",
               "type": "module",
               "displayName": "DEP0086: Remove runInAsyncIdScope"
             },

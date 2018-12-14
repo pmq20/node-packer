@@ -44,7 +44,7 @@
           "textRaw": "`code` {string}",
           "type": "string",
           "name": "code",
-          "desc": "<p>The <code>error.code</code> property is a string label that identifies the kind of error.\nSee <a href=\"#nodejs-error-codes\">Node.js Error Codes</a> for details about specific codes.</p>"
+          "desc": "<p>The <code>error.code</code> property is a string label that identifies the kind of error.\n<code>error.code</code> is the most stable way to identify an error. It will only change\nbetween major versions of Node.js. In contrast, <code>error.message</code> strings may\nchange between any versions of Node.js. See <a href=\"#nodejs-error-codes\">Node.js Error Codes</a> for details\nabout specific codes.</p>"
         },
         {
           "textRaw": "`message` {string}",
@@ -134,53 +134,67 @@
         {
           "textRaw": "System Errors",
           "name": "system_errors",
-          "desc": "<p>System errors are generated when exceptions occur within the Node.js\nruntime environment. Typically, these are operational errors that occur\nwhen an application violates an operating system constraint such as attempting\nto read a file that does not exist or when the user does not have sufficient\npermissions.</p>\n<p>System errors are typically generated at the syscall level: an exhaustive list\nof error codes and their meanings is available by running <code>man 2 intro</code> or\n<code>man 3 errno</code> on most Unices; or <a href=\"http://man7.org/linux/man-pages/man3/errno.3.html\">online</a>.</p>\n<p>In Node.js, system errors are represented as augmented <code>Error</code> objects with\nadded properties.</p>",
+          "desc": "<p>Node.js generates system errors when exceptions occur within its runtime\nenvironment. These usually occur when an application violates an operating\nsystem constraint. For example, a system error will occur if an application\nattempts to read a file that does not exist.</p>\n<p>System errors are usually generated at the syscall level. For a comprehensive\nlist, see the <a href=\"http://man7.org/linux/man-pages/man3/errno.3.html\"><code>errno</code>(3) man page</a>.</p>\n<p>In Node.js, system errors are <code>Error</code> objects with extra properties.</p>",
           "classes": [
             {
               "textRaw": "Class: SystemError",
               "type": "class",
               "name": "SystemError",
+              "desc": "<ul>\n<li><code>address</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type\" class=\"type\">&lt;string&gt;</a> If present, the address to which a network connection\nfailed</li>\n<li><code>code</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type\" class=\"type\">&lt;string&gt;</a> The string error code</li>\n<li><code>dest</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type\" class=\"type\">&lt;string&gt;</a> If present, the file path destination when reporting a file\nsystem error</li>\n<li><code>errno</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number&gt;</a> | <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type\" class=\"type\">&lt;string&gt;</a> The system-provided error number</li>\n<li><code>info</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object\" class=\"type\">&lt;Object&gt;</a> If present, extra details about the error condition</li>\n<li><code>message</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type\" class=\"type\">&lt;string&gt;</a> A system-provided human-readable description of the error</li>\n<li><code>path</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type\" class=\"type\">&lt;string&gt;</a> If present, the file path when reporting a file system error</li>\n<li><code>port</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number&gt;</a> If present, the network connection port that is not available</li>\n<li><code>syscall</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type\" class=\"type\">&lt;string&gt;</a> The name of the system call that triggered the error</li>\n</ul>",
               "properties": [
                 {
-                  "textRaw": "error.info",
-                  "name": "info",
-                  "desc": "<p><code>SystemError</code> instances may have an additional <code>info</code> property whose\nvalue is an object with additional details about the error conditions.</p>\n<p>The following properties are provided:</p>\n<ul>\n<li><code>code</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type\" class=\"type\">&lt;string&gt;</a> The string error code</li>\n<li><code>errno</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number&gt;</a> The system-provided error number</li>\n<li><code>message</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type\" class=\"type\">&lt;string&gt;</a> A system-provided human readable description of the error</li>\n<li><code>syscall</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type\" class=\"type\">&lt;string&gt;</a> The name of the system call that triggered the error</li>\n<li><code>path</code> <a href=\"buffer.html#buffer_class_buffer\" class=\"type\">&lt;Buffer&gt;</a> When reporting a file system error, the <code>path</code> will identify\nthe file path.</li>\n<li><code>dest</code> <a href=\"buffer.html#buffer_class_buffer\" class=\"type\">&lt;Buffer&gt;</a> When reporting a file system error, the <code>dest</code> will identify\nthe file path destination (if any).</li>\n</ul>"
+                  "textRaw": "`address` {string}",
+                  "type": "string",
+                  "name": "address",
+                  "desc": "<p>If present, <code>error.address</code> is a string describing the address to which a\nnetwork connection failed.</p>"
                 },
                 {
                   "textRaw": "`code` {string}",
                   "type": "string",
                   "name": "code",
-                  "desc": "<p>The <code>error.code</code> property is a string representing the error code, which is\ntypically <code>E</code> followed by a sequence of capital letters.</p>"
+                  "desc": "<p>The <code>error.code</code> property is a string representing the error code.</p>"
+                },
+                {
+                  "textRaw": "`dest` {string}",
+                  "type": "string",
+                  "name": "dest",
+                  "desc": "<p>If present, <code>error.dest</code> is the file path destination when reporting a file\nsystem error.</p>"
                 },
                 {
                   "textRaw": "`errno` {string|number}",
                   "type": "string|number",
                   "name": "errno",
-                  "desc": "<p>The <code>error.errno</code> property is a number or a string.\nThe number is a <strong>negative</strong> value which corresponds to the error code defined\nin <a href=\"http://docs.libuv.org/en/v1.x/errors.html\"><code>libuv Error handling</code></a>. See <code>uv-errno.h</code> header file\n(<code>deps/uv/include/uv-errno.h</code> in the Node.js source tree) for details. In case\nof a string, it is the same as <code>error.code</code>.</p>"
+                  "desc": "<p>The <code>error.errno</code> property is a number or a string. If it is a number, it is a\nnegative value which corresponds to the error code defined in\n<a href=\"http://docs.libuv.org/en/v1.x/errors.html\"><code>libuv Error handling</code></a>. See the libuv <code>errno.h</code> header file\n(<code>deps/uv/include/uv/errno.h</code> in the Node.js source tree) for details. In case\nof a string, it is the same as <code>error.code</code>.</p>"
+                },
+                {
+                  "textRaw": "`info` {Object}",
+                  "type": "Object",
+                  "name": "info",
+                  "desc": "<p>If present, <code>error.info</code> is an object with details about the error condition.</p>"
+                },
+                {
+                  "textRaw": "`message` {string}",
+                  "type": "string",
+                  "name": "message",
+                  "desc": "<p><code>error.message</code> is a system-provided human-readable description of the error.</p>"
+                },
+                {
+                  "textRaw": "`path` {string}",
+                  "type": "string",
+                  "name": "path",
+                  "desc": "<p>If present, <code>error.path</code> is a string containing a relevant invalid pathname.</p>"
+                },
+                {
+                  "textRaw": "`port` {number}",
+                  "type": "number",
+                  "name": "port",
+                  "desc": "<p>If present, <code>error.port</code> is the network connection port that is not available.</p>"
                 },
                 {
                   "textRaw": "`syscall` {string}",
                   "type": "string",
                   "name": "syscall",
                   "desc": "<p>The <code>error.syscall</code> property is a string describing the <a href=\"http://man7.org/linux/man-pages/man2/syscalls.2.html\">syscall</a> that failed.</p>"
-                },
-                {
-                  "textRaw": "`path` {string}",
-                  "type": "string",
-                  "name": "path",
-                  "desc": "<p>When present (e.g. in <code>fs</code> or <code>child_process</code>), the <code>error.path</code> property is a\nstring containing a relevant invalid pathname.</p>"
-                },
-                {
-                  "textRaw": "`address` {string}",
-                  "type": "string",
-                  "name": "address",
-                  "desc": "<p>When present (e.g. in <code>net</code> or <code>dgram</code>), the <code>error.address</code> property is a\nstring describing the address to which the connection failed.</p>"
-                },
-                {
-                  "textRaw": "`port` {number}",
-                  "type": "number",
-                  "name": "port",
-                  "desc": "<p>When present (e.g. in <code>net</code> or <code>dgram</code>), the <code>error.port</code> property is a number\nrepresenting the connection's port that is not available.</p>"
                 }
               ]
             }
@@ -189,7 +203,7 @@
             {
               "textRaw": "Common System Errors",
               "name": "common_system_errors",
-              "desc": "<p>This list is <strong>not exhaustive</strong>, but enumerates many of the common system\nerrors encountered when writing a Node.js program. An exhaustive list may be\nfound <a href=\"http://man7.org/linux/man-pages/man3/errno.3.html\">here</a>.</p>\n<ul>\n<li>\n<p><code>EACCES</code> (Permission denied): An attempt was made to access a file in a way\nforbidden by its file access permissions.</p>\n</li>\n<li>\n<p><code>EADDRINUSE</code> (Address already in use): An attempt to bind a server\n(<a href=\"net.html\"><code>net</code></a>, <a href=\"http.html\"><code>http</code></a>, or <a href=\"https.html\"><code>https</code></a>) to a local address failed due to\nanother server on the local system already occupying that address.</p>\n</li>\n<li>\n<p><code>ECONNREFUSED</code> (Connection refused): No connection could be made because the\ntarget machine actively refused it. This usually results from trying to\nconnect to a service that is inactive on the foreign host.</p>\n</li>\n<li>\n<p><code>ECONNRESET</code> (Connection reset by peer): A connection was forcibly closed by\na peer. This normally results from a loss of the connection on the remote\nsocket due to a timeout or reboot. Commonly encountered via the <a href=\"http.html\"><code>http</code></a>\nand <a href=\"net.html\"><code>net</code></a> modules.</p>\n</li>\n<li>\n<p><code>EEXIST</code> (File exists): An existing file was the target of an operation that\nrequired that the target not exist.</p>\n</li>\n<li>\n<p><code>EISDIR</code> (Is a directory): An operation expected a file, but the given\npathname was a directory.</p>\n</li>\n<li>\n<p><code>EMFILE</code> (Too many open files in system): Maximum number of\n<a href=\"https://en.wikipedia.org/wiki/File_descriptor\">file descriptors</a> allowable on the system has been reached, and\nrequests for another descriptor cannot be fulfilled until at least one\nhas been closed. This is encountered when opening many files at once in\nparallel, especially on systems (in particular, macOS) where there is a low\nfile descriptor limit for processes. To remedy a low limit, run\n<code>ulimit -n 2048</code> in the same shell that will run the Node.js process.</p>\n</li>\n<li>\n<p><code>ENOENT</code> (No such file or directory): Commonly raised by <a href=\"fs.html\"><code>fs</code></a> operations\nto indicate that a component of the specified pathname does not exist — no\nentity (file or directory) could be found by the given path.</p>\n</li>\n<li>\n<p><code>ENOTDIR</code> (Not a directory): A component of the given pathname existed, but\nwas not a directory as expected. Commonly raised by <a href=\"fs.html#fs_fs_readdir_path_options_callback\"><code>fs.readdir</code></a>.</p>\n</li>\n<li>\n<p><code>ENOTEMPTY</code> (Directory not empty): A directory with entries was the target\nof an operation that requires an empty directory — usually <a href=\"fs.html#fs_fs_unlink_path_callback\"><code>fs.unlink</code></a>.</p>\n</li>\n<li>\n<p><code>EPERM</code> (Operation not permitted): An attempt was made to perform an\noperation that requires elevated privileges.</p>\n</li>\n<li>\n<p><code>EPIPE</code> (Broken pipe): A write on a pipe, socket, or FIFO for which there is\nno process to read the data. Commonly encountered at the <a href=\"net.html\"><code>net</code></a> and\n<a href=\"http.html\"><code>http</code></a> layers, indicative that the remote side of the stream being\nwritten to has been closed.</p>\n</li>\n<li>\n<p><code>ETIMEDOUT</code> (Operation timed out): A connect or send request failed because\nthe connected party did not properly respond after a period of time. Usually\nencountered by <a href=\"http.html\"><code>http</code></a> or <a href=\"net.html\"><code>net</code></a> — often a sign that a <code>socket.end()</code>\nwas not properly called.</p>\n</li>\n</ul>\n<p><a id=\"nodejs-error-codes\"></a></p>",
+              "desc": "<p>This is a list of system errors commonly-encountered when writing a Node.js\nprogram. For a comprehensive list, see the <a href=\"http://man7.org/linux/man-pages/man3/errno.3.html\"><code>errno</code>(3) man page</a>.</p>\n<ul>\n<li>\n<p><code>EACCES</code> (Permission denied): An attempt was made to access a file in a way\nforbidden by its file access permissions.</p>\n</li>\n<li>\n<p><code>EADDRINUSE</code> (Address already in use): An attempt to bind a server\n(<a href=\"net.html\"><code>net</code></a>, <a href=\"http.html\"><code>http</code></a>, or <a href=\"https.html\"><code>https</code></a>) to a local address failed due to\nanother server on the local system already occupying that address.</p>\n</li>\n<li>\n<p><code>ECONNREFUSED</code> (Connection refused): No connection could be made because the\ntarget machine actively refused it. This usually results from trying to\nconnect to a service that is inactive on the foreign host.</p>\n</li>\n<li>\n<p><code>ECONNRESET</code> (Connection reset by peer): A connection was forcibly closed by\na peer. This normally results from a loss of the connection on the remote\nsocket due to a timeout or reboot. Commonly encountered via the <a href=\"http.html\"><code>http</code></a>\nand <a href=\"net.html\"><code>net</code></a> modules.</p>\n</li>\n<li>\n<p><code>EEXIST</code> (File exists): An existing file was the target of an operation that\nrequired that the target not exist.</p>\n</li>\n<li>\n<p><code>EISDIR</code> (Is a directory): An operation expected a file, but the given\npathname was a directory.</p>\n</li>\n<li>\n<p><code>EMFILE</code> (Too many open files in system): Maximum number of\n<a href=\"https://en.wikipedia.org/wiki/File_descriptor\">file descriptors</a> allowable on the system has been reached, and\nrequests for another descriptor cannot be fulfilled until at least one\nhas been closed. This is encountered when opening many files at once in\nparallel, especially on systems (in particular, macOS) where there is a low\nfile descriptor limit for processes. To remedy a low limit, run\n<code>ulimit -n 2048</code> in the same shell that will run the Node.js process.</p>\n</li>\n<li>\n<p><code>ENOENT</code> (No such file or directory): Commonly raised by <a href=\"fs.html\"><code>fs</code></a> operations\nto indicate that a component of the specified pathname does not exist — no\nentity (file or directory) could be found by the given path.</p>\n</li>\n<li>\n<p><code>ENOTDIR</code> (Not a directory): A component of the given pathname existed, but\nwas not a directory as expected. Commonly raised by <a href=\"fs.html#fs_fs_readdir_path_options_callback\"><code>fs.readdir</code></a>.</p>\n</li>\n<li>\n<p><code>ENOTEMPTY</code> (Directory not empty): A directory with entries was the target\nof an operation that requires an empty directory — usually <a href=\"fs.html#fs_fs_unlink_path_callback\"><code>fs.unlink</code></a>.</p>\n</li>\n<li>\n<p><code>EPERM</code> (Operation not permitted): An attempt was made to perform an\noperation that requires elevated privileges.</p>\n</li>\n<li>\n<p><code>EPIPE</code> (Broken pipe): A write on a pipe, socket, or FIFO for which there is\nno process to read the data. Commonly encountered at the <a href=\"net.html\"><code>net</code></a> and\n<a href=\"http.html\"><code>http</code></a> layers, indicative that the remote side of the stream being\nwritten to has been closed.</p>\n</li>\n<li>\n<p><code>ETIMEDOUT</code> (Operation timed out): A connect or send request failed because\nthe connected party did not properly respond after a period of time. Usually\nencountered by <a href=\"http.html\"><code>http</code></a> or <a href=\"net.html\"><code>net</code></a> — often a sign that a <code>socket.end()</code>\nwas not properly called.</p>\n</li>\n</ul>\n<p><a id=\"nodejs-error-codes\"></a></p>",
               "type": "module",
               "displayName": "Common System Errors"
             }
@@ -1247,7 +1261,7 @@
             {
               "textRaw": "ERR_NO_ICU",
               "name": "err_no_icu",
-              "desc": "<p>An attempt was made to use features that require <a href=\"intl.html#intl_internationalization_support\">ICU</a>, but Node.js was not\ncompiled with ICU support.</p>\n<p><a id=\"ERR_NO_LONGER_SUPPORTED\"></a></p>",
+              "desc": "<p>An attempt was made to use features that require <a href=\"\">ICU</a>, but Node.js was not\ncompiled with ICU support.</p>\n<p><a id=\"ERR_NO_LONGER_SUPPORTED\"></a></p>",
               "type": "module",
               "displayName": "ERR_NO_ICU"
             },
@@ -1673,9 +1687,16 @@
             {
               "textRaw": "ERR_ZLIB_INITIALIZATION_FAILED",
               "name": "err_zlib_initialization_failed",
-              "desc": "<p>Creation of a <a href=\"zlib.html\"><code>zlib</code></a> object failed due to incorrect configuration.</p>\n<p><a id=\"MODULE_NOT_FOUND\"></a></p>",
+              "desc": "<p>Creation of a <a href=\"zlib.html\"><code>zlib</code></a> object failed due to incorrect configuration.</p>\n<p><a id=\"HPE_HEADER_OVERFLOW\"></a></p>",
               "type": "module",
               "displayName": "ERR_ZLIB_INITIALIZATION_FAILED"
+            },
+            {
+              "textRaw": "HPE_HEADER_OVERFLOW",
+              "name": "hpe_header_overflow",
+              "desc": "<p>Too much HTTP header data was received. In order to protect against malicious or\nmalconfigured clients, if more than 80KB of HTTP header data is received then\nHTTP parsing will abort without a request or response object being created, and\nan <code>Error</code> with this code will be emitted.</p>\n<p><a id=\"MODULE_NOT_FOUND\"></a></p>",
+              "type": "module",
+              "displayName": "HPE_HEADER_OVERFLOW"
             },
             {
               "textRaw": "MODULE_NOT_FOUND",
@@ -2069,7 +2090,7 @@
               "textRaw": "`code` {string}",
               "type": "string",
               "name": "code",
-              "desc": "<p>The <code>error.code</code> property is a string label that identifies the kind of error.\nSee <a href=\"#nodejs-error-codes\">Node.js Error Codes</a> for details about specific codes.</p>"
+              "desc": "<p>The <code>error.code</code> property is a string label that identifies the kind of error.\n<code>error.code</code> is the most stable way to identify an error. It will only change\nbetween major versions of Node.js. In contrast, <code>error.message</code> strings may\nchange between any versions of Node.js. See <a href=\"#nodejs-error-codes\">Node.js Error Codes</a> for details\nabout specific codes.</p>"
             },
             {
               "textRaw": "`message` {string}",

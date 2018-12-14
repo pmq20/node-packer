@@ -100,7 +100,15 @@
     internalBinding = function internalBinding(module) {
       let mod = bindingObj[module];
       if (typeof mod !== 'object') {
-        mod = bindingObj[module] = getInternalBinding(module);
+        try {
+          mod = getInternalBinding(module);
+        } catch {
+          // v10.x only: Fall back to `process.binding()`,
+          // to avoid future merge conflicts when backporting changes that use
+          // `internalBinding()` to v10.x.
+          mod = process.binding(module);
+        }
+        bindingObj[module] = mod;
         moduleLoadList.push(`Internal Binding ${module}`);
       }
       return mod;
@@ -210,7 +218,7 @@
     NativeModule.isInternal = function(id) {
       return id.startsWith('internal/') ||
           (id === 'worker_threads' &&
-           !process.binding('config').experimentalWorker);
+           !internalBinding('options').getOptions('--experimental-worker'));
     };
   }
 
@@ -223,7 +231,7 @@
   };
 
   NativeModule.wrapper = [
-    '(function (exports, require, module, process) {',
+    '(function (exports, require, module, process, internalBinding) {',
     '\n});'
   ];
 
@@ -231,6 +239,64 @@
     return ReflectApply(ObjectHasOwnProperty, target, [property]) ?
       ReflectGet(target, property, receiver) :
       undefined;
+  };
+
+  // Provide named exports for all builtin libraries so that the libraries
+  // may be imported in a nicer way for esm users. The default export is left
+  // as the entire namespace (module.exports) and wrapped in a proxy such
+  // that APMs and other behavior are still left intact.
+  NativeModule.prototype.proxifyExports = function() {
+    this.exportKeys = ObjectKeys(this.exports);
+
+    const update = (property, value) => {
+      if (this.reflect !== undefined &&
+          ReflectApply(ObjectHasOwnProperty,
+                       this.reflect.exports, [property]))
+        this.reflect.exports[property].set(value);
+    };
+
+    const handler = {
+      __proto__: null,
+      defineProperty: (target, prop, descriptor) => {
+        // Use `Object.defineProperty` instead of `Reflect.defineProperty`
+        // to throw the appropriate error if something goes wrong.
+        ObjectDefineProperty(target, prop, descriptor);
+        if (typeof descriptor.get === 'function' &&
+            !ReflectHas(handler, 'get')) {
+          handler.get = (target, prop, receiver) => {
+            const value = ReflectGet(target, prop, receiver);
+            if (ReflectApply(ObjectHasOwnProperty, target, [prop]))
+              update(prop, value);
+            return value;
+          };
+        }
+        update(prop, getOwn(target, prop));
+        return true;
+      },
+      deleteProperty: (target, prop) => {
+        if (ReflectDeleteProperty(target, prop)) {
+          update(prop, undefined);
+          return true;
+        }
+        return false;
+      },
+      set: (target, prop, value, receiver) => {
+        const descriptor = ReflectGetOwnPropertyDescriptor(target, prop);
+        if (ReflectSet(target, prop, value, receiver)) {
+          if (descriptor && typeof descriptor.set === 'function') {
+            for (const key of this.exportKeys) {
+              update(key, getOwn(target, key, receiver));
+            }
+          } else {
+            update(prop, getOwn(target, prop, receiver));
+          }
+          return true;
+        }
+        return false;
+      }
+    };
+
+    this.exports = new Proxy(this.exports, handler);
   };
 
   NativeModule.prototype.compile = function() {
@@ -294,60 +360,10 @@
       const requireFn = this.id.startsWith('internal/deps/') ?
         NativeModule.requireForDeps :
         NativeModule.require;
-      fn(this.exports, requireFn, this, process);
+      fn(this.exports, requireFn, this, process, internalBinding);
 
       if (config.experimentalModules && !NativeModule.isInternal(this.id)) {
-        this.exportKeys = ObjectKeys(this.exports);
-
-        const update = (property, value) => {
-          if (this.reflect !== undefined &&
-              ReflectApply(ObjectHasOwnProperty,
-                           this.reflect.exports, [property]))
-            this.reflect.exports[property].set(value);
-        };
-
-        const handler = {
-          __proto__: null,
-          defineProperty: (target, prop, descriptor) => {
-            // Use `Object.defineProperty` instead of `Reflect.defineProperty`
-            // to throw the appropriate error if something goes wrong.
-            ObjectDefineProperty(target, prop, descriptor);
-            if (typeof descriptor.get === 'function' &&
-                !ReflectHas(handler, 'get')) {
-              handler.get = (target, prop, receiver) => {
-                const value = ReflectGet(target, prop, receiver);
-                if (ReflectApply(ObjectHasOwnProperty, target, [prop]))
-                  update(prop, value);
-                return value;
-              };
-            }
-            update(prop, getOwn(target, prop));
-            return true;
-          },
-          deleteProperty: (target, prop) => {
-            if (ReflectDeleteProperty(target, prop)) {
-              update(prop, undefined);
-              return true;
-            }
-            return false;
-          },
-          set: (target, prop, value, receiver) => {
-            const descriptor = ReflectGetOwnPropertyDescriptor(target, prop);
-            if (ReflectSet(target, prop, value, receiver)) {
-              if (descriptor && typeof descriptor.set === 'function') {
-                for (const key of this.exportKeys) {
-                  update(key, getOwn(target, key, receiver));
-                }
-              } else {
-                update(prop, getOwn(target, prop, receiver));
-              }
-              return true;
-            }
-            return false;
-          }
-        };
-
-        this.exports = new Proxy(this.exports, handler);
+        this.proxifyExports();
       }
 
       this.loaded = true;

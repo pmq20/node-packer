@@ -41,9 +41,8 @@ const {
 // that test/parallel/test-buffer-bindingobj-no-zerofill.js is written.
 let isAnyArrayBuffer;
 try {
-  const { internalBinding } = require('internal/bootstrap/loaders');
   isAnyArrayBuffer = internalBinding('types').isAnyArrayBuffer;
-} catch (e) {
+} catch {
   isAnyArrayBuffer = require('util').types.isAnyArrayBuffer;
 }
 const {

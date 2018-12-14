@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>C++ Addons | Node.js v10.14.1 Documentation</title>
+  <title>C++ Addons | Node.js v10.14.2 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -74,13 +74,12 @@
 <div class="line"></div>
 <ul>
 <li><a href="https://github.com/nodejs/node" class="nav-https-github-com-nodejs-node">GitHub Repo &#x26; Issue Tracker</a></li>
-<li><a href="https://groups.google.com/forum/#!forum/nodejs" class="nav-https-groups-google-com-forum-forum-nodejs">Mailing List</a></li>
 </ul>
     </div>
 
     <div id="column1" data-id="addons" class="interior">
       <header>
-        <h1>Node.js v10.14.1 Documentation</h1>
+        <h1>Node.js v10.14.2 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -95,7 +94,8 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v10.x/api/addons.html">10.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v11.x/api/addons.html">11.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v10.x/api/addons.html">10.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v9.x/api/addons.html">9.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v8.x/api/addons.html">8.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v7.x/api/addons.html">7.x</a></li>
@@ -661,6 +661,7 @@ property <code>msg</code> that echoes the string passed to <code>createObject()<
 
 namespace demo {
 
+using v8::Context;
 using v8::FunctionCallbackInfo;
 using v8::Isolate;
 using v8::Local;
@@ -670,9 +671,11 @@ using v8::Value;
 
 void CreateObject(const FunctionCallbackInfo&#x3C;Value>&#x26; args) {
   Isolate* isolate = args.GetIsolate();
+  Local&#x3C;Context> context = isolate->GetCurrentContext();
 
   Local&#x3C;Object> obj = Object::New(isolate);
-  obj->Set(String::NewFromUtf8(isolate, "msg"), args[0]->ToString(isolate));
+  obj->Set(String::NewFromUtf8(isolate, "msg"),
+                               args[0]->ToString(context).ToLocalChecked());
 
   args.GetReturnValue().Set(obj);
 }
@@ -1102,6 +1105,7 @@ that can take two <code>MyObject</code> objects as input arguments:</p>
 
 namespace demo {
 
+using v8::Context;
 using v8::FunctionCallbackInfo;
 using v8::Isolate;
 using v8::Local;
@@ -1116,11 +1120,12 @@ void CreateObject(const FunctionCallbackInfo&#x3C;Value>&#x26; args) {
 
 void Add(const FunctionCallbackInfo&#x3C;Value>&#x26; args) {
   Isolate* isolate = args.GetIsolate();
+  Local&#x3C;Context> context = isolate->GetCurrentContext();
 
   MyObject* obj1 = node::ObjectWrap::Unwrap&#x3C;MyObject>(
-      args[0]->ToObject(isolate));
+      args[0]->ToObject(context).ToLocalChecked());
   MyObject* obj2 = node::ObjectWrap::Unwrap&#x3C;MyObject>(
-      args[1]->ToObject(isolate));
+      args[1]->ToObject(context).ToLocalChecked());
 
   double sum = obj1->value() + obj2->value();
   args.GetReturnValue().Set(Number::New(isolate, sum));

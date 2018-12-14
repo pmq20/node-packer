@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Command Line Options | Node.js v10.14.1 Documentation</title>
+  <title>Command Line Options | Node.js v10.14.2 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -74,13 +74,12 @@
 <div class="line"></div>
 <ul>
 <li><a href="https://github.com/nodejs/node" class="nav-https-github-com-nodejs-node">GitHub Repo &#x26; Issue Tracker</a></li>
-<li><a href="https://groups.google.com/forum/#!forum/nodejs" class="nav-https-groups-google-com-forum-forum-nodejs">Mailing List</a></li>
 </ul>
     </div>
 
     <div id="column1" data-id="cli" class="interior">
       <header>
-        <h1>Node.js v10.14.1 Documentation</h1>
+        <h1>Node.js v10.14.2 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -95,7 +94,8 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v10.x/api/cli.html">10.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v11.x/api/cli.html">11.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v10.x/api/cli.html">10.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v9.x/api/cli.html">9.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v8.x/api/cli.html">8.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v7.x/api/cli.html">7.x</a></li>
@@ -131,7 +131,12 @@
 <li><a href="#cli_icu_data_dir_file"><code>--icu-data-dir=file</code></a></li>
 <li><a href="#cli_inspect_brk_host_port"><code>--inspect-brk[=[host:]port]</code></a></li>
 <li><a href="#cli_inspect_port_host_port"><code>--inspect-port=[host:]port</code></a></li>
-<li><a href="#cli_inspect_host_port"><code>--inspect[=[host:]port]</code></a></li>
+<li>
+<p><a href="#cli_inspect_host_port"><code>--inspect[=[host:]port]</code></a></p>
+<ul>
+<li><a href="#cli_warning_binding_inspector_to_a_public_ip_port_combination_is_insecure">Warning: binding inspector to a public IP:port combination is insecure</a></li>
+</ul>
+</li>
 <li><a href="#cli_loader_file"><code>--loader=file</code></a></li>
 <li><a href="#cli_napi_modules"><code>--napi-modules</code></a></li>
 <li><a href="#cli_no_deprecation"><code>--no-deprecation</code></a></li>
@@ -300,6 +305,8 @@ Default <code>host:port</code> is <code>127.0.0.1:9229</code>.</p>
 <p>Set the <code>host:port</code> to be used when the inspector is activated.
 Useful when activating the inspector by sending the <code>SIGUSR1</code> signal.</p>
 <p>Default host is <code>127.0.0.1</code>.</p>
+<p>See the <a href="#inspector_security">security warning</a> below regarding the <code>host</code>
+parameter usage.</p>
 <h3><code>--inspect[=[host:]port]</code><span><a class="mark" href="#cli_inspect_host_port" id="cli_inspect_host_port">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v6.3.0</span>
@@ -308,10 +315,21 @@ Useful when activating the inspector by sending the <code>SIGUSR1</code> signal.
 <p>V8 inspector integration allows tools such as Chrome DevTools and IDEs to debug
 and profile Node.js instances. The tools attach to Node.js instances via a
 tcp port and communicate using the <a href="https://chromedevtools.github.io/devtools-protocol/">Chrome DevTools Protocol</a>.</p>
+<p><a id="inspector_security"></a></p>
+<h4>Warning: binding inspector to a public IP:port combination is insecure<span><a class="mark" href="#cli_warning_binding_inspector_to_a_public_ip_port_combination_is_insecure" id="cli_warning_binding_inspector_to_a_public_ip_port_combination_is_insecure">#</a></span></h4>
+<p>Binding the inspector to a public IP (including <code>0.0.0.0</code>) with an open port is
+insecure, as it allows external hosts to connect to the inspector and perform
+a <a href="https://www.owasp.org/index.php/Code_Injection">remote code execution</a> attack.</p>
+<p>If you specify a host, make sure that at least one of the following is true:
+either the host is not public, or the port is properly firewalled to disallow
+unwanted connections.</p>
+<p><strong>More specifically, <code>--inspect=0.0.0.0</code> is insecure if the port (<code>9229</code> by
+default) is not firewall-protected.</strong></p>
+<p>See the <a href="https://nodejs.org/en/docs/guides/debugging-getting-started/#security-implications">debugging security implications</a> section for more information.</p>
 <h3><code>--loader=file</code><span><a class="mark" href="#cli_loader_file" id="cli_loader_file">#</a></span></h3>
-<!--
-added: v9.0.0
--->
+<div class="api_metadata">
+<span>Added in: v9.0.0</span>
+</div>
 <p>Specify the <code>file</code> of the custom <a href="esm.html#esm_loader_hooks">experimental ECMAScript Module</a> loader.</p>
 <h3><code>--napi-modules</code><span><a class="mark" href="#cli_napi_modules" id="cli_napi_modules">#</a></span></h3>
 <div class="api_metadata">
@@ -597,6 +615,8 @@ certificates in PEM format. A message will be emitted (once) with
 malformed, but any errors are otherwise ignored.</p>
 <p>Note that neither the well known nor extra certificates are used when the <code>ca</code>
 options property is explicitly specified for a TLS or HTTPS client or server.</p>
+<p>This environment variable is ignored when <code>node</code> runs as setuid root or
+has Linux file capabilities set.</p>
 <h3><code>NODE_ICU_DATA=file</code><span><a class="mark" href="#cli_node_icu_data_file" id="cli_node_icu_data_file">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.15</span>
@@ -616,7 +636,7 @@ with small-icu support.</p>
 if they had been specified on the command line before the actual command line
 (so they can be overridden). Node.js will exit with an error if an option
 that is not allowed in the environment is used, such as <code>-p</code> or a script file.</p>
-<p>Node options that are allowed are:</p>
+<p>Node.js options that are allowed are:</p>
 <ul>
 <li><code>--enable-fips</code></li>
 <li><code>--experimental-modules</code></li>

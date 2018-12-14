@@ -202,7 +202,7 @@ function exists(path, callback) {
 
   try {
     fs.access(path, F_OK, suppressedCallback);
-  } catch (err) {
+  } catch {
     return callback(false);
   }
 }
@@ -221,11 +221,14 @@ Object.defineProperty(exists, internalUtil.promisify.custom, {
 // TODO(joyeecheung): deprecate the never-throw-on-invalid-arguments behavior
 function existsSync(path) {
   try {
-    fs.accessSync(path, F_OK);
-    return true;
-  } catch (e) {
+    path = toPathIfFileURL(path);
+    validatePath(path);
+  } catch {
     return false;
   }
+  const ctx = { path };
+  binding.access(pathModule.toNamespacedPath(path), F_OK, undefined, ctx);
+  return ctx.errno === undefined;
 }
 
 function readFileAfterOpen(err, fd) {
@@ -405,7 +408,7 @@ function open(path, flags, mode, callback) {
   path = toPathIfFileURL(path);
   validatePath(path);
   const flagsNumber = stringToFlags(flags);
-  if (arguments.length < 4) {
+  if (typeof mode === 'function') {
     callback = makeCallback(mode);
     mode = 0o666;
   } else {
@@ -785,7 +788,7 @@ function readdirSync(path, options) {
 }
 
 function fstat(fd, options, callback) {
-  if (arguments.length < 3) {
+  if (typeof options === 'function') {
     callback = options;
     options = {};
   }
@@ -796,7 +799,7 @@ function fstat(fd, options, callback) {
 }
 
 function lstat(path, options, callback) {
-  if (arguments.length < 3) {
+  if (typeof options === 'function') {
     callback = options;
     options = {};
   }
@@ -809,7 +812,7 @@ function lstat(path, options, callback) {
 }
 
 function stat(path, options, callback) {
-  if (arguments.length < 3) {
+  if (typeof options === 'function') {
     callback = options;
     options = {};
   }

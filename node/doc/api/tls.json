@@ -380,6 +380,11 @@
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {tls.Server}",
+                    "name": "return",
+                    "type": "tls.Server"
+                  },
                   "params": [
                     {
                       "textRaw": "`callback` {Function} A listener callback that will be registered to listen for the server instance's `'close'` event.",
@@ -690,7 +695,7 @@
                   "params": []
                 }
               ],
-              "desc": "<p>Returns a string containing the negotiated SSL/TLS protocol version of the\ncurrent connection. The value <code>'unknown'</code> will be returned for connected\nsockets that have not completed the handshaking process. The value <code>null</code> will\nbe returned for server sockets or disconnected client sockets.</p>\n<p>Example responses include:</p>\n<ul>\n<li><code>SSLv3</code></li>\n<li><code>TLSv1</code></li>\n<li><code>TLSv1.1</code></li>\n<li><code>TLSv1.2</code></li>\n<li><code>unknown</code></li>\n</ul>\n<p>See <a href=\"https://www.openssl.org/docs/man1.1.0/ssl/SSL_get_version.html\">https://www.openssl.org/docs/man1.1.0/ssl/SSL_get_version.html</a> for more\ninformation.</p>"
+              "desc": "<p>Returns a string containing the negotiated SSL/TLS protocol version of the\ncurrent connection. The value <code>'unknown'</code> will be returned for connected\nsockets that have not completed the handshaking process. The value <code>null</code> will\nbe returned for server sockets or disconnected client sockets.</p>\n<p>Example responses include:</p>\n<ul>\n<li><code>TLSv1</code></li>\n<li><code>TLSv1.1</code></li>\n<li><code>TLSv1.2</code></li>\n<li><code>unknown</code></li>\n</ul>\n<p>See <a href=\"https://www.openssl.org/docs/man1.1.0/ssl/SSL_get_version.html\">https://www.openssl.org/docs/man1.1.0/ssl/SSL_get_version.html</a> for more\ninformation.</p>"
             },
             {
               "textRaw": "tlsSocket.getSession()",
@@ -1041,6 +1046,11 @@
           },
           "signatures": [
             {
+              "return": {
+                "textRaw": "Returns: {tls.TLSSocket}",
+                "name": "return",
+                "type": "tls.TLSSocket"
+              },
               "params": [
                 {
                   "textRaw": "`options` {Object}",
@@ -1086,10 +1096,10 @@
                       "desc": "An array of strings, `Buffer`s or `Uint8Array`s, or a single `Buffer` or `Uint8Array` containing the supported ALPN protocols. `Buffer`s should have the format `[len][name][len][name]...` e.g. `0x05hello0x05world`, where the first byte is the length of the next protocol name. Passing an array is usually much simpler, e.g. `['hello', 'world']`."
                     },
                     {
-                      "textRaw": "`servername`: {string} Server name for the SNI (Server Name Indication) TLS extension.",
+                      "textRaw": "`servername`: {string} Server name for the SNI (Server Name Indication) TLS extension. It must be a host name, and not an IP address.",
                       "name": "servername",
                       "type": "string",
-                      "desc": "Server name for the SNI (Server Name Indication) TLS extension."
+                      "desc": "Server name for the SNI (Server Name Indication) TLS extension. It must be a host name, and not an IP address."
                     },
                     {
                       "textRaw": "`checkServerIdentity(servername, cert)` {Function} A callback function to be used (instead of the builtin `tls.checkServerIdentity()` function) when checking the server's hostname (or the provided `servername` when explicitly set) against the certificate. This should return an {Error} if verification fails. The method should return `undefined` if the `servername` and `cert` are verified.",
@@ -1151,6 +1161,11 @@
           },
           "signatures": [
             {
+              "return": {
+                "textRaw": "Returns: {tls.TLSSocket}",
+                "name": "return",
+                "type": "tls.TLSSocket"
+              },
               "params": [
                 {
                   "textRaw": "`path` {string} Default value for `options.path`.",
@@ -1189,6 +1204,11 @@
           },
           "signatures": [
             {
+              "return": {
+                "textRaw": "Returns: {tls.TLSSocket}",
+                "name": "return",
+                "type": "tls.TLSSocket"
+              },
               "params": [
                 {
                   "textRaw": "`port` {number} Default value for `options.port`.",
@@ -1383,6 +1403,11 @@
           },
           "signatures": [
             {
+              "return": {
+                "textRaw": "Returns: {tls.Server}",
+                "name": "return",
+                "type": "tls.Server"
+              },
               "params": [
                 {
                   "textRaw": "`options` {Object}",

@@ -97,7 +97,7 @@ async function checkModuleState() {
     const m = new SourceTextModule('import "foo";');
     try {
       await m.link(common.mustCall(() => ({})));
-    } catch (err) {
+    } catch {
       assert.strictEqual(m.linkingStatus, 'errored');
       m.instantiate();
     }
@@ -129,6 +129,15 @@ async function checkModuleState() {
   }, {
     code: 'ERR_VM_MODULE_STATUS',
     message: 'Module status must be one of instantiated, evaluated, and errored'
+  });
+
+  await expectsRejection(async () => {
+    const m = new SourceTextModule('');
+    await m.evaluate(false);
+  }, {
+    code: 'ERR_INVALID_ARG_TYPE',
+    message: 'The "options" argument must be of type Object. ' +
+             'Received type boolean'
   });
 
   await expectsRejection(async () => {
@@ -209,7 +218,7 @@ async function checkLinking() {
     const erroredModule = new SourceTextModule('import "foo";');
     try {
       await erroredModule.link(common.mustCall(() => ({})));
-    } catch (err) {
+    } catch {
       // ignored
     } finally {
       assert.strictEqual(erroredModule.linkingStatus, 'errored');

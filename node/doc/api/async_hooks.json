@@ -431,6 +431,12 @@
                   "name": "emitDestroy",
                   "signatures": [
                     {
+                      "return": {
+                        "textRaw": "Returns: {AsyncResource} A reference to `asyncResource`.",
+                        "name": "return",
+                        "type": "AsyncResource",
+                        "desc": "A reference to `asyncResource`."
+                      },
                       "params": []
                     }
                   ],

@@ -25,7 +25,6 @@ const assert = require('assert');
 const fs = require('fs');
 const http = require('http');
 const path = require('path');
-const cp = require('child_process');
 
 const tmpdir = require('../common/tmpdir');
 tmpdir.refresh();
@@ -35,7 +34,7 @@ let count = 0;
 
 const server = http.createServer(function(req, res) {
   let timeoutId;
-  assert.strictEqual('POST', req.method);
+  assert.strictEqual(req.method, 'POST');
   req.pause();
 
   setTimeout(function() {
@@ -57,12 +56,8 @@ const server = http.createServer(function(req, res) {
 server.listen(0);
 
 server.on('listening', function() {
-  const cmd = common.ddCommand(filename, 10240);
-
-  cp.exec(cmd, function(err) {
-    assert.ifError(err);
-    makeRequest();
-  });
+  common.createZeroFilledFile(filename);
+  makeRequest();
 });
 
 function makeRequest() {
@@ -87,5 +82,5 @@ function makeRequest() {
 }
 
 process.on('exit', function() {
-  assert.strictEqual(1024 * 10240, count);
+  assert.strictEqual(count, 1024 * 10240);
 });

@@ -203,9 +203,9 @@ coverage: coverage-test ## Run the tests and generate a coverage report.
 coverage-build: all
 	mkdir -p node_modules
 	if [ ! -d node_modules/nyc ]; then \
-		$(NODE) ./deps/npm install nyc --no-save --no-package-lock; fi
+		$(NODE) ./deps/npm install nyc@13 --no-save --no-package-lock; fi
 	if [ ! -d gcovr ]; then git clone -b 3.4 --depth=1 \
-		--single-branch git://github.com/gcovr/gcovr.git; fi
+		--single-branch https://github.com/gcovr/gcovr.git; fi
 	if [ ! -d build ]; then git clone --depth=1 \
 		--single-branch https://github.com/nodejs/build.git; fi
 	if [ ! -f gcovr/scripts/gcovr.orig ]; then \
@@ -234,8 +234,9 @@ coverage-test: coverage-build
 	$(NODE) ./node_modules/.bin/nyc merge 'out/Release/.coverage' \
 		.cov_tmp/libcov.json
 	(cd lib && .$(NODE) ../node_modules/.bin/nyc report \
-		--temp-directory "$(CURDIR)/.cov_tmp" \
-		--report-dir "$(CURDIR)/coverage")
+		--temp-dir "$(CURDIR)/.cov_tmp" \
+		--report-dir "$(CURDIR)/coverage" \
+		--reporter html)
 	-(cd out && "../gcovr/scripts/gcovr" --gcov-exclude='.*deps' \
 		--gcov-exclude='.*usr' -v -r Release/obj.target \
 		--html --html-detail -o ../coverage/cxxcoverage.html \
@@ -269,7 +270,7 @@ v8:
 	tools/make-v8.sh $(V8_ARCH).$(BUILDTYPE_LOWER) $(V8_BUILD_OPTIONS)
 
 .PHONY: jstest
-jstest: build-addons build-addons-napi ## Runs addon tests and JS tests
+jstest: build-addons build-addons-napi bench-addons-build ## Runs addon tests and JS tests
 	$(PYTHON) tools/test.py $(PARALLEL_ARGS) --mode=$(BUILDTYPE_LOWER) \
 		--skip-tests=$(CI_SKIP_TESTS) \
 		$(CI_JS_SUITES) \
@@ -307,19 +308,19 @@ test-valgrind: all
 test-check-deopts: all
 	$(PYTHON) tools/test.py $(PARALLEL_ARGS) --mode=$(BUILDTYPE_LOWER) --check-deopts parallel sequential
 
-benchmark/napi/function_call/build/Release/binding.node: all \
+benchmark/napi/function_call/build/Release/binding.node: \
 		benchmark/napi/function_call/napi_binding.c \
 		benchmark/napi/function_call/binding.cc \
-		benchmark/napi/function_call/binding.gyp
+		benchmark/napi/function_call/binding.gyp | all
 	$(NODE) deps/npm/node_modules/node-gyp/bin/node-gyp rebuild \
 		--python="$(PYTHON)" \
 		--directory="$(shell pwd)/benchmark/napi/function_call" \
 		--nodedir="$(shell pwd)"
 
-benchmark/napi/function_args/build/Release/binding.node: all \
+benchmark/napi/function_args/build/Release/binding.node: \
 		benchmark/napi/function_args/napi_binding.c \
 		benchmark/napi/function_args/binding.cc \
-		benchmark/napi/function_args/binding.gyp
+		benchmark/napi/function_args/binding.gyp | all
 	$(NODE) deps/npm/node_modules/node-gyp/bin/node-gyp rebuild \
 		--python="$(PYTHON)" \
 		--directory="$(shell pwd)/benchmark/napi/function_args" \
@@ -413,7 +414,7 @@ clear-stalled:
 		echo $${PS_OUT} | xargs kill -9; \
 	fi
 
-test-build: | all build-addons build-addons-napi
+test-build: | all build-addons build-addons-napi bench-addons-build
 
 test-build-addons-napi: all build-addons-napi
 
@@ -443,7 +444,7 @@ test-ci-native: | test/addons/.buildstamp test/addons-napi/.buildstamp
 test-ci-js: | clear-stalled
 	$(PYTHON) tools/test.py $(PARALLEL_ARGS) -p tap --logfile test.tap \
 		--mode=$(BUILDTYPE_LOWER) --flaky-tests=$(FLAKY_TESTS) \
-		$(TEST_CI_ARGS) $(CI_JS_SUITES)
+		$(TEST_CI_ARGS) $(CI_JS_SUITES) --skip-tests=sequential/test-benchmark-napi
 	@echo "Clean up any leftover processes, error if found."
 	ps awwx | grep Release/node | grep -v grep | cat
 	@PS_OUT=`ps awwx | grep Release/node | grep -v grep | awk '{print $$1}'`; \
@@ -454,7 +455,7 @@ test-ci-js: | clear-stalled
 .PHONY: test-ci
 # Related CI jobs: most CI tests, excluding node-test-commit-arm-fanned
 test-ci: LOGLEVEL := info
-test-ci: | clear-stalled build-addons build-addons-napi doc-only
+test-ci: | clear-stalled build-addons build-addons-napi doc-only bench-addons-build
 	out/Release/cctest --gtest_output=tap:cctest.tap
 	$(PYTHON) tools/test.py $(PARALLEL_ARGS) -p tap --logfile test.tap \
 		--mode=$(BUILDTYPE_LOWER) --flaky-tests=$(FLAKY_TESTS) \
@@ -495,7 +496,7 @@ test-debug: test-build
 test-message: test-build
 	$(PYTHON) tools/test.py $(PARALLEL_ARGS) message
 
-test-simple: | cctest  # Depends on 'all'.
+test-simple: | cctest bench-addons-build  # Depends on 'all'.
 	$(PYTHON) tools/test.py $(PARALLEL_ARGS) parallel sequential
 
 test-pummel: all
@@ -809,12 +810,11 @@ MACOSOUTDIR=out/macos
 
 .PHONY: release-only
 release-only:
-	@if [ "$(DISTTYPE)" != "nightly" ] && [ "$(DISTTYPE)" != "next-nightly" ] && \
-		`grep -q REPLACEME doc/api/*.md`; then \
+	@if [ "$(DISTTYPE)" = "release" ] && `grep -q REPLACEME doc/api/*.md`; then \
 		echo 'Please update REPLACEME in Added: tags in doc/api/*.md (See doc/releases.md)' ; \
 		exit 1 ; \
 	fi
-	@if [ "$(DISTTYPE)" != "nightly" ] && [ "$(DISTTYPE)" != "next-nightly" ] && \
+	@if [ "$(DISTTYPE)" = "release" ] && \
 		`grep -q DEP...X doc/api/deprecations.md`; then \
 		echo 'Please update DEP...X in doc/api/deprecations.md (See doc/releases.md)' ; \
 		exit 1 ; \
@@ -1207,6 +1207,28 @@ lint-addon-docs: test/addons/.docbuildstamp
 cpplint: lint-cpp
 	@echo "Please use lint-cpp instead of cpplint"
 
+.PHONY: lint-py-build
+# python -m pip install flake8
+# Try with '--system' is to overcome systems that blindly set '--user'
+lint-py-build:
+	@echo "Pip installing flake8 linter on $(shell $(PYTHON) --version)..."
+	$(PYTHON) -m pip install --upgrade -t tools/pip/site-packages flake8 || \
+		$(PYTHON) -m pip install --upgrade --system -t tools/pip/site-packages flake8
+
+ifneq ("","$(wildcard tools/pip/site-packages)")
+.PHONY: lint-py
+# Lints the Python code with flake8.
+# Flag the build if there are Python syntax errors or undefined names
+lint-py:
+	PYTHONPATH=tools/pip $(PYTHON) -m flake8 . \
+		--count --show-source --statistics --select=E901,E999,F821,F822,F823 \
+		--exclude=deps,lib,src,tools/*_macros.py,tools/gyp,tools/jinja2,tools/pip
+else
+lint-py:
+	@echo "Python linting with flake8 is not avalible"
+	@echo "Run 'make lint-py-build'"
+endif
+
 .PHONY: lint
 .PHONY: lint-ci
 ifneq ("","$(wildcard tools/node_modules/eslint/)")
@@ -1220,7 +1242,7 @@ lint: ## Run JS, C++, MD and doc linters.
 CONFLICT_RE=^>>>>>>> [0-9A-Fa-f]+|^<<<<<<< [A-Za-z]+
 
 # Related CI job: node-test-linter
-lint-ci: lint-js-ci lint-cpp lint-md lint-addon-docs
+lint-ci: lint-js-ci lint-cpp lint-py lint-md lint-addon-docs
 	@if ! ( grep -IEqrs "$(CONFLICT_RE)" benchmark deps doc lib src test tools ) \
 		&& ! ( find . -maxdepth 1 -type f | xargs grep -IEqs "$(CONFLICT_RE)" ); then \
 		exit 0 ; \

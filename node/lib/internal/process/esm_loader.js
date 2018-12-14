@@ -1,6 +1,5 @@
 'use strict';
 
-const { internalBinding } = require('internal/bootstrap/loaders');
 const {
   setImportModuleDynamicallyCallback,
   setInitializeImportMetaObjectCallback
@@ -49,7 +48,7 @@ exports.setup = function() {
 
   let ESMLoader = new Loader();
   const loaderPromise = (async () => {
-    const userLoader = process.binding('config').userLoader;
+    const userLoader = internalBinding('options').getOptions('--loader');
     if (userLoader) {
       const hooks = await ESMLoader.import(
         userLoader, pathToFileURL(`${process.cwd()}/`).href);

@@ -14,12 +14,30 @@ using v8::Local;
 using v8::Object;
 using v8::Platform;
 using v8::Task;
-using v8::TracingController;
+using node::tracing::TracingController;
+
+struct PlatformWorkerData {
+  TaskQueue<Task>* task_queue;
+  Mutex* platform_workers_mutex;
+  ConditionVariable* platform_workers_ready;
+  int* pending_platform_workers;
+  int id;
+};
 
 static void BackgroundRunner(void* data) {
+  std::unique_ptr<PlatformWorkerData>
+      worker_data(static_cast<PlatformWorkerData*>(data));
   TRACE_EVENT_METADATA1("__metadata", "thread_name", "name",
                         "BackgroundTaskRunner");
-  TaskQueue<Task> *background_tasks = static_cast<TaskQueue<Task> *>(data);
+
+  // Notify the main thread that the platform worker is ready.
+  {
+    Mutex::ScopedLock lock(*worker_data->platform_workers_mutex);
+    (*worker_data->pending_platform_workers)--;
+    worker_data->platform_workers_ready->Signal(lock);
+  }
+
+  TaskQueue<Task>* background_tasks = worker_data->task_queue;
   while (std::unique_ptr<Task> task = background_tasks->BlockingPop()) {
     task->Run();
     background_tasks->NotifyOfCompletion();
@@ -144,14 +162,28 @@ class BackgroundTaskRunner::DelayedTaskScheduler {
 };
 
 BackgroundTaskRunner::BackgroundTaskRunner(int thread_pool_size) {
+  Mutex::ScopedLock lock(platform_workers_mutex_);
+  pending_platform_workers_ = thread_pool_size;
+
   delayed_task_scheduler_.reset(
       new DelayedTaskScheduler(&background_tasks_));
   threads_.push_back(delayed_task_scheduler_->Start());
+
   for (int i = 0; i < thread_pool_size; i++) {
+    PlatformWorkerData* worker_data = new PlatformWorkerData{
+      &background_tasks_, &platform_workers_mutex_,
+      &platform_workers_ready_, &pending_platform_workers_, i
+    };
     std::unique_ptr<uv_thread_t> t { new uv_thread_t() };
-    if (uv_thread_create(t.get(), BackgroundRunner, &background_tasks_) != 0)
+    if (uv_thread_create(t.get(), BackgroundRunner, worker_data) != 0)
       break;
     threads_.push_back(std::move(t));
+  }
+
+  // Wait for platform workers to initialize before continuing with the
+  // bootstrap.
+  while (pending_platform_workers_ > 0) {
+    platform_workers_ready_.Wait(lock);
   }
 }
 
@@ -248,10 +280,9 @@ int PerIsolatePlatformData::unref() {
 NodePlatform::NodePlatform(int thread_pool_size,
                            TracingController* tracing_controller) {
   if (tracing_controller) {
-    tracing_controller_.reset(tracing_controller);
+    tracing_controller_ = tracing_controller;
   } else {
-    TracingController* controller = new TracingController();
-    tracing_controller_.reset(controller);
+    tracing_controller_ = new TracingController();
   }
   background_task_runner_ =
       std::make_shared<BackgroundTaskRunner>(thread_pool_size);
@@ -425,7 +456,7 @@ double NodePlatform::CurrentClockTimeMillis() {
 }
 
 TracingController* NodePlatform::GetTracingController() {
-  return tracing_controller_.get();
+  return tracing_controller_;
 }
 
 template <class T>

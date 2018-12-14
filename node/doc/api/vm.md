@@ -7,7 +7,7 @@
 <!--name=vm-->
 
 The `vm` module provides APIs for compiling and running code within V8 Virtual
-Machine contexts. **Note that the `vm` module is not a security mechanism. Do
+Machine contexts. **The `vm` module is not a security mechanism. Do
 not use it to run untrusted code**. The term "sandbox" is used throughout these
 docs simply to refer to a separate context, and does not confer any security
 guarantees.
@@ -237,9 +237,9 @@ in the ECMAScript specification.
 ### module.evaluate([options])
 
 * `options` {Object}
-  * `timeout` {number} Specifies the number of milliseconds to evaluate
+  * `timeout` {integer} Specifies the number of milliseconds to evaluate
     before terminating execution. If execution is interrupted, an [`Error`][]
-    will be thrown.
+    will be thrown. This value must be a strictly positive integer.
   * `breakOnSigint` {boolean} If `true`, the execution will be terminated when
     `SIGINT` (Ctrl+C) is received. Existing handlers for the event that have
     been attached via `process.on('SIGINT')` will be disabled during script
@@ -489,9 +489,9 @@ changes:
   * `displayErrors` {boolean} When `true`, if an [`Error`][] error occurs
     while compiling the `code`, the line of code causing the error is attached
     to the stack trace.
-  * `timeout` {number} Specifies the number of milliseconds to execute `code`
+  * `timeout` {integer} Specifies the number of milliseconds to execute `code`
     before terminating execution. If execution is terminated, an [`Error`][]
-    will be thrown.
+    will be thrown. This value must be a strictly positive integer.
   * `breakOnSigint`: if `true`, the execution will be terminated when
     `SIGINT` (Ctrl+C) is received. Existing handlers for the
     event that have been attached via `process.on('SIGINT')` will be disabled
@@ -552,9 +552,9 @@ changes:
   * `displayErrors` {boolean} When `true`, if an [`Error`][] error occurs
     while compiling the `code`, the line of code causing the error is attached
     to the stack trace.
-  * `timeout` {number} Specifies the number of milliseconds to execute `code`
+  * `timeout` {integer} Specifies the number of milliseconds to execute `code`
     before terminating execution. If execution is terminated, an [`Error`][]
-    will be thrown.
+    will be thrown. This value must be a strictly positive integer.
   * `contextName` {string} Human-readable name of the newly created context.
     **Default:** `'VM Context i'`, where `i` is an ascending numerical index of
     the created context.
@@ -610,9 +610,9 @@ added: v0.3.1
   * `displayErrors` {boolean} When `true`, if an [`Error`][] error occurs
     while compiling the `code`, the line of code causing the error is attached
     to the stack trace.
-  * `timeout` {number} Specifies the number of milliseconds to execute `code`
+  * `timeout` {integer} Specifies the number of milliseconds to execute `code`
     before terminating execution. If execution is terminated, an [`Error`][]
-    will be thrown.
+    will be thrown. This value must be a strictly positive integer.
 
 Runs the compiled code contained by the `vm.Script` within the context of the
 current `global` object. Running code does not have access to local scope, but
@@ -655,8 +655,8 @@ added: v10.10.0
     data for the supplied source.
   * `produceCachedData` {boolean} Specifies whether to produce new cache data.
     **Default:** `false`.
-  * `parsingContext` {Object} The sandbox/context in which the said function
-    should be compiled in.
+  * `parsingContext` {Object} The [contextified][] sandbox in which the said
+    function should be compiled in.
   * `contextExtensions` {Object[]} An array containing a collection of context
     extensions (objects wrapping the current scope) to be applied while
     compiling. **Default:** `[]`.
@@ -757,9 +757,9 @@ Returns `true` if the given `sandbox` object has been [contextified][] using
   * `displayErrors` {boolean} When `true`, if an [`Error`][] error occurs
     while compiling the `code`, the line of code causing the error is attached
     to the stack trace.
-  * `timeout` {number} Specifies the number of milliseconds to execute `code`
+  * `timeout` {integer} Specifies the number of milliseconds to execute `code`
     before terminating execution. If execution is terminated, an [`Error`][]
-    will be thrown.
+    will be thrown. This value must be a strictly positive integer.
 
 The `vm.runInContext()` method compiles `code`, runs it within the context of
 the `contextifiedSandbox`, then returns the result. Running code does not have
@@ -804,9 +804,9 @@ added: v0.3.1
   * `displayErrors` {boolean} When `true`, if an [`Error`][] error occurs
     while compiling the `code`, the line of code causing the error is attached
     to the stack trace.
-  * `timeout` {number} Specifies the number of milliseconds to execute `code`
+  * `timeout` {integer} Specifies the number of milliseconds to execute `code`
     before terminating execution. If execution is terminated, an [`Error`][]
-    will be thrown.
+    will be thrown. This value must be a strictly positive integer.
   * `contextName` {string} Human-readable name of the newly created context.
     **Default:** `'VM Context i'`, where `i` is an ascending numerical index of
     the created context.
@@ -858,9 +858,9 @@ added: v0.3.1
   * `displayErrors` {boolean} When `true`, if an [`Error`][] error occurs
     while compiling the `code`, the line of code causing the error is attached
     to the stack trace.
-  * `timeout` {number} Specifies the number of milliseconds to execute `code`
+  * `timeout` {integer} Specifies the number of milliseconds to execute `code`
     before terminating execution. If execution is terminated, an [`Error`][]
-    will be thrown.
+    will be thrown. This value must be a strictly positive integer.
 
 `vm.runInThisContext()` compiles `code`, runs it within the context of the
 current `global` and returns the result. Running code does not have access to

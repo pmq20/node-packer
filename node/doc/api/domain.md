@@ -38,7 +38,7 @@ Domain error handlers are not a substitute for closing down a
 process when an error occurs.
 
 By the very nature of how [`throw`][] works in JavaScript, there is almost
-never any way to safely "pick up where you left off", without leaking
+never any way to safely "pick up where it left off", without leaking
 references, or creating some other sort of undefined brittle state.
 
 The safest way to respond to a thrown error is to shut down the
@@ -122,7 +122,7 @@ if (cluster.isMaster) {
     d.on('error', (er) => {
       console.error(`error ${er.stack}`);
 
-      // Note: We're in dangerous territory!
+      // We're in dangerous territory!
       // By definition, something unexpected occurred,
       // which we probably didn't want.
       // Anything can happen now! Be very careful!

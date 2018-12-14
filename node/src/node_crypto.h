@@ -93,6 +93,7 @@ extern int VerifyCallback(int preverify_ok, X509_STORE_CTX* ctx);
 extern void UseExtraCaCerts(const std::string& file);
 
 void InitCryptoOnce();
+std::string GetOpenSSLVersion();
 
 class SecureContext : public BaseObject {
  public:
@@ -165,6 +166,7 @@ class SecureContext : public BaseObject {
       const v8::FunctionCallbackInfo<v8::Value>& args);
   static void EnableTicketKeyCallback(
       const v8::FunctionCallbackInfo<v8::Value>& args);
+  static void CtxGetter(const v8::FunctionCallbackInfo<v8::Value>& info);
 
   template <bool primary>
   static void GetCertificate(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -613,7 +615,6 @@ class DiffieHellman : public BaseObject {
 
   DiffieHellman(Environment* env, v8::Local<v8::Object> wrap)
       : BaseObject(env, wrap),
-        initialised_(false),
         verifyError_(0) {
     MakeWeak();
   }
@@ -631,7 +632,6 @@ class DiffieHellman : public BaseObject {
                      int (*set_field)(DH*, BIGNUM*), const char* what);
   bool VerifyContext();
 
-  bool initialised_;
   int verifyError_;
   DHPointer dh_;
 };

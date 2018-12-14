@@ -220,9 +220,9 @@
       [ 'OS=="win" and '
         'node_use_openssl=="true" and '
         'node_shared_openssl=="false"', {
-        'use_openssl_def': 1,
+        'use_openssl_def%': 1,
       }, {
-        'use_openssl_def': 0,
+        'use_openssl_def%': 0,
       }],
     ],
   },
@@ -617,6 +617,15 @@
             'src/node_crypto_clienthello.h',
             'src/tls_wrap.cc',
             'src/tls_wrap.h'
+          ],
+        }],
+        [ 'node_use_large_pages=="true" and OS=="linux"', {
+          'defines': [ 'NODE_ENABLE_LARGE_CODE_PAGES=1' ],
+          # The current implementation of Large Pages is under Linux.
+          # Other implementations are possible but not currently supported.
+          'sources': [
+            'src/large_pages/node_large_page.cc',
+            'src/large_pages/node_large_page.h'
           ],
         }],
         [ 'use_openssl_def==1', {

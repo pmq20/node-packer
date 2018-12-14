@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>HTTP | Node.js v10.14.1 Documentation</title>
+  <title>HTTP | Node.js v10.14.2 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -74,13 +74,12 @@
 <div class="line"></div>
 <ul>
 <li><a href="https://github.com/nodejs/node" class="nav-https-github-com-nodejs-node">GitHub Repo &#x26; Issue Tracker</a></li>
-<li><a href="https://groups.google.com/forum/#!forum/nodejs" class="nav-https-groups-google-com-forum-forum-nodejs">Mailing List</a></li>
 </ul>
     </div>
 
     <div id="column1" data-id="http" class="interior">
       <header>
-        <h1>Node.js v10.14.1 Documentation</h1>
+        <h1>Node.js v10.14.2 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -95,7 +94,8 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v10.x/api/http.html">10.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v11.x/api/http.html">11.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v10.x/api/http.html">10.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v9.x/api/http.html">9.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v8.x/api/http.html">8.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v7.x/api/http.html">7.x</a></li>
@@ -215,6 +215,7 @@
 <li><a href="#http_event_aborted">Event: 'aborted'</a></li>
 <li><a href="#http_event_close_2">Event: 'close'</a></li>
 <li><a href="#http_message_aborted">message.aborted</a></li>
+<li><a href="#http_message_complete">message.complete</a></li>
 <li><a href="#http_message_destroy_error">message.destroy([error])</a></li>
 <li><a href="#http_message_headers">message.headers</a></li>
 <li><a href="#http_message_httpversion">message.httpVersion</a></li>
@@ -360,7 +361,7 @@ const keepAliveAgent = new http.Agent({ keepAlive: true });
 options.agent = keepAliveAgent;
 http.request(options, onResponseCallback);
 </code></pre>
-<h3>agent.createConnection(options[, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/d3dbe3a8514e47ef820d4768ed74c36a8843b976/lib/https.js#L91">[src]</a><span><a class="mark" href="#http_agent_createconnection_options_callback" id="http_agent_createconnection_options_callback">#</a></span></h3>
+<h3>agent.createConnection(options[, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/4128793a150dbcc63e03738ddd30f1768608aa11/lib/https.js#L91">[src]</a><span><a class="mark" href="#http_agent_createconnection_options_callback" id="http_agent_createconnection_options_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.4</span>
 </div>
@@ -376,7 +377,7 @@ custom agents may override this method in case greater flexibility is desired.</
 <p>A socket/stream can be supplied in one of two ways: by returning the
 socket/stream from this function, or by passing the socket/stream to <code>callback</code>.</p>
 <p><code>callback</code> has a signature of <code>(err, stream)</code>.</p>
-<h3>agent.keepSocketAlive(socket)<a class="srclink" href="https://github.com/nodejs/node/blob/d3dbe3a8514e47ef820d4768ed74c36a8843b976/lib/_http_agent.js#L316">[src]</a><span><a class="mark" href="#http_agent_keepsocketalive_socket" id="http_agent_keepsocketalive_socket">#</a></span></h3>
+<h3>agent.keepSocketAlive(socket)<a class="srclink" href="https://github.com/nodejs/node/blob/4128793a150dbcc63e03738ddd30f1768608aa11/lib/_http_agent.js#L316">[src]</a><span><a class="mark" href="#http_agent_keepsocketalive_socket" id="http_agent_keepsocketalive_socket">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.1.0</span>
 </div>
@@ -392,7 +393,7 @@ return true;
 <p>This method can be overridden by a particular <code>Agent</code> subclass. If this
 method returns a falsy value, the socket will be destroyed instead of persisting
 it for use with the next request.</p>
-<h3>agent.reuseSocket(socket, request)<a class="srclink" href="https://github.com/nodejs/node/blob/d3dbe3a8514e47ef820d4768ed74c36a8843b976/lib/_http_agent.js#L323">[src]</a><span><a class="mark" href="#http_agent_reusesocket_socket_request" id="http_agent_reusesocket_socket_request">#</a></span></h3>
+<h3>agent.reuseSocket(socket, request)<a class="srclink" href="https://github.com/nodejs/node/blob/4128793a150dbcc63e03738ddd30f1768608aa11/lib/_http_agent.js#L323">[src]</a><span><a class="mark" href="#http_agent_reusesocket_socket_request" id="http_agent_reusesocket_socket_request">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.1.0</span>
 </div>
@@ -405,7 +406,7 @@ the keep-alive options. Default behavior is to:</p>
 <pre><code class="language-js">socket.ref();
 </code></pre>
 <p>This method can be overridden by a particular <code>Agent</code> subclass.</p>
-<h3>agent.destroy()<a class="srclink" href="https://github.com/nodejs/node/blob/d3dbe3a8514e47ef820d4768ed74c36a8843b976/lib/_http_agent.js#L328">[src]</a><span><a class="mark" href="#http_agent_destroy" id="http_agent_destroy">#</a></span></h3>
+<h3>agent.destroy()<a class="srclink" href="https://github.com/nodejs/node/blob/4128793a150dbcc63e03738ddd30f1768608aa11/lib/_http_agent.js#L328">[src]</a><span><a class="mark" href="#http_agent_destroy" id="http_agent_destroy">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.4</span>
 </div>
@@ -424,7 +425,7 @@ terminates them.</p>
 </ul>
 <p>An object which contains arrays of sockets currently awaiting use by
 the agent when <code>keepAlive</code> is enabled. Do not modify.</p>
-<h3>agent.getName(options)<a class="srclink" href="https://github.com/nodejs/node/blob/d3dbe3a8514e47ef820d4768ed74c36a8843b976/lib/https.js#L156">[src]</a><span><a class="mark" href="#http_agent_getname_options" id="http_agent_getname_options">#</a></span></h3>
+<h3>agent.getName(options)<a class="srclink" href="https://github.com/nodejs/node/blob/4128793a150dbcc63e03738ddd30f1768608aa11/lib/https.js#L156">[src]</a><span><a class="mark" href="#http_agent_getname_options" id="http_agent_getname_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.4</span>
 </div>
@@ -762,13 +763,13 @@ The type of the return value depends on the arguments provided to
 <a href="#http_request_setheader_name_value"><code>request.setHeader()</code></a>.</p>
 <pre><code class="language-js">request.setHeader('content-type', 'text/html');
 request.setHeader('Content-Length', Buffer.byteLength(body));
-request.setHeader('Set-Cookie', ['type=ninja', 'language=javascript']);
+request.setHeader('Cookie', ['type=ninja', 'language=javascript']);
 const contentType = request.getHeader('Content-Type');
 // contentType is 'text/html'
 const contentLength = request.getHeader('Content-Length');
 // contentLength is of type number
-const setCookie = request.getHeader('set-cookie');
-// setCookie is of type string[]
+const cookie = request.getHeader('Cookie');
+// cookie is of type string[]
 </code></pre>
 <h3>request.maxHeadersCount<span><a class="mark" href="#http_request_maxheaderscount" id="http_request_maxheaderscount">#</a></span></h3>
 <ul>
@@ -802,7 +803,7 @@ for network transmission.</p>
 <pre><code class="language-js">request.setHeader('Content-Type', 'application/json');
 </code></pre>
 <p>or</p>
-<pre><code class="language-js">request.setHeader('Set-Cookie', ['type=ninja', 'language=javascript']);
+<pre><code class="language-js">request.setHeader('Cookie', ['type=ninja', 'language=javascript']);
 </code></pre>
 <h3>request.setNoDelay([noDelay])<span><a class="mark" href="#http_request_setnodelay_nodelay" id="http_request_setnodelay_nodelay">#</a></span></h3>
 <div class="api_metadata">
@@ -1032,7 +1033,7 @@ is optional and clients cannot insist on a protocol change.</p>
 <p>After this event is emitted, the request's socket will not have a <code>'data'</code>
 event listener, meaning it will need to be bound in order to handle data
 sent to the server on that socket.</p>
-<h3>server.close([callback])<a class="srclink" href="https://github.com/nodejs/node/blob/d3dbe3a8514e47ef820d4768ed74c36a8843b976/lib/net.js#L1561">[src]</a><span><a class="mark" href="#http_server_close_callback" id="http_server_close_callback">#</a></span></h3>
+<h3>server.close([callback])<a class="srclink" href="https://github.com/nodejs/node/blob/4128793a150dbcc63e03738ddd30f1768608aa11/lib/net.js#L1572">[src]</a><span><a class="mark" href="#http_server_close_callback" id="http_server_close_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.90</span>
 </div>
@@ -1040,7 +1041,7 @@ sent to the server on that socket.</p>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
 </ul>
 <p>Stops the server from accepting new connections. See <a href="net.html#net_server_close_callback"><code>net.Server.close()</code></a>.</p>
-<h3>server.listen()<a class="srclink" href="https://github.com/nodejs/node/blob/d3dbe3a8514e47ef820d4768ed74c36a8843b976/lib/net.js#L1366">[src]</a><span><a class="mark" href="#http_server_listen" id="http_server_listen">#</a></span></h3>
+<h3>server.listen()<a class="srclink" href="https://github.com/nodejs/node/blob/4128793a150dbcc63e03738ddd30f1768608aa11/lib/net.js#L1370">[src]</a><span><a class="mark" href="#http_server_listen" id="http_server_listen">#</a></span></h3>
 <p>Starts the HTTP server listening for connections.
 This method is identical to <a href="net.html#net_server_listen"><code>server.listen()</code></a> from <a href="net.html#net_class_net_server"><code>net.Server</code></a>.</p>
 <h3>server.listening<span><a class="mark" href="#http_server_listening" id="http_server_listening">#</a></span></h3>
@@ -1076,7 +1077,7 @@ passed since the connection was established. If the check fails, a <code>'timeou
 event is emitted on the server object, and (by default) the socket is destroyed.
 See <a href="">server.timeout</a> for more information on how timeout behaviour can be
 customised.</p>
-<h3>server.setTimeout([msecs][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/d3dbe3a8514e47ef820d4768ed74c36a8843b976/lib/https.js#L82">[src]</a><span><a class="mark" href="#http_server_settimeout_msecs_callback" id="http_server_settimeout_msecs_callback">#</a></span></h3>
+<h3>server.setTimeout([msecs][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/4128793a150dbcc63e03738ddd30f1768608aa11/lib/https.js#L82">[src]</a><span><a class="mark" href="#http_server_settimeout_msecs_callback" id="http_server_settimeout_msecs_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.9.12</span>
 </div>
@@ -1538,6 +1539,30 @@ Just like <code>'end'</code>, this event occurs only once per response.</p>
 </ul>
 <p>The <code>message.aborted</code> property will be <code>true</code> if the request has
 been aborted.</p>
+<h3>message.complete<span><a class="mark" href="#http_message_complete" id="http_message_complete">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.3.0</span>
+</div>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a></li>
+</ul>
+<p>The <code>message.complete</code> property will be <code>true</code> if a complete HTTP message has
+been received and successfully parsed.</p>
+<p>This property is particularly useful as a means of determining if a client or
+server fully transmitted a message before a connection was terminated:</p>
+<pre><code class="language-js">const req = http.request({
+  host: '127.0.0.1',
+  port: 8080,
+  method: 'POST'
+}, (res) => {
+  res.resume();
+  res.on('end', () => {
+    if (!res.complete)
+      console.error(
+        'The connection was terminated while the message was still being sent');
+  });
+});
+</code></pre>
 <h3>message.destroy([error])<span><a class="mark" href="#http_message_destroy_error" id="http_message_destroy_error">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.3.0</span>
@@ -1746,7 +1771,7 @@ Url {
 </ul>
 <p>A collection of all the standard HTTP response status codes, and the
 short description of each. For example, <code>http.STATUS_CODES[404] === 'Not Found'</code>.</p>
-<h2>http.createServer([options][, requestListener])<a class="srclink" href="https://github.com/nodejs/node/blob/d3dbe3a8514e47ef820d4768ed74c36a8843b976/lib/http.js#L36">[src]</a><span><a class="mark" href="#http_http_createserver_options_requestlistener" id="http_http_createserver_options_requestlistener">#</a></span></h2>
+<h2>http.createServer([options][, requestListener])<a class="srclink" href="https://github.com/nodejs/node/blob/4128793a150dbcc63e03738ddd30f1768608aa11/lib/http.js#L36">[src]</a><span><a class="mark" href="#http_http_createserver_options_requestlistener" id="http_http_createserver_options_requestlistener">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1780,8 +1805,8 @@ to be used. Useful for extending the original <code>ServerResponse</code>. <stro
 <p>Returns a new instance of <a href="#http_class_http_server"><code>http.Server</code></a>.</p>
 <p>The <code>requestListener</code> is a function which is automatically
 added to the <a href="#http_event_request"><code>'request'</code></a> event.</p>
-<h2>http.get(options[, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/d3dbe3a8514e47ef820d4768ed74c36a8843b976/lib/http.js#L44">[src]</a><span><a class="mark" href="#http_http_get_options_callback" id="http_http_get_options_callback">#</a></span></h2>
-<h2>http.get(url[, options][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/d3dbe3a8514e47ef820d4768ed74c36a8843b976/lib/http.js#L44">[src]</a><span><a class="mark" href="#http_http_get_url_options_callback" id="http_http_get_url_options_callback">#</a></span></h2>
+<h2>http.get(options[, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/4128793a150dbcc63e03738ddd30f1768608aa11/lib/http.js#L44">[src]</a><span><a class="mark" href="#http_http_get_options_callback" id="http_http_get_options_callback">#</a></span></h2>
+<h2>http.get(url[, options][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/4128793a150dbcc63e03738ddd30f1768608aa11/lib/http.js#L44">[src]</a><span><a class="mark" href="#http_http_get_url_options_callback" id="http_http_get_url_options_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1854,8 +1879,8 @@ data for reasons stated in <a href="#http_class_http_clientrequest"><code>http.C
 </ul>
 <p>Global instance of <code>Agent</code> which is used as the default for all HTTP client
 requests.</p>
-<h2>http.request(options[, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/d3dbe3a8514e47ef820d4768ed74c36a8843b976/lib/http.js#L40">[src]</a><span><a class="mark" href="#http_http_request_options_callback" id="http_http_request_options_callback">#</a></span></h2>
-<h2>http.request(url[, options][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/d3dbe3a8514e47ef820d4768ed74c36a8843b976/lib/http.js#L40">[src]</a><span><a class="mark" href="#http_http_request_url_options_callback" id="http_http_request_url_options_callback">#</a></span></h2>
+<h2>http.request(options[, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/4128793a150dbcc63e03738ddd30f1768608aa11/lib/http.js#L40">[src]</a><span><a class="mark" href="#http_http_request_options_callback" id="http_http_request_options_callback">#</a></span></h2>
+<h2>http.request(url[, options][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/4128793a150dbcc63e03738ddd30f1768608aa11/lib/http.js#L40">[src]</a><span><a class="mark" href="#http_http_request_url_options_callback" id="http_http_request_url_options_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>

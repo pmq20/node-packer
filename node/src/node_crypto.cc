@@ -84,6 +84,11 @@ using v8::Uint32;
 using v8::Undefined;
 using v8::Value;
 
+#ifdef OPENSSL_NO_OCB
+# define IS_OCB_MODE(mode) false
+#else
+# define IS_OCB_MODE(mode) ((mode) == EVP_CIPH_OCB_MODE)
+#endif
 
 struct StackOfX509Deleter {
   void operator()(STACK_OF(X509)* p) const { sk_X509_pop_free(p, X509_free); }
@@ -348,16 +353,29 @@ void SecureContext::Initialize(Environment* env, Local<Object> target) {
   env->SetProtoMethodNoSideEffect(t, "getCertificate", GetCertificate<true>);
   env->SetProtoMethodNoSideEffect(t, "getIssuer", GetCertificate<false>);
 
-  t->Set(FIXED_ONE_BYTE_STRING(env->isolate(), "kTicketKeyReturnIndex"),
-         Integer::NewFromUnsigned(env->isolate(), kTicketKeyReturnIndex));
-  t->Set(FIXED_ONE_BYTE_STRING(env->isolate(), "kTicketKeyHMACIndex"),
-         Integer::NewFromUnsigned(env->isolate(), kTicketKeyHMACIndex));
-  t->Set(FIXED_ONE_BYTE_STRING(env->isolate(), "kTicketKeyAESIndex"),
-         Integer::NewFromUnsigned(env->isolate(), kTicketKeyAESIndex));
-  t->Set(FIXED_ONE_BYTE_STRING(env->isolate(), "kTicketKeyNameIndex"),
-         Integer::NewFromUnsigned(env->isolate(), kTicketKeyNameIndex));
-  t->Set(FIXED_ONE_BYTE_STRING(env->isolate(), "kTicketKeyIVIndex"),
-         Integer::NewFromUnsigned(env->isolate(), kTicketKeyIVIndex));
+#define SET_INTEGER_CONSTANTS(name, value)                                     \
+    t->Set(FIXED_ONE_BYTE_STRING(env->isolate(), name),                        \
+           Integer::NewFromUnsigned(env->isolate(), value));
+  SET_INTEGER_CONSTANTS("kTicketKeyReturnIndex", kTicketKeyReturnIndex);
+  SET_INTEGER_CONSTANTS("kTicketKeyHMACIndex", kTicketKeyHMACIndex);
+  SET_INTEGER_CONSTANTS("kTicketKeyAESIndex", kTicketKeyAESIndex);
+  SET_INTEGER_CONSTANTS("kTicketKeyNameIndex", kTicketKeyNameIndex);
+  SET_INTEGER_CONSTANTS("kTicketKeyIVIndex", kTicketKeyIVIndex);
+
+#undef SET_INTEGER_CONSTANTS
+
+  Local<FunctionTemplate> ctx_getter_templ =
+      FunctionTemplate::New(env->isolate(),
+                            CtxGetter,
+                            env->as_external(),
+                            Signature::New(env->isolate(), t));
+
+
+  t->PrototypeTemplate()->SetAccessorProperty(
+      FIXED_ONE_BYTE_STRING(env->isolate(), "_external"),
+      ctx_getter_templ,
+      Local<FunctionTemplate>(),
+      static_cast<PropertyAttribute>(ReadOnly | DontDelete));
 
   target->Set(secureContextString,
               t->GetFunction(env->context()).ToLocalChecked());
@@ -1324,6 +1342,14 @@ int SecureContext::TicketCompatibilityCallback(SSL* ssl,
     return -1;
   }
   return 1;
+}
+
+
+void SecureContext::CtxGetter(const FunctionCallbackInfo<Value>& info) {
+  SecureContext* sc;
+  ASSIGN_OR_RETURN_UNWRAP(&sc, info.This());
+  Local<External> ext = External::New(info.GetIsolate(), sc->ctx_.get());
+  info.GetReturnValue().Set(ext);
 }
 
 
@@ -2519,7 +2545,7 @@ int VerifyCallback(int preverify_ok, X509_STORE_CTX* ctx) {
 static bool IsSupportedAuthenticatedMode(int mode) {
   return mode == EVP_CIPH_CCM_MODE ||
          mode == EVP_CIPH_GCM_MODE ||
-         mode == EVP_CIPH_OCB_MODE;
+         IS_OCB_MODE(mode);
 }
 
 void CipherBase::Initialize(Environment* env, Local<Object> target) {
@@ -2744,7 +2770,7 @@ bool CipherBase::InitAuthenticated(const char* cipher_type, int iv_len,
   }
 
   const int mode = EVP_CIPHER_CTX_mode(ctx_.get());
-  if (mode == EVP_CIPH_CCM_MODE || mode == EVP_CIPH_OCB_MODE) {
+  if (mode == EVP_CIPH_CCM_MODE || IS_OCB_MODE(mode)) {
     if (auth_tag_len == kNoAuthTagLength) {
       char msg[128];
       snprintf(msg, sizeof(msg), "authTagLength required for %s", cipher_type);
@@ -2872,7 +2898,7 @@ void CipherBase::SetAuthTag(const FunctionCallbackInfo<Value>& args) {
   } else if (mode == EVP_CIPH_OCB_MODE) {
     // At this point, the tag length is already known and must match the
     // length of the given authentication tag.
-    CHECK(mode == EVP_CIPH_CCM_MODE || mode == EVP_CIPH_OCB_MODE);
+    CHECK(mode == EVP_CIPH_CCM_MODE || IS_OCB_MODE(mode));
     CHECK_NE(cipher->auth_tag_len_, kNoAuthTagLength);
     if (cipher->auth_tag_len_ != tag_len) {
       char msg[50];
@@ -3975,11 +4001,7 @@ bool DiffieHellman::Init(int primeLength, int g) {
   dh_.reset(DH_new());
   if (!DH_generate_parameters_ex(dh_.get(), primeLength, g, 0))
     return false;
-  bool result = VerifyContext();
-  if (!result)
-    return false;
-  initialised_ = true;
-  return true;
+  return VerifyContext();
 }
 
 
@@ -3994,11 +4016,7 @@ bool DiffieHellman::Init(const char* p, int p_len, int g) {
     BN_free(bn_g);
     return false;
   }
-  bool result = VerifyContext();
-  if (!result)
-    return false;
-  initialised_ = true;
-  return true;
+  return VerifyContext();
 }
 
 
@@ -4011,11 +4029,7 @@ bool DiffieHellman::Init(const char* p, int p_len, const char* g, int g_len) {
     BN_free(bn_g);
     return false;
   }
-  bool result = VerifyContext();
-  if (!result)
-    return false;
-  initialised_ = true;
-  return true;
+  return VerifyContext();
 }
 
 
@@ -4090,10 +4104,6 @@ void DiffieHellman::GenerateKeys(const FunctionCallbackInfo<Value>& args) {
   DiffieHellman* diffieHellman;
   ASSIGN_OR_RETURN_UNWRAP(&diffieHellman, args.Holder());
 
-  if (!diffieHellman->initialised_) {
-    return ThrowCryptoError(env, ERR_get_error(), "Not initialized");
-  }
-
   if (!DH_generate_key(diffieHellman->dh_.get())) {
     return ThrowCryptoError(env, ERR_get_error(), "Key generation failed");
   }
@@ -4114,7 +4124,6 @@ void DiffieHellman::GetField(const FunctionCallbackInfo<Value>& args,
 
   DiffieHellman* dh;
   ASSIGN_OR_RETURN_UNWRAP(&dh, args.Holder());
-  if (!dh->initialised_) return env->ThrowError("Not initialized");
 
   const BIGNUM* num = get_field(dh->dh_.get());
   if (num == nullptr) return env->ThrowError(err_if_null);
@@ -4166,10 +4175,6 @@ void DiffieHellman::ComputeSecret(const FunctionCallbackInfo<Value>& args) {
 
   DiffieHellman* diffieHellman;
   ASSIGN_OR_RETURN_UNWRAP(&diffieHellman, args.Holder());
-
-  if (!diffieHellman->initialised_) {
-    return ThrowCryptoError(env, ERR_get_error(), "Not initialized");
-  }
 
   ClearErrorOnReturn clear_error_on_return;
 
@@ -4237,7 +4242,6 @@ void DiffieHellman::SetKey(const v8::FunctionCallbackInfo<Value>& args,
 
   DiffieHellman* dh;
   ASSIGN_OR_RETURN_UNWRAP(&dh, args.Holder());
-  if (!dh->initialised_) return env->ThrowError("Not initialized");
 
   char errmsg[64];
 
@@ -4284,10 +4288,6 @@ void DiffieHellman::VerifyErrorGetter(const FunctionCallbackInfo<Value>& args) {
   DiffieHellman* diffieHellman;
   ASSIGN_OR_RETURN_UNWRAP(&diffieHellman, args.Holder());
 
-  if (!diffieHellman->initialised_)
-    return ThrowCryptoError(diffieHellman->env(), ERR_get_error(),
-                            "Not initialized");
-
   args.GetReturnValue().Set(diffieHellman->verifyError_);
 }
 
@@ -4326,7 +4326,7 @@ void ECDH::New(const FunctionCallbackInfo<Value>& args) {
   MarkPopErrorOnReturn mark_pop_error_on_return;
 
   // TODO(indutny): Support raw curves?
-  THROW_AND_RETURN_IF_NOT_STRING(env, args[0], "ECDH curve name");
+  CHECK(args[0]->IsString());
   node::Utf8Value curve(env->isolate(), args[0]);
 
   int nid = OBJ_sn2nid(*curve);
@@ -5722,6 +5722,21 @@ void Initialize(Local<Object> target,
 #ifndef OPENSSL_NO_SCRYPT
   env->SetMethod(target, "scrypt", Scrypt);
 #endif  // OPENSSL_NO_SCRYPT
+}
+
+constexpr int search(const char* s, int n, int c) {
+  return *s == c ? n : search(s + 1, n + 1, c);
+}
+
+std::string GetOpenSSLVersion() {
+  // sample openssl version string format
+  // for reference: "OpenSSL 1.1.0i 14 Aug 2018"
+  char buf[128];
+  const int start = search(OPENSSL_VERSION_TEXT, 0, ' ') + 1;
+  const int end = search(OPENSSL_VERSION_TEXT + start, start, ' ');
+  const int len = end - start;
+  snprintf(buf, sizeof(buf), "%.*s", len, &OPENSSL_VERSION_TEXT[start]);
+  return std::string(buf);
 }
 
 }  // namespace crypto

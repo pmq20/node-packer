@@ -564,7 +564,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Reads out a header on the request. Note that the name is case insensitive.\nThe type of the return value depends on the arguments provided to\n<a href=\"#http_request_setheader_name_value\"><code>request.setHeader()</code></a>.</p>\n<pre><code class=\"language-js\">request.setHeader('content-type', 'text/html');\nrequest.setHeader('Content-Length', Buffer.byteLength(body));\nrequest.setHeader('Set-Cookie', ['type=ninja', 'language=javascript']);\nconst contentType = request.getHeader('Content-Type');\n// contentType is 'text/html'\nconst contentLength = request.getHeader('Content-Length');\n// contentLength is of type number\nconst setCookie = request.getHeader('set-cookie');\n// setCookie is of type string[]\n</code></pre>"
+              "desc": "<p>Reads out a header on the request. Note that the name is case insensitive.\nThe type of the return value depends on the arguments provided to\n<a href=\"#http_request_setheader_name_value\"><code>request.setHeader()</code></a>.</p>\n<pre><code class=\"language-js\">request.setHeader('content-type', 'text/html');\nrequest.setHeader('Content-Length', Buffer.byteLength(body));\nrequest.setHeader('Cookie', ['type=ninja', 'language=javascript']);\nconst contentType = request.getHeader('Content-Type');\n// contentType is 'text/html'\nconst contentLength = request.getHeader('Content-Length');\n// contentLength is of type number\nconst cookie = request.getHeader('Cookie');\n// cookie is of type string[]\n</code></pre>"
             },
             {
               "textRaw": "request.removeHeader(name)",
@@ -615,7 +615,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Sets a single header value for headers object. If this header already exists in\nthe to-be-sent headers, its value will be replaced. Use an array of strings\nhere to send multiple headers with the same name. Non-string values will be\nstored without modification. Therefore, <a href=\"#http_request_getheader_name\"><code>request.getHeader()</code></a> may return\nnon-string values. However, the non-string values will be converted to strings\nfor network transmission.</p>\n<pre><code class=\"language-js\">request.setHeader('Content-Type', 'application/json');\n</code></pre>\n<p>or</p>\n<pre><code class=\"language-js\">request.setHeader('Set-Cookie', ['type=ninja', 'language=javascript']);\n</code></pre>"
+              "desc": "<p>Sets a single header value for headers object. If this header already exists in\nthe to-be-sent headers, its value will be replaced. Use an array of strings\nhere to send multiple headers with the same name. Non-string values will be\nstored without modification. Therefore, <a href=\"#http_request_getheader_name\"><code>request.getHeader()</code></a> may return\nnon-string values. However, the non-string values will be converted to strings\nfor network transmission.</p>\n<pre><code class=\"language-js\">request.setHeader('Content-Type', 'application/json');\n</code></pre>\n<p>or</p>\n<pre><code class=\"language-js\">request.setHeader('Cookie', ['type=ninja', 'language=javascript']);\n</code></pre>"
             },
             {
               "textRaw": "request.setNoDelay([noDelay])",
@@ -1707,6 +1707,18 @@
                 "changes": []
               },
               "desc": "<p>The <code>message.aborted</code> property will be <code>true</code> if the request has\nbeen aborted.</p>"
+            },
+            {
+              "textRaw": "`complete` {boolean}",
+              "type": "boolean",
+              "name": "complete",
+              "meta": {
+                "added": [
+                  "v0.3.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>The <code>message.complete</code> property will be <code>true</code> if a complete HTTP message has\nbeen received and successfully parsed.</p>\n<p>This property is particularly useful as a means of determining if a client or\nserver fully transmitted a message before a connection was terminated:</p>\n<pre><code class=\"language-js\">const req = http.request({\n  host: '127.0.0.1',\n  port: 8080,\n  method: 'POST'\n}, (res) => {\n  res.resume();\n  res.on('end', () => {\n    if (!res.complete)\n      console.error(\n        'The connection was terminated while the message was still being sent');\n  });\n});\n</code></pre>"
             },
             {
               "textRaw": "`headers` {Object}",

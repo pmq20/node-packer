@@ -71,7 +71,9 @@ const {
   ERR_SCRIPT_EXECUTION_INTERRUPTED
 } = require('internal/errors').codes;
 const { sendInspectorCommand } = require('internal/util/inspector');
-const { experimentalREPLAwait } = process.binding('config');
+const experimentalREPLAwait = internalBinding('options').getOptions(
+  '--experimental-repl-await'
+);
 const { isRecoverableError } = require('internal/repl/recoverable');
 const {
   getOwnNonIndexProperties,
@@ -105,7 +107,7 @@ const kContextId = Symbol('contextId');
 try {
   // Hack for require.resolve("./relative") to work properly.
   module.filename = path.resolve('repl');
-} catch (e) {
+} catch {
   // path.resolve('repl') fails when the current working directory has been
   // deleted.  Fall back to the directory name of the (absolute) executable
   // path.  It's not really correct but what are the alternatives?
@@ -123,8 +125,9 @@ function hasOwnProperty(obj, prop) {
   return Object.prototype.hasOwnProperty.call(obj, prop);
 }
 
-// Can overridden with custom print functions, such as `probe` or `eyes.js`.
-// This is the default "writer" value if none is passed in the REPL options.
+// This is the default "writer" value, if none is passed in the REPL options,
+// and it can be overridden by custom print functions, such as `probe` or
+// `eyes.js`.
 const writer = exports.writer = (obj) => util.inspect(obj, writer.options);
 writer.options =
     Object.assign({}, util.inspect.defaultOptions, { showProxy: true });
@@ -372,18 +375,8 @@ function REPLServer(prompt,
         }
 
         promise.then((result) => {
-          // Remove prioritized SIGINT listener if it was not called.
-          // TODO(TimothyGu): Use Promise.prototype.finally when it becomes
-          // available.
-          prioritizedSigintQueue.delete(sigintListener);
-
           finishExecution(undefined, result);
-          unpause();
         }, (err) => {
-          // Remove prioritized SIGINT listener if it was not called.
-          prioritizedSigintQueue.delete(sigintListener);
-
-          unpause();
           if (err && process.domain) {
             debug('not recoverable, send to domain');
             process.domain.emit('error', err);
@@ -391,6 +384,10 @@ function REPLServer(prompt,
             return;
           }
           finishExecution(err);
+        }).finally(() => {
+          // Remove prioritized SIGINT listener if it was not called.
+          prioritizedSigintQueue.delete(sigintListener);
+          unpause();
         });
       }
     }
@@ -1049,7 +1046,7 @@ function complete(line, callback) {
       dir = path.resolve(paths[i], subdir);
       try {
         files = fs.readdirSync(dir);
-      } catch (e) {
+      } catch {
         continue;
       }
       for (f = 0; f < files.length; f++) {
@@ -1063,14 +1060,14 @@ function complete(line, callback) {
         abs = path.resolve(dir, name);
         try {
           isDirectory = fs.statSync(abs).isDirectory();
-        } catch (e) {
+        } catch {
           continue;
         }
         if (isDirectory) {
           group.push(subdir + name + '/');
           try {
             subfiles = fs.readdirSync(abs);
-          } catch (e) {
+          } catch {
             continue;
           }
           for (s = 0; s < subfiles.length; s++) {
@@ -1152,13 +1149,13 @@ function complete(line, callback) {
           });
         }
       } else {
-        const evalExpr = `try { ${expr} } catch (e) {}`;
+        const evalExpr = `try { ${expr} } catch {}`;
         this.eval(evalExpr, this.context, 'repl', (e, obj) => {
           if (obj != null) {
             if (typeof obj === 'object' || typeof obj === 'function') {
               try {
                 memberGroups.push(filteredOwnPropertyNames.call(this, obj));
-              } catch (ex) {
+              } catch {
                 // Probably a Proxy object without `getOwnPropertyNames` trap.
                 // We simply ignore it here, as we don't want to break the
                 // autocompletion. Fixes the bug
@@ -1183,7 +1180,7 @@ function complete(line, callback) {
                   break;
                 }
               }
-            } catch (e) {}
+            } catch {}
           }
 
           if (memberGroups.length) {
@@ -1456,7 +1453,7 @@ function defineDefaultCommands(repl) {
       try {
         fs.writeFileSync(file, this.lines.join('\n') + '\n');
         this.outputStream.write('Session saved to: ' + file + '\n');
-      } catch (e) {
+      } catch {
         this.outputStream.write('Failed to save: ' + file + '\n');
       }
       this.displayPrompt();
@@ -1482,7 +1479,7 @@ function defineDefaultCommands(repl) {
           this.outputStream.write('Failed to load: ' + file +
                                   ' is not a valid file\n');
         }
-      } catch (e) {
+      } catch {
         this.outputStream.write('Failed to load: ' + file + '\n');
       }
       this.displayPrompt();

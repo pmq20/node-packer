@@ -378,6 +378,7 @@ added: v0.3.2
 
 * `callback` {Function} A listener callback that will be registered to listen
 for the server instance's `'close'` event.
+* Returns: {tls.Server}
 
 The `server.close()` method stops the server from accepting new connections.
 
@@ -566,7 +567,7 @@ field which always contains the value `'TLSv1/SSLv3'`.
 For example: `{ name: 'AES256-SHA', version: 'TLSv1/SSLv3' }`.
 
 See `SSL_CIPHER_get_name()` in
-https://www.openssl.org/docs/man1.1.0/ssl/SSL_CIPHER_get_name.html for more
+<https://www.openssl.org/docs/man1.1.0/ssl/SSL_CIPHER_get_name.html> for more
 information.
 
 ### tlsSocket.getEphemeralKeyInfo()
@@ -677,13 +678,12 @@ be returned for server sockets or disconnected client sockets.
 
 Example responses include:
 
-* `SSLv3`
 * `TLSv1`
 * `TLSv1.1`
 * `TLSv1.2`
 * `unknown`
 
-See https://www.openssl.org/docs/man1.1.0/ssl/SSL_get_version.html for more
+See <https://www.openssl.org/docs/man1.1.0/ssl/SSL_get_version.html> for more
 information.
 
 ### tlsSocket.getSession()
@@ -891,7 +891,7 @@ changes:
     first byte is the length of the next protocol name. Passing an array is
     usually much simpler, e.g. `['hello', 'world']`.
   * `servername`: {string} Server name for the SNI (Server Name Indication) TLS
-    extension.
+    extension. It must be a host name, and not an IP address.
   * `checkServerIdentity(servername, cert)` {Function} A callback function
     to be used (instead of the builtin `tls.checkServerIdentity()` function)
     when checking the server's hostname (or the provided `servername` when
@@ -912,6 +912,7 @@ changes:
   * ...: [`tls.createSecureContext()`][] options that are used if the
     `secureContext` option is missing, otherwise they are ignored.
 * `callback` {Function}
+* Returns: {tls.TLSSocket}
 
 The `callback` function, if specified, will be added as a listener for the
 [`'secureConnect'`][] event.
@@ -986,6 +987,7 @@ added: v0.11.3
 * `path` {string} Default value for `options.path`.
 * `options` {Object} See [`tls.connect()`][].
 * `callback` {Function} See [`tls.connect()`][].
+* Returns: {tls.TLSSocket}
 
 Same as [`tls.connect()`][] except that `path` can be provided
 as an argument instead of an option.
@@ -1001,6 +1003,7 @@ added: v0.11.3
 * `host` {string} Default value for `options.host`.
 * `options` {Object} See [`tls.connect()`][].
 * `callback` {Function} See [`tls.connect()`][].
+* Returns: {tls.TLSSocket}
 
 Same as [`tls.connect()`][] except that `port` and `host` can be provided
 as arguments instead of options.
@@ -1173,6 +1176,7 @@ changes:
   * ...: Any [`tls.createSecureContext()`][] option can be provided. For
     servers, the identity options (`pfx` or `key`/`cert`) are usually required.
 * `secureConnectionListener` {Function}
+* Returns: {tls.Server}
 
 Creates a new [`tls.Server`][]. The `secureConnectionListener`, if provided, is
 automatically set as a listener for the [`'secureConnection'`][] event.

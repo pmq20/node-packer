@@ -83,7 +83,11 @@ const kLastWriteQueueSize = Symbol('lastWriteQueueSize');
 let cluster;
 let dns;
 
-const { errnoException, exceptionWithHostPort } = errors;
+const {
+  errnoException,
+  exceptionWithHostPort,
+  uvExceptionWithHostPort
+} = errors;
 
 const {
   kTimeout,
@@ -1266,7 +1270,7 @@ function setupListenHandle(address, port, addressType, backlog, fd) {
       rval = createServerHandle(address, port, addressType, fd);
 
     if (typeof rval === 'number') {
-      var error = exceptionWithHostPort(rval, 'listen', address, port);
+      var error = uvExceptionWithHostPort(rval, 'listen', address, port);
       process.nextTick(emitErrorNT, this, error);
       return;
     }
@@ -1283,7 +1287,7 @@ function setupListenHandle(address, port, addressType, backlog, fd) {
   var err = this._handle.listen(backlog || 511);
 
   if (err) {
-    var ex = exceptionWithHostPort(err, 'listen', address, port);
+    var ex = uvExceptionWithHostPort(err, 'listen', address, port);
     this._handle.close();
     this._handle = null;
     defaultTriggerAsyncIdScope(this[async_id_symbol],
@@ -1431,6 +1435,13 @@ Server.prototype.listen = function(...args) {
     backlog = options.backlog || backlogFromArgs;
     listenInCluster(this, pipeName, -1, -1,
                     backlog, undefined, options.exclusive);
+
+    if (!this._handle) {
+      // Failed and an error shall be emitted in the next tick.
+      // Therefore, we directly return.
+      return this;
+    }
+
     let mode = 0;
     if (options.readableAll === true)
       mode |= PipeConstants.UV_READABLE;

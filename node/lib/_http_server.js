@@ -23,7 +23,7 @@
 
 const util = require('util');
 const net = require('net');
-const { HTTPParser } = process.binding('http_parser');
+const { HTTPParser } = internalBinding('http_parser');
 const assert = require('assert').ok;
 const {
   parsers,
@@ -42,6 +42,7 @@ const {
   defaultTriggerAsyncIdScope,
   getOrSetAsyncId
 } = require('internal/async_hooks');
+const is_reused_symbol = require('internal/freelist').symbols.is_reused_symbol;
 const { IncomingMessage } = require('_http_incoming');
 const {
   ERR_HTTP_HEADERS_SENT,
@@ -340,7 +341,7 @@ function connectionListenerInternal(server, socket) {
   socket.on('timeout', socketOnTimeout);
 
   var parser = parsers.alloc();
-  parser.reinitialize(HTTPParser.REQUEST);
+  parser.reinitialize(HTTPParser.REQUEST, parser[is_reused_symbol]);
   parser.socket = socket;
 
   // We are starting to wait for our headers.
@@ -509,8 +510,7 @@ function socketOnError(e) {
 
   if (!this.server.emit('clientError', e, this)) {
     if (this.writable) {
-      this.end(badRequestResponse);
-      return;
+      this.write(badRequestResponse);
     }
     this.destroy(e);
   }

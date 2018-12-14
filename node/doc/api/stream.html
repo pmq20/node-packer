@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Stream | Node.js v10.14.1 Documentation</title>
+  <title>Stream | Node.js v10.14.2 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -74,13 +74,12 @@
 <div class="line"></div>
 <ul>
 <li><a href="https://github.com/nodejs/node" class="nav-https-github-com-nodejs-node">GitHub Repo &#x26; Issue Tracker</a></li>
-<li><a href="https://groups.google.com/forum/#!forum/nodejs" class="nav-https-groups-google-com-forum-forum-nodejs">Mailing List</a></li>
 </ul>
     </div>
 
     <div id="column1" data-id="stream" class="interior">
       <header>
-        <h1>Node.js v10.14.1 Documentation</h1>
+        <h1>Node.js v10.14.2 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -95,7 +94,8 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v10.x/api/stream.html">10.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v11.x/api/stream.html">11.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v10.x/api/stream.html">10.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v9.x/api/stream.html">9.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v8.x/api/stream.html">8.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v7.x/api/stream.html">7.x</a></li>
@@ -263,7 +263,7 @@
       </div>
 
       <div id="apicontent">
-        <h1>Stream<a class="srclink" href="https://github.com/nodejs/node/blob/d3dbe3a8514e47ef820d4768ed74c36a8843b976/lib/stream.js#L30">[src]</a><span><a class="mark" href="#stream_stream" id="stream_stream">#</a></span></h1>
+        <h1>Stream<a class="srclink" href="https://github.com/nodejs/node/blob/4128793a150dbcc63e03738ddd30f1768608aa11/lib/stream.js#L30">[src]</a><span><a class="mark" href="#stream_stream" id="stream_stream">#</a></span></h1>
 
 <p></p><div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><p></p>
 <p>A stream is an abstract interface for working with streaming data in Node.js.
@@ -298,7 +298,7 @@ the elements of the API that are required to <em>implement</em> new types of str
 <li><a href="#stream_class_stream_transform"><code>Transform</code></a> - <code>Duplex</code> streams that can modify or transform the data as it
 is written and read (for example, <a href="zlib.html#zlib_zlib_createdeflate_options"><code>zlib.createDeflate()</code></a>).</li>
 </ul>
-<p>Additionally this module includes the utility functions <a href="#stream_stream_pipeline_streams_callback">pipeline</a> and
+<p>Additionally, this module includes the utility functions <a href="#stream_stream_pipeline_streams_callback">pipeline</a> and
 <a href="#stream_stream_finished_stream_callback">finished</a>.</p>
 <h3>Object Mode<span><a class="mark" href="#stream_object_mode" id="stream_object_mode">#</a></span></h3>
 <p>All streams created by Node.js APIs operate exclusively on strings and <code>Buffer</code>
@@ -337,7 +337,7 @@ will be returned.</p>
 is to limit the buffering of data to acceptable levels such that sources and
 destinations of differing speeds will not overwhelm the available memory.</p>
 <p>Because <a href="#stream_class_stream_duplex"><code>Duplex</code></a> and <a href="#stream_class_stream_transform"><code>Transform</code></a> streams are both <code>Readable</code> and
-<code>Writable</code>, each maintain <em>two</em> separate internal buffers used for reading and
+<code>Writable</code>, each maintains <em>two</em> separate internal buffers used for reading and
 writing, allowing each side to operate independently of the other while
 maintaining an appropriate and efficient flow of data. For example,
 <a href="net.html#net_class_net_socket"><code>net.Socket</code></a> instances are <a href="#stream_class_stream_duplex"><code>Duplex</code></a> streams whose <code>Readable</code> side allows
@@ -585,7 +585,7 @@ but instead implement <a href="#stream_writable_destroy_err_callback"><code>writ
 not operating in object mode, <code>chunk</code> must be a string, <code>Buffer</code> or
 <code>Uint8Array</code>. For object mode streams, <code>chunk</code> may be any JavaScript value
 other than <code>null</code>.</li>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The encoding, if <code>chunk</code> is a string</li>
+<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The encoding if <code>chunk</code> is a string</li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> Optional callback for when the stream is finished</li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this" class="type">&#x3C;this></a></li>
 </ul>
@@ -714,7 +714,7 @@ drain if the remote peer does not read the data, writing a socket that is
 not draining may lead to a remotely exploitable vulnerability.</p>
 <p>Writing data while the stream is not draining is particularly
 problematic for a <a href="#stream_class_stream_transform"><code>Transform</code></a>, because the <code>Transform</code> streams are paused
-by default until they are piped or an <code>'data'</code> or <code>'readable'</code> event handler
+by default until they are piped or a <code>'data'</code> or <code>'readable'</code> event handler
 is added.</p>
 <p>If the data to be written can be generated or fetched on demand, it is
 recommended to encapsulate the logic into a <a href="#stream_class_stream_readable"><code>Readable</code></a> and use
@@ -786,7 +786,7 @@ Multiple pipe destinations may be removed by calling the
 until a mechanism for either consuming or ignoring that data is provided. If
 the consuming mechanism is disabled or taken away, the <code>Readable</code> will <em>attempt</em>
 to stop generating the data.</p>
-<p>For backwards compatibility reasons, removing <a href="#stream_event_data"><code>'data'</code></a> event handlers will
+<p>For backward compatibility reasons, removing <a href="#stream_event_data"><code>'data'</code></a> event handlers will
 <strong>not</strong> automatically pause the stream. Also, if there are piped destinations,
 then calling <a href="#stream_readable_pause"><code>stream.pause()</code></a> will not guarantee that the
 stream will <em>remain</em> paused once those destinations drain and ask for more data.</p>
@@ -1418,7 +1418,7 @@ rs.resume(); // drain the stream
 <p>Especially useful in error handling scenarios where a stream is destroyed
 prematurely (like an aborted HTTP request), and will not emit <code>'end'</code>
 or <code>'finish'</code>.</p>
-<p>The <code>finished</code> API is promisify'able as well;</p>
+<p>The <code>finished</code> API is promisify-able as well;</p>
 <pre><code class="language-js">const finished = util.promisify(stream.finished);
 
 const rs = fs.createReadStream('archive.tar');
@@ -1464,7 +1464,7 @@ pipeline(
   }
 );
 </code></pre>
-<p>The <code>pipeline</code> API is promisify'able as well:</p>
+<p>The <code>pipeline</code> API is promisify-able as well:</p>
 <pre><code class="language-js">const pipeline = util.promisify(stream.pipeline);
 
 async function run() {
@@ -1907,7 +1907,7 @@ string, <code>Buffer</code> or <code>Uint8Array</code>. For object mode streams,
 any JavaScript value.</li>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Encoding of string chunks. Must be a valid
 <code>Buffer</code> encoding, such as <code>'utf8'</code> or <code>'ascii'</code>.</li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> <code>true</code> if additional chunks of data may continued to be
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> <code>true</code> if additional chunks of data may continue to be
 pushed; <code>false</code> otherwise.</li>
 </ul>
 <p>When <code>chunk</code> is a <code>Buffer</code>, <code>Uint8Array</code> or <code>string</code>, the <code>chunk</code> of data will
@@ -2265,7 +2265,7 @@ as a result of the chunk.</p>
 consumed. The first argument passed to the <code>callback</code> must be an <code>Error</code> object
 if an error occurred while processing the input or <code>null</code> otherwise. If a second
 argument is passed to the <code>callback</code>, it will be forwarded on to the
-<code>readable.push()</code> method. In other words the following are equivalent:</p>
+<code>readable.push()</code> method. In other words, the following are equivalent:</p>
 <pre><code class="language-js">transform.prototype._transform = function(data, encoding, callback) {
   this.push(data);
   callback();
@@ -2301,7 +2301,7 @@ were required to store read data into buffers so the data would not be lost.</li
 guaranteed. This meant that it was still necessary to be prepared to receive
 <a href="#stream_event_data"><code>'data'</code></a> events <em>even when the stream was in a paused state</em>.</li>
 </ul>
-<p>In Node.js 0.10, the <a href="#stream_class_stream_readable"><code>Readable</code></a> class was added. For backwards
+<p>In Node.js 0.10, the <a href="#stream_class_stream_readable"><code>Readable</code></a> class was added. For backward
 compatibility with older Node.js programs, <code>Readable</code> streams switch into
 "flowing mode" when a <a href="#stream_event_data"><code>'data'</code></a> event handler is added, or when the
 <a href="#stream_readable_resume"><code>stream.resume()</code></a> method is called. The effect is that, even

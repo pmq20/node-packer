@@ -32,9 +32,13 @@
       '-Wendif-labels',
       '-W',
       '-Wno-unused-parameter',
+      '-Werror=undefined-inline',
     ],
   },
   'conditions': [
+    ['clang==1', {
+      'cflags': [ '-Werror=undefined-inline', ]
+    }],
     [ 'node_shared=="false"', {
       'msvs_settings': {
         'VCManifestTool': {
@@ -309,6 +313,16 @@
       'ldflags': [ '-Wl,-M,/usr/lib/ld/map.noexstk' ],
     }],
 
+    [ 'OS in "freebsd linux"', {
+      'ldflags': [ '-Wl,-z,relro',
+                   '-Wl,-z,now' ]
+    }],
+    [ 'OS=="linux" and target_arch=="x64" and node_use_large_pages=="true"', {
+      'ldflags': [
+        '-Wl,-T',
+        '<!(realpath src/large_pages/ld.implicit.script)',
+      ]
+    }],
     [ 'node_use_openssl=="true"', {
       'defines': [ 'HAVE_OPENSSL=1' ],
       'conditions': [

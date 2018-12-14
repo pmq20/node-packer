@@ -3,8 +3,8 @@
 const assert = require('assert');
 const util = require('util');
 const { Socket } = require('net');
-const { JSStream } = process.binding('js_stream');
-const uv = process.binding('uv');
+const { JSStream } = internalBinding('js_stream');
+const uv = internalBinding('uv');
 const debug = util.debuglog('stream_wrap');
 const { owner_symbol } = require('internal/async_hooks').symbols;
 const { ERR_STREAM_WRAP } = require('internal/errors').codes;
@@ -68,6 +68,12 @@ class JSStreamWrap extends Socket {
       if (this._handle)
         this._handle.emitEOF();
     });
+    // Some `Stream` don't pass `hasError` parameters when closed.
+    stream.once('close', () => {
+      // Errors emitted from `stream` have also been emitted to this instance
+      // so that we don't pass errors to `destroy()` again.
+      this.destroy();
+    });
 
     super({ handle, manualStart: true });
     this.stream = stream;
@@ -100,9 +106,6 @@ class JSStreamWrap extends Socket {
   }
 
   doShutdown(req) {
-    assert.strictEqual(this[kCurrentShutdownRequest], null);
-    this[kCurrentShutdownRequest] = req;
-
     // TODO(addaleax): It might be nice if we could get into a state where
     // DoShutdown() is not called on streams while a write is still pending.
     //
@@ -113,8 +116,10 @@ class JSStreamWrap extends Socket {
     // so for now that is supported here.
 
     if (this[kCurrentWriteRequest] !== null)
-      return this.on('drain', () => this.doShutdown(req));
+      return this.once('drain', () => this.doShutdown(req));
     assert.strictEqual(this[kCurrentWriteRequest], null);
+    assert.strictEqual(this[kCurrentShutdownRequest], null);
+    this[kCurrentShutdownRequest] = req;
 
     const handle = this._handle;
 
@@ -188,6 +193,14 @@ class JSStreamWrap extends Socket {
 
   doClose(cb) {
     const handle = this._handle;
+
+    // When sockets of the "net" module destroyed, they will call
+    // `this._handle.close()` which will also emit EOF if not emitted before.
+    // This feature makes sockets on the other side emit "end" and "close"
+    // even though we haven't called `end()`. As `stream` are likely to be
+    // instances of `net.Socket`, calling `stream.destroy()` manually will
+    // avoid issues that don't properly close wrapped connections.
+    this.stream.destroy();
 
     setImmediate(() => {
       // Should be already set by net.js

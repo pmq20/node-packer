@@ -3,11 +3,12 @@
 const { URL } = require('url');
 const CJSmodule = require('internal/modules/cjs/loader');
 const internalFS = require('internal/fs/utils');
-const { NativeModule, internalBinding } = require('internal/bootstrap/loaders');
+const { NativeModule } = require('internal/bootstrap/loaders');
 const { extname } = require('path');
 const { realpathSync } = require('fs');
-const preserveSymlinks = !!process.binding('config').preserveSymlinks;
-const preserveSymlinksMain = !!process.binding('config').preserveSymlinksMain;
+const { getOptions } = internalBinding('options');
+const preserveSymlinks = getOptions('--preserve-symlinks');
+const preserveSymlinksMain = getOptions('--preserve-symlinks-main');
 const {
   ERR_MISSING_MODULE,
   ERR_MODULE_RESOLUTION_LEGACY,
@@ -36,7 +37,7 @@ function search(target, base) {
         new URL('./', questionedBase).pathname);
       const found = CJSmodule._resolveFilename(target, tmpMod);
       error = new ERR_MODULE_RESOLUTION_LEGACY(target, base, found);
-    } catch (problemChecking) {
+    } catch {
       // ignore
     }
     throw error;

@@ -8,7 +8,7 @@
       "introduced_in": "v0.10.0",
       "stability": 2,
       "stabilityText": "Stable",
-      "desc": "<p>The <code>vm</code> module provides APIs for compiling and running code within V8 Virtual\nMachine contexts. <strong>Note that the <code>vm</code> module is not a security mechanism. Do\nnot use it to run untrusted code</strong>. The term \"sandbox\" is used throughout these\ndocs simply to refer to a separate context, and does not confer any security\nguarantees.</p>\n<p>JavaScript code can be compiled and run immediately or\ncompiled, saved, and run later.</p>\n<p>A common use case is to run the code in a sandboxed environment.\nThe sandboxed code uses a different V8 Context, meaning that\nit has a different global object than the rest of the code.</p>\n<p>One can provide the context by <a href=\"#vm_what_does_it_mean_to_contextify_an_object\">\"contextifying\"</a> a sandbox\nobject. The sandboxed code treats any property in the sandbox like a\nglobal variable. Any changes to global variables caused by the sandboxed\ncode are reflected in the sandbox object.</p>\n<pre><code class=\"language-js\">const vm = require('vm');\n\nconst x = 1;\n\nconst sandbox = { x: 2 };\nvm.createContext(sandbox); // Contextify the sandbox.\n\nconst code = 'x += 40; var y = 17;';\n// x and y are global variables in the sandboxed environment.\n// Initially, x has the value 2 because that is the value of sandbox.x.\nvm.runInContext(code, sandbox);\n\nconsole.log(sandbox.x); // 42\nconsole.log(sandbox.y); // 17\n\nconsole.log(x); // 1; y is not defined.\n</code></pre>",
+      "desc": "<p>The <code>vm</code> module provides APIs for compiling and running code within V8 Virtual\nMachine contexts. <strong>The <code>vm</code> module is not a security mechanism. Do\nnot use it to run untrusted code</strong>. The term \"sandbox\" is used throughout these\ndocs simply to refer to a separate context, and does not confer any security\nguarantees.</p>\n<p>JavaScript code can be compiled and run immediately or\ncompiled, saved, and run later.</p>\n<p>A common use case is to run the code in a sandboxed environment.\nThe sandboxed code uses a different V8 Context, meaning that\nit has a different global object than the rest of the code.</p>\n<p>One can provide the context by <a href=\"#vm_what_does_it_mean_to_contextify_an_object\">\"contextifying\"</a> a sandbox\nobject. The sandboxed code treats any property in the sandbox like a\nglobal variable. Any changes to global variables caused by the sandboxed\ncode are reflected in the sandbox object.</p>\n<pre><code class=\"language-js\">const vm = require('vm');\n\nconst x = 1;\n\nconst sandbox = { x: 2 };\nvm.createContext(sandbox); // Contextify the sandbox.\n\nconst code = 'x += 40; var y = 17;';\n// x and y are global variables in the sandboxed environment.\n// Initially, x has the value 2 because that is the value of sandbox.x.\nvm.runInContext(code, sandbox);\n\nconsole.log(sandbox.x); // 42\nconsole.log(sandbox.y); // 17\n\nconsole.log(x); // 1; y is not defined.\n</code></pre>",
       "classes": [
         {
           "textRaw": "Class: vm.SourceTextModule",
@@ -80,10 +80,10 @@
                       "type": "Object",
                       "options": [
                         {
-                          "textRaw": "`timeout` {number} Specifies the number of milliseconds to evaluate before terminating execution. If execution is interrupted, an [`Error`][] will be thrown.",
+                          "textRaw": "`timeout` {integer} Specifies the number of milliseconds to evaluate before terminating execution. If execution is interrupted, an [`Error`][] will be thrown. This value must be a strictly positive integer.",
                           "name": "timeout",
-                          "type": "number",
-                          "desc": "Specifies the number of milliseconds to evaluate before terminating execution. If execution is interrupted, an [`Error`][] will be thrown."
+                          "type": "integer",
+                          "desc": "Specifies the number of milliseconds to evaluate before terminating execution. If execution is interrupted, an [`Error`][] will be thrown. This value must be a strictly positive integer."
                         },
                         {
                           "textRaw": "`breakOnSigint` {boolean} If `true`, the execution will be terminated when `SIGINT` (Ctrl+C) is received. Existing handlers for the event that have been attached via `process.on('SIGINT')` will be disabled during script execution, but will continue to work after that. If execution is interrupted, an [`Error`][] will be thrown.",
@@ -274,10 +274,10 @@
                           "desc": "When `true`, if an [`Error`][] error occurs while compiling the `code`, the line of code causing the error is attached to the stack trace."
                         },
                         {
-                          "textRaw": "`timeout` {number} Specifies the number of milliseconds to execute `code` before terminating execution. If execution is terminated, an [`Error`][] will be thrown.",
+                          "textRaw": "`timeout` {integer} Specifies the number of milliseconds to execute `code` before terminating execution. If execution is terminated, an [`Error`][] will be thrown. This value must be a strictly positive integer.",
                           "name": "timeout",
-                          "type": "number",
-                          "desc": "Specifies the number of milliseconds to execute `code` before terminating execution. If execution is terminated, an [`Error`][] will be thrown."
+                          "type": "integer",
+                          "desc": "Specifies the number of milliseconds to execute `code` before terminating execution. If execution is terminated, an [`Error`][] will be thrown. This value must be a strictly positive integer."
                         },
                         {
                           "textRaw": "`breakOnSigint`: if `true`, the execution will be terminated when `SIGINT` (Ctrl+C) is received. Existing handlers for the event that have been attached via `process.on('SIGINT')` will be disabled during script execution, but will continue to work after that. If execution is terminated, an [`Error`][] will be thrown.",
@@ -348,10 +348,10 @@
                           "desc": "When `true`, if an [`Error`][] error occurs while compiling the `code`, the line of code causing the error is attached to the stack trace."
                         },
                         {
-                          "textRaw": "`timeout` {number} Specifies the number of milliseconds to execute `code` before terminating execution. If execution is terminated, an [`Error`][] will be thrown.",
+                          "textRaw": "`timeout` {integer} Specifies the number of milliseconds to execute `code` before terminating execution. If execution is terminated, an [`Error`][] will be thrown. This value must be a strictly positive integer.",
                           "name": "timeout",
-                          "type": "number",
-                          "desc": "Specifies the number of milliseconds to execute `code` before terminating execution. If execution is terminated, an [`Error`][] will be thrown."
+                          "type": "integer",
+                          "desc": "Specifies the number of milliseconds to execute `code` before terminating execution. If execution is terminated, an [`Error`][] will be thrown. This value must be a strictly positive integer."
                         },
                         {
                           "textRaw": "`contextName` {string} Human-readable name of the newly created context. **Default:** `'VM Context i'`, where `i` is an ascending numerical index of the created context.",
@@ -439,10 +439,10 @@
                           "desc": "When `true`, if an [`Error`][] error occurs while compiling the `code`, the line of code causing the error is attached to the stack trace."
                         },
                         {
-                          "textRaw": "`timeout` {number} Specifies the number of milliseconds to execute `code` before terminating execution. If execution is terminated, an [`Error`][] will be thrown.",
+                          "textRaw": "`timeout` {integer} Specifies the number of milliseconds to execute `code` before terminating execution. If execution is terminated, an [`Error`][] will be thrown. This value must be a strictly positive integer.",
                           "name": "timeout",
-                          "type": "number",
-                          "desc": "Specifies the number of milliseconds to execute `code` before terminating execution. If execution is terminated, an [`Error`][] will be thrown."
+                          "type": "integer",
+                          "desc": "Specifies the number of milliseconds to execute `code` before terminating execution. If execution is terminated, an [`Error`][] will be thrown. This value must be a strictly positive integer."
                         }
                       ],
                       "optional": true
@@ -571,10 +571,10 @@
                       "desc": "Specifies whether to produce new cache data."
                     },
                     {
-                      "textRaw": "`parsingContext` {Object} The sandbox/context in which the said function should be compiled in.",
+                      "textRaw": "`parsingContext` {Object} The [contextified][] sandbox in which the said function should be compiled in.",
                       "name": "parsingContext",
                       "type": "Object",
-                      "desc": "The sandbox/context in which the said function should be compiled in."
+                      "desc": "The [contextified][] sandbox in which the said function should be compiled in."
                     },
                     {
                       "textRaw": "`contextExtensions` {Object[]} An array containing a collection of context extensions (objects wrapping the current scope) to be applied while compiling. **Default:** `[]`.",
@@ -746,10 +746,10 @@
                       "desc": "When `true`, if an [`Error`][] error occurs while compiling the `code`, the line of code causing the error is attached to the stack trace."
                     },
                     {
-                      "textRaw": "`timeout` {number} Specifies the number of milliseconds to execute `code` before terminating execution. If execution is terminated, an [`Error`][] will be thrown.",
+                      "textRaw": "`timeout` {integer} Specifies the number of milliseconds to execute `code` before terminating execution. If execution is terminated, an [`Error`][] will be thrown. This value must be a strictly positive integer.",
                       "name": "timeout",
-                      "type": "number",
-                      "desc": "Specifies the number of milliseconds to execute `code` before terminating execution. If execution is terminated, an [`Error`][] will be thrown."
+                      "type": "integer",
+                      "desc": "Specifies the number of milliseconds to execute `code` before terminating execution. If execution is terminated, an [`Error`][] will be thrown. This value must be a strictly positive integer."
                     }
                   ],
                   "optional": true
@@ -815,10 +815,10 @@
                       "desc": "When `true`, if an [`Error`][] error occurs while compiling the `code`, the line of code causing the error is attached to the stack trace."
                     },
                     {
-                      "textRaw": "`timeout` {number} Specifies the number of milliseconds to execute `code` before terminating execution. If execution is terminated, an [`Error`][] will be thrown.",
+                      "textRaw": "`timeout` {integer} Specifies the number of milliseconds to execute `code` before terminating execution. If execution is terminated, an [`Error`][] will be thrown. This value must be a strictly positive integer.",
                       "name": "timeout",
-                      "type": "number",
-                      "desc": "Specifies the number of milliseconds to execute `code` before terminating execution. If execution is terminated, an [`Error`][] will be thrown."
+                      "type": "integer",
+                      "desc": "Specifies the number of milliseconds to execute `code` before terminating execution. If execution is terminated, an [`Error`][] will be thrown. This value must be a strictly positive integer."
                     },
                     {
                       "textRaw": "`contextName` {string} Human-readable name of the newly created context. **Default:** `'VM Context i'`, where `i` is an ascending numerical index of the created context.",
@@ -891,10 +891,10 @@
                       "desc": "When `true`, if an [`Error`][] error occurs while compiling the `code`, the line of code causing the error is attached to the stack trace."
                     },
                     {
-                      "textRaw": "`timeout` {number} Specifies the number of milliseconds to execute `code` before terminating execution. If execution is terminated, an [`Error`][] will be thrown.",
+                      "textRaw": "`timeout` {integer} Specifies the number of milliseconds to execute `code` before terminating execution. If execution is terminated, an [`Error`][] will be thrown. This value must be a strictly positive integer.",
                       "name": "timeout",
-                      "type": "number",
-                      "desc": "Specifies the number of milliseconds to execute `code` before terminating execution. If execution is terminated, an [`Error`][] will be thrown."
+                      "type": "integer",
+                      "desc": "Specifies the number of milliseconds to execute `code` before terminating execution. If execution is terminated, an [`Error`][] will be thrown. This value must be a strictly positive integer."
                     }
                   ],
                   "optional": true

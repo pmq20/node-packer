@@ -1,6 +1,7 @@
 #include "tracing/agent.h"
 
 #include <string>
+#include "trace_event.h"
 #include "tracing/node_trace_buffer.h"
 #include "debug_utils.h"
 #include "env-inl.h"
@@ -48,8 +49,7 @@ using v8::platform::tracing::TraceConfig;
 using v8::platform::tracing::TraceWriter;
 using std::string;
 
-Agent::Agent() {
-  tracing_controller_ = new TracingController();
+Agent::Agent() : tracing_controller_(new TracingController()) {
   tracing_controller_->Initialize(nullptr);
 
   CHECK_EQ(uv_loop_init(&tracing_loop_), 0);
@@ -117,7 +117,7 @@ AgentWriterHandle Agent::AddClient(
     use_categories = &categories_with_default;
   }
 
-  ScopedSuspendTracing suspend(tracing_controller_, this);
+  ScopedSuspendTracing suspend(tracing_controller_.get(), this);
   int id = next_writer_id_++;
   AsyncTraceWriter* raw = writer.get();
   writers_[id] = std::move(writer);
@@ -157,7 +157,7 @@ void Agent::Disconnect(int client) {
     Mutex::ScopedLock lock(initialize_writer_mutex_);
     to_be_initialized_.erase(writers_[client].get());
   }
-  ScopedSuspendTracing suspend(tracing_controller_, this);
+  ScopedSuspendTracing suspend(tracing_controller_.get(), this);
   writers_.erase(client);
   categories_.erase(client);
 }
@@ -166,13 +166,13 @@ void Agent::Enable(int id, const std::set<std::string>& categories) {
   if (categories.empty())
     return;
 
-  ScopedSuspendTracing suspend(tracing_controller_, this,
+  ScopedSuspendTracing suspend(tracing_controller_.get(), this,
                                id != kDefaultHandleId);
   categories_[id].insert(categories.begin(), categories.end());
 }
 
 void Agent::Disable(int id, const std::set<std::string>& categories) {
-  ScopedSuspendTracing suspend(tracing_controller_, this,
+  ScopedSuspendTracing suspend(tracing_controller_.get(), this,
                                id != kDefaultHandleId);
   std::multiset<std::string>& writer_categories = categories_[id];
   for (const std::string& category : categories) {
@@ -208,8 +208,34 @@ void Agent::AppendTraceEvent(TraceObject* trace_event) {
 }
 
 void Agent::Flush(bool blocking) {
+  for (const auto& event : metadata_events_)
+    AppendTraceEvent(event.get());
+
   for (const auto& id_writer : writers_)
     id_writer.second->Flush(blocking);
+}
+
+void TracingController::AddMetadataEvent(
+    const unsigned char* category_group_enabled,
+    const char* name,
+    int num_args,
+    const char** arg_names,
+    const unsigned char* arg_types,
+    const uint64_t* arg_values,
+    std::unique_ptr<v8::ConvertableToTraceFormat>* convertable_values,
+    unsigned int flags) {
+  std::unique_ptr<TraceObject> trace_event(new TraceObject);
+  trace_event->Initialize(
+      TRACE_EVENT_PHASE_METADATA, category_group_enabled, name,
+      node::tracing::kGlobalScope,  // scope
+      node::tracing::kNoId,         // id
+      node::tracing::kNoId,         // bind_id
+      num_args, arg_names, arg_types, arg_values, convertable_values,
+      TRACE_EVENT_FLAG_NONE,
+      CurrentTimestampMicroseconds(),
+      CurrentCpuTimestampMicroseconds());
+  node::tracing::TraceEventHelper::GetAgent()->AddMetadataEvent(
+      std::move(trace_event));
 }
 
 }  // namespace tracing

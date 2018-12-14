@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Worker Threads | Node.js v10.14.1 Documentation</title>
+  <title>Worker Threads | Node.js v10.14.2 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -74,13 +74,12 @@
 <div class="line"></div>
 <ul>
 <li><a href="https://github.com/nodejs/node" class="nav-https-github-com-nodejs-node">GitHub Repo &#x26; Issue Tracker</a></li>
-<li><a href="https://groups.google.com/forum/#!forum/nodejs" class="nav-https-groups-google-com-forum-forum-nodejs">Mailing List</a></li>
 </ul>
     </div>
 
     <div id="column1" data-id="worker_threads" class="interior">
       <header>
-        <h1>Node.js v10.14.1 Documentation</h1>
+        <h1>Node.js v10.14.2 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -93,6 +92,11 @@
               <a href="worker_threads.json">View as JSON</a>
             </li>
             
+    <li class="version-picker">
+      <a href="#">View another version <span>&#x25bc;</span></a>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v11.x/api/worker_threads.html">11.x</a></li></ol>
+    </li>
+  
             <li class="edit_on_github"><a href="https://github.com/nodejs/node/edit/master/doc/api/worker_threads.md"><span class="github_icon"><svg height="16" width="16" viewBox="0 0 16.1 16.1" fill="currentColor"><path d="M8 0a8 8 0 0 0-2.5 15.6c.4 0 .5-.2.5-.4v-1.5c-2 .4-2.5-.5-2.7-1 0-.1-.5-.9-.8-1-.3-.2-.7-.6 0-.6.6 0 1 .6 1.2.8.7 1.2 1.9 1 2.4.7 0-.5.2-.9.5-1-1.8-.3-3.7-1-3.7-4 0-.9.3-1.6.8-2.2 0-.2-.3-1 .1-2 0 0 .7-.3 2.2.7a7.4 7.4 0 0 1 4 0c1.5-1 2.2-.8 2.2-.8.5 1.1.2 2 .1 2.1.5.6.8 1.3.8 2.2 0 3-1.9 3.7-3.6 4 .3.2.5.7.5 1.4v2.2c0 .2.1.5.5.4A8 8 0 0 0 16 8a8 8 0 0 0-8-8z"/></svg></span>Edit on GitHub</a></li>
           </ul>
         </div>
@@ -275,8 +279,8 @@ to <code>postMessage()</code> and no further arguments.</p>
 <span>Added in: v10.5.0</span>
 </div>
 <p>Disables further sending of messages on either side of the connection.
-This method can be called once you know that no further communication
-will happen over this <code>MessagePort</code>.</p>
+This method can be called when no further communication will happen over this
+<code>MessagePort</code>.</p>
 <h3>port.postMessage(value[, transferList])<span><a class="mark" href="#worker_threads_port_postmessage_value_transferlist" id="worker_threads_port_postmessage_value_transferlist">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v10.5.0</span>
@@ -529,9 +533,9 @@ inside the worker thread. If <code>stdout: true</code> was not passed to the
 to have completed.</p>
 <p><strong>Warning</strong>: Currently, not all code in the internals of Node.js is prepared to
 expect termination at arbitrary points in time and may crash if it encounters
-that condition. Consequently, you should currently only call <code>.terminate()</code> if
-it is known that the Worker thread is not accessing Node.js core modules other
-than what is exposed in the <code>worker</code> module.</p>
+that condition. Consequently, only call <code>.terminate()</code> if it is known that the
+Worker thread is not accessing Node.js core modules other than what is exposed
+in the <code>worker</code> module.</p>
 <h3>worker.threadId<span><a class="mark" href="#worker_threads_worker_threadid_1" id="worker_threads_worker_threadid_1">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v10.5.0</span>

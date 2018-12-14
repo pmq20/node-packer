@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Errors | Node.js v10.14.1 Documentation</title>
+  <title>Errors | Node.js v10.14.2 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -74,13 +74,12 @@
 <div class="line"></div>
 <ul>
 <li><a href="https://github.com/nodejs/node" class="nav-https-github-com-nodejs-node">GitHub Repo &#x26; Issue Tracker</a></li>
-<li><a href="https://groups.google.com/forum/#!forum/nodejs" class="nav-https-groups-google-com-forum-forum-nodejs">Mailing List</a></li>
 </ul>
     </div>
 
     <div id="column1" data-id="errors" class="interior">
       <header>
-        <h1>Node.js v10.14.1 Documentation</h1>
+        <h1>Node.js v10.14.2 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -95,7 +94,8 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v10.x/api/errors.html">10.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v11.x/api/errors.html">11.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v10.x/api/errors.html">10.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v9.x/api/errors.html">9.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v8.x/api/errors.html">8.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v7.x/api/errors.html">7.x</a></li>
@@ -144,13 +144,15 @@
 <li>
 <p><a href="#errors_class_systemerror">Class: SystemError</a></p>
 <ul>
-<li><a href="#errors_error_info">error.info</a></li>
-<li><a href="#errors_error_code_1">error.code</a></li>
-<li><a href="#errors_error_errno">error.errno</a></li>
-<li><a href="#errors_error_syscall">error.syscall</a></li>
-<li><a href="#errors_error_path">error.path</a></li>
 <li><a href="#errors_error_address">error.address</a></li>
+<li><a href="#errors_error_code_1">error.code</a></li>
+<li><a href="#errors_error_dest">error.dest</a></li>
+<li><a href="#errors_error_errno">error.errno</a></li>
+<li><a href="#errors_error_info">error.info</a></li>
+<li><a href="#errors_error_message_1">error.message</a></li>
+<li><a href="#errors_error_path">error.path</a></li>
 <li><a href="#errors_error_port">error.port</a></li>
+<li><a href="#errors_error_syscall">error.syscall</a></li>
 </ul>
 </li>
 <li><a href="#errors_common_system_errors">Common System Errors</a></li>
@@ -368,6 +370,7 @@
 <li><a href="#errors_err_worker_unserializable_error">ERR_WORKER_UNSERIALIZABLE_ERROR</a></li>
 <li><a href="#errors_err_worker_unsupported_extension">ERR_WORKER_UNSUPPORTED_EXTENSION</a></li>
 <li><a href="#errors_err_zlib_initialization_failed">ERR_ZLIB_INITIALIZATION_FAILED</a></li>
+<li><a href="#errors_hpe_header_overflow">HPE_HEADER_OVERFLOW</a></li>
 <li><a href="#errors_module_not_found">MODULE_NOT_FOUND</a></li>
 </ul>
 </li>
@@ -631,7 +634,10 @@ not capture any frames.</p>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
 <p>The <code>error.code</code> property is a string label that identifies the kind of error.
-See <a href="#nodejs-error-codes">Node.js Error Codes</a> for details about specific codes.</p>
+<code>error.code</code> is the most stable way to identify an error. It will only change
+between major versions of Node.js. In contrast, <code>error.message</code> strings may
+change between any versions of Node.js. See <a href="#nodejs-error-codes">Node.js Error Codes</a> for details
+about specific codes.</p>
 <h3>error.message<span><a class="mark" href="#errors_error_message" id="errors_error_message">#</a></span></h3>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
@@ -770,73 +776,81 @@ instances of <code>Error</code>.</p>
 will <em>always</em> cause the Node.js process to crash. Examples include <code>assert()</code>
 checks or <code>abort()</code> calls in the C++ layer.</p>
 <h2>System Errors<span><a class="mark" href="#errors_system_errors" id="errors_system_errors">#</a></span></h2>
-<p>System errors are generated when exceptions occur within the Node.js
-runtime environment. Typically, these are operational errors that occur
-when an application violates an operating system constraint such as attempting
-to read a file that does not exist or when the user does not have sufficient
-permissions.</p>
-<p>System errors are typically generated at the syscall level: an exhaustive list
-of error codes and their meanings is available by running <code>man 2 intro</code> or
-<code>man 3 errno</code> on most Unices; or <a href="http://man7.org/linux/man-pages/man3/errno.3.html">online</a>.</p>
-<p>In Node.js, system errors are represented as augmented <code>Error</code> objects with
-added properties.</p>
+<p>Node.js generates system errors when exceptions occur within its runtime
+environment. These usually occur when an application violates an operating
+system constraint. For example, a system error will occur if an application
+attempts to read a file that does not exist.</p>
+<p>System errors are usually generated at the syscall level. For a comprehensive
+list, see the <a href="http://man7.org/linux/man-pages/man3/errno.3.html"><code>errno</code>(3) man page</a>.</p>
+<p>In Node.js, system errors are <code>Error</code> objects with extra properties.</p>
 <h3>Class: SystemError<span><a class="mark" href="#errors_class_systemerror" id="errors_class_systemerror">#</a></span></h3>
-<h4>error.info<span><a class="mark" href="#errors_error_info" id="errors_error_info">#</a></span></h4>
-<p><code>SystemError</code> instances may have an additional <code>info</code> property whose
-value is an object with additional details about the error conditions.</p>
-<p>The following properties are provided:</p>
 <ul>
+<li><code>address</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> If present, the address to which a network connection
+failed</li>
 <li><code>code</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The string error code</li>
-<li><code>errno</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> The system-provided error number</li>
-<li><code>message</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> A system-provided human readable description of the error</li>
+<li><code>dest</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> If present, the file path destination when reporting a file
+system error</li>
+<li><code>errno</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The system-provided error number</li>
+<li><code>info</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> If present, extra details about the error condition</li>
+<li><code>message</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> A system-provided human-readable description of the error</li>
+<li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> If present, the file path when reporting a file system error</li>
+<li><code>port</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> If present, the network connection port that is not available</li>
 <li><code>syscall</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The name of the system call that triggered the error</li>
-<li><code>path</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> When reporting a file system error, the <code>path</code> will identify
-the file path.</li>
-<li><code>dest</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> When reporting a file system error, the <code>dest</code> will identify
-the file path destination (if any).</li>
 </ul>
+<h4>error.address<span><a class="mark" href="#errors_error_address" id="errors_error_address">#</a></span></h4>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+</ul>
+<p>If present, <code>error.address</code> is a string describing the address to which a
+network connection failed.</p>
 <h4>error.code<span><a class="mark" href="#errors_error_code_1" id="errors_error_code_1">#</a></span></h4>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
-<p>The <code>error.code</code> property is a string representing the error code, which is
-typically <code>E</code> followed by a sequence of capital letters.</p>
+<p>The <code>error.code</code> property is a string representing the error code.</p>
+<h4>error.dest<span><a class="mark" href="#errors_error_dest" id="errors_error_dest">#</a></span></h4>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+</ul>
+<p>If present, <code>error.dest</code> is the file path destination when reporting a file
+system error.</p>
 <h4>error.errno<span><a class="mark" href="#errors_error_errno" id="errors_error_errno">#</a></span></h4>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
 </ul>
-<p>The <code>error.errno</code> property is a number or a string.
-The number is a <strong>negative</strong> value which corresponds to the error code defined
-in <a href="http://docs.libuv.org/en/v1.x/errors.html"><code>libuv Error handling</code></a>. See <code>uv-errno.h</code> header file
-(<code>deps/uv/include/uv-errno.h</code> in the Node.js source tree) for details. In case
+<p>The <code>error.errno</code> property is a number or a string. If it is a number, it is a
+negative value which corresponds to the error code defined in
+<a href="http://docs.libuv.org/en/v1.x/errors.html"><code>libuv Error handling</code></a>. See the libuv <code>errno.h</code> header file
+(<code>deps/uv/include/uv/errno.h</code> in the Node.js source tree) for details. In case
 of a string, it is the same as <code>error.code</code>.</p>
+<h4>error.info<span><a class="mark" href="#errors_error_info" id="errors_error_info">#</a></span></h4>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></li>
+</ul>
+<p>If present, <code>error.info</code> is an object with details about the error condition.</p>
+<h4>error.message<span><a class="mark" href="#errors_error_message_1" id="errors_error_message_1">#</a></span></h4>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+</ul>
+<p><code>error.message</code> is a system-provided human-readable description of the error.</p>
+<h4>error.path<span><a class="mark" href="#errors_error_path" id="errors_error_path">#</a></span></h4>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+</ul>
+<p>If present, <code>error.path</code> is a string containing a relevant invalid pathname.</p>
+<h4>error.port<span><a class="mark" href="#errors_error_port" id="errors_error_port">#</a></span></h4>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
+</ul>
+<p>If present, <code>error.port</code> is the network connection port that is not available.</p>
 <h4>error.syscall<span><a class="mark" href="#errors_error_syscall" id="errors_error_syscall">#</a></span></h4>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
 <p>The <code>error.syscall</code> property is a string describing the <a href="http://man7.org/linux/man-pages/man2/syscalls.2.html">syscall</a> that failed.</p>
-<h4>error.path<span><a class="mark" href="#errors_error_path" id="errors_error_path">#</a></span></h4>
-<ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
-</ul>
-<p>When present (e.g. in <code>fs</code> or <code>child_process</code>), the <code>error.path</code> property is a
-string containing a relevant invalid pathname.</p>
-<h4>error.address<span><a class="mark" href="#errors_error_address" id="errors_error_address">#</a></span></h4>
-<ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
-</ul>
-<p>When present (e.g. in <code>net</code> or <code>dgram</code>), the <code>error.address</code> property is a
-string describing the address to which the connection failed.</p>
-<h4>error.port<span><a class="mark" href="#errors_error_port" id="errors_error_port">#</a></span></h4>
-<ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
-</ul>
-<p>When present (e.g. in <code>net</code> or <code>dgram</code>), the <code>error.port</code> property is a number
-representing the connection's port that is not available.</p>
 <h3>Common System Errors<span><a class="mark" href="#errors_common_system_errors" id="errors_common_system_errors">#</a></span></h3>
-<p>This list is <strong>not exhaustive</strong>, but enumerates many of the common system
-errors encountered when writing a Node.js program. An exhaustive list may be
-found <a href="http://man7.org/linux/man-pages/man3/errno.3.html">here</a>.</p>
+<p>This is a list of system errors commonly-encountered when writing a Node.js
+program. For a comprehensive list, see the <a href="http://man7.org/linux/man-pages/man3/errno.3.html"><code>errno</code>(3) man page</a>.</p>
 <ul>
 <li>
 <p><code>EACCES</code> (Permission denied): An attempt was made to access a file in a way
@@ -1495,7 +1509,7 @@ error indicates that the idle loop has failed to stop.</p>
 OpenSSL crypto support.</p>
 <p><a id="ERR_NO_ICU"></a></p>
 <h3>ERR_NO_ICU<span><a class="mark" href="#errors_err_no_icu" id="errors_err_no_icu">#</a></span><span><a class="mark" href="#ERR_NO_ICU" id="ERR_NO_ICU">#</a></span></h3>
-<p>An attempt was made to use features that require <a href="intl.html#intl_internationalization_support">ICU</a>, but Node.js was not
+<p>An attempt was made to use features that require <a href="">ICU</a>, but Node.js was not
 compiled with ICU support.</p>
 <p><a id="ERR_NO_LONGER_SUPPORTED"></a></p>
 <h3>ERR_NO_LONGER_SUPPORTED<span><a class="mark" href="#errors_err_no_longer_supported" id="errors_err_no_longer_supported">#</a></span><span><a class="mark" href="#ERR_NO_LONGER_SUPPORTED" id="ERR_NO_LONGER_SUPPORTED">#</a></span></h3>
@@ -1740,6 +1754,12 @@ unknown file extension.</p>
 <p><a id="ERR_ZLIB_INITIALIZATION_FAILED"></a></p>
 <h3>ERR_ZLIB_INITIALIZATION_FAILED<span><a class="mark" href="#errors_err_zlib_initialization_failed" id="errors_err_zlib_initialization_failed">#</a></span><span><a class="mark" href="#ERR_ZLIB_INITIALIZATION_FAILED" id="ERR_ZLIB_INITIALIZATION_FAILED">#</a></span></h3>
 <p>Creation of a <a href="zlib.html"><code>zlib</code></a> object failed due to incorrect configuration.</p>
+<p><a id="HPE_HEADER_OVERFLOW"></a></p>
+<h3>HPE_HEADER_OVERFLOW<span><a class="mark" href="#errors_hpe_header_overflow" id="errors_hpe_header_overflow">#</a></span></h3>
+<p>Too much HTTP header data was received. In order to protect against malicious or
+malconfigured clients, if more than 80KB of HTTP header data is received then
+HTTP parsing will abort without a request or response object being created, and
+an <code>Error</code> with this code will be emitted.</p>
 <p><a id="MODULE_NOT_FOUND"></a></p>
 <h3>MODULE_NOT_FOUND<span><a class="mark" href="#errors_module_not_found" id="errors_module_not_found">#</a></span></h3>
 <p>A module file could not be resolved while attempting a <a href="modules.html#modules_require"><code>require()</code></a> or

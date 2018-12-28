@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Command Line Options | Node.js v10.14.2 Documentation</title>
+  <title>Command Line Options | Node.js v10.15.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -79,7 +79,7 @@
 
     <div id="column1" data-id="cli" class="interior">
       <header>
-        <h1>Node.js v10.14.2 Documentation</h1>
+        <h1>Node.js v10.15.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -138,6 +138,7 @@
 </ul>
 </li>
 <li><a href="#cli_loader_file"><code>--loader=file</code></a></li>
+<li><a href="#cli_max_http_header_size_size"><code>--max-http-header-size=size</code></a></li>
 <li><a href="#cli_napi_modules"><code>--napi-modules</code></a></li>
 <li><a href="#cli_no_deprecation"><code>--no-deprecation</code></a></li>
 <li><a href="#cli_no_force_async_hooks_checks"><code>--no-force-async-hooks-checks</code></a></li>
@@ -331,6 +332,11 @@ default) is not firewall-protected.</strong></p>
 <span>Added in: v9.0.0</span>
 </div>
 <p>Specify the <code>file</code> of the custom <a href="esm.html#esm_loader_hooks">experimental ECMAScript Module</a> loader.</p>
+<h3><code>--max-http-header-size=size</code><span><a class="mark" href="#cli_max_http_header_size_size" id="cli_max_http_header_size_size">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v10.15.0</span>
+</div>
+<p>Specify the maximum size, in bytes, of HTTP headers. Defaults to 8KB.</p>
 <h3><code>--napi-modules</code><span><a class="mark" href="#cli_napi_modules" id="cli_napi_modules">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v7.10.0</span>
@@ -649,6 +655,7 @@ that is not allowed in the environment is used, such as <code>-p</code> or a scr
 <li><code>--inspect-brk</code></li>
 <li><code>--inspect-port</code></li>
 <li><code>--loader</code></li>
+<li><code>--max-http-header-size</code></li>
 <li><code>--napi-modules</code></li>
 <li><code>--no-deprecation</code></li>
 <li><code>--no-force-async-hooks-checks</code></li>

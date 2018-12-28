@@ -236,6 +236,19 @@
               "displayName": "`--loader=file`"
             },
             {
+              "textRaw": "`--max-http-header-size=size`",
+              "name": "`--max-http-header-size=size`",
+              "meta": {
+                "added": [
+                  "v10.15.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Specify the maximum size, in bytes, of HTTP headers. Defaults to 8KB.</p>",
+              "type": "module",
+              "displayName": "`--max-http-header-size=size`"
+            },
+            {
               "textRaw": "`--napi-modules`",
               "name": "`--napi-modules`",
               "meta": {
@@ -752,7 +765,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>A space-separated list of command line options. <code>options...</code> are interpreted as\nif they had been specified on the command line before the actual command line\n(so they can be overridden). Node.js will exit with an error if an option\nthat is not allowed in the environment is used, such as <code>-p</code> or a script file.</p>\n<p>Node.js options that are allowed are:</p>\n<ul>\n<li><code>--enable-fips</code></li>\n<li><code>--experimental-modules</code></li>\n<li><code>--experimental-repl-await</code></li>\n<li><code>--experimental-vm-modules</code></li>\n<li><code>--experimental-worker</code></li>\n<li><code>--force-fips</code></li>\n<li><code>--icu-data-dir</code></li>\n<li><code>--inspect</code></li>\n<li><code>--inspect-brk</code></li>\n<li><code>--inspect-port</code></li>\n<li><code>--loader</code></li>\n<li><code>--napi-modules</code></li>\n<li><code>--no-deprecation</code></li>\n<li><code>--no-force-async-hooks-checks</code></li>\n<li><code>--no-warnings</code></li>\n<li><code>--openssl-config</code></li>\n<li><code>--pending-deprecation</code></li>\n<li><code>--redirect-warnings</code></li>\n<li><code>--require</code>, <code>-r</code></li>\n<li><code>--throw-deprecation</code></li>\n<li><code>--title</code></li>\n<li><code>--tls-cipher-list</code></li>\n<li><code>--trace-deprecation</code></li>\n<li><code>--trace-event-categories</code></li>\n<li><code>--trace-event-file-pattern</code></li>\n<li><code>--trace-events-enabled</code></li>\n<li><code>--trace-sync-io</code></li>\n<li><code>--trace-warnings</code></li>\n<li><code>--track-heap-objects</code></li>\n<li><code>--use-bundled-ca</code></li>\n<li><code>--use-openssl-ca</code></li>\n<li><code>--v8-pool-size</code></li>\n<li><code>--zero-fill-buffers</code></li>\n</ul>\n<p>V8 options that are allowed are:</p>\n<ul>\n<li><code>--abort-on-uncaught-exception</code></li>\n<li><code>--max-old-space-size</code></li>\n<li><code>--perf-basic-prof</code></li>\n<li><code>--perf-prof</code></li>\n<li><code>--stack-trace-limit</code></li>\n</ul>",
+              "desc": "<p>A space-separated list of command line options. <code>options...</code> are interpreted as\nif they had been specified on the command line before the actual command line\n(so they can be overridden). Node.js will exit with an error if an option\nthat is not allowed in the environment is used, such as <code>-p</code> or a script file.</p>\n<p>Node.js options that are allowed are:</p>\n<ul>\n<li><code>--enable-fips</code></li>\n<li><code>--experimental-modules</code></li>\n<li><code>--experimental-repl-await</code></li>\n<li><code>--experimental-vm-modules</code></li>\n<li><code>--experimental-worker</code></li>\n<li><code>--force-fips</code></li>\n<li><code>--icu-data-dir</code></li>\n<li><code>--inspect</code></li>\n<li><code>--inspect-brk</code></li>\n<li><code>--inspect-port</code></li>\n<li><code>--loader</code></li>\n<li><code>--max-http-header-size</code></li>\n<li><code>--napi-modules</code></li>\n<li><code>--no-deprecation</code></li>\n<li><code>--no-force-async-hooks-checks</code></li>\n<li><code>--no-warnings</code></li>\n<li><code>--openssl-config</code></li>\n<li><code>--pending-deprecation</code></li>\n<li><code>--redirect-warnings</code></li>\n<li><code>--require</code>, <code>-r</code></li>\n<li><code>--throw-deprecation</code></li>\n<li><code>--title</code></li>\n<li><code>--tls-cipher-list</code></li>\n<li><code>--trace-deprecation</code></li>\n<li><code>--trace-event-categories</code></li>\n<li><code>--trace-event-file-pattern</code></li>\n<li><code>--trace-events-enabled</code></li>\n<li><code>--trace-sync-io</code></li>\n<li><code>--trace-warnings</code></li>\n<li><code>--track-heap-objects</code></li>\n<li><code>--use-bundled-ca</code></li>\n<li><code>--use-openssl-ca</code></li>\n<li><code>--v8-pool-size</code></li>\n<li><code>--zero-fill-buffers</code></li>\n</ul>\n<p>V8 options that are allowed are:</p>\n<ul>\n<li><code>--abort-on-uncaught-exception</code></li>\n<li><code>--max-old-space-size</code></li>\n<li><code>--perf-basic-prof</code></li>\n<li><code>--perf-prof</code></li>\n<li><code>--stack-trace-limit</code></li>\n</ul>",
               "type": "module",
               "displayName": "`NODE_OPTIONS=options...`"
             },

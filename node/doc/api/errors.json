@@ -1694,7 +1694,16 @@
             {
               "textRaw": "HPE_HEADER_OVERFLOW",
               "name": "hpe_header_overflow",
-              "desc": "<p>Too much HTTP header data was received. In order to protect against malicious or\nmalconfigured clients, if more than 80KB of HTTP header data is received then\nHTTP parsing will abort without a request or response object being created, and\nan <code>Error</code> with this code will be emitted.</p>\n<p><a id=\"MODULE_NOT_FOUND\"></a></p>",
+              "meta": {
+                "changes": [
+                  {
+                    "version": "v10.15.0",
+                    "pr-url": "https://github.com/nodejs/node/commit/186035243fad247e3955f",
+                    "description": "Max header size in `http_parser` was set to 8KB."
+                  }
+                ]
+              },
+              "desc": "<p>Too much HTTP header data was received. In order to protect against malicious or\nmalconfigured clients, if more than 8KB of HTTP header data is received then\nHTTP parsing will abort without a request or response object being created, and\nan <code>Error</code> with this code will be emitted.</p>\n<p><a id=\"MODULE_NOT_FOUND\"></a></p>",
               "type": "module",
               "displayName": "HPE_HEADER_OVERFLOW"
             },

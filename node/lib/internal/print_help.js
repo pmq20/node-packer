@@ -1,5 +1,6 @@
 'use strict';
-const { getOptions, types } = internalBinding('options');
+
+const { types } = internalBinding('options');
 
 const typeLookup = [];
 for (const key of Object.keys(types))
@@ -58,6 +59,7 @@ function getArgDescription(type) {
     case 'kHostPort':
       return '[host:]port';
     case 'kInteger':
+    case 'kUInteger':
     case 'kString':
     case 'kStringList':
       return '...';
@@ -132,7 +134,7 @@ function format({ options, aliases = new Map(), firstColumn, secondColumn }) {
 }
 
 function print(stream) {
-  const { options, aliases } = getOptions();
+  const { options, aliases } = require('internal/options');
 
   // Use 75 % of the available width, and at least 70 characters.
   const width = Math.max(70, (stream.columns || 0) * 0.75);

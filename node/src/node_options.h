@@ -116,6 +116,7 @@ class PerProcessOptions : public Options {
   std::string title;
   std::string trace_event_categories;
   std::string trace_event_file_pattern = "node_trace.${rotation}.log";
+  uint64_t max_http_header_size = 8 * 1024;
   int64_t v8_thread_pool_size = 4;
   bool zero_fill_all_buffers = false;
 
@@ -168,6 +169,7 @@ enum OptionType {
   kV8Option,
   kBoolean,
   kInteger,
+  kUInteger,
   kString,
   kHostPort,
   kStringList,
@@ -193,6 +195,10 @@ class OptionsParser {
   void AddOption(const std::string& name,
                  const std::string& help_text,
                  bool Options::* field,
+                 OptionEnvvarSettings env_setting = kDisallowedInEnvironment);
+  void AddOption(const std::string& name,
+                 const std::string& help_text,
+                 uint64_t Options::* field,
                  OptionEnvvarSettings env_setting = kDisallowedInEnvironment);
   void AddOption(const std::string& name,
                  const std::string& help_text,

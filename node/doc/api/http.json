@@ -1938,6 +1938,18 @@
             "changes": []
           },
           "desc": "<p>Global instance of <code>Agent</code> which is used as the default for all HTTP client\nrequests.</p>"
+        },
+        {
+          "textRaw": "`maxHeaderSize` {number}",
+          "type": "number",
+          "name": "maxHeaderSize",
+          "meta": {
+            "added": [
+              "v10.15.0"
+            ],
+            "changes": []
+          },
+          "desc": "<p>Read-only property specifying the maximum allowed size of HTTP headers in bytes.\nDefaults to 8KB. Configurable using the <a href=\"cli.html#cli_max_http_header_size_size\"><code>--max-http-header-size</code></a> CLI option.</p>"
         }
       ],
       "methods": [

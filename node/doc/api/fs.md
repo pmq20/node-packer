@@ -565,6 +565,11 @@ In general, check for the accessibility of a file only if the file will not be
 used directly, for example when its accessibility is a signal from another
 process.
 
+On Windows, access-control policies (ACLs) on a directory may limit access to
+a file or directory. The `fs.access()` function, however, does not check the
+ACL and therefore may report that a path is accessible even if the ACL restricts
+the user from reading or writing to it.
+
 ## fs.accessSync(path[, mode])
 <!-- YAML
 added: v0.11.15
@@ -3213,8 +3218,8 @@ The following constants are meant for use with the [`fs.Stats`][] object's
 [MDN-Date]: https://developer.mozilla.org/en-US/JavaScript/Reference/Global_Objects/Date
 [MDN-Number]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type
 [MSDN-Rel-Path]: https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247.aspx#fully_qualified_vs._relative_paths
+[MSDN-Using-Streams]: https://msdn.microsoft.com/en-us/library/windows/desktop/bb540537.aspx
+[Naming Files, Paths, and Namespaces]: https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
 [Readable Stream]: stream.html#stream_class_stream_readable
 [Writable Stream]: stream.html#stream_class_stream_writable
 [inode]: https://en.wikipedia.org/wiki/Inode
-[Naming Files, Paths, and Namespaces]: https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
-[MSDN-Using-Streams]: https://msdn.microsoft.com/en-us/library/windows/desktop/bb540537.aspx

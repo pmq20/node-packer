@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Modules | Node.js v8.14.0 Documentation</title>
+  <title>Modules | Node.js v8.15.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -75,14 +75,13 @@
 
 <ul>
 <li><a class="nav-https-github-com-nodejs-node" href="https://github.com/nodejs/node">GitHub Repo &amp; Issue Tracker</a></li>
-<li><a class="nav-https-groups-google-com-group-nodejs" href="https://groups.google.com/group/nodejs">Mailing List</a></li>
 </ul>
 
     </div>
 
     <div id="column1" data-id="modules" class="interior">
       <header>
-        <h1>Node.js v8.14.0 Documentation</h1>
+        <h1>Node.js v8.15.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -97,7 +96,9 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v9.x/api/modules.html">9.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v11.x/api/modules.html">11.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v10.x/api/modules.html">10.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v9.x/api/modules.html">9.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v8.x/api/modules.html">8.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v7.x/api/modules.html">7.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v6.x/api/modules.html">6.x <b>LTS</b></a></li>
@@ -450,8 +451,9 @@ example, then <code>require(&#39;./some-library&#39;)</code> would attempt to lo
 <p>If the module identifier passed to <code>require()</code> is not a
 <a href="#modules_core_modules">core</a> module, and does not begin with <code>&#39;/&#39;</code>, <code>&#39;../&#39;</code>, or
 <code>&#39;./&#39;</code>, then Node.js starts at the parent directory of the current module, and
-adds <code>/node_modules</code>, and attempts to load the module from that location. Node
-will not append <code>node_modules</code> to a path already ending in <code>node_modules</code>.</p>
+adds <code>/node_modules</code>, and attempts to load the module from that location.
+Node.js will not append <code>node_modules</code> to a path already ending in
+<code>node_modules</code>.</p>
 <p>If it is not found there, then it moves to the parent directory, and so
 on, until the root of the file system is reached.</p>
 <p>For example, if the file at <code>&#39;/home/ry/projects/foo.js&#39;</code> called
@@ -584,7 +586,20 @@ a module exports and makes available through <code>require()</code>.</p>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
 </ul>
-<p>To require modules.</p>
+<p>Used to import modules, <code>JSON</code>, and local files. Modules can be imported
+from <code>node_modules</code>. Local modules and JSON files can be imported using
+a relative path (e.g. <code>./</code>, <code>./foo</code>, <code>./bar/baz</code>, <code>../foo</code>) that will be
+resolved against the directory named by <a href="#modules_dirname"><code>__dirname</code></a> (if defined) or
+the current working directory.</p>
+<pre><code class="lang-js">// Importing a local module:
+const myLocalModule = require(&#39;./path/myLocalModule&#39;);
+
+// Importing a JSON file:
+const jsonData = require(&#39;./path/filename.json&#39;);
+
+// Importing a module from node_modules or Node.js built-in module:
+const crypto = require(&#39;crypto&#39;);
+</code></pre>
 <h4>require.cache<span><a class="mark" href="#modules_require_cache" id="modules_require_cache">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v0.3.0</span>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>File System | Node.js v8.14.0 Documentation</title>
+  <title>File System | Node.js v8.15.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -75,14 +75,13 @@
 
 <ul>
 <li><a class="nav-https-github-com-nodejs-node" href="https://github.com/nodejs/node">GitHub Repo &amp; Issue Tracker</a></li>
-<li><a class="nav-https-groups-google-com-group-nodejs" href="https://groups.google.com/group/nodejs">Mailing List</a></li>
 </ul>
 
     </div>
 
     <div id="column1" data-id="fs" class="interior">
       <header>
-        <h1>Node.js v8.14.0 Documentation</h1>
+        <h1>Node.js v8.15.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -97,7 +96,9 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v9.x/api/fs.html">9.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v11.x/api/fs.html">11.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v10.x/api/fs.html">10.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v9.x/api/fs.html">9.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v8.x/api/fs.html">8.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v7.x/api/fs.html">7.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v6.x/api/fs.html">6.x <b>LTS</b></a></li>
@@ -694,6 +695,10 @@ and handle the error, if any.</p>
 <p>In general, check for the accessibility of a file only if the file will not be
 used directly, for example when its accessibility is a signal from another
 process.</p>
+<p>On Windows, access-control policies (ACLs) on a directory may limit access to
+a file or directory. The <code>fs.access()</code> function, however, does not check the
+ACL and therefore may report that a path is accessible even if the ACL restricts
+the user from reading or writing to it.</p>
 <h2>fs.accessSync(path[, mode])<span><a class="mark" href="#fs_fs_accesssync_path_mode" id="fs_fs_accesssync_path_mode">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>

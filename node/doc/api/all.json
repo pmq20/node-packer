@@ -52,7 +52,7 @@
         {
           "textRaw": "Syscalls and man pages",
           "name": "syscalls_and_man_pages",
-          "desc": "<p>System calls like open(2) and read(2) define the interface between user programs\nand the underlying operating system. Node functions which simply wrap a syscall,\nlike <a href=\"#fs_fs_open_path_flags_mode_callback\"><code>fs.open()</code></a>, will document that. The docs link to the corresponding man\npages (short for manual pages) which describe how the syscalls work.</p>\n<p>Some syscalls, like lchown(2), are BSD-specific. That means, for\nexample, that <a href=\"fs.html#fs_fs_lchown_path_uid_gid_callback\"><code>fs.lchown()</code></a> only works on macOS and other BSD-derived systems,\nand is not available on Linux.</p>\n<p>Most Unix syscalls have Windows equivalents, but behavior may differ on Windows\nrelative to Linux and macOS. For an example of the subtle ways in which it&#39;s\nsometimes impossible to replace Unix syscall semantics on Windows, see <a href=\"https://github.com/nodejs/node/issues/4760\">Node\nissue 4760</a>.</p>\n<!-- [end-include:documentation.md] -->\n<!-- [start-include:synopsis.md] -->\n",
+          "desc": "<p>System calls like open(2) and read(2) define the interface between user programs\nand the underlying operating system. Node functions which simply wrap a syscall,\nlike <a href=\"#fs_fs_open_path_flags_mode_callback\"><code>fs.open()</code></a>, will document that. The docs link to the corresponding man\npages (short for manual pages) which describe how the syscalls work.</p>\n<p>Some syscalls, like lchown(2), are BSD-specific. That means, for\nexample, that <a href=\"fs.html#fs_fs_lchown_path_uid_gid_callback\"><code>fs.lchown()</code></a> only works on macOS and other BSD-derived systems,\nand is not available on Linux.</p>\n<p>Most Unix syscalls have Windows equivalents, but behavior may differ on Windows\nrelative to Linux and macOS. For an example of the subtle ways in which it&#39;s\nsometimes impossible to replace Unix syscall semantics on Windows, see <a href=\"https://github.com/nodejs/node/issues/4760\">Node.js\nissue 4760</a>.</p>\n<!-- [end-include:documentation.md] -->\n<!-- [start-include:synopsis.md] -->\n",
           "type": "misc",
           "displayName": "Syscalls and man pages"
         }
@@ -63,7 +63,7 @@
       "name": "Usage",
       "introduced_in": "v0.10.0",
       "type": "misc",
-      "desc": "<p><code>node [options] [V8 options] [script.js | -e &quot;script&quot; | - ] [arguments]</code></p>\n<p>Please see the <a href=\"cli.html#cli_command_line_options\">Command Line Options</a> document for information about\ndifferent options and ways to run scripts with Node.js.</p>\n<h2>Example</h2>\n<p>An example of a <a href=\"http.html\">web server</a> written with Node.js which responds with\n<code>&#39;Hello World!&#39;</code>:</p>\n<p>Commands displayed in this document are shown starting with <code>$</code> or <code>&gt;</code>\nto replicate how they would appear in a user&#39;s terminal.\nDo not include the <code>$</code> and <code>&gt;</code> character they are there to\nindicate the start of each command.</p>\n<p>There are many tutorials and examples that follow this\nconvention: <code>$</code> or <code>&gt;</code> for commands run as a regular user, and <code>#</code>\nfor commands that should be executed as an administrator.</p>\n<p>Lines that don’t start with <code>$</code> or <code>&gt;</code> character are typically showing\nthe output of the previous command.</p>\n<p>Firstly, make sure to have downloaded and installed Node.js.\nSee <a href=\"https://nodejs.org/en/download/package-manager/\">this guide</a> for further install information.</p>\n<p>Now, create an empty project folder called <code>projects</code>, navigate into it:\nProject folder can be named base on user&#39;s current project title but\nthis example will use <code>projects</code> as the project folder.</p>\n<p>Linux and Mac:</p>\n<pre><code class=\"lang-console\">$ mkdir ~/projects\n$ cd ~/projects\n</code></pre>\n<p>Windows CMD:</p>\n<pre><code class=\"lang-console\">&gt; mkdir %USERPROFILE%\\projects\n&gt; cd %USERPROFILE%\\projects\n</code></pre>\n<p>Windows PowerShell:</p>\n<pre><code class=\"lang-console\">&gt; mkdir $env:USERPROFILE\\projects\n&gt; cd $env:USERPROFILE\\projects\n</code></pre>\n<p>Next, create a new source file in the <code>projects</code>\n folder and call it <code>hello-world.js</code>.</p>\n<p>In Node.js it is considered good style to use\nhyphens (<code>-</code>) or underscores (<code>_</code>) to separate\n multiple words in filenames.</p>\n<p>Open <code>hello-world.js</code> in any preferred text editor and\npaste in the following content.</p>\n<pre><code class=\"lang-js\">const http = require(&#39;http&#39;);\n\nconst hostname = &#39;127.0.0.1&#39;;\nconst port = 3000;\n\nconst server = http.createServer((req, res) =&gt; {\n  res.statusCode = 200;\n  res.setHeader(&#39;Content-Type&#39;, &#39;text/plain&#39;);\n  res.end(&#39;Hello World!\\n&#39;);\n});\n\nserver.listen(port, hostname, () =&gt; {\n  console.log(`Server running at http://${hostname}:${port}/`);\n});\n</code></pre>\n<p>Save the file, go back to the terminal window enter the following command:</p>\n<pre><code class=\"lang-console\">$ node hello-world.js\n</code></pre>\n<p>An output like this should appear in the terminal to indicate Node.js\nserver is running:</p>\n<pre><code class=\"lang-console\"> Server running at http://127.0.0.1:3000/\n `\n</code></pre>\n<p>Now, open any preferred web browser and visit <code>http://127.0.0.1:3000</code>.</p>\n<p>If the browser displays the string <code>Hello, world!</code>, that indicates\nthe server is working.</p>\n<p>Many of the examples in the documentation can be run similarly.</p>\n<!-- [end-include:synopsis.md] -->\n<!-- [start-include:assert.md] -->\n"
+      "desc": "<p><code>node [options] [V8 options] [script.js | -e &quot;script&quot; | - ] [arguments]</code></p>\n<p>Please see the <a href=\"cli.html#cli_command_line_options\">Command Line Options</a> document for information about\ndifferent options and ways to run scripts with Node.js.</p>\n<h2>Example</h2>\n<p>An example of a <a href=\"http.html\">web server</a> written with Node.js which responds with\n<code>&#39;Hello World!&#39;</code>:</p>\n<p>Commands displayed in this document are shown starting with <code>$</code> or <code>&gt;</code>\nto replicate how they would appear in a user&#39;s terminal.\nDo not include the <code>$</code> and <code>&gt;</code> characters. They are there to\nindicate the start of each command.</p>\n<p>There are many tutorials and examples that follow this\nconvention: <code>$</code> or <code>&gt;</code> for commands run as a regular user, and <code>#</code>\nfor commands that should be executed as an administrator.</p>\n<p>Lines that don’t start with <code>$</code> or <code>&gt;</code> character are typically showing\nthe output of the previous command.</p>\n<p>Firstly, make sure to have downloaded and installed Node.js.\nSee <a href=\"https://nodejs.org/en/download/package-manager/\">this guide</a> for further install information.</p>\n<p>Now, create an empty project folder called <code>projects</code>, then navigate into it.\nThe project folder can be named based on the user&#39;s current project title, but\nthis example will use <code>projects</code> as the project folder.</p>\n<p>Linux and Mac:</p>\n<pre><code class=\"lang-console\">$ mkdir ~/projects\n$ cd ~/projects\n</code></pre>\n<p>Windows CMD:</p>\n<pre><code class=\"lang-console\">&gt; mkdir %USERPROFILE%\\projects\n&gt; cd %USERPROFILE%\\projects\n</code></pre>\n<p>Windows PowerShell:</p>\n<pre><code class=\"lang-console\">&gt; mkdir $env:USERPROFILE\\projects\n&gt; cd $env:USERPROFILE\\projects\n</code></pre>\n<p>Next, create a new source file in the <code>projects</code>\n folder and call it <code>hello-world.js</code>.</p>\n<p>In Node.js it is considered good style to use\nhyphens (<code>-</code>) or underscores (<code>_</code>) to separate\n multiple words in filenames.</p>\n<p>Open <code>hello-world.js</code> in any preferred text editor and\npaste in the following content:</p>\n<pre><code class=\"lang-js\">const http = require(&#39;http&#39;);\n\nconst hostname = &#39;127.0.0.1&#39;;\nconst port = 3000;\n\nconst server = http.createServer((req, res) =&gt; {\n  res.statusCode = 200;\n  res.setHeader(&#39;Content-Type&#39;, &#39;text/plain&#39;);\n  res.end(&#39;Hello World!\\n&#39;);\n});\n\nserver.listen(port, hostname, () =&gt; {\n  console.log(`Server running at http://${hostname}:${port}/`);\n});\n</code></pre>\n<p>Save the file, go back to the terminal window enter the following command:</p>\n<pre><code class=\"lang-console\">$ node hello-world.js\n</code></pre>\n<p>An output like this should appear in the terminal to indicate Node.js\nserver is running:</p>\n<pre><code class=\"lang-console\"> Server running at http://127.0.0.1:3000/\n `\n</code></pre>\n<p>Now, open any preferred web browser and visit <code>http://127.0.0.1:3000</code>.</p>\n<p>If the browser displays the string <code>Hello, world!</code>, that indicates\nthe server is working.</p>\n<p>Many of the examples in the documentation can be run similarly.</p>\n<!-- [end-include:synopsis.md] -->\n<!-- [start-include:assert.md] -->\n"
     },
     {
       "textRaw": "Command Line Options",
@@ -576,6 +576,19 @@
               "desc": "<p>Indicate the end of node options. Pass the rest of the arguments to the script.\nIf no script filename or eval/print script is supplied prior to this, then\nthe next argument will be used as a script filename.</p>\n",
               "type": "module",
               "displayName": "`--`"
+            },
+            {
+              "textRaw": "`--max-http-header-size=size`",
+              "name": "`--max-http-header-size=size`",
+              "meta": {
+                "added": [
+                  "v8.15.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Specify the maximum size, in bytes, of HTTP headers. Defaults to 8KB.</p>\n",
+              "type": "module",
+              "displayName": "`--max-http-header-size=size`"
             }
           ],
           "type": "misc",
@@ -672,7 +685,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>A space-separated list of command line options. <code>options...</code> are interpreted as\nif they had been specified on the command line before the actual command line\n(so they can be overridden). Node will exit with an error if an option that is\nnot allowed in the environment is used, such as <code>-p</code> or a script file.</p>\n<p>Node options that are allowed are:</p>\n<ul>\n<li><code>--enable-fips</code></li>\n<li><code>--force-fips</code></li>\n<li><code>--icu-data-dir</code></li>\n<li><code>--inspect-brk</code></li>\n<li><code>--inspect-port</code></li>\n<li><code>--inspect</code></li>\n<li><code>--no-deprecation</code></li>\n<li><code>--no-warnings</code></li>\n<li><code>--openssl-config</code></li>\n<li><code>--redirect-warnings</code></li>\n<li><code>--require</code>, <code>-r</code></li>\n<li><code>--throw-deprecation</code></li>\n<li><code>--tls-cipher-list</code></li>\n<li><code>--trace-deprecation</code></li>\n<li><code>--trace-events-categories</code></li>\n<li><code>--trace-events-enabled</code></li>\n<li><code>--trace-event-file-pattern</code></li>\n<li><code>--trace-sync-io</code></li>\n<li><code>--trace-warnings</code></li>\n<li><code>--track-heap-objects</code></li>\n<li><code>--use-bundled-ca</code></li>\n<li><code>--use-openssl-ca</code></li>\n<li><code>--v8-pool-size</code></li>\n<li><code>--zero-fill-buffers</code></li>\n</ul>\n<p>V8 options that are allowed are:</p>\n<ul>\n<li><code>--abort-on-uncaught-exception</code></li>\n<li><code>--max-old-space-size</code></li>\n<li><code>--perf-basic-prof</code></li>\n<li><code>--perf-prof</code></li>\n<li><code>--stack-trace-limit</code></li>\n</ul>\n",
+              "desc": "<p>A space-separated list of command line options. <code>options...</code> are interpreted as\nif they had been specified on the command line before the actual command line\n(so they can be overridden). Node will exit with an error if an option that is\nnot allowed in the environment is used, such as <code>-p</code> or a script file.</p>\n<p>Node.js options that are allowed are:</p>\n<ul>\n<li><code>--enable-fips</code></li>\n<li><code>--force-fips</code></li>\n<li><code>--icu-data-dir</code></li>\n<li><code>--inspect-brk</code></li>\n<li><code>--inspect-port</code></li>\n<li><code>--inspect</code></li>\n<li><code>--max-http-header-size</code></li>\n<li><code>--no-deprecation</code></li>\n<li><code>--no-warnings</code></li>\n<li><code>--openssl-config</code></li>\n<li><code>--redirect-warnings</code></li>\n<li><code>--require</code>, <code>-r</code></li>\n<li><code>--throw-deprecation</code></li>\n<li><code>--tls-cipher-list</code></li>\n<li><code>--trace-deprecation</code></li>\n<li><code>--trace-events-categories</code></li>\n<li><code>--trace-events-enabled</code></li>\n<li><code>--trace-event-file-pattern</code></li>\n<li><code>--trace-sync-io</code></li>\n<li><code>--trace-warnings</code></li>\n<li><code>--track-heap-objects</code></li>\n<li><code>--use-bundled-ca</code></li>\n<li><code>--use-openssl-ca</code></li>\n<li><code>--v8-pool-size</code></li>\n<li><code>--zero-fill-buffers</code></li>\n</ul>\n<p>V8 options that are allowed are:</p>\n<ul>\n<li><code>--abort-on-uncaught-exception</code></li>\n<li><code>--max-old-space-size</code></li>\n<li><code>--perf-basic-prof</code></li>\n<li><code>--perf-prof</code></li>\n<li><code>--stack-trace-limit</code></li>\n</ul>\n",
               "type": "module",
               "displayName": "`NODE_OPTIONS=options...`"
             },
@@ -2091,7 +2104,7 @@
                       {
                         "version": "v6.6.0",
                         "pr-url": "https://github.com/nodejs/node/pull/8223",
-                        "description": "Unhandled Promise rejections have been will now emit a process warning."
+                        "description": "Unhandled Promise rejections will now emit a process warning."
                       }
                     ]
                   },
@@ -2124,7 +2137,7 @@
                   "textRaw": "Signal Events",
                   "name": "SIGINT, SIGHUP, etc.",
                   "type": "event",
-                  "desc": "<p>Signal events will be emitted when the Node.js process receives a signal. Please\nrefer to signal(7) for a listing of standard POSIX signal names such as\n<code>SIGINT</code>, <code>SIGHUP</code>, etc.</p>\n<p>The signal handler will receive the signal&#39;s name (<code>&#39;SIGINT&#39;</code>,\n <code>&#39;SIGTERM&#39;</code>, etc.) as the first argument.</p>\n<p>The name of each event will be the uppercase common name for the signal (e.g.\n<code>&#39;SIGINT&#39;</code> for <code>SIGINT</code> signals).</p>\n<p>For example:</p>\n<pre><code class=\"lang-js\">// Begin reading from stdin so the process does not exit.\nprocess.stdin.resume();\n\nprocess.on(&#39;SIGINT&#39;, () =&gt; {\n  console.log(&#39;Received SIGINT. Press Control-D to exit.&#39;);\n});\n\n// Using a single function to handle multiple signals\nfunction handle(signal) {\n  console.log(`Received ${signal}`);\n}\n\nprocess.on(&#39;SIGINT&#39;, handle);\nprocess.on(&#39;SIGTERM&#39;, handle);\n</code></pre>\n<ul>\n<li><code>SIGUSR1</code> is reserved by Node.js to start the <a href=\"debugger.html\">debugger</a>. It&#39;s possible to\ninstall a listener but doing so will <em>not</em> stop the debugger from starting.</li>\n<li><code>SIGTERM</code> and <code>SIGINT</code> have default handlers on non-Windows platforms that\nreset the terminal mode before exiting with code <code>128 + signal number</code>. If one\nof these signals has a listener installed, its default behavior will be\nremoved (Node.js will no longer exit).</li>\n<li><code>SIGPIPE</code> is ignored by default. It can have a listener installed.</li>\n<li><code>SIGHUP</code> is generated on Windows when the console window is closed, and on\nother platforms under various similar conditions, see signal(7). It can have a\nlistener installed, however Node.js will be unconditionally terminated by\nWindows about 10 seconds later. On non-Windows platforms, the default\nbehavior of <code>SIGHUP</code> is to terminate Node.js, but once a listener has been\ninstalled its default behavior will be removed.</li>\n<li><code>SIGTERM</code> is not supported on Windows, it can be listened on.</li>\n<li><code>SIGINT</code> from the terminal is supported on all platforms, and can usually be\ngenerated with <code>&lt;Ctrl&gt;+C</code> (though this may be configurable). It is not generated\nwhen terminal raw mode is enabled.</li>\n<li><code>SIGBREAK</code> is delivered on Windows when <code>&lt;Ctrl&gt;+&lt;Break&gt;</code> is pressed, on\nnon-Windows platforms it can be listened on, but there is no way to send or\ngenerate it.</li>\n<li><code>SIGWINCH</code> is delivered when the console has been resized. On Windows, this\nwill only happen on write to the console when the cursor is being moved, or\nwhen a readable tty is used in raw mode.</li>\n<li><code>SIGKILL</code> cannot have a listener installed, it will unconditionally terminate\nNode.js on all platforms.</li>\n<li><code>SIGSTOP</code> cannot have a listener installed.</li>\n<li><code>SIGBUS</code>, <code>SIGFPE</code>, <code>SIGSEGV</code> and <code>SIGILL</code>, when not raised artificially\n using kill(2), inherently leave the process in a state from which it is not\n safe to attempt to call JS listeners. Doing so might lead to the process\n hanging in an endless loop, since listeners attached using <code>process.on()</code> are\n called asynchronously and therefore unable to correct the underlying problem.</li>\n</ul>\n<p><em>Note</em>: Windows does not support sending signals, but Node.js offers some\nemulation with <a href=\"#process_process_kill_pid_signal\"><code>process.kill()</code></a>, and <a href=\"child_process.html#child_process_subprocess_kill_signal\"><code>subprocess.kill()</code></a>. Sending\nsignal <code>0</code> can be used to test for the existence of a process. Sending <code>SIGINT</code>,\n<code>SIGTERM</code>, and <code>SIGKILL</code> cause the unconditional termination of the target\nprocess.</p>\n",
+                  "desc": "<p>Signal events will be emitted when the Node.js process receives a signal. Please\nrefer to signal(7) for a listing of standard POSIX signal names such as\n<code>SIGINT</code>, <code>SIGHUP</code>, etc.</p>\n<p>The signal handler will receive the signal&#39;s name (<code>&#39;SIGINT&#39;</code>,\n <code>&#39;SIGTERM&#39;</code>, etc.) as the first argument.</p>\n<p>The name of each event will be the uppercase common name for the signal (e.g.\n<code>&#39;SIGINT&#39;</code> for <code>SIGINT</code> signals).</p>\n<p>For example:</p>\n<pre><code class=\"lang-js\">// Begin reading from stdin so the process does not exit.\nprocess.stdin.resume();\n\nprocess.on(&#39;SIGINT&#39;, () =&gt; {\n  console.log(&#39;Received SIGINT. Press Control-D to exit.&#39;);\n});\n\n// Using a single function to handle multiple signals\nfunction handle(signal) {\n  console.log(`Received ${signal}`);\n}\n\nprocess.on(&#39;SIGINT&#39;, handle);\nprocess.on(&#39;SIGTERM&#39;, handle);\n</code></pre>\n<ul>\n<li><code>SIGUSR1</code> is reserved by Node.js to start the <a href=\"debugger.html\">debugger</a>. It&#39;s possible to\ninstall a listener but doing so might interfere with the debugger.</li>\n<li><code>SIGTERM</code> and <code>SIGINT</code> have default handlers on non-Windows platforms that\nreset the terminal mode before exiting with code <code>128 + signal number</code>. If one\nof these signals has a listener installed, its default behavior will be\nremoved (Node.js will no longer exit).</li>\n<li><code>SIGPIPE</code> is ignored by default. It can have a listener installed.</li>\n<li><code>SIGHUP</code> is generated on Windows when the console window is closed, and on\nother platforms under various similar conditions, see signal(7). It can have a\nlistener installed, however Node.js will be unconditionally terminated by\nWindows about 10 seconds later. On non-Windows platforms, the default\nbehavior of <code>SIGHUP</code> is to terminate Node.js, but once a listener has been\ninstalled its default behavior will be removed.</li>\n<li><code>SIGTERM</code> is not supported on Windows, it can be listened on.</li>\n<li><code>SIGINT</code> from the terminal is supported on all platforms, and can usually be\ngenerated with <code>&lt;Ctrl&gt;+C</code> (though this may be configurable). It is not generated\nwhen terminal raw mode is enabled.</li>\n<li><code>SIGBREAK</code> is delivered on Windows when <code>&lt;Ctrl&gt;+&lt;Break&gt;</code> is pressed, on\nnon-Windows platforms it can be listened on, but there is no way to send or\ngenerate it.</li>\n<li><code>SIGWINCH</code> is delivered when the console has been resized. On Windows, this\nwill only happen on write to the console when the cursor is being moved, or\nwhen a readable tty is used in raw mode.</li>\n<li><code>SIGKILL</code> cannot have a listener installed, it will unconditionally terminate\nNode.js on all platforms.</li>\n<li><code>SIGSTOP</code> cannot have a listener installed.</li>\n<li><code>SIGBUS</code>, <code>SIGFPE</code>, <code>SIGSEGV</code> and <code>SIGILL</code>, when not raised artificially\n using kill(2), inherently leave the process in a state from which it is not\n safe to attempt to call JS listeners. Doing so might lead to the process\n hanging in an endless loop, since listeners attached using <code>process.on()</code> are\n called asynchronously and therefore unable to correct the underlying problem.</li>\n</ul>\n<p><em>Note</em>: Windows does not support sending signals, but Node.js offers some\nemulation with <a href=\"#process_process_kill_pid_signal\"><code>process.kill()</code></a>, and <a href=\"child_process.html#child_process_subprocess_kill_signal\"><code>subprocess.kill()</code></a>. Sending\nsignal <code>0</code> can be used to test for the existence of a process. Sending <code>SIGINT</code>,\n<code>SIGTERM</code>, and <code>SIGKILL</code> cause the unconditional termination of the target\nprocess.</p>\n",
                   "params": []
                 }
               ],
@@ -3100,7 +3113,8 @@
               "desc": "<p>The <code>process.argv0</code> property stores a read-only copy of the original value of\n<code>argv[0]</code> passed when Node.js starts.</p>\n<pre><code class=\"lang-console\">$ bash -c &#39;exec -a customArgv0 ./node&#39;\n&gt; process.argv[0]\n&#39;/Volumes/code/external/node/out/Release/node&#39;\n&gt; process.argv0\n&#39;customArgv0&#39;\n</code></pre>\n"
             },
             {
-              "textRaw": "process.channel",
+              "textRaw": "`channel` {Object} ",
+              "type": "Object",
               "name": "channel",
               "meta": {
                 "added": [
@@ -3159,8 +3173,8 @@
               "desc": "<p>The <code>process.env</code> property returns an object containing the user environment.\nSee environ(7).</p>\n<p>An example of this object looks like:</p>\n<!-- eslint-skip -->\n<pre><code class=\"lang-js\">{\n  TERM: &#39;xterm-256color&#39;,\n  SHELL: &#39;/usr/local/bin/bash&#39;,\n  USER: &#39;maciej&#39;,\n  PATH: &#39;~/.bin/:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin&#39;,\n  PWD: &#39;/Users/maciej&#39;,\n  EDITOR: &#39;vim&#39;,\n  SHLVL: &#39;1&#39;,\n  HOME: &#39;/Users/maciej&#39;,\n  LOGNAME: &#39;maciej&#39;,\n  _: &#39;/usr/local/bin/node&#39;\n}\n</code></pre>\n<p>It is possible to modify this object, but such modifications will not be\nreflected outside the Node.js process. In other words, the following example\nwould not work:</p>\n<pre><code class=\"lang-console\">$ node -e &#39;process.env.foo = &quot;bar&quot;&#39; &amp;&amp; echo $foo\n</code></pre>\n<p>While the following will:</p>\n<pre><code class=\"lang-js\">process.env.foo = &#39;bar&#39;;\nconsole.log(process.env.foo);\n</code></pre>\n<p>Assigning a property on <code>process.env</code> will implicitly convert the value\nto a string.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">process.env.test = null;\nconsole.log(process.env.test);\n// =&gt; &#39;null&#39;\nprocess.env.test = undefined;\nconsole.log(process.env.test);\n// =&gt; &#39;undefined&#39;\n</code></pre>\n<p>Use <code>delete</code> to delete a property from <code>process.env</code>.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">process.env.TEST = 1;\ndelete process.env.TEST;\nconsole.log(process.env.TEST);\n// =&gt; undefined\n</code></pre>\n<p>On Windows operating systems, environment variables are case-insensitive.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">process.env.TEST = 1;\nconsole.log(process.env.test);\n// =&gt; 1\n</code></pre>\n"
             },
             {
-              "textRaw": "`execArgv` {Object} ",
-              "type": "Object",
+              "textRaw": "`execArgv` {Array} ",
+              "type": "Array",
               "name": "execArgv",
               "meta": {
                 "added": [
@@ -3195,7 +3209,8 @@
               "desc": "<p>A number which will be the process exit code, when the process either\nexits gracefully, or is exited via <a href=\"#process_process_exit_code\"><code>process.exit()</code></a> without specifying\na code.</p>\n<p>Specifying a code to <a href=\"#process_process_exit_code\"><code>process.exit(code)</code></a> will override any\nprevious setting of <code>process.exitCode</code>.</p>\n"
             },
             {
-              "textRaw": "process.mainModule",
+              "textRaw": "`mainModule` {Object} ",
+              "type": "Object",
               "name": "mainModule",
               "meta": {
                 "added": [
@@ -3254,7 +3269,8 @@
               "desc": "<p>The <code>process.ppid</code> property returns the PID of the current parent process.</p>\n<pre><code class=\"lang-js\">console.log(`The parent process is pid ${process.ppid}`);\n</code></pre>\n"
             },
             {
-              "textRaw": "process.release",
+              "textRaw": "`release` {Object} ",
+              "type": "Object",
               "name": "release",
               "meta": {
                 "added": [
@@ -3444,7 +3460,7 @@
           "name": "legacy_mode",
           "stability": 0,
           "stabilityText": "Deprecated: Use strict mode instead.",
-          "desc": "<p>When accessing <code>assert</code> directly instead of using the <code>strict</code> property, the\n<a href=\"https://tc39.github.io/ecma262/#sec-abstract-equality-comparison\">Abstract Equality Comparison</a> will be used for any function without a\n&quot;strict&quot; in its name (e.g. <a href=\"#assert_assert_deepequal_actual_expected_message\"><code>assert.deepEqual()</code></a>).</p>\n<p>It can be accessed using:</p>\n<pre><code class=\"lang-js\">const assert = require(&#39;assert&#39;);\n</code></pre>\n<p>It is recommended to use the <a href=\"#assert_strict_mode\"><code>strict mode</code></a> instead as the\n<a href=\"https://tc39.github.io/ecma262/#sec-abstract-equality-comparison\">Abstract Equality Comparison</a> can often have surprising results. Especially\nin case of <a href=\"#assert_assert_deepequal_actual_expected_message\"><code>assert.deepEqual()</code></a> as the used comparison rules there are very\nlax.</p>\n<p>E.g.</p>\n<pre><code class=\"lang-js\">// WARNING: This does not throw an AssertionError!\nassert.deepEqual(/a/gi, new Date());\n</code></pre>\n",
+          "desc": "<p>When accessing <code>assert</code> directly instead of using the <code>strict</code> property, the\n<a href=\"https://tc39.github.io/ecma262/#sec-abstract-equality-comparison\">Abstract Equality Comparison</a> will be used for any function without &quot;strict&quot;\nin its name, such as <a href=\"#assert_assert_deepequal_actual_expected_message\"><code>assert.deepEqual()</code></a>.</p>\n<p>It can be accessed using:</p>\n<pre><code class=\"lang-js\">const assert = require(&#39;assert&#39;);\n</code></pre>\n<p>It is recommended to use the <a href=\"#assert_strict_mode\"><code>strict mode</code></a> instead as the\n<a href=\"https://tc39.github.io/ecma262/#sec-abstract-equality-comparison\">Abstract Equality Comparison</a> can often have surprising results. This is\nespecially true for <a href=\"#assert_assert_deepequal_actual_expected_message\"><code>assert.deepEqual()</code></a>, where the comparison rules are\nlax:</p>\n<pre><code class=\"lang-js\">// WARNING: This does not throw an AssertionError!\nassert.deepEqual(/a/gi, new Date());\n</code></pre>\n",
           "type": "module",
           "displayName": "Legacy mode"
         },
@@ -4460,7 +4476,7 @@
                         {
                           "textRaw": "`type`",
                           "name": "`type`",
-                          "desc": "<p>The <code>type</code> is a string identifying the type of resource that caused\n<code>init</code> to be called. Generally, it will correspond to the name of the\nresource&#39;s constructor.</p>\n<pre><code class=\"lang-text\">FSEVENTWRAP, FSREQWRAP, GETADDRINFOREQWRAP, GETNAMEINFOREQWRAP, HTTPPARSER,\nJSSTREAM, PIPECONNECTWRAP, PIPEWRAP, PROCESSWRAP, QUERYWRAP, SHUTDOWNWRAP,\nSIGNALWRAP, STATWATCHER, TCPCONNECTWRAP, TCPSERVER, TCPWRAP, TIMERWRAP, TTYWRAP,\nUDPSENDWRAP, UDPWRAP, WRITEWRAP, ZLIB, SSLCONNECTION, PBKDF2REQUEST,\nRANDOMBYTESREQUEST, TLSWRAP, Timeout, Immediate, TickObject\n</code></pre>\n<p>There is also the <code>PROMISE</code> resource type, which is used to track <code>Promise</code>\ninstances and asynchronous work scheduled by them.</p>\n<p>Users are able to define their own <code>type</code> when using the public embedder API.</p>\n<p><em>Note:</em> It is possible to have type name collisions. Embedders are encouraged\nto use unique prefixes, such as the npm package name, to prevent collisions\nwhen listening to the hooks.</p>\n",
+                          "desc": "<p>The <code>type</code> is a string identifying the type of resource that caused\n<code>init</code> to be called. Generally, it will correspond to the name of the\nresource&#39;s constructor.</p>\n<pre><code class=\"lang-text\">FSEVENTWRAP, FSREQWRAP, GETADDRINFOREQWRAP, GETNAMEINFOREQWRAP, HTTPPARSER,\nJSSTREAM, PIPECONNECTWRAP, PIPEWRAP, PROCESSWRAP, QUERYWRAP, SHUTDOWNWRAP,\nSIGNALWRAP, STATWATCHER, TCPCONNECTWRAP, TCPSERVERWRAP, TCPWRAP, TIMERWRAP,\nTTYWRAP, UDPSENDWRAP, UDPWRAP, WRITEWRAP, ZLIB, SSLCONNECTION, PBKDF2REQUEST,\nRANDOMBYTESREQUEST, TLSWRAP, Timeout, Immediate, TickObject\n</code></pre>\n<p>There is also the <code>PROMISE</code> resource type, which is used to track <code>Promise</code>\ninstances and asynchronous work scheduled by them.</p>\n<p>Users are able to define their own <code>type</code> when using the public embedder API.</p>\n<p><em>Note:</em> It is possible to have type name collisions. Embedders are encouraged\nto use unique prefixes, such as the npm package name, to prevent collisions\nwhen listening to the hooks.</p>\n",
                           "type": "module",
                           "displayName": "`type`"
                         },
@@ -4661,7 +4677,7 @@
       "introduced_in": "v0.10.0",
       "stability": 2,
       "stabilityText": "Stable",
-      "desc": "<p>Prior to the introduction of <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray\"><code>TypedArray</code></a>, the JavaScript language had no\nmechanism for reading or manipulating streams of binary data. The <code>Buffer</code> class\nwas introduced as part of the Node.js API to enable interaction with octet\nstreams in TCP streams, file system operations, and other contexts.</p>\n<p>With <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray\"><code>TypedArray</code></a> now available, the <code>Buffer</code> class implements the\n<a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array\"><code>Uint8Array</code></a> API in a manner that is more optimized and suitable for Node.js.</p>\n<p>Instances of the <code>Buffer</code> class are similar to arrays of integers but\ncorrespond to fixed-sized, raw memory allocations outside the V8 heap.\nThe size of the <code>Buffer</code> is established when it is created and cannot be\nresized.</p>\n<p>The <code>Buffer</code> class is a global within Node.js, making it unlikely that one\nwould need to ever use <code>require(&#39;buffer&#39;).Buffer</code>.</p>\n<p>Examples:</p>\n<pre><code class=\"lang-js\">// Creates a zero-filled Buffer of length 10.\nconst buf1 = Buffer.alloc(10);\n\n// Creates a Buffer of length 10, filled with 0x1.\nconst buf2 = Buffer.alloc(10, 1);\n\n// Creates an uninitialized buffer of length 10.\n// This is faster than calling Buffer.alloc() but the returned\n// Buffer instance might contain old data that needs to be\n// overwritten using either fill() or write().\nconst buf3 = Buffer.allocUnsafe(10);\n\n// Creates a Buffer containing [0x1, 0x2, 0x3].\nconst buf4 = Buffer.from([1, 2, 3]);\n\n// Creates a Buffer containing UTF-8 bytes [0x74, 0xc3, 0xa9, 0x73, 0x74].\nconst buf5 = Buffer.from(&#39;tést&#39;);\n\n// Creates a Buffer containing Latin-1 bytes [0x74, 0xe9, 0x73, 0x74].\nconst buf6 = Buffer.from(&#39;tést&#39;, &#39;latin1&#39;);\n</code></pre>\n",
+      "desc": "<p>Prior to the introduction of <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray\"><code>TypedArray</code></a>, the JavaScript language had no\nmechanism for reading or manipulating streams of binary data. The <code>Buffer</code> class\nwas introduced as part of the Node.js API to enable interaction with octet\nstreams in TCP streams, file system operations, and other contexts.</p>\n<p>With <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray\"><code>TypedArray</code></a> now available, the <code>Buffer</code> class implements the\n<a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array\"><code>Uint8Array</code></a> API in a manner that is more optimized and suitable for Node.js.</p>\n<p>Instances of the <code>Buffer</code> class are similar to arrays of integers but\ncorrespond to fixed-sized, raw memory allocations outside the V8 heap.\nThe size of the <code>Buffer</code> is established when it is created and cannot be\nchanged.</p>\n<p>The <code>Buffer</code> class is within the global scope, making it unlikely that one\nwould need to ever use <code>require(&#39;buffer&#39;).Buffer</code>.</p>\n<p>Examples:</p>\n<pre><code class=\"lang-js\">// Creates a zero-filled Buffer of length 10.\nconst buf1 = Buffer.alloc(10);\n\n// Creates a Buffer of length 10, filled with 0x1.\nconst buf2 = Buffer.alloc(10, 1);\n\n// Creates an uninitialized buffer of length 10.\n// This is faster than calling Buffer.alloc() but the returned\n// Buffer instance might contain old data that needs to be\n// overwritten using either fill() or write().\nconst buf3 = Buffer.allocUnsafe(10);\n\n// Creates a Buffer containing [0x1, 0x2, 0x3].\nconst buf4 = Buffer.from([1, 2, 3]);\n\n// Creates a Buffer containing UTF-8 bytes [0x74, 0xc3, 0xa9, 0x73, 0x74].\nconst buf5 = Buffer.from(&#39;tést&#39;);\n\n// Creates a Buffer containing Latin-1 bytes [0x74, 0xe9, 0x73, 0x74].\nconst buf6 = Buffer.from(&#39;tést&#39;, &#39;latin1&#39;);\n</code></pre>\n",
       "modules": [
         {
           "textRaw": "`Buffer.from()`, `Buffer.alloc()`, and `Buffer.allocUnsafe()`",
@@ -5233,7 +5249,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Creates a new <code>Buffer</code> containing the given JavaScript string <code>string</code>. If\nprovided, the <code>encoding</code> parameter identifies the character encoding of <code>string</code>.</p>\n<p>Examples:</p>\n<pre><code class=\"lang-js\">const buf1 = Buffer.from(&#39;this is a tést&#39;);\n\n// Prints: this is a tést\nconsole.log(buf1.toString());\n\n// Prints: this is a tC)st\nconsole.log(buf1.toString(&#39;ascii&#39;));\n\nconst buf2 = Buffer.from(&#39;7468697320697320612074c3a97374&#39;, &#39;hex&#39;);\n\n// Prints: this is a tést\nconsole.log(buf2.toString());\n</code></pre>\n<p>A <code>TypeError</code> will be thrown if <code>string</code> is not a string.</p>\n"
+              "desc": "<p>Creates a new <code>Buffer</code> containing <code>string</code>. The <code>encoding</code> parameter identifies\nthe character encoding of <code>string</code>.</p>\n<p>Examples:</p>\n<pre><code class=\"lang-js\">const buf1 = Buffer.from(&#39;this is a tést&#39;);\n\n// Prints: this is a tést\nconsole.log(buf1.toString());\n\n// Prints: this is a tC)st\nconsole.log(buf1.toString(&#39;ascii&#39;));\n\nconst buf2 = Buffer.from(&#39;7468697320697320612074c3a97374&#39;, &#39;hex&#39;);\n\n// Prints: this is a tést\nconsole.log(buf2.toString());\n</code></pre>\n<p>A <code>TypeError</code> will be thrown if <code>string</code> is not a string.</p>\n"
             },
             {
               "textRaw": "Class Method: Buffer.from(object[, offsetOrEncoding[, length]])",
@@ -8594,7 +8610,7 @@
                   "optional": true
                 }
               ],
-              "desc": "<p>Stability: 0 - Deprecated:\nUse <a href=\"#buffer_class_method_buffer_from_string_encoding\"><code>Buffer.from(string[, encoding])</code></a> instead.</p>\n<p>Creates a new <code>Buffer</code> containing the given JavaScript string <code>string</code>. If\nprovided, the <code>encoding</code> parameter identifies the character encoding of <code>string</code>.</p>\n<p>Examples:</p>\n<pre><code class=\"lang-js\">const buf1 = new Buffer(&#39;this is a tést&#39;);\n\n// Prints: this is a tést\nconsole.log(buf1.toString());\n\n// Prints: this is a tC)st\nconsole.log(buf1.toString(&#39;ascii&#39;));\n\nconst buf2 = new Buffer(&#39;7468697320697320612074c3a97374&#39;, &#39;hex&#39;);\n\n// Prints: this is a tést\nconsole.log(buf2.toString());\n</code></pre>\n"
+              "desc": "<p>Stability: 0 - Deprecated:\nUse <a href=\"#buffer_class_method_buffer_from_string_encoding\"><code>Buffer.from(string[, encoding])</code></a> instead.</p>\n<p>Creates a new <code>Buffer</code> containing <code>string</code>. The <code>encoding</code> parameter identifies\nthe character encoding of <code>string</code>.</p>\n<p>Examples:</p>\n<pre><code class=\"lang-js\">const buf1 = new Buffer(&#39;this is a tést&#39;);\n\n// Prints: this is a tést\nconsole.log(buf1.toString());\n\n// Prints: this is a tC)st\nconsole.log(buf1.toString(&#39;ascii&#39;));\n\nconst buf2 = new Buffer(&#39;7468697320697320612074c3a97374&#39;, &#39;hex&#39;);\n\n// Prints: this is a tést\nconsole.log(buf2.toString());\n</code></pre>\n"
             },
             {
               "params": [
@@ -8606,7 +8622,7 @@
                   "optional": true
                 }
               ],
-              "desc": "<p>Stability: 0 - Deprecated:\nUse <a href=\"#buffer_class_method_buffer_from_string_encoding\"><code>Buffer.from(string[, encoding])</code></a> instead.</p>\n<p>Creates a new <code>Buffer</code> containing the given JavaScript string <code>string</code>. If\nprovided, the <code>encoding</code> parameter identifies the character encoding of <code>string</code>.</p>\n<p>Examples:</p>\n<pre><code class=\"lang-js\">const buf1 = new Buffer(&#39;this is a tést&#39;);\n\n// Prints: this is a tést\nconsole.log(buf1.toString());\n\n// Prints: this is a tC)st\nconsole.log(buf1.toString(&#39;ascii&#39;));\n\nconst buf2 = new Buffer(&#39;7468697320697320612074c3a97374&#39;, &#39;hex&#39;);\n\n// Prints: this is a tést\nconsole.log(buf2.toString());\n</code></pre>\n"
+              "desc": "<p>Stability: 0 - Deprecated:\nUse <a href=\"#buffer_class_method_buffer_from_string_encoding\"><code>Buffer.from(string[, encoding])</code></a> instead.</p>\n<p>Creates a new <code>Buffer</code> containing <code>string</code>. The <code>encoding</code> parameter identifies\nthe character encoding of <code>string</code>.</p>\n<p>Examples:</p>\n<pre><code class=\"lang-js\">const buf1 = new Buffer(&#39;this is a tést&#39;);\n\n// Prints: this is a tést\nconsole.log(buf1.toString());\n\n// Prints: this is a tC)st\nconsole.log(buf1.toString(&#39;ascii&#39;));\n\nconst buf2 = new Buffer(&#39;7468697320697320612074c3a97374&#39;, &#39;hex&#39;);\n\n// Prints: this is a tést\nconsole.log(buf2.toString());\n</code></pre>\n"
             }
           ]
         },
@@ -8775,7 +8791,7 @@
           "name": "n-api",
           "stability": 1,
           "stabilityText": "Experimental",
-          "desc": "<p>N-API is an API for building native Addons. It is independent from\nthe underlying JavaScript runtime (e.g. V8) and is maintained as part of\nNode.js itself. This API will be Application Binary Interface (ABI) stable\nacross version of Node.js. It is intended to insulate Addons from\nchanges in the underlying JavaScript engine and allow modules\ncompiled for one version to run on later versions of Node.js without\nrecompilation. Addons are built/packaged with the same approach/tools\noutlined in this document (node-gyp, etc.). The only difference is the\nset of APIs that are used by the native code. Instead of using the V8\nor <a href=\"https://github.com/nodejs/nan\">Native Abstractions for Node.js</a> APIs, the functions available\nin the N-API are used.</p>\n<p>To use N-API in the above &quot;Hello world&quot; example, replace the content of\n<code>hello.cc</code> with the following. All other instructions remain the same.</p>\n<pre><code class=\"lang-cpp\">// hello.cc using N-API\n#include &lt;node_api.h&gt;\n\nnamespace demo {\n\nnapi_value Method(napi_env env, napi_callback_info args) {\n  napi_value greeting;\n  napi_status status;\n\n  status = napi_create_string_utf8(env, &quot;hello&quot;, 6, &amp;greeting);\n  if (status != napi_ok) return nullptr;\n  return greeting;\n}\n\nnapi_value init(napi_env env, napi_value exports) {\n  napi_status status;\n  napi_value fn;\n\n  status = napi_create_function(env, nullptr, 0, Method, nullptr, &amp;fn);\n  if (status != napi_ok) return nullptr;\n\n  status = napi_set_named_property(env, exports, &quot;hello&quot;, fn);\n  if (status != napi_ok) return nullptr;\n  return exports;\n}\n\nNAPI_MODULE(NODE_GYP_MODULE_NAME, init)\n\n}  // namespace demo\n</code></pre>\n<p>The functions available and how to use them are documented in the\nsection titled <a href=\"n-api.html\">C/C++ Addons - N-API</a>.</p>\n",
+          "desc": "<p>N-API is an API for building native Addons. It is independent from\nthe underlying JavaScript runtime (e.g. V8) and is maintained as part of\nNode.js itself. This API will be Application Binary Interface (ABI) stable\nacross version of Node.js. It is intended to insulate Addons from\nchanges in the underlying JavaScript engine and allow modules\ncompiled for one version to run on later versions of Node.js without\nrecompilation. Addons are built/packaged with the same approach/tools\noutlined in this document (node-gyp, etc.). The only difference is the\nset of APIs that are used by the native code. Instead of using the V8\nor <a href=\"https://github.com/nodejs/nan\">Native Abstractions for Node.js</a> APIs, the functions available\nin the N-API are used.</p>\n<p>To use N-API in the above &quot;Hello world&quot; example, replace the content of\n<code>hello.cc</code> with the following. All other instructions remain the same.</p>\n<pre><code class=\"lang-cpp\">// hello.cc using N-API\n#include &lt;node_api.h&gt;\n\nnamespace demo {\n\nnapi_value Method(napi_env env, napi_callback_info args) {\n  napi_value greeting;\n  napi_status status;\n\n  status = napi_create_string_utf8(env, &quot;hello&quot;, NAPI_AUTO_LENGTH, &amp;greeting);\n  if (status != napi_ok) return nullptr;\n  return greeting;\n}\n\nnapi_value init(napi_env env, napi_value exports) {\n  napi_status status;\n  napi_value fn;\n\n  status = napi_create_function(env, nullptr, 0, Method, nullptr, &amp;fn);\n  if (status != napi_ok) return nullptr;\n\n  status = napi_set_named_property(env, exports, &quot;hello&quot;, fn);\n  if (status != napi_ok) return nullptr;\n  return exports;\n}\n\nNAPI_MODULE(NODE_GYP_MODULE_NAME, init)\n\n}  // namespace demo\n</code></pre>\n<p>The functions available and how to use them are documented in the\nsection titled <a href=\"n-api.html\">C/C++ Addons - N-API</a>.</p>\n",
           "type": "module",
           "displayName": "N-API"
         },
@@ -10805,7 +10821,7 @@
       "introduced_in": "v0.10.0",
       "stability": 2,
       "stabilityText": "Stable",
-      "desc": "<p>The <code>child_process</code> module provides the ability to spawn child processes in\na manner that is similar, but not identical, to popen(3). This capability\nis primarily provided by the <a href=\"#child_process_child_process_spawn_command_args_options\"><code>child_process.spawn()</code></a> function:</p>\n<pre><code class=\"lang-js\">const { spawn } = require(&#39;child_process&#39;);\nconst ls = spawn(&#39;ls&#39;, [&#39;-lh&#39;, &#39;/usr&#39;]);\n\nls.stdout.on(&#39;data&#39;, (data) =&gt; {\n  console.log(`stdout: ${data}`);\n});\n\nls.stderr.on(&#39;data&#39;, (data) =&gt; {\n  console.log(`stderr: ${data}`);\n});\n\nls.on(&#39;close&#39;, (code) =&gt; {\n  console.log(`child process exited with code ${code}`);\n});\n</code></pre>\n<p>By default, pipes for <code>stdin</code>, <code>stdout</code>, and <code>stderr</code> are established between\nthe parent Node.js process and the spawned child. It is possible to stream data\nthrough these pipes in a non-blocking way. <em>Note, however, that some programs\nuse line-buffered I/O internally. While that does not affect Node.js, it can\nmean that data sent to the child process may not be immediately consumed.</em></p>\n<p>The <a href=\"#child_process_child_process_spawn_command_args_options\"><code>child_process.spawn()</code></a> method spawns the child process asynchronously,\nwithout blocking the Node.js event loop. The <a href=\"#child_process_child_process_spawnsync_command_args_options\"><code>child_process.spawnSync()</code></a>\nfunction provides equivalent functionality in a synchronous manner that blocks\nthe event loop until the spawned process either exits or is terminated.</p>\n<p>For convenience, the <code>child_process</code> module provides a handful of synchronous\nand asynchronous alternatives to <a href=\"#child_process_child_process_spawn_command_args_options\"><code>child_process.spawn()</code></a> and\n<a href=\"#child_process_child_process_spawnsync_command_args_options\"><code>child_process.spawnSync()</code></a>. <em>Note that each of these alternatives are\nimplemented on top of <a href=\"#child_process_child_process_spawn_command_args_options\"><code>child_process.spawn()</code></a> or <a href=\"#child_process_child_process_spawnsync_command_args_options\"><code>child_process.spawnSync()</code></a>.</em></p>\n<ul>\n<li><a href=\"#child_process_child_process_exec_command_options_callback\"><code>child_process.exec()</code></a>: spawns a shell and runs a command within that shell,\npassing the <code>stdout</code> and <code>stderr</code> to a callback function when complete.</li>\n<li><a href=\"#child_process_child_process_execfile_file_args_options_callback\"><code>child_process.execFile()</code></a>: similar to <a href=\"#child_process_child_process_exec_command_options_callback\"><code>child_process.exec()</code></a> except that\nit spawns the command directly without first spawning a shell by default.</li>\n<li><a href=\"child_process.html#child_process_child_process_fork_modulepath_args_options\"><code>child_process.fork()</code></a>: spawns a new Node.js process and invokes a\nspecified module with an IPC communication channel established that allows\nsending messages between parent and child.</li>\n<li><a href=\"#child_process_child_process_execsync_command_options\"><code>child_process.execSync()</code></a>: a synchronous version of\n<a href=\"#child_process_child_process_exec_command_options_callback\"><code>child_process.exec()</code></a> that <em>will</em> block the Node.js event loop.</li>\n<li><a href=\"#child_process_child_process_execfilesync_file_args_options\"><code>child_process.execFileSync()</code></a>: a synchronous version of\n<a href=\"#child_process_child_process_execfile_file_args_options_callback\"><code>child_process.execFile()</code></a> that <em>will</em> block the Node.js event loop.</li>\n</ul>\n<p>For certain use cases, such as automating shell scripts, the\n<a href=\"#child_process_synchronous_process_creation\">synchronous counterparts</a> may be more convenient. In many cases, however,\nthe synchronous methods can have significant impact on performance due to\nstalling the event loop while spawned processes complete.</p>\n",
+      "desc": "<p>The <code>child_process</code> module provides the ability to spawn child processes in\na manner that is similar, but not identical, to popen(3). This capability\nis primarily provided by the <a href=\"#child_process_child_process_spawn_command_args_options\"><code>child_process.spawn()</code></a> function:</p>\n<pre><code class=\"lang-js\">const { spawn } = require(&#39;child_process&#39;);\nconst ls = spawn(&#39;ls&#39;, [&#39;-lh&#39;, &#39;/usr&#39;]);\n\nls.stdout.on(&#39;data&#39;, (data) =&gt; {\n  console.log(`stdout: ${data}`);\n});\n\nls.stderr.on(&#39;data&#39;, (data) =&gt; {\n  console.log(`stderr: ${data}`);\n});\n\nls.on(&#39;close&#39;, (code) =&gt; {\n  console.log(`child process exited with code ${code}`);\n});\n</code></pre>\n<p>By default, pipes for <code>stdin</code>, <code>stdout</code>, and <code>stderr</code> are established between\nthe parent Node.js process and the spawned child. These pipes have\nlimited (and platform-specific) capacity. If the child process writes to\nstdout in excess of that limit without the output being captured, the child\nprocess will block waiting for the pipe buffer to accept more data. This is\nidentical to the behavior of pipes in the shell. Use the <code>{ stdio: &#39;ignore&#39; }</code>\noption if the output will not be consumed.</p>\n<p>The <a href=\"#child_process_child_process_spawn_command_args_options\"><code>child_process.spawn()</code></a> method spawns the child process asynchronously,\nwithout blocking the Node.js event loop. The <a href=\"#child_process_child_process_spawnsync_command_args_options\"><code>child_process.spawnSync()</code></a>\nfunction provides equivalent functionality in a synchronous manner that blocks\nthe event loop until the spawned process either exits or is terminated.</p>\n<p>For convenience, the <code>child_process</code> module provides a handful of synchronous\nand asynchronous alternatives to <a href=\"#child_process_child_process_spawn_command_args_options\"><code>child_process.spawn()</code></a> and\n<a href=\"#child_process_child_process_spawnsync_command_args_options\"><code>child_process.spawnSync()</code></a>. <em>Note that each of these alternatives are\nimplemented on top of <a href=\"#child_process_child_process_spawn_command_args_options\"><code>child_process.spawn()</code></a> or <a href=\"#child_process_child_process_spawnsync_command_args_options\"><code>child_process.spawnSync()</code></a>.</em></p>\n<ul>\n<li><a href=\"#child_process_child_process_exec_command_options_callback\"><code>child_process.exec()</code></a>: spawns a shell and runs a command within that shell,\npassing the <code>stdout</code> and <code>stderr</code> to a callback function when complete.</li>\n<li><a href=\"#child_process_child_process_execfile_file_args_options_callback\"><code>child_process.execFile()</code></a>: similar to <a href=\"#child_process_child_process_exec_command_options_callback\"><code>child_process.exec()</code></a> except that\nit spawns the command directly without first spawning a shell by default.</li>\n<li><a href=\"child_process.html#child_process_child_process_fork_modulepath_args_options\"><code>child_process.fork()</code></a>: spawns a new Node.js process and invokes a\nspecified module with an IPC communication channel established that allows\nsending messages between parent and child.</li>\n<li><a href=\"#child_process_child_process_execsync_command_options\"><code>child_process.execSync()</code></a>: a synchronous version of\n<a href=\"#child_process_child_process_exec_command_options_callback\"><code>child_process.exec()</code></a> that <em>will</em> block the Node.js event loop.</li>\n<li><a href=\"#child_process_child_process_execfilesync_file_args_options\"><code>child_process.execFileSync()</code></a>: a synchronous version of\n<a href=\"#child_process_child_process_execfile_file_args_options_callback\"><code>child_process.execFile()</code></a> that <em>will</em> block the Node.js event loop.</li>\n</ul>\n<p>For certain use cases, such as automating shell scripts, the\n<a href=\"#child_process_synchronous_process_creation\">synchronous counterparts</a> may be more convenient. In many cases, however,\nthe synchronous methods can have significant impact on performance due to\nstalling the event loop while spawned processes complete.</p>\n",
       "modules": [
         {
           "textRaw": "Asynchronous Process Creation",
@@ -12376,7 +12392,7 @@
                 "changes": []
               },
               "params": [],
-              "desc": "<p>Similar to the <code>cluster.on(&#39;message&#39;)</code> event, but specific to this worker.</p>\n<p>Within a worker, <code>process.on(&#39;message&#39;)</code> may also be used.</p>\n<p>See <a href=\"process.html#process_event_message\"><code>process</code> event: <code>&#39;message&#39;</code></a>.</p>\n<p>As an example, here is a cluster that keeps count of the number of requests\nin the master process using the message system:</p>\n<pre><code class=\"lang-js\">const cluster = require(&#39;cluster&#39;);\nconst http = require(&#39;http&#39;);\n\nif (cluster.isMaster) {\n\n  // Keep track of http requests\n  let numReqs = 0;\n  setInterval(() =&gt; {\n    console.log(`numReqs = ${numReqs}`);\n  }, 1000);\n\n  // Count requests\n  function messageHandler(msg) {\n    if (msg.cmd &amp;&amp; msg.cmd === &#39;notifyRequest&#39;) {\n      numReqs += 1;\n    }\n  }\n\n  // Start workers and listen for messages containing notifyRequest\n  const numCPUs = require(&#39;os&#39;).cpus().length;\n  for (let i = 0; i &lt; numCPUs; i++) {\n    cluster.fork();\n  }\n\n  for (const id in cluster.workers) {\n    cluster.workers[id].on(&#39;message&#39;, messageHandler);\n  }\n\n} else {\n\n  // Worker processes have a http server.\n  http.Server((req, res) =&gt; {\n    res.writeHead(200);\n    res.end(&#39;hello world\\n&#39;);\n\n    // notify master about the request\n    process.send({ cmd: &#39;notifyRequest&#39; });\n  }).listen(8000);\n}\n</code></pre>\n"
+              "desc": "<p>Similar to the <code>cluster.on(&#39;message&#39;)</code> event, but specific to this worker.</p>\n<p>Within a worker, <code>process.on(&#39;message&#39;)</code> may also be used.</p>\n<p>See <a href=\"process.html#process_event_message\"><code>process</code> event: <code>&#39;message&#39;</code></a>.</p>\n<p>Here is an example using the message system. It keeps a count in the master\nprocess of the number of HTTP requests received by the workers:</p>\n<pre><code class=\"lang-js\">const cluster = require(&#39;cluster&#39;);\nconst http = require(&#39;http&#39;);\n\nif (cluster.isMaster) {\n\n  // Keep track of http requests\n  let numReqs = 0;\n  setInterval(() =&gt; {\n    console.log(`numReqs = ${numReqs}`);\n  }, 1000);\n\n  // Count requests\n  function messageHandler(msg) {\n    if (msg.cmd &amp;&amp; msg.cmd === &#39;notifyRequest&#39;) {\n      numReqs += 1;\n    }\n  }\n\n  // Start workers and listen for messages containing notifyRequest\n  const numCPUs = require(&#39;os&#39;).cpus().length;\n  for (let i = 0; i &lt; numCPUs; i++) {\n    cluster.fork();\n  }\n\n  for (const id in cluster.workers) {\n    cluster.workers[id].on(&#39;message&#39;, messageHandler);\n  }\n\n} else {\n\n  // Worker processes have a http server.\n  http.Server((req, res) =&gt; {\n    res.writeHead(200);\n    res.end(&#39;hello world\\n&#39;);\n\n    // notify master about the request\n    process.send({ cmd: &#39;notifyRequest&#39; });\n  }).listen(8000);\n}\n</code></pre>\n"
             },
             {
               "textRaw": "Event: 'online'",
@@ -13161,7 +13177,13 @@
                 "added": [
                   "v8.0.0"
                 ],
-                "changes": []
+                "changes": [
+                  {
+                    "version": "v8.10.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/17033",
+                    "description": "`console.debug` is now an alias for `console.log`."
+                  }
+                ]
               },
               "signatures": [
                 {
@@ -13596,7 +13618,7 @@
                   ]
                 }
               ],
-              "desc": "<p>The <code>console.warn()</code> function is an alias for <a href=\"console.html#console_console_error_data_args\"><code>console.error()</code></a>.</p>\n<!-- [end-include:console.md] -->\n<!-- [start-include:crypto.md] -->\n"
+              "desc": "<p>The <code>console.warn()</code> function is an alias for <a href=\"console.html#console_console_error_data_args\"><code>console.error()</code></a>.</p>\n"
             }
           ],
           "signatures": [
@@ -13629,6 +13651,265 @@
               "desc": "<p>Creates a new <code>Console</code> with one or two writable stream instances. <code>stdout</code> is a\nwritable stream to print log or info output. <code>stderr</code> is used for warning or\nerror output. If <code>stderr</code> is not provided, <code>stdout</code> is used for <code>stderr</code>.</p>\n<pre><code class=\"lang-js\">const output = fs.createWriteStream(&#39;./stdout.log&#39;);\nconst errorOutput = fs.createWriteStream(&#39;./stderr.log&#39;);\n// custom simple logger\nconst logger = new Console(output, errorOutput);\n// use it like console\nconst count = 5;\nlogger.log(&#39;count: %d&#39;, count);\n// in stdout.log: count 5\n</code></pre>\n<p>The global <code>console</code> is a special <code>Console</code> whose output is sent to\n<a href=\"process.html#process_process_stdout\"><code>process.stdout</code></a> and <a href=\"process.html#process_process_stderr\"><code>process.stderr</code></a>. It is equivalent to calling:</p>\n<pre><code class=\"lang-js\">new Console(process.stdout, process.stderr);\n</code></pre>\n"
             }
           ]
+        }
+      ],
+      "modules": [
+        {
+          "textRaw": "Inspector only methods",
+          "name": "inspector_only_methods",
+          "desc": "<p>The following methods are exposed by the V8 engine in the general API but do\nnot display anything unless used in conjunction with the <a href=\"debugger.html\">inspector</a>\n(<code>--inspect</code> flag).</p>\n",
+          "methods": [
+            {
+              "textRaw": "console.dirxml(object)",
+              "type": "method",
+              "name": "dirxml",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`object` {string} ",
+                      "name": "object",
+                      "type": "string"
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "object"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>This method does not display anything unless used in the inspector. The\n<code>console.dirxml()</code> method displays in <code>stdout</code> an XML interactive tree\nrepresentation of the descendants of the specified <code>object</code> if possible, or the\nJavaScript representation if not. Calling <code>console.dirxml()</code> on an HTML or XML\nelement is equivalent to calling <code>console.log()</code>.</p>\n"
+            },
+            {
+              "textRaw": "console.markTimeline(label)",
+              "type": "method",
+              "name": "markTimeline",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`label` {string} Defaults to `'default'`. ",
+                      "name": "label",
+                      "type": "string",
+                      "desc": "Defaults to `'default'`."
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "label"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>This method does not display anything unless used in the inspector. The\n<code>console.markTimeline()</code> method is the deprecated form of <a href=\"#console_console_timestamp_label\"><code>console.timeStamp()</code></a>.</p>\n"
+            },
+            {
+              "textRaw": "console.profile([label])",
+              "type": "method",
+              "name": "profile",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`label` {string} ",
+                      "name": "label",
+                      "type": "string",
+                      "optional": true
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "label",
+                      "optional": true
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>This method does not display anything unless used in the inspector. The\n<code>console.profile()</code> method starts a JavaScript CPU profile with an optional\nlabel until <a href=\"#console_console_profileend\"><code>console.profileEnd()</code></a> is called. The profile is then added to\nthe <strong>Profile</strong> panel of the inspector.</p>\n<pre><code class=\"lang-js\">console.profile(&#39;MyLabel&#39;);\n// Some code\nconsole.profileEnd();\n// Adds the profile &#39;MyLabel&#39; to the Profiles panel of the inspector.\n</code></pre>\n"
+            },
+            {
+              "textRaw": "console.profileEnd()",
+              "type": "method",
+              "name": "profileEnd",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>This method does not display anything unless used in the inspector. Stops the\ncurrent JavaScript CPU profiling session if one has been started and prints\nthe report to the <strong>Profiles</strong> panel of the inspector. See\n<a href=\"#console_console_profile_label\"><code>console.profile()</code></a> for an example.</p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "console.table(array[, columns])",
+              "type": "method",
+              "name": "table",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`array` {Array|Object} ",
+                      "name": "array",
+                      "type": "Array|Object"
+                    },
+                    {
+                      "textRaw": "`columns` {Array} ",
+                      "name": "columns",
+                      "type": "Array",
+                      "optional": true
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "array"
+                    },
+                    {
+                      "name": "columns",
+                      "optional": true
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>This method does not display anything unless used in the inspector. Prints to\n<code>stdout</code> the array <code>array</code> formatted as a table.</p>\n"
+            },
+            {
+              "textRaw": "console.timeStamp([label])",
+              "type": "method",
+              "name": "timeStamp",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`label` {string} ",
+                      "name": "label",
+                      "type": "string",
+                      "optional": true
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "label",
+                      "optional": true
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>This method does not display anything unless used in the inspector. The\n<code>console.timeStamp()</code> method adds an event with the label <code>label</code> to the\n<strong>Timeline</strong> panel of the inspector.</p>\n"
+            },
+            {
+              "textRaw": "console.timeline([label])",
+              "type": "method",
+              "name": "timeline",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`label` {string} Defaults to `'default'`. ",
+                      "name": "label",
+                      "type": "string",
+                      "desc": "Defaults to `'default'`.",
+                      "optional": true
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "label",
+                      "optional": true
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>This method does not display anything unless used in the inspector. The\n<code>console.timeline()</code> method is the deprecated form of <a href=\"#console_console_time_label\"><code>console.time()</code></a>.</p>\n"
+            },
+            {
+              "textRaw": "console.timelineEnd([label])",
+              "type": "method",
+              "name": "timelineEnd",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`label` {string} Defaults to `'default'`. ",
+                      "name": "label",
+                      "type": "string",
+                      "desc": "Defaults to `'default'`.",
+                      "optional": true
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "label",
+                      "optional": true
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>This method does not display anything unless used in the inspector. The\n<code>console.timelineEnd()</code> method is the deprecated form of <a href=\"#console_console_timeend_label\"><code>console.timeEnd()</code></a>.</p>\n<!-- [end-include:console.md] -->\n<!-- [start-include:crypto.md] -->\n"
+            }
+          ],
+          "type": "module",
+          "displayName": "Inspector only methods"
         }
       ],
       "type": "module",
@@ -19504,7 +19785,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Removes the specified <code>listener</code> from the listener array for the event named\n<code>eventName</code>.</p>\n<pre><code class=\"lang-js\">const callback = (stream) =&gt; {\n  console.log(&#39;someone connected!&#39;);\n};\nserver.on(&#39;connection&#39;, callback);\n// ...\nserver.removeListener(&#39;connection&#39;, callback);\n</code></pre>\n<p><code>removeListener</code> will remove, at most, one instance of a listener from the\nlistener array. If any single listener has been added multiple times to the\nlistener array for the specified <code>eventName</code>, then <code>removeListener</code> must be\ncalled multiple times to remove each instance.</p>\n<p>Note that once an event has been emitted, all listeners attached to it at the\ntime of emitting will be called in order. This implies that any <code>removeListener()</code>\nor <code>removeAllListeners()</code> calls <em>after</em> emitting and <em>before</em> the last listener\nfinishes execution will not remove them from <code>emit()</code> in progress. Subsequent\nevents will behave as expected.</p>\n<pre><code class=\"lang-js\">const myEmitter = new MyEmitter();\n\nconst callbackA = () =&gt; {\n  console.log(&#39;A&#39;);\n  myEmitter.removeListener(&#39;event&#39;, callbackB);\n};\n\nconst callbackB = () =&gt; {\n  console.log(&#39;B&#39;);\n};\n\nmyEmitter.on(&#39;event&#39;, callbackA);\n\nmyEmitter.on(&#39;event&#39;, callbackB);\n\n// callbackA removes listener callbackB but it will still be called.\n// Internal listener array at time of emit [callbackA, callbackB]\nmyEmitter.emit(&#39;event&#39;);\n// Prints:\n//   A\n//   B\n\n// callbackB is now removed.\n// Internal listener array [callbackA]\nmyEmitter.emit(&#39;event&#39;);\n// Prints:\n//   A\n</code></pre>\n<p>Because listeners are managed using an internal array, calling this will\nchange the position indices of any listener registered <em>after</em> the listener\nbeing removed. This will not impact the order in which listeners are called,\nbut it means that any copies of the listener array as returned by\nthe <code>emitter.listeners()</code> method will need to be recreated.</p>\n<p>Returns a reference to the <code>EventEmitter</code>, so that calls can be chained.</p>\n"
+              "desc": "<p>Removes the specified <code>listener</code> from the listener array for the event named\n<code>eventName</code>.</p>\n<pre><code class=\"lang-js\">const callback = (stream) =&gt; {\n  console.log(&#39;someone connected!&#39;);\n};\nserver.on(&#39;connection&#39;, callback);\n// ...\nserver.removeListener(&#39;connection&#39;, callback);\n</code></pre>\n<p><code>removeListener</code> will remove, at most, one instance of a listener from the\nlistener array. If any single listener has been added multiple times to the\nlistener array for the specified <code>eventName</code>, then <code>removeListener</code> must be\ncalled multiple times to remove each instance.</p>\n<p>Note that once an event has been emitted, all listeners attached to it at the\ntime of emitting will be called in order. This implies that any <code>removeListener()</code>\nor <code>removeAllListeners()</code> calls <em>after</em> emitting and <em>before</em> the last listener\nfinishes execution will not remove them from <code>emit()</code> in progress. Subsequent\nevents will behave as expected.</p>\n<pre><code class=\"lang-js\">const myEmitter = new MyEmitter();\n\nconst callbackA = () =&gt; {\n  console.log(&#39;A&#39;);\n  myEmitter.removeListener(&#39;event&#39;, callbackB);\n};\n\nconst callbackB = () =&gt; {\n  console.log(&#39;B&#39;);\n};\n\nmyEmitter.on(&#39;event&#39;, callbackA);\n\nmyEmitter.on(&#39;event&#39;, callbackB);\n\n// callbackA removes listener callbackB but it will still be called.\n// Internal listener array at time of emit [callbackA, callbackB]\nmyEmitter.emit(&#39;event&#39;);\n// Prints:\n//   A\n//   B\n\n// callbackB is now removed.\n// Internal listener array [callbackA]\nmyEmitter.emit(&#39;event&#39;);\n// Prints:\n//   A\n</code></pre>\n<p>Because listeners are managed using an internal array, calling this will\nchange the position indices of any listener registered <em>after</em> the listener\nbeing removed. This will not impact the order in which listeners are called,\nbut it means that any copies of the listener array as returned by\nthe <code>emitter.listeners()</code> method will need to be recreated.</p>\n<p>When a single function has been added as a handler multiple times for a single\nevent (as in the example below), <code>removeListener()</code> will remove the most\nrecently added instance. In the example the <code>once(&#39;ping&#39;)</code>\nlistener is removed:</p>\n<pre><code class=\"lang-js\">const ee = new EventEmitter();\n\nfunction pong() {\n  console.log(&#39;pong&#39;);\n}\n\nee.on(&#39;ping&#39;, pong);\nee.once(&#39;ping&#39;, pong);\nee.removeListener(&#39;ping&#39;, pong);\n\nee.emit(&#39;ping&#39;);\nee.emit(&#39;ping&#39;);\n</code></pre>\n<p>Returns a reference to the <code>EventEmitter</code>, so that calls can be chained.</p>\n"
             },
             {
               "textRaw": "emitter.setMaxListeners(n)",
@@ -19916,7 +20197,7 @@
               ]
             }
           ],
-          "desc": "<p>Tests a user&#39;s permissions for the file or directory specified by <code>path</code>.\nThe <code>mode</code> argument is an optional integer that specifies the accessibility\nchecks to be performed. The following constants define the possible values of\n<code>mode</code>. It is possible to create a mask consisting of the bitwise OR of two or\nmore values (e.g. <code>fs.constants.W_OK | fs.constants.R_OK</code>).</p>\n<ul>\n<li><code>fs.constants.F_OK</code> - <code>path</code> is visible to the calling process. This is useful\nfor determining if a file exists, but says nothing about <code>rwx</code> permissions.\nDefault if no <code>mode</code> is specified.</li>\n<li><code>fs.constants.R_OK</code> - <code>path</code> can be read by the calling process.</li>\n<li><code>fs.constants.W_OK</code> - <code>path</code> can be written by the calling process.</li>\n<li><code>fs.constants.X_OK</code> - <code>path</code> can be executed by the calling process. This has\nno effect on Windows (will behave like <code>fs.constants.F_OK</code>).</li>\n</ul>\n<p>The final argument, <code>callback</code>, is a callback function that is invoked with\na possible error argument. If any of the accessibility checks fail, the error\nargument will be an <code>Error</code> object. The following example checks if the file\n<code>/etc/passwd</code> can be read and written by the current process.</p>\n<pre><code class=\"lang-js\">fs.access(&#39;/etc/passwd&#39;, fs.constants.R_OK | fs.constants.W_OK, (err) =&gt; {\n  console.log(err ? &#39;no access!&#39; : &#39;can read/write&#39;);\n});\n</code></pre>\n<p>Using <code>fs.access()</code> to check for the accessibility of a file before calling\n<code>fs.open()</code>, <code>fs.readFile()</code> or <code>fs.writeFile()</code> is not recommended. Doing\nso introduces a race condition, since other processes may change the file&#39;s\nstate between the two calls. Instead, user code should open/read/write the\nfile directly and handle the error raised if the file is not accessible.</p>\n<p>For example:</p>\n<p><strong>write (NOT RECOMMENDED)</strong></p>\n<pre><code class=\"lang-js\">fs.access(&#39;myfile&#39;, (err) =&gt; {\n  if (!err) {\n    console.error(&#39;myfile already exists&#39;);\n    return;\n  }\n\n  fs.open(&#39;myfile&#39;, &#39;wx&#39;, (err, fd) =&gt; {\n    if (err) throw err;\n    writeMyData(fd);\n  });\n});\n</code></pre>\n<p><strong>write (RECOMMENDED)</strong></p>\n<pre><code class=\"lang-js\">fs.open(&#39;myfile&#39;, &#39;wx&#39;, (err, fd) =&gt; {\n  if (err) {\n    if (err.code === &#39;EEXIST&#39;) {\n      console.error(&#39;myfile already exists&#39;);\n      return;\n    }\n\n    throw err;\n  }\n\n  writeMyData(fd);\n});\n</code></pre>\n<p><strong>read (NOT RECOMMENDED)</strong></p>\n<pre><code class=\"lang-js\">fs.access(&#39;myfile&#39;, (err) =&gt; {\n  if (err) {\n    if (err.code === &#39;ENOENT&#39;) {\n      console.error(&#39;myfile does not exist&#39;);\n      return;\n    }\n\n    throw err;\n  }\n\n  fs.open(&#39;myfile&#39;, &#39;r&#39;, (err, fd) =&gt; {\n    if (err) throw err;\n    readMyData(fd);\n  });\n});\n</code></pre>\n<p><strong>read (RECOMMENDED)</strong></p>\n<pre><code class=\"lang-js\">fs.open(&#39;myfile&#39;, &#39;r&#39;, (err, fd) =&gt; {\n  if (err) {\n    if (err.code === &#39;ENOENT&#39;) {\n      console.error(&#39;myfile does not exist&#39;);\n      return;\n    }\n\n    throw err;\n  }\n\n  readMyData(fd);\n});\n</code></pre>\n<p>The &quot;not recommended&quot; examples above check for accessibility and then use the\nfile; the &quot;recommended&quot; examples are better because they use the file directly\nand handle the error, if any.</p>\n<p>In general, check for the accessibility of a file only if the file will not be\nused directly, for example when its accessibility is a signal from another\nprocess.</p>\n"
+          "desc": "<p>Tests a user&#39;s permissions for the file or directory specified by <code>path</code>.\nThe <code>mode</code> argument is an optional integer that specifies the accessibility\nchecks to be performed. The following constants define the possible values of\n<code>mode</code>. It is possible to create a mask consisting of the bitwise OR of two or\nmore values (e.g. <code>fs.constants.W_OK | fs.constants.R_OK</code>).</p>\n<ul>\n<li><code>fs.constants.F_OK</code> - <code>path</code> is visible to the calling process. This is useful\nfor determining if a file exists, but says nothing about <code>rwx</code> permissions.\nDefault if no <code>mode</code> is specified.</li>\n<li><code>fs.constants.R_OK</code> - <code>path</code> can be read by the calling process.</li>\n<li><code>fs.constants.W_OK</code> - <code>path</code> can be written by the calling process.</li>\n<li><code>fs.constants.X_OK</code> - <code>path</code> can be executed by the calling process. This has\nno effect on Windows (will behave like <code>fs.constants.F_OK</code>).</li>\n</ul>\n<p>The final argument, <code>callback</code>, is a callback function that is invoked with\na possible error argument. If any of the accessibility checks fail, the error\nargument will be an <code>Error</code> object. The following example checks if the file\n<code>/etc/passwd</code> can be read and written by the current process.</p>\n<pre><code class=\"lang-js\">fs.access(&#39;/etc/passwd&#39;, fs.constants.R_OK | fs.constants.W_OK, (err) =&gt; {\n  console.log(err ? &#39;no access!&#39; : &#39;can read/write&#39;);\n});\n</code></pre>\n<p>Using <code>fs.access()</code> to check for the accessibility of a file before calling\n<code>fs.open()</code>, <code>fs.readFile()</code> or <code>fs.writeFile()</code> is not recommended. Doing\nso introduces a race condition, since other processes may change the file&#39;s\nstate between the two calls. Instead, user code should open/read/write the\nfile directly and handle the error raised if the file is not accessible.</p>\n<p>For example:</p>\n<p><strong>write (NOT RECOMMENDED)</strong></p>\n<pre><code class=\"lang-js\">fs.access(&#39;myfile&#39;, (err) =&gt; {\n  if (!err) {\n    console.error(&#39;myfile already exists&#39;);\n    return;\n  }\n\n  fs.open(&#39;myfile&#39;, &#39;wx&#39;, (err, fd) =&gt; {\n    if (err) throw err;\n    writeMyData(fd);\n  });\n});\n</code></pre>\n<p><strong>write (RECOMMENDED)</strong></p>\n<pre><code class=\"lang-js\">fs.open(&#39;myfile&#39;, &#39;wx&#39;, (err, fd) =&gt; {\n  if (err) {\n    if (err.code === &#39;EEXIST&#39;) {\n      console.error(&#39;myfile already exists&#39;);\n      return;\n    }\n\n    throw err;\n  }\n\n  writeMyData(fd);\n});\n</code></pre>\n<p><strong>read (NOT RECOMMENDED)</strong></p>\n<pre><code class=\"lang-js\">fs.access(&#39;myfile&#39;, (err) =&gt; {\n  if (err) {\n    if (err.code === &#39;ENOENT&#39;) {\n      console.error(&#39;myfile does not exist&#39;);\n      return;\n    }\n\n    throw err;\n  }\n\n  fs.open(&#39;myfile&#39;, &#39;r&#39;, (err, fd) =&gt; {\n    if (err) throw err;\n    readMyData(fd);\n  });\n});\n</code></pre>\n<p><strong>read (RECOMMENDED)</strong></p>\n<pre><code class=\"lang-js\">fs.open(&#39;myfile&#39;, &#39;r&#39;, (err, fd) =&gt; {\n  if (err) {\n    if (err.code === &#39;ENOENT&#39;) {\n      console.error(&#39;myfile does not exist&#39;);\n      return;\n    }\n\n    throw err;\n  }\n\n  readMyData(fd);\n});\n</code></pre>\n<p>The &quot;not recommended&quot; examples above check for accessibility and then use the\nfile; the &quot;recommended&quot; examples are better because they use the file directly\nand handle the error, if any.</p>\n<p>In general, check for the accessibility of a file only if the file will not be\nused directly, for example when its accessibility is a signal from another\nprocess.</p>\n<p>On Windows, access-control policies (ACLs) on a directory may limit access to\na file or directory. The <code>fs.access()</code> function, however, does not check the\nACL and therefore may report that a path is accessible even if the ACL restricts\nthe user from reading or writing to it.</p>\n"
         },
         {
           "textRaw": "fs.accessSync(path[, mode])",
@@ -26384,6 +26665,18 @@
               "desc": "<p>The <code>message.aborted</code> property will be <code>true</code> if the request has\nbeen aborted.</p>\n"
             },
             {
+              "textRaw": "`complete` {boolean} ",
+              "type": "boolean",
+              "name": "complete",
+              "meta": {
+                "added": [
+                  "v0.3.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>The <code>message.complete</code> property will be <code>true</code> if a complete HTTP message has\nbeen received and successfully parsed.</p>\n<p>This property is particularly useful as a means of determining if a client or\nserver fully transmitted a message before a connection was terminated:</p>\n<pre><code class=\"lang-js\">const req = http.request({\n  host: &#39;127.0.0.1&#39;,\n  port: 8080,\n  method: &#39;POST&#39;\n}, (res) =&gt; {\n  res.resume();\n  res.on(&#39;end&#39;, () =&gt; {\n    if (!res.complete)\n      console.error(\n        &#39;The connection was terminated while the message was still being sent&#39;);\n  });\n});\n</code></pre>\n"
+            },
+            {
               "textRaw": "`headers` {Object} ",
               "type": "Object",
               "name": "headers",
@@ -26614,24 +26907,30 @@
             "changes": []
           },
           "desc": "<p>Global instance of <code>Agent</code> which is used as the default for all HTTP client\nrequests.</p>\n"
+        },
+        {
+          "textRaw": "`maxHeaderSize` {number} ",
+          "type": "number",
+          "name": "maxHeaderSize",
+          "meta": {
+            "added": [
+              "v8.15.0"
+            ],
+            "changes": []
+          },
+          "desc": "<p>Read-only property specifying the maximum allowed size of HTTP headers in bytes.\nDefaults to 8KB. Configurable using the <a href=\"cli.html#cli_max_http_header_size_size\"><code>--max-http-header-size</code></a> CLI option.</p>\n"
         }
       ],
       "methods": [
         {
-          "textRaw": "http.createServer([options][, requestListener])",
+          "textRaw": "http.createServer([requestListener])",
           "type": "method",
           "name": "createServer",
           "meta": {
             "added": [
               "v0.1.13"
             ],
-            "changes": [
-              {
-                "version": "v8.12.0",
-                "pr-url": "https://github.com/nodejs/node/pull/15752",
-                "description": "The `options` argument is supported now."
-              }
-            ]
+            "changes": []
           },
           "signatures": [
             {
@@ -26642,28 +26941,6 @@
               },
               "params": [
                 {
-                  "textRaw": "`options` {Object} ",
-                  "options": [
-                    {
-                      "textRaw": "`IncomingMessage` {http.IncomingMessage} Specifies the IncomingMessage class to be used. Useful for extending the original `IncomingMessage`. **Default:** `IncomingMessage`. ",
-                      "name": "IncomingMessage",
-                      "default": "`IncomingMessage`",
-                      "type": "http.IncomingMessage",
-                      "desc": "Specifies the IncomingMessage class to be used. Useful for extending the original `IncomingMessage`."
-                    },
-                    {
-                      "textRaw": "`ServerResponse` {http.ServerResponse} Specifies the ServerResponse class to be used. Useful for extending the original `ServerResponse`. **Default:** `ServerResponse`. ",
-                      "name": "ServerResponse",
-                      "default": "`ServerResponse`",
-                      "type": "http.ServerResponse",
-                      "desc": "Specifies the ServerResponse class to be used. Useful for extending the original `ServerResponse`."
-                    }
-                  ],
-                  "name": "options",
-                  "type": "Object",
-                  "optional": true
-                },
-                {
                   "textRaw": "`requestListener` {Function} ",
                   "name": "requestListener",
                   "type": "Function",
@@ -26673,10 +26950,6 @@
             },
             {
               "params": [
-                {
-                  "name": "options",
-                  "optional": true
-                },
                 {
                   "name": "requestListener",
                   "optional": true
@@ -31066,7 +31339,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Posts a message to the inspector back-end. <code>callback</code> will be notified when\na response is received. <code>callback</code> is a function that accepts two optional\narguments - error and message-specific result.</p>\n<pre><code class=\"lang-js\">session.post(&#39;Runtime.evaluate&#39;, { expression: &#39;2 + 2&#39; },\n             (error, { result }) =&gt; console.log(result));\n// Output: { type: &#39;number&#39;, value: 4, description: &#39;4&#39; }\n</code></pre>\n<p>The latest version of the V8 inspector protocol is published on the\n<a href=\"https://chromedevtools.github.io/devtools-protocol/v8/\">Chrome DevTools Protocol Viewer</a>.</p>\n<p>Node inspector supports all the Chrome DevTools Protocol domains declared\nby V8. Chrome DevTools Protocol domain provides an interface for interacting\nwith one of the runtime agents used to inspect the application state and listen\nto the run-time events.</p>\n"
+              "desc": "<p>Posts a message to the inspector back-end. <code>callback</code> will be notified when\na response is received. <code>callback</code> is a function that accepts two optional\narguments - error and message-specific result.</p>\n<pre><code class=\"lang-js\">session.post(&#39;Runtime.evaluate&#39;, { expression: &#39;2 + 2&#39; },\n             (error, { result }) =&gt; console.log(result));\n// Output: { type: &#39;number&#39;, value: 4, description: &#39;4&#39; }\n</code></pre>\n<p>The latest version of the V8 inspector protocol is published on the\n<a href=\"https://chromedevtools.github.io/devtools-protocol/v8/\">Chrome DevTools Protocol Viewer</a>.</p>\n<p>Node.js inspector supports all the Chrome DevTools Protocol domains declared\nby V8. Chrome DevTools Protocol domain provides an interface for interacting\nwith one of the runtime agents used to inspect the application state and listen\nto the run-time events.</p>\n"
             },
             {
               "textRaw": "session.disconnect()",
@@ -31259,7 +31532,7 @@
           "textRaw": "Loading from `node_modules` Folders",
           "name": "Loading from `node_modules` Folders",
           "type": "misc",
-          "desc": "<p>If the module identifier passed to <code>require()</code> is not a\n<a href=\"#modules_core_modules\">core</a> module, and does not begin with <code>&#39;/&#39;</code>, <code>&#39;../&#39;</code>, or\n<code>&#39;./&#39;</code>, then Node.js starts at the parent directory of the current module, and\nadds <code>/node_modules</code>, and attempts to load the module from that location. Node\nwill not append <code>node_modules</code> to a path already ending in <code>node_modules</code>.</p>\n<p>If it is not found there, then it moves to the parent directory, and so\non, until the root of the file system is reached.</p>\n<p>For example, if the file at <code>&#39;/home/ry/projects/foo.js&#39;</code> called\n<code>require(&#39;bar.js&#39;)</code>, then Node.js would look in the following locations, in\nthis order:</p>\n<ul>\n<li><code>/home/ry/projects/node_modules/bar.js</code></li>\n<li><code>/home/ry/node_modules/bar.js</code></li>\n<li><code>/home/node_modules/bar.js</code></li>\n<li><code>/node_modules/bar.js</code></li>\n</ul>\n<p>This allows programs to localize their dependencies, so that they do not\nclash.</p>\n<p>It is possible to require specific files or sub modules distributed with a\nmodule by including a path suffix after the module name. For instance\n<code>require(&#39;example-module/path/to/file&#39;)</code> would resolve <code>path/to/file</code>\nrelative to where <code>example-module</code> is located. The suffixed path follows the\nsame module resolution semantics.</p>\n"
+          "desc": "<p>If the module identifier passed to <code>require()</code> is not a\n<a href=\"#modules_core_modules\">core</a> module, and does not begin with <code>&#39;/&#39;</code>, <code>&#39;../&#39;</code>, or\n<code>&#39;./&#39;</code>, then Node.js starts at the parent directory of the current module, and\nadds <code>/node_modules</code>, and attempts to load the module from that location.\nNode.js will not append <code>node_modules</code> to a path already ending in\n<code>node_modules</code>.</p>\n<p>If it is not found there, then it moves to the parent directory, and so\non, until the root of the file system is reached.</p>\n<p>For example, if the file at <code>&#39;/home/ry/projects/foo.js&#39;</code> called\n<code>require(&#39;bar.js&#39;)</code>, then Node.js would look in the following locations, in\nthis order:</p>\n<ul>\n<li><code>/home/ry/projects/node_modules/bar.js</code></li>\n<li><code>/home/ry/node_modules/bar.js</code></li>\n<li><code>/home/node_modules/bar.js</code></li>\n<li><code>/node_modules/bar.js</code></li>\n</ul>\n<p>This allows programs to localize their dependencies, so that they do not\nclash.</p>\n<p>It is possible to require specific files or sub modules distributed with a\nmodule by including a path suffix after the module name. For instance\n<code>require(&#39;example-module/path/to/file&#39;)</code> would resolve <code>path/to/file</code>\nrelative to where <code>example-module</code> is located. The suffixed path follows the\nsame module resolution semantics.</p>\n"
         },
         {
           "textRaw": "Loading from the global folders",
@@ -31337,7 +31610,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<ul>\n<li>{Function}</li>\n</ul>\n<p>To require modules.</p>\n",
+              "desc": "<ul>\n<li>{Function}</li>\n</ul>\n<p>Used to import modules, <code>JSON</code>, and local files. Modules can be imported\nfrom <code>node_modules</code>. Local modules and JSON files can be imported using\na relative path (e.g. <code>./</code>, <code>./foo</code>, <code>./bar/baz</code>, <code>../foo</code>) that will be\nresolved against the directory named by <a href=\"#modules_dirname\"><code>__dirname</code></a> (if defined) or\nthe current working directory.</p>\n<pre><code class=\"lang-js\">// Importing a local module:\nconst myLocalModule = require(&#39;./path/myLocalModule&#39;);\n\n// Importing a JSON file:\nconst jsonData = require(&#39;./path/filename.json&#39;);\n\n// Importing a module from node_modules or Node.js built-in module:\nconst crypto = require(&#39;crypto&#39;);\n</code></pre>\n",
               "properties": [
                 {
                   "textRaw": "`cache` {Object} ",
@@ -33890,7 +34163,7 @@
         {
           "textRaw": "Windows vs. POSIX",
           "name": "windows_vs._posix",
-          "desc": "<p>The default operation of the <code>path</code> module varies based on the operating system\non which a Node.js application is running. Specifically, when running on a\nWindows operating system, the <code>path</code> module will assume that Windows-style\npaths are being used.</p>\n<p>For example, using the <code>path.basename()</code> function with the Windows file path\n<code>C:\\temp\\myfile.html</code>, will yield different results when running on POSIX than\nwhen run on Windows:</p>\n<p>On POSIX:</p>\n<pre><code class=\"lang-js\">path.basename(&#39;C:\\\\temp\\\\myfile.html&#39;);\n// Returns: &#39;C:\\\\temp\\\\myfile.html&#39;\n</code></pre>\n<p>On Windows:</p>\n<pre><code class=\"lang-js\">path.basename(&#39;C:\\\\temp\\\\myfile.html&#39;);\n// Returns: &#39;myfile.html&#39;\n</code></pre>\n<p>To achieve consistent results when working with Windows file paths on any\noperating system, use <a href=\"#path_path_win32\"><code>path.win32</code></a>:</p>\n<p>On POSIX and Windows:</p>\n<pre><code class=\"lang-js\">path.win32.basename(&#39;C:\\\\temp\\\\myfile.html&#39;);\n// Returns: &#39;myfile.html&#39;\n</code></pre>\n<p>To achieve consistent results when working with POSIX file paths on any\noperating system, use <a href=\"#path_path_posix\"><code>path.posix</code></a>:</p>\n<p>On POSIX and Windows:</p>\n<pre><code class=\"lang-js\">path.posix.basename(&#39;/tmp/myfile.html&#39;);\n// Returns: &#39;myfile.html&#39;\n</code></pre>\n<p><em>Note:</em> On Windows Node.js follows the concept of per-drive working directory.\nThis behavior can be observed when using a drive path without a backslash. For\nexample <code>path.resolve(&#39;c:\\\\&#39;)</code> can potentially return a different result than\n<code>path.resolve(&#39;c:&#39;)</code>. For more information, see\n<a href=\"https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247.aspx#fully_qualified_vs._relative_paths\">this MSDN page</a>.</p>\n",
+          "desc": "<p>The default operation of the <code>path</code> module varies based on the operating system\non which a Node.js application is running. Specifically, when running on a\nWindows operating system, the <code>path</code> module will assume that Windows-style\npaths are being used.</p>\n<p>So using <code>path.basename()</code> might yield different results on POSIX and Windows:</p>\n<p>On POSIX:</p>\n<pre><code class=\"lang-js\">path.basename(&#39;C:\\\\temp\\\\myfile.html&#39;);\n// Returns: &#39;C:\\\\temp\\\\myfile.html&#39;\n</code></pre>\n<p>On Windows:</p>\n<pre><code class=\"lang-js\">path.basename(&#39;C:\\\\temp\\\\myfile.html&#39;);\n// Returns: &#39;myfile.html&#39;\n</code></pre>\n<p>To achieve consistent results when working with Windows file paths on any\noperating system, use <a href=\"#path_path_win32\"><code>path.win32</code></a>:</p>\n<p>On POSIX and Windows:</p>\n<pre><code class=\"lang-js\">path.win32.basename(&#39;C:\\\\temp\\\\myfile.html&#39;);\n// Returns: &#39;myfile.html&#39;\n</code></pre>\n<p>To achieve consistent results when working with POSIX file paths on any\noperating system, use <a href=\"#path_path_posix\"><code>path.posix</code></a>:</p>\n<p>On POSIX and Windows:</p>\n<pre><code class=\"lang-js\">path.posix.basename(&#39;/tmp/myfile.html&#39;);\n// Returns: &#39;myfile.html&#39;\n</code></pre>\n<p><em>Note:</em> On Windows Node.js follows the concept of per-drive working directory.\nThis behavior can be observed when using a drive path without a backslash. For\nexample <code>path.resolve(&#39;c:\\\\&#39;)</code> can potentially return a different result than\n<code>path.resolve(&#39;c:&#39;)</code>. For more information, see\n<a href=\"https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247.aspx#fully_qualified_vs._relative_paths\">this MSDN page</a>.</p>\n",
           "type": "module",
           "displayName": "Windows vs. POSIX"
         }
@@ -39656,7 +39929,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Returns a string containing the negotiated SSL/TLS protocol version of the\ncurrent connection. The value <code>&#39;unknown&#39;</code> will be returned for connected\nsockets that have not completed the handshaking process. The value <code>null</code> will\nbe returned for server sockets or disconnected client sockets.</p>\n<p>Example responses include:</p>\n<ul>\n<li><code>SSLv3</code></li>\n<li><code>TLSv1</code></li>\n<li><code>TLSv1.1</code></li>\n<li><code>TLSv1.2</code></li>\n<li><code>unknown</code></li>\n</ul>\n<p>See <a href=\"https://www.openssl.org/docs/man1.0.2/ssl/SSL_get_version.html\">https://www.openssl.org/docs/man1.0.2/ssl/SSL_get_version.html</a> for more\ninformation.</p>\n",
+              "desc": "<p>Returns a string containing the negotiated SSL/TLS protocol version of the\ncurrent connection. The value <code>&#39;unknown&#39;</code> will be returned for connected\nsockets that have not completed the handshaking process. The value <code>null</code> will\nbe returned for server sockets or disconnected client sockets.</p>\n<p>Example responses include:</p>\n<ul>\n<li><code>TLSv1</code></li>\n<li><code>TLSv1.1</code></li>\n<li><code>TLSv1.2</code></li>\n<li><code>unknown</code></li>\n</ul>\n<p>See <a href=\"https://www.openssl.org/docs/man1.0.2/ssl/SSL_get_version.html\">https://www.openssl.org/docs/man1.0.2/ssl/SSL_get_version.html</a> for more\ninformation.</p>\n",
               "signatures": [
                 {
                   "params": []
@@ -40759,7 +41032,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Tells the kernel to join a multicast group at the given <code>multicastAddress</code> and\n<code>multicastInterface</code> using the <code>IP_ADD_MEMBERSHIP</code> socket option. If the\n<code>multicastInterface</code> argument is not specified, the operating system will choose\none interface and will add membership to it. To add membership to every\navailable interface, call <code>addMembership</code> multiple times, once per interface.</p>\n"
+              "desc": "<p>Tells the kernel to join a multicast group at the given <code>multicastAddress</code> and\n<code>multicastInterface</code> using the <code>IP_ADD_MEMBERSHIP</code> socket option. If the\n<code>multicastInterface</code> argument is not specified, the operating system will choose\none interface and will add membership to it. To add membership to every\navailable interface, call <code>addMembership</code> multiple times, once per interface.</p>\n<p>When sharing a UDP socket across multiple <code>cluster</code> workers, the\n<code>socket.addMembership()</code> function must be called only once or an\n<code>EADDRINUSE</code> error will occur:</p>\n<pre><code class=\"lang-js\">const cluster = require(&#39;cluster&#39;);\nconst dgram = require(&#39;dgram&#39;);\nif (cluster.isMaster) {\n  cluster.fork(); // Works ok.\n  cluster.fork(); // Fails with EADDRINUSE.\n} else {\n  const s = dgram.createSocket(&#39;udp4&#39;);\n  s.bind(1234, () =&gt; {\n    s.addMembership(&#39;224.0.0.114&#39;);\n  });\n}\n</code></pre>\n"
             },
             {
               "textRaw": "socket.address()",
@@ -41098,7 +41371,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Broadcasts a datagram on the socket. The destination <code>port</code> and <code>address</code> must\nbe specified.</p>\n<p>The <code>msg</code> argument contains the message to be sent.\nDepending on its type, different behavior can apply. If <code>msg</code> is a <code>Buffer</code>\nor <code>Uint8Array</code>,\nthe <code>offset</code> and <code>length</code> specify the offset within the <code>Buffer</code> where the\nmessage begins and the number of bytes in the message, respectively.\nIf <code>msg</code> is a <code>String</code>, then it is automatically converted to a <code>Buffer</code>\nwith <code>&#39;utf8&#39;</code> encoding. With messages that\ncontain multi-byte characters, <code>offset</code> and <code>length</code> will be calculated with\nrespect to <a href=\"buffer.html#buffer_class_method_buffer_bytelength_string_encoding\">byte length</a> and not the character position.\nIf <code>msg</code> is an array, <code>offset</code> and <code>length</code> must not be specified.</p>\n<p>The <code>address</code> argument is a string. If the value of <code>address</code> is a host name,\nDNS will be used to resolve the address of the host. If <code>address</code> is not\nprovided or otherwise falsy, <code>&#39;127.0.0.1&#39;</code> (for <code>udp4</code> sockets) or <code>&#39;::1&#39;</code>\n(for <code>udp6</code> sockets) will be used by default.</p>\n<p>If the socket has not been previously bound with a call to <code>bind</code>, the socket\nis assigned a random port number and is bound to the &quot;all interfaces&quot; address\n(<code>&#39;0.0.0.0&#39;</code> for <code>udp4</code> sockets, <code>&#39;::0&#39;</code> for <code>udp6</code> sockets.)</p>\n<p>An optional <code>callback</code> function may be specified to as a way of reporting\nDNS errors or for determining when it is safe to reuse the <code>buf</code> object.\nNote that DNS lookups delay the time to send for at least one tick of the\nNode.js event loop.</p>\n<p>The only way to know for sure that the datagram has been sent is by using a\n<code>callback</code>. If an error occurs and a <code>callback</code> is given, the error will be\npassed as the first argument to the <code>callback</code>. If a <code>callback</code> is not given,\nthe error is emitted as an <code>&#39;error&#39;</code> event on the <code>socket</code> object.</p>\n<p>Offset and length are optional but both <em>must</em> be set if either are used.\nThey are supported only when the first argument is a <code>Buffer</code> or <code>Uint8Array</code>.</p>\n<p>Example of sending a UDP packet to a random port on <code>localhost</code>;</p>\n<pre><code class=\"lang-js\">const dgram = require(&#39;dgram&#39;);\nconst message = Buffer.from(&#39;Some bytes&#39;);\nconst client = dgram.createSocket(&#39;udp4&#39;);\nclient.send(message, 41234, &#39;localhost&#39;, (err) =&gt; {\n  client.close();\n});\n</code></pre>\n<p>Example of sending a UDP packet composed of multiple buffers to a random port\non <code>127.0.0.1</code>;</p>\n<pre><code class=\"lang-js\">const dgram = require(&#39;dgram&#39;);\nconst buf1 = Buffer.from(&#39;Some &#39;);\nconst buf2 = Buffer.from(&#39;bytes&#39;);\nconst client = dgram.createSocket(&#39;udp4&#39;);\nclient.send([buf1, buf2], 41234, (err) =&gt; {\n  client.close();\n});\n</code></pre>\n<p>Sending multiple buffers might be faster or slower depending on the\napplication and operating system. It is important to run benchmarks to\ndetermine the optimal strategy on a case-by-case basis. Generally speaking,\nhowever, sending multiple buffers is faster.</p>\n<p><strong>A Note about UDP datagram size</strong></p>\n<p>The maximum size of an <code>IPv4/v6</code> datagram depends on the <code>MTU</code>\n(<em>Maximum Transmission Unit</em>) and on the <code>Payload Length</code> field size.</p>\n<ul>\n<li><p>The <code>Payload Length</code> field is <code>16 bits</code> wide, which means that a normal\npayload exceed 64K octets <em>including</em> the internet header and data\n(65,507 bytes = 65,535 − 8 bytes UDP header − 20 bytes IP header);\nthis is generally true for loopback interfaces, but such long datagram\nmessages are impractical for most hosts and networks.</p>\n</li>\n<li><p>The <code>MTU</code> is the largest size a given link layer technology can support for\ndatagram messages. For any link, <code>IPv4</code> mandates a minimum <code>MTU</code> of <code>68</code>\noctets, while the recommended <code>MTU</code> for IPv4 is <code>576</code> (typically recommended\nas the <code>MTU</code> for dial-up type applications), whether they arrive whole or in\nfragments.</p>\n<p>For <code>IPv6</code>, the minimum <code>MTU</code> is <code>1280</code> octets, however, the mandatory minimum\nfragment reassembly buffer size is <code>1500</code> octets. The value of <code>68</code> octets is\nvery small, since most current link layer technologies, like Ethernet, have a\nminimum <code>MTU</code> of <code>1500</code>.</p>\n</li>\n</ul>\n<p>It is impossible to know in advance the MTU of each link through which\na packet might travel. Sending a datagram greater than the receiver <code>MTU</code> will\nnot work because the packet will get silently dropped without informing the\nsource that the data did not reach its intended recipient.</p>\n"
+              "desc": "<p>Broadcasts a datagram on the socket. The destination <code>port</code> and <code>address</code> must\nbe specified.</p>\n<p>The <code>msg</code> argument contains the message to be sent.\nDepending on its type, different behavior can apply. If <code>msg</code> is a <code>Buffer</code>\nor <code>Uint8Array</code>,\nthe <code>offset</code> and <code>length</code> specify the offset within the <code>Buffer</code> where the\nmessage begins and the number of bytes in the message, respectively.\nIf <code>msg</code> is a <code>String</code>, then it is automatically converted to a <code>Buffer</code>\nwith <code>&#39;utf8&#39;</code> encoding. With messages that\ncontain multi-byte characters, <code>offset</code> and <code>length</code> will be calculated with\nrespect to <a href=\"buffer.html#buffer_class_method_buffer_bytelength_string_encoding\">byte length</a> and not the character position.\nIf <code>msg</code> is an array, <code>offset</code> and <code>length</code> must not be specified.</p>\n<p>The <code>address</code> argument is a string. If the value of <code>address</code> is a host name,\nDNS will be used to resolve the address of the host. If <code>address</code> is not\nprovided or otherwise falsy, <code>&#39;127.0.0.1&#39;</code> (for <code>udp4</code> sockets) or <code>&#39;::1&#39;</code>\n(for <code>udp6</code> sockets) will be used by default.</p>\n<p>If the socket has not been previously bound with a call to <code>bind</code>, the socket\nis assigned a random port number and is bound to the &quot;all interfaces&quot; address\n(<code>&#39;0.0.0.0&#39;</code> for <code>udp4</code> sockets, <code>&#39;::0&#39;</code> for <code>udp6</code> sockets.)</p>\n<p>An optional <code>callback</code> function may be specified to as a way of reporting\nDNS errors or for determining when it is safe to reuse the <code>buf</code> object.\nNote that DNS lookups delay the time to send for at least one tick of the\nNode.js event loop.</p>\n<p>The only way to know for sure that the datagram has been sent is by using a\n<code>callback</code>. If an error occurs and a <code>callback</code> is given, the error will be\npassed as the first argument to the <code>callback</code>. If a <code>callback</code> is not given,\nthe error is emitted as an <code>&#39;error&#39;</code> event on the <code>socket</code> object.</p>\n<p>Offset and length are optional but both <em>must</em> be set if either are used.\nThey are supported only when the first argument is a <code>Buffer</code> or <code>Uint8Array</code>.</p>\n<p>Example of sending a UDP packet to a port on <code>localhost</code>;</p>\n<pre><code class=\"lang-js\">const dgram = require(&#39;dgram&#39;);\nconst message = Buffer.from(&#39;Some bytes&#39;);\nconst client = dgram.createSocket(&#39;udp4&#39;);\nclient.send(message, 41234, &#39;localhost&#39;, (err) =&gt; {\n  client.close();\n});\n</code></pre>\n<p>Example of sending a UDP packet composed of multiple buffers to a port on\n<code>127.0.0.1</code>;</p>\n<pre><code class=\"lang-js\">const dgram = require(&#39;dgram&#39;);\nconst buf1 = Buffer.from(&#39;Some &#39;);\nconst buf2 = Buffer.from(&#39;bytes&#39;);\nconst client = dgram.createSocket(&#39;udp4&#39;);\nclient.send([buf1, buf2], 41234, (err) =&gt; {\n  client.close();\n});\n</code></pre>\n<p>Sending multiple buffers might be faster or slower depending on the\napplication and operating system. It is important to run benchmarks to\ndetermine the optimal strategy on a case-by-case basis. Generally speaking,\nhowever, sending multiple buffers is faster.</p>\n<p><strong>A Note about UDP datagram size</strong></p>\n<p>The maximum size of an <code>IPv4/v6</code> datagram depends on the <code>MTU</code>\n(<em>Maximum Transmission Unit</em>) and on the <code>Payload Length</code> field size.</p>\n<ul>\n<li><p>The <code>Payload Length</code> field is <code>16 bits</code> wide, which means that a normal\npayload exceed 64K octets <em>including</em> the internet header and data\n(65,507 bytes = 65,535 − 8 bytes UDP header − 20 bytes IP header);\nthis is generally true for loopback interfaces, but such long datagram\nmessages are impractical for most hosts and networks.</p>\n</li>\n<li><p>The <code>MTU</code> is the largest size a given link layer technology can support for\ndatagram messages. For any link, <code>IPv4</code> mandates a minimum <code>MTU</code> of <code>68</code>\noctets, while the recommended <code>MTU</code> for IPv4 is <code>576</code> (typically recommended\nas the <code>MTU</code> for dial-up type applications), whether they arrive whole or in\nfragments.</p>\n<p>For <code>IPv6</code>, the minimum <code>MTU</code> is <code>1280</code> octets, however, the mandatory minimum\nfragment reassembly buffer size is <code>1500</code> octets. The value of <code>68</code> octets is\nvery small, since most current link layer technologies, like Ethernet, have a\nminimum <code>MTU</code> of <code>1500</code>.</p>\n</li>\n</ul>\n<p>It is impossible to know in advance the MTU of each link through which\na packet might travel. Sending a datagram greater than the receiver <code>MTU</code> will\nnot work because the packet will get silently dropped without informing the\nsource that the data did not reach its intended recipient.</p>\n"
             },
             {
               "textRaw": "socket.setBroadcast(flag)",
@@ -46796,7 +47069,7 @@
                   {
                     "version": "v6.6.0",
                     "pr-url": "https://github.com/nodejs/node/pull/8223",
-                    "description": "Unhandled Promise rejections have been will now emit a process warning."
+                    "description": "Unhandled Promise rejections will now emit a process warning."
                   }
                 ]
               },
@@ -46829,7 +47102,7 @@
               "textRaw": "Signal Events",
               "name": "SIGINT, SIGHUP, etc.",
               "type": "event",
-              "desc": "<p>Signal events will be emitted when the Node.js process receives a signal. Please\nrefer to signal(7) for a listing of standard POSIX signal names such as\n<code>SIGINT</code>, <code>SIGHUP</code>, etc.</p>\n<p>The signal handler will receive the signal&#39;s name (<code>&#39;SIGINT&#39;</code>,\n <code>&#39;SIGTERM&#39;</code>, etc.) as the first argument.</p>\n<p>The name of each event will be the uppercase common name for the signal (e.g.\n<code>&#39;SIGINT&#39;</code> for <code>SIGINT</code> signals).</p>\n<p>For example:</p>\n<pre><code class=\"lang-js\">// Begin reading from stdin so the process does not exit.\nprocess.stdin.resume();\n\nprocess.on(&#39;SIGINT&#39;, () =&gt; {\n  console.log(&#39;Received SIGINT. Press Control-D to exit.&#39;);\n});\n\n// Using a single function to handle multiple signals\nfunction handle(signal) {\n  console.log(`Received ${signal}`);\n}\n\nprocess.on(&#39;SIGINT&#39;, handle);\nprocess.on(&#39;SIGTERM&#39;, handle);\n</code></pre>\n<ul>\n<li><code>SIGUSR1</code> is reserved by Node.js to start the <a href=\"debugger.html\">debugger</a>. It&#39;s possible to\ninstall a listener but doing so will <em>not</em> stop the debugger from starting.</li>\n<li><code>SIGTERM</code> and <code>SIGINT</code> have default handlers on non-Windows platforms that\nreset the terminal mode before exiting with code <code>128 + signal number</code>. If one\nof these signals has a listener installed, its default behavior will be\nremoved (Node.js will no longer exit).</li>\n<li><code>SIGPIPE</code> is ignored by default. It can have a listener installed.</li>\n<li><code>SIGHUP</code> is generated on Windows when the console window is closed, and on\nother platforms under various similar conditions, see signal(7). It can have a\nlistener installed, however Node.js will be unconditionally terminated by\nWindows about 10 seconds later. On non-Windows platforms, the default\nbehavior of <code>SIGHUP</code> is to terminate Node.js, but once a listener has been\ninstalled its default behavior will be removed.</li>\n<li><code>SIGTERM</code> is not supported on Windows, it can be listened on.</li>\n<li><code>SIGINT</code> from the terminal is supported on all platforms, and can usually be\ngenerated with <code>&lt;Ctrl&gt;+C</code> (though this may be configurable). It is not generated\nwhen terminal raw mode is enabled.</li>\n<li><code>SIGBREAK</code> is delivered on Windows when <code>&lt;Ctrl&gt;+&lt;Break&gt;</code> is pressed, on\nnon-Windows platforms it can be listened on, but there is no way to send or\ngenerate it.</li>\n<li><code>SIGWINCH</code> is delivered when the console has been resized. On Windows, this\nwill only happen on write to the console when the cursor is being moved, or\nwhen a readable tty is used in raw mode.</li>\n<li><code>SIGKILL</code> cannot have a listener installed, it will unconditionally terminate\nNode.js on all platforms.</li>\n<li><code>SIGSTOP</code> cannot have a listener installed.</li>\n<li><code>SIGBUS</code>, <code>SIGFPE</code>, <code>SIGSEGV</code> and <code>SIGILL</code>, when not raised artificially\n using kill(2), inherently leave the process in a state from which it is not\n safe to attempt to call JS listeners. Doing so might lead to the process\n hanging in an endless loop, since listeners attached using <code>process.on()</code> are\n called asynchronously and therefore unable to correct the underlying problem.</li>\n</ul>\n<p><em>Note</em>: Windows does not support sending signals, but Node.js offers some\nemulation with <a href=\"#process_process_kill_pid_signal\"><code>process.kill()</code></a>, and <a href=\"child_process.html#child_process_subprocess_kill_signal\"><code>subprocess.kill()</code></a>. Sending\nsignal <code>0</code> can be used to test for the existence of a process. Sending <code>SIGINT</code>,\n<code>SIGTERM</code>, and <code>SIGKILL</code> cause the unconditional termination of the target\nprocess.</p>\n",
+              "desc": "<p>Signal events will be emitted when the Node.js process receives a signal. Please\nrefer to signal(7) for a listing of standard POSIX signal names such as\n<code>SIGINT</code>, <code>SIGHUP</code>, etc.</p>\n<p>The signal handler will receive the signal&#39;s name (<code>&#39;SIGINT&#39;</code>,\n <code>&#39;SIGTERM&#39;</code>, etc.) as the first argument.</p>\n<p>The name of each event will be the uppercase common name for the signal (e.g.\n<code>&#39;SIGINT&#39;</code> for <code>SIGINT</code> signals).</p>\n<p>For example:</p>\n<pre><code class=\"lang-js\">// Begin reading from stdin so the process does not exit.\nprocess.stdin.resume();\n\nprocess.on(&#39;SIGINT&#39;, () =&gt; {\n  console.log(&#39;Received SIGINT. Press Control-D to exit.&#39;);\n});\n\n// Using a single function to handle multiple signals\nfunction handle(signal) {\n  console.log(`Received ${signal}`);\n}\n\nprocess.on(&#39;SIGINT&#39;, handle);\nprocess.on(&#39;SIGTERM&#39;, handle);\n</code></pre>\n<ul>\n<li><code>SIGUSR1</code> is reserved by Node.js to start the <a href=\"debugger.html\">debugger</a>. It&#39;s possible to\ninstall a listener but doing so might interfere with the debugger.</li>\n<li><code>SIGTERM</code> and <code>SIGINT</code> have default handlers on non-Windows platforms that\nreset the terminal mode before exiting with code <code>128 + signal number</code>. If one\nof these signals has a listener installed, its default behavior will be\nremoved (Node.js will no longer exit).</li>\n<li><code>SIGPIPE</code> is ignored by default. It can have a listener installed.</li>\n<li><code>SIGHUP</code> is generated on Windows when the console window is closed, and on\nother platforms under various similar conditions, see signal(7). It can have a\nlistener installed, however Node.js will be unconditionally terminated by\nWindows about 10 seconds later. On non-Windows platforms, the default\nbehavior of <code>SIGHUP</code> is to terminate Node.js, but once a listener has been\ninstalled its default behavior will be removed.</li>\n<li><code>SIGTERM</code> is not supported on Windows, it can be listened on.</li>\n<li><code>SIGINT</code> from the terminal is supported on all platforms, and can usually be\ngenerated with <code>&lt;Ctrl&gt;+C</code> (though this may be configurable). It is not generated\nwhen terminal raw mode is enabled.</li>\n<li><code>SIGBREAK</code> is delivered on Windows when <code>&lt;Ctrl&gt;+&lt;Break&gt;</code> is pressed, on\nnon-Windows platforms it can be listened on, but there is no way to send or\ngenerate it.</li>\n<li><code>SIGWINCH</code> is delivered when the console has been resized. On Windows, this\nwill only happen on write to the console when the cursor is being moved, or\nwhen a readable tty is used in raw mode.</li>\n<li><code>SIGKILL</code> cannot have a listener installed, it will unconditionally terminate\nNode.js on all platforms.</li>\n<li><code>SIGSTOP</code> cannot have a listener installed.</li>\n<li><code>SIGBUS</code>, <code>SIGFPE</code>, <code>SIGSEGV</code> and <code>SIGILL</code>, when not raised artificially\n using kill(2), inherently leave the process in a state from which it is not\n safe to attempt to call JS listeners. Doing so might lead to the process\n hanging in an endless loop, since listeners attached using <code>process.on()</code> are\n called asynchronously and therefore unable to correct the underlying problem.</li>\n</ul>\n<p><em>Note</em>: Windows does not support sending signals, but Node.js offers some\nemulation with <a href=\"#process_process_kill_pid_signal\"><code>process.kill()</code></a>, and <a href=\"child_process.html#child_process_subprocess_kill_signal\"><code>subprocess.kill()</code></a>. Sending\nsignal <code>0</code> can be used to test for the existence of a process. Sending <code>SIGINT</code>,\n<code>SIGTERM</code>, and <code>SIGKILL</code> cause the unconditional termination of the target\nprocess.</p>\n",
               "params": []
             }
           ],
@@ -47805,7 +48078,8 @@
           "desc": "<p>The <code>process.argv0</code> property stores a read-only copy of the original value of\n<code>argv[0]</code> passed when Node.js starts.</p>\n<pre><code class=\"lang-console\">$ bash -c &#39;exec -a customArgv0 ./node&#39;\n&gt; process.argv[0]\n&#39;/Volumes/code/external/node/out/Release/node&#39;\n&gt; process.argv0\n&#39;customArgv0&#39;\n</code></pre>\n"
         },
         {
-          "textRaw": "process.channel",
+          "textRaw": "`channel` {Object} ",
+          "type": "Object",
           "name": "channel",
           "meta": {
             "added": [
@@ -47864,8 +48138,8 @@
           "desc": "<p>The <code>process.env</code> property returns an object containing the user environment.\nSee environ(7).</p>\n<p>An example of this object looks like:</p>\n<!-- eslint-skip -->\n<pre><code class=\"lang-js\">{\n  TERM: &#39;xterm-256color&#39;,\n  SHELL: &#39;/usr/local/bin/bash&#39;,\n  USER: &#39;maciej&#39;,\n  PATH: &#39;~/.bin/:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin&#39;,\n  PWD: &#39;/Users/maciej&#39;,\n  EDITOR: &#39;vim&#39;,\n  SHLVL: &#39;1&#39;,\n  HOME: &#39;/Users/maciej&#39;,\n  LOGNAME: &#39;maciej&#39;,\n  _: &#39;/usr/local/bin/node&#39;\n}\n</code></pre>\n<p>It is possible to modify this object, but such modifications will not be\nreflected outside the Node.js process. In other words, the following example\nwould not work:</p>\n<pre><code class=\"lang-console\">$ node -e &#39;process.env.foo = &quot;bar&quot;&#39; &amp;&amp; echo $foo\n</code></pre>\n<p>While the following will:</p>\n<pre><code class=\"lang-js\">process.env.foo = &#39;bar&#39;;\nconsole.log(process.env.foo);\n</code></pre>\n<p>Assigning a property on <code>process.env</code> will implicitly convert the value\nto a string.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">process.env.test = null;\nconsole.log(process.env.test);\n// =&gt; &#39;null&#39;\nprocess.env.test = undefined;\nconsole.log(process.env.test);\n// =&gt; &#39;undefined&#39;\n</code></pre>\n<p>Use <code>delete</code> to delete a property from <code>process.env</code>.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">process.env.TEST = 1;\ndelete process.env.TEST;\nconsole.log(process.env.TEST);\n// =&gt; undefined\n</code></pre>\n<p>On Windows operating systems, environment variables are case-insensitive.</p>\n<p>Example:</p>\n<pre><code class=\"lang-js\">process.env.TEST = 1;\nconsole.log(process.env.test);\n// =&gt; 1\n</code></pre>\n"
         },
         {
-          "textRaw": "`execArgv` {Object} ",
-          "type": "Object",
+          "textRaw": "`execArgv` {Array} ",
+          "type": "Array",
           "name": "execArgv",
           "meta": {
             "added": [
@@ -47900,7 +48174,8 @@
           "desc": "<p>A number which will be the process exit code, when the process either\nexits gracefully, or is exited via <a href=\"#process_process_exit_code\"><code>process.exit()</code></a> without specifying\na code.</p>\n<p>Specifying a code to <a href=\"#process_process_exit_code\"><code>process.exit(code)</code></a> will override any\nprevious setting of <code>process.exitCode</code>.</p>\n"
         },
         {
-          "textRaw": "process.mainModule",
+          "textRaw": "`mainModule` {Object} ",
+          "type": "Object",
           "name": "mainModule",
           "meta": {
             "added": [
@@ -47959,7 +48234,8 @@
           "desc": "<p>The <code>process.ppid</code> property returns the PID of the current parent process.</p>\n<pre><code class=\"lang-js\">console.log(`The parent process is pid ${process.ppid}`);\n</code></pre>\n"
         },
         {
-          "textRaw": "process.release",
+          "textRaw": "`release` {Object} ",
+          "type": "Object",
           "name": "release",
           "meta": {
             "added": [

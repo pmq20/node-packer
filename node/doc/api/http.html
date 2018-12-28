@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>HTTP | Node.js v8.14.0 Documentation</title>
+  <title>HTTP | Node.js v8.15.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -75,14 +75,13 @@
 
 <ul>
 <li><a class="nav-https-github-com-nodejs-node" href="https://github.com/nodejs/node">GitHub Repo &amp; Issue Tracker</a></li>
-<li><a class="nav-https-groups-google-com-group-nodejs" href="https://groups.google.com/group/nodejs">Mailing List</a></li>
 </ul>
 
     </div>
 
     <div id="column1" data-id="http" class="interior">
       <header>
-        <h1>Node.js v8.14.0 Documentation</h1>
+        <h1>Node.js v8.15.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -97,7 +96,9 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v9.x/api/http.html">9.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v11.x/api/http.html">11.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v10.x/api/http.html">10.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v9.x/api/http.html">9.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v8.x/api/http.html">8.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v7.x/api/http.html">7.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v6.x/api/http.html">6.x <b>LTS</b></a></li>
@@ -200,6 +201,7 @@
 <li><span class="stability_undefined"><a href="#http_event_aborted">Event: &#39;aborted&#39;</a></span></li>
 <li><span class="stability_undefined"><a href="#http_event_close_2">Event: &#39;close&#39;</a></span></li>
 <li><span class="stability_undefined"><a href="#http_message_aborted">message.aborted</a></span></li>
+<li><span class="stability_undefined"><a href="#http_message_complete">message.complete</a></span></li>
 <li><span class="stability_undefined"><a href="#http_message_destroy_error">message.destroy([error])</a></span></li>
 <li><span class="stability_undefined"><a href="#http_message_headers">message.headers</a></span></li>
 <li><span class="stability_undefined"><a href="#http_message_httpversion">message.httpVersion</a></span></li>
@@ -216,9 +218,10 @@
 </li>
 <li><span class="stability_undefined"><a href="#http_http_methods">http.METHODS</a></span></li>
 <li><span class="stability_undefined"><a href="#http_http_status_codes">http.STATUS_CODES</a></span></li>
-<li><span class="stability_undefined"><a href="#http_http_createserver_options_requestlistener">http.createServer([options][, requestListener])</a></span></li>
+<li><span class="stability_undefined"><a href="#http_http_createserver_requestlistener">http.createServer([requestListener])</a></span></li>
 <li><span class="stability_undefined"><a href="#http_http_get_options_callback">http.get(options[, callback])</a></span></li>
 <li><span class="stability_undefined"><a href="#http_http_globalagent">http.globalAgent</a></span></li>
+<li><span class="stability_undefined"><a href="#http_http_maxheadersize">http.maxHeaderSize</a></span></li>
 <li><span class="stability_undefined"><a href="#http_http_request_options_callback">http.request(options[, callback])</a></span></li>
 </ul>
 </li>
@@ -1355,6 +1358,29 @@ Just like <code>&#39;end&#39;</code>, this event occurs only once per response.<
 </ul>
 <p>The <code>message.aborted</code> property will be <code>true</code> if the request has
 been aborted.</p>
+<h3>message.complete<span><a class="mark" href="#http_message_complete" id="http_message_complete">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.3.0</span>
+</div><ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
+</ul>
+<p>The <code>message.complete</code> property will be <code>true</code> if a complete HTTP message has
+been received and successfully parsed.</p>
+<p>This property is particularly useful as a means of determining if a client or
+server fully transmitted a message before a connection was terminated:</p>
+<pre><code class="lang-js">const req = http.request({
+  host: &#39;127.0.0.1&#39;,
+  port: 8080,
+  method: &#39;POST&#39;
+}, (res) =&gt; {
+  res.resume();
+  res.on(&#39;end&#39;, () =&gt; {
+    if (!res.complete)
+      console.error(
+        &#39;The connection was terminated while the message was still being sent&#39;);
+  });
+});
+</code></pre>
 <h3>message.destroy([error])<span><a class="mark" href="#http_message_destroy_error" id="http_message_destroy_error">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.3.0</span>
@@ -1553,29 +1579,10 @@ Url {
 <p>A collection of all the standard HTTP response status codes, and the
 short description of each. For example, <code>http.STATUS_CODES[404] === &#39;Not
 Found&#39;</code>.</p>
-<h2>http.createServer([options][, requestListener])<span><a class="mark" href="#http_http_createserver_options_requestlistener" id="http_http_createserver_options_requestlistener">#</a></span></h2>
+<h2>http.createServer([requestListener])<span><a class="mark" href="#http_http_createserver_requestlistener" id="http_http_createserver_requestlistener">#</a></span></h2>
 <div class="api_metadata">
-<details class="changelog"><summary>History</summary>
-<table>
-<tr><th>Version</th><th>Changes</th></tr>
-<tr><td>v8.12.0</td>
-<td><p>The <code>options</code> argument is supported now.</p>
-</td></tr>
-<tr><td>v0.1.13</td>
-<td><p><span>Added in: v0.1.13</span></p>
-</td></tr>
-</table>
-</details>
+<span>Added in: v0.1.13</span>
 </div><ul>
-<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
-<li><code>IncomingMessage</code> <a href="http.html#http_class_http_incomingmessage" class="type">&lt;http.IncomingMessage&gt;</a> Specifies the IncomingMessage class
-to be used. Useful for extending the original <code>IncomingMessage</code>.
-<strong>Default:</strong> <code>IncomingMessage</code>.</li>
-<li><code>ServerResponse</code> <a href="http.html#http_class_http_serverresponse" class="type">&lt;http.ServerResponse&gt;</a> Specifies the ServerResponse class to
-be used. Useful for extending the original <code>ServerResponse</code>. <strong>Default:</strong>
-<code>ServerResponse</code>.</li>
-</ul>
-</li>
 <li><p><code>requestListener</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></p>
 </li>
 <li><p>Returns: <a href="http.html#http_class_http_server" class="type">&lt;http.Server&gt;</a></p>
@@ -1654,6 +1661,14 @@ data for reasons stated in <a href="#http_class_http_clientrequest"><code>http.C
 </ul>
 <p>Global instance of <code>Agent</code> which is used as the default for all HTTP client
 requests.</p>
+<h2>http.maxHeaderSize<span><a class="mark" href="#http_http_maxheadersize" id="http_http_maxheadersize">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v8.15.0</span>
+</div><ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+</ul>
+<p>Read-only property specifying the maximum allowed size of HTTP headers in bytes.
+Defaults to 8KB. Configurable using the <a href="cli.html#cli_max_http_header_size_size"><code>--max-http-header-size</code></a> CLI option.</p>
 <h2>http.request(options[, callback])<span><a class="mark" href="#http_http_request_options_callback" id="http_http_request_options_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>

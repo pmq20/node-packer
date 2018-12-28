@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Child Process | Node.js v8.14.0 Documentation</title>
+  <title>Child Process | Node.js v8.15.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -75,14 +75,13 @@
 
 <ul>
 <li><a class="nav-https-github-com-nodejs-node" href="https://github.com/nodejs/node">GitHub Repo &amp; Issue Tracker</a></li>
-<li><a class="nav-https-groups-google-com-group-nodejs" href="https://groups.google.com/group/nodejs">Mailing List</a></li>
 </ul>
 
     </div>
 
     <div id="column1" data-id="child_process" class="interior">
       <header>
-        <h1>Node.js v8.14.0 Documentation</h1>
+        <h1>Node.js v8.15.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -97,7 +96,9 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v9.x/api/child_process.html">9.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v11.x/api/child_process.html">11.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v10.x/api/child_process.html">10.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v9.x/api/child_process.html">9.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v8.x/api/child_process.html">8.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v7.x/api/child_process.html">7.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v6.x/api/child_process.html">6.x <b>LTS</b></a></li>
@@ -188,10 +189,12 @@ ls.on(&#39;close&#39;, (code) =&gt; {
 });
 </code></pre>
 <p>By default, pipes for <code>stdin</code>, <code>stdout</code>, and <code>stderr</code> are established between
-the parent Node.js process and the spawned child. It is possible to stream data
-through these pipes in a non-blocking way. <em>Note, however, that some programs
-use line-buffered I/O internally. While that does not affect Node.js, it can
-mean that data sent to the child process may not be immediately consumed.</em></p>
+the parent Node.js process and the spawned child. These pipes have
+limited (and platform-specific) capacity. If the child process writes to
+stdout in excess of that limit without the output being captured, the child
+process will block waiting for the pipe buffer to accept more data. This is
+identical to the behavior of pipes in the shell. Use the <code>{ stdio: &#39;ignore&#39; }</code>
+option if the output will not be consumed.</p>
 <p>The <a href="#child_process_child_process_spawn_command_args_options"><code>child_process.spawn()</code></a> method spawns the child process asynchronously,
 without blocking the Node.js event loop. The <a href="#child_process_child_process_spawnsync_command_args_options"><code>child_process.spawnSync()</code></a>
 function provides equivalent functionality in a synchronous manner that blocks

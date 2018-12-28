@@ -529,16 +529,6 @@
       "type": "list_item_end"
     },
     {
-      "type": "list_item_start"
-    },
-    {
-      "type": "text",
-      "text": "[Mailing List](https://groups.google.com/group/nodejs)"
-    },
-    {
-      "type": "list_item_end"
-    },
-    {
       "type": "list_end"
     }
   ]

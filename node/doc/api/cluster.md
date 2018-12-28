@@ -198,8 +198,8 @@ Within a worker, `process.on('message')` may also be used.
 
 See [`process` event: `'message'`][].
 
-As an example, here is a cluster that keeps count of the number of requests
-in the master process using the message system:
+Here is an example using the message system. It keeps a count in the master
+process of the number of HTTP requests received by the workers:
 
 ```js
 const cluster = require('cluster');
@@ -873,6 +873,7 @@ socket.on('data', (id) => {
 
 [`ChildProcess.send()`]: child_process.html#child_process_subprocess_send_message_sendhandle_options_callback
 [`child_process.fork()`]: child_process.html#child_process_child_process_fork_modulepath_args_options
+[`cluster.settings`]: #cluster_cluster_settings
 [`disconnect`]: child_process.html#child_process_subprocess_disconnect
 [`kill`]: process.html#process_process_kill_pid_signal
 [`process` event: `'message'`]: process.html#process_event_message
@@ -881,4 +882,3 @@ socket.on('data', (id) => {
 [Child Process module]: child_process.html#child_process_child_process_fork_modulepath_args_options
 [child_process event: 'exit']: child_process.html#child_process_event_exit
 [child_process event: 'message']: child_process.html#child_process_event_message
-[`cluster.settings`]: #cluster_cluster_settings

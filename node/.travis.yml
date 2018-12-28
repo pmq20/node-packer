@@ -1,0 +1,27 @@
+language: cpp
+sudo: false
+cache: ccache
+os: linux
+matrix:
+  include:
+    - name: "Linter"
+      node_js: "latest"
+      env:
+        - NODE=$(which node)
+      script:
+        - make lint
+        # Lint the first commit in the PR.
+        - \[ -z "$TRAVIS_COMMIT_RANGE" \] || (echo -e '\nLinting the commit message according to the guidelines at https://goo.gl/p2fr5Q\n' && git log $TRAVIS_COMMIT_RANGE --pretty=format:'%h' --no-merges | tail -1 | xargs npx -q core-validate-commit --no-validate-metadata)
+    - name: "Test Suite"
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-4.9
+      install:
+        - export CC='ccache gcc-4.9' CXX='ccache g++-4.9' JOBS=2
+        - ./configure
+        - make -j2 V=
+      script:
+        - PARALLEL_ARGS='--flaky-tests=skip' make -j1 test

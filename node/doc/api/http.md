@@ -1441,6 +1441,34 @@ added: v8.13.0
 The `message.aborted` property will be `true` if the request has
 been aborted.
 
+### message.complete
+<!-- YAML
+added: v0.3.0
+-->
+
+* {boolean}
+
+The `message.complete` property will be `true` if a complete HTTP message has
+been received and successfully parsed.
+
+This property is particularly useful as a means of determining if a client or
+server fully transmitted a message before a connection was terminated:
+
+```js
+const req = http.request({
+  host: '127.0.0.1',
+  port: 8080,
+  method: 'POST'
+}, (res) => {
+  res.resume();
+  res.on('end', () => {
+    if (!res.complete)
+      console.error(
+        'The connection was terminated while the message was still being sent');
+  });
+});
+```
+
 ### message.destroy([error])
 <!-- YAML
 added: v0.3.0
@@ -1692,21 +1720,10 @@ A collection of all the standard HTTP response status codes, and the
 short description of each. For example, `http.STATUS_CODES[404] === 'Not
 Found'`.
 
-## http.createServer([options][, requestListener])
+## http.createServer([requestListener])
 <!-- YAML
 added: v0.1.13
-changes:
-  - version: v8.12.0
-    pr-url: https://github.com/nodejs/node/pull/15752
-    description: The `options` argument is supported now.
 -->
-- `options` {Object}
-  * `IncomingMessage` {http.IncomingMessage} Specifies the IncomingMessage class
-    to be used. Useful for extending the original `IncomingMessage`.
-    **Default:** `IncomingMessage`.
-  * `ServerResponse` {http.ServerResponse} Specifies the ServerResponse class to
-    be used. Useful for extending the original `ServerResponse`. **Default:**
-    `ServerResponse`.
 - `requestListener` {Function}
 
 * Returns: {http.Server}
@@ -1787,6 +1804,16 @@ added: v0.5.9
 
 Global instance of `Agent` which is used as the default for all HTTP client
 requests.
+
+## http.maxHeaderSize
+<!-- YAML
+added: v8.15.0
+-->
+
+* {number}
+
+Read-only property specifying the maximum allowed size of HTTP headers in bytes.
+Defaults to 8KB. Configurable using the [`--max-http-header-size`][] CLI option.
 
 ## http.request(options[, callback])
 <!-- YAML
@@ -1965,6 +1992,7 @@ will be emitted in the following order:
 Note that setting the `timeout` option or using the `setTimeout` function will
 not abort the request or do anything besides add a `timeout` event.
 
+[`--max-http-header-size`]: cli.html#cli_max_http_header_size_size
 [`'checkContinue'`]: #http_event_checkcontinue
 [`'request'`]: #http_event_request
 [`'response'`]: #http_event_response
@@ -1991,8 +2019,8 @@ not abort the request or do anything besides add a `timeout` event.
 [`removeHeader(name)`]: #http_request_removeheader_name
 [`request.end()`]: #http_request_end_data_encoding_callback
 [`request.setTimeout()`]: #http_request_settimeout_timeout_callback
-[`request.socket`]: #http_request_socket
 [`request.socket.getPeerCertificate()`]: tls.html#tls_tlssocket_getpeercertificate_detailed
+[`request.socket`]: #http_request_socket
 [`request.write(data, encoding)`]: #http_request_write_chunk_encoding_callback
 [`response.end()`]: #http_response_end_data_encoding_callback
 [`response.setHeader()`]: #http_response_setheader_name_value

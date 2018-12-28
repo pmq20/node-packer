@@ -621,8 +621,6 @@ class Parser : public AsyncWrap {
     size_t nparsed =
       http_parser_execute(&parser_, &settings, data, len);
 
-    enum http_errno err = HTTP_PARSER_ERRNO(&parser_);
-
     Save();
 
     // Unassign the 'buffer_' variable
@@ -637,7 +635,9 @@ class Parser : public AsyncWrap {
     Local<Integer> nparsed_obj = Integer::New(env()->isolate(), nparsed);
     // If there was a parse error in one of the callbacks
     // TODO(bnoordhuis) What if there is an error on EOF?
-    if ((!parser_.upgrade && nparsed != len) || err != HPE_OK) {
+    if (!parser_.upgrade && nparsed != len) {
+      enum http_errno err = HTTP_PARSER_ERRNO(&parser_);
+
       Local<Value> e = Exception::Error(env()->parse_error_string());
       Local<Object> obj = e->ToObject(env()->isolate());
       obj->Set(env()->bytes_parsed_string(), nparsed_obj);
@@ -755,6 +755,9 @@ const struct http_parser_settings Parser::settings = {
   nullptr   // on_chunk_complete
 };
 
+void InitMaxHttpHeaderSizeOnce() {
+  http_parser_set_max_header_size(max_http_header_size);
+}
 
 void InitHttpParser(Local<Object> target,
                     Local<Value> unused,
@@ -801,6 +804,8 @@ void InitHttpParser(Local<Object> target,
 
   target->Set(FIXED_ONE_BYTE_STRING(env->isolate(), "HTTPParser"),
               t->GetFunction());
+  static uv_once_t init_once = UV_ONCE_INIT;
+  uv_once(&init_once, InitMaxHttpHeaderSizeOnce);
 }
 
 }  // anonymous namespace

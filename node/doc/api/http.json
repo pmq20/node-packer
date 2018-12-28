@@ -1736,6 +1736,18 @@
               "desc": "<p>The <code>message.aborted</code> property will be <code>true</code> if the request has\nbeen aborted.</p>\n"
             },
             {
+              "textRaw": "`complete` {boolean} ",
+              "type": "boolean",
+              "name": "complete",
+              "meta": {
+                "added": [
+                  "v0.3.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>The <code>message.complete</code> property will be <code>true</code> if a complete HTTP message has\nbeen received and successfully parsed.</p>\n<p>This property is particularly useful as a means of determining if a client or\nserver fully transmitted a message before a connection was terminated:</p>\n<pre><code class=\"lang-js\">const req = http.request({\n  host: &#39;127.0.0.1&#39;,\n  port: 8080,\n  method: &#39;POST&#39;\n}, (res) =&gt; {\n  res.resume();\n  res.on(&#39;end&#39;, () =&gt; {\n    if (!res.complete)\n      console.error(\n        &#39;The connection was terminated while the message was still being sent&#39;);\n  });\n});\n</code></pre>\n"
+            },
+            {
               "textRaw": "`headers` {Object} ",
               "type": "Object",
               "name": "headers",
@@ -1966,24 +1978,30 @@
             "changes": []
           },
           "desc": "<p>Global instance of <code>Agent</code> which is used as the default for all HTTP client\nrequests.</p>\n"
+        },
+        {
+          "textRaw": "`maxHeaderSize` {number} ",
+          "type": "number",
+          "name": "maxHeaderSize",
+          "meta": {
+            "added": [
+              "v8.15.0"
+            ],
+            "changes": []
+          },
+          "desc": "<p>Read-only property specifying the maximum allowed size of HTTP headers in bytes.\nDefaults to 8KB. Configurable using the <a href=\"cli.html#cli_max_http_header_size_size\"><code>--max-http-header-size</code></a> CLI option.</p>\n"
         }
       ],
       "methods": [
         {
-          "textRaw": "http.createServer([options][, requestListener])",
+          "textRaw": "http.createServer([requestListener])",
           "type": "method",
           "name": "createServer",
           "meta": {
             "added": [
               "v0.1.13"
             ],
-            "changes": [
-              {
-                "version": "v8.12.0",
-                "pr-url": "https://github.com/nodejs/node/pull/15752",
-                "description": "The `options` argument is supported now."
-              }
-            ]
+            "changes": []
           },
           "signatures": [
             {
@@ -1994,28 +2012,6 @@
               },
               "params": [
                 {
-                  "textRaw": "`options` {Object} ",
-                  "options": [
-                    {
-                      "textRaw": "`IncomingMessage` {http.IncomingMessage} Specifies the IncomingMessage class to be used. Useful for extending the original `IncomingMessage`. **Default:** `IncomingMessage`. ",
-                      "name": "IncomingMessage",
-                      "default": "`IncomingMessage`",
-                      "type": "http.IncomingMessage",
-                      "desc": "Specifies the IncomingMessage class to be used. Useful for extending the original `IncomingMessage`."
-                    },
-                    {
-                      "textRaw": "`ServerResponse` {http.ServerResponse} Specifies the ServerResponse class to be used. Useful for extending the original `ServerResponse`. **Default:** `ServerResponse`. ",
-                      "name": "ServerResponse",
-                      "default": "`ServerResponse`",
-                      "type": "http.ServerResponse",
-                      "desc": "Specifies the ServerResponse class to be used. Useful for extending the original `ServerResponse`."
-                    }
-                  ],
-                  "name": "options",
-                  "type": "Object",
-                  "optional": true
-                },
-                {
                   "textRaw": "`requestListener` {Function} ",
                   "name": "requestListener",
                   "type": "Function",
@@ -2025,10 +2021,6 @@
             },
             {
               "params": [
-                {
-                  "name": "options",
-                  "optional": true
-                },
                 {
                   "name": "requestListener",
                   "optional": true

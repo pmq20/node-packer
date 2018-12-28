@@ -168,7 +168,13 @@
                 "added": [
                   "v8.0.0"
                 ],
-                "changes": []
+                "changes": [
+                  {
+                    "version": "v8.10.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/17033",
+                    "description": "`console.debug` is now an alias for `console.log`."
+                  }
+                ]
               },
               "signatures": [
                 {
@@ -636,6 +642,265 @@
               "desc": "<p>Creates a new <code>Console</code> with one or two writable stream instances. <code>stdout</code> is a\nwritable stream to print log or info output. <code>stderr</code> is used for warning or\nerror output. If <code>stderr</code> is not provided, <code>stdout</code> is used for <code>stderr</code>.</p>\n<pre><code class=\"lang-js\">const output = fs.createWriteStream(&#39;./stdout.log&#39;);\nconst errorOutput = fs.createWriteStream(&#39;./stderr.log&#39;);\n// custom simple logger\nconst logger = new Console(output, errorOutput);\n// use it like console\nconst count = 5;\nlogger.log(&#39;count: %d&#39;, count);\n// in stdout.log: count 5\n</code></pre>\n<p>The global <code>console</code> is a special <code>Console</code> whose output is sent to\n<a href=\"process.html#process_process_stdout\"><code>process.stdout</code></a> and <a href=\"process.html#process_process_stderr\"><code>process.stderr</code></a>. It is equivalent to calling:</p>\n<pre><code class=\"lang-js\">new Console(process.stdout, process.stderr);\n</code></pre>\n"
             }
           ]
+        }
+      ],
+      "modules": [
+        {
+          "textRaw": "Inspector only methods",
+          "name": "inspector_only_methods",
+          "desc": "<p>The following methods are exposed by the V8 engine in the general API but do\nnot display anything unless used in conjunction with the <a href=\"debugger.html\">inspector</a>\n(<code>--inspect</code> flag).</p>\n",
+          "methods": [
+            {
+              "textRaw": "console.dirxml(object)",
+              "type": "method",
+              "name": "dirxml",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`object` {string} ",
+                      "name": "object",
+                      "type": "string"
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "object"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>This method does not display anything unless used in the inspector. The\n<code>console.dirxml()</code> method displays in <code>stdout</code> an XML interactive tree\nrepresentation of the descendants of the specified <code>object</code> if possible, or the\nJavaScript representation if not. Calling <code>console.dirxml()</code> on an HTML or XML\nelement is equivalent to calling <code>console.log()</code>.</p>\n"
+            },
+            {
+              "textRaw": "console.markTimeline(label)",
+              "type": "method",
+              "name": "markTimeline",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`label` {string} Defaults to `'default'`. ",
+                      "name": "label",
+                      "type": "string",
+                      "desc": "Defaults to `'default'`."
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "label"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>This method does not display anything unless used in the inspector. The\n<code>console.markTimeline()</code> method is the deprecated form of <a href=\"#console_console_timestamp_label\"><code>console.timeStamp()</code></a>.</p>\n"
+            },
+            {
+              "textRaw": "console.profile([label])",
+              "type": "method",
+              "name": "profile",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`label` {string} ",
+                      "name": "label",
+                      "type": "string",
+                      "optional": true
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "label",
+                      "optional": true
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>This method does not display anything unless used in the inspector. The\n<code>console.profile()</code> method starts a JavaScript CPU profile with an optional\nlabel until <a href=\"#console_console_profileend\"><code>console.profileEnd()</code></a> is called. The profile is then added to\nthe <strong>Profile</strong> panel of the inspector.</p>\n<pre><code class=\"lang-js\">console.profile(&#39;MyLabel&#39;);\n// Some code\nconsole.profileEnd();\n// Adds the profile &#39;MyLabel&#39; to the Profiles panel of the inspector.\n</code></pre>\n"
+            },
+            {
+              "textRaw": "console.profileEnd()",
+              "type": "method",
+              "name": "profileEnd",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>This method does not display anything unless used in the inspector. Stops the\ncurrent JavaScript CPU profiling session if one has been started and prints\nthe report to the <strong>Profiles</strong> panel of the inspector. See\n<a href=\"#console_console_profile_label\"><code>console.profile()</code></a> for an example.</p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "console.table(array[, columns])",
+              "type": "method",
+              "name": "table",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`array` {Array|Object} ",
+                      "name": "array",
+                      "type": "Array|Object"
+                    },
+                    {
+                      "textRaw": "`columns` {Array} ",
+                      "name": "columns",
+                      "type": "Array",
+                      "optional": true
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "array"
+                    },
+                    {
+                      "name": "columns",
+                      "optional": true
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>This method does not display anything unless used in the inspector. Prints to\n<code>stdout</code> the array <code>array</code> formatted as a table.</p>\n"
+            },
+            {
+              "textRaw": "console.timeStamp([label])",
+              "type": "method",
+              "name": "timeStamp",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`label` {string} ",
+                      "name": "label",
+                      "type": "string",
+                      "optional": true
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "label",
+                      "optional": true
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>This method does not display anything unless used in the inspector. The\n<code>console.timeStamp()</code> method adds an event with the label <code>label</code> to the\n<strong>Timeline</strong> panel of the inspector.</p>\n"
+            },
+            {
+              "textRaw": "console.timeline([label])",
+              "type": "method",
+              "name": "timeline",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`label` {string} Defaults to `'default'`. ",
+                      "name": "label",
+                      "type": "string",
+                      "desc": "Defaults to `'default'`.",
+                      "optional": true
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "label",
+                      "optional": true
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>This method does not display anything unless used in the inspector. The\n<code>console.timeline()</code> method is the deprecated form of <a href=\"#console_console_time_label\"><code>console.time()</code></a>.</p>\n"
+            },
+            {
+              "textRaw": "console.timelineEnd([label])",
+              "type": "method",
+              "name": "timelineEnd",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`label` {string} Defaults to `'default'`. ",
+                      "name": "label",
+                      "type": "string",
+                      "desc": "Defaults to `'default'`.",
+                      "optional": true
+                    }
+                  ]
+                },
+                {
+                  "params": [
+                    {
+                      "name": "label",
+                      "optional": true
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>This method does not display anything unless used in the inspector. The\n<code>console.timelineEnd()</code> method is the deprecated form of <a href=\"#console_console_timeend_label\"><code>console.timeEnd()</code></a>.</p>\n"
+            }
+          ],
+          "type": "module",
+          "displayName": "Inspector only methods"
         }
       ],
       "type": "module",

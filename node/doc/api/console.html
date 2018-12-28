@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Console | Node.js v8.14.0 Documentation</title>
+  <title>Console | Node.js v8.15.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -75,14 +75,13 @@
 
 <ul>
 <li><a class="nav-https-github-com-nodejs-node" href="https://github.com/nodejs/node">GitHub Repo &amp; Issue Tracker</a></li>
-<li><a class="nav-https-groups-google-com-group-nodejs" href="https://groups.google.com/group/nodejs">Mailing List</a></li>
 </ul>
 
     </div>
 
     <div id="column1" data-id="console" class="interior">
       <header>
-        <h1>Node.js v8.14.0 Documentation</h1>
+        <h1>Node.js v8.15.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -97,7 +96,9 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v9.x/api/console.html">9.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v11.x/api/console.html">11.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v10.x/api/console.html">10.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v9.x/api/console.html">9.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v8.x/api/console.html">8.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v7.x/api/console.html">7.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v6.x/api/console.html">6.x <b>LTS</b></a></li>
@@ -134,6 +135,17 @@
 <li><span class="stability_undefined"><a href="#console_console_timeend_label">console.timeEnd(label)</a></span></li>
 <li><span class="stability_undefined"><a href="#console_console_trace_message_args">console.trace([message][, ...args])</a></span></li>
 <li><span class="stability_undefined"><a href="#console_console_warn_data_args">console.warn([data][, ...args])</a></span></li>
+</ul>
+</li>
+<li><span class="stability_undefined"><a href="#console_inspector_only_methods">Inspector only methods</a></span><ul>
+<li><span class="stability_undefined"><a href="#console_console_dirxml_object">console.dirxml(object)</a></span></li>
+<li><span class="stability_undefined"><a href="#console_console_marktimeline_label">console.markTimeline(label)</a></span></li>
+<li><span class="stability_undefined"><a href="#console_console_profile_label">console.profile([label])</a></span></li>
+<li><span class="stability_undefined"><a href="#console_console_profileend">console.profileEnd()</a></span></li>
+<li><span class="stability_undefined"><a href="#console_console_table_array_columns">console.table(array[, columns])</a></span></li>
+<li><span class="stability_undefined"><a href="#console_console_timestamp_label">console.timeStamp([label])</a></span></li>
+<li><span class="stability_undefined"><a href="#console_console_timeline_label">console.timeline([label])</a></span></li>
+<li><span class="stability_undefined"><a href="#console_console_timelineend_label">console.timelineEnd([label])</a></span></li>
 </ul>
 </li>
 </ul>
@@ -338,7 +350,17 @@ undefined
 </code></pre>
 <h3>console.debug(data[, ...args])<span><a class="mark" href="#console_console_debug_data_args" id="console_console_debug_data_args">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v8.0.0</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v8.10.0</td>
+<td><p><code>console.debug</code> is now an alias for <code>console.log</code>.</p>
+</td></tr>
+<tr><td>v8.0.0</td>
+<td><p><span>Added in: v8.0.0</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>data</code> <span class="type">&lt;any&gt;</span></li>
 <li><code>...args</code> <span class="type">&lt;any&gt;</span></li>
@@ -494,6 +516,85 @@ formatted message and stack trace to the current position in the code.</p>
 <li><code>...args</code> <span class="type">&lt;any&gt;</span></li>
 </ul>
 <p>The <code>console.warn()</code> function is an alias for <a href="#console_console_error_data_args"><code>console.error()</code></a>.</p>
+<h2>Inspector only methods<span><a class="mark" href="#console_inspector_only_methods" id="console_inspector_only_methods">#</a></span></h2>
+<p>The following methods are exposed by the V8 engine in the general API but do
+not display anything unless used in conjunction with the <a href="debugger.html">inspector</a>
+(<code>--inspect</code> flag).</p>
+<h3>console.dirxml(object)<span><a class="mark" href="#console_console_dirxml_object" id="console_console_dirxml_object">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.0.0</span>
+</div><ul>
+<li><code>object</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+</ul>
+<p>This method does not display anything unless used in the inspector. The
+<code>console.dirxml()</code> method displays in <code>stdout</code> an XML interactive tree
+representation of the descendants of the specified <code>object</code> if possible, or the
+JavaScript representation if not. Calling <code>console.dirxml()</code> on an HTML or XML
+element is equivalent to calling <code>console.log()</code>.</p>
+<h3>console.markTimeline(label)<span><a class="mark" href="#console_console_marktimeline_label" id="console_console_marktimeline_label">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.0.0</span>
+</div><ul>
+<li><code>label</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Defaults to <code>&#39;default&#39;</code>.</li>
+</ul>
+<p>This method does not display anything unless used in the inspector. The
+<code>console.markTimeline()</code> method is the deprecated form of <a href="#console_console_timestamp_label"><code>console.timeStamp()</code></a>.</p>
+<h3>console.profile([label])<span><a class="mark" href="#console_console_profile_label" id="console_console_profile_label">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.0.0</span>
+</div><ul>
+<li><code>label</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+</ul>
+<p>This method does not display anything unless used in the inspector. The
+<code>console.profile()</code> method starts a JavaScript CPU profile with an optional
+label until <a href="#console_console_profileend"><code>console.profileEnd()</code></a> is called. The profile is then added to
+the <strong>Profile</strong> panel of the inspector.</p>
+<pre><code class="lang-js">console.profile(&#39;MyLabel&#39;);
+// Some code
+console.profileEnd();
+// Adds the profile &#39;MyLabel&#39; to the Profiles panel of the inspector.
+</code></pre>
+<h3>console.profileEnd()<span><a class="mark" href="#console_console_profileend" id="console_console_profileend">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.0.0</span>
+</div><p>This method does not display anything unless used in the inspector. Stops the
+current JavaScript CPU profiling session if one has been started and prints
+the report to the <strong>Profiles</strong> panel of the inspector. See
+<a href="#console_console_profile_label"><code>console.profile()</code></a> for an example.</p>
+<h3>console.table(array[, columns])<span><a class="mark" href="#console_console_table_array_columns" id="console_console_table_array_columns">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.0.0</span>
+</div><ul>
+<li><code>array</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
+<li><code>columns</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a></li>
+</ul>
+<p>This method does not display anything unless used in the inspector. Prints to
+<code>stdout</code> the array <code>array</code> formatted as a table.</p>
+<h3>console.timeStamp([label])<span><a class="mark" href="#console_console_timestamp_label" id="console_console_timestamp_label">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.0.0</span>
+</div><ul>
+<li><code>label</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+</ul>
+<p>This method does not display anything unless used in the inspector. The
+<code>console.timeStamp()</code> method adds an event with the label <code>label</code> to the
+<strong>Timeline</strong> panel of the inspector.</p>
+<h3>console.timeline([label])<span><a class="mark" href="#console_console_timeline_label" id="console_console_timeline_label">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.0.0</span>
+</div><ul>
+<li><code>label</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Defaults to <code>&#39;default&#39;</code>.</li>
+</ul>
+<p>This method does not display anything unless used in the inspector. The
+<code>console.timeline()</code> method is the deprecated form of <a href="#console_console_time_label"><code>console.time()</code></a>.</p>
+<h3>console.timelineEnd([label])<span><a class="mark" href="#console_console_timelineend_label" id="console_console_timelineend_label">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.0.0</span>
+</div><ul>
+<li><code>label</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Defaults to <code>&#39;default&#39;</code>.</li>
+</ul>
+<p>This method does not display anything unless used in the inspector. The
+<code>console.timelineEnd()</code> method is the deprecated form of <a href="#console_console_timeend_label"><code>console.timeEnd()</code></a>.</p>
 
       </div>
     </div>

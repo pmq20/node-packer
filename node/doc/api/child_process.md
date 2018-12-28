@@ -26,10 +26,12 @@ ls.on('close', (code) => {
 ```
 
 By default, pipes for `stdin`, `stdout`, and `stderr` are established between
-the parent Node.js process and the spawned child. It is possible to stream data
-through these pipes in a non-blocking way. *Note, however, that some programs
-use line-buffered I/O internally. While that does not affect Node.js, it can
-mean that data sent to the child process may not be immediately consumed.*
+the parent Node.js process and the spawned child. These pipes have
+limited (and platform-specific) capacity. If the child process writes to
+stdout in excess of that limit without the output being captured, the child
+process will block waiting for the pipe buffer to accept more data. This is
+identical to the behavior of pipes in the shell. Use the `{ stdio: 'ignore' }`
+option if the output will not be consumed.
 
 The [`child_process.spawn()`][] method spawns the child process asynchronously,
 without blocking the Node.js event loop. The [`child_process.spawnSync()`][]
@@ -1378,13 +1380,6 @@ unavailable.
 [`ChildProcess`]: #child_process_child_process
 [`Error`]: errors.html#errors_class_error
 [`EventEmitter`]: events.html#events_class_eventemitter
-[`subprocess.connected`]: #child_process_subprocess_connected
-[`subprocess.disconnect()`]: #child_process_subprocess_disconnect
-[`subprocess.kill()`]: #child_process_subprocess_kill_signal
-[`subprocess.send()`]: #child_process_subprocess_send_message_sendhandle_options_callback
-[`subprocess.stderr`]: #child_process_subprocess_stderr
-[`subprocess.stdin`]: #child_process_subprocess_stdin
-[`subprocess.stdout`]: #child_process_subprocess_stdout
 [`child_process.exec()`]: #child_process_child_process_exec_command_options_callback
 [`child_process.execFile()`]: #child_process_child_process_execfile_file_args_options_callback
 [`child_process.execFileSync()`]: #child_process_child_process_execfilesync_file_args_options
@@ -1403,6 +1398,13 @@ unavailable.
 [`process.on('message')`]: process.html#process_event_message
 [`process.send()`]: process.html#process_process_send_message_sendhandle_options_callback
 [`stdio`]: #child_process_options_stdio
+[`subprocess.connected`]: #child_process_subprocess_connected
+[`subprocess.disconnect()`]: #child_process_subprocess_disconnect
+[`subprocess.kill()`]: #child_process_subprocess_kill_signal
+[`subprocess.send()`]: #child_process_subprocess_send_message_sendhandle_options_callback
+[`subprocess.stderr`]: #child_process_subprocess_stderr
+[`subprocess.stdin`]: #child_process_subprocess_stdin
+[`subprocess.stdout`]: #child_process_subprocess_stdout
 [`util.promisify()`]: util.html#util_util_promisify_original
 [Default Windows Shell]: #child_process_default_windows_shell
 [Shell Requirements]: #child_process_shell_requirements

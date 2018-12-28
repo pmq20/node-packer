@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Command Line Options | Node.js v8.14.0 Documentation</title>
+  <title>Command Line Options | Node.js v8.15.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -75,14 +75,13 @@
 
 <ul>
 <li><a class="nav-https-github-com-nodejs-node" href="https://github.com/nodejs/node">GitHub Repo &amp; Issue Tracker</a></li>
-<li><a class="nav-https-groups-google-com-group-nodejs" href="https://groups.google.com/group/nodejs">Mailing List</a></li>
 </ul>
 
     </div>
 
     <div id="column1" data-id="cli" class="interior">
       <header>
-        <h1>Node.js v8.14.0 Documentation</h1>
+        <h1>Node.js v8.15.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -97,7 +96,9 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v9.x/api/cli.html">9.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v11.x/api/cli.html">11.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v10.x/api/cli.html">10.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v9.x/api/cli.html">9.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v8.x/api/cli.html">8.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v7.x/api/cli.html">7.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v6.x/api/cli.html">6.x <b>LTS</b></a></li></ol>
@@ -151,6 +152,7 @@
 <li><span class="stability_undefined"><a href="#cli_icu_data_dir_file"><code>--icu-data-dir=file</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli"><code>-</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_1"><code>--</code></a></span></li>
+<li><span class="stability_undefined"><a href="#cli_max_http_header_size_size"><code>--max-http-header-size=size</code></a></span></li>
 </ul>
 </li>
 <li><span class="stability_undefined"><a href="#cli_environment_variables">Environment Variables</a></span><ul>
@@ -437,6 +439,10 @@ are passed to that script.</p>
 </div><p>Indicate the end of node options. Pass the rest of the arguments to the script.
 If no script filename or eval/print script is supplied prior to this, then
 the next argument will be used as a script filename.</p>
+<h3><code>--max-http-header-size=size</code><span><a class="mark" href="#cli_max_http_header_size_size" id="cli_max_http_header_size_size">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.15.0</span>
+</div><p>Specify the maximum size, in bytes, of HTTP headers. Defaults to 8KB.</p>
 <h2>Environment Variables<span><a class="mark" href="#cli_environment_variables" id="cli_environment_variables">#</a></span></h2>
 <h3><code>NODE_DEBUG=module[,…]</code><span><a class="mark" href="#cli_node_debug_module" id="cli_node_debug_module">#</a></span></h3>
 <div class="api_metadata">
@@ -471,7 +477,7 @@ with small-icu support.</p>
 if they had been specified on the command line before the actual command line
 (so they can be overridden). Node will exit with an error if an option that is
 not allowed in the environment is used, such as <code>-p</code> or a script file.</p>
-<p>Node options that are allowed are:</p>
+<p>Node.js options that are allowed are:</p>
 <ul>
 <li><code>--enable-fips</code></li>
 <li><code>--force-fips</code></li>
@@ -479,6 +485,7 @@ not allowed in the environment is used, such as <code>-p</code> or a script file
 <li><code>--inspect-brk</code></li>
 <li><code>--inspect-port</code></li>
 <li><code>--inspect</code></li>
+<li><code>--max-http-header-size</code></li>
 <li><code>--no-deprecation</code></li>
 <li><code>--no-warnings</code></li>
 <li><code>--openssl-config</code></li>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Usage | Node.js v8.14.0 Documentation</title>
+  <title>Usage | Node.js v8.15.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -75,14 +75,13 @@
 
 <ul>
 <li><a class="nav-https-github-com-nodejs-node" href="https://github.com/nodejs/node">GitHub Repo &amp; Issue Tracker</a></li>
-<li><a class="nav-https-groups-google-com-group-nodejs" href="https://groups.google.com/group/nodejs">Mailing List</a></li>
 </ul>
 
     </div>
 
     <div id="column1" data-id="synopsis" class="interior">
       <header>
-        <h1>Node.js v8.14.0 Documentation</h1>
+        <h1>Node.js v8.15.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -97,7 +96,9 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v9.x/api/synopsis.html">9.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v11.x/api/synopsis.html">11.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v10.x/api/synopsis.html">10.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v9.x/api/synopsis.html">9.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v8.x/api/synopsis.html">8.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v7.x/api/synopsis.html">7.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v6.x/api/synopsis.html">6.x <b>LTS</b></a></li>
@@ -135,7 +136,7 @@ different options and ways to run scripts with Node.js.</p>
 <code>&#39;Hello World!&#39;</code>:</p>
 <p>Commands displayed in this document are shown starting with <code>$</code> or <code>&gt;</code>
 to replicate how they would appear in a user&#39;s terminal.
-Do not include the <code>$</code> and <code>&gt;</code> character they are there to
+Do not include the <code>$</code> and <code>&gt;</code> characters. They are there to
 indicate the start of each command.</p>
 <p>There are many tutorials and examples that follow this
 convention: <code>$</code> or <code>&gt;</code> for commands run as a regular user, and <code>#</code>
@@ -144,8 +145,8 @@ for commands that should be executed as an administrator.</p>
 the output of the previous command.</p>
 <p>Firstly, make sure to have downloaded and installed Node.js.
 See <a href="https://nodejs.org/en/download/package-manager/">this guide</a> for further install information.</p>
-<p>Now, create an empty project folder called <code>projects</code>, navigate into it:
-Project folder can be named base on user&#39;s current project title but
+<p>Now, create an empty project folder called <code>projects</code>, then navigate into it.
+The project folder can be named based on the user&#39;s current project title, but
 this example will use <code>projects</code> as the project folder.</p>
 <p>Linux and Mac:</p>
 <pre><code class="lang-console">$ mkdir ~/projects
@@ -165,7 +166,7 @@ $ cd ~/projects
 hyphens (<code>-</code>) or underscores (<code>_</code>) to separate
  multiple words in filenames.</p>
 <p>Open <code>hello-world.js</code> in any preferred text editor and
-paste in the following content.</p>
+paste in the following content:</p>
 <pre><code class="lang-js">const http = require(&#39;http&#39;);
 
 const hostname = &#39;127.0.0.1&#39;;

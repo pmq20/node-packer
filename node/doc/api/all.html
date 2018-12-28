@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>About this Documentation | Node.js v8.14.0 Documentation</title>
+  <title>About this Documentation | Node.js v8.15.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -75,14 +75,13 @@
 
 <ul>
 <li><a class="nav-https-github-com-nodejs-node" href="https://github.com/nodejs/node">GitHub Repo &amp; Issue Tracker</a></li>
-<li><a class="nav-https-groups-google-com-group-nodejs" href="https://groups.google.com/group/nodejs">Mailing List</a></li>
 </ul>
 
     </div>
 
     <div id="column1" data-id="all" class="interior">
       <header>
-        <h1>Node.js v8.14.0 Documentation</h1>
+        <h1>Node.js v8.15.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -97,7 +96,9 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v9.x/api/all.html">9.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v11.x/api/all.html">11.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v10.x/api/all.html">10.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v9.x/api/all.html">9.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v8.x/api/all.html">8.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v7.x/api/all.html">7.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v6.x/api/all.html">6.x <b>LTS</b></a></li>
@@ -679,6 +680,7 @@
 <li><span class="stability_undefined"><a href="#cli_icu_data_dir_file"><code>--icu-data-dir=file</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli"><code>-</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_1"><code>--</code></a></span></li>
+<li><span class="stability_undefined"><a href="#cli_max_http_header_size_size"><code>--max-http-header-size=size</code></a></span></li>
 </ul>
 </li>
 <li><span class="stability_undefined"><a href="#cli_environment_variables">Environment Variables</a></span><ul>
@@ -721,6 +723,17 @@
 <li><span class="stability_undefined"><a href="#console_console_timeend_label">console.timeEnd(label)</a></span></li>
 <li><span class="stability_undefined"><a href="#console_console_trace_message_args">console.trace([message][, ...args])</a></span></li>
 <li><span class="stability_undefined"><a href="#console_console_warn_data_args">console.warn([data][, ...args])</a></span></li>
+</ul>
+</li>
+<li><span class="stability_undefined"><a href="#console_inspector_only_methods">Inspector only methods</a></span><ul>
+<li><span class="stability_undefined"><a href="#console_console_dirxml_object">console.dirxml(object)</a></span></li>
+<li><span class="stability_undefined"><a href="#console_console_marktimeline_label">console.markTimeline(label)</a></span></li>
+<li><span class="stability_undefined"><a href="#console_console_profile_label">console.profile([label])</a></span></li>
+<li><span class="stability_undefined"><a href="#console_console_profileend">console.profileEnd()</a></span></li>
+<li><span class="stability_undefined"><a href="#console_console_table_array_columns">console.table(array[, columns])</a></span></li>
+<li><span class="stability_undefined"><a href="#console_console_timestamp_label">console.timeStamp([label])</a></span></li>
+<li><span class="stability_undefined"><a href="#console_console_timeline_label">console.timeline([label])</a></span></li>
+<li><span class="stability_undefined"><a href="#console_console_timelineend_label">console.timelineEnd([label])</a></span></li>
 </ul>
 </li>
 </ul>
@@ -1425,6 +1438,7 @@
 <li><span class="stability_undefined"><a href="#http_event_aborted">Event: &#39;aborted&#39;</a></span></li>
 <li><span class="stability_undefined"><a href="#http_event_close_2">Event: &#39;close&#39;</a></span></li>
 <li><span class="stability_undefined"><a href="#http_message_aborted">message.aborted</a></span></li>
+<li><span class="stability_undefined"><a href="#http_message_complete">message.complete</a></span></li>
 <li><span class="stability_undefined"><a href="#http_message_destroy_error">message.destroy([error])</a></span></li>
 <li><span class="stability_undefined"><a href="#http_message_headers">message.headers</a></span></li>
 <li><span class="stability_undefined"><a href="#http_message_httpversion">message.httpVersion</a></span></li>
@@ -1441,9 +1455,10 @@
 </li>
 <li><span class="stability_undefined"><a href="#http_http_methods">http.METHODS</a></span></li>
 <li><span class="stability_undefined"><a href="#http_http_status_codes">http.STATUS_CODES</a></span></li>
-<li><span class="stability_undefined"><a href="#http_http_createserver_options_requestlistener">http.createServer([options][, requestListener])</a></span></li>
+<li><span class="stability_undefined"><a href="#http_http_createserver_requestlistener">http.createServer([requestListener])</a></span></li>
 <li><span class="stability_undefined"><a href="#http_http_get_options_callback">http.get(options[, callback])</a></span></li>
 <li><span class="stability_undefined"><a href="#http_http_globalagent">http.globalAgent</a></span></li>
+<li><span class="stability_undefined"><a href="#http_http_maxheadersize">http.maxHeaderSize</a></span></li>
 <li><span class="stability_undefined"><a href="#http_http_request_options_callback">http.request(options[, callback])</a></span></li>
 </ul>
 </li>
@@ -2672,7 +2687,7 @@ example, that <a href="fs.html#fs_fs_lchown_path_uid_gid_callback"><code>fs.lcho
 and is not available on Linux.</p>
 <p>Most Unix syscalls have Windows equivalents, but behavior may differ on Windows
 relative to Linux and macOS. For an example of the subtle ways in which it&#39;s
-sometimes impossible to replace Unix syscall semantics on Windows, see <a href="https://github.com/nodejs/node/issues/4760">Node
+sometimes impossible to replace Unix syscall semantics on Windows, see <a href="https://github.com/nodejs/node/issues/4760">Node.js
 issue 4760</a>.</p>
 <!-- [end-include:documentation.md] -->
 <!-- [start-include:synopsis.md] -->
@@ -2687,7 +2702,7 @@ different options and ways to run scripts with Node.js.</p>
 <code>&#39;Hello World!&#39;</code>:</p>
 <p>Commands displayed in this document are shown starting with <code>$</code> or <code>&gt;</code>
 to replicate how they would appear in a user&#39;s terminal.
-Do not include the <code>$</code> and <code>&gt;</code> character they are there to
+Do not include the <code>$</code> and <code>&gt;</code> characters. They are there to
 indicate the start of each command.</p>
 <p>There are many tutorials and examples that follow this
 convention: <code>$</code> or <code>&gt;</code> for commands run as a regular user, and <code>#</code>
@@ -2696,8 +2711,8 @@ for commands that should be executed as an administrator.</p>
 the output of the previous command.</p>
 <p>Firstly, make sure to have downloaded and installed Node.js.
 See <a href="https://nodejs.org/en/download/package-manager/">this guide</a> for further install information.</p>
-<p>Now, create an empty project folder called <code>projects</code>, navigate into it:
-Project folder can be named base on user&#39;s current project title but
+<p>Now, create an empty project folder called <code>projects</code>, then navigate into it.
+The project folder can be named based on the user&#39;s current project title, but
 this example will use <code>projects</code> as the project folder.</p>
 <p>Linux and Mac:</p>
 <pre><code class="lang-console">$ mkdir ~/projects
@@ -2717,7 +2732,7 @@ $ cd ~/projects
 hyphens (<code>-</code>) or underscores (<code>_</code>) to separate
  multiple words in filenames.</p>
 <p>Open <code>hello-world.js</code> in any preferred text editor and
-paste in the following content.</p>
+paste in the following content:</p>
 <pre><code class="lang-js">const http = require(&#39;http&#39;);
 
 const hostname = &#39;127.0.0.1&#39;;
@@ -2776,16 +2791,15 @@ same as <a href="#assert_assert_deepstrictequal_actual_expected_message"><code>a
 </code></pre>
 <h2>Legacy mode<span><a class="mark" href="#assert_legacy_mode" id="assert_legacy_mode">#</a></span></h2>
 <div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use strict mode instead.</div><p>When accessing <code>assert</code> directly instead of using the <code>strict</code> property, the
-<a href="https://tc39.github.io/ecma262/#sec-abstract-equality-comparison">Abstract Equality Comparison</a> will be used for any function without a
-&quot;strict&quot; in its name (e.g. <a href="#assert_assert_deepequal_actual_expected_message"><code>assert.deepEqual()</code></a>).</p>
+<a href="https://tc39.github.io/ecma262/#sec-abstract-equality-comparison">Abstract Equality Comparison</a> will be used for any function without &quot;strict&quot;
+in its name, such as <a href="#assert_assert_deepequal_actual_expected_message"><code>assert.deepEqual()</code></a>.</p>
 <p>It can be accessed using:</p>
 <pre><code class="lang-js">const assert = require(&#39;assert&#39;);
 </code></pre>
 <p>It is recommended to use the <a href="#assert_strict_mode"><code>strict mode</code></a> instead as the
-<a href="https://tc39.github.io/ecma262/#sec-abstract-equality-comparison">Abstract Equality Comparison</a> can often have surprising results. Especially
-in case of <a href="#assert_assert_deepequal_actual_expected_message"><code>assert.deepEqual()</code></a> as the used comparison rules there are very
-lax.</p>
-<p>E.g.</p>
+<a href="https://tc39.github.io/ecma262/#sec-abstract-equality-comparison">Abstract Equality Comparison</a> can often have surprising results. This is
+especially true for <a href="#assert_assert_deepequal_actual_expected_message"><code>assert.deepEqual()</code></a>, where the comparison rules are
+lax:</p>
 <pre><code class="lang-js">// WARNING: This does not throw an AssertionError!
 assert.deepEqual(/a/gi, new Date());
 </code></pre>
@@ -3674,8 +3688,8 @@ current process.</p>
 resource&#39;s constructor.</p>
 <pre><code class="lang-text">FSEVENTWRAP, FSREQWRAP, GETADDRINFOREQWRAP, GETNAMEINFOREQWRAP, HTTPPARSER,
 JSSTREAM, PIPECONNECTWRAP, PIPEWRAP, PROCESSWRAP, QUERYWRAP, SHUTDOWNWRAP,
-SIGNALWRAP, STATWATCHER, TCPCONNECTWRAP, TCPSERVER, TCPWRAP, TIMERWRAP, TTYWRAP,
-UDPSENDWRAP, UDPWRAP, WRITEWRAP, ZLIB, SSLCONNECTION, PBKDF2REQUEST,
+SIGNALWRAP, STATWATCHER, TCPCONNECTWRAP, TCPSERVERWRAP, TCPWRAP, TIMERWRAP,
+TTYWRAP, UDPSENDWRAP, UDPWRAP, WRITEWRAP, ZLIB, SSLCONNECTION, PBKDF2REQUEST,
 RANDOMBYTESREQUEST, TLSWRAP, Timeout, Immediate, TickObject
 </code></pre>
 <p>There is also the <code>PROMISE</code> resource type, which is used to track <code>Promise</code>
@@ -4104,8 +4118,8 @@ streams in TCP streams, file system operations, and other contexts.</p>
 <p>Instances of the <code>Buffer</code> class are similar to arrays of integers but
 correspond to fixed-sized, raw memory allocations outside the V8 heap.
 The size of the <code>Buffer</code> is established when it is created and cannot be
-resized.</p>
-<p>The <code>Buffer</code> class is a global within Node.js, making it unlikely that one
+changed.</p>
+<p>The <code>Buffer</code> class is within the global scope, making it unlikely that one
 would need to ever use <code>require(&#39;buffer&#39;).Buffer</code>.</p>
 <p>Examples:</p>
 <pre><code class="lang-js">// Creates a zero-filled Buffer of length 10.
@@ -4533,8 +4547,8 @@ console.log(buf);
 <li><code>string</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> String to encode.</li>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The encoding of <code>string</code>. <strong>Default:</strong> <code>&#39;utf8&#39;</code>.</li>
 </ul>
-<p>Creates a new <code>Buffer</code> containing the given JavaScript string <code>string</code>. If
-provided, the <code>encoding</code> parameter identifies the character encoding of <code>string</code>.</p>
+<p>Creates a new <code>Buffer</code> containing <code>string</code>. The <code>encoding</code> parameter identifies
+the character encoding of <code>string</code>.</p>
 <p>Examples:</p>
 <pre><code class="lang-js">const buf1 = new Buffer(&#39;this is a tést&#39;);
 
@@ -4887,8 +4901,8 @@ console.log(buf2.toString());
 <li><code>string</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> A string to encode.</li>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The encoding of <code>string</code>. <strong>Default:</strong> <code>&#39;utf8&#39;</code>.</li>
 </ul>
-<p>Creates a new <code>Buffer</code> containing the given JavaScript string <code>string</code>. If
-provided, the <code>encoding</code> parameter identifies the character encoding of <code>string</code>.</p>
+<p>Creates a new <code>Buffer</code> containing <code>string</code>. The <code>encoding</code> parameter identifies
+the character encoding of <code>string</code>.</p>
 <p>Examples:</p>
 <pre><code class="lang-js">const buf1 = Buffer.from(&#39;this is a tést&#39;);
 
@@ -6620,7 +6634,7 @@ napi_value Method(napi_env env, napi_callback_info args) {
   napi_value greeting;
   napi_status status;
 
-  status = napi_create_string_utf8(env, &quot;hello&quot;, 6, &amp;greeting);
+  status = napi_create_string_utf8(env, &quot;hello&quot;, NAPI_AUTO_LENGTH, &amp;greeting);
   if (status != napi_ok) return nullptr;
   return greeting;
 }
@@ -10621,10 +10635,12 @@ ls.on(&#39;close&#39;, (code) =&gt; {
 });
 </code></pre>
 <p>By default, pipes for <code>stdin</code>, <code>stdout</code>, and <code>stderr</code> are established between
-the parent Node.js process and the spawned child. It is possible to stream data
-through these pipes in a non-blocking way. <em>Note, however, that some programs
-use line-buffered I/O internally. While that does not affect Node.js, it can
-mean that data sent to the child process may not be immediately consumed.</em></p>
+the parent Node.js process and the spawned child. These pipes have
+limited (and platform-specific) capacity. If the child process writes to
+stdout in excess of that limit without the output being captured, the child
+process will block waiting for the pipe buffer to accept more data. This is
+identical to the behavior of pipes in the shell. Use the <code>{ stdio: &#39;ignore&#39; }</code>
+option if the output will not be consumed.</p>
 <p>The <a href="#child_process_child_process_spawn_command_args_options"><code>child_process.spawn()</code></a> method spawns the child process asynchronously,
 without blocking the Node.js event loop. The <a href="#child_process_child_process_spawnsync_command_args_options"><code>child_process.spawnSync()</code></a>
 function provides equivalent functionality in a synchronous manner that blocks
@@ -11995,8 +12011,8 @@ worker.on(&#39;exit&#39;, (code, signal) =&gt; {
 <p>Similar to the <code>cluster.on(&#39;message&#39;)</code> event, but specific to this worker.</p>
 <p>Within a worker, <code>process.on(&#39;message&#39;)</code> may also be used.</p>
 <p>See <a href="process.html#process_event_message"><code>process</code> event: <code>&#39;message&#39;</code></a>.</p>
-<p>As an example, here is a cluster that keeps count of the number of requests
-in the master process using the message system:</p>
+<p>Here is an example using the message system. It keeps a count in the master
+process of the number of HTTP requests received by the workers:</p>
 <pre><code class="lang-js">const cluster = require(&#39;cluster&#39;);
 const http = require(&#39;http&#39;);
 
@@ -12836,6 +12852,10 @@ are passed to that script.</p>
 </div><p>Indicate the end of node options. Pass the rest of the arguments to the script.
 If no script filename or eval/print script is supplied prior to this, then
 the next argument will be used as a script filename.</p>
+<h3><code>--max-http-header-size=size</code><span><a class="mark" href="#cli_max_http_header_size_size" id="cli_max_http_header_size_size">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.15.0</span>
+</div><p>Specify the maximum size, in bytes, of HTTP headers. Defaults to 8KB.</p>
 <h2>Environment Variables<span><a class="mark" href="#cli_environment_variables" id="cli_environment_variables">#</a></span></h2>
 <h3><code>NODE_DEBUG=module[,…]</code><span><a class="mark" href="#cli_node_debug_module" id="cli_node_debug_module">#</a></span></h3>
 <div class="api_metadata">
@@ -12870,7 +12890,7 @@ with small-icu support.</p>
 if they had been specified on the command line before the actual command line
 (so they can be overridden). Node will exit with an error if an option that is
 not allowed in the environment is used, such as <code>-p</code> or a script file.</p>
-<p>Node options that are allowed are:</p>
+<p>Node.js options that are allowed are:</p>
 <ul>
 <li><code>--enable-fips</code></li>
 <li><code>--force-fips</code></li>
@@ -12878,6 +12898,7 @@ not allowed in the environment is used, such as <code>-p</code> or a script file
 <li><code>--inspect-brk</code></li>
 <li><code>--inspect-port</code></li>
 <li><code>--inspect</code></li>
+<li><code>--max-http-header-size</code></li>
 <li><code>--no-deprecation</code></li>
 <li><code>--no-warnings</code></li>
 <li><code>--openssl-config</code></li>
@@ -13186,7 +13207,17 @@ undefined
 </code></pre>
 <h3>console.debug(data[, ...args])<span><a class="mark" href="#console_console_debug_data_args" id="console_console_debug_data_args">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v8.0.0</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v8.10.0</td>
+<td><p><code>console.debug</code> is now an alias for <code>console.log</code>.</p>
+</td></tr>
+<tr><td>v8.0.0</td>
+<td><p><span>Added in: v8.0.0</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>data</code> <span class="type">&lt;any&gt;</span></li>
 <li><code>...args</code> <span class="type">&lt;any&gt;</span></li>
@@ -13342,6 +13373,85 @@ formatted message and stack trace to the current position in the code.</p>
 <li><code>...args</code> <span class="type">&lt;any&gt;</span></li>
 </ul>
 <p>The <code>console.warn()</code> function is an alias for <a href="console.html#console_console_error_data_args"><code>console.error()</code></a>.</p>
+<h2>Inspector only methods<span><a class="mark" href="#console_inspector_only_methods" id="console_inspector_only_methods">#</a></span></h2>
+<p>The following methods are exposed by the V8 engine in the general API but do
+not display anything unless used in conjunction with the <a href="debugger.html">inspector</a>
+(<code>--inspect</code> flag).</p>
+<h3>console.dirxml(object)<span><a class="mark" href="#console_console_dirxml_object" id="console_console_dirxml_object">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.0.0</span>
+</div><ul>
+<li><code>object</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+</ul>
+<p>This method does not display anything unless used in the inspector. The
+<code>console.dirxml()</code> method displays in <code>stdout</code> an XML interactive tree
+representation of the descendants of the specified <code>object</code> if possible, or the
+JavaScript representation if not. Calling <code>console.dirxml()</code> on an HTML or XML
+element is equivalent to calling <code>console.log()</code>.</p>
+<h3>console.markTimeline(label)<span><a class="mark" href="#console_console_marktimeline_label" id="console_console_marktimeline_label">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.0.0</span>
+</div><ul>
+<li><code>label</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Defaults to <code>&#39;default&#39;</code>.</li>
+</ul>
+<p>This method does not display anything unless used in the inspector. The
+<code>console.markTimeline()</code> method is the deprecated form of <a href="#console_console_timestamp_label"><code>console.timeStamp()</code></a>.</p>
+<h3>console.profile([label])<span><a class="mark" href="#console_console_profile_label" id="console_console_profile_label">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.0.0</span>
+</div><ul>
+<li><code>label</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+</ul>
+<p>This method does not display anything unless used in the inspector. The
+<code>console.profile()</code> method starts a JavaScript CPU profile with an optional
+label until <a href="#console_console_profileend"><code>console.profileEnd()</code></a> is called. The profile is then added to
+the <strong>Profile</strong> panel of the inspector.</p>
+<pre><code class="lang-js">console.profile(&#39;MyLabel&#39;);
+// Some code
+console.profileEnd();
+// Adds the profile &#39;MyLabel&#39; to the Profiles panel of the inspector.
+</code></pre>
+<h3>console.profileEnd()<span><a class="mark" href="#console_console_profileend" id="console_console_profileend">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.0.0</span>
+</div><p>This method does not display anything unless used in the inspector. Stops the
+current JavaScript CPU profiling session if one has been started and prints
+the report to the <strong>Profiles</strong> panel of the inspector. See
+<a href="#console_console_profile_label"><code>console.profile()</code></a> for an example.</p>
+<h3>console.table(array[, columns])<span><a class="mark" href="#console_console_table_array_columns" id="console_console_table_array_columns">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.0.0</span>
+</div><ul>
+<li><code>array</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
+<li><code>columns</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a></li>
+</ul>
+<p>This method does not display anything unless used in the inspector. Prints to
+<code>stdout</code> the array <code>array</code> formatted as a table.</p>
+<h3>console.timeStamp([label])<span><a class="mark" href="#console_console_timestamp_label" id="console_console_timestamp_label">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.0.0</span>
+</div><ul>
+<li><code>label</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+</ul>
+<p>This method does not display anything unless used in the inspector. The
+<code>console.timeStamp()</code> method adds an event with the label <code>label</code> to the
+<strong>Timeline</strong> panel of the inspector.</p>
+<h3>console.timeline([label])<span><a class="mark" href="#console_console_timeline_label" id="console_console_timeline_label">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.0.0</span>
+</div><ul>
+<li><code>label</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Defaults to <code>&#39;default&#39;</code>.</li>
+</ul>
+<p>This method does not display anything unless used in the inspector. The
+<code>console.timeline()</code> method is the deprecated form of <a href="#console_console_time_label"><code>console.time()</code></a>.</p>
+<h3>console.timelineEnd([label])<span><a class="mark" href="#console_console_timelineend_label" id="console_console_timelineend_label">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.0.0</span>
+</div><ul>
+<li><code>label</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> Defaults to <code>&#39;default&#39;</code>.</li>
+</ul>
+<p>This method does not display anything unless used in the inspector. The
+<code>console.timelineEnd()</code> method is the deprecated form of <a href="#console_console_timeend_label"><code>console.timeEnd()</code></a>.</p>
 <!-- [end-include:console.md] -->
 <!-- [start-include:crypto.md] -->
 <h1>Crypto<span><a class="mark" href="#crypto_crypto" id="crypto_crypto">#</a></span></h1>
@@ -18750,6 +18860,23 @@ change the position indices of any listener registered <em>after</em> the listen
 being removed. This will not impact the order in which listeners are called,
 but it means that any copies of the listener array as returned by
 the <code>emitter.listeners()</code> method will need to be recreated.</p>
+<p>When a single function has been added as a handler multiple times for a single
+event (as in the example below), <code>removeListener()</code> will remove the most
+recently added instance. In the example the <code>once(&#39;ping&#39;)</code>
+listener is removed:</p>
+<pre><code class="lang-js">const ee = new EventEmitter();
+
+function pong() {
+  console.log(&#39;pong&#39;);
+}
+
+ee.on(&#39;ping&#39;, pong);
+ee.once(&#39;ping&#39;, pong);
+ee.removeListener(&#39;ping&#39;, pong);
+
+ee.emit(&#39;ping&#39;);
+ee.emit(&#39;ping&#39;);
+</code></pre>
 <p>Returns a reference to the <code>EventEmitter</code>, so that calls can be chained.</p>
 <h3>emitter.setMaxListeners(n)<span><a class="mark" href="#events_emitter_setmaxlisteners_n" id="events_emitter_setmaxlisteners_n">#</a></span></h3>
 <div class="api_metadata">
@@ -19214,6 +19341,10 @@ and handle the error, if any.</p>
 <p>In general, check for the accessibility of a file only if the file will not be
 used directly, for example when its accessibility is a signal from another
 process.</p>
+<p>On Windows, access-control policies (ACLs) on a directory may limit access to
+a file or directory. The <code>fs.access()</code> function, however, does not check the
+ACL and therefore may report that a path is accessible even if the ACL restricts
+the user from reading or writing to it.</p>
 <h2>fs.accessSync(path[, mode])<span><a class="mark" href="#fs_fs_accesssync_path_mode" id="fs_fs_accesssync_path_mode">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -23137,6 +23268,29 @@ Just like <code>&#39;end&#39;</code>, this event occurs only once per response.<
 </ul>
 <p>The <code>message.aborted</code> property will be <code>true</code> if the request has
 been aborted.</p>
+<h3>message.complete<span><a class="mark" href="#http_message_complete" id="http_message_complete">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.3.0</span>
+</div><ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
+</ul>
+<p>The <code>message.complete</code> property will be <code>true</code> if a complete HTTP message has
+been received and successfully parsed.</p>
+<p>This property is particularly useful as a means of determining if a client or
+server fully transmitted a message before a connection was terminated:</p>
+<pre><code class="lang-js">const req = http.request({
+  host: &#39;127.0.0.1&#39;,
+  port: 8080,
+  method: &#39;POST&#39;
+}, (res) =&gt; {
+  res.resume();
+  res.on(&#39;end&#39;, () =&gt; {
+    if (!res.complete)
+      console.error(
+        &#39;The connection was terminated while the message was still being sent&#39;);
+  });
+});
+</code></pre>
 <h3>message.destroy([error])<span><a class="mark" href="#http_message_destroy_error" id="http_message_destroy_error">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.3.0</span>
@@ -23335,29 +23489,10 @@ Url {
 <p>A collection of all the standard HTTP response status codes, and the
 short description of each. For example, <code>http.STATUS_CODES[404] === &#39;Not
 Found&#39;</code>.</p>
-<h2>http.createServer([options][, requestListener])<span><a class="mark" href="#http_http_createserver_options_requestlistener" id="http_http_createserver_options_requestlistener">#</a></span></h2>
+<h2>http.createServer([requestListener])<span><a class="mark" href="#http_http_createserver_requestlistener" id="http_http_createserver_requestlistener">#</a></span></h2>
 <div class="api_metadata">
-<details class="changelog"><summary>History</summary>
-<table>
-<tr><th>Version</th><th>Changes</th></tr>
-<tr><td>v8.12.0</td>
-<td><p>The <code>options</code> argument is supported now.</p>
-</td></tr>
-<tr><td>v0.1.13</td>
-<td><p><span>Added in: v0.1.13</span></p>
-</td></tr>
-</table>
-</details>
+<span>Added in: v0.1.13</span>
 </div><ul>
-<li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
-<li><code>IncomingMessage</code> <a href="http.html#http_class_http_incomingmessage" class="type">&lt;http.IncomingMessage&gt;</a> Specifies the IncomingMessage class
-to be used. Useful for extending the original <code>IncomingMessage</code>.
-<strong>Default:</strong> <code>IncomingMessage</code>.</li>
-<li><code>ServerResponse</code> <a href="http.html#http_class_http_serverresponse" class="type">&lt;http.ServerResponse&gt;</a> Specifies the ServerResponse class to
-be used. Useful for extending the original <code>ServerResponse</code>. <strong>Default:</strong>
-<code>ServerResponse</code>.</li>
-</ul>
-</li>
 <li><p><code>requestListener</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></p>
 </li>
 <li><p>Returns: <a href="http.html#http_class_http_server" class="type">&lt;http.Server&gt;</a></p>
@@ -23436,6 +23571,14 @@ data for reasons stated in <a href="#http_class_http_clientrequest"><code>http.C
 </ul>
 <p>Global instance of <code>Agent</code> which is used as the default for all HTTP client
 requests.</p>
+<h2>http.maxHeaderSize<span><a class="mark" href="#http_http_maxheadersize" id="http_http_maxheadersize">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v8.15.0</span>
+</div><ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
+</ul>
+<p>Read-only property specifying the maximum allowed size of HTTP headers in bytes.
+Defaults to 8KB. Configurable using the <a href="cli.html#cli_max_http_header_size_size"><code>--max-http-header-size</code></a> CLI option.</p>
 <h2>http.request(options[, callback])<span><a class="mark" href="#http_http_request_options_callback" id="http_http_request_options_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -26782,7 +26925,7 @@ arguments - error and message-specific result.</p>
 </code></pre>
 <p>The latest version of the V8 inspector protocol is published on the
 <a href="https://chromedevtools.github.io/devtools-protocol/v8/">Chrome DevTools Protocol Viewer</a>.</p>
-<p>Node inspector supports all the Chrome DevTools Protocol domains declared
+<p>Node.js inspector supports all the Chrome DevTools Protocol domains declared
 by V8. Chrome DevTools Protocol domain provides an interface for interacting
 with one of the runtime agents used to inspect the application state and listen
 to the run-time events.</p>
@@ -27340,8 +27483,9 @@ example, then <code>require(&#39;./some-library&#39;)</code> would attempt to lo
 <p>If the module identifier passed to <code>require()</code> is not a
 <a href="#modules_core_modules">core</a> module, and does not begin with <code>&#39;/&#39;</code>, <code>&#39;../&#39;</code>, or
 <code>&#39;./&#39;</code>, then Node.js starts at the parent directory of the current module, and
-adds <code>/node_modules</code>, and attempts to load the module from that location. Node
-will not append <code>node_modules</code> to a path already ending in <code>node_modules</code>.</p>
+adds <code>/node_modules</code>, and attempts to load the module from that location.
+Node.js will not append <code>node_modules</code> to a path already ending in
+<code>node_modules</code>.</p>
 <p>If it is not found there, then it moves to the parent directory, and so
 on, until the root of the file system is reached.</p>
 <p>For example, if the file at <code>&#39;/home/ry/projects/foo.js&#39;</code> called
@@ -27474,7 +27618,20 @@ a module exports and makes available through <code>require()</code>.</p>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
 </ul>
-<p>To require modules.</p>
+<p>Used to import modules, <code>JSON</code>, and local files. Modules can be imported
+from <code>node_modules</code>. Local modules and JSON files can be imported using
+a relative path (e.g. <code>./</code>, <code>./foo</code>, <code>./bar/baz</code>, <code>../foo</code>) that will be
+resolved against the directory named by <a href="#modules_dirname"><code>__dirname</code></a> (if defined) or
+the current working directory.</p>
+<pre><code class="lang-js">// Importing a local module:
+const myLocalModule = require(&#39;./path/myLocalModule&#39;);
+
+// Importing a JSON file:
+const jsonData = require(&#39;./path/filename.json&#39;);
+
+// Importing a module from node_modules or Node.js built-in module:
+const crypto = require(&#39;crypto&#39;);
+</code></pre>
 <h4>require.cache<span><a class="mark" href="#modules_require_cache" id="modules_require_cache">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v0.3.0</span>
@@ -29698,9 +29855,7 @@ It can be accessed using:</p>
 on which a Node.js application is running. Specifically, when running on a
 Windows operating system, the <code>path</code> module will assume that Windows-style
 paths are being used.</p>
-<p>For example, using the <code>path.basename()</code> function with the Windows file path
-<code>C:\temp\myfile.html</code>, will yield different results when running on POSIX than
-when run on Windows:</p>
+<p>So using <code>path.basename()</code> might yield different results on POSIX and Windows:</p>
 <p>On POSIX:</p>
 <pre><code class="lang-js">path.basename(&#39;C:\\temp\\myfile.html&#39;);
 // Returns: &#39;C:\\temp\\myfile.html&#39;
@@ -30828,7 +30983,7 @@ to detect application failures and recover or restart as needed.</p>
 <td><p>Not handling Promise rejections has been deprecated.</p>
 </td></tr>
 <tr><td>v6.6.0</td>
-<td><p>Unhandled Promise rejections have been will now emit a process warning.</p>
+<td><p>Unhandled Promise rejections will now emit a process warning.</p>
 </td></tr>
 <tr><td>v1.4.1</td>
 <td><p><span>Added in: v1.4.1</span></p>
@@ -30959,7 +31114,7 @@ process.on(&#39;SIGTERM&#39;, handle);
 </code></pre>
 <ul>
 <li><code>SIGUSR1</code> is reserved by Node.js to start the <a href="debugger.html">debugger</a>. It&#39;s possible to
-install a listener but doing so will <em>not</em> stop the debugger from starting.</li>
+install a listener but doing so might interfere with the debugger.</li>
 <li><code>SIGTERM</code> and <code>SIGINT</code> have default handlers on non-Windows platforms that
 reset the terminal mode before exiting with code <code>128 + signal number</code>. If one
 of these signals has a listener installed, its default behavior will be
@@ -31057,7 +31212,10 @@ process.argv.forEach((val, index) =&gt; {
 <h2>process.channel<span><a class="mark" href="#process_process_channel" id="process_process_channel">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v7.1.0</span>
-</div><p>If the Node.js process was spawned with an IPC channel (see the
+</div><ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
+</ul>
+<p>If the Node.js process was spawned with an IPC channel (see the
 <a href="child_process.html">Child Process</a> documentation), the <code>process.channel</code>
 property is a reference to the IPC channel. If no IPC channel exists, this
 property is <code>undefined</code>.</p>
@@ -31365,7 +31523,7 @@ console.log(process.env.test);
 <div class="api_metadata">
 <span>Added in: v0.7.7</span>
 </div><ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a></li>
 </ul>
 <p>The <code>process.execArgv</code> property returns the set of Node.js-specific command-line
 options passed when the Node.js process was launched. These options do not
@@ -31606,7 +31764,10 @@ the debugger, see <a href="#process_signal_events">Signal Events</a>.</p>
 <h2>process.mainModule<span><a class="mark" href="#process_process_mainmodule" id="process_process_mainmodule">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.17</span>
-</div><p>The <code>process.mainModule</code> property provides an alternative way of retrieving
+</div><ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
+</ul>
+<p>The <code>process.mainModule</code> property provides an alternative way of retrieving
 <a href="modules.html#modules_accessing_the_main_module"><code>require.main</code></a>. The difference is that if the main module changes at
 runtime, <a href="modules.html#modules_accessing_the_main_module"><code>require.main</code></a> may still refer to the original main module in
 modules that were required before the change occurred. Generally, it&#39;s
@@ -31807,7 +31968,10 @@ Android operating system. However, Android support in Node.js
 </td></tr>
 </table>
 </details>
-</div><p>The <code>process.release</code> property returns an Object containing metadata related to
+</div><ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
+</ul>
+<p>The <code>process.release</code> property returns an Object containing metadata related to
 the current release, including URLs for the source tarball and headers-only
 tarball.</p>
 <p><code>process.release</code> contains the following properties:</p>
@@ -35971,7 +36135,6 @@ sockets that have not completed the handshaking process. The value <code>null</c
 be returned for server sockets or disconnected client sockets.</p>
 <p>Example responses include:</p>
 <ul>
-<li><code>SSLv3</code></li>
 <li><code>TLSv1</code></li>
 <li><code>TLSv1.1</code></li>
 <li><code>TLSv1.2</code></li>
@@ -36771,6 +36934,21 @@ The event handler function is passed two arguments: <code>msg</code> and <code>r
 <code>multicastInterface</code> argument is not specified, the operating system will choose
 one interface and will add membership to it. To add membership to every
 available interface, call <code>addMembership</code> multiple times, once per interface.</p>
+<p>When sharing a UDP socket across multiple <code>cluster</code> workers, the
+<code>socket.addMembership()</code> function must be called only once or an
+<code>EADDRINUSE</code> error will occur:</p>
+<pre><code class="lang-js">const cluster = require(&#39;cluster&#39;);
+const dgram = require(&#39;dgram&#39;);
+if (cluster.isMaster) {
+  cluster.fork(); // Works ok.
+  cluster.fork(); // Fails with EADDRINUSE.
+} else {
+  const s = dgram.createSocket(&#39;udp4&#39;);
+  s.bind(1234, () =&gt; {
+    s.addMembership(&#39;224.0.0.114&#39;);
+  });
+}
+</code></pre>
 <h3>socket.address()<span><a class="mark" href="#dgram_socket_address" id="dgram_socket_address">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.99</span>
@@ -36960,7 +37138,7 @@ passed as the first argument to the <code>callback</code>. If a <code>callback</
 the error is emitted as an <code>&#39;error&#39;</code> event on the <code>socket</code> object.</p>
 <p>Offset and length are optional but both <em>must</em> be set if either are used.
 They are supported only when the first argument is a <code>Buffer</code> or <code>Uint8Array</code>.</p>
-<p>Example of sending a UDP packet to a random port on <code>localhost</code>;</p>
+<p>Example of sending a UDP packet to a port on <code>localhost</code>;</p>
 <pre><code class="lang-js">const dgram = require(&#39;dgram&#39;);
 const message = Buffer.from(&#39;Some bytes&#39;);
 const client = dgram.createSocket(&#39;udp4&#39;);
@@ -36968,8 +37146,8 @@ client.send(message, 41234, &#39;localhost&#39;, (err) =&gt; {
   client.close();
 });
 </code></pre>
-<p>Example of sending a UDP packet composed of multiple buffers to a random port
-on <code>127.0.0.1</code>;</p>
+<p>Example of sending a UDP packet composed of multiple buffers to a port on
+<code>127.0.0.1</code>;</p>
 <pre><code class="lang-js">const dgram = require(&#39;dgram&#39;);
 const buf1 = Buffer.from(&#39;Some &#39;);
 const buf2 = Buffer.from(&#39;bytes&#39;);

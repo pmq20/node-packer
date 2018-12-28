@@ -121,7 +121,7 @@ session.post('Runtime.evaluate', { expression: '2 + 2' },
 The latest version of the V8 inspector protocol is published on the
 [Chrome DevTools Protocol Viewer][].
 
-Node inspector supports all the Chrome DevTools Protocol domains declared
+Node.js inspector supports all the Chrome DevTools Protocol domains declared
 by V8. Chrome DevTools Protocol domain provides an interface for interacting
 with one of the runtime agents used to inspect the application state and listen
 to the run-time events.
@@ -162,8 +162,8 @@ session.post('Profiler.enable', () => {
 ```
 
 
-[`session.connect()`]: #inspector_session_connect
 [`Debugger.paused`]: https://chromedevtools.github.io/devtools-protocol/v8/Debugger/#event-paused
 [`EventEmitter`]: events.html#events_class_eventemitter
-[Chrome DevTools Protocol Viewer]: https://chromedevtools.github.io/devtools-protocol/v8/
+[`session.connect()`]: #inspector_session_connect
 [CPU Profiler]: https://chromedevtools.github.io/devtools-protocol/v8/Profiler
+[Chrome DevTools Protocol Viewer]: https://chromedevtools.github.io/devtools-protocol/v8/

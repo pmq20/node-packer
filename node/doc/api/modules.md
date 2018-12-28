@@ -375,8 +375,9 @@ example, then `require('./some-library')` would attempt to load:
 If the module identifier passed to `require()` is not a
 [core](#modules_core_modules) module, and does not begin with `'/'`, `'../'`, or
 `'./'`, then Node.js starts at the parent directory of the current module, and
-adds `/node_modules`, and attempts to load the module from that location. Node
-will not append `node_modules` to a path already ending in `node_modules`.
+adds `/node_modules`, and attempts to load the module from that location.
+Node.js will not append `node_modules` to a path already ending in
+`node_modules`.
 
 If it is not found there, then it moves to the parent directory, and so
 on, until the root of the file system is reached.
@@ -551,7 +552,22 @@ added: v0.1.13
 
 * {Function}
 
-To require modules.
+Used to import modules, `JSON`, and local files. Modules can be imported
+from `node_modules`. Local modules and JSON files can be imported using
+a relative path (e.g. `./`, `./foo`, `./bar/baz`, `../foo`) that will be
+resolved against the directory named by [`__dirname`][] (if defined) or
+the current working directory.
+
+```js
+// Importing a local module:
+const myLocalModule = require('./path/myLocalModule');
+
+// Importing a JSON file:
+const jsonData = require('./path/filename.json');
+
+// Importing a module from node_modules or Node.js built-in module:
+const crypto = require('crypto');
+```
 
 #### require.cache
 <!-- YAML
@@ -843,9 +859,9 @@ added: v8.10.0
 A list of the names of all modules provided by Node.js. Can be used to verify
 if a module is maintained by a third-party module or not.
 
+[`Error`]: errors.html#errors_class_error
 [`__dirname`]: #modules_dirname
 [`__filename`]: #modules_filename
-[`Error`]: errors.html#errors_class_error
 [`module` object]: #modules_the_module_object
 [`path.dirname()`]: path.html#path_path_dirname_path
 [exports shortcut]: #modules_exports_shortcut

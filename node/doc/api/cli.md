@@ -405,6 +405,13 @@ Indicate the end of node options. Pass the rest of the arguments to the script.
 If no script filename or eval/print script is supplied prior to this, then
 the next argument will be used as a script filename.
 
+### `--max-http-header-size=size`
+<!-- YAML
+added: v8.15.0
+-->
+
+Specify the maximum size, in bytes, of HTTP headers. Defaults to 8KB.
+
 ## Environment Variables
 
 ### `NODE_DEBUG=module[,…]`
@@ -465,13 +472,14 @@ if they had been specified on the command line before the actual command line
 (so they can be overridden). Node will exit with an error if an option that is
 not allowed in the environment is used, such as `-p` or a script file.
 
-Node options that are allowed are:
+Node.js options that are allowed are:
 - `--enable-fips`
 - `--force-fips`
 - `--icu-data-dir`
 - `--inspect-brk`
 - `--inspect-port`
 - `--inspect`
+- `--max-http-header-size`
 - `--no-deprecation`
 - `--no-warnings`
 - `--openssl-config`

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>UDP / Datagram Sockets | Node.js v8.14.0 Documentation</title>
+  <title>UDP / Datagram Sockets | Node.js v8.15.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -75,14 +75,13 @@
 
 <ul>
 <li><a class="nav-https-github-com-nodejs-node" href="https://github.com/nodejs/node">GitHub Repo &amp; Issue Tracker</a></li>
-<li><a class="nav-https-groups-google-com-group-nodejs" href="https://groups.google.com/group/nodejs">Mailing List</a></li>
 </ul>
 
     </div>
 
     <div id="column1" data-id="dgram" class="interior">
       <header>
-        <h1>Node.js v8.14.0 Documentation</h1>
+        <h1>Node.js v8.15.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -97,7 +96,9 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v9.x/api/dgram.html">9.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v11.x/api/dgram.html">11.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v10.x/api/dgram.html">10.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v9.x/api/dgram.html">9.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v8.x/api/dgram.html">8.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v7.x/api/dgram.html">7.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v6.x/api/dgram.html">6.x <b>LTS</b></a></li>
@@ -235,6 +236,21 @@ The event handler function is passed two arguments: <code>msg</code> and <code>r
 <code>multicastInterface</code> argument is not specified, the operating system will choose
 one interface and will add membership to it. To add membership to every
 available interface, call <code>addMembership</code> multiple times, once per interface.</p>
+<p>When sharing a UDP socket across multiple <code>cluster</code> workers, the
+<code>socket.addMembership()</code> function must be called only once or an
+<code>EADDRINUSE</code> error will occur:</p>
+<pre><code class="lang-js">const cluster = require(&#39;cluster&#39;);
+const dgram = require(&#39;dgram&#39;);
+if (cluster.isMaster) {
+  cluster.fork(); // Works ok.
+  cluster.fork(); // Fails with EADDRINUSE.
+} else {
+  const s = dgram.createSocket(&#39;udp4&#39;);
+  s.bind(1234, () =&gt; {
+    s.addMembership(&#39;224.0.0.114&#39;);
+  });
+}
+</code></pre>
 <h3>socket.address()<span><a class="mark" href="#dgram_socket_address" id="dgram_socket_address">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.99</span>
@@ -424,7 +440,7 @@ passed as the first argument to the <code>callback</code>. If a <code>callback</
 the error is emitted as an <code>&#39;error&#39;</code> event on the <code>socket</code> object.</p>
 <p>Offset and length are optional but both <em>must</em> be set if either are used.
 They are supported only when the first argument is a <code>Buffer</code> or <code>Uint8Array</code>.</p>
-<p>Example of sending a UDP packet to a random port on <code>localhost</code>;</p>
+<p>Example of sending a UDP packet to a port on <code>localhost</code>;</p>
 <pre><code class="lang-js">const dgram = require(&#39;dgram&#39;);
 const message = Buffer.from(&#39;Some bytes&#39;);
 const client = dgram.createSocket(&#39;udp4&#39;);
@@ -432,8 +448,8 @@ client.send(message, 41234, &#39;localhost&#39;, (err) =&gt; {
   client.close();
 });
 </code></pre>
-<p>Example of sending a UDP packet composed of multiple buffers to a random port
-on <code>127.0.0.1</code>;</p>
+<p>Example of sending a UDP packet composed of multiple buffers to a port on
+<code>127.0.0.1</code>;</p>
 <pre><code class="lang-js">const dgram = require(&#39;dgram&#39;);
 const buf1 = Buffer.from(&#39;Some &#39;);
 const buf2 = Buffer.from(&#39;bytes&#39;);

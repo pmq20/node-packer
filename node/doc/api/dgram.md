@@ -95,6 +95,24 @@ Tells the kernel to join a multicast group at the given `multicastAddress` and
 one interface and will add membership to it. To add membership to every
 available interface, call `addMembership` multiple times, once per interface.
 
+When sharing a UDP socket across multiple `cluster` workers, the
+`socket.addMembership()` function must be called only once or an
+`EADDRINUSE` error will occur:
+
+```js
+const cluster = require('cluster');
+const dgram = require('dgram');
+if (cluster.isMaster) {
+  cluster.fork(); // Works ok.
+  cluster.fork(); // Fails with EADDRINUSE.
+} else {
+  const s = dgram.createSocket('udp4');
+  s.bind(1234, () => {
+    s.addMembership('224.0.0.114');
+  });
+}
+```
+
 ### socket.address()
 <!-- YAML
 added: v0.1.99
@@ -319,7 +337,7 @@ the error is emitted as an `'error'` event on the `socket` object.
 Offset and length are optional but both *must* be set if either are used.
 They are supported only when the first argument is a `Buffer` or `Uint8Array`.
 
-Example of sending a UDP packet to a random port on `localhost`;
+Example of sending a UDP packet to a port on `localhost`;
 
 ```js
 const dgram = require('dgram');
@@ -330,8 +348,8 @@ client.send(message, 41234, 'localhost', (err) => {
 });
 ```
 
-Example of sending a UDP packet composed of multiple buffers to a random port
-on `127.0.0.1`;
+Example of sending a UDP packet composed of multiple buffers to a port on
+`127.0.0.1`;
 
 ```js
 const dgram = require('dgram');
@@ -621,6 +639,7 @@ and `udp6` sockets). The bound address and port can be retrieved using
 [`'close'`]: #dgram_event_close
 [`Error`]: errors.html#errors_class_error
 [`EventEmitter`]: events.html
+[`System Error`]: errors.html#errors_class_systemerror
 [`close()`]: #dgram_socket_close_callback
 [`cluster`]: cluster.html
 [`dgram.Socket#bind()`]: #dgram_socket_bind_options_callback
@@ -629,7 +648,6 @@ and `udp6` sockets). The bound address and port can be retrieved using
 [`socket.address().address`]: #dgram_socket_address
 [`socket.address().port`]: #dgram_socket_address
 [`socket.bind()`]: #dgram_socket_bind_port_address_callback
-[`System Error`]: errors.html#errors_class_systemerror
-[byte length]: buffer.html#buffer_class_method_buffer_bytelength_string_encoding
 [IPv6 Zone Indices]: https://en.wikipedia.org/wiki/IPv6_address#Scoped_literal_IPv6_addresses
 [RFC 4007]: https://tools.ietf.org/html/rfc4007
+[byte length]: buffer.html#buffer_class_method_buffer_bytelength_string_encoding

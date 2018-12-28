@@ -796,7 +796,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Returns a string containing the negotiated SSL/TLS protocol version of the\ncurrent connection. The value <code>&#39;unknown&#39;</code> will be returned for connected\nsockets that have not completed the handshaking process. The value <code>null</code> will\nbe returned for server sockets or disconnected client sockets.</p>\n<p>Example responses include:</p>\n<ul>\n<li><code>SSLv3</code></li>\n<li><code>TLSv1</code></li>\n<li><code>TLSv1.1</code></li>\n<li><code>TLSv1.2</code></li>\n<li><code>unknown</code></li>\n</ul>\n<p>See <a href=\"https://www.openssl.org/docs/man1.0.2/ssl/SSL_get_version.html\">https://www.openssl.org/docs/man1.0.2/ssl/SSL_get_version.html</a> for more\ninformation.</p>\n",
+              "desc": "<p>Returns a string containing the negotiated SSL/TLS protocol version of the\ncurrent connection. The value <code>&#39;unknown&#39;</code> will be returned for connected\nsockets that have not completed the handshaking process. The value <code>null</code> will\nbe returned for server sockets or disconnected client sockets.</p>\n<p>Example responses include:</p>\n<ul>\n<li><code>TLSv1</code></li>\n<li><code>TLSv1.1</code></li>\n<li><code>TLSv1.2</code></li>\n<li><code>unknown</code></li>\n</ul>\n<p>See <a href=\"https://www.openssl.org/docs/man1.0.2/ssl/SSL_get_version.html\">https://www.openssl.org/docs/man1.0.2/ssl/SSL_get_version.html</a> for more\ninformation.</p>\n",
               "signatures": [
                 {
                   "params": []

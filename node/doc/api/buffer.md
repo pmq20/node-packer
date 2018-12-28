@@ -15,9 +15,9 @@ With [`TypedArray`] now available, the `Buffer` class implements the
 Instances of the `Buffer` class are similar to arrays of integers but
 correspond to fixed-sized, raw memory allocations outside the V8 heap.
 The size of the `Buffer` is established when it is created and cannot be
-resized.
+changed.
 
-The `Buffer` class is a global within Node.js, making it unlikely that one
+The `Buffer` class is within the global scope, making it unlikely that one
 would need to ever use `require('buffer').Buffer`.
 
 Examples:
@@ -483,8 +483,8 @@ changes:
 * `string` {string} String to encode.
 * `encoding` {string} The encoding of `string`. **Default:** `'utf8'`.
 
-Creates a new `Buffer` containing the given JavaScript string `string`. If
-provided, the `encoding` parameter identifies the character encoding of `string`.
+Creates a new `Buffer` containing `string`. The `encoding` parameter identifies
+the character encoding of `string`.
 
 Examples:
 
@@ -891,8 +891,8 @@ added: v5.10.0
 * `string` {string} A string to encode.
 * `encoding` {string} The encoding of `string`. **Default:** `'utf8'`.
 
-Creates a new `Buffer` containing the given JavaScript string `string`. If
-provided, the `encoding` parameter identifies the character encoding of `string`.
+Creates a new `Buffer` containing `string`. The `encoding` parameter identifies
+the character encoding of `string`.
 
 Examples:
 
@@ -2742,9 +2742,9 @@ This value may depend on the JS engine that is being used.
 [`buf.length`]: #buffer_buf_length
 [`buf.slice()`]: #buffer_buf_slice_start_end
 [`buf.values()`]: #buffer_buf_values
-[`buffer.kMaxLength`]: #buffer_buffer_kmaxlength
 [`buffer.constants.MAX_LENGTH`]: #buffer_buffer_constants_max_length
 [`buffer.constants.MAX_STRING_LENGTH`]: #buffer_buffer_constants_max_string_length
+[`buffer.kMaxLength`]: #buffer_buffer_kmaxlength
 [`util.inspect()`]: util.html#util_util_inspect_object_options
 [RFC1345]: https://tools.ietf.org/html/rfc1345
 [RFC4648, Section 5]: https://tools.ietf.org/html/rfc4648#section-5

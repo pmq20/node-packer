@@ -347,8 +347,7 @@ Object.defineProperty(Zlib.prototype, 'bytesRead', {
 // `params()` function should not happen while a write is currently in progress
 // on the threadpool.
 function paramsAfterFlushCallback(level, strategy, callback) {
-  if (!this._handle)
-    assert(false, 'zlib binding closed');
+  assert(this._handle, 'zlib binding closed');
   this._handle.params(level, strategy);
   if (!this._hadError) {
     this._level = level;
@@ -427,6 +426,11 @@ Zlib.prototype.close = function close(callback) {
   this.destroy();
 };
 
+Zlib.prototype._destroy = function _destroy(err, callback) {
+  _close(this);
+  callback(err);
+};
+
 Zlib.prototype._transform = function _transform(chunk, encoding, cb) {
   var flushFlag = this._defaultFlushFlag;
   // We use a 'fake' zero-length chunk to carry information about flushes from
@@ -499,8 +503,8 @@ function processChunkSync(self, chunk, flushFlag) {
       else
         buffers.push(out);
       nread += out.byteLength;
-    } else if (have < 0) {
-      assert(false, 'have should not go down');
+    } else {
+      assert(have === 0, 'have should not go down');
     }
 
     // exhausted the output buffer, or used all the input create a new one.
@@ -537,8 +541,7 @@ function processChunkSync(self, chunk, flushFlag) {
 
 function processChunk(self, chunk, flushFlag, cb) {
   var handle = self._handle;
-  if (!handle)
-    assert(false, 'zlib binding closed');
+  assert(handle, 'zlib binding closed');
 
   handle.buffer = chunk;
   handle.cb = cb;
@@ -585,8 +588,12 @@ function processCallback() {
     var out = self._outBuffer.slice(self._outOffset, self._outOffset + have);
     self._outOffset += have;
     self.push(out);
-  } else if (have < 0) {
-    assert(false, 'have should not go down');
+  } else {
+    assert(have === 0, 'have should not go down');
+  }
+
+  if (self.destroyed) {
+    return;
   }
 
   // exhausted the output buffer, or used all the input create a new one.

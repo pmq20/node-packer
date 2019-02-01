@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>N-API | Node.js v10.15.0 Documentation</title>
+  <title>N-API | Node.js v10.15.1 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -79,7 +79,7 @@
 
     <div id="column1" data-id="n-api" class="interior">
       <header>
-        <h1>Node.js v10.15.0 Documentation</h1>
+        <h1>Node.js v10.15.1 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -460,13 +460,45 @@ using <code>napi_get_last_error_info</code>. More information can be found in th
 handling section <a href="#n_api_error_handling">Error Handling</a>.</li>
 </ul>
 <p>The N-API is a C API that ensures ABI stability across Node.js versions
-and different compiler levels. However, we also understand that a C++
-API can be easier to use in many cases. To support these cases we expect
-there to be one or more C++ wrapper modules that provide an inlineable C++
-API. Binaries built with these wrapper modules will depend on the symbols
-for the N-API C based functions exported by Node.js. These wrappers are not
-part of N-API, nor will they be maintained as part of Node.js. One such
-example is: <a href="https://github.com/nodejs/node-addon-api">node-addon-api</a>.</p>
+and different compiler levels. A C++ API can be easier to use.
+To support using C++, the project maintains a
+C++ wrapper module called
+<a href="https://github.com/nodejs/node-addon-api">node-addon-api</a>.
+This wrapper provides an inlineable C++ API. Binaries built
+with <code>node-addon-api</code> will depend on the symbols for the N-API C-based
+functions exported by Node.js. <code>node-addon-api</code> is a more
+efficient way to write code that calls N-API. Take, for example, the
+following <code>node-addon-api</code> code. The first section shows the
+<code>node-addon-api</code> code and the second section shows what actually gets
+used in the addon.</p>
+<pre><code class="language-C++">Object obj = Object::New(env);
+obj["foo"] = String::New(env, "bar");
+</code></pre>
+<pre><code class="language-C++">napi_status status;
+napi_value object, string;
+status = napi_create_object(env, &#x26;object);
+if (status != napi_ok) {
+  napi_throw_error(env, ...);
+  return;
+}
+
+status = napi_crate_string_utf8(env, "bar", NAPI_AUTO_LENGTH, &#x26;string);
+if (status != napi_ok) {
+  napi_throw_error(env, ...);
+  return;
+}
+
+status = napi_set_named_property(env, object, "foo", string);
+if (status != napi_ok) {
+  napi_throw_error(env, ...);
+  return;
+}
+</code></pre>
+<p>The end result is that the addon only uses the exported C APIs. As a result,
+it still gets the benefits of the ABI stability provided by the C API.</p>
+<p>When using <code>node-addon-api</code> instead of the C APIs, start with the API
+<a href="https://github.com/nodejs/node-addon-api#api-documentation">docs</a>
+for <code>node-addon-api</code>.</p>
 <h2>Implications of ABI Stability<span><a class="mark" href="#n_api_implications_of_abi_stability" id="n_api_implications_of_abi_stability">#</a></span></h2>
 <p>Although N-API provides an ABI stability guarantee, other parts of Node.js do
 not, and any external libraries used from the addon may not. In particular,

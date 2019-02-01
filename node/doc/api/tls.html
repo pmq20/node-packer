@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>TLS (SSL) | Node.js v10.15.0 Documentation</title>
+  <title>TLS (SSL) | Node.js v10.15.1 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -79,7 +79,7 @@
 
     <div id="column1" data-id="tls" class="interior">
       <header>
-        <h1>Node.js v10.15.0 Documentation</h1>
+        <h1>Node.js v10.15.1 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -492,7 +492,7 @@ from the <a href="#tls_tls_createsecurecontext_options"><code>tls.createSecureCo
 </ul>
 <p>The <code>server.addContext()</code> method adds a secure context that will be used if
 the client request's SNI name matches the supplied <code>hostname</code> (or wildcard).</p>
-<h3>server.address()<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/net.js#L1485">[src]</a><span><a class="mark" href="#tls_server_address" id="tls_server_address">#</a></span></h3>
+<h3>server.address()<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/net.js#L1472">[src]</a><span><a class="mark" href="#tls_server_address" id="tls_server_address">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.6.0</span>
 </div>
@@ -502,7 +502,7 @@ the client request's SNI name matches the supplied <code>hostname</code> (or wil
 <p>Returns the bound address, the address family name, and port of the
 server as reported by the operating system. See <a href="net.html#net_server_address"><code>net.Server.address()</code></a> for
 more information.</p>
-<h3>server.close([callback])<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/net.js#L1572">[src]</a><span><a class="mark" href="#tls_server_close_callback" id="tls_server_close_callback">#</a></span></h3>
+<h3>server.close([callback])<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/net.js#L1559">[src]</a><span><a class="mark" href="#tls_server_close_callback" id="tls_server_close_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.3.2</span>
 </div>
@@ -532,7 +532,7 @@ when the server has no more open connections.</p>
 </ul>
 <p>Returns a <code>Buffer</code> instance holding the keys currently used for
 encryption/decryption of the <a href="https://www.ietf.org/rfc/rfc5077.txt">TLS Session Tickets</a>.</p>
-<h3>server.listen()<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/net.js#L1370">[src]</a><span><a class="mark" href="#tls_server_listen" id="tls_server_listen">#</a></span></h3>
+<h3>server.listen()<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/net.js#L1357">[src]</a><span><a class="mark" href="#tls_server_listen" id="tls_server_listen">#</a></span></h3>
 <p>Starts the server listening for encrypted connections.
 This method is identical to <a href="net.html#net_server_listen"><code>server.listen()</code></a> from <a href="net.html#net_class_net_server"><code>net.Server</code></a>.</p>
 <h3>server.setTicketKeys(keys)<span><a class="mark" href="#tls_server_setticketkeys_keys" id="tls_server_setticketkeys_keys">#</a></span></h3>
@@ -766,18 +766,18 @@ to implement the <code>tls-unique</code> channel binding from <a href="https://t
 <span>Added in: v5.7.0</span>
 </div>
 <ul>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Null_type" class="type">&#x3C;null></a></li>
 </ul>
 <p>Returns a string containing the negotiated SSL/TLS protocol version of the
 current connection. The value <code>'unknown'</code> will be returned for connected
 sockets that have not completed the handshaking process. The value <code>null</code> will
 be returned for server sockets or disconnected client sockets.</p>
-<p>Example responses include:</p>
+<p>Protocol versions are:</p>
 <ul>
-<li><code>TLSv1</code></li>
-<li><code>TLSv1.1</code></li>
-<li><code>TLSv1.2</code></li>
-<li><code>unknown</code></li>
+<li><code>'TLSv1'</code></li>
+<li><code>'TLSv1.1'</code></li>
+<li><code>'TLSv1.2'</code></li>
+<li><code>'SSLv3'</code></li>
 </ul>
 <p>See <a href="https://www.openssl.org/docs/man1.1.0/ssl/SSL_get_version.html">https://www.openssl.org/docs/man1.1.0/ssl/SSL_get_version.html</a> for more
 information.</p>
@@ -878,18 +878,19 @@ and its integrity is verified; large fragments can span multiple roundtrips
 and their processing can be delayed due to packet loss or reordering. However,
 smaller fragments add extra TLS framing bytes and CPU overhead, which may
 decrease overall server throughput.</p>
-<h2>tls.checkServerIdentity(hostname, cert)<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/tls.js#L170">[src]</a><span><a class="mark" href="#tls_tls_checkserveridentity_hostname_cert" id="tls_tls_checkserveridentity_hostname_cert">#</a></span></h2>
+<h2>tls.checkServerIdentity(hostname, cert)<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/tls.js#L177">[src]</a><span><a class="mark" href="#tls_tls_checkserveridentity_hostname_cert" id="tls_tls_checkserveridentity_hostname_cert">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.8.4</span>
 </div>
 <ul>
-<li><code>hostname</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The hostname to verify the certificate against</li>
+<li><code>hostname</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The host name or IP address to verify the certificate
+against.</li>
 <li><code>cert</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> An object representing the peer's certificate. The returned
 object has some properties corresponding to the fields of the certificate.</li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&#x3C;Error></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Undefined_type" class="type">&#x3C;undefined></a></li>
 </ul>
 <p>Verifies the certificate <code>cert</code> is issued to <code>hostname</code>.</p>
-<p>Returns <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&#x3C;Error></a> object, populating it with the reason, host, and cert on
+<p>Returns <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&#x3C;Error></a> object, populating it with <code>reason</code>, <code>host</code>, and <code>cert</code> on
 failure. On success, returns <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Undefined_type" class="type">&#x3C;undefined></a>.</p>
 <p>This function can be overwritten by providing alternative function as part of
 the <code>options.checkServerIdentity</code> option passed to <code>tls.connect()</code>. The
@@ -967,11 +968,15 @@ verification fails; <code>err.code</code> contains the OpenSSL error code. <stro
 <li><code>ALPNProtocols</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string[]></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer[]></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&#x3C;Uint8Array[]></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&#x3C;Uint8Array></a>
 An array of strings, <code>Buffer</code>s or <code>Uint8Array</code>s, or a single <code>Buffer</code> or
 <code>Uint8Array</code> containing the supported ALPN protocols. <code>Buffer</code>s should have
-the format <code>[len][name][len][name]...</code> e.g. <code>0x05hello0x05world</code>, where the
-first byte is the length of the next protocol name. Passing an array is
-usually much simpler, e.g. <code>['hello', 'world']</code>.</li>
+the format <code>[len][name][len][name]...</code> e.g. <code>'\x08http/1.1\x08http/1.0'</code>,
+where the <code>len</code> byte is the length of the next protocol name. Passing an
+array is usually much simpler, e.g. <code>['http/1.1', 'http/1.0']</code>.
+Protocols earlier in the list have higher preference than those later.</li>
 <li><code>servername</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Server name for the SNI (Server Name Indication) TLS
-extension. It must be a host name, and not an IP address.</li>
+extension. It is the name of the host being connected to, and must be a host
+name, and not an IP address. It can be used by a multi-homed server to
+choose the correct certificate to present to the client, see the
+<code>SNICallback</code> option to <a href="#tls_tls_createserver_options_secureconnectionlistener"><code>tls.createServer()</code></a>.</li>
 <li><code>checkServerIdentity(servername, cert)</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> A callback function
 to be used (instead of the builtin <code>tls.checkServerIdentity()</code> function)
 when checking the server's hostname (or the provided <code>servername</code> when
@@ -999,20 +1004,22 @@ will be created by passing the entire <code>options</code> object to
 <p>The <code>callback</code> function, if specified, will be added as a listener for the
 <a href="#tls_event_secureconnect"><code>'secureConnect'</code></a> event.</p>
 <p><code>tls.connect()</code> returns a <a href="#tls_class_tls_tlssocket"><code>tls.TLSSocket</code></a> object.</p>
-<p>Here is an example of a client of echo server as described in
+<p>The following illustrates a client for the echo server example from
 <a href="#tls_tls_createserver_options_secureconnectionlistener"><code>tls.createServer()</code></a>:</p>
-<pre><code class="language-js">// This example assumes that you have created an echo server that is
-// listening on port 8000.
+<pre><code class="language-js">// Assumes an echo server that is listening on port 8000.
 const tls = require('tls');
 const fs = require('fs');
 
 const options = {
-  // Necessary only if using the client certificate authentication
+  // Necessary only if the server requires client certificate authentication.
   key: fs.readFileSync('client-key.pem'),
   cert: fs.readFileSync('client-cert.pem'),
 
-  // Necessary only if the server uses the self-signed certificate
-  ca: [ fs.readFileSync('server-cert.pem') ]
+  // Necessary only if the server uses a self-signed certificate.
+  ca: [ fs.readFileSync('server-cert.pem') ],
+
+  // Necessary only if the server's cert isn't for "localhost".
+  checkServerIdentity: () => { return null; },
 };
 
 const socket = tls.connect(8000, options, () => {
@@ -1026,31 +1033,7 @@ socket.on('data', (data) => {
   console.log(data);
 });
 socket.on('end', () => {
-  console.log('client ends');
-});
-</code></pre>
-<p>Or</p>
-<pre><code class="language-js">// This example assumes that you have created an echo server that is
-// listening on port 8000.
-const tls = require('tls');
-const fs = require('fs');
-
-const options = {
-  pfx: fs.readFileSync('client.pfx')
-};
-
-const socket = tls.connect(8000, options, () => {
-  console.log('client connected',
-              socket.authorized ? 'authorized' : 'unauthorized');
-  process.stdin.pipe(socket);
-  process.stdin.resume();
-});
-socket.setEncoding('utf8');
-socket.on('data', (data) => {
-  console.log(data);
-});
-socket.on('end', () => {
-  console.log('client ends');
+  console.log('server ends connection');
 });
 </code></pre>
 <h2>tls.connect(path[, options][, callback])<span><a class="mark" href="#tls_tls_connect_path_options_callback" id="tls_tls_connect_path_options_callback">#</a></span></h2>
@@ -1261,10 +1244,10 @@ const options = {
   key: fs.readFileSync('server-key.pem'),
   cert: fs.readFileSync('server-cert.pem'),
 
-  // This is necessary only if using the client certificate authentication.
+  // This is necessary only if using client certificate authentication.
   requestCert: true,
 
-  // This is necessary only if the client uses the self-signed certificate.
+  // This is necessary only if the client uses a self-signed certificate.
   ca: [ fs.readFileSync('client-cert.pem') ]
 };
 
@@ -1279,31 +1262,8 @@ server.listen(8000, () => {
   console.log('server bound');
 });
 </code></pre>
-<p>Or</p>
-<pre><code class="language-js">const tls = require('tls');
-const fs = require('fs');
-
-const options = {
-  pfx: fs.readFileSync('server.pfx'),
-
-  // This is necessary only if using the client certificate authentication.
-  requestCert: true,
-};
-
-const server = tls.createServer(options, (socket) => {
-  console.log('server connected',
-              socket.authorized ? 'authorized' : 'unauthorized');
-  socket.write('welcome!\n');
-  socket.setEncoding('utf8');
-  socket.pipe(socket);
-});
-server.listen(8000, () => {
-  console.log('server bound');
-});
-</code></pre>
-<p>This server can be tested by connecting to it using <code>openssl s_client</code>:</p>
-<pre><code class="language-sh">openssl s_client -connect 127.0.0.1:8000
-</code></pre>
+<p>The server can be tested by connecting to it using the example client from
+<a href="#tls_tls_connect_options_callback"><code>tls.connect()</code></a>.</p>
 <h2>tls.getCiphers()<span><a class="mark" href="#tls_tls_getciphers" id="tls_tls_getciphers">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.10.2</span>

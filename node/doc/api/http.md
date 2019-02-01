@@ -368,7 +368,7 @@ proxy.listen(1337, '127.0.0.1', () => {
   // make a request to a tunneling proxy
   const options = {
     port: 1337,
-    hostname: '127.0.0.1',
+    host: '127.0.0.1',
     method: 'CONNECT',
     path: 'www.google.com:80'
   };
@@ -415,7 +415,7 @@ event is emitted with a callback containing an object with a status code.
 const http = require('http');
 
 const options = {
-  hostname: '127.0.0.1',
+  host: '127.0.0.1',
   port: 8080,
   path: '/length_request'
 };
@@ -502,7 +502,7 @@ srv.listen(1337, '127.0.0.1', () => {
   // make a request
   const options = {
     port: 1337,
-    hostname: '127.0.0.1',
+    host: '127.0.0.1',
     headers: {
       'Connection': 'Upgrade',
       'Upgrade': 'websocket'
@@ -568,6 +568,17 @@ If `data` is specified, it is equivalent to calling
 
 If `callback` is specified, it will be called when the request stream
 is finished.
+
+### request.finished
+<!-- YAML
+added: v0.0.1
+-->
+
+* {boolean}
+
+The `request.finished` property will be `true` if [`request.end()`][]
+has been called. `request.end()` will automatically be called if the
+request was initiated via [`http.get()`][].
 
 ### request.flushHeaders()
 <!-- YAML
@@ -1924,14 +1935,14 @@ changes:
   * `host` {string} A domain name or IP address of the server to issue the
     request to. **Default:** `'localhost'`.
   * `hostname` {string} Alias for `host`. To support [`url.parse()`][],
-    `hostname` is preferred over `host`.
-  * `family` {number} IP address family to use when resolving `host` and
+    `hostname` will be used if both `host` and `hostname` are specified.
+  * `family` {number} IP address family to use when resolving `host` or
     `hostname`. Valid values are `4` or `6`. When unspecified, both IP v4 and
     v6 will be used.
   * `port` {number} Port of remote server. **Default:** `80`.
   * `localAddress` {string} Local interface to bind for network connections.
-  * `socketPath` {string} Unix Domain Socket (use one of `host:port` or
-    `socketPath`).
+  * `socketPath` {string} Unix Domain Socket (cannot be used if one of `host`
+     or `port` is specified, those specify a TCP Socket).
   * `method` {string} A string specifying the HTTP request method. **Default:**
     `'GET'`.
   * `path` {string} Request path. Should include query string if any.
@@ -2106,6 +2117,7 @@ not abort the request or do anything besides add a `'timeout'` event.
 [`http.ClientRequest`]: #http_class_http_clientrequest
 [`http.IncomingMessage`]: #http_class_http_incomingmessage
 [`http.Server`]: #http_class_http_server
+[`http.get()`]: #http_http_get_options_callback
 [`http.globalAgent`]: #http_http_globalagent
 [`http.request()`]: #http_http_request_options_callback
 [`message.headers`]: #http_message_headers
@@ -2118,8 +2130,8 @@ not abort the request or do anything besides add a `'timeout'` event.
 [`request.getHeader()`]: #http_request_getheader_name
 [`request.setHeader()`]: #http_request_setheader_name_value
 [`request.setTimeout()`]: #http_request_settimeout_timeout_callback
-[`request.socket`]: #http_request_socket
 [`request.socket.getPeerCertificate()`]: tls.html#tls_tlssocket_getpeercertificate_detailed
+[`request.socket`]: #http_request_socket
 [`request.write(data, encoding)`]: #http_request_write_chunk_encoding_callback
 [`response.end()`]: #http_response_end_data_encoding_callback
 [`response.getHeader()`]: #http_response_getheader_name
@@ -2138,3 +2150,4 @@ not abort the request or do anything besides add a `'timeout'` event.
 [`socket.unref()`]: net.html#net_socket_unref
 [`url.parse()`]: url.html#url_url_parse_urlstring_parsequerystring_slashesdenotehost
 [Readable Stream]: stream.html#stream_class_stream_readable
+[Stream]: stream.html#stream_stream

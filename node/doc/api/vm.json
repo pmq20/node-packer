@@ -912,6 +912,13 @@
           "desc": "<p>All JavaScript executed within Node.js runs within the scope of a \"context\".\nAccording to the <a href=\"https://github.com/v8/v8/wiki/Embedder&#x27;s%20Guide#contexts\">V8 Embedder's Guide</a>:</p>\n<blockquote>\n<p>In V8, a context is an execution environment that allows separate, unrelated,\nJavaScript applications to run in a single instance of V8. You must explicitly\nspecify the context in which you want any JavaScript code to be run.</p>\n</blockquote>\n<p>When the method <code>vm.createContext()</code> is called, the <code>sandbox</code> object that is\npassed in (or a newly created object if <code>sandbox</code> is <code>undefined</code>) is associated\ninternally with a new instance of a V8 Context. This V8 Context provides the\n<code>code</code> run using the <code>vm</code> module's methods with an isolated global environment\nwithin which it can operate. The process of creating the V8 Context and\nassociating it with the <code>sandbox</code> object is what this document refers to as\n\"contextifying\" the <code>sandbox</code>.</p>",
           "type": "module",
           "displayName": "What does it mean to \"contextify\" an object?"
+        },
+        {
+          "textRaw": "Timeout limitations when using process.nextTick(), and Promises",
+          "name": "timeout_limitations_when_using_process.nexttick(),_and_promises",
+          "desc": "<p>Because of the internal mechanics of how the <code>process.nextTick()</code> queue and\nthe microtask queue that underlies Promises are implemented within V8 and\nNode.js, it is possible for code running within a context to \"escape\" the\n<code>timeout</code> set using <code>vm.runInContext()</code>, <code>vm.runInNewContext()</code>, and\n<code>vm.runInThisContext()</code>.</p>\n<p>For example, the following code executed by <code>vm.runInNewContext()</code> with a\ntimeout of 5 milliseconds schedules an infinite loop to run after a promise\nresolves. The scheduled loop is never interrupted by the timeout:</p>\n<pre><code class=\"language-js\">const vm = require('vm');\n\nfunction loop() {\n  while (1) console.log(Date.now());\n}\n\nvm.runInNewContext(\n  'Promise.resolve().then(loop);',\n  { loop, console },\n  { timeout: 5 }\n);\n</code></pre>\n<p>This issue also occurs when the <code>loop()</code> call is scheduled using\nthe <code>process.nextTick()</code> function.</p>\n<p>This issue occurs because all contexts share the same microtask and nextTick\nqueues.</p>",
+          "type": "module",
+          "displayName": "Timeout limitations when using process.nextTick(), and Promises"
         }
       ],
       "type": "module",

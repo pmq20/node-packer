@@ -436,7 +436,7 @@
             {
               "textRaw": "ERR_CRYPTO_SIGN_KEY_REQUIRED",
               "name": "err_crypto_sign_key_required",
-              "desc": "<p>A signing <code>key</code> was not provided to the <a href=\"crypto.html#crypto_sign_sign_privatekey_outputformat\"><code>sign.sign()</code></a> method.</p>\n<p><a id=\"ERR_CRYPTO_TIMING_SAFE_EQUAL_LENGTH\"></a></p>",
+              "desc": "<p>A signing <code>key</code> was not provided to the <a href=\"crypto.html#crypto_sign_sign_privatekey_outputencoding\"><code>sign.sign()</code></a> method.</p>\n<p><a id=\"ERR_CRYPTO_TIMING_SAFE_EQUAL_LENGTH\"></a></p>",
               "type": "module",
               "displayName": "ERR_CRYPTO_SIGN_KEY_REQUIRED"
             },
@@ -1261,7 +1261,7 @@
             {
               "textRaw": "ERR_NO_ICU",
               "name": "err_no_icu",
-              "desc": "<p>An attempt was made to use features that require <a href=\"\">ICU</a>, but Node.js was not\ncompiled with ICU support.</p>\n<p><a id=\"ERR_NO_LONGER_SUPPORTED\"></a></p>",
+              "desc": "<p>An attempt was made to use features that require <a href=\"intl.html#intl_internationalization_support\">ICU</a>, but Node.js was not\ncompiled with ICU support.</p>\n<p><a id=\"ERR_NO_LONGER_SUPPORTED\"></a></p>",
               "type": "module",
               "displayName": "ERR_NO_ICU"
             },

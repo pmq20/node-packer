@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Console | Node.js v10.15.0 Documentation</title>
+  <title>Console | Node.js v10.15.1 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -79,7 +79,7 @@
 
     <div id="column1" data-id="console" class="interior">
       <header>
-        <h1>Node.js v10.15.0 Documentation</h1>
+        <h1>Node.js v10.15.1 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -269,7 +269,7 @@ logger.log('count: %d', count);
 <a href="process.html#process_process_stdout"><code>process.stdout</code></a> and <a href="process.html#process_process_stderr"><code>process.stderr</code></a>. It is equivalent to calling:</p>
 <pre><code class="language-js">new Console({ stdout: process.stdout, stderr: process.stderr });
 </code></pre>
-<h3>console.assert(value[, ...message])<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/console.js#L274">[src]</a><span><a class="mark" href="#console_console_assert_value_message" id="console_console_assert_value_message">#</a></span></h3>
+<h3>console.assert(value[, ...message])<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/console.js#L277">[src]</a><span><a class="mark" href="#console_console_assert_value_message" id="console_console_assert_value_message">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -296,7 +296,7 @@ console.assert(false, 'Whoops %s work', 'didn\'t');
 </code></pre>
 <p>Calling <code>console.assert()</code> with a falsy assertion will only cause the <code>message</code>
 to be printed to the console without interrupting execution of subsequent code.</p>
-<h3>console.clear()<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/console.js#L282">[src]</a><span><a class="mark" href="#console_console_clear" id="console_console_clear">#</a></span></h3>
+<h3>console.clear()<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/console.js#L285">[src]</a><span><a class="mark" href="#console_console_clear" id="console_console_clear">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.3.0</span>
 </div>
@@ -307,7 +307,7 @@ and terminal types. For most Linux operating systems, <code>console.clear()</cod
 operates similarly to the <code>clear</code> shell command. On Windows, <code>console.clear()</code>
 will clear only the output in the current terminal viewport for the Node.js
 binary.</p>
-<h3>console.count([label])<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/console.js#L295">[src]</a><span><a class="mark" href="#console_console_count_label" id="console_console_count_label">#</a></span></h3>
+<h3>console.count([label])<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/console.js#L298">[src]</a><span><a class="mark" href="#console_console_count_label" id="console_console_count_label">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.3.0</span>
 </div>
@@ -337,7 +337,7 @@ default: 3
 undefined
 >
 </code></pre>
-<h3>console.countReset([label])<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/console.js#L313">[src]</a><span><a class="mark" href="#console_console_countreset_label" id="console_console_countreset_label">#</a></span></h3>
+<h3>console.countReset([label])<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/console.js#L316">[src]</a><span><a class="mark" href="#console_console_countreset_label" id="console_console_countreset_label">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.3.0</span>
 </div>
@@ -356,7 +356,7 @@ abc: 1
 undefined
 >
 </code></pre>
-<h3>console.debug(data[, ...args])<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/console.js#L203">[src]</a><span><a class="mark" href="#console_console_debug_data_args" id="console_console_debug_data_args">#</a></span></h3>
+<h3>console.debug(data[, ...args])<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/console.js#L206">[src]</a><span><a class="mark" href="#console_console_debug_data_args" id="console_console_debug_data_args">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -373,7 +373,7 @@ undefined
 <li><code>...args</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Data_types" class="type">&#x3C;any></a></li>
 </ul>
 <p>The <code>console.debug()</code> function is an alias for <a href="#console_console_log_data_args"><code>console.log()</code></a>.</p>
-<h3>console.dir(obj[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/console.js#L216">[src]</a><span><a class="mark" href="#console_console_dir_obj_options" id="console_console_dir_obj_options">#</a></span></h3>
+<h3>console.dir(obj[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/console.js#L219">[src]</a><span><a class="mark" href="#console_console_dir_obj_options" id="console_console_dir_obj_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.101</span>
 </div>
@@ -395,7 +395,7 @@ see <a href="util.html#util_customizing_util_inspect_colors">customizing <code>u
 </ul>
 <p>Uses <a href="util.html#util_util_inspect_object_options"><code>util.inspect()</code></a> on <code>obj</code> and prints the resulting string to <code>stdout</code>.
 This function bypasses any custom <code>inspect()</code> function defined on <code>obj</code>.</p>
-<h3>console.dirxml(...data)<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/console.js#L205">[src]</a><span><a class="mark" href="#console_console_dirxml_data" id="console_console_dirxml_data">#</a></span></h3>
+<h3>console.dirxml(...data)<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/console.js#L208">[src]</a><span><a class="mark" href="#console_console_dirxml_data" id="console_console_dirxml_data">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -412,7 +412,7 @@ This function bypasses any custom <code>inspect()</code> function defined on <co
 </ul>
 <p>This method calls <code>console.log()</code> passing it the arguments received.
 Please note that this method does not produce any XML formatting.</p>
-<h3>console.error([data][, ...args])<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/console.js#L214">[src]</a><span><a class="mark" href="#console_console_error_data_args" id="console_console_error_data_args">#</a></span></h3>
+<h3>console.error([data][, ...args])<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/console.js#L217">[src]</a><span><a class="mark" href="#console_console_error_data_args" id="console_console_error_data_args">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.100</span>
 </div>
@@ -433,7 +433,7 @@ console.error('error', code);
 <p>If formatting elements (e.g. <code>%d</code>) are not found in the first string then
 <a href="util.html#util_util_inspect_object_options"><code>util.inspect()</code></a> is called on each argument and the resulting string
 values are concatenated. See <a href="util.html#util_util_format_format_args"><code>util.format()</code></a> for more information.</p>
-<h3>console.group([...label])<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/console.js#L318">[src]</a><span><a class="mark" href="#console_console_group_label" id="console_console_group_label">#</a></span></h3>
+<h3>console.group([...label])<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/console.js#L321">[src]</a><span><a class="mark" href="#console_console_group_label" id="console_console_group_label">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.5.0</span>
 </div>
@@ -443,17 +443,17 @@ values are concatenated. See <a href="util.html#util_util_format_format_args"><c
 <p>Increases indentation of subsequent lines by two spaces.</p>
 <p>If one or more <code>label</code>s are provided, those are printed first without the
 additional indentation.</p>
-<h3>console.groupCollapsed()<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/console.js#L324">[src]</a><span><a class="mark" href="#console_console_groupcollapsed" id="console_console_groupcollapsed">#</a></span></h3>
+<h3>console.groupCollapsed()<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/console.js#L327">[src]</a><span><a class="mark" href="#console_console_groupcollapsed" id="console_console_groupcollapsed">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.5.0</span>
 </div>
 <p>An alias for <a href="#console_console_group_label"><code>console.group()</code></a>.</p>
-<h3>console.groupEnd()<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/console.js#L326">[src]</a><span><a class="mark" href="#console_console_groupend" id="console_console_groupend">#</a></span></h3>
+<h3>console.groupEnd()<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/console.js#L329">[src]</a><span><a class="mark" href="#console_console_groupend" id="console_console_groupend">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.5.0</span>
 </div>
 <p>Decreases indentation of subsequent lines by two spaces.</p>
-<h3>console.info([data][, ...args])<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/console.js#L204">[src]</a><span><a class="mark" href="#console_console_info_data_args" id="console_console_info_data_args">#</a></span></h3>
+<h3>console.info([data][, ...args])<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/console.js#L207">[src]</a><span><a class="mark" href="#console_console_info_data_args" id="console_console_info_data_args">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.100</span>
 </div>
@@ -462,7 +462,7 @@ additional indentation.</p>
 <li><code>...args</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Data_types" class="type">&#x3C;any></a></li>
 </ul>
 <p>The <code>console.info()</code> function is an alias for <a href="#console_console_log_data_args"><code>console.log()</code></a>.</p>
-<h3>console.log([data][, ...args])<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/console.js#L196">[src]</a><span><a class="mark" href="#console_console_log_data_args" id="console_console_log_data_args">#</a></span></h3>
+<h3>console.log([data][, ...args])<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/console.js#L199">[src]</a><span><a class="mark" href="#console_console_log_data_args" id="console_console_log_data_args">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.100</span>
 </div>
@@ -481,7 +481,7 @@ console.log('count:', count);
 // Prints: count: 5, to stdout
 </code></pre>
 <p>See <a href="util.html#util_util_format_format_args"><code>util.format()</code></a> for more information.</p>
-<h3>console.table(tabularData[, properties])<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/console.js#L340">[src]</a><span><a class="mark" href="#console_console_table_tabulardata_properties" id="console_console_table_tabulardata_properties">#</a></span></h3>
+<h3>console.table(tabularData[, properties])<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/console.js#L343">[src]</a><span><a class="mark" href="#console_console_table_tabulardata_properties" id="console_console_table_tabulardata_properties">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v10.0.0</span>
 </div>
@@ -515,7 +515,7 @@ console.table([{ a: 1, b: 'Y' }, { a: 'Z', b: 2 }], ['a']);
 // │    1    │ 'Z' │
 // └─────────┴─────┘
 </code></pre>
-<h3>console.time([label])<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/console.js#L227">[src]</a><span><a class="mark" href="#console_console_time_label" id="console_console_time_label">#</a></span></h3>
+<h3>console.time([label])<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/console.js#L230">[src]</a><span><a class="mark" href="#console_console_time_label" id="console_console_time_label">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.104</span>
 </div>
@@ -526,7 +526,7 @@ console.table([{ a: 1, b: 'Y' }, { a: 'Z', b: 2 }], ['a']);
 are identified by a unique <code>label</code>. Use the same <code>label</code> when calling
 <a href="#console_console_timeend_label"><code>console.timeEnd()</code></a> to stop the timer and output the elapsed time in
 milliseconds to <code>stdout</code>. Timer durations are accurate to the sub-millisecond.</p>
-<h3>console.timeEnd([label])<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/console.js#L233">[src]</a><span><a class="mark" href="#console_console_timeend_label" id="console_console_timeend_label">#</a></span></h3>
+<h3>console.timeEnd([label])<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/console.js#L236">[src]</a><span><a class="mark" href="#console_console_timeend_label" id="console_console_timeend_label">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -548,7 +548,7 @@ for (let i = 0; i &#x3C; 100; i++) {}
 console.timeEnd('100-elements');
 // prints 100-elements: 225.438ms
 </code></pre>
-<h3>console.timeLog([label][, ...data])<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/console.js#L242">[src]</a><span><a class="mark" href="#console_console_timelog_label_data" id="console_console_timelog_label_data">#</a></span></h3>
+<h3>console.timeLog([label][, ...data])<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/console.js#L245">[src]</a><span><a class="mark" href="#console_console_timelog_label_data" id="console_console_timelog_label_data">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v10.7.0</span>
 </div>
@@ -565,7 +565,7 @@ console.timeLog('process', value);
 doExpensiveProcess2(value);
 console.timeEnd('process');
 </code></pre>
-<h3>console.trace([message][, ...args])<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/console.js#L265">[src]</a><span><a class="mark" href="#console_console_trace_message_args" id="console_console_trace_message_args">#</a></span></h3>
+<h3>console.trace([message][, ...args])<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/console.js#L268">[src]</a><span><a class="mark" href="#console_console_trace_message_args" id="console_console_trace_message_args">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.104</span>
 </div>
@@ -589,7 +589,7 @@ formatted message and stack trace to the current position in the code.</p>
 //    at REPLServer.Interface._line (readline.js:549:8)
 //    at REPLServer.Interface._ttyWrite (readline.js:826:14)
 </code></pre>
-<h3>console.warn([data][, ...args])<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/console.js#L207">[src]</a><span><a class="mark" href="#console_console_warn_data_args" id="console_console_warn_data_args">#</a></span></h3>
+<h3>console.warn([data][, ...args])<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/console.js#L210">[src]</a><span><a class="mark" href="#console_console_warn_data_args" id="console_console_warn_data_args">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.100</span>
 </div>

@@ -483,6 +483,47 @@
                   "desc": "<p>Write <code>buffer</code> to the file.</p>\n<p>The <code>Promise</code> is resolved with an object containing a <code>bytesWritten</code> property\nidentifying the number of bytes written, and a <code>buffer</code> property containing\na reference to the <code>buffer</code> written.</p>\n<p><code>offset</code> determines the part of the buffer to be written, and <code>length</code> is\nan integer specifying the number of bytes to write.</p>\n<p><code>position</code> refers to the offset from the beginning of the file where this data\nshould be written. If <code>typeof position !== 'number'</code>, the data will be written\nat the current position. See <a href=\"http://man7.org/linux/man-pages/man2/pwrite.2.html\"><code>pwrite(2)</code></a>.</p>\n<p>It is unsafe to use <code>filehandle.write()</code> multiple times on the same file\nwithout waiting for the <code>Promise</code> to be resolved (or rejected). For this\nscenario, <a href=\"#fs_fs_createwritestream_path_options\"><code>fs.createWriteStream()</code></a> is strongly recommended.</p>\n<p>On Linux, positional writes do not work when the file is opened in append mode.\nThe kernel ignores the position argument and always appends the data to\nthe end of the file.</p>"
                 },
                 {
+                  "textRaw": "filehandle.write(string[, position[, encoding]])",
+                  "type": "method",
+                  "name": "write",
+                  "meta": {
+                    "added": [
+                      "v10.0.0"
+                    ],
+                    "changes": []
+                  },
+                  "signatures": [
+                    {
+                      "return": {
+                        "textRaw": "Returns: {Promise}",
+                        "name": "return",
+                        "type": "Promise"
+                      },
+                      "params": [
+                        {
+                          "textRaw": "`string` {string}",
+                          "name": "string",
+                          "type": "string"
+                        },
+                        {
+                          "textRaw": "`position` {integer}",
+                          "name": "position",
+                          "type": "integer",
+                          "optional": true
+                        },
+                        {
+                          "textRaw": "`encoding` {string} **Default:** `'utf8'`",
+                          "name": "encoding",
+                          "type": "string",
+                          "default": "`'utf8'`",
+                          "optional": true
+                        }
+                      ]
+                    }
+                  ],
+                  "desc": "<p>Write <code>string</code> to the file. If <code>string</code> is not a string, then\nthe value will be coerced to one.</p>\n<p>The <code>Promise</code> is resolved with an object containing a <code>bytesWritten</code> property\nidentifying the number of bytes written, and a <code>buffer</code> property containing\na reference to the <code>string</code> written.</p>\n<p><code>position</code> refers to the offset from the beginning of the file where this data\nshould be written. If the type of <code>position</code> is not a <code>number</code> the data\nwill be written at the current position. See <a href=\"http://man7.org/linux/man-pages/man2/pwrite.2.html\"><code>pwrite(2)</code></a>.</p>\n<p><code>encoding</code> is the expected string encoding.</p>\n<p>It is unsafe to use <code>filehandle.write()</code> multiple times on the same file\nwithout waiting for the <code>Promise</code> to be resolved (or rejected). For this\nscenario, <a href=\"#fs_fs_createwritestream_path_options\"><code>fs.createWriteStream()</code></a> is strongly recommended.</p>\n<p>On Linux, positional writes do not work when the file is opened in append mode.\nThe kernel ignores the position argument and always appends the data to\nthe end of the file.</p>"
+                },
+                {
                   "textRaw": "filehandle.writeFile(data, options)",
                   "type": "method",
                   "name": "writeFile",
@@ -1022,7 +1063,13 @@
                 "added": [
                   "v10.0.0"
                 ],
-                "changes": []
+                "changes": [
+                  {
+                    "version": "v11.1.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/23767",
+                    "description": "The `flags` argument is now optional and defaults to `'r'`."
+                  }
+                ]
               },
               "signatures": [
                 {
@@ -1038,9 +1085,10 @@
                       "type": "string|Buffer|URL"
                     },
                     {
-                      "textRaw": "`flags` {string|number} See [support of file system `flags`][].",
+                      "textRaw": "`flags` {string|number} See [support of file system `flags`][]. **Default:** `'r'`.",
                       "name": "flags",
                       "type": "string|number",
+                      "default": "`'r'`",
                       "desc": "See [support of file system `flags`][]."
                     },
                     {
@@ -4523,6 +4571,11 @@
             ],
             "changes": [
               {
+                "version": "v11.1.0",
+                "pr-url": "https://github.com/nodejs/node/pull/23767",
+                "description": "The `flags` argument is now optional and defaults to `'r'`."
+              },
+              {
                 "version": "v9.9.0",
                 "pr-url": "https://github.com/nodejs/node/pull/18801",
                 "description": "The `as` and `as+` modes are supported now."
@@ -4586,6 +4639,16 @@
               "v0.1.21"
             ],
             "changes": [
+              {
+                "version": "v11.1.0",
+                "pr-url": "https://github.com/nodejs/node/pull/23767",
+                "description": "The `flags` argument is now optional and defaults to `'r'`."
+              },
+              {
+                "version": "v9.9.0",
+                "pr-url": "https://github.com/nodejs/node/pull/18801",
+                "description": "The `as` and `as+` modes are supported now."
+              },
               {
                 "version": "v7.6.0",
                 "pr-url": "https://github.com/nodejs/node/pull/10739",

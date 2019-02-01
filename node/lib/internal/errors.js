@@ -295,10 +295,9 @@ function uvException(ctx) {
  * @param {string} syscall
  * @param {string} address
  * @param {number} [port]
- * @param {string} [additional]
  * @returns {Error}
  */
-function uvExceptionWithHostPort(err, syscall, address, port, additional) {
+function uvExceptionWithHostPort(err, syscall, address, port) {
   const [ code, uvmsg ] = errmap.get(err);
   const message = `${syscall} ${code}: ${uvmsg}`;
   let details = '';
@@ -307,9 +306,6 @@ function uvExceptionWithHostPort(err, syscall, address, port, additional) {
     details = ` ${address}:${port}`;
   } else if (address) {
     details = ` ${address}`;
-  }
-  if (additional) {
-    details += ` - Local (${additional})`;
   }
 
   // eslint-disable-next-line no-restricted-syntax
@@ -834,10 +830,11 @@ E('ERR_NO_ICU',
   '%s is not supported on Node.js compiled without ICU', TypeError);
 E('ERR_NO_LONGER_SUPPORTED', '%s is no longer supported', Error);
 E('ERR_OUT_OF_RANGE',
-  (name, range, value) => {
-    let msg = `The value of "${name}" is out of range.`;
+  (str, range, input, replaceDefaultBoolean = false) => {
+    let msg = replaceDefaultBoolean ? str :
+      `The value of "${str}" is out of range.`;
     if (range !== undefined) msg += ` It must be ${range}.`;
-    msg += ` Received ${value}`;
+    msg += ` Received ${input}`;
     return msg;
   }, RangeError);
 E('ERR_REQUIRE_ESM', 'Must use import to load ES Module: %s', Error);

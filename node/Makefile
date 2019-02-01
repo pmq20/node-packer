@@ -270,7 +270,7 @@ v8:
 	tools/make-v8.sh $(V8_ARCH).$(BUILDTYPE_LOWER) $(V8_BUILD_OPTIONS)
 
 .PHONY: jstest
-jstest: build-addons build-addons-napi bench-addons-build ## Runs addon tests and JS tests
+jstest: build-addons build-addons-napi ## Runs addon tests and JS tests
 	$(PYTHON) tools/test.py $(PARALLEL_ARGS) --mode=$(BUILDTYPE_LOWER) \
 		--skip-tests=$(CI_SKIP_TESTS) \
 		$(CI_JS_SUITES) \
@@ -308,7 +308,7 @@ test-valgrind: all
 test-check-deopts: all
 	$(PYTHON) tools/test.py $(PARALLEL_ARGS) --mode=$(BUILDTYPE_LOWER) --check-deopts parallel sequential
 
-benchmark/napi/function_call/build/Release/binding.node: \
+benchmark/napi/function_call/build/$(BUILDTYPE)/binding.node: \
 		benchmark/napi/function_call/napi_binding.c \
 		benchmark/napi/function_call/binding.cc \
 		benchmark/napi/function_call/binding.gyp | all
@@ -317,7 +317,7 @@ benchmark/napi/function_call/build/Release/binding.node: \
 		--directory="$(shell pwd)/benchmark/napi/function_call" \
 		--nodedir="$(shell pwd)"
 
-benchmark/napi/function_args/build/Release/binding.node: \
+benchmark/napi/function_args/build/$(BUILDTYPE)/binding.node: \
 		benchmark/napi/function_args/napi_binding.c \
 		benchmark/napi/function_args/binding.cc \
 		benchmark/napi/function_args/binding.gyp | all
@@ -332,16 +332,16 @@ ifeq ($(OSTYPE),aix)
 DOCBUILDSTAMP_PREREQS := $(DOCBUILDSTAMP_PREREQS) out/$(BUILDTYPE)/node.exp
 endif
 
-node_use_openssl = $(shell $(call available-node,"-p" \
-		   "process.versions.openssl != undefined"))
+node_use_openssl = $(call available-node,"-p" \
+		   "process.versions.openssl != undefined")
 test/addons/.docbuildstamp: $(DOCBUILDSTAMP_PREREQS) tools/doc/node_modules
-ifeq ($(node_use_openssl),true)
-	$(RM) -r test/addons/??_*/
-	[ -x $(NODE) ] && $(NODE) $< || node $<
-	touch $@
-else
-	@echo "Skipping .docbuildstamp (no crypto)"
-endif
+	@if [ "$(shell $(node_use_openssl))" != "true" ]; then \
+		echo "Skipping .docbuildstamp (no crypto)"; \
+	else \
+		$(RM) -r test/addons/??_*/; \
+		[ -x $(NODE) ] && $(NODE) $< || node $< ; \
+		touch $@; \
+  fi
 
 ADDONS_BINDING_GYPS := \
 	$(filter-out test/addons/??_*/binding.gyp, \
@@ -414,7 +414,7 @@ clear-stalled:
 		echo $${PS_OUT} | xargs kill -9; \
 	fi
 
-test-build: | all build-addons build-addons-napi bench-addons-build
+test-build: | all build-addons build-addons-napi
 
 test-build-addons-napi: all build-addons-napi
 
@@ -455,7 +455,7 @@ test-ci-js: | clear-stalled
 .PHONY: test-ci
 # Related CI jobs: most CI tests, excluding node-test-commit-arm-fanned
 test-ci: LOGLEVEL := info
-test-ci: | clear-stalled build-addons build-addons-napi doc-only bench-addons-build
+test-ci: | clear-stalled build-addons build-addons-napi doc-only
 	out/Release/cctest --gtest_output=tap:cctest.tap
 	$(PYTHON) tools/test.py $(PARALLEL_ARGS) -p tap --logfile test.tap \
 		--mode=$(BUILDTYPE_LOWER) --flaky-tests=$(FLAKY_TESTS) \
@@ -496,7 +496,7 @@ test-debug: test-build
 test-message: test-build
 	$(PYTHON) tools/test.py $(PARALLEL_ARGS) message
 
-test-simple: | cctest bench-addons-build  # Depends on 'all'.
+test-simple: | cctest # Depends on 'all'.
 	$(PYTHON) tools/test.py $(PARALLEL_ARGS) parallel sequential
 
 test-pummel: all
@@ -508,6 +508,9 @@ test-internet: all
 test-node-inspect: $(NODE_EXE)
 	USE_EMBEDDED_NODE_INSPECT=1 $(NODE) tools/test-npm-package \
 		--install deps/node-inspect test
+
+test-benchmark: | bench-addons-build
+	$(PYTHON) tools/test.py $(PARALLEL_ARGS) benchmark
 
 test-tick-processor: all
 	$(PYTHON) tools/test.py $(PARALLEL_ARGS) tick-processor
@@ -609,11 +612,11 @@ apidocs_json = $(addprefix out/,$(apidoc_sources:.md=.json))
 apiassets = $(subst api_assets,api/assets,$(addprefix out/,$(wildcard doc/api_assets/*)))
 
 tools/doc/node_modules: tools/doc/package.json
-ifeq ($(node_use_openssl),true)
-	cd tools/doc && $(call available-node,$(run-npm-ci))
-else
-	@echo "Skipping tools/doc/node_modules (no crypto)"
-endif
+	@if [ "$(shell $(node_use_openssl))" != "true" ]; then \
+		echo "Skipping tools/doc/node_modules (no crypto)"; \
+	else \
+		cd tools/doc && $(call available-node,$(run-npm-ci)) \
+  fi
 
 .PHONY: doc-only
 doc-only: tools/doc/node_modules \
@@ -1043,8 +1046,8 @@ bench: bench-addons-build
 
 # Build required addons for benchmark before running it.
 .PHONY: bench-addons-build
-bench-addons-build: benchmark/napi/function_call/build/Release/binding.node \
-	benchmark/napi/function_args/build/Release/binding.node
+bench-addons-build: benchmark/napi/function_call/build/$(BUILDTYPE)/binding.node \
+	benchmark/napi/function_args/build/$(BUILDTYPE)/binding.node
 
 .PHONY: bench-addons-clean
 bench-addons-clean:
@@ -1053,13 +1056,11 @@ bench-addons-clean:
 
 .PHONY: lint-md-rollup
 lint-md-rollup:
-	cd tools/node-lint-md-cli-rollup/remark-preset-lint-node && npm up
-	cd tools/node-lint-md-cli-rollup && npm up
+	cd tools/node-lint-md-cli-rollup && npm install
 	cd tools/node-lint-md-cli-rollup && npm run build-node
 
 .PHONY: lint-md-clean
 lint-md-clean:
-	$(RM) -r tools/node-lint-md-cli-rollup/remark-preset-lint-node/node_modules
 	$(RM) -r tools/node-lint-md-cli-rollup/node_modules
 	$(RM) tools/.*mdlintstamp
 

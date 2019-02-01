@@ -291,7 +291,7 @@ for (let i = 0; i < 100; i++) {
 }
 writer.end('This is the end\n');
 writer.on('finish', () => {
-  console.error('All writes are now complete.');
+  console.log('All writes are now complete.');
 });
 ```
 
@@ -309,7 +309,7 @@ a readable stream, adding this writable to its set of destinations.
 const writer = getWritableStreamSomehow();
 const reader = getReadableStreamSomehow();
 writer.on('pipe', (src) => {
-  console.error('something is piping into the writer');
+  console.log('Something is piping into the writer.');
   assert.equal(src, reader);
 });
 reader.pipe(writer);
@@ -334,7 +334,7 @@ This is also emitted in case this [`Writable`][] stream emits an error when a
 const writer = getWritableStreamSomehow();
 const reader = getReadableStreamSomehow();
 writer.on('unpipe', (src) => {
-  console.error('Something has stopped piping into the writer.');
+  console.log('Something has stopped piping into the writer.');
   assert.equal(src, reader);
 });
 reader.pipe(writer);
@@ -463,6 +463,15 @@ process.nextTick(() => {
 
 See also: [`writable.cork()`][].
 
+##### writable.writable
+<!-- YAML
+added: v0.8.0
+-->
+
+* {boolean}
+
+Is `true` if it is safe to call [`writable.write()`][].
+
 ##### writable.writableHighWaterMark
 <!-- YAML
 added: v9.3.0
@@ -551,7 +560,7 @@ function write(data, cb) {
 
 // Wait for cb to be called before doing any other write.
 write('hello', () => {
-  console.log('write completed, do more writes now');
+  console.log('Write completed, do more writes now.');
 });
 ```
 
@@ -1013,12 +1022,21 @@ also be emitted.
 Calling [`stream.read([size])`][stream-read] after the [`'end'`][] event has
 been emitted will return `null`. No runtime error will be raised.
 
+##### readable.readable
+<!-- YAML
+added: v0.8.0
+-->
+
+* {boolean}
+
+Is `true` if it is safe to call [`readable.read()`][].
+
 ##### readable.readableHighWaterMark
 <!-- YAML
 added: v9.3.0
 -->
 
-* Returns: {number}
+* {number}
 
 Returns the value of `highWaterMark` passed when constructing this
 `Readable`.
@@ -1028,7 +1046,7 @@ Returns the value of `highWaterMark` passed when constructing this
 added: v9.4.0
 -->
 
-* Returns: {number}
+* {number}
 
 This property contains the number of bytes (or objects) in the queue
 ready to be read. The value provides introspection data regarding
@@ -1091,7 +1109,7 @@ const readable = getReadableStreamSomehow();
 readable.setEncoding('utf8');
 readable.on('data', (chunk) => {
   assert.equal(typeof chunk, 'string');
-  console.log('got %d characters of string data', chunk.length);
+  console.log('Got %d characters of string data:', chunk.length);
 });
 ```
 
@@ -1119,9 +1137,9 @@ const writable = fs.createWriteStream('file.txt');
 // but only for the first second
 readable.pipe(writable);
 setTimeout(() => {
-  console.log('Stop writing to file.txt');
+  console.log('Stop writing to file.txt.');
   readable.unpipe(writable);
-  console.log('Manually close the file stream');
+  console.log('Manually close the file stream.');
   writable.end();
 }, 1000);
 ```
@@ -1329,9 +1347,9 @@ const rs = fs.createReadStream('archive.tar');
 
 finished(rs, (err) => {
   if (err) {
-    console.error('Stream failed', err);
+    console.error('Stream failed.', err);
   } else {
-    console.log('Stream is done reading');
+    console.log('Stream is done reading.');
   }
 });
 
@@ -1351,7 +1369,7 @@ const rs = fs.createReadStream('archive.tar');
 
 async function run() {
   await finished(rs);
-  console.log('Stream is done reading');
+  console.log('Stream is done reading.');
 }
 
 run().catch(console.error);
@@ -1386,9 +1404,9 @@ pipeline(
   fs.createWriteStream('archive.tar.gz'),
   (err) => {
     if (err) {
-      console.error('Pipeline failed', err);
+      console.error('Pipeline failed.', err);
     } else {
-      console.log('Pipeline succeeded');
+      console.log('Pipeline succeeded.');
     }
   }
 );
@@ -1405,7 +1423,7 @@ async function run() {
     zlib.createGzip(),
     fs.createWriteStream('archive.tar.gz')
   );
-  console.log('Pipeline succeeded');
+  console.log('Pipeline succeeded.');
 }
 
 run().catch(console.error);
@@ -2421,57 +2439,57 @@ contain multi-byte characters.
 [`'end'`]: #stream_event_end
 [`'finish'`]: #stream_event_finish
 [`'readable'`]: #stream_event_readable
+[`Duplex`]: #stream_class_stream_duplex
 [`EventEmitter`]: events.html#events_class_eventemitter
+[`Readable`]: #stream_class_stream_readable
 [`Symbol.hasInstance`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/hasInstance
+[`Transform`]: #stream_class_stream_transform
+[`Writable`]: #stream_class_stream_writable
 [`fs.createReadStream()`]: fs.html#fs_fs_createreadstream_path_options
 [`fs.createWriteStream()`]: fs.html#fs_fs_createwritestream_path_options
 [`net.Socket`]: net.html#net_class_net_socket
 [`process.stderr`]: process.html#process_process_stderr
 [`process.stdin`]: process.html#process_process_stdin
 [`process.stdout`]: process.html#process_process_stdout
+[`readable.push('')`]: #stream_readable_push
 [`stream.cork()`]: #stream_writable_cork
 [`stream.pipe()`]: #stream_readable_pipe_destination_options
 [`stream.uncork()`]: #stream_writable_uncork
 [`stream.unpipe()`]: #stream_readable_unpipe_destination
 [`stream.wrap()`]: #stream_readable_wrap_stream
-[`readable.push('')`]: #stream_readable_push
 [`writable.cork()`]: #stream_writable_cork
 [`writable.uncork()`]: #stream_writable_uncork
 [`zlib.createDeflate()`]: zlib.html#zlib_zlib_createdeflate_options
 [API for Stream Consumers]: #stream_api_for_stream_consumers
 [API for Stream Implementers]: #stream_api_for_stream_implementers
 [Compatibility]: #stream_compatibility_with_older_node_js_versions
-[`Duplex`]: #stream_class_stream_duplex
 [HTTP requests, on the client]: http.html#http_class_http_clientrequest
 [HTTP responses, on the server]: http.html#http_class_http_serverresponse
-[`Readable`]: #stream_class_stream_readable
 [TCP sockets]: net.html#net_class_net_socket
-[`Transform`]: #stream_class_stream_transform
-[`Writable`]: #stream_class_stream_writable
 [child process stdin]: child_process.html#child_process_subprocess_stdin
 [child process stdout and stderr]: child_process.html#child_process_subprocess_stdout
 [crypto]: crypto.html
+[finished]: #stream_stream_finished_stream_callback
 [fs read streams]: fs.html#fs_class_fs_readstream
 [fs write streams]: fs.html#fs_class_fs_writestream
 [http-incoming-message]: http.html#http_class_http_incomingmessage
-[zlib]: zlib.html
 [hwm-gotcha]: #stream_highwatermark_discrepancy_after_calling_readable_setencoding
+[object-mode]: #stream_object_mode
 [pipeline]: #stream_stream_pipeline_streams_callback
-[finished]: #stream_stream_finished_stream_callback
+[readable-_destroy]: #stream_readable_destroy_err_callback
+[readable-destroy]: #stream_readable_destroy_error
+[stream-_final]: #stream_writable_final_callback
 [stream-_flush]: #stream_transform_flush_callback
 [stream-_read]: #stream_readable_read_size_1
 [stream-_transform]: #stream_transform_transform_chunk_encoding_callback
 [stream-_write]: #stream_writable_write_chunk_encoding_callback_1
 [stream-_writev]: #stream_writable_writev_chunks_callback
-[stream-_final]: #stream_writable_final_callback
 [stream-end]: #stream_writable_end_chunk_encoding_callback
 [stream-pause]: #stream_readable_pause
 [stream-push]: #stream_readable_push_chunk_encoding
 [stream-read]: #stream_readable_read_size
 [stream-resume]: #stream_readable_resume
 [stream-write]: #stream_writable_write_chunk_encoding_callback
-[readable-_destroy]: #stream_readable_destroy_err_callback
-[readable-destroy]: #stream_readable_destroy_error
 [writable-_destroy]: #stream_writable_destroy_err_callback
 [writable-destroy]: #stream_writable_destroy_error
-[object-mode]: #stream_object_mode
+[zlib]: zlib.html

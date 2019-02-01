@@ -3,7 +3,6 @@
 ## Contents
 
 * [Issues and Pull Requests](#issues-and-pull-requests)
-  - [Managing Issues and Pull Requests](#managing-issues-and-pull-requests)
   - [Welcoming First-Time Contributors](#welcoming-first-time-contributors)
   - [Closing Issues and Pull Requests](#closing-issues-and-pull-requests)
   - [Author ready pull requests](#author-ready-pull-requests)
@@ -45,46 +44,40 @@ Collaborators should understand the
 
 ## Issues and Pull Requests
 
-### Managing Issues and Pull Requests
-
-Collaborators should take full responsibility for managing issues and pull
-requests they feel qualified to handle. Make sure this is done while being
-mindful of these guidelines, the opinions of other Collaborators, and guidance
-of the [TSC][]. They may also notify other qualified parties for more input on
-an issue or a pull request.
-See [Who to CC in the issue tracker](#who-to-cc-in-the-issue-tracker).
+Mind these guidelines, the opinions of other Collaborators, and guidance of the
+[TSC][]. Notify other qualified parties for more input on an issue or a pull
+request. See [Who to CC in the issue tracker](#who-to-cc-in-the-issue-tracker).
 
 ### Welcoming First-Time Contributors
 
-Courtesy should always be shown to individuals submitting issues and pull
-requests to the Node.js project. Be welcoming to first-time contributors,
-identified by the GitHub ![First-time contributor](./doc/first_timer_badge.png)
-badge.
+Always show courtesy to individuals submitting issues and pull requests. Be
+welcoming to first-time contributors, identified by the GitHub
+![First-time contributor](./doc/first_timer_badge.png) badge.
 
-For first-time contributors, check if the commit author is the same as the
-pull request author, and ask if they have configured their git
+For first-time contributors, check if the commit author is the same as the pull
+request author. This way, once their pull request lands, GitHub will show them
+as a _Contributor_. Ask if they have configured their git
 [username][git-username] and [email][git-email] to their liking.
-This is to make sure they would be promoted to "contributor" once their
-pull request lands.
 
 ### Closing Issues and Pull Requests
 
-Collaborators may close any issue or pull request they believe is
-not relevant for the future of the Node.js project. Where this is
-unclear, the issue should be left open for several days to allow for
-additional discussion. Where this does not yield input from Node.js
-Collaborators or additional evidence that the issue has relevance, the
-issue may be closed. Remember that issues can always be re-opened if
-necessary.
+Collaborators may close any issue or pull request that is not relevant to the
+future of the Node.js project. Where this is unclear, leave the issue or pull
+request open for several days to allow for discussion. Where this does not yield
+evidence that the issue or pull request has relevance, close it. Remember that
+issues and pull requests can always be re-opened if necessary.
 
 ### Author ready pull requests
 
-A pull request that is still awaiting the minimum review time is considered
-_author ready_ as soon as the CI has been started, it has at least two approvals
-(one Collaborator approval is enough if the pull request has been open for more
-than 7 days), and it has no outstanding review comments. Please always make sure
-to add the `author ready` label to the PR in that case and remove it again as
-soon as that condition is not met anymore.
+A pull request is _author ready_ when:
+
+* There is a CI run in progress or completed.
+* There are at least two Collaborator approvals, or at least one approval if the
+  pull request is older than 7 days.
+* There are no outstanding review comments.
+
+Please always add the `author ready` label to the PR in that case. Please always
+remove it again as soon as the conditions are not met anymore.
 
 ### Handling own pull requests
 
@@ -800,8 +793,8 @@ TSC for further discussion.
 
 #### How are LTS Branches Managed?
 
-There are multiple LTS branches, e.g. `v8.x` and `v6.x`. Each of these is paired
-with a staging branch: `v8.x-staging` and `v6.x-staging`.
+There are multiple LTS branches, e.g. `v10.x` and `v8.x`. Each of these is
+paired with a staging branch: `v10.x-staging` and `v8.x-staging`.
 
 As commits land on the master branch, they are cherry-picked back to each
 staging branch as appropriate. If the commit applies only to the LTS branch, the
@@ -810,9 +803,8 @@ pulled from the staging branch into the LTS branch only when a release is
 being prepared and may be pulled into the LTS branch in a different order
 than they were landed in staging.
 
-Any Collaborator may land commits into a staging branch, but only the release
-team should land commits into the LTS branch while preparing a new
-LTS release.
+Only the members of the @nodejs/backporters team should land commits onto
+LTS staging branches.
 
 #### How can I help?
 
@@ -823,14 +815,18 @@ on backporting, please see the [backporting guide][].
 
 Several LTS related issue and PR labels have been provided:
 
-* `lts-watch-v6.x` - tells the LTS WG that the issue/PR needs to be considered
-  for landing in the `v6.x-staging` branch.
-* `lts-watch-v4.x` - tells the LTS WG that the issue/PR needs to be considered
-  for landing in the `v4.x-staging` branch.
+* `lts-watch-v10.x` - tells the LTS WG that the issue/PR needs to be
+  considered for landing in the `v10.x-staging` branch.
+* `lts-watch-v8.x` - tells the LTS WG that the issue/PR needs to be
+  considered for landing in the `v8.x-staging` branch.
+* `lts-watch-v6.x` - tells the LTS WG that the issue/PR needs to be
+  considered for landing in the `v6.x-staging` branch.
+* `land-on-v10.x` - tells the release team that the commit should be landed
+  in a future v10.x release.
+* `land-on-v8.x` - tells the release team that the commit should be landed
+  in a future v8.x release.
 * `land-on-v6.x` - tells the release team that the commit should be landed
-  in a future v6.x release
-* `land-on-v4.x` - tells the release team that the commit should be landed
-  in a future v4.x release
+  in a future v6.x release.
 
 Any Collaborator can attach these labels to any PR/issue. As commits are
 landed into the staging branches, the `lts-watch-` label will be removed.

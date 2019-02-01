@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Crypto | Node.js v10.15.0 Documentation</title>
+  <title>Crypto | Node.js v10.15.1 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -79,7 +79,7 @@
 
     <div id="column1" data-id="crypto" class="interior">
       <header>
-        <h1>Node.js v10.15.0 Documentation</h1>
+        <h1>Node.js v10.15.1 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -199,7 +199,7 @@
 <li>
 <p><a href="#crypto_class_sign">Class: Sign</a></p>
 <ul>
-<li><a href="#crypto_sign_sign_privatekey_outputformat">sign.sign(privateKey[, outputFormat])</a></li>
+<li><a href="#crypto_sign_sign_privatekey_outputencoding">sign.sign(privateKey[, outputEncoding])</a></li>
 <li><a href="#crypto_sign_update_data_inputencoding">sign.update(data[, inputEncoding])</a></li>
 </ul>
 </li>
@@ -207,7 +207,7 @@
 <p><a href="#crypto_class_verify">Class: Verify</a></p>
 <ul>
 <li><a href="#crypto_verify_update_data_inputencoding">verify.update(data[, inputEncoding])</a></li>
-<li><a href="#crypto_verify_verify_object_signature_signatureformat">verify.verify(object, signature[, signatureFormat])</a></li>
+<li><a href="#crypto_verify_verify_object_signature_signatureencoding">verify.verify(object, signature[, signatureEncoding])</a></li>
 </ul>
 </li>
 <li>
@@ -334,7 +334,7 @@ console.log(challenge.toString('utf8'));
 </div>
 <ul>
 <li><code>spkac</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a></li>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The <a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a> of the <code>spkac</code> string.</li>
 <li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> The public key component of the <code>spkac</code> data structure,
 which includes a public key and a challenge.</li>
 </ul>
@@ -431,7 +431,18 @@ used to create <code>Cipher</code> instances. <code>Cipher</code> objects are no
 directly using the <code>new</code> keyword.</p>
 <p>Example: Using <code>Cipher</code> objects as streams:</p>
 <pre><code class="language-js">const crypto = require('crypto');
-const cipher = crypto.createCipher('aes192', 'a password');
+
+const algorithm = 'aes-192-cbc';
+const password = 'Password used to generate key';
+// Key length is dependent on the algorithm. In this case for aes192, it is
+// 24 bytes (192 bits).
+// Use async `crypto.scrypt()` instead.
+const key = crypto.scryptSync(password, 'salt', 24);
+// Use `crypto.randomBytes()` to generate a random iv instead of the static iv
+// shown here.
+const iv = Buffer.alloc(16, 0); // Initialization vector.
+
+const cipher = crypto.createCipheriv(algorithm, key, iv);
 
 let encrypted = '';
 cipher.on('readable', () => {
@@ -441,7 +452,7 @@ cipher.on('readable', () => {
 });
 cipher.on('end', () => {
   console.log(encrypted);
-  // Prints: ca981be48e90867604588e75d04feabb63cc007a8f8ad89b10616ed84d815504
+  // Prints: e5f79c5915c02171eec6b212d5520d44480993d7d622a7c4c2da32f6efda0ffa
 });
 
 cipher.write('some clear text data');
@@ -450,7 +461,16 @@ cipher.end();
 <p>Example: Using <code>Cipher</code> and piped streams:</p>
 <pre><code class="language-js">const crypto = require('crypto');
 const fs = require('fs');
-const cipher = crypto.createCipher('aes192', 'a password');
+
+const algorithm = 'aes-192-cbc';
+const password = 'Password used to generate key';
+// Use the async `crypto.scrypt()` instead.
+const key = crypto.scryptSync(password, 'salt', 24);
+// Use `crypto.randomBytes()` to generate a random iv instead of the static iv
+// shown here.
+const iv = Buffer.alloc(16, 0); // Initialization vector.
+
+const cipher = crypto.createCipheriv(algorithm, key, iv);
 
 const input = fs.createReadStream('test.js');
 const output = fs.createWriteStream('test.enc');
@@ -459,21 +479,30 @@ input.pipe(cipher).pipe(output);
 </code></pre>
 <p>Example: Using the <a href="#crypto_cipher_update_data_inputencoding_outputencoding"><code>cipher.update()</code></a> and <a href="#crypto_cipher_final_outputencoding"><code>cipher.final()</code></a> methods:</p>
 <pre><code class="language-js">const crypto = require('crypto');
-const cipher = crypto.createCipher('aes192', 'a password');
+
+const algorithm = 'aes-192-cbc';
+const password = 'Password used to generate key';
+// Use the async `crypto.scrypt()` instead.
+const key = crypto.scryptSync(password, 'salt', 24);
+// Use `crypto.randomBytes` to generate a random iv instead of the static iv
+// shown here.
+const iv = Buffer.alloc(16, 0); // Initialization vector.
+
+const cipher = crypto.createCipheriv(algorithm, key, iv);
 
 let encrypted = cipher.update('some clear text data', 'utf8', 'hex');
 encrypted += cipher.final('hex');
 console.log(encrypted);
-// Prints: ca981be48e90867604588e75d04feabb63cc007a8f8ad89b10616ed84d815504
+// Prints: e5f79c5915c02171eec6b212d5520d44480993d7d622a7c4c2da32f6efda0ffa
 </code></pre>
 <h3>cipher.final([outputEncoding])<span><a class="mark" href="#crypto_cipher_final_outputencoding" id="crypto_cipher_final_outputencoding">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.94</span>
 </div>
 <ul>
-<li><code>outputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>outputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The <a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a> of the return value.</li>
 <li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Any remaining enciphered contents.
-If <code>outputEncoding</code> is one of <code>'latin1'</code>, <code>'base64'</code> or <code>'hex'</code>, a string is
+If <code>outputEncoding</code> is specified, a string is
 returned. If an <code>outputEncoding</code> is not provided, a <a href="buffer.html"><code>Buffer</code></a> is returned.</li>
 </ul>
 <p>Once the <code>cipher.final()</code> method has been called, the <code>Cipher</code> object can no
@@ -543,18 +572,18 @@ using <code>0x0</code> instead of PKCS padding.</p>
 </div>
 <ul>
 <li><code>data</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a></li>
-<li><code>inputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
-<li><code>outputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>inputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The <a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a> of the data.</li>
+<li><code>outputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The <a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a> of the return value.</li>
 <li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
 <p>Updates the cipher with <code>data</code>. If the <code>inputEncoding</code> argument is given,
-its value must be one of <code>'utf8'</code>, <code>'ascii'</code>, or <code>'latin1'</code> and the <code>data</code>
+the <code>data</code>
 argument is a string using the specified encoding. If the <code>inputEncoding</code>
 argument is not given, <code>data</code> must be a <a href="buffer.html"><code>Buffer</code></a>, <code>TypedArray</code>, or
 <code>DataView</code>. If <code>data</code> is a <a href="buffer.html"><code>Buffer</code></a>, <code>TypedArray</code>, or <code>DataView</code>, then
 <code>inputEncoding</code> is ignored.</p>
 <p>The <code>outputEncoding</code> specifies the output format of the enciphered
-data, and can be <code>'latin1'</code>, <code>'base64'</code> or <code>'hex'</code>. If the <code>outputEncoding</code>
+data. If the <code>outputEncoding</code>
 is specified, a string using the specified encoding is returned. If no
 <code>outputEncoding</code> is provided, a <a href="buffer.html"><code>Buffer</code></a> is returned.</p>
 <p>The <code>cipher.update()</code> method can be called multiple times with new data until
@@ -577,7 +606,17 @@ used to create <code>Decipher</code> instances. <code>Decipher</code> objects ar
 directly using the <code>new</code> keyword.</p>
 <p>Example: Using <code>Decipher</code> objects as streams:</p>
 <pre><code class="language-js">const crypto = require('crypto');
-const decipher = crypto.createDecipher('aes192', 'a password');
+
+const algorithm = 'aes-192-cbc';
+const password = 'Password used to generate key';
+// Key length is dependent on the algorithm. In this case for aes192, it is
+// 24 bytes (192 bits).
+// Use the async `crypto.scrypt()` instead.
+const key = crypto.scryptSync(password, 'salt', 24);
+// The IV is usually passed along with the ciphertext.
+const iv = Buffer.alloc(16, 0); // Initialization vector.
+
+const decipher = crypto.createDecipheriv(algorithm, key, iv);
 
 let decrypted = '';
 decipher.on('readable', () => {
@@ -590,15 +629,24 @@ decipher.on('end', () => {
   // Prints: some clear text data
 });
 
+// Encrypted with same algorithm, key and iv.
 const encrypted =
-    'ca981be48e90867604588e75d04feabb63cc007a8f8ad89b10616ed84d815504';
+  'e5f79c5915c02171eec6b212d5520d44480993d7d622a7c4c2da32f6efda0ffa';
 decipher.write(encrypted, 'hex');
 decipher.end();
 </code></pre>
 <p>Example: Using <code>Decipher</code> and piped streams:</p>
 <pre><code class="language-js">const crypto = require('crypto');
 const fs = require('fs');
-const decipher = crypto.createDecipher('aes192', 'a password');
+
+const algorithm = 'aes-192-cbc';
+const password = 'Password used to generate key';
+// Use the async `crypto.scrypt()` instead.
+const key = crypto.scryptSync(password, 'salt', 24);
+// The IV is usually passed along with the ciphertext.
+const iv = Buffer.alloc(16, 0); // Initialization vector.
+
+const decipher = crypto.createDecipheriv(algorithm, key, iv);
 
 const input = fs.createReadStream('test.enc');
 const output = fs.createWriteStream('test.js');
@@ -607,10 +655,19 @@ input.pipe(decipher).pipe(output);
 </code></pre>
 <p>Example: Using the <a href="#crypto_decipher_update_data_inputencoding_outputencoding"><code>decipher.update()</code></a> and <a href="#crypto_decipher_final_outputencoding"><code>decipher.final()</code></a> methods:</p>
 <pre><code class="language-js">const crypto = require('crypto');
-const decipher = crypto.createDecipher('aes192', 'a password');
 
+const algorithm = 'aes-192-cbc';
+const password = 'Password used to generate key';
+// Use the async `crypto.scrypt()` instead.
+const key = crypto.scryptSync(password, 'salt', 24);
+// The IV is usually passed along with the ciphertext.
+const iv = Buffer.alloc(16, 0); // Initialization vector.
+
+const decipher = crypto.createDecipheriv(algorithm, key, iv);
+
+// Encrypted using same algorithm, key and iv.
 const encrypted =
-    'ca981be48e90867604588e75d04feabb63cc007a8f8ad89b10616ed84d815504';
+  'e5f79c5915c02171eec6b212d5520d44480993d7d622a7c4c2da32f6efda0ffa';
 let decrypted = decipher.update(encrypted, 'hex', 'utf8');
 decrypted += decipher.final('utf8');
 console.log(decrypted);
@@ -621,9 +678,9 @@ console.log(decrypted);
 <span>Added in: v0.1.94</span>
 </div>
 <ul>
-<li><code>outputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>outputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The <a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a> of the return value.</li>
 <li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Any remaining deciphered contents.
-If <code>outputEncoding</code> is one of <code>'latin1'</code>, <code>'ascii'</code> or <code>'utf8'</code>, a string is
+If <code>outputEncoding</code> is specified, a string is
 returned. If an <code>outputEncoding</code> is not provided, a <a href="buffer.html"><code>Buffer</code></a> is returned.</li>
 </ul>
 <p>Once the <code>decipher.final()</code> method has been called, the <code>Decipher</code> object can
@@ -717,17 +774,17 @@ multiple of the ciphers block size.</p>
 </div>
 <ul>
 <li><code>data</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a></li>
-<li><code>inputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
-<li><code>outputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>inputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The <a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a> of the <code>data</code> string.</li>
+<li><code>outputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The <a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a> of the return value.</li>
 <li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
 <p>Updates the decipher with <code>data</code>. If the <code>inputEncoding</code> argument is given,
-its value must be one of <code>'latin1'</code>, <code>'base64'</code>, or <code>'hex'</code> and the <code>data</code>
+the <code>data</code>
 argument is a string using the specified encoding. If the <code>inputEncoding</code>
 argument is not given, <code>data</code> must be a <a href="buffer.html"><code>Buffer</code></a>. If <code>data</code> is a
 <a href="buffer.html"><code>Buffer</code></a> then <code>inputEncoding</code> is ignored.</p>
 <p>The <code>outputEncoding</code> specifies the output format of the enciphered
-data, and can be <code>'latin1'</code>, <code>'ascii'</code> or <code>'utf8'</code>. If the <code>outputEncoding</code>
+data. If the <code>outputEncoding</code>
 is specified, a string using the specified encoding is returned. If no
 <code>outputEncoding</code> is provided, a <a href="buffer.html"><code>Buffer</code></a> is returned.</p>
 <p>The <code>decipher.update()</code> method can be called multiple times with new data until
@@ -765,15 +822,15 @@ assert.strictEqual(aliceSecret.toString('hex'), bobSecret.toString('hex'));
 </div>
 <ul>
 <li><code>otherPublicKey</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a></li>
-<li><code>inputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
-<li><code>outputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>inputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The <a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a> of an <code>otherPublicKey</code> string.</li>
+<li><code>outputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The <a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a> of the return value.</li>
 <li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
 <p>Computes the shared secret using <code>otherPublicKey</code> as the other
 party's public key and returns the computed shared secret. The supplied
 key is interpreted using the specified <code>inputEncoding</code>, and secret is
-encoded using specified <code>outputEncoding</code>. Encodings can be
-<code>'latin1'</code>, <code>'hex'</code>, or <code>'base64'</code>. If the <code>inputEncoding</code> is not
+encoded using specified <code>outputEncoding</code>.
+If the <code>inputEncoding</code> is not
 provided, <code>otherPublicKey</code> is expected to be a <a href="buffer.html"><code>Buffer</code></a>,
 <code>TypedArray</code>, or <code>DataView</code>.</p>
 <p>If <code>outputEncoding</code> is given a string is returned; otherwise, a
@@ -783,57 +840,57 @@ provided, <code>otherPublicKey</code> is expected to be a <a href="buffer.html">
 <span>Added in: v0.5.0</span>
 </div>
 <ul>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The <a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a> of the return value.</li>
 <li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
 <p>Generates private and public Diffie-Hellman key values, and returns
 the public key in the specified <code>encoding</code>. This key should be
-transferred to the other party. Encoding can be <code>'latin1'</code>, <code>'hex'</code>,
-or <code>'base64'</code>. If <code>encoding</code> is provided a string is returned; otherwise a
+transferred to the other party.
+If <code>encoding</code> is provided a string is returned; otherwise a
 <a href="buffer.html"><code>Buffer</code></a> is returned.</p>
 <h3>diffieHellman.getGenerator([encoding])<span><a class="mark" href="#crypto_diffiehellman_getgenerator_encoding" id="crypto_diffiehellman_getgenerator_encoding">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.5.0</span>
 </div>
 <ul>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The <a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a> of the return value.</li>
 <li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
-<p>Returns the Diffie-Hellman generator in the specified <code>encoding</code>, which can
-be <code>'latin1'</code>, <code>'hex'</code>, or <code>'base64'</code>. If <code>encoding</code> is provided a string is
+<p>Returns the Diffie-Hellman generator in the specified <code>encoding</code>.
+If <code>encoding</code> is provided a string is
 returned; otherwise a <a href="buffer.html"><code>Buffer</code></a> is returned.</p>
 <h3>diffieHellman.getPrime([encoding])<span><a class="mark" href="#crypto_diffiehellman_getprime_encoding" id="crypto_diffiehellman_getprime_encoding">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.5.0</span>
 </div>
 <ul>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The <a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a> of the return value.</li>
 <li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
-<p>Returns the Diffie-Hellman prime in the specified <code>encoding</code>, which can
-be <code>'latin1'</code>, <code>'hex'</code>, or <code>'base64'</code>. If <code>encoding</code> is provided a string is
+<p>Returns the Diffie-Hellman prime in the specified <code>encoding</code>.
+If <code>encoding</code> is provided a string is
 returned; otherwise a <a href="buffer.html"><code>Buffer</code></a> is returned.</p>
 <h3>diffieHellman.getPrivateKey([encoding])<span><a class="mark" href="#crypto_diffiehellman_getprivatekey_encoding" id="crypto_diffiehellman_getprivatekey_encoding">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.5.0</span>
 </div>
 <ul>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The <a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a> of the return value.</li>
 <li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
-<p>Returns the Diffie-Hellman private key in the specified <code>encoding</code>,
-which can be <code>'latin1'</code>, <code>'hex'</code>, or <code>'base64'</code>. If <code>encoding</code> is provided a
+<p>Returns the Diffie-Hellman private key in the specified <code>encoding</code>.
+If <code>encoding</code> is provided a
 string is returned; otherwise a <a href="buffer.html"><code>Buffer</code></a> is returned.</p>
 <h3>diffieHellman.getPublicKey([encoding])<span><a class="mark" href="#crypto_diffiehellman_getpublickey_encoding" id="crypto_diffiehellman_getpublickey_encoding">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.5.0</span>
 </div>
 <ul>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The <a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a> of the return value.</li>
 <li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
-<p>Returns the Diffie-Hellman public key in the specified <code>encoding</code>, which
-can be <code>'latin1'</code>, <code>'hex'</code>, or <code>'base64'</code>. If <code>encoding</code> is provided a
+<p>Returns the Diffie-Hellman public key in the specified <code>encoding</code>.
+If <code>encoding</code> is provided a
 string is returned; otherwise a <a href="buffer.html"><code>Buffer</code></a> is returned.</p>
 <h3>diffieHellman.setPrivateKey(privateKey[, encoding])<span><a class="mark" href="#crypto_diffiehellman_setprivatekey_privatekey_encoding" id="crypto_diffiehellman_setprivatekey_privatekey_encoding">#</a></span></h3>
 <div class="api_metadata">
@@ -841,10 +898,10 @@ string is returned; otherwise a <a href="buffer.html"><code>Buffer</code></a> is
 </div>
 <ul>
 <li><code>privateKey</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a></li>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The <a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a> of the <code>privateKey</code> string.</li>
 </ul>
-<p>Sets the Diffie-Hellman private key. If the <code>encoding</code> argument is provided
-and is either <code>'latin1'</code>, <code>'hex'</code>, or <code>'base64'</code>, <code>privateKey</code> is expected
+<p>Sets the Diffie-Hellman private key. If the <code>encoding</code> argument is provided,
+<code>privateKey</code> is expected
 to be a string. If no <code>encoding</code> is provided, <code>privateKey</code> is expected
 to be a <a href="buffer.html"><code>Buffer</code></a>, <code>TypedArray</code>, or <code>DataView</code>.</p>
 <h3>diffieHellman.setPublicKey(publicKey[, encoding])<span><a class="mark" href="#crypto_diffiehellman_setpublickey_publickey_encoding" id="crypto_diffiehellman_setpublickey_publickey_encoding">#</a></span></h3>
@@ -853,10 +910,10 @@ to be a <a href="buffer.html"><code>Buffer</code></a>, <code>TypedArray</code>, 
 </div>
 <ul>
 <li><code>publicKey</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a></li>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The <a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a> of the <code>publicKey</code> string.</li>
 </ul>
-<p>Sets the Diffie-Hellman public key. If the <code>encoding</code> argument is provided
-and is either <code>'latin1'</code>, <code>'hex'</code> or <code>'base64'</code>, <code>publicKey</code> is expected
+<p>Sets the Diffie-Hellman public key. If the <code>encoding</code> argument is provided,
+<code>publicKey</code> is expected
 to be a string. If no <code>encoding</code> is provided, <code>publicKey</code> is expected
 to be a <a href="buffer.html"><code>Buffer</code></a>, <code>TypedArray</code>, or <code>DataView</code>.</p>
 <h3>diffieHellman.verifyError<span><a class="mark" href="#crypto_diffiehellman_verifyerror" id="crypto_diffiehellman_verifyerror">#</a></span></h3>
@@ -906,8 +963,8 @@ assert.strictEqual(aliceSecret.toString('hex'), bobSecret.toString('hex'));
 <ul>
 <li><code>key</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a></li>
 <li><code>curve</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
-<li><code>inputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
-<li><code>outputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>inputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The <a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a> of the <code>key</code> string.</li>
+<li><code>outputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The <a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a> of the return value.</li>
 <li><code>format</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> <strong>Default:</strong> <code>'uncompressed'</code></li>
 <li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
@@ -915,8 +972,7 @@ assert.strictEqual(aliceSecret.toString('hex'), bobSecret.toString('hex'));
 format specified by <code>format</code>. The <code>format</code> argument specifies point encoding
 and can be <code>'compressed'</code>, <code>'uncompressed'</code> or <code>'hybrid'</code>. The supplied key is
 interpreted using the specified <code>inputEncoding</code>, and the returned key is encoded
-using the specified <code>outputEncoding</code>. Encodings can be <code>'latin1'</code>, <code>'hex'</code>,
-or <code>'base64'</code>.</p>
+using the specified <code>outputEncoding</code>.</p>
 <p>Use <a href="#crypto_crypto_getcurves"><code>crypto.getCurves()</code></a> to obtain a list of available curve names.
 On recent OpenSSL releases, <code>openssl ecparam -list_curves</code> will also display
 the name and description of each available elliptic curve.</p>
@@ -957,15 +1013,15 @@ console.log(uncompressedKey === ecdh.getPublicKey('hex'));
 </div>
 <ul>
 <li><code>otherPublicKey</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a></li>
-<li><code>inputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
-<li><code>outputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>inputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The <a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a> of the <code>otherPublicKey</code> string.</li>
+<li><code>outputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The <a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a> of the return value.</li>
 <li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
 <p>Computes the shared secret using <code>otherPublicKey</code> as the other
 party's public key and returns the computed shared secret. The supplied
 key is interpreted using specified <code>inputEncoding</code>, and the returned secret
-is encoded using the specified <code>outputEncoding</code>. Encodings can be
-<code>'latin1'</code>, <code>'hex'</code>, or <code>'base64'</code>. If the <code>inputEncoding</code> is not
+is encoded using the specified <code>outputEncoding</code>.
+If the <code>inputEncoding</code> is not
 provided, <code>otherPublicKey</code> is expected to be a <a href="buffer.html"><code>Buffer</code></a>, <code>TypedArray</code>, or
 <code>DataView</code>.</p>
 <p>If <code>outputEncoding</code> is given a string will be returned; otherwise a
@@ -980,7 +1036,7 @@ its recommended for developers to handle this exception accordingly.</p>
 <span>Added in: v0.11.14</span>
 </div>
 <ul>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The <a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a> of the return value.</li>
 <li><code>format</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> <strong>Default:</strong> <code>'uncompressed'</code></li>
 <li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
@@ -990,25 +1046,24 @@ transferred to the other party.</p>
 <p>The <code>format</code> argument specifies point encoding and can be <code>'compressed'</code> or
 <code>'uncompressed'</code>. If <code>format</code> is not specified, the point will be returned in
 <code>'uncompressed'</code> format.</p>
-<p>The <code>encoding</code> argument can be <code>'latin1'</code>, <code>'hex'</code>, or <code>'base64'</code>. If
-<code>encoding</code> is provided a string is returned; otherwise a <a href="buffer.html"><code>Buffer</code></a>
+<p>If <code>encoding</code> is provided a string is returned; otherwise a <a href="buffer.html"><code>Buffer</code></a>
 is returned.</p>
 <h3>ecdh.getPrivateKey([encoding])<span><a class="mark" href="#crypto_ecdh_getprivatekey_encoding" id="crypto_ecdh_getprivatekey_encoding">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.14</span>
 </div>
 <ul>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
-<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The EC Diffie-Hellman private key in the specified
-<code>encoding</code>, which can be <code>'latin1'</code>, <code>'hex'</code>, or <code>'base64'</code>. If <code>encoding</code>
-is provided a string is returned; otherwise a <a href="buffer.html"><code>Buffer</code></a> is returned.</li>
+<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The <a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a> of the return value.</li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The EC Diffie-Hellman in the specified <code>encoding</code>.</li>
 </ul>
+<p>If <code>encoding</code> is specified, a string is returned; otherwise a <a href="buffer.html"><code>Buffer</code></a> is
+returned.</p>
 <h3>ecdh.getPublicKey([encoding][, format])<span><a class="mark" href="#crypto_ecdh_getpublickey_encoding_format" id="crypto_ecdh_getpublickey_encoding_format">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.14</span>
 </div>
 <ul>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The <a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a> of the return value.</li>
 <li><code>format</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> <strong>Default:</strong> <code>'uncompressed'</code></li>
 <li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The EC Diffie-Hellman public key in the specified
 <code>encoding</code> and <code>format</code>.</li>
@@ -1016,8 +1071,7 @@ is provided a string is returned; otherwise a <a href="buffer.html"><code>Buffer
 <p>The <code>format</code> argument specifies point encoding and can be <code>'compressed'</code> or
 <code>'uncompressed'</code>. If <code>format</code> is not specified the point will be returned in
 <code>'uncompressed'</code> format.</p>
-<p>The <code>encoding</code> argument can be <code>'latin1'</code>, <code>'hex'</code>, or <code>'base64'</code>. If
-<code>encoding</code> is specified, a string is returned; otherwise a <a href="buffer.html"><code>Buffer</code></a> is
+<p>If <code>encoding</code> is specified, a string is returned; otherwise a <a href="buffer.html"><code>Buffer</code></a> is
 returned.</p>
 <h3>ecdh.setPrivateKey(privateKey[, encoding])<span><a class="mark" href="#crypto_ecdh_setprivatekey_privatekey_encoding" id="crypto_ecdh_setprivatekey_privatekey_encoding">#</a></span></h3>
 <div class="api_metadata">
@@ -1025,10 +1079,10 @@ returned.</p>
 </div>
 <ul>
 <li><code>privateKey</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a></li>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The <a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a> of the <code>privateKey</code> string.</li>
 </ul>
-<p>Sets the EC Diffie-Hellman private key. The <code>encoding</code> can be <code>'latin1'</code>,
-<code>'hex'</code> or <code>'base64'</code>. If <code>encoding</code> is provided, <code>privateKey</code> is expected
+<p>Sets the EC Diffie-Hellman private key.
+If <code>encoding</code> is provided, <code>privateKey</code> is expected
 to be a string; otherwise <code>privateKey</code> is expected to be a <a href="buffer.html"><code>Buffer</code></a>,
 <code>TypedArray</code>, or <code>DataView</code>.</p>
 <p>If <code>privateKey</code> is not valid for the curve specified when the <code>ECDH</code> object was
@@ -1041,10 +1095,10 @@ public point (key) is also generated and set in the <code>ECDH</code> object.</p
 <p></p><div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated</div><p></p>
 <ul>
 <li><code>publicKey</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a></li>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The <a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a> of the <code>publicKey</code> string.</li>
 </ul>
-<p>Sets the EC Diffie-Hellman public key. Key encoding can be <code>'latin1'</code>,
-<code>'hex'</code> or <code>'base64'</code>. If <code>encoding</code> is provided <code>publicKey</code> is expected to
+<p>Sets the EC Diffie-Hellman public key.
+If <code>encoding</code> is provided <code>publicKey</code> is expected to
 be a string; otherwise a <a href="buffer.html"><code>Buffer</code></a>, <code>TypedArray</code>, or <code>DataView</code> is expected.</p>
 <p>Note that there is not normally a reason to call this method because <code>ECDH</code>
 only requires a private key and the other party's public key to compute the
@@ -1126,12 +1180,12 @@ console.log(hash.digest('hex'));
 <span>Added in: v0.1.92</span>
 </div>
 <ul>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The <a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a> of the return value.</li>
 <li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
 <p>Calculates the digest of all of the data passed to be hashed (using the
-<a href="#crypto_hash_update_data_inputencoding"><code>hash.update()</code></a> method). The <code>encoding</code> can be <code>'hex'</code>, <code>'latin1'</code> or
-<code>'base64'</code>. If <code>encoding</code> is provided a string will be returned; otherwise
+<a href="#crypto_hash_update_data_inputencoding"><code>hash.update()</code></a> method).
+If <code>encoding</code> is provided a string will be returned; otherwise
 a <a href="buffer.html"><code>Buffer</code></a> is returned.</p>
 <p>The <code>Hash</code> object can not be used again after <code>hash.digest()</code> method has been
 called. Multiple calls will cause an error to be thrown.</p>
@@ -1149,11 +1203,11 @@ called. Multiple calls will cause an error to be thrown.</p>
 </div>
 <ul>
 <li><code>data</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a></li>
-<li><code>inputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>inputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The <a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a> of the <code>data</code> string.</li>
 </ul>
 <p>Updates the hash content with the given <code>data</code>, the encoding of which
-is given in <code>inputEncoding</code> and can be <code>'utf8'</code>, <code>'ascii'</code> or
-<code>'latin1'</code>. If <code>encoding</code> is not provided, and the <code>data</code> is a string, an
+is given in <code>inputEncoding</code>.
+If <code>encoding</code> is not provided, and the <code>data</code> is a string, an
 encoding of <code>'utf8'</code> is enforced. If <code>data</code> is a <a href="buffer.html"><code>Buffer</code></a>, <code>TypedArray</code>, or
 <code>DataView</code>, then <code>inputEncoding</code> is ignored.</p>
 <p>This can be called many times with new data as it is streamed.</p>
@@ -1209,11 +1263,11 @@ console.log(hmac.digest('hex'));
 <span>Added in: v0.1.94</span>
 </div>
 <ul>
-<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The <a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a> of the return value.</li>
 <li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
 <p>Calculates the HMAC digest of all of the data passed using <a href="#crypto_hmac_update_data_inputencoding"><code>hmac.update()</code></a>.
-The <code>encoding</code> can be <code>'hex'</code>, <code>'latin1'</code> or <code>'base64'</code>. If <code>encoding</code> is
+If <code>encoding</code> is
 provided a string is returned; otherwise a <a href="buffer.html"><code>Buffer</code></a> is returned;</p>
 <p>The <code>Hmac</code> object can not be used again after <code>hmac.digest()</code> has been
 called. Multiple calls to <code>hmac.digest()</code> will result in an error being thrown.</p>
@@ -1231,11 +1285,11 @@ called. Multiple calls to <code>hmac.digest()</code> will result in an error bei
 </div>
 <ul>
 <li><code>data</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a></li>
-<li><code>inputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>inputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The <a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a> of the <code>data</code> string.</li>
 </ul>
 <p>Updates the <code>Hmac</code> content with the given <code>data</code>, the encoding of which
-is given in <code>inputEncoding</code> and can be <code>'utf8'</code>, <code>'ascii'</code> or
-<code>'latin1'</code>. If <code>encoding</code> is not provided, and the <code>data</code> is a string, an
+is given in <code>inputEncoding</code>.
+If <code>encoding</code> is not provided, and the <code>data</code> is a string, an
 encoding of <code>'utf8'</code> is enforced. If <code>data</code> is a <a href="buffer.html"><code>Buffer</code></a>, <code>TypedArray</code>, or
 <code>DataView</code>, then <code>inputEncoding</code> is ignored.</p>
 <p>This can be called many times with new data as it is streamed.</p>
@@ -1247,8 +1301,8 @@ encoding of <code>'utf8'</code> is enforced. If <code>data</code> is a <a href="
 of two ways:</p>
 <ul>
 <li>As a writable <a href="stream.html">stream</a>, where data to be signed is written and the
-<a href="#crypto_sign_sign_privatekey_outputformat"><code>sign.sign()</code></a> method is used to generate and return the signature, or</li>
-<li>Using the <a href="#crypto_sign_update_data_inputencoding"><code>sign.update()</code></a> and <a href="#crypto_sign_sign_privatekey_outputformat"><code>sign.sign()</code></a> methods to produce the
+<a href="#crypto_sign_sign_privatekey_outputencoding"><code>sign.sign()</code></a> method is used to generate and return the signature, or</li>
+<li>Using the <a href="#crypto_sign_update_data_inputencoding"><code>sign.update()</code></a> and <a href="#crypto_sign_sign_privatekey_outputencoding"><code>sign.sign()</code></a> methods to produce the
 signature.</li>
 </ul>
 <p>The <a href="#crypto_crypto_createsign_algorithm_options"><code>crypto.createSign()</code></a> method is used to create <code>Sign</code> instances. The
@@ -1267,7 +1321,7 @@ console.log(sign.sign(privateKey, 'hex'));
 // SHA-256. For RSA keys, the algorithm is RSASSA-PKCS1-v1_5 (see padding
 // parameter below for RSASSA-PSS). For EC keys, the algorithm is ECDSA.
 </code></pre>
-<p>Example: Using the <a href="#crypto_sign_update_data_inputencoding"><code>sign.update()</code></a> and <a href="#crypto_sign_sign_privatekey_outputformat"><code>sign.sign()</code></a> methods:</p>
+<p>Example: Using the <a href="#crypto_sign_update_data_inputencoding"><code>sign.update()</code></a> and <a href="#crypto_sign_sign_privatekey_outputencoding"><code>sign.sign()</code></a> methods:</p>
 <pre><code class="language-js">const crypto = require('crypto');
 const sign = crypto.createSign('SHA256');
 
@@ -1291,7 +1345,7 @@ const privateKey = getPrivateKeySomehow();
 console.log(sign.sign(privateKey, 'hex'));
 // Prints: the calculated signature
 </code></pre>
-<h3>sign.sign(privateKey[, outputFormat])<span><a class="mark" href="#crypto_sign_sign_privatekey_outputformat" id="crypto_sign_sign_privatekey_outputformat">#</a></span></h3>
+<h3>sign.sign(privateKey[, outputEncoding])<span><a class="mark" href="#crypto_sign_sign_privatekey_outputencoding" id="crypto_sign_sign_privatekey_outputencoding">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1313,7 +1367,7 @@ console.log(sign.sign(privateKey, 'hex'));
 <li><code>saltLength</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
 </ul>
 </li>
-<li><code>outputFormat</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>outputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The <a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a> of the return value.</li>
 <li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
 <p>Calculates the signature on all the data passed through using either
@@ -1345,9 +1399,8 @@ size, <code>crypto.constants.RSA_PSS_SALTLEN_MAX_SIGN</code> (default) sets it t
 maximum permissible value.</p>
 </li>
 </ul>
-<p>The <code>outputFormat</code> can specify one of <code>'latin1'</code>, <code>'hex'</code> or <code>'base64'</code>. If
-<code>outputFormat</code> is provided a string is returned; otherwise a <a href="buffer.html"><code>Buffer</code></a> is
-returned.</p>
+<p>If <code>outputEncoding</code> is provided a string is returned; otherwise a <a href="buffer.html"><code>Buffer</code></a>
+is returned.</p>
 <p>The <code>Sign</code> object can not be again used after <code>sign.sign()</code> method has been
 called. Multiple calls to <code>sign.sign()</code> will result in an error being thrown.</p>
 <h3>sign.update(data[, inputEncoding])<span><a class="mark" href="#crypto_sign_update_data_inputencoding" id="crypto_sign_update_data_inputencoding">#</a></span></h3>
@@ -1364,11 +1417,11 @@ called. Multiple calls to <code>sign.sign()</code> will result in an error being
 </div>
 <ul>
 <li><code>data</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a></li>
-<li><code>inputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>inputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The <a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a> of the <code>data</code> string.</li>
 </ul>
 <p>Updates the <code>Sign</code> content with the given <code>data</code>, the encoding of which
-is given in <code>inputEncoding</code> and can be <code>'utf8'</code>, <code>'ascii'</code> or
-<code>'latin1'</code>. If <code>encoding</code> is not provided, and the <code>data</code> is a string, an
+is given in <code>inputEncoding</code>.
+If <code>encoding</code> is not provided, and the <code>data</code> is a string, an
 encoding of <code>'utf8'</code> is enforced. If <code>data</code> is a <a href="buffer.html"><code>Buffer</code></a>, <code>TypedArray</code>, or
 <code>DataView</code>, then <code>inputEncoding</code> is ignored.</p>
 <p>This can be called many times with new data as it is streamed.</p>
@@ -1381,7 +1434,7 @@ of two ways:</p>
 <ul>
 <li>As a writable <a href="stream.html">stream</a> where written data is used to validate against the
 supplied signature, or</li>
-<li>Using the <a href="#crypto_verify_update_data_inputencoding"><code>verify.update()</code></a> and <a href="#crypto_verify_verify_object_signature_signatureformat"><code>verify.verify()</code></a> methods to verify
+<li>Using the <a href="#crypto_verify_update_data_inputencoding"><code>verify.update()</code></a> and <a href="#crypto_verify_verify_object_signature_signatureencoding"><code>verify.verify()</code></a> methods to verify
 the signature.</li>
 </ul>
 <p>The <a href="#crypto_crypto_createverify_algorithm_options"><code>crypto.createVerify()</code></a> method is used to create <code>Verify</code> instances.
@@ -1398,7 +1451,7 @@ const signature = getSignatureToVerify();
 console.log(verify.verify(publicKey, signature));
 // Prints: true or false
 </code></pre>
-<p>Example: Using the <a href="#crypto_verify_update_data_inputencoding"><code>verify.update()</code></a> and <a href="#crypto_verify_verify_object_signature_signatureformat"><code>verify.verify()</code></a> methods:</p>
+<p>Example: Using the <a href="#crypto_verify_update_data_inputencoding"><code>verify.update()</code></a> and <a href="#crypto_verify_verify_object_signature_signatureencoding"><code>verify.verify()</code></a> methods:</p>
 <pre><code class="language-js">const crypto = require('crypto');
 const verify = crypto.createVerify('SHA256');
 
@@ -1423,15 +1476,15 @@ console.log(verify.verify(publicKey, signature));
 </div>
 <ul>
 <li><code>data</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a></li>
-<li><code>inputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>inputEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The <a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a> of the <code>data</code> string.</li>
 </ul>
 <p>Updates the <code>Verify</code> content with the given <code>data</code>, the encoding of which
-is given in <code>inputEncoding</code> and can be <code>'utf8'</code>, <code>'ascii'</code> or
-<code>'latin1'</code>. If <code>encoding</code> is not provided, and the <code>data</code> is a string, an
+is given in <code>inputEncoding</code>.
+If <code>inputEncoding</code> is not provided, and the <code>data</code> is a string, an
 encoding of <code>'utf8'</code> is enforced. If <code>data</code> is a <a href="buffer.html"><code>Buffer</code></a>, <code>TypedArray</code>, or
 <code>DataView</code>, then <code>inputEncoding</code> is ignored.</p>
 <p>This can be called many times with new data as it is streamed.</p>
-<h3>verify.verify(object, signature[, signatureFormat])<span><a class="mark" href="#crypto_verify_verify_object_signature_signatureformat" id="crypto_verify_verify_object_signature_signatureformat">#</a></span></h3>
+<h3>verify.verify(object, signature[, signatureEncoding])<span><a class="mark" href="#crypto_verify_verify_object_signature_signatureencoding" id="crypto_verify_verify_object_signature_signatureencoding">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1446,7 +1499,7 @@ encoding of <code>'utf8'</code> is enforced. If <code>data</code> is a <a href="
 <ul>
 <li><code>object</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></li>
 <li><code>signature</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a></li>
-<li><code>signatureFormat</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>signatureEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The <a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a> of the <code>signature</code> string.</li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> <code>true</code> or <code>false</code> depending on the validity of the
 signature for the data and public key.</li>
 </ul>
@@ -1476,8 +1529,8 @@ determined automatically.</p>
 </li>
 </ul>
 <p>The <code>signature</code> argument is the previously calculated signature for the data, in
-the <code>signatureFormat</code> which can be <code>'latin1'</code>, <code>'hex'</code> or <code>'base64'</code>.
-If a <code>signatureFormat</code> is specified, the <code>signature</code> is expected to be a
+the <code>signatureEncoding</code>.
+If a <code>signatureEncoding</code> is specified, the <code>signature</code> is expected to be a
 string; otherwise <code>signature</code> is expected to be a <a href="buffer.html"><code>Buffer</code></a>,
 <code>TypedArray</code>, or <code>DataView</code>.</p>
 <p>The <code>verify</code> object can not be used again after <code>verify.verify()</code> has been
@@ -1514,7 +1567,7 @@ with legacy programs that expect <code>'latin1'</code> to be the default encodin
 is currently in use. Setting to true requires a FIPS build of Node.js.</p>
 <p>This property is deprecated. Please use <code>crypto.setFips()</code> and
 <code>crypto.getFips()</code> instead.</p>
-<h3>crypto.createCipher(algorithm, password[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/crypto.js#L104">[src]</a><span><a class="mark" href="#crypto_crypto_createcipher_algorithm_password_options" id="crypto_crypto_createcipher_algorithm_password_options">#</a></span></h3>
+<h3>crypto.createCipher(algorithm, password[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/crypto.js#L104">[src]</a><span><a class="mark" href="#crypto_crypto_createcipher_algorithm_password_options" id="crypto_crypto_createcipher_algorithm_password_options">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1566,7 +1619,7 @@ to create the <code>Cipher</code> object. Users should not use ciphers with coun
 they are used in order to avoid the risk of IV reuse that causes
 vulnerabilities. For the case when IV is reused in GCM, see <a href="https://github.com/nonce-disrespect/nonce-disrespect">Nonce-Disrespecting
 Adversaries</a> for details.</p>
-<h3>crypto.createCipheriv(algorithm, key, iv[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/crypto.js#L108">[src]</a><span><a class="mark" href="#crypto_crypto_createcipheriv_algorithm_key_iv_options" id="crypto_crypto_createcipheriv_algorithm_key_iv_options">#</a></span></h3>
+<h3>crypto.createCipheriv(algorithm, key, iv[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/crypto.js#L108">[src]</a><span><a class="mark" href="#crypto_crypto_createcipheriv_algorithm_key_iv_options" id="crypto_crypto_createcipheriv_algorithm_key_iv_options">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1626,7 +1679,7 @@ and returning a <code>tls.SecureContext</code>. It should not be used. Replace i
 value.</p>
 <p>Returns a <code>tls.SecureContext</code>, as-if <a href="tls.html#tls_tls_createsecurecontext_options"><code>tls.createSecureContext()</code></a> had been
 called.</p>
-<h3>crypto.createDecipher(algorithm, password[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/crypto.js#L112">[src]</a><span><a class="mark" href="#crypto_crypto_createdecipher_algorithm_password_options" id="crypto_crypto_createdecipher_algorithm_password_options">#</a></span></h3>
+<h3>crypto.createDecipher(algorithm, password[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/crypto.js#L112">[src]</a><span><a class="mark" href="#crypto_crypto_createdecipher_algorithm_password_options" id="crypto_crypto_createdecipher_algorithm_password_options">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1663,7 +1716,7 @@ rapidly.</p>
 <a href="https://www.openssl.org/docs/man1.1.0/crypto/EVP_BytesToKey.html"><code>EVP_BytesToKey</code></a> it is recommended that developers derive a key and IV on
 their own using <a href="#crypto_crypto_scrypt_password_salt_keylen_options_callback"><code>crypto.scrypt()</code></a> and to use <a href="#crypto_crypto_createdecipheriv_algorithm_key_iv_options"><code>crypto.createDecipheriv()</code></a>
 to create the <code>Decipher</code> object.</p>
-<h3>crypto.createDecipheriv(algorithm, key, iv[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/crypto.js#L116">[src]</a><span><a class="mark" href="#crypto_crypto_createdecipheriv_algorithm_key_iv_options" id="crypto_crypto_createdecipheriv_algorithm_key_iv_options">#</a></span></h3>
+<h3>crypto.createDecipheriv(algorithm, key, iv[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/crypto.js#L116">[src]</a><span><a class="mark" href="#crypto_crypto_createdecipheriv_algorithm_key_iv_options" id="crypto_crypto_createdecipheriv_algorithm_key_iv_options">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1708,7 +1761,7 @@ added to ciphertext messages unencrypted. It may sound contradictory that
 something has to be unpredictable and unique, but does not have to be secret;
 it is important to remember that an attacker must not be able to predict ahead
 of time what a given IV will be.</p>
-<h3>crypto.createDiffieHellman(prime[, primeEncoding][, generator][, generatorEncoding])<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/crypto.js#L120">[src]</a><span><a class="mark" href="#crypto_crypto_creatediffiehellman_prime_primeencoding_generator_generatorencoding" id="crypto_crypto_creatediffiehellman_prime_primeencoding_generator_generatorencoding">#</a></span></h3>
+<h3>crypto.createDiffieHellman(prime[, primeEncoding][, generator][, generatorEncoding])<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/crypto.js#L120">[src]</a><span><a class="mark" href="#crypto_crypto_creatediffiehellman_prime_primeencoding_generator_generatorencoding" id="crypto_crypto_creatediffiehellman_prime_primeencoding_generator_generatorencoding">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1726,23 +1779,21 @@ of time what a given IV will be.</p>
 </div>
 <ul>
 <li><code>prime</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a></li>
-<li><code>primeEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>primeEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The <a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a> of the <code>prime</code> string.</li>
 <li><code>generator</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a> <strong>Default:</strong>
 <code>2</code></li>
-<li><code>generatorEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>generatorEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The <a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a> of the <code>generator</code> string.</li>
 <li>Returns: <a href="crypto.html#crypto_class_diffiehellman" class="type">&#x3C;DiffieHellman></a></li>
 </ul>
 <p>Creates a <code>DiffieHellman</code> key exchange object using the supplied <code>prime</code> and an
 optional specific <code>generator</code>.</p>
 <p>The <code>generator</code> argument can be a number, string, or <a href="buffer.html"><code>Buffer</code></a>. If
 <code>generator</code> is not specified, the value <code>2</code> is used.</p>
-<p>The <code>primeEncoding</code> and <code>generatorEncoding</code> arguments can be <code>'latin1'</code>,
-<code>'hex'</code>, or <code>'base64'</code>.</p>
 <p>If <code>primeEncoding</code> is specified, <code>prime</code> is expected to be a string; otherwise
 a <a href="buffer.html"><code>Buffer</code></a>, <code>TypedArray</code>, or <code>DataView</code> is expected.</p>
 <p>If <code>generatorEncoding</code> is specified, <code>generator</code> is expected to be a string;
 otherwise a number, <a href="buffer.html"><code>Buffer</code></a>, <code>TypedArray</code>, or <code>DataView</code> is expected.</p>
-<h3>crypto.createDiffieHellman(primeLength[, generator])<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/crypto.js#L120">[src]</a><span><a class="mark" href="#crypto_crypto_creatediffiehellman_primelength_generator" id="crypto_crypto_creatediffiehellman_primelength_generator">#</a></span></h3>
+<h3>crypto.createDiffieHellman(primeLength[, generator])<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/crypto.js#L120">[src]</a><span><a class="mark" href="#crypto_crypto_creatediffiehellman_primelength_generator" id="crypto_crypto_creatediffiehellman_primelength_generator">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.5.0</span>
 </div>
@@ -1755,7 +1806,7 @@ otherwise a number, <a href="buffer.html"><code>Buffer</code></a>, <code>TypedAr
 <p>Creates a <code>DiffieHellman</code> key exchange object and generates a prime of
 <code>primeLength</code> bits using an optional specific numeric <code>generator</code>.
 If <code>generator</code> is not specified, the value <code>2</code> is used.</p>
-<h3>crypto.createECDH(curveName)<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/crypto.js#L128">[src]</a><span><a class="mark" href="#crypto_crypto_createecdh_curvename" id="crypto_crypto_createecdh_curvename">#</a></span></h3>
+<h3>crypto.createECDH(curveName)<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/crypto.js#L128">[src]</a><span><a class="mark" href="#crypto_crypto_createecdh_curvename" id="crypto_crypto_createecdh_curvename">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.14</span>
 </div>
@@ -1768,7 +1819,7 @@ predefined curve specified by the <code>curveName</code> string. Use
 <a href="#crypto_crypto_getcurves"><code>crypto.getCurves()</code></a> to obtain a list of available curve names. On recent
 OpenSSL releases, <code>openssl ecparam -list_curves</code> will also display the name
 and description of each available elliptic curve.</p>
-<h3>crypto.createHash(algorithm[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/crypto.js#L100">[src]</a><span><a class="mark" href="#crypto_crypto_createhash_algorithm_options" id="crypto_crypto_createhash_algorithm_options">#</a></span></h3>
+<h3>crypto.createHash(algorithm[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/crypto.js#L100">[src]</a><span><a class="mark" href="#crypto_crypto_createhash_algorithm_options" id="crypto_crypto_createhash_algorithm_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.92</span>
 </div>
@@ -1802,7 +1853,7 @@ input.on('readable', () => {
   }
 });
 </code></pre>
-<h3>crypto.createHmac(algorithm, key[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/crypto.js#L132">[src]</a><span><a class="mark" href="#crypto_crypto_createhmac_algorithm_key_options" id="crypto_crypto_createhmac_algorithm_key_options">#</a></span></h3>
+<h3>crypto.createHmac(algorithm, key[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/crypto.js#L132">[src]</a><span><a class="mark" href="#crypto_crypto_createhmac_algorithm_key_options" id="crypto_crypto_createhmac_algorithm_key_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.94</span>
 </div>
@@ -1837,7 +1888,7 @@ input.on('readable', () => {
   }
 });
 </code></pre>
-<h3>crypto.createSign(algorithm[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/crypto.js#L136">[src]</a><span><a class="mark" href="#crypto_crypto_createsign_algorithm_options" id="crypto_crypto_createsign_algorithm_options">#</a></span></h3>
+<h3>crypto.createSign(algorithm[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/crypto.js#L136">[src]</a><span><a class="mark" href="#crypto_crypto_createsign_algorithm_options" id="crypto_crypto_createsign_algorithm_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.92</span>
 </div>
@@ -1850,7 +1901,7 @@ input.on('readable', () => {
 Use <a href="#crypto_crypto_gethashes"><code>crypto.getHashes()</code></a> to obtain an array of names of the available
 signing algorithms. Optional <code>options</code> argument controls the
 <code>stream.Writable</code> behavior.</p>
-<h3>crypto.createVerify(algorithm[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/crypto.js#L140">[src]</a><span><a class="mark" href="#crypto_crypto_createverify_algorithm_options" id="crypto_crypto_createverify_algorithm_options">#</a></span></h3>
+<h3>crypto.createVerify(algorithm[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/crypto.js#L140">[src]</a><span><a class="mark" href="#crypto_crypto_createverify_algorithm_options" id="crypto_crypto_createverify_algorithm_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.92</span>
 </div>

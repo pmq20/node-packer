@@ -669,19 +669,19 @@ to implement the `tls-unique` channel binding from [RFC 5929][].
 added: v5.7.0
 -->
 
-* Returns: {string}
+* Returns: {string|null}
 
 Returns a string containing the negotiated SSL/TLS protocol version of the
 current connection. The value `'unknown'` will be returned for connected
 sockets that have not completed the handshaking process. The value `null` will
 be returned for server sockets or disconnected client sockets.
 
-Example responses include:
+Protocol versions are:
 
-* `TLSv1`
-* `TLSv1.1`
-* `TLSv1.2`
-* `unknown`
+* `'TLSv1'`
+* `'TLSv1.1'`
+* `'TLSv1.2'`
+* `'SSLv3'`
 
 See <https://www.openssl.org/docs/man1.1.0/ssl/SSL_get_version.html> for more
 information.
@@ -799,14 +799,15 @@ decrease overall server throughput.
 added: v0.8.4
 -->
 
-* `hostname` {string} The hostname to verify the certificate against
+* `hostname` {string} The host name or IP address to verify the certificate
+  against.
 * `cert` {Object} An object representing the peer's certificate. The returned
   object has some properties corresponding to the fields of the certificate.
 * Returns: {Error|undefined}
 
 Verifies the certificate `cert` is issued to `hostname`.
 
-Returns {Error} object, populating it with the reason, host, and cert on
+Returns {Error} object, populating it with `reason`, `host`, and `cert` on
 failure. On success, returns {undefined}.
 
 This function can be overwritten by providing alternative function as part of
@@ -887,11 +888,15 @@ changes:
   * `ALPNProtocols`: {string[]|Buffer[]|Uint8Array[]|Buffer|Uint8Array}
     An array of strings, `Buffer`s or `Uint8Array`s, or a single `Buffer` or
     `Uint8Array` containing the supported ALPN protocols. `Buffer`s should have
-    the format `[len][name][len][name]...` e.g. `0x05hello0x05world`, where the
-    first byte is the length of the next protocol name. Passing an array is
-    usually much simpler, e.g. `['hello', 'world']`.
+    the format `[len][name][len][name]...` e.g. `'\x08http/1.1\x08http/1.0'`,
+    where the `len` byte is the length of the next protocol name. Passing an
+    array is usually much simpler, e.g. `['http/1.1', 'http/1.0']`.
+    Protocols earlier in the list have higher preference than those later.
   * `servername`: {string} Server name for the SNI (Server Name Indication) TLS
-    extension. It must be a host name, and not an IP address.
+    extension. It is the name of the host being connected to, and must be a host
+    name, and not an IP address. It can be used by a multi-homed server to
+    choose the correct certificate to present to the client, see the
+    `SNICallback` option to [`tls.createServer()`][].
   * `checkServerIdentity(servername, cert)` {Function} A callback function
     to be used (instead of the builtin `tls.checkServerIdentity()` function)
     when checking the server's hostname (or the provided `servername` when
@@ -919,22 +924,24 @@ The `callback` function, if specified, will be added as a listener for the
 
 `tls.connect()` returns a [`tls.TLSSocket`][] object.
 
-Here is an example of a client of echo server as described in
+The following illustrates a client for the echo server example from
 [`tls.createServer()`][]:
 
 ```js
-// This example assumes that you have created an echo server that is
-// listening on port 8000.
+// Assumes an echo server that is listening on port 8000.
 const tls = require('tls');
 const fs = require('fs');
 
 const options = {
-  // Necessary only if using the client certificate authentication
+  // Necessary only if the server requires client certificate authentication.
   key: fs.readFileSync('client-key.pem'),
   cert: fs.readFileSync('client-cert.pem'),
 
-  // Necessary only if the server uses the self-signed certificate
-  ca: [ fs.readFileSync('server-cert.pem') ]
+  // Necessary only if the server uses a self-signed certificate.
+  ca: [ fs.readFileSync('server-cert.pem') ],
+
+  // Necessary only if the server's cert isn't for "localhost".
+  checkServerIdentity: () => { return null; },
 };
 
 const socket = tls.connect(8000, options, () => {
@@ -948,34 +955,7 @@ socket.on('data', (data) => {
   console.log(data);
 });
 socket.on('end', () => {
-  console.log('client ends');
-});
-```
-
-Or
-
-```js
-// This example assumes that you have created an echo server that is
-// listening on port 8000.
-const tls = require('tls');
-const fs = require('fs');
-
-const options = {
-  pfx: fs.readFileSync('client.pfx')
-};
-
-const socket = tls.connect(8000, options, () => {
-  console.log('client connected',
-              socket.authorized ? 'authorized' : 'unauthorized');
-  process.stdin.pipe(socket);
-  process.stdin.resume();
-});
-socket.setEncoding('utf8');
-socket.on('data', (data) => {
-  console.log(data);
-});
-socket.on('end', () => {
-  console.log('client ends');
+  console.log('server ends connection');
 });
 ```
 
@@ -1194,10 +1174,10 @@ const options = {
   key: fs.readFileSync('server-key.pem'),
   cert: fs.readFileSync('server-cert.pem'),
 
-  // This is necessary only if using the client certificate authentication.
+  // This is necessary only if using client certificate authentication.
   requestCert: true,
 
-  // This is necessary only if the client uses the self-signed certificate.
+  // This is necessary only if the client uses a self-signed certificate.
   ca: [ fs.readFileSync('client-cert.pem') ]
 };
 
@@ -1213,36 +1193,8 @@ server.listen(8000, () => {
 });
 ```
 
-Or
-
-```js
-const tls = require('tls');
-const fs = require('fs');
-
-const options = {
-  pfx: fs.readFileSync('server.pfx'),
-
-  // This is necessary only if using the client certificate authentication.
-  requestCert: true,
-};
-
-const server = tls.createServer(options, (socket) => {
-  console.log('server connected',
-              socket.authorized ? 'authorized' : 'unauthorized');
-  socket.write('welcome!\n');
-  socket.setEncoding('utf8');
-  socket.pipe(socket);
-});
-server.listen(8000, () => {
-  console.log('server bound');
-});
-```
-
-This server can be tested by connecting to it using `openssl s_client`:
-
-```sh
-openssl s_client -connect 127.0.0.1:8000
-```
+The server can be tested by connecting to it using the example client from
+[`tls.connect()`][].
 
 ## tls.getCiphers()
 <!-- YAML

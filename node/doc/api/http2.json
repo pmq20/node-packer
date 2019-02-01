@@ -2898,7 +2898,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>This object is created internally by an HTTP server — not by the user. It is\npassed as the second parameter to the <a href=\"#http2_event_request\"><code>'request'</code></a> event.</p>\n<p>The response inherits from <a href=\"\">Stream</a>, and additionally implements the\nfollowing:</p>",
+              "desc": "<p>This object is created internally by an HTTP server — not by the user. It is\npassed as the second parameter to the <a href=\"#http2_event_request\"><code>'request'</code></a> event.</p>\n<p>The response inherits from <a href=\"stream.html#stream_stream\">Stream</a>, and additionally implements the\nfollowing:</p>",
               "events": [
                 {
                   "textRaw": "Event: 'close'",

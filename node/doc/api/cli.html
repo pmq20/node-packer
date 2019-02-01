@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Command Line Options | Node.js v10.15.0 Documentation</title>
+  <title>Command Line Options | Node.js v10.15.1 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -79,7 +79,7 @@
 
     <div id="column1" data-id="cli" class="interior">
       <header>
-        <h1>Node.js v10.15.0 Documentation</h1>
+        <h1>Node.js v10.15.1 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -177,6 +177,7 @@
 <p><a href="#cli_environment_variables">Environment Variables</a></p>
 <ul>
 <li><a href="#cli_node_debug_module"><code>NODE_DEBUG=module[,…]</code></a></li>
+<li><a href="#cli_node_debug_native_module"><code>NODE_DEBUG_NATIVE=module[,…]</code></a></li>
 <li><a href="#cli_node_disable_colors_1"><code>NODE_DISABLE_COLORS=1</code></a></li>
 <li><a href="#cli_node_extra_ca_certs_file"><code>NODE_EXTRA_CA_CERTS=file</code></a></li>
 <li><a href="#cli_node_icu_data_file"><code>NODE_ICU_DATA=file</code></a></li>
@@ -187,6 +188,7 @@
 <li><a href="#cli_node_preserve_symlinks_1"><code>NODE_PRESERVE_SYMLINKS=1</code></a></li>
 <li><a href="#cli_node_redirect_warnings_file"><code>NODE_REDIRECT_WARNINGS=file</code></a></li>
 <li><a href="#cli_node_repl_history_file"><code>NODE_REPL_HISTORY=file</code></a></li>
+<li><a href="#cli_node_tls_reject_unauthorized_value"><code>NODE_TLS_REJECT_UNAUTHORIZED=value</code></a></li>
 <li><a href="#cli_node_v8_coverage_dir"><code>NODE_V8_COVERAGE=dir</code></a></li>
 <li><a href="#cli_openssl_conf_file"><code>OPENSSL_CONF=file</code></a></li>
 <li><a href="#cli_ssl_cert_dir_dir"><code>SSL_CERT_DIR=dir</code></a></li>
@@ -605,6 +607,8 @@ rules. <code>module</code> may be either a path to a file, or a node module name
 <span>Added in: v0.1.32</span>
 </div>
 <p><code>','</code>-separated list of core modules that should print debug information.</p>
+<h3><code>NODE_DEBUG_NATIVE=module[,…]</code><span><a class="mark" href="#cli_node_debug_native_module" id="cli_node_debug_native_module">#</a></span></h3>
+<p><code>','</code>-separated list of core C++ modules that should print debug information.</p>
 <h3><code>NODE_DISABLE_COLORS=1</code><span><a class="mark" href="#cli_node_disable_colors_1" id="cli_node_disable_colors_1">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.3.0</span>
@@ -726,6 +730,10 @@ equivalent to using the <code>--redirect-warnings=file</code> command-line flag.
 <p>Path to the file used to store the persistent REPL history. The default path is
 <code>~/.node_repl_history</code>, which is overridden by this variable. Setting the value
 to an empty string (<code>''</code> or <code>' '</code>) disables persistent REPL history.</p>
+<h3><code>NODE_TLS_REJECT_UNAUTHORIZED=value</code><span><a class="mark" href="#cli_node_tls_reject_unauthorized_value" id="cli_node_tls_reject_unauthorized_value">#</a></span></h3>
+<p>If <code>value</code> equals <code>'0'</code>, certificate validation is disabled for TLS connections.
+This makes TLS, and HTTPS by extension, insecure. The use of this environment
+variable is strongly discouraged.</p>
 <h3><code>NODE_V8_COVERAGE=dir</code><span><a class="mark" href="#cli_node_v8_coverage_dir" id="cli_node_v8_coverage_dir">#</a></span></h3>
 <p>When set, Node.js will begin outputting <a href="https://v8project.blogspot.com/2017/12/javascript-code-coverage.html">V8 JavaScript code coverage</a> to the
 directory provided as an argument. Coverage is output as an array of

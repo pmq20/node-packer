@@ -705,6 +705,13 @@
               "displayName": "`NODE_DEBUG=module[,…]`"
             },
             {
+              "textRaw": "`NODE_DEBUG_NATIVE=module[,…]`",
+              "name": "`node_debug_native=module[,…]`",
+              "desc": "<p><code>','</code>-separated list of core C++ modules that should print debug information.</p>",
+              "type": "module",
+              "displayName": "`NODE_DEBUG_NATIVE=module[,…]`"
+            },
+            {
               "textRaw": "`NODE_DISABLE_COLORS=1`",
               "name": "`node_disable_colors=1`",
               "meta": {
@@ -833,6 +840,13 @@
               "desc": "<p>Path to the file used to store the persistent REPL history. The default path is\n<code>~/.node_repl_history</code>, which is overridden by this variable. Setting the value\nto an empty string (<code>''</code> or <code>' '</code>) disables persistent REPL history.</p>",
               "type": "module",
               "displayName": "`NODE_REPL_HISTORY=file`"
+            },
+            {
+              "textRaw": "`NODE_TLS_REJECT_UNAUTHORIZED=value`",
+              "name": "`node_tls_reject_unauthorized=value`",
+              "desc": "<p>If <code>value</code> equals <code>'0'</code>, certificate validation is disabled for TLS connections.\nThis makes TLS, and HTTPS by extension, insecure. The use of this environment\nvariable is strongly discouraged.</p>",
+              "type": "module",
+              "displayName": "`NODE_TLS_REJECT_UNAUTHORIZED=value`"
             },
             {
               "textRaw": "`NODE_V8_COVERAGE=dir`",

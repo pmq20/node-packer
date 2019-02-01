@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Process | Node.js v10.15.0 Documentation</title>
+  <title>Process | Node.js v10.15.1 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -79,7 +79,7 @@
 
     <div id="column1" data-id="process" class="interior">
       <header>
-        <h1>Node.js v10.15.0 Documentation</h1>
+        <h1>Node.js v10.15.1 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -576,7 +576,7 @@ of these signals has a listener installed, its default behavior will be
 removed (Node.js will no longer exit).</li>
 <li><code>'SIGPIPE'</code> is ignored by default. It can have a listener installed.</li>
 <li><code>'SIGHUP'</code> is generated on Windows when the console window is closed, and on
-other platforms under various similar conditions, see <a href="http://man7.org/linux/man-pages/man7/signal.7.html"><code>signal(7)</code></a>. It can have a
+other platforms under various similar conditions. See <a href="http://man7.org/linux/man-pages/man7/signal.7.html"><code>signal(7)</code></a>. It can have a
 listener installed, however Node.js will be unconditionally terminated by
 Windows about 10 seconds later. On non-Windows platforms, the default
 behavior of <code>SIGHUP</code> is to terminate Node.js, but once a listener has been
@@ -1371,7 +1371,7 @@ setTimeout(() => {
 process.kill(process.pid, 'SIGHUP');
 </code></pre>
 <p>When <code>SIGUSR1</code> is received by a Node.js process, Node.js will start the
-debugger, see <a href="#process_signal_events">Signal Events</a>.</p>
+debugger. See <a href="#process_signal_events">Signal Events</a>.</p>
 <h2>process.mainModule<span><a class="mark" href="#process_process_mainmodule" id="process_process_mainmodule">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.17</span>
@@ -1784,7 +1784,7 @@ throw an error.</p>
 <code>stderr</code> (fd <code>2</code>). It is a <a href="net.html#net_class_net_socket"><code>net.Socket</code></a> (which is a <a href="stream.html#stream_duplex_and_transform_streams">Duplex</a>
 stream) unless fd <code>2</code> refers to a file, in which case it is
 a <a href="stream.html#stream_writable_streams">Writable</a> stream.</p>
-<p><code>process.stderr</code> differs from other Node.js streams in important ways, see
+<p><code>process.stderr</code> differs from other Node.js streams in important ways. See
 <a href="process.html#process_a_note_on_process_i_o">note on process I/O</a> for more information.</p>
 <h2>process.stdin<span><a class="mark" href="#process_process_stdin" id="process_process_stdin">#</a></span></h2>
 <ul>
@@ -1824,7 +1824,7 @@ a <a href="stream.html#stream_writable_streams">Writable</a> stream.</p>
 <p>For example, to copy <code>process.stdin</code> to <code>process.stdout</code>:</p>
 <pre><code class="language-js">process.stdin.pipe(process.stdout);
 </code></pre>
-<p><code>process.stdout</code> differs from other Node.js streams in important ways, see
+<p><code>process.stdout</code> differs from other Node.js streams in important ways. See
 <a href="process.html#process_a_note_on_process_i_o">note on process I/O</a> for more information.</p>
 <h3>A note on process I/O<span><a class="mark" href="#process_a_note_on_process_i_o" id="process_a_note_on_process_i_o">#</a></span></h3>
 <p><code>process.stdout</code> and <code>process.stderr</code> differ from other Node.js streams in

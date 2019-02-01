@@ -71,7 +71,7 @@
               ]
             }
           ],
-          "desc": "<p>A function to get notified when a stream is no longer readable, writable\nor has experienced an error or a premature close event.</p>\n<pre><code class=\"language-js\">const { finished } = require('stream');\n\nconst rs = fs.createReadStream('archive.tar');\n\nfinished(rs, (err) => {\n  if (err) {\n    console.error('Stream failed', err);\n  } else {\n    console.log('Stream is done reading');\n  }\n});\n\nrs.resume(); // drain the stream\n</code></pre>\n<p>Especially useful in error handling scenarios where a stream is destroyed\nprematurely (like an aborted HTTP request), and will not emit <code>'end'</code>\nor <code>'finish'</code>.</p>\n<p>The <code>finished</code> API is promisify-able as well;</p>\n<pre><code class=\"language-js\">const finished = util.promisify(stream.finished);\n\nconst rs = fs.createReadStream('archive.tar');\n\nasync function run() {\n  await finished(rs);\n  console.log('Stream is done reading');\n}\n\nrun().catch(console.error);\nrs.resume(); // drain the stream\n</code></pre>"
+          "desc": "<p>A function to get notified when a stream is no longer readable, writable\nor has experienced an error or a premature close event.</p>\n<pre><code class=\"language-js\">const { finished } = require('stream');\n\nconst rs = fs.createReadStream('archive.tar');\n\nfinished(rs, (err) => {\n  if (err) {\n    console.error('Stream failed.', err);\n  } else {\n    console.log('Stream is done reading.');\n  }\n});\n\nrs.resume(); // drain the stream\n</code></pre>\n<p>Especially useful in error handling scenarios where a stream is destroyed\nprematurely (like an aborted HTTP request), and will not emit <code>'end'</code>\nor <code>'finish'</code>.</p>\n<p>The <code>finished</code> API is promisify-able as well;</p>\n<pre><code class=\"language-js\">const finished = util.promisify(stream.finished);\n\nconst rs = fs.createReadStream('archive.tar');\n\nasync function run() {\n  await finished(rs);\n  console.log('Stream is done reading.');\n}\n\nrun().catch(console.error);\nrs.resume(); // drain the stream\n</code></pre>"
         },
         {
           "textRaw": "stream.pipeline(...streams[, callback])",
@@ -102,7 +102,7 @@
               ]
             }
           ],
-          "desc": "<p>A module method to pipe between streams forwarding errors and properly cleaning\nup and provide a callback when the pipeline is complete.</p>\n<pre><code class=\"language-js\">const { pipeline } = require('stream');\nconst fs = require('fs');\nconst zlib = require('zlib');\n\n// Use the pipeline API to easily pipe a series of streams\n// together and get notified when the pipeline is fully done.\n\n// A pipeline to gzip a potentially huge tar file efficiently:\n\npipeline(\n  fs.createReadStream('archive.tar'),\n  zlib.createGzip(),\n  fs.createWriteStream('archive.tar.gz'),\n  (err) => {\n    if (err) {\n      console.error('Pipeline failed', err);\n    } else {\n      console.log('Pipeline succeeded');\n    }\n  }\n);\n</code></pre>\n<p>The <code>pipeline</code> API is promisify-able as well:</p>\n<pre><code class=\"language-js\">const pipeline = util.promisify(stream.pipeline);\n\nasync function run() {\n  await pipeline(\n    fs.createReadStream('archive.tar'),\n    zlib.createGzip(),\n    fs.createWriteStream('archive.tar.gz')\n  );\n  console.log('Pipeline succeeded');\n}\n\nrun().catch(console.error);\n</code></pre>"
+          "desc": "<p>A module method to pipe between streams forwarding errors and properly cleaning\nup and provide a callback when the pipeline is complete.</p>\n<pre><code class=\"language-js\">const { pipeline } = require('stream');\nconst fs = require('fs');\nconst zlib = require('zlib');\n\n// Use the pipeline API to easily pipe a series of streams\n// together and get notified when the pipeline is fully done.\n\n// A pipeline to gzip a potentially huge tar file efficiently:\n\npipeline(\n  fs.createReadStream('archive.tar'),\n  zlib.createGzip(),\n  fs.createWriteStream('archive.tar.gz'),\n  (err) => {\n    if (err) {\n      console.error('Pipeline failed.', err);\n    } else {\n      console.log('Pipeline succeeded.');\n    }\n  }\n);\n</code></pre>\n<p>The <code>pipeline</code> API is promisify-able as well:</p>\n<pre><code class=\"language-js\">const pipeline = util.promisify(stream.pipeline);\n\nasync function run() {\n  await pipeline(\n    fs.createReadStream('archive.tar'),\n    zlib.createGzip(),\n    fs.createWriteStream('archive.tar.gz')\n  );\n  console.log('Pipeline succeeded.');\n}\n\nrun().catch(console.error);\n</code></pre>"
         }
       ],
       "miscs": [
@@ -183,7 +183,7 @@
                         "changes": []
                       },
                       "params": [],
-                      "desc": "<p>The <code>'finish'</code> event is emitted after the <a href=\"#stream_writable_end_chunk_encoding_callback\"><code>stream.end()</code></a> method\nhas been called, and all data has been flushed to the underlying system.</p>\n<pre><code class=\"language-js\">const writer = getWritableStreamSomehow();\nfor (let i = 0; i &#x3C; 100; i++) {\n  writer.write(`hello, #${i}!\\n`);\n}\nwriter.end('This is the end\\n');\nwriter.on('finish', () => {\n  console.error('All writes are now complete.');\n});\n</code></pre>"
+                      "desc": "<p>The <code>'finish'</code> event is emitted after the <a href=\"#stream_writable_end_chunk_encoding_callback\"><code>stream.end()</code></a> method\nhas been called, and all data has been flushed to the underlying system.</p>\n<pre><code class=\"language-js\">const writer = getWritableStreamSomehow();\nfor (let i = 0; i &#x3C; 100; i++) {\n  writer.write(`hello, #${i}!\\n`);\n}\nwriter.end('This is the end\\n');\nwriter.on('finish', () => {\n  console.log('All writes are now complete.');\n});\n</code></pre>"
                     },
                     {
                       "textRaw": "Event: 'pipe'",
@@ -203,7 +203,7 @@
                           "desc": "source stream that is piping to this writable"
                         }
                       ],
-                      "desc": "<p>The <code>'pipe'</code> event is emitted when the <a href=\"#stream_readable_pipe_destination_options\"><code>stream.pipe()</code></a> method is called on\na readable stream, adding this writable to its set of destinations.</p>\n<pre><code class=\"language-js\">const writer = getWritableStreamSomehow();\nconst reader = getReadableStreamSomehow();\nwriter.on('pipe', (src) => {\n  console.error('something is piping into the writer');\n  assert.equal(src, reader);\n});\nreader.pipe(writer);\n</code></pre>"
+                      "desc": "<p>The <code>'pipe'</code> event is emitted when the <a href=\"#stream_readable_pipe_destination_options\"><code>stream.pipe()</code></a> method is called on\na readable stream, adding this writable to its set of destinations.</p>\n<pre><code class=\"language-js\">const writer = getWritableStreamSomehow();\nconst reader = getReadableStreamSomehow();\nwriter.on('pipe', (src) => {\n  console.log('Something is piping into the writer.');\n  assert.equal(src, reader);\n});\nreader.pipe(writer);\n</code></pre>"
                     },
                     {
                       "textRaw": "Event: 'unpipe'",
@@ -223,7 +223,7 @@
                           "desc": "The source stream that [unpiped][`stream.unpipe()`] this writable"
                         }
                       ],
-                      "desc": "<p>The <code>'unpipe'</code> event is emitted when the <a href=\"#stream_readable_unpipe_destination\"><code>stream.unpipe()</code></a> method is called\non a <a href=\"#stream_class_stream_readable\"><code>Readable</code></a> stream, removing this <a href=\"#stream_class_stream_writable\"><code>Writable</code></a> from its set of\ndestinations.</p>\n<p>This is also emitted in case this <a href=\"#stream_class_stream_writable\"><code>Writable</code></a> stream emits an error when a\n<a href=\"#stream_class_stream_readable\"><code>Readable</code></a> stream pipes into it.</p>\n<pre><code class=\"language-js\">const writer = getWritableStreamSomehow();\nconst reader = getReadableStreamSomehow();\nwriter.on('unpipe', (src) => {\n  console.error('Something has stopped piping into the writer.');\n  assert.equal(src, reader);\n});\nreader.pipe(writer);\nreader.unpipe(writer);\n</code></pre>"
+                      "desc": "<p>The <code>'unpipe'</code> event is emitted when the <a href=\"#stream_readable_unpipe_destination\"><code>stream.unpipe()</code></a> method is called\non a <a href=\"#stream_class_stream_readable\"><code>Readable</code></a> stream, removing this <a href=\"#stream_class_stream_writable\"><code>Writable</code></a> from its set of\ndestinations.</p>\n<p>This is also emitted in case this <a href=\"#stream_class_stream_writable\"><code>Writable</code></a> stream emits an error when a\n<a href=\"#stream_class_stream_readable\"><code>Readable</code></a> stream pipes into it.</p>\n<pre><code class=\"language-js\">const writer = getWritableStreamSomehow();\nconst reader = getReadableStreamSomehow();\nwriter.on('unpipe', (src) => {\n  console.log('Something has stopped piping into the writer.');\n  assert.equal(src, reader);\n});\nreader.pipe(writer);\nreader.unpipe(writer);\n</code></pre>"
                     }
                   ],
                   "methods": [
@@ -433,10 +433,22 @@
                           ]
                         }
                       ],
-                      "desc": "<p>The <code>writable.write()</code> method writes some data to the stream, and calls the\nsupplied <code>callback</code> once the data has been fully handled. If an error\noccurs, the <code>callback</code> <em>may or may not</em> be called with the error as its\nfirst argument. To reliably detect write errors, add a listener for the\n<code>'error'</code> event.</p>\n<p>The return value is <code>true</code> if the internal buffer is less than the\n<code>highWaterMark</code> configured when the stream was created after admitting <code>chunk</code>.\nIf <code>false</code> is returned, further attempts to write data to the stream should\nstop until the <a href=\"#stream_event_drain\"><code>'drain'</code></a> event is emitted.</p>\n<p>While a stream is not draining, calls to <code>write()</code> will buffer <code>chunk</code>, and\nreturn false. Once all currently buffered chunks are drained (accepted for\ndelivery by the operating system), the <code>'drain'</code> event will be emitted.\nIt is recommended that once <code>write()</code> returns false, no more chunks be written\nuntil the <code>'drain'</code> event is emitted. While calling <code>write()</code> on a stream that\nis not draining is allowed, Node.js will buffer all written chunks until\nmaximum memory usage occurs, at which point it will abort unconditionally.\nEven before it aborts, high memory usage will cause poor garbage collector\nperformance and high RSS (which is not typically released back to the system,\neven after the memory is no longer required). Since TCP sockets may never\ndrain if the remote peer does not read the data, writing a socket that is\nnot draining may lead to a remotely exploitable vulnerability.</p>\n<p>Writing data while the stream is not draining is particularly\nproblematic for a <a href=\"#stream_class_stream_transform\"><code>Transform</code></a>, because the <code>Transform</code> streams are paused\nby default until they are piped or a <code>'data'</code> or <code>'readable'</code> event handler\nis added.</p>\n<p>If the data to be written can be generated or fetched on demand, it is\nrecommended to encapsulate the logic into a <a href=\"#stream_class_stream_readable\"><code>Readable</code></a> and use\n<a href=\"#stream_readable_pipe_destination_options\"><code>stream.pipe()</code></a>. However, if calling <code>write()</code> is preferred, it is\npossible to respect backpressure and avoid memory issues using the\n<a href=\"#stream_event_drain\"><code>'drain'</code></a> event:</p>\n<pre><code class=\"language-js\">function write(data, cb) {\n  if (!stream.write(data)) {\n    stream.once('drain', cb);\n  } else {\n    process.nextTick(cb);\n  }\n}\n\n// Wait for cb to be called before doing any other write.\nwrite('hello', () => {\n  console.log('write completed, do more writes now');\n});\n</code></pre>\n<p>A <code>Writable</code> stream in object mode will always ignore the <code>encoding</code> argument.</p>"
+                      "desc": "<p>The <code>writable.write()</code> method writes some data to the stream, and calls the\nsupplied <code>callback</code> once the data has been fully handled. If an error\noccurs, the <code>callback</code> <em>may or may not</em> be called with the error as its\nfirst argument. To reliably detect write errors, add a listener for the\n<code>'error'</code> event.</p>\n<p>The return value is <code>true</code> if the internal buffer is less than the\n<code>highWaterMark</code> configured when the stream was created after admitting <code>chunk</code>.\nIf <code>false</code> is returned, further attempts to write data to the stream should\nstop until the <a href=\"#stream_event_drain\"><code>'drain'</code></a> event is emitted.</p>\n<p>While a stream is not draining, calls to <code>write()</code> will buffer <code>chunk</code>, and\nreturn false. Once all currently buffered chunks are drained (accepted for\ndelivery by the operating system), the <code>'drain'</code> event will be emitted.\nIt is recommended that once <code>write()</code> returns false, no more chunks be written\nuntil the <code>'drain'</code> event is emitted. While calling <code>write()</code> on a stream that\nis not draining is allowed, Node.js will buffer all written chunks until\nmaximum memory usage occurs, at which point it will abort unconditionally.\nEven before it aborts, high memory usage will cause poor garbage collector\nperformance and high RSS (which is not typically released back to the system,\neven after the memory is no longer required). Since TCP sockets may never\ndrain if the remote peer does not read the data, writing a socket that is\nnot draining may lead to a remotely exploitable vulnerability.</p>\n<p>Writing data while the stream is not draining is particularly\nproblematic for a <a href=\"#stream_class_stream_transform\"><code>Transform</code></a>, because the <code>Transform</code> streams are paused\nby default until they are piped or a <code>'data'</code> or <code>'readable'</code> event handler\nis added.</p>\n<p>If the data to be written can be generated or fetched on demand, it is\nrecommended to encapsulate the logic into a <a href=\"#stream_class_stream_readable\"><code>Readable</code></a> and use\n<a href=\"#stream_readable_pipe_destination_options\"><code>stream.pipe()</code></a>. However, if calling <code>write()</code> is preferred, it is\npossible to respect backpressure and avoid memory issues using the\n<a href=\"#stream_event_drain\"><code>'drain'</code></a> event:</p>\n<pre><code class=\"language-js\">function write(data, cb) {\n  if (!stream.write(data)) {\n    stream.once('drain', cb);\n  } else {\n    process.nextTick(cb);\n  }\n}\n\n// Wait for cb to be called before doing any other write.\nwrite('hello', () => {\n  console.log('Write completed, do more writes now.');\n});\n</code></pre>\n<p>A <code>Writable</code> stream in object mode will always ignore the <code>encoding</code> argument.</p>"
                     }
                   ],
                   "properties": [
+                    {
+                      "textRaw": "`writable` {boolean}",
+                      "type": "boolean",
+                      "name": "writable",
+                      "meta": {
+                        "added": [
+                          "v0.8.0"
+                        ],
+                        "changes": []
+                      },
+                      "desc": "<p>Is <code>true</code> if it is safe to call <a href=\"\"><code>writable.write()</code></a>.</p>"
+                    },
                     {
                       "textRaw": "`writableHighWaterMark` {number}",
                       "type": "number",
@@ -800,7 +812,7 @@
                           ]
                         }
                       ],
-                      "desc": "<p>The <code>readable.setEncoding()</code> method sets the character encoding for\ndata read from the <code>Readable</code> stream.</p>\n<p>By default, no encoding is assigned and stream data will be returned as\n<code>Buffer</code> objects. Setting an encoding causes the stream data\nto be returned as strings of the specified encoding rather than as <code>Buffer</code>\nobjects. For instance, calling <code>readable.setEncoding('utf8')</code> will cause the\noutput data to be interpreted as UTF-8 data, and passed as strings. Calling\n<code>readable.setEncoding('hex')</code> will cause the data to be encoded in hexadecimal\nstring format.</p>\n<p>The <code>Readable</code> stream will properly handle multi-byte characters delivered\nthrough the stream that would otherwise become improperly decoded if simply\npulled from the stream as <code>Buffer</code> objects.</p>\n<pre><code class=\"language-js\">const readable = getReadableStreamSomehow();\nreadable.setEncoding('utf8');\nreadable.on('data', (chunk) => {\n  assert.equal(typeof chunk, 'string');\n  console.log('got %d characters of string data', chunk.length);\n});\n</code></pre>"
+                      "desc": "<p>The <code>readable.setEncoding()</code> method sets the character encoding for\ndata read from the <code>Readable</code> stream.</p>\n<p>By default, no encoding is assigned and stream data will be returned as\n<code>Buffer</code> objects. Setting an encoding causes the stream data\nto be returned as strings of the specified encoding rather than as <code>Buffer</code>\nobjects. For instance, calling <code>readable.setEncoding('utf8')</code> will cause the\noutput data to be interpreted as UTF-8 data, and passed as strings. Calling\n<code>readable.setEncoding('hex')</code> will cause the data to be encoded in hexadecimal\nstring format.</p>\n<p>The <code>Readable</code> stream will properly handle multi-byte characters delivered\nthrough the stream that would otherwise become improperly decoded if simply\npulled from the stream as <code>Buffer</code> objects.</p>\n<pre><code class=\"language-js\">const readable = getReadableStreamSomehow();\nreadable.setEncoding('utf8');\nreadable.on('data', (chunk) => {\n  assert.equal(typeof chunk, 'string');\n  console.log('Got %d characters of string data:', chunk.length);\n});\n</code></pre>"
                     },
                     {
                       "textRaw": "readable.unpipe([destination])",
@@ -830,7 +842,7 @@
                           ]
                         }
                       ],
-                      "desc": "<p>The <code>readable.unpipe()</code> method detaches a <code>Writable</code> stream previously attached\nusing the <a href=\"#stream_readable_pipe_destination_options\"><code>stream.pipe()</code></a> method.</p>\n<p>If the <code>destination</code> is not specified, then <em>all</em> pipes are detached.</p>\n<p>If the <code>destination</code> is specified, but no pipe is set up for it, then\nthe method does nothing.</p>\n<pre><code class=\"language-js\">const fs = require('fs');\nconst readable = getReadableStreamSomehow();\nconst writable = fs.createWriteStream('file.txt');\n// All the data from readable goes into 'file.txt',\n// but only for the first second\nreadable.pipe(writable);\nsetTimeout(() => {\n  console.log('Stop writing to file.txt');\n  readable.unpipe(writable);\n  console.log('Manually close the file stream');\n  writable.end();\n}, 1000);\n</code></pre>"
+                      "desc": "<p>The <code>readable.unpipe()</code> method detaches a <code>Writable</code> stream previously attached\nusing the <a href=\"#stream_readable_pipe_destination_options\"><code>stream.pipe()</code></a> method.</p>\n<p>If the <code>destination</code> is not specified, then <em>all</em> pipes are detached.</p>\n<p>If the <code>destination</code> is specified, but no pipe is set up for it, then\nthe method does nothing.</p>\n<pre><code class=\"language-js\">const fs = require('fs');\nconst readable = getReadableStreamSomehow();\nconst writable = fs.createWriteStream('file.txt');\n// All the data from readable goes into 'file.txt',\n// but only for the first second\nreadable.pipe(writable);\nsetTimeout(() => {\n  console.log('Stop writing to file.txt.');\n  readable.unpipe(writable);\n  console.log('Manually close the file stream.');\n  writable.end();\n}, 1000);\n</code></pre>"
                     },
                     {
                       "textRaw": "readable.unshift(chunk)",
@@ -919,9 +931,21 @@
                   ],
                   "properties": [
                     {
-                      "textRaw": "`readableHighWaterMark` Returns: {number}",
+                      "textRaw": "`readable` {boolean}",
+                      "type": "boolean",
+                      "name": "readable",
+                      "meta": {
+                        "added": [
+                          "v0.8.0"
+                        ],
+                        "changes": []
+                      },
+                      "desc": "<p>Is <code>true</code> if it is safe to call <a href=\"\"><code>readable.read()</code></a>.</p>"
+                    },
+                    {
+                      "textRaw": "`readableHighWaterMark` {number}",
                       "type": "number",
-                      "name": "return",
+                      "name": "readableHighWaterMark",
                       "meta": {
                         "added": [
                           "v9.3.0"
@@ -931,9 +955,9 @@
                       "desc": "<p>Returns the value of <code>highWaterMark</code> passed when constructing this\n<code>Readable</code>.</p>"
                     },
                     {
-                      "textRaw": "`readableLength` Returns: {number}",
+                      "textRaw": "`readableLength` {number}",
                       "type": "number",
-                      "name": "return",
+                      "name": "readableLength",
                       "meta": {
                         "added": [
                           "v9.4.0"
@@ -1042,7 +1066,7 @@
                   ]
                 }
               ],
-              "desc": "<p>A function to get notified when a stream is no longer readable, writable\nor has experienced an error or a premature close event.</p>\n<pre><code class=\"language-js\">const { finished } = require('stream');\n\nconst rs = fs.createReadStream('archive.tar');\n\nfinished(rs, (err) => {\n  if (err) {\n    console.error('Stream failed', err);\n  } else {\n    console.log('Stream is done reading');\n  }\n});\n\nrs.resume(); // drain the stream\n</code></pre>\n<p>Especially useful in error handling scenarios where a stream is destroyed\nprematurely (like an aborted HTTP request), and will not emit <code>'end'</code>\nor <code>'finish'</code>.</p>\n<p>The <code>finished</code> API is promisify-able as well;</p>\n<pre><code class=\"language-js\">const finished = util.promisify(stream.finished);\n\nconst rs = fs.createReadStream('archive.tar');\n\nasync function run() {\n  await finished(rs);\n  console.log('Stream is done reading');\n}\n\nrun().catch(console.error);\nrs.resume(); // drain the stream\n</code></pre>"
+              "desc": "<p>A function to get notified when a stream is no longer readable, writable\nor has experienced an error or a premature close event.</p>\n<pre><code class=\"language-js\">const { finished } = require('stream');\n\nconst rs = fs.createReadStream('archive.tar');\n\nfinished(rs, (err) => {\n  if (err) {\n    console.error('Stream failed.', err);\n  } else {\n    console.log('Stream is done reading.');\n  }\n});\n\nrs.resume(); // drain the stream\n</code></pre>\n<p>Especially useful in error handling scenarios where a stream is destroyed\nprematurely (like an aborted HTTP request), and will not emit <code>'end'</code>\nor <code>'finish'</code>.</p>\n<p>The <code>finished</code> API is promisify-able as well;</p>\n<pre><code class=\"language-js\">const finished = util.promisify(stream.finished);\n\nconst rs = fs.createReadStream('archive.tar');\n\nasync function run() {\n  await finished(rs);\n  console.log('Stream is done reading.');\n}\n\nrun().catch(console.error);\nrs.resume(); // drain the stream\n</code></pre>"
             },
             {
               "textRaw": "stream.pipeline(...streams[, callback])",
@@ -1073,7 +1097,7 @@
                   ]
                 }
               ],
-              "desc": "<p>A module method to pipe between streams forwarding errors and properly cleaning\nup and provide a callback when the pipeline is complete.</p>\n<pre><code class=\"language-js\">const { pipeline } = require('stream');\nconst fs = require('fs');\nconst zlib = require('zlib');\n\n// Use the pipeline API to easily pipe a series of streams\n// together and get notified when the pipeline is fully done.\n\n// A pipeline to gzip a potentially huge tar file efficiently:\n\npipeline(\n  fs.createReadStream('archive.tar'),\n  zlib.createGzip(),\n  fs.createWriteStream('archive.tar.gz'),\n  (err) => {\n    if (err) {\n      console.error('Pipeline failed', err);\n    } else {\n      console.log('Pipeline succeeded');\n    }\n  }\n);\n</code></pre>\n<p>The <code>pipeline</code> API is promisify-able as well:</p>\n<pre><code class=\"language-js\">const pipeline = util.promisify(stream.pipeline);\n\nasync function run() {\n  await pipeline(\n    fs.createReadStream('archive.tar'),\n    zlib.createGzip(),\n    fs.createWriteStream('archive.tar.gz')\n  );\n  console.log('Pipeline succeeded');\n}\n\nrun().catch(console.error);\n</code></pre>"
+              "desc": "<p>A module method to pipe between streams forwarding errors and properly cleaning\nup and provide a callback when the pipeline is complete.</p>\n<pre><code class=\"language-js\">const { pipeline } = require('stream');\nconst fs = require('fs');\nconst zlib = require('zlib');\n\n// Use the pipeline API to easily pipe a series of streams\n// together and get notified when the pipeline is fully done.\n\n// A pipeline to gzip a potentially huge tar file efficiently:\n\npipeline(\n  fs.createReadStream('archive.tar'),\n  zlib.createGzip(),\n  fs.createWriteStream('archive.tar.gz'),\n  (err) => {\n    if (err) {\n      console.error('Pipeline failed.', err);\n    } else {\n      console.log('Pipeline succeeded.');\n    }\n  }\n);\n</code></pre>\n<p>The <code>pipeline</code> API is promisify-able as well:</p>\n<pre><code class=\"language-js\">const pipeline = util.promisify(stream.pipeline);\n\nasync function run() {\n  await pipeline(\n    fs.createReadStream('archive.tar'),\n    zlib.createGzip(),\n    fs.createWriteStream('archive.tar.gz')\n  );\n  console.log('Pipeline succeeded.');\n}\n\nrun().catch(console.error);\n</code></pre>"
             }
           ]
         },

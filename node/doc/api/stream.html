@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Stream | Node.js v10.15.0 Documentation</title>
+  <title>Stream | Node.js v10.15.1 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -79,7 +79,7 @@
 
     <div id="column1" data-id="stream" class="interior">
       <header>
-        <h1>Node.js v10.15.0 Documentation</h1>
+        <h1>Node.js v10.15.1 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -146,6 +146,7 @@
 <li><a href="#stream_writable_end_chunk_encoding_callback">writable.end([chunk][, encoding][, callback])</a></li>
 <li><a href="#stream_writable_setdefaultencoding_encoding">writable.setDefaultEncoding(encoding)</a></li>
 <li><a href="#stream_writable_uncork">writable.uncork()</a></li>
+<li><a href="#stream_writable_writable">writable.writable</a></li>
 <li><a href="#stream_writable_writablehighwatermark">writable.writableHighWaterMark</a></li>
 <li><a href="#stream_writable_writablelength">writable.writableLength</a></li>
 <li><a href="#stream_writable_write_chunk_encoding_callback">writable.write(chunk[, encoding][, callback])</a></li>
@@ -172,6 +173,7 @@
 <li><a href="#stream_readable_pause">readable.pause()</a></li>
 <li><a href="#stream_readable_pipe_destination_options">readable.pipe(destination[, options])</a></li>
 <li><a href="#stream_readable_read_size">readable.read([size])</a></li>
+<li><a href="#stream_readable_readable">readable.readable</a></li>
 <li><a href="#stream_readable_readablehighwatermark">readable.readableHighWaterMark</a></li>
 <li><a href="#stream_readable_readablelength">readable.readableLength</a></li>
 <li><a href="#stream_readable_resume">readable.resume()</a></li>
@@ -263,7 +265,7 @@
       </div>
 
       <div id="apicontent">
-        <h1>Stream<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/stream.js#L30">[src]</a><span><a class="mark" href="#stream_stream" id="stream_stream">#</a></span></h1>
+        <h1>Stream<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/stream.js#L30">[src]</a><span><a class="mark" href="#stream_stream" id="stream_stream">#</a></span></h1>
 
 <p></p><div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><p></p>
 <p>A stream is an abstract interface for working with streaming data in Node.js.
@@ -498,7 +500,7 @@ for (let i = 0; i &#x3C; 100; i++) {
 }
 writer.end('This is the end\n');
 writer.on('finish', () => {
-  console.error('All writes are now complete.');
+  console.log('All writes are now complete.');
 });
 </code></pre>
 <h5>Event: 'pipe'<span><a class="mark" href="#stream_event_pipe" id="stream_event_pipe">#</a></span></h5>
@@ -513,7 +515,7 @@ a readable stream, adding this writable to its set of destinations.</p>
 <pre><code class="language-js">const writer = getWritableStreamSomehow();
 const reader = getReadableStreamSomehow();
 writer.on('pipe', (src) => {
-  console.error('something is piping into the writer');
+  console.log('Something is piping into the writer.');
   assert.equal(src, reader);
 });
 reader.pipe(writer);
@@ -534,7 +536,7 @@ destinations.</p>
 <pre><code class="language-js">const writer = getWritableStreamSomehow();
 const reader = getReadableStreamSomehow();
 writer.on('unpipe', (src) => {
-  console.error('Something has stopped piping into the writer.');
+  console.log('Something has stopped piping into the writer.');
   assert.equal(src, reader);
 });
 reader.pipe(writer);
@@ -650,6 +652,14 @@ process.nextTick(() => {
 });
 </code></pre>
 <p>See also: <a href="#stream_writable_cork"><code>writable.cork()</code></a>.</p>
+<h5>writable.writable<span><a class="mark" href="#stream_writable_writable" id="stream_writable_writable">#</a></span></h5>
+<div class="api_metadata">
+<span>Added in: v0.8.0</span>
+</div>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a></li>
+</ul>
+<p>Is <code>true</code> if it is safe to call <a href=""><code>writable.write()</code></a>.</p>
 <h5>writable.writableHighWaterMark<span><a class="mark" href="#stream_writable_writablehighwatermark" id="stream_writable_writablehighwatermark">#</a></span></h5>
 <div class="api_metadata">
 <span>Added in: v9.3.0</span>
@@ -731,7 +741,7 @@ possible to respect backpressure and avoid memory issues using the
 
 // Wait for cb to be called before doing any other write.
 write('hello', () => {
-  console.log('write completed, do more writes now');
+  console.log('Write completed, do more writes now.');
 });
 </code></pre>
 <p>A <code>Writable</code> stream in object mode will always ignore the <code>encoding</code> argument.</p>
@@ -1122,12 +1132,20 @@ a call to <a href="#stream_readable_read_size"><code>readable.read(size)</code><
 also be emitted.</p>
 <p>Calling <a href="#stream_readable_read_size"><code>stream.read([size])</code></a> after the <a href="#stream_event_end"><code>'end'</code></a> event has
 been emitted will return <code>null</code>. No runtime error will be raised.</p>
+<h5>readable.readable<span><a class="mark" href="#stream_readable_readable" id="stream_readable_readable">#</a></span></h5>
+<div class="api_metadata">
+<span>Added in: v0.8.0</span>
+</div>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a></li>
+</ul>
+<p>Is <code>true</code> if it is safe to call <a href=""><code>readable.read()</code></a>.</p>
 <h5>readable.readableHighWaterMark<span><a class="mark" href="#stream_readable_readablehighwatermark" id="stream_readable_readablehighwatermark">#</a></span></h5>
 <div class="api_metadata">
 <span>Added in: v9.3.0</span>
 </div>
 <ul>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
 </ul>
 <p>Returns the value of <code>highWaterMark</code> passed when constructing this
 <code>Readable</code>.</p>
@@ -1136,7 +1154,7 @@ been emitted will return <code>null</code>. No runtime error will be raised.</p>
 <span>Added in: v9.4.0</span>
 </div>
 <ul>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
 </ul>
 <p>This property contains the number of bytes (or objects) in the queue
 ready to be read. The value provides introspection data regarding
@@ -1192,7 +1210,7 @@ pulled from the stream as <code>Buffer</code> objects.</p>
 readable.setEncoding('utf8');
 readable.on('data', (chunk) => {
   assert.equal(typeof chunk, 'string');
-  console.log('got %d characters of string data', chunk.length);
+  console.log('Got %d characters of string data:', chunk.length);
 });
 </code></pre>
 <h5>readable.unpipe([destination])<span><a class="mark" href="#stream_readable_unpipe_destination" id="stream_readable_unpipe_destination">#</a></span></h5>
@@ -1215,9 +1233,9 @@ const writable = fs.createWriteStream('file.txt');
 // but only for the first second
 readable.pipe(writable);
 setTimeout(() => {
-  console.log('Stop writing to file.txt');
+  console.log('Stop writing to file.txt.');
   readable.unpipe(writable);
-  console.log('Manually close the file stream');
+  console.log('Manually close the file stream.');
   writable.end();
 }, 1000);
 </code></pre>
@@ -1407,9 +1425,9 @@ const rs = fs.createReadStream('archive.tar');
 
 finished(rs, (err) => {
   if (err) {
-    console.error('Stream failed', err);
+    console.error('Stream failed.', err);
   } else {
-    console.log('Stream is done reading');
+    console.log('Stream is done reading.');
   }
 });
 
@@ -1425,7 +1443,7 @@ const rs = fs.createReadStream('archive.tar');
 
 async function run() {
   await finished(rs);
-  console.log('Stream is done reading');
+  console.log('Stream is done reading.');
 }
 
 run().catch(console.error);
@@ -1457,9 +1475,9 @@ pipeline(
   fs.createWriteStream('archive.tar.gz'),
   (err) => {
     if (err) {
-      console.error('Pipeline failed', err);
+      console.error('Pipeline failed.', err);
     } else {
-      console.log('Pipeline succeeded');
+      console.log('Pipeline succeeded.');
     }
   }
 );
@@ -1473,7 +1491,7 @@ async function run() {
     zlib.createGzip(),
     fs.createWriteStream('archive.tar.gz')
   );
-  console.log('Pipeline succeeded');
+  console.log('Pipeline succeeded.');
 }
 
 run().catch(console.error);

@@ -370,9 +370,10 @@
                       "type": "string | Buffer | TypedArray | DataView"
                     },
                     {
-                      "textRaw": "`primeEncoding` {string}",
+                      "textRaw": "`primeEncoding` {string} The [encoding][] of the `prime` string.",
                       "name": "primeEncoding",
                       "type": "string",
+                      "desc": "The [encoding][] of the `prime` string.",
                       "optional": true
                     },
                     {
@@ -383,15 +384,16 @@
                       "optional": true
                     },
                     {
-                      "textRaw": "`generatorEncoding` {string}",
+                      "textRaw": "`generatorEncoding` {string} The [encoding][] of the `generator` string.",
                       "name": "generatorEncoding",
                       "type": "string",
+                      "desc": "The [encoding][] of the `generator` string.",
                       "optional": true
                     }
                   ]
                 }
               ],
-              "desc": "<p>Creates a <code>DiffieHellman</code> key exchange object using the supplied <code>prime</code> and an\noptional specific <code>generator</code>.</p>\n<p>The <code>generator</code> argument can be a number, string, or <a href=\"buffer.html\"><code>Buffer</code></a>. If\n<code>generator</code> is not specified, the value <code>2</code> is used.</p>\n<p>The <code>primeEncoding</code> and <code>generatorEncoding</code> arguments can be <code>'latin1'</code>,\n<code>'hex'</code>, or <code>'base64'</code>.</p>\n<p>If <code>primeEncoding</code> is specified, <code>prime</code> is expected to be a string; otherwise\na <a href=\"buffer.html\"><code>Buffer</code></a>, <code>TypedArray</code>, or <code>DataView</code> is expected.</p>\n<p>If <code>generatorEncoding</code> is specified, <code>generator</code> is expected to be a string;\notherwise a number, <a href=\"buffer.html\"><code>Buffer</code></a>, <code>TypedArray</code>, or <code>DataView</code> is expected.</p>"
+              "desc": "<p>Creates a <code>DiffieHellman</code> key exchange object using the supplied <code>prime</code> and an\noptional specific <code>generator</code>.</p>\n<p>The <code>generator</code> argument can be a number, string, or <a href=\"buffer.html\"><code>Buffer</code></a>. If\n<code>generator</code> is not specified, the value <code>2</code> is used.</p>\n<p>If <code>primeEncoding</code> is specified, <code>prime</code> is expected to be a string; otherwise\na <a href=\"buffer.html\"><code>Buffer</code></a>, <code>TypedArray</code>, or <code>DataView</code> is expected.</p>\n<p>If <code>generatorEncoding</code> is specified, <code>generator</code> is expected to be a string;\notherwise a number, <a href=\"buffer.html\"><code>Buffer</code></a>, <code>TypedArray</code>, or <code>DataView</code> is expected.</p>"
             },
             {
               "textRaw": "crypto.createDiffieHellman(primeLength[, generator])",
@@ -1927,9 +1929,10 @@
                       "type": "string | Buffer | TypedArray | DataView"
                     },
                     {
-                      "textRaw": "`encoding` {string}",
+                      "textRaw": "`encoding` {string} The [encoding][] of the `spkac` string.",
                       "name": "encoding",
                       "type": "string",
+                      "desc": "The [encoding][] of the `spkac` string.",
                       "optional": true
                     }
                   ]
@@ -2089,7 +2092,7 @@
             ],
             "changes": []
           },
-          "desc": "<p>Instances of the <code>Cipher</code> class are used to encrypt data. The class can be\nused in one of two ways:</p>\n<ul>\n<li>As a <a href=\"stream.html\">stream</a> that is both readable and writable, where plain unencrypted\ndata is written to produce encrypted data on the readable side, or</li>\n<li>Using the <a href=\"#crypto_cipher_update_data_inputencoding_outputencoding\"><code>cipher.update()</code></a> and <a href=\"#crypto_cipher_final_outputencoding\"><code>cipher.final()</code></a> methods to produce\nthe encrypted data.</li>\n</ul>\n<p>The <a href=\"#crypto_crypto_createcipher_algorithm_password_options\"><code>crypto.createCipher()</code></a> or <a href=\"#crypto_crypto_createcipheriv_algorithm_key_iv_options\"><code>crypto.createCipheriv()</code></a> methods are\nused to create <code>Cipher</code> instances. <code>Cipher</code> objects are not to be created\ndirectly using the <code>new</code> keyword.</p>\n<p>Example: Using <code>Cipher</code> objects as streams:</p>\n<pre><code class=\"language-js\">const crypto = require('crypto');\nconst cipher = crypto.createCipher('aes192', 'a password');\n\nlet encrypted = '';\ncipher.on('readable', () => {\n  const data = cipher.read();\n  if (data)\n    encrypted += data.toString('hex');\n});\ncipher.on('end', () => {\n  console.log(encrypted);\n  // Prints: ca981be48e90867604588e75d04feabb63cc007a8f8ad89b10616ed84d815504\n});\n\ncipher.write('some clear text data');\ncipher.end();\n</code></pre>\n<p>Example: Using <code>Cipher</code> and piped streams:</p>\n<pre><code class=\"language-js\">const crypto = require('crypto');\nconst fs = require('fs');\nconst cipher = crypto.createCipher('aes192', 'a password');\n\nconst input = fs.createReadStream('test.js');\nconst output = fs.createWriteStream('test.enc');\n\ninput.pipe(cipher).pipe(output);\n</code></pre>\n<p>Example: Using the <a href=\"#crypto_cipher_update_data_inputencoding_outputencoding\"><code>cipher.update()</code></a> and <a href=\"#crypto_cipher_final_outputencoding\"><code>cipher.final()</code></a> methods:</p>\n<pre><code class=\"language-js\">const crypto = require('crypto');\nconst cipher = crypto.createCipher('aes192', 'a password');\n\nlet encrypted = cipher.update('some clear text data', 'utf8', 'hex');\nencrypted += cipher.final('hex');\nconsole.log(encrypted);\n// Prints: ca981be48e90867604588e75d04feabb63cc007a8f8ad89b10616ed84d815504\n</code></pre>",
+          "desc": "<p>Instances of the <code>Cipher</code> class are used to encrypt data. The class can be\nused in one of two ways:</p>\n<ul>\n<li>As a <a href=\"stream.html\">stream</a> that is both readable and writable, where plain unencrypted\ndata is written to produce encrypted data on the readable side, or</li>\n<li>Using the <a href=\"#crypto_cipher_update_data_inputencoding_outputencoding\"><code>cipher.update()</code></a> and <a href=\"#crypto_cipher_final_outputencoding\"><code>cipher.final()</code></a> methods to produce\nthe encrypted data.</li>\n</ul>\n<p>The <a href=\"#crypto_crypto_createcipher_algorithm_password_options\"><code>crypto.createCipher()</code></a> or <a href=\"#crypto_crypto_createcipheriv_algorithm_key_iv_options\"><code>crypto.createCipheriv()</code></a> methods are\nused to create <code>Cipher</code> instances. <code>Cipher</code> objects are not to be created\ndirectly using the <code>new</code> keyword.</p>\n<p>Example: Using <code>Cipher</code> objects as streams:</p>\n<pre><code class=\"language-js\">const crypto = require('crypto');\n\nconst algorithm = 'aes-192-cbc';\nconst password = 'Password used to generate key';\n// Key length is dependent on the algorithm. In this case for aes192, it is\n// 24 bytes (192 bits).\n// Use async `crypto.scrypt()` instead.\nconst key = crypto.scryptSync(password, 'salt', 24);\n// Use `crypto.randomBytes()` to generate a random iv instead of the static iv\n// shown here.\nconst iv = Buffer.alloc(16, 0); // Initialization vector.\n\nconst cipher = crypto.createCipheriv(algorithm, key, iv);\n\nlet encrypted = '';\ncipher.on('readable', () => {\n  const data = cipher.read();\n  if (data)\n    encrypted += data.toString('hex');\n});\ncipher.on('end', () => {\n  console.log(encrypted);\n  // Prints: e5f79c5915c02171eec6b212d5520d44480993d7d622a7c4c2da32f6efda0ffa\n});\n\ncipher.write('some clear text data');\ncipher.end();\n</code></pre>\n<p>Example: Using <code>Cipher</code> and piped streams:</p>\n<pre><code class=\"language-js\">const crypto = require('crypto');\nconst fs = require('fs');\n\nconst algorithm = 'aes-192-cbc';\nconst password = 'Password used to generate key';\n// Use the async `crypto.scrypt()` instead.\nconst key = crypto.scryptSync(password, 'salt', 24);\n// Use `crypto.randomBytes()` to generate a random iv instead of the static iv\n// shown here.\nconst iv = Buffer.alloc(16, 0); // Initialization vector.\n\nconst cipher = crypto.createCipheriv(algorithm, key, iv);\n\nconst input = fs.createReadStream('test.js');\nconst output = fs.createWriteStream('test.enc');\n\ninput.pipe(cipher).pipe(output);\n</code></pre>\n<p>Example: Using the <a href=\"#crypto_cipher_update_data_inputencoding_outputencoding\"><code>cipher.update()</code></a> and <a href=\"#crypto_cipher_final_outputencoding\"><code>cipher.final()</code></a> methods:</p>\n<pre><code class=\"language-js\">const crypto = require('crypto');\n\nconst algorithm = 'aes-192-cbc';\nconst password = 'Password used to generate key';\n// Use the async `crypto.scrypt()` instead.\nconst key = crypto.scryptSync(password, 'salt', 24);\n// Use `crypto.randomBytes` to generate a random iv instead of the static iv\n// shown here.\nconst iv = Buffer.alloc(16, 0); // Initialization vector.\n\nconst cipher = crypto.createCipheriv(algorithm, key, iv);\n\nlet encrypted = cipher.update('some clear text data', 'utf8', 'hex');\nencrypted += cipher.final('hex');\nconsole.log(encrypted);\n// Prints: e5f79c5915c02171eec6b212d5520d44480993d7d622a7c4c2da32f6efda0ffa\n</code></pre>",
           "methods": [
             {
               "textRaw": "cipher.final([outputEncoding])",
@@ -2104,16 +2107,17 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns: {Buffer | string} Any remaining enciphered contents. If `outputEncoding` is one of `'latin1'`, `'base64'` or `'hex'`, a string is returned. If an `outputEncoding` is not provided, a [`Buffer`][] is returned.",
+                    "textRaw": "Returns: {Buffer | string} Any remaining enciphered contents. If `outputEncoding` is specified, a string is returned. If an `outputEncoding` is not provided, a [`Buffer`][] is returned.",
                     "name": "return",
                     "type": "Buffer | string",
-                    "desc": "Any remaining enciphered contents. If `outputEncoding` is one of `'latin1'`, `'base64'` or `'hex'`, a string is returned. If an `outputEncoding` is not provided, a [`Buffer`][] is returned."
+                    "desc": "Any remaining enciphered contents. If `outputEncoding` is specified, a string is returned. If an `outputEncoding` is not provided, a [`Buffer`][] is returned."
                   },
                   "params": [
                     {
-                      "textRaw": "`outputEncoding` {string}",
+                      "textRaw": "`outputEncoding` {string} The [encoding][] of the return value.",
                       "name": "outputEncoding",
                       "type": "string",
+                      "desc": "The [encoding][] of the return value.",
                       "optional": true
                     }
                   ]
@@ -2248,21 +2252,23 @@
                       "type": "string | Buffer | TypedArray | DataView"
                     },
                     {
-                      "textRaw": "`inputEncoding` {string}",
+                      "textRaw": "`inputEncoding` {string} The [encoding][] of the data.",
                       "name": "inputEncoding",
                       "type": "string",
+                      "desc": "The [encoding][] of the data.",
                       "optional": true
                     },
                     {
-                      "textRaw": "`outputEncoding` {string}",
+                      "textRaw": "`outputEncoding` {string} The [encoding][] of the return value.",
                       "name": "outputEncoding",
                       "type": "string",
+                      "desc": "The [encoding][] of the return value.",
                       "optional": true
                     }
                   ]
                 }
               ],
-              "desc": "<p>Updates the cipher with <code>data</code>. If the <code>inputEncoding</code> argument is given,\nits value must be one of <code>'utf8'</code>, <code>'ascii'</code>, or <code>'latin1'</code> and the <code>data</code>\nargument is a string using the specified encoding. If the <code>inputEncoding</code>\nargument is not given, <code>data</code> must be a <a href=\"buffer.html\"><code>Buffer</code></a>, <code>TypedArray</code>, or\n<code>DataView</code>. If <code>data</code> is a <a href=\"buffer.html\"><code>Buffer</code></a>, <code>TypedArray</code>, or <code>DataView</code>, then\n<code>inputEncoding</code> is ignored.</p>\n<p>The <code>outputEncoding</code> specifies the output format of the enciphered\ndata, and can be <code>'latin1'</code>, <code>'base64'</code> or <code>'hex'</code>. If the <code>outputEncoding</code>\nis specified, a string using the specified encoding is returned. If no\n<code>outputEncoding</code> is provided, a <a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>\n<p>The <code>cipher.update()</code> method can be called multiple times with new data until\n<a href=\"#crypto_cipher_final_outputencoding\"><code>cipher.final()</code></a> is called. Calling <code>cipher.update()</code> after\n<a href=\"#crypto_cipher_final_outputencoding\"><code>cipher.final()</code></a> will result in an error being thrown.</p>"
+              "desc": "<p>Updates the cipher with <code>data</code>. If the <code>inputEncoding</code> argument is given,\nthe <code>data</code>\nargument is a string using the specified encoding. If the <code>inputEncoding</code>\nargument is not given, <code>data</code> must be a <a href=\"buffer.html\"><code>Buffer</code></a>, <code>TypedArray</code>, or\n<code>DataView</code>. If <code>data</code> is a <a href=\"buffer.html\"><code>Buffer</code></a>, <code>TypedArray</code>, or <code>DataView</code>, then\n<code>inputEncoding</code> is ignored.</p>\n<p>The <code>outputEncoding</code> specifies the output format of the enciphered\ndata. If the <code>outputEncoding</code>\nis specified, a string using the specified encoding is returned. If no\n<code>outputEncoding</code> is provided, a <a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>\n<p>The <code>cipher.update()</code> method can be called multiple times with new data until\n<a href=\"#crypto_cipher_final_outputencoding\"><code>cipher.final()</code></a> is called. Calling <code>cipher.update()</code> after\n<a href=\"#crypto_cipher_final_outputencoding\"><code>cipher.final()</code></a> will result in an error being thrown.</p>"
             }
           ]
         },
@@ -2276,7 +2282,7 @@
             ],
             "changes": []
           },
-          "desc": "<p>Instances of the <code>Decipher</code> class are used to decrypt data. The class can be\nused in one of two ways:</p>\n<ul>\n<li>As a <a href=\"stream.html\">stream</a> that is both readable and writable, where plain encrypted\ndata is written to produce unencrypted data on the readable side, or</li>\n<li>Using the <a href=\"#crypto_decipher_update_data_inputencoding_outputencoding\"><code>decipher.update()</code></a> and <a href=\"#crypto_decipher_final_outputencoding\"><code>decipher.final()</code></a> methods to\nproduce the unencrypted data.</li>\n</ul>\n<p>The <a href=\"#crypto_crypto_createdecipher_algorithm_password_options\"><code>crypto.createDecipher()</code></a> or <a href=\"#crypto_crypto_createdecipheriv_algorithm_key_iv_options\"><code>crypto.createDecipheriv()</code></a> methods are\nused to create <code>Decipher</code> instances. <code>Decipher</code> objects are not to be created\ndirectly using the <code>new</code> keyword.</p>\n<p>Example: Using <code>Decipher</code> objects as streams:</p>\n<pre><code class=\"language-js\">const crypto = require('crypto');\nconst decipher = crypto.createDecipher('aes192', 'a password');\n\nlet decrypted = '';\ndecipher.on('readable', () => {\n  const data = decipher.read();\n  if (data)\n    decrypted += data.toString('utf8');\n});\ndecipher.on('end', () => {\n  console.log(decrypted);\n  // Prints: some clear text data\n});\n\nconst encrypted =\n    'ca981be48e90867604588e75d04feabb63cc007a8f8ad89b10616ed84d815504';\ndecipher.write(encrypted, 'hex');\ndecipher.end();\n</code></pre>\n<p>Example: Using <code>Decipher</code> and piped streams:</p>\n<pre><code class=\"language-js\">const crypto = require('crypto');\nconst fs = require('fs');\nconst decipher = crypto.createDecipher('aes192', 'a password');\n\nconst input = fs.createReadStream('test.enc');\nconst output = fs.createWriteStream('test.js');\n\ninput.pipe(decipher).pipe(output);\n</code></pre>\n<p>Example: Using the <a href=\"#crypto_decipher_update_data_inputencoding_outputencoding\"><code>decipher.update()</code></a> and <a href=\"#crypto_decipher_final_outputencoding\"><code>decipher.final()</code></a> methods:</p>\n<pre><code class=\"language-js\">const crypto = require('crypto');\nconst decipher = crypto.createDecipher('aes192', 'a password');\n\nconst encrypted =\n    'ca981be48e90867604588e75d04feabb63cc007a8f8ad89b10616ed84d815504';\nlet decrypted = decipher.update(encrypted, 'hex', 'utf8');\ndecrypted += decipher.final('utf8');\nconsole.log(decrypted);\n// Prints: some clear text data\n</code></pre>",
+          "desc": "<p>Instances of the <code>Decipher</code> class are used to decrypt data. The class can be\nused in one of two ways:</p>\n<ul>\n<li>As a <a href=\"stream.html\">stream</a> that is both readable and writable, where plain encrypted\ndata is written to produce unencrypted data on the readable side, or</li>\n<li>Using the <a href=\"#crypto_decipher_update_data_inputencoding_outputencoding\"><code>decipher.update()</code></a> and <a href=\"#crypto_decipher_final_outputencoding\"><code>decipher.final()</code></a> methods to\nproduce the unencrypted data.</li>\n</ul>\n<p>The <a href=\"#crypto_crypto_createdecipher_algorithm_password_options\"><code>crypto.createDecipher()</code></a> or <a href=\"#crypto_crypto_createdecipheriv_algorithm_key_iv_options\"><code>crypto.createDecipheriv()</code></a> methods are\nused to create <code>Decipher</code> instances. <code>Decipher</code> objects are not to be created\ndirectly using the <code>new</code> keyword.</p>\n<p>Example: Using <code>Decipher</code> objects as streams:</p>\n<pre><code class=\"language-js\">const crypto = require('crypto');\n\nconst algorithm = 'aes-192-cbc';\nconst password = 'Password used to generate key';\n// Key length is dependent on the algorithm. In this case for aes192, it is\n// 24 bytes (192 bits).\n// Use the async `crypto.scrypt()` instead.\nconst key = crypto.scryptSync(password, 'salt', 24);\n// The IV is usually passed along with the ciphertext.\nconst iv = Buffer.alloc(16, 0); // Initialization vector.\n\nconst decipher = crypto.createDecipheriv(algorithm, key, iv);\n\nlet decrypted = '';\ndecipher.on('readable', () => {\n  const data = decipher.read();\n  if (data)\n    decrypted += data.toString('utf8');\n});\ndecipher.on('end', () => {\n  console.log(decrypted);\n  // Prints: some clear text data\n});\n\n// Encrypted with same algorithm, key and iv.\nconst encrypted =\n  'e5f79c5915c02171eec6b212d5520d44480993d7d622a7c4c2da32f6efda0ffa';\ndecipher.write(encrypted, 'hex');\ndecipher.end();\n</code></pre>\n<p>Example: Using <code>Decipher</code> and piped streams:</p>\n<pre><code class=\"language-js\">const crypto = require('crypto');\nconst fs = require('fs');\n\nconst algorithm = 'aes-192-cbc';\nconst password = 'Password used to generate key';\n// Use the async `crypto.scrypt()` instead.\nconst key = crypto.scryptSync(password, 'salt', 24);\n// The IV is usually passed along with the ciphertext.\nconst iv = Buffer.alloc(16, 0); // Initialization vector.\n\nconst decipher = crypto.createDecipheriv(algorithm, key, iv);\n\nconst input = fs.createReadStream('test.enc');\nconst output = fs.createWriteStream('test.js');\n\ninput.pipe(decipher).pipe(output);\n</code></pre>\n<p>Example: Using the <a href=\"#crypto_decipher_update_data_inputencoding_outputencoding\"><code>decipher.update()</code></a> and <a href=\"#crypto_decipher_final_outputencoding\"><code>decipher.final()</code></a> methods:</p>\n<pre><code class=\"language-js\">const crypto = require('crypto');\n\nconst algorithm = 'aes-192-cbc';\nconst password = 'Password used to generate key';\n// Use the async `crypto.scrypt()` instead.\nconst key = crypto.scryptSync(password, 'salt', 24);\n// The IV is usually passed along with the ciphertext.\nconst iv = Buffer.alloc(16, 0); // Initialization vector.\n\nconst decipher = crypto.createDecipheriv(algorithm, key, iv);\n\n// Encrypted using same algorithm, key and iv.\nconst encrypted =\n  'e5f79c5915c02171eec6b212d5520d44480993d7d622a7c4c2da32f6efda0ffa';\nlet decrypted = decipher.update(encrypted, 'hex', 'utf8');\ndecrypted += decipher.final('utf8');\nconsole.log(decrypted);\n// Prints: some clear text data\n</code></pre>",
           "methods": [
             {
               "textRaw": "decipher.final([outputEncoding])",
@@ -2291,16 +2297,17 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns: {Buffer | string} Any remaining deciphered contents. If `outputEncoding` is one of `'latin1'`, `'ascii'` or `'utf8'`, a string is returned. If an `outputEncoding` is not provided, a [`Buffer`][] is returned.",
+                    "textRaw": "Returns: {Buffer | string} Any remaining deciphered contents. If `outputEncoding` is specified, a string is returned. If an `outputEncoding` is not provided, a [`Buffer`][] is returned.",
                     "name": "return",
                     "type": "Buffer | string",
-                    "desc": "Any remaining deciphered contents. If `outputEncoding` is one of `'latin1'`, `'ascii'` or `'utf8'`, a string is returned. If an `outputEncoding` is not provided, a [`Buffer`][] is returned."
+                    "desc": "Any remaining deciphered contents. If `outputEncoding` is specified, a string is returned. If an `outputEncoding` is not provided, a [`Buffer`][] is returned."
                   },
                   "params": [
                     {
-                      "textRaw": "`outputEncoding` {string}",
+                      "textRaw": "`outputEncoding` {string} The [encoding][] of the return value.",
                       "name": "outputEncoding",
                       "type": "string",
+                      "desc": "The [encoding][] of the return value.",
                       "optional": true
                     }
                   ]
@@ -2453,21 +2460,23 @@
                       "type": "string | Buffer | TypedArray | DataView"
                     },
                     {
-                      "textRaw": "`inputEncoding` {string}",
+                      "textRaw": "`inputEncoding` {string} The [encoding][] of the `data` string.",
                       "name": "inputEncoding",
                       "type": "string",
+                      "desc": "The [encoding][] of the `data` string.",
                       "optional": true
                     },
                     {
-                      "textRaw": "`outputEncoding` {string}",
+                      "textRaw": "`outputEncoding` {string} The [encoding][] of the return value.",
                       "name": "outputEncoding",
                       "type": "string",
+                      "desc": "The [encoding][] of the return value.",
                       "optional": true
                     }
                   ]
                 }
               ],
-              "desc": "<p>Updates the decipher with <code>data</code>. If the <code>inputEncoding</code> argument is given,\nits value must be one of <code>'latin1'</code>, <code>'base64'</code>, or <code>'hex'</code> and the <code>data</code>\nargument is a string using the specified encoding. If the <code>inputEncoding</code>\nargument is not given, <code>data</code> must be a <a href=\"buffer.html\"><code>Buffer</code></a>. If <code>data</code> is a\n<a href=\"buffer.html\"><code>Buffer</code></a> then <code>inputEncoding</code> is ignored.</p>\n<p>The <code>outputEncoding</code> specifies the output format of the enciphered\ndata, and can be <code>'latin1'</code>, <code>'ascii'</code> or <code>'utf8'</code>. If the <code>outputEncoding</code>\nis specified, a string using the specified encoding is returned. If no\n<code>outputEncoding</code> is provided, a <a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>\n<p>The <code>decipher.update()</code> method can be called multiple times with new data until\n<a href=\"#crypto_decipher_final_outputencoding\"><code>decipher.final()</code></a> is called. Calling <code>decipher.update()</code> after\n<a href=\"#crypto_decipher_final_outputencoding\"><code>decipher.final()</code></a> will result in an error being thrown.</p>"
+              "desc": "<p>Updates the decipher with <code>data</code>. If the <code>inputEncoding</code> argument is given,\nthe <code>data</code>\nargument is a string using the specified encoding. If the <code>inputEncoding</code>\nargument is not given, <code>data</code> must be a <a href=\"buffer.html\"><code>Buffer</code></a>. If <code>data</code> is a\n<a href=\"buffer.html\"><code>Buffer</code></a> then <code>inputEncoding</code> is ignored.</p>\n<p>The <code>outputEncoding</code> specifies the output format of the enciphered\ndata. If the <code>outputEncoding</code>\nis specified, a string using the specified encoding is returned. If no\n<code>outputEncoding</code> is provided, a <a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>\n<p>The <code>decipher.update()</code> method can be called multiple times with new data until\n<a href=\"#crypto_decipher_final_outputencoding\"><code>decipher.final()</code></a> is called. Calling <code>decipher.update()</code> after\n<a href=\"#crypto_decipher_final_outputencoding\"><code>decipher.final()</code></a> will result in an error being thrown.</p>"
             }
           ]
         },
@@ -2507,21 +2516,23 @@
                       "type": "string | Buffer | TypedArray | DataView"
                     },
                     {
-                      "textRaw": "`inputEncoding` {string}",
+                      "textRaw": "`inputEncoding` {string} The [encoding][] of an `otherPublicKey` string.",
                       "name": "inputEncoding",
                       "type": "string",
+                      "desc": "The [encoding][] of an `otherPublicKey` string.",
                       "optional": true
                     },
                     {
-                      "textRaw": "`outputEncoding` {string}",
+                      "textRaw": "`outputEncoding` {string} The [encoding][] of the return value.",
                       "name": "outputEncoding",
                       "type": "string",
+                      "desc": "The [encoding][] of the return value.",
                       "optional": true
                     }
                   ]
                 }
               ],
-              "desc": "<p>Computes the shared secret using <code>otherPublicKey</code> as the other\nparty's public key and returns the computed shared secret. The supplied\nkey is interpreted using the specified <code>inputEncoding</code>, and secret is\nencoded using specified <code>outputEncoding</code>. Encodings can be\n<code>'latin1'</code>, <code>'hex'</code>, or <code>'base64'</code>. If the <code>inputEncoding</code> is not\nprovided, <code>otherPublicKey</code> is expected to be a <a href=\"buffer.html\"><code>Buffer</code></a>,\n<code>TypedArray</code>, or <code>DataView</code>.</p>\n<p>If <code>outputEncoding</code> is given a string is returned; otherwise, a\n<a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>"
+              "desc": "<p>Computes the shared secret using <code>otherPublicKey</code> as the other\nparty's public key and returns the computed shared secret. The supplied\nkey is interpreted using the specified <code>inputEncoding</code>, and secret is\nencoded using specified <code>outputEncoding</code>.\nIf the <code>inputEncoding</code> is not\nprovided, <code>otherPublicKey</code> is expected to be a <a href=\"buffer.html\"><code>Buffer</code></a>,\n<code>TypedArray</code>, or <code>DataView</code>.</p>\n<p>If <code>outputEncoding</code> is given a string is returned; otherwise, a\n<a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>"
             },
             {
               "textRaw": "diffieHellman.generateKeys([encoding])",
@@ -2542,15 +2553,16 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`encoding` {string}",
+                      "textRaw": "`encoding` {string} The [encoding][] of the return value.",
                       "name": "encoding",
                       "type": "string",
+                      "desc": "The [encoding][] of the return value.",
                       "optional": true
                     }
                   ]
                 }
               ],
-              "desc": "<p>Generates private and public Diffie-Hellman key values, and returns\nthe public key in the specified <code>encoding</code>. This key should be\ntransferred to the other party. Encoding can be <code>'latin1'</code>, <code>'hex'</code>,\nor <code>'base64'</code>. If <code>encoding</code> is provided a string is returned; otherwise a\n<a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>"
+              "desc": "<p>Generates private and public Diffie-Hellman key values, and returns\nthe public key in the specified <code>encoding</code>. This key should be\ntransferred to the other party.\nIf <code>encoding</code> is provided a string is returned; otherwise a\n<a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>"
             },
             {
               "textRaw": "diffieHellman.getGenerator([encoding])",
@@ -2571,15 +2583,16 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`encoding` {string}",
+                      "textRaw": "`encoding` {string} The [encoding][] of the return value.",
                       "name": "encoding",
                       "type": "string",
+                      "desc": "The [encoding][] of the return value.",
                       "optional": true
                     }
                   ]
                 }
               ],
-              "desc": "<p>Returns the Diffie-Hellman generator in the specified <code>encoding</code>, which can\nbe <code>'latin1'</code>, <code>'hex'</code>, or <code>'base64'</code>. If <code>encoding</code> is provided a string is\nreturned; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>"
+              "desc": "<p>Returns the Diffie-Hellman generator in the specified <code>encoding</code>.\nIf <code>encoding</code> is provided a string is\nreturned; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>"
             },
             {
               "textRaw": "diffieHellman.getPrime([encoding])",
@@ -2600,15 +2613,16 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`encoding` {string}",
+                      "textRaw": "`encoding` {string} The [encoding][] of the return value.",
                       "name": "encoding",
                       "type": "string",
+                      "desc": "The [encoding][] of the return value.",
                       "optional": true
                     }
                   ]
                 }
               ],
-              "desc": "<p>Returns the Diffie-Hellman prime in the specified <code>encoding</code>, which can\nbe <code>'latin1'</code>, <code>'hex'</code>, or <code>'base64'</code>. If <code>encoding</code> is provided a string is\nreturned; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>"
+              "desc": "<p>Returns the Diffie-Hellman prime in the specified <code>encoding</code>.\nIf <code>encoding</code> is provided a string is\nreturned; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>"
             },
             {
               "textRaw": "diffieHellman.getPrivateKey([encoding])",
@@ -2629,15 +2643,16 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`encoding` {string}",
+                      "textRaw": "`encoding` {string} The [encoding][] of the return value.",
                       "name": "encoding",
                       "type": "string",
+                      "desc": "The [encoding][] of the return value.",
                       "optional": true
                     }
                   ]
                 }
               ],
-              "desc": "<p>Returns the Diffie-Hellman private key in the specified <code>encoding</code>,\nwhich can be <code>'latin1'</code>, <code>'hex'</code>, or <code>'base64'</code>. If <code>encoding</code> is provided a\nstring is returned; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>"
+              "desc": "<p>Returns the Diffie-Hellman private key in the specified <code>encoding</code>.\nIf <code>encoding</code> is provided a\nstring is returned; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>"
             },
             {
               "textRaw": "diffieHellman.getPublicKey([encoding])",
@@ -2658,15 +2673,16 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`encoding` {string}",
+                      "textRaw": "`encoding` {string} The [encoding][] of the return value.",
                       "name": "encoding",
                       "type": "string",
+                      "desc": "The [encoding][] of the return value.",
                       "optional": true
                     }
                   ]
                 }
               ],
-              "desc": "<p>Returns the Diffie-Hellman public key in the specified <code>encoding</code>, which\ncan be <code>'latin1'</code>, <code>'hex'</code>, or <code>'base64'</code>. If <code>encoding</code> is provided a\nstring is returned; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>"
+              "desc": "<p>Returns the Diffie-Hellman public key in the specified <code>encoding</code>.\nIf <code>encoding</code> is provided a\nstring is returned; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>"
             },
             {
               "textRaw": "diffieHellman.setPrivateKey(privateKey[, encoding])",
@@ -2687,15 +2703,16 @@
                       "type": "string | Buffer | TypedArray | DataView"
                     },
                     {
-                      "textRaw": "`encoding` {string}",
+                      "textRaw": "`encoding` {string} The [encoding][] of the `privateKey` string.",
                       "name": "encoding",
                       "type": "string",
+                      "desc": "The [encoding][] of the `privateKey` string.",
                       "optional": true
                     }
                   ]
                 }
               ],
-              "desc": "<p>Sets the Diffie-Hellman private key. If the <code>encoding</code> argument is provided\nand is either <code>'latin1'</code>, <code>'hex'</code>, or <code>'base64'</code>, <code>privateKey</code> is expected\nto be a string. If no <code>encoding</code> is provided, <code>privateKey</code> is expected\nto be a <a href=\"buffer.html\"><code>Buffer</code></a>, <code>TypedArray</code>, or <code>DataView</code>.</p>"
+              "desc": "<p>Sets the Diffie-Hellman private key. If the <code>encoding</code> argument is provided,\n<code>privateKey</code> is expected\nto be a string. If no <code>encoding</code> is provided, <code>privateKey</code> is expected\nto be a <a href=\"buffer.html\"><code>Buffer</code></a>, <code>TypedArray</code>, or <code>DataView</code>.</p>"
             },
             {
               "textRaw": "diffieHellman.setPublicKey(publicKey[, encoding])",
@@ -2716,15 +2733,16 @@
                       "type": "string | Buffer | TypedArray | DataView"
                     },
                     {
-                      "textRaw": "`encoding` {string}",
+                      "textRaw": "`encoding` {string} The [encoding][] of the `publicKey` string.",
                       "name": "encoding",
                       "type": "string",
+                      "desc": "The [encoding][] of the `publicKey` string.",
                       "optional": true
                     }
                   ]
                 }
               ],
-              "desc": "<p>Sets the Diffie-Hellman public key. If the <code>encoding</code> argument is provided\nand is either <code>'latin1'</code>, <code>'hex'</code> or <code>'base64'</code>, <code>publicKey</code> is expected\nto be a string. If no <code>encoding</code> is provided, <code>publicKey</code> is expected\nto be a <a href=\"buffer.html\"><code>Buffer</code></a>, <code>TypedArray</code>, or <code>DataView</code>.</p>"
+              "desc": "<p>Sets the Diffie-Hellman public key. If the <code>encoding</code> argument is provided,\n<code>publicKey</code> is expected\nto be a string. If no <code>encoding</code> is provided, <code>publicKey</code> is expected\nto be a <a href=\"buffer.html\"><code>Buffer</code></a>, <code>TypedArray</code>, or <code>DataView</code>.</p>"
             }
           ],
           "properties": [
@@ -2782,15 +2800,17 @@
                       "type": "string"
                     },
                     {
-                      "textRaw": "`inputEncoding` {string}",
+                      "textRaw": "`inputEncoding` {string} The [encoding][] of the `key` string.",
                       "name": "inputEncoding",
                       "type": "string",
+                      "desc": "The [encoding][] of the `key` string.",
                       "optional": true
                     },
                     {
-                      "textRaw": "`outputEncoding` {string}",
+                      "textRaw": "`outputEncoding` {string} The [encoding][] of the return value.",
                       "name": "outputEncoding",
                       "type": "string",
+                      "desc": "The [encoding][] of the return value.",
                       "optional": true
                     },
                     {
@@ -2803,7 +2823,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Converts the EC Diffie-Hellman public key specified by <code>key</code> and <code>curve</code> to the\nformat specified by <code>format</code>. The <code>format</code> argument specifies point encoding\nand can be <code>'compressed'</code>, <code>'uncompressed'</code> or <code>'hybrid'</code>. The supplied key is\ninterpreted using the specified <code>inputEncoding</code>, and the returned key is encoded\nusing the specified <code>outputEncoding</code>. Encodings can be <code>'latin1'</code>, <code>'hex'</code>,\nor <code>'base64'</code>.</p>\n<p>Use <a href=\"#crypto_crypto_getcurves\"><code>crypto.getCurves()</code></a> to obtain a list of available curve names.\nOn recent OpenSSL releases, <code>openssl ecparam -list_curves</code> will also display\nthe name and description of each available elliptic curve.</p>\n<p>If <code>format</code> is not specified the point will be returned in <code>'uncompressed'</code>\nformat.</p>\n<p>If the <code>inputEncoding</code> is not provided, <code>key</code> is expected to be a <a href=\"buffer.html\"><code>Buffer</code></a>,\n<code>TypedArray</code>, or <code>DataView</code>.</p>\n<p>Example (uncompressing a key):</p>\n<pre><code class=\"language-js\">const { createECDH, ECDH } = require('crypto');\n\nconst ecdh = createECDH('secp256k1');\necdh.generateKeys();\n\nconst compressedKey = ecdh.getPublicKey('hex', 'compressed');\n\nconst uncompressedKey = ECDH.convertKey(compressedKey,\n                                        'secp256k1',\n                                        'hex',\n                                        'hex',\n                                        'uncompressed');\n\n// the converted key and the uncompressed public key should be the same\nconsole.log(uncompressedKey === ecdh.getPublicKey('hex'));\n</code></pre>"
+              "desc": "<p>Converts the EC Diffie-Hellman public key specified by <code>key</code> and <code>curve</code> to the\nformat specified by <code>format</code>. The <code>format</code> argument specifies point encoding\nand can be <code>'compressed'</code>, <code>'uncompressed'</code> or <code>'hybrid'</code>. The supplied key is\ninterpreted using the specified <code>inputEncoding</code>, and the returned key is encoded\nusing the specified <code>outputEncoding</code>.</p>\n<p>Use <a href=\"#crypto_crypto_getcurves\"><code>crypto.getCurves()</code></a> to obtain a list of available curve names.\nOn recent OpenSSL releases, <code>openssl ecparam -list_curves</code> will also display\nthe name and description of each available elliptic curve.</p>\n<p>If <code>format</code> is not specified the point will be returned in <code>'uncompressed'</code>\nformat.</p>\n<p>If the <code>inputEncoding</code> is not provided, <code>key</code> is expected to be a <a href=\"buffer.html\"><code>Buffer</code></a>,\n<code>TypedArray</code>, or <code>DataView</code>.</p>\n<p>Example (uncompressing a key):</p>\n<pre><code class=\"language-js\">const { createECDH, ECDH } = require('crypto');\n\nconst ecdh = createECDH('secp256k1');\necdh.generateKeys();\n\nconst compressedKey = ecdh.getPublicKey('hex', 'compressed');\n\nconst uncompressedKey = ECDH.convertKey(compressedKey,\n                                        'secp256k1',\n                                        'hex',\n                                        'hex',\n                                        'uncompressed');\n\n// the converted key and the uncompressed public key should be the same\nconsole.log(uncompressedKey === ecdh.getPublicKey('hex'));\n</code></pre>"
             }
           ],
           "methods": [
@@ -2842,21 +2862,23 @@
                       "type": "string | Buffer | TypedArray | DataView"
                     },
                     {
-                      "textRaw": "`inputEncoding` {string}",
+                      "textRaw": "`inputEncoding` {string} The [encoding][] of the `otherPublicKey` string.",
                       "name": "inputEncoding",
                       "type": "string",
+                      "desc": "The [encoding][] of the `otherPublicKey` string.",
                       "optional": true
                     },
                     {
-                      "textRaw": "`outputEncoding` {string}",
+                      "textRaw": "`outputEncoding` {string} The [encoding][] of the return value.",
                       "name": "outputEncoding",
                       "type": "string",
+                      "desc": "The [encoding][] of the return value.",
                       "optional": true
                     }
                   ]
                 }
               ],
-              "desc": "<p>Computes the shared secret using <code>otherPublicKey</code> as the other\nparty's public key and returns the computed shared secret. The supplied\nkey is interpreted using specified <code>inputEncoding</code>, and the returned secret\nis encoded using the specified <code>outputEncoding</code>. Encodings can be\n<code>'latin1'</code>, <code>'hex'</code>, or <code>'base64'</code>. If the <code>inputEncoding</code> is not\nprovided, <code>otherPublicKey</code> is expected to be a <a href=\"buffer.html\"><code>Buffer</code></a>, <code>TypedArray</code>, or\n<code>DataView</code>.</p>\n<p>If <code>outputEncoding</code> is given a string will be returned; otherwise a\n<a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>\n<p><code>ecdh.computeSecret</code> will throw an\n<code>ERR_CRYPTO_ECDH_INVALID_PUBLIC_KEY</code> error when <code>otherPublicKey</code>\nlies outside of the elliptic curve. Since <code>otherPublicKey</code> is\nusually supplied from a remote user over an insecure network,\nits recommended for developers to handle this exception accordingly.</p>"
+              "desc": "<p>Computes the shared secret using <code>otherPublicKey</code> as the other\nparty's public key and returns the computed shared secret. The supplied\nkey is interpreted using specified <code>inputEncoding</code>, and the returned secret\nis encoded using the specified <code>outputEncoding</code>.\nIf the <code>inputEncoding</code> is not\nprovided, <code>otherPublicKey</code> is expected to be a <a href=\"buffer.html\"><code>Buffer</code></a>, <code>TypedArray</code>, or\n<code>DataView</code>.</p>\n<p>If <code>outputEncoding</code> is given a string will be returned; otherwise a\n<a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>\n<p><code>ecdh.computeSecret</code> will throw an\n<code>ERR_CRYPTO_ECDH_INVALID_PUBLIC_KEY</code> error when <code>otherPublicKey</code>\nlies outside of the elliptic curve. Since <code>otherPublicKey</code> is\nusually supplied from a remote user over an insecure network,\nits recommended for developers to handle this exception accordingly.</p>"
             },
             {
               "textRaw": "ecdh.generateKeys([encoding[, format]])",
@@ -2877,9 +2899,10 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`encoding` {string}",
+                      "textRaw": "`encoding` {string} The [encoding][] of the return value.",
                       "name": "encoding",
                       "type": "string",
+                      "desc": "The [encoding][] of the return value.",
                       "optional": true
                     },
                     {
@@ -2892,7 +2915,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Generates private and public EC Diffie-Hellman key values, and returns\nthe public key in the specified <code>format</code> and <code>encoding</code>. This key should be\ntransferred to the other party.</p>\n<p>The <code>format</code> argument specifies point encoding and can be <code>'compressed'</code> or\n<code>'uncompressed'</code>. If <code>format</code> is not specified, the point will be returned in\n<code>'uncompressed'</code> format.</p>\n<p>The <code>encoding</code> argument can be <code>'latin1'</code>, <code>'hex'</code>, or <code>'base64'</code>. If\n<code>encoding</code> is provided a string is returned; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a>\nis returned.</p>"
+              "desc": "<p>Generates private and public EC Diffie-Hellman key values, and returns\nthe public key in the specified <code>format</code> and <code>encoding</code>. This key should be\ntransferred to the other party.</p>\n<p>The <code>format</code> argument specifies point encoding and can be <code>'compressed'</code> or\n<code>'uncompressed'</code>. If <code>format</code> is not specified, the point will be returned in\n<code>'uncompressed'</code> format.</p>\n<p>If <code>encoding</code> is provided a string is returned; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a>\nis returned.</p>"
             },
             {
               "textRaw": "ecdh.getPrivateKey([encoding])",
@@ -2907,21 +2930,23 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns: {Buffer | string} The EC Diffie-Hellman private key in the specified `encoding`, which can be `'latin1'`, `'hex'`, or `'base64'`. If `encoding` is provided a string is returned; otherwise a [`Buffer`][] is returned.",
+                    "textRaw": "Returns: {Buffer | string} The EC Diffie-Hellman in the specified `encoding`.",
                     "name": "return",
                     "type": "Buffer | string",
-                    "desc": "The EC Diffie-Hellman private key in the specified `encoding`, which can be `'latin1'`, `'hex'`, or `'base64'`. If `encoding` is provided a string is returned; otherwise a [`Buffer`][] is returned."
+                    "desc": "The EC Diffie-Hellman in the specified `encoding`."
                   },
                   "params": [
                     {
-                      "textRaw": "`encoding` {string}",
+                      "textRaw": "`encoding` {string} The [encoding][] of the return value.",
                       "name": "encoding",
                       "type": "string",
+                      "desc": "The [encoding][] of the return value.",
                       "optional": true
                     }
                   ]
                 }
-              ]
+              ],
+              "desc": "<p>If <code>encoding</code> is specified, a string is returned; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a> is\nreturned.</p>"
             },
             {
               "textRaw": "ecdh.getPublicKey([encoding][, format])",
@@ -2943,9 +2968,10 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`encoding` {string}",
+                      "textRaw": "`encoding` {string} The [encoding][] of the return value.",
                       "name": "encoding",
                       "type": "string",
+                      "desc": "The [encoding][] of the return value.",
                       "optional": true
                     },
                     {
@@ -2958,7 +2984,7 @@
                   ]
                 }
               ],
-              "desc": "<p>The <code>format</code> argument specifies point encoding and can be <code>'compressed'</code> or\n<code>'uncompressed'</code>. If <code>format</code> is not specified the point will be returned in\n<code>'uncompressed'</code> format.</p>\n<p>The <code>encoding</code> argument can be <code>'latin1'</code>, <code>'hex'</code>, or <code>'base64'</code>. If\n<code>encoding</code> is specified, a string is returned; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a> is\nreturned.</p>"
+              "desc": "<p>The <code>format</code> argument specifies point encoding and can be <code>'compressed'</code> or\n<code>'uncompressed'</code>. If <code>format</code> is not specified the point will be returned in\n<code>'uncompressed'</code> format.</p>\n<p>If <code>encoding</code> is specified, a string is returned; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a> is\nreturned.</p>"
             },
             {
               "textRaw": "ecdh.setPrivateKey(privateKey[, encoding])",
@@ -2979,15 +3005,16 @@
                       "type": "string | Buffer | TypedArray | DataView"
                     },
                     {
-                      "textRaw": "`encoding` {string}",
+                      "textRaw": "`encoding` {string} The [encoding][] of the `privateKey` string.",
                       "name": "encoding",
                       "type": "string",
+                      "desc": "The [encoding][] of the `privateKey` string.",
                       "optional": true
                     }
                   ]
                 }
               ],
-              "desc": "<p>Sets the EC Diffie-Hellman private key. The <code>encoding</code> can be <code>'latin1'</code>,\n<code>'hex'</code> or <code>'base64'</code>. If <code>encoding</code> is provided, <code>privateKey</code> is expected\nto be a string; otherwise <code>privateKey</code> is expected to be a <a href=\"buffer.html\"><code>Buffer</code></a>,\n<code>TypedArray</code>, or <code>DataView</code>.</p>\n<p>If <code>privateKey</code> is not valid for the curve specified when the <code>ECDH</code> object was\ncreated, an error is thrown. Upon setting the private key, the associated\npublic point (key) is also generated and set in the <code>ECDH</code> object.</p>"
+              "desc": "<p>Sets the EC Diffie-Hellman private key.\nIf <code>encoding</code> is provided, <code>privateKey</code> is expected\nto be a string; otherwise <code>privateKey</code> is expected to be a <a href=\"buffer.html\"><code>Buffer</code></a>,\n<code>TypedArray</code>, or <code>DataView</code>.</p>\n<p>If <code>privateKey</code> is not valid for the curve specified when the <code>ECDH</code> object was\ncreated, an error is thrown. Upon setting the private key, the associated\npublic point (key) is also generated and set in the <code>ECDH</code> object.</p>"
             },
             {
               "textRaw": "ecdh.setPublicKey(publicKey[, encoding])",
@@ -3013,15 +3040,16 @@
                       "type": "string | Buffer | TypedArray | DataView"
                     },
                     {
-                      "textRaw": "`encoding` {string}",
+                      "textRaw": "`encoding` {string} The [encoding][] of the `publicKey` string.",
                       "name": "encoding",
                       "type": "string",
+                      "desc": "The [encoding][] of the `publicKey` string.",
                       "optional": true
                     }
                   ]
                 }
               ],
-              "desc": "<p>Sets the EC Diffie-Hellman public key. Key encoding can be <code>'latin1'</code>,\n<code>'hex'</code> or <code>'base64'</code>. If <code>encoding</code> is provided <code>publicKey</code> is expected to\nbe a string; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a>, <code>TypedArray</code>, or <code>DataView</code> is expected.</p>\n<p>Note that there is not normally a reason to call this method because <code>ECDH</code>\nonly requires a private key and the other party's public key to compute the\nshared secret. Typically either <a href=\"#crypto_ecdh_generatekeys_encoding_format\"><code>ecdh.generateKeys()</code></a> or\n<a href=\"#crypto_ecdh_setprivatekey_privatekey_encoding\"><code>ecdh.setPrivateKey()</code></a> will be called. The <a href=\"#crypto_ecdh_setprivatekey_privatekey_encoding\"><code>ecdh.setPrivateKey()</code></a> method\nattempts to generate the public point/key associated with the private key being\nset.</p>\n<p>Example (obtaining a shared secret):</p>\n<pre><code class=\"language-js\">const crypto = require('crypto');\nconst alice = crypto.createECDH('secp256k1');\nconst bob = crypto.createECDH('secp256k1');\n\n// This is a shortcut way of specifying one of Alice's previous private\n// keys. It would be unwise to use such a predictable private key in a real\n// application.\nalice.setPrivateKey(\n  crypto.createHash('sha256').update('alice', 'utf8').digest()\n);\n\n// Bob uses a newly generated cryptographically strong\n// pseudorandom key pair\nbob.generateKeys();\n\nconst aliceSecret = alice.computeSecret(bob.getPublicKey(), null, 'hex');\nconst bobSecret = bob.computeSecret(alice.getPublicKey(), null, 'hex');\n\n// aliceSecret and bobSecret should be the same shared secret value\nconsole.log(aliceSecret === bobSecret);\n</code></pre>"
+              "desc": "<p>Sets the EC Diffie-Hellman public key.\nIf <code>encoding</code> is provided <code>publicKey</code> is expected to\nbe a string; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a>, <code>TypedArray</code>, or <code>DataView</code> is expected.</p>\n<p>Note that there is not normally a reason to call this method because <code>ECDH</code>\nonly requires a private key and the other party's public key to compute the\nshared secret. Typically either <a href=\"#crypto_ecdh_generatekeys_encoding_format\"><code>ecdh.generateKeys()</code></a> or\n<a href=\"#crypto_ecdh_setprivatekey_privatekey_encoding\"><code>ecdh.setPrivateKey()</code></a> will be called. The <a href=\"#crypto_ecdh_setprivatekey_privatekey_encoding\"><code>ecdh.setPrivateKey()</code></a> method\nattempts to generate the public point/key associated with the private key being\nset.</p>\n<p>Example (obtaining a shared secret):</p>\n<pre><code class=\"language-js\">const crypto = require('crypto');\nconst alice = crypto.createECDH('secp256k1');\nconst bob = crypto.createECDH('secp256k1');\n\n// This is a shortcut way of specifying one of Alice's previous private\n// keys. It would be unwise to use such a predictable private key in a real\n// application.\nalice.setPrivateKey(\n  crypto.createHash('sha256').update('alice', 'utf8').digest()\n);\n\n// Bob uses a newly generated cryptographically strong\n// pseudorandom key pair\nbob.generateKeys();\n\nconst aliceSecret = alice.computeSecret(bob.getPublicKey(), null, 'hex');\nconst bobSecret = bob.computeSecret(alice.getPublicKey(), null, 'hex');\n\n// aliceSecret and bobSecret should be the same shared secret value\nconsole.log(aliceSecret === bobSecret);\n</code></pre>"
             }
           ]
         },
@@ -3056,15 +3084,16 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`encoding` {string}",
+                      "textRaw": "`encoding` {string} The [encoding][] of the return value.",
                       "name": "encoding",
                       "type": "string",
+                      "desc": "The [encoding][] of the return value.",
                       "optional": true
                     }
                   ]
                 }
               ],
-              "desc": "<p>Calculates the digest of all of the data passed to be hashed (using the\n<a href=\"#crypto_hash_update_data_inputencoding\"><code>hash.update()</code></a> method). The <code>encoding</code> can be <code>'hex'</code>, <code>'latin1'</code> or\n<code>'base64'</code>. If <code>encoding</code> is provided a string will be returned; otherwise\na <a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>\n<p>The <code>Hash</code> object can not be used again after <code>hash.digest()</code> method has been\ncalled. Multiple calls will cause an error to be thrown.</p>"
+              "desc": "<p>Calculates the digest of all of the data passed to be hashed (using the\n<a href=\"#crypto_hash_update_data_inputencoding\"><code>hash.update()</code></a> method).\nIf <code>encoding</code> is provided a string will be returned; otherwise\na <a href=\"buffer.html\"><code>Buffer</code></a> is returned.</p>\n<p>The <code>Hash</code> object can not be used again after <code>hash.digest()</code> method has been\ncalled. Multiple calls will cause an error to be thrown.</p>"
             },
             {
               "textRaw": "hash.update(data[, inputEncoding])",
@@ -3091,15 +3120,16 @@
                       "type": "string | Buffer | TypedArray | DataView"
                     },
                     {
-                      "textRaw": "`inputEncoding` {string}",
+                      "textRaw": "`inputEncoding` {string} The [encoding][] of the `data` string.",
                       "name": "inputEncoding",
                       "type": "string",
+                      "desc": "The [encoding][] of the `data` string.",
                       "optional": true
                     }
                   ]
                 }
               ],
-              "desc": "<p>Updates the hash content with the given <code>data</code>, the encoding of which\nis given in <code>inputEncoding</code> and can be <code>'utf8'</code>, <code>'ascii'</code> or\n<code>'latin1'</code>. If <code>encoding</code> is not provided, and the <code>data</code> is a string, an\nencoding of <code>'utf8'</code> is enforced. If <code>data</code> is a <a href=\"buffer.html\"><code>Buffer</code></a>, <code>TypedArray</code>, or\n<code>DataView</code>, then <code>inputEncoding</code> is ignored.</p>\n<p>This can be called many times with new data as it is streamed.</p>"
+              "desc": "<p>Updates the hash content with the given <code>data</code>, the encoding of which\nis given in <code>inputEncoding</code>.\nIf <code>encoding</code> is not provided, and the <code>data</code> is a string, an\nencoding of <code>'utf8'</code> is enforced. If <code>data</code> is a <a href=\"buffer.html\"><code>Buffer</code></a>, <code>TypedArray</code>, or\n<code>DataView</code>, then <code>inputEncoding</code> is ignored.</p>\n<p>This can be called many times with new data as it is streamed.</p>"
             }
           ]
         },
@@ -3134,15 +3164,16 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`encoding` {string}",
+                      "textRaw": "`encoding` {string} The [encoding][] of the return value.",
                       "name": "encoding",
                       "type": "string",
+                      "desc": "The [encoding][] of the return value.",
                       "optional": true
                     }
                   ]
                 }
               ],
-              "desc": "<p>Calculates the HMAC digest of all of the data passed using <a href=\"#crypto_hmac_update_data_inputencoding\"><code>hmac.update()</code></a>.\nThe <code>encoding</code> can be <code>'hex'</code>, <code>'latin1'</code> or <code>'base64'</code>. If <code>encoding</code> is\nprovided a string is returned; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a> is returned;</p>\n<p>The <code>Hmac</code> object can not be used again after <code>hmac.digest()</code> has been\ncalled. Multiple calls to <code>hmac.digest()</code> will result in an error being thrown.</p>"
+              "desc": "<p>Calculates the HMAC digest of all of the data passed using <a href=\"#crypto_hmac_update_data_inputencoding\"><code>hmac.update()</code></a>.\nIf <code>encoding</code> is\nprovided a string is returned; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a> is returned;</p>\n<p>The <code>Hmac</code> object can not be used again after <code>hmac.digest()</code> has been\ncalled. Multiple calls to <code>hmac.digest()</code> will result in an error being thrown.</p>"
             },
             {
               "textRaw": "hmac.update(data[, inputEncoding])",
@@ -3169,15 +3200,16 @@
                       "type": "string | Buffer | TypedArray | DataView"
                     },
                     {
-                      "textRaw": "`inputEncoding` {string}",
+                      "textRaw": "`inputEncoding` {string} The [encoding][] of the `data` string.",
                       "name": "inputEncoding",
                       "type": "string",
+                      "desc": "The [encoding][] of the `data` string.",
                       "optional": true
                     }
                   ]
                 }
               ],
-              "desc": "<p>Updates the <code>Hmac</code> content with the given <code>data</code>, the encoding of which\nis given in <code>inputEncoding</code> and can be <code>'utf8'</code>, <code>'ascii'</code> or\n<code>'latin1'</code>. If <code>encoding</code> is not provided, and the <code>data</code> is a string, an\nencoding of <code>'utf8'</code> is enforced. If <code>data</code> is a <a href=\"buffer.html\"><code>Buffer</code></a>, <code>TypedArray</code>, or\n<code>DataView</code>, then <code>inputEncoding</code> is ignored.</p>\n<p>This can be called many times with new data as it is streamed.</p>"
+              "desc": "<p>Updates the <code>Hmac</code> content with the given <code>data</code>, the encoding of which\nis given in <code>inputEncoding</code>.\nIf <code>encoding</code> is not provided, and the <code>data</code> is a string, an\nencoding of <code>'utf8'</code> is enforced. If <code>data</code> is a <a href=\"buffer.html\"><code>Buffer</code></a>, <code>TypedArray</code>, or\n<code>DataView</code>, then <code>inputEncoding</code> is ignored.</p>\n<p>This can be called many times with new data as it is streamed.</p>"
             }
           ]
         },
@@ -3191,10 +3223,10 @@
             ],
             "changes": []
           },
-          "desc": "<p>The <code>Sign</code> Class is a utility for generating signatures. It can be used in one\nof two ways:</p>\n<ul>\n<li>As a writable <a href=\"stream.html\">stream</a>, where data to be signed is written and the\n<a href=\"#crypto_sign_sign_privatekey_outputformat\"><code>sign.sign()</code></a> method is used to generate and return the signature, or</li>\n<li>Using the <a href=\"#crypto_sign_update_data_inputencoding\"><code>sign.update()</code></a> and <a href=\"#crypto_sign_sign_privatekey_outputformat\"><code>sign.sign()</code></a> methods to produce the\nsignature.</li>\n</ul>\n<p>The <a href=\"#crypto_crypto_createsign_algorithm_options\"><code>crypto.createSign()</code></a> method is used to create <code>Sign</code> instances. The\nargument is the string name of the hash function to use. <code>Sign</code> objects are not\nto be created directly using the <code>new</code> keyword.</p>\n<p>Example: Using <code>Sign</code> objects as streams:</p>\n<pre><code class=\"language-js\">const crypto = require('crypto');\nconst sign = crypto.createSign('SHA256');\n\nsign.write('some data to sign');\nsign.end();\n\nconst privateKey = getPrivateKeySomehow();\nconsole.log(sign.sign(privateKey, 'hex'));\n// Prints: the calculated signature using the specified private key and\n// SHA-256. For RSA keys, the algorithm is RSASSA-PKCS1-v1_5 (see padding\n// parameter below for RSASSA-PSS). For EC keys, the algorithm is ECDSA.\n</code></pre>\n<p>Example: Using the <a href=\"#crypto_sign_update_data_inputencoding\"><code>sign.update()</code></a> and <a href=\"#crypto_sign_sign_privatekey_outputformat\"><code>sign.sign()</code></a> methods:</p>\n<pre><code class=\"language-js\">const crypto = require('crypto');\nconst sign = crypto.createSign('SHA256');\n\nsign.update('some data to sign');\n\nconst privateKey = getPrivateKeySomehow();\nconsole.log(sign.sign(privateKey, 'hex'));\n// Prints: the calculated signature\n</code></pre>\n<p>In some cases, a <code>Sign</code> instance can also be created by passing in a signature\nalgorithm name, such as 'RSA-SHA256'. This will use the corresponding digest\nalgorithm. This does not work for all signature algorithms, such as\n'ecdsa-with-SHA256'. Use digest names instead.</p>\n<p>Example: signing using legacy signature algorithm name</p>\n<pre><code class=\"language-js\">const crypto = require('crypto');\nconst sign = crypto.createSign('RSA-SHA256');\n\nsign.update('some data to sign');\n\nconst privateKey = getPrivateKeySomehow();\nconsole.log(sign.sign(privateKey, 'hex'));\n// Prints: the calculated signature\n</code></pre>",
+          "desc": "<p>The <code>Sign</code> Class is a utility for generating signatures. It can be used in one\nof two ways:</p>\n<ul>\n<li>As a writable <a href=\"stream.html\">stream</a>, where data to be signed is written and the\n<a href=\"#crypto_sign_sign_privatekey_outputencoding\"><code>sign.sign()</code></a> method is used to generate and return the signature, or</li>\n<li>Using the <a href=\"#crypto_sign_update_data_inputencoding\"><code>sign.update()</code></a> and <a href=\"#crypto_sign_sign_privatekey_outputencoding\"><code>sign.sign()</code></a> methods to produce the\nsignature.</li>\n</ul>\n<p>The <a href=\"#crypto_crypto_createsign_algorithm_options\"><code>crypto.createSign()</code></a> method is used to create <code>Sign</code> instances. The\nargument is the string name of the hash function to use. <code>Sign</code> objects are not\nto be created directly using the <code>new</code> keyword.</p>\n<p>Example: Using <code>Sign</code> objects as streams:</p>\n<pre><code class=\"language-js\">const crypto = require('crypto');\nconst sign = crypto.createSign('SHA256');\n\nsign.write('some data to sign');\nsign.end();\n\nconst privateKey = getPrivateKeySomehow();\nconsole.log(sign.sign(privateKey, 'hex'));\n// Prints: the calculated signature using the specified private key and\n// SHA-256. For RSA keys, the algorithm is RSASSA-PKCS1-v1_5 (see padding\n// parameter below for RSASSA-PSS). For EC keys, the algorithm is ECDSA.\n</code></pre>\n<p>Example: Using the <a href=\"#crypto_sign_update_data_inputencoding\"><code>sign.update()</code></a> and <a href=\"#crypto_sign_sign_privatekey_outputencoding\"><code>sign.sign()</code></a> methods:</p>\n<pre><code class=\"language-js\">const crypto = require('crypto');\nconst sign = crypto.createSign('SHA256');\n\nsign.update('some data to sign');\n\nconst privateKey = getPrivateKeySomehow();\nconsole.log(sign.sign(privateKey, 'hex'));\n// Prints: the calculated signature\n</code></pre>\n<p>In some cases, a <code>Sign</code> instance can also be created by passing in a signature\nalgorithm name, such as 'RSA-SHA256'. This will use the corresponding digest\nalgorithm. This does not work for all signature algorithms, such as\n'ecdsa-with-SHA256'. Use digest names instead.</p>\n<p>Example: signing using legacy signature algorithm name</p>\n<pre><code class=\"language-js\">const crypto = require('crypto');\nconst sign = crypto.createSign('RSA-SHA256');\n\nsign.update('some data to sign');\n\nconst privateKey = getPrivateKeySomehow();\nconsole.log(sign.sign(privateKey, 'hex'));\n// Prints: the calculated signature\n</code></pre>",
           "methods": [
             {
-              "textRaw": "sign.sign(privateKey[, outputFormat])",
+              "textRaw": "sign.sign(privateKey[, outputEncoding])",
               "type": "method",
               "name": "sign",
               "meta": {
@@ -3245,15 +3277,16 @@
                       ]
                     },
                     {
-                      "textRaw": "`outputFormat` {string}",
-                      "name": "outputFormat",
+                      "textRaw": "`outputEncoding` {string} The [encoding][] of the return value.",
+                      "name": "outputEncoding",
                       "type": "string",
+                      "desc": "The [encoding][] of the return value.",
                       "optional": true
                     }
                   ]
                 }
               ],
-              "desc": "<p>Calculates the signature on all the data passed through using either\n<a href=\"#crypto_sign_update_data_inputencoding\"><code>sign.update()</code></a> or <a href=\"stream.html#stream_writable_write_chunk_encoding_callback\"><code>sign.write()</code></a>.</p>\n<p>The <code>privateKey</code> argument can be an object or a string. If <code>privateKey</code> is a\nstring, it is treated as a raw key with no passphrase. If <code>privateKey</code> is an\nobject, it must contain one or more of the following properties:</p>\n<ul>\n<li>\n<p><code>key</code>: <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type\" class=\"type\">&lt;string&gt;</a> - PEM encoded private key (required)</p>\n</li>\n<li>\n<p><code>passphrase</code>: <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type\" class=\"type\">&lt;string&gt;</a> - passphrase for the private key</p>\n</li>\n<li>\n<p><code>padding</code>: <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;integer&gt;</a> - Optional padding value for RSA, one of the following:</p>\n<ul>\n<li><code>crypto.constants.RSA_PKCS1_PADDING</code> (default)</li>\n<li><code>crypto.constants.RSA_PKCS1_PSS_PADDING</code></li>\n</ul>\n<p>Note that <code>RSA_PKCS1_PSS_PADDING</code> will use MGF1 with the same hash function\nused to sign the message as specified in section 3.1 of <a href=\"https://www.rfc-editor.org/rfc/rfc4055.txt\">RFC 4055</a>.</p>\n</li>\n<li>\n<p><code>saltLength</code>: <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;integer&gt;</a> - salt length for when padding is\n<code>RSA_PKCS1_PSS_PADDING</code>. The special value\n<code>crypto.constants.RSA_PSS_SALTLEN_DIGEST</code> sets the salt length to the digest\nsize, <code>crypto.constants.RSA_PSS_SALTLEN_MAX_SIGN</code> (default) sets it to the\nmaximum permissible value.</p>\n</li>\n</ul>\n<p>The <code>outputFormat</code> can specify one of <code>'latin1'</code>, <code>'hex'</code> or <code>'base64'</code>. If\n<code>outputFormat</code> is provided a string is returned; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a> is\nreturned.</p>\n<p>The <code>Sign</code> object can not be again used after <code>sign.sign()</code> method has been\ncalled. Multiple calls to <code>sign.sign()</code> will result in an error being thrown.</p>"
+              "desc": "<p>Calculates the signature on all the data passed through using either\n<a href=\"#crypto_sign_update_data_inputencoding\"><code>sign.update()</code></a> or <a href=\"stream.html#stream_writable_write_chunk_encoding_callback\"><code>sign.write()</code></a>.</p>\n<p>The <code>privateKey</code> argument can be an object or a string. If <code>privateKey</code> is a\nstring, it is treated as a raw key with no passphrase. If <code>privateKey</code> is an\nobject, it must contain one or more of the following properties:</p>\n<ul>\n<li>\n<p><code>key</code>: <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type\" class=\"type\">&lt;string&gt;</a> - PEM encoded private key (required)</p>\n</li>\n<li>\n<p><code>passphrase</code>: <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type\" class=\"type\">&lt;string&gt;</a> - passphrase for the private key</p>\n</li>\n<li>\n<p><code>padding</code>: <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;integer&gt;</a> - Optional padding value for RSA, one of the following:</p>\n<ul>\n<li><code>crypto.constants.RSA_PKCS1_PADDING</code> (default)</li>\n<li><code>crypto.constants.RSA_PKCS1_PSS_PADDING</code></li>\n</ul>\n<p>Note that <code>RSA_PKCS1_PSS_PADDING</code> will use MGF1 with the same hash function\nused to sign the message as specified in section 3.1 of <a href=\"https://www.rfc-editor.org/rfc/rfc4055.txt\">RFC 4055</a>.</p>\n</li>\n<li>\n<p><code>saltLength</code>: <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;integer&gt;</a> - salt length for when padding is\n<code>RSA_PKCS1_PSS_PADDING</code>. The special value\n<code>crypto.constants.RSA_PSS_SALTLEN_DIGEST</code> sets the salt length to the digest\nsize, <code>crypto.constants.RSA_PSS_SALTLEN_MAX_SIGN</code> (default) sets it to the\nmaximum permissible value.</p>\n</li>\n</ul>\n<p>If <code>outputEncoding</code> is provided a string is returned; otherwise a <a href=\"buffer.html\"><code>Buffer</code></a>\nis returned.</p>\n<p>The <code>Sign</code> object can not be again used after <code>sign.sign()</code> method has been\ncalled. Multiple calls to <code>sign.sign()</code> will result in an error being thrown.</p>"
             },
             {
               "textRaw": "sign.update(data[, inputEncoding])",
@@ -3280,15 +3313,16 @@
                       "type": "string | Buffer | TypedArray | DataView"
                     },
                     {
-                      "textRaw": "`inputEncoding` {string}",
+                      "textRaw": "`inputEncoding` {string} The [encoding][] of the `data` string.",
                       "name": "inputEncoding",
                       "type": "string",
+                      "desc": "The [encoding][] of the `data` string.",
                       "optional": true
                     }
                   ]
                 }
               ],
-              "desc": "<p>Updates the <code>Sign</code> content with the given <code>data</code>, the encoding of which\nis given in <code>inputEncoding</code> and can be <code>'utf8'</code>, <code>'ascii'</code> or\n<code>'latin1'</code>. If <code>encoding</code> is not provided, and the <code>data</code> is a string, an\nencoding of <code>'utf8'</code> is enforced. If <code>data</code> is a <a href=\"buffer.html\"><code>Buffer</code></a>, <code>TypedArray</code>, or\n<code>DataView</code>, then <code>inputEncoding</code> is ignored.</p>\n<p>This can be called many times with new data as it is streamed.</p>"
+              "desc": "<p>Updates the <code>Sign</code> content with the given <code>data</code>, the encoding of which\nis given in <code>inputEncoding</code>.\nIf <code>encoding</code> is not provided, and the <code>data</code> is a string, an\nencoding of <code>'utf8'</code> is enforced. If <code>data</code> is a <a href=\"buffer.html\"><code>Buffer</code></a>, <code>TypedArray</code>, or\n<code>DataView</code>, then <code>inputEncoding</code> is ignored.</p>\n<p>This can be called many times with new data as it is streamed.</p>"
             }
           ]
         },
@@ -3302,7 +3336,7 @@
             ],
             "changes": []
           },
-          "desc": "<p>The <code>Verify</code> class is a utility for verifying signatures. It can be used in one\nof two ways:</p>\n<ul>\n<li>As a writable <a href=\"stream.html\">stream</a> where written data is used to validate against the\nsupplied signature, or</li>\n<li>Using the <a href=\"#crypto_verify_update_data_inputencoding\"><code>verify.update()</code></a> and <a href=\"#crypto_verify_verify_object_signature_signatureformat\"><code>verify.verify()</code></a> methods to verify\nthe signature.</li>\n</ul>\n<p>The <a href=\"#crypto_crypto_createverify_algorithm_options\"><code>crypto.createVerify()</code></a> method is used to create <code>Verify</code> instances.\n<code>Verify</code> objects are not to be created directly using the <code>new</code> keyword.</p>\n<p>Example: Using <code>Verify</code> objects as streams:</p>\n<pre><code class=\"language-js\">const crypto = require('crypto');\nconst verify = crypto.createVerify('SHA256');\n\nverify.write('some data to sign');\nverify.end();\n\nconst publicKey = getPublicKeySomehow();\nconst signature = getSignatureToVerify();\nconsole.log(verify.verify(publicKey, signature));\n// Prints: true or false\n</code></pre>\n<p>Example: Using the <a href=\"#crypto_verify_update_data_inputencoding\"><code>verify.update()</code></a> and <a href=\"#crypto_verify_verify_object_signature_signatureformat\"><code>verify.verify()</code></a> methods:</p>\n<pre><code class=\"language-js\">const crypto = require('crypto');\nconst verify = crypto.createVerify('SHA256');\n\nverify.update('some data to sign');\n\nconst publicKey = getPublicKeySomehow();\nconst signature = getSignatureToVerify();\nconsole.log(verify.verify(publicKey, signature));\n// Prints: true or false\n</code></pre>",
+          "desc": "<p>The <code>Verify</code> class is a utility for verifying signatures. It can be used in one\nof two ways:</p>\n<ul>\n<li>As a writable <a href=\"stream.html\">stream</a> where written data is used to validate against the\nsupplied signature, or</li>\n<li>Using the <a href=\"#crypto_verify_update_data_inputencoding\"><code>verify.update()</code></a> and <a href=\"#crypto_verify_verify_object_signature_signatureencoding\"><code>verify.verify()</code></a> methods to verify\nthe signature.</li>\n</ul>\n<p>The <a href=\"#crypto_crypto_createverify_algorithm_options\"><code>crypto.createVerify()</code></a> method is used to create <code>Verify</code> instances.\n<code>Verify</code> objects are not to be created directly using the <code>new</code> keyword.</p>\n<p>Example: Using <code>Verify</code> objects as streams:</p>\n<pre><code class=\"language-js\">const crypto = require('crypto');\nconst verify = crypto.createVerify('SHA256');\n\nverify.write('some data to sign');\nverify.end();\n\nconst publicKey = getPublicKeySomehow();\nconst signature = getSignatureToVerify();\nconsole.log(verify.verify(publicKey, signature));\n// Prints: true or false\n</code></pre>\n<p>Example: Using the <a href=\"#crypto_verify_update_data_inputencoding\"><code>verify.update()</code></a> and <a href=\"#crypto_verify_verify_object_signature_signatureencoding\"><code>verify.verify()</code></a> methods:</p>\n<pre><code class=\"language-js\">const crypto = require('crypto');\nconst verify = crypto.createVerify('SHA256');\n\nverify.update('some data to sign');\n\nconst publicKey = getPublicKeySomehow();\nconst signature = getSignatureToVerify();\nconsole.log(verify.verify(publicKey, signature));\n// Prints: true or false\n</code></pre>",
           "methods": [
             {
               "textRaw": "verify.update(data[, inputEncoding])",
@@ -3329,18 +3363,19 @@
                       "type": "string | Buffer | TypedArray | DataView"
                     },
                     {
-                      "textRaw": "`inputEncoding` {string}",
+                      "textRaw": "`inputEncoding` {string} The [encoding][] of the `data` string.",
                       "name": "inputEncoding",
                       "type": "string",
+                      "desc": "The [encoding][] of the `data` string.",
                       "optional": true
                     }
                   ]
                 }
               ],
-              "desc": "<p>Updates the <code>Verify</code> content with the given <code>data</code>, the encoding of which\nis given in <code>inputEncoding</code> and can be <code>'utf8'</code>, <code>'ascii'</code> or\n<code>'latin1'</code>. If <code>encoding</code> is not provided, and the <code>data</code> is a string, an\nencoding of <code>'utf8'</code> is enforced. If <code>data</code> is a <a href=\"buffer.html\"><code>Buffer</code></a>, <code>TypedArray</code>, or\n<code>DataView</code>, then <code>inputEncoding</code> is ignored.</p>\n<p>This can be called many times with new data as it is streamed.</p>"
+              "desc": "<p>Updates the <code>Verify</code> content with the given <code>data</code>, the encoding of which\nis given in <code>inputEncoding</code>.\nIf <code>inputEncoding</code> is not provided, and the <code>data</code> is a string, an\nencoding of <code>'utf8'</code> is enforced. If <code>data</code> is a <a href=\"buffer.html\"><code>Buffer</code></a>, <code>TypedArray</code>, or\n<code>DataView</code>, then <code>inputEncoding</code> is ignored.</p>\n<p>This can be called many times with new data as it is streamed.</p>"
             },
             {
-              "textRaw": "verify.verify(object, signature[, signatureFormat])",
+              "textRaw": "verify.verify(object, signature[, signatureEncoding])",
               "type": "method",
               "name": "verify",
               "meta": {
@@ -3375,15 +3410,16 @@
                       "type": "string | Buffer | TypedArray | DataView"
                     },
                     {
-                      "textRaw": "`signatureFormat` {string}",
-                      "name": "signatureFormat",
+                      "textRaw": "`signatureEncoding` {string} The [encoding][] of the `signature` string.",
+                      "name": "signatureEncoding",
                       "type": "string",
+                      "desc": "The [encoding][] of the `signature` string.",
                       "optional": true
                     }
                   ]
                 }
               ],
-              "desc": "<p>Verifies the provided data using the given <code>object</code> and <code>signature</code>.\nThe <code>object</code> argument can be either a string containing a PEM encoded object,\nwhich can be an RSA public key, a DSA public key, or an X.509 certificate,\nor an object with one or more of the following properties:</p>\n<ul>\n<li>\n<p><code>key</code>: <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type\" class=\"type\">&lt;string&gt;</a> - PEM encoded public key (required)</p>\n</li>\n<li>\n<p><code>padding</code>: <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;integer&gt;</a> - Optional padding value for RSA, one of the following:</p>\n<ul>\n<li><code>crypto.constants.RSA_PKCS1_PADDING</code> (default)</li>\n<li><code>crypto.constants.RSA_PKCS1_PSS_PADDING</code></li>\n</ul>\n<p>Note that <code>RSA_PKCS1_PSS_PADDING</code> will use MGF1 with the same hash function\nused to verify the message as specified in section 3.1 of <a href=\"https://www.rfc-editor.org/rfc/rfc4055.txt\">RFC 4055</a>.</p>\n</li>\n<li>\n<p><code>saltLength</code>: <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;integer&gt;</a> - salt length for when padding is\n<code>RSA_PKCS1_PSS_PADDING</code>. The special value\n<code>crypto.constants.RSA_PSS_SALTLEN_DIGEST</code> sets the salt length to the digest\nsize, <code>crypto.constants.RSA_PSS_SALTLEN_AUTO</code> (default) causes it to be\ndetermined automatically.</p>\n</li>\n</ul>\n<p>The <code>signature</code> argument is the previously calculated signature for the data, in\nthe <code>signatureFormat</code> which can be <code>'latin1'</code>, <code>'hex'</code> or <code>'base64'</code>.\nIf a <code>signatureFormat</code> is specified, the <code>signature</code> is expected to be a\nstring; otherwise <code>signature</code> is expected to be a <a href=\"buffer.html\"><code>Buffer</code></a>,\n<code>TypedArray</code>, or <code>DataView</code>.</p>\n<p>The <code>verify</code> object can not be used again after <code>verify.verify()</code> has been\ncalled. Multiple calls to <code>verify.verify()</code> will result in an error being\nthrown.</p>"
+              "desc": "<p>Verifies the provided data using the given <code>object</code> and <code>signature</code>.\nThe <code>object</code> argument can be either a string containing a PEM encoded object,\nwhich can be an RSA public key, a DSA public key, or an X.509 certificate,\nor an object with one or more of the following properties:</p>\n<ul>\n<li>\n<p><code>key</code>: <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type\" class=\"type\">&lt;string&gt;</a> - PEM encoded public key (required)</p>\n</li>\n<li>\n<p><code>padding</code>: <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;integer&gt;</a> - Optional padding value for RSA, one of the following:</p>\n<ul>\n<li><code>crypto.constants.RSA_PKCS1_PADDING</code> (default)</li>\n<li><code>crypto.constants.RSA_PKCS1_PSS_PADDING</code></li>\n</ul>\n<p>Note that <code>RSA_PKCS1_PSS_PADDING</code> will use MGF1 with the same hash function\nused to verify the message as specified in section 3.1 of <a href=\"https://www.rfc-editor.org/rfc/rfc4055.txt\">RFC 4055</a>.</p>\n</li>\n<li>\n<p><code>saltLength</code>: <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;integer&gt;</a> - salt length for when padding is\n<code>RSA_PKCS1_PSS_PADDING</code>. The special value\n<code>crypto.constants.RSA_PSS_SALTLEN_DIGEST</code> sets the salt length to the digest\nsize, <code>crypto.constants.RSA_PSS_SALTLEN_AUTO</code> (default) causes it to be\ndetermined automatically.</p>\n</li>\n</ul>\n<p>The <code>signature</code> argument is the previously calculated signature for the data, in\nthe <code>signatureEncoding</code>.\nIf a <code>signatureEncoding</code> is specified, the <code>signature</code> is expected to be a\nstring; otherwise <code>signature</code> is expected to be a <a href=\"buffer.html\"><code>Buffer</code></a>,\n<code>TypedArray</code>, or <code>DataView</code>.</p>\n<p>The <code>verify</code> object can not be used again after <code>verify.verify()</code> has been\ncalled. Multiple calls to <code>verify.verify()</code> will result in an error being\nthrown.</p>"
             }
           ]
         }

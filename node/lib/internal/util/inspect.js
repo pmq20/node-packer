@@ -259,9 +259,8 @@ function strEscape(str) {
       last = i + 1;
     }
   }
-  if (last === 0) {
-    result = str;
-  } else if (last !== i) {
+
+  if (last !== i) {
     result += str.slice(last);
   }
   return `'${result}'`;
@@ -362,6 +361,10 @@ function getKeys(value, showHidden) {
   return keys;
 }
 
+function getCtxStyle(constructor, tag) {
+  return constructor || tag || 'Object';
+}
+
 function formatProxy(ctx, proxy, recurseTimes) {
   if (recurseTimes != null) {
     if (recurseTimes < 0)
@@ -434,7 +437,7 @@ function noPrototypeIterator(ctx, value, recurseTimes) {
   } else if (Array.isArray(value)) {
     const clazz = Object.getPrototypeOf(value) ||
       clazzWithNullPrototype(Array, 'Array');
-    newVal = new clazz(value.length || 0);
+    newVal = new clazz(value.length);
   } else if (isTypedArray(value)) {
     let clazz = Object.getPrototypeOf(value);
     if (!clazz) {
@@ -708,7 +711,7 @@ function formatRaw(ctx, value, recurseTimes) {
 
   if (recurseTimes != null) {
     if (recurseTimes < 0)
-      return ctx.stylize(`[${constructor || tag || 'Object'}]`, 'special');
+      return ctx.stylize(`[${getCtxStyle(constructor, tag)}]`, 'special');
     recurseTimes -= 1;
   }
 
@@ -746,7 +749,7 @@ function handleMaxCallStackSize(ctx, err, constructor, tag, indentationLvl) {
     ctx.seen.pop();
     ctx.indentationLvl = indentationLvl;
     return ctx.stylize(
-      `[${constructor || tag || 'Object'}: Inspection interrupted ` +
+      `[${getCtxStyle(constructor, tag)}: Inspection interrupted ` +
         'prematurely. Maximum call stack size exceeded.]',
       'special'
     );

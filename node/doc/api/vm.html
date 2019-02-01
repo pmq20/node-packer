@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>VM (Executing JavaScript) | Node.js v10.15.0 Documentation</title>
+  <title>VM (Executing JavaScript) | Node.js v10.15.1 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -79,7 +79,7 @@
 
     <div id="column1" data-id="vm" class="interior">
       <header>
-        <h1>Node.js v10.15.0 Documentation</h1>
+        <h1>Node.js v10.15.1 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -151,6 +151,7 @@
 <li><a href="#vm_vm_runinthiscontext_code_options">vm.runInThisContext(code[, options])</a></li>
 <li><a href="#vm_example_running_an_http_server_within_a_vm">Example: Running an HTTP Server within a VM</a></li>
 <li><a href="#vm_what_does_it_mean_to_contextify_an_object">What does it mean to "contextify" an object?</a></li>
+<li><a href="#vm_timeout_limitations_when_using_process_nexttick_and_promises">Timeout limitations when using process.nextTick(), and Promises</a></li>
 </ul>
 </li>
 </ul>
@@ -597,7 +598,7 @@ script.runInThisContext();
 
 const cacheWithX = script.createCachedData();
 </code></pre>
-<h3>script.runInContext(contextifiedSandbox[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/vm.js#L100">[src]</a><span><a class="mark" href="#vm_script_runincontext_contextifiedsandbox_options" id="vm_script_runincontext_contextifiedsandbox_options">#</a></span></h3>
+<h3>script.runInContext(contextifiedSandbox[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/vm.js#L100">[src]</a><span><a class="mark" href="#vm_script_runincontext_contextifiedsandbox_options" id="vm_script_runincontext_contextifiedsandbox_options">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -663,7 +664,7 @@ console.log(util.inspect(sandbox));
 <p>Using the <code>timeout</code> or <code>breakOnSigint</code> options will result in new event loops
 and corresponding threads being started, which have a non-zero performance
 overhead.</p>
-<h3>script.runInNewContext([sandbox[, options]])<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/vm.js#L111">[src]</a><span><a class="mark" href="#vm_script_runinnewcontext_sandbox_options" id="vm_script_runinnewcontext_sandbox_options">#</a></span></h3>
+<h3>script.runInNewContext([sandbox[, options]])<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/vm.js#L111">[src]</a><span><a class="mark" href="#vm_script_runinnewcontext_sandbox_options" id="vm_script_runinnewcontext_sandbox_options">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -735,7 +736,7 @@ console.log(util.inspect(sandboxes));
 
 // [{ globalVar: 'set' }, { globalVar: 'set' }, { globalVar: 'set' }]
 </code></pre>
-<h3>script.runInThisContext([options])<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/vm.js#L91">[src]</a><span><a class="mark" href="#vm_script_runinthiscontext_options" id="vm_script_runinthiscontext_options">#</a></span></h3>
+<h3>script.runInThisContext([options])<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/vm.js#L91">[src]</a><span><a class="mark" href="#vm_script_runinthiscontext_options" id="vm_script_runinthiscontext_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.3.1</span>
 </div>
@@ -777,7 +778,7 @@ console.log(globalVar);
 
 // 1000
 </code></pre>
-<h2>vm.compileFunction(code[, params[, options]])<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/vm.js#L306">[src]</a><span><a class="mark" href="#vm_vm_compilefunction_code_params_options" id="vm_vm_compilefunction_code_params_options">#</a></span></h2>
+<h2>vm.compileFunction(code[, params[, options]])<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/vm.js#L306">[src]</a><span><a class="mark" href="#vm_vm_compilefunction_code_params_options" id="vm_vm_compilefunction_code_params_options">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v10.10.0</span>
 </div>
@@ -809,7 +810,7 @@ compiling. <strong>Default:</strong> <code>[]</code>.</li>
 <p>Compiles the given code into the provided context/sandbox (if no context is
 supplied, the current context is used), and returns it wrapped inside a
 function with the given <code>params</code>.</p>
-<h2>vm.createContext([sandbox[, options]])<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/vm.js#L217">[src]</a><span><a class="mark" href="#vm_vm_createcontext_sandbox_options" id="vm_vm_createcontext_sandbox_options">#</a></span></h2>
+<h2>vm.createContext([sandbox[, options]])<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/vm.js#L217">[src]</a><span><a class="mark" href="#vm_vm_createcontext_sandbox_options" id="vm_vm_createcontext_sandbox_options">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -880,7 +881,7 @@ window's global object, then run all <code>&#x3C;script></code> tags together wi
 of that sandbox.</p>
 <p>The provided <code>name</code> and <code>origin</code> of the context are made visible through the
 Inspector API.</p>
-<h2>vm.isContext(sandbox)<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/vm.js#L209">[src]</a><span><a class="mark" href="#vm_vm_iscontext_sandbox" id="vm_vm_iscontext_sandbox">#</a></span></h2>
+<h2>vm.isContext(sandbox)<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/vm.js#L209">[src]</a><span><a class="mark" href="#vm_vm_iscontext_sandbox" id="vm_vm_iscontext_sandbox">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.11.7</span>
 </div>
@@ -890,7 +891,7 @@ Inspector API.</p>
 </ul>
 <p>Returns <code>true</code> if the given <code>sandbox</code> object has been <a href="#vm_what_does_it_mean_to_contextify_an_object">contextified</a> using
 <a href="#vm_vm_createcontext_sandbox_options"><code>vm.createContext()</code></a>.</p>
-<h2>vm.runInContext(code, contextifiedSandbox[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/vm.js#L272">[src]</a><span><a class="mark" href="#vm_vm_runincontext_code_contextifiedsandbox_options" id="vm_vm_runincontext_code_contextifiedsandbox_options">#</a></span></h2>
+<h2>vm.runInContext(code, contextifiedSandbox[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/vm.js#L272">[src]</a><span><a class="mark" href="#vm_vm_runincontext_code_contextifiedsandbox_options" id="vm_vm_runincontext_code_contextifiedsandbox_options">#</a></span></h2>
 <ul>
 <li><code>code</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The JavaScript code to compile and run.</li>
 <li><code>contextifiedSandbox</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> The <a href="#vm_what_does_it_mean_to_contextify_an_object">contextified</a> object that will be used
@@ -933,7 +934,7 @@ console.log(util.inspect(sandbox));
 
 // { globalVar: 1024 }
 </code></pre>
-<h2>vm.runInNewContext(code[, sandbox[, options]])<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/vm.js#L288">[src]</a><span><a class="mark" href="#vm_vm_runinnewcontext_code_sandbox_options" id="vm_vm_runinnewcontext_code_sandbox_options">#</a></span></h2>
+<h2>vm.runInNewContext(code[, sandbox[, options]])<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/vm.js#L288">[src]</a><span><a class="mark" href="#vm_vm_runinnewcontext_code_sandbox_options" id="vm_vm_runinnewcontext_code_sandbox_options">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.3.1</span>
 </div>
@@ -988,7 +989,7 @@ console.log(util.inspect(sandbox));
 
 // { animal: 'cat', count: 3, name: 'kitty' }
 </code></pre>
-<h2>vm.runInThisContext(code[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/1ae0511b942c01c6e0adff98643d350a395bf101/lib/vm.js#L299">[src]</a><span><a class="mark" href="#vm_vm_runinthiscontext_code_options" id="vm_vm_runinthiscontext_code_options">#</a></span></h2>
+<h2>vm.runInThisContext(code[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/vm.js#L299">[src]</a><span><a class="mark" href="#vm_vm_runinthiscontext_code_options" id="vm_vm_runinthiscontext_code_options">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.3.1</span>
 </div>
@@ -1080,6 +1081,31 @@ internally with a new instance of a V8 Context. This V8 Context provides the
 within which it can operate. The process of creating the V8 Context and
 associating it with the <code>sandbox</code> object is what this document refers to as
 "contextifying" the <code>sandbox</code>.</p>
+<h2>Timeout limitations when using process.nextTick(), and Promises<span><a class="mark" href="#vm_timeout_limitations_when_using_process_nexttick_and_promises" id="vm_timeout_limitations_when_using_process_nexttick_and_promises">#</a></span></h2>
+<p>Because of the internal mechanics of how the <code>process.nextTick()</code> queue and
+the microtask queue that underlies Promises are implemented within V8 and
+Node.js, it is possible for code running within a context to "escape" the
+<code>timeout</code> set using <code>vm.runInContext()</code>, <code>vm.runInNewContext()</code>, and
+<code>vm.runInThisContext()</code>.</p>
+<p>For example, the following code executed by <code>vm.runInNewContext()</code> with a
+timeout of 5 milliseconds schedules an infinite loop to run after a promise
+resolves. The scheduled loop is never interrupted by the timeout:</p>
+<pre><code class="language-js">const vm = require('vm');
+
+function loop() {
+  while (1) console.log(Date.now());
+}
+
+vm.runInNewContext(
+  'Promise.resolve().then(loop);',
+  { loop, console },
+  { timeout: 5 }
+);
+</code></pre>
+<p>This issue also occurs when the <code>loop()</code> call is scheduled using
+the <code>process.nextTick()</code> function.</p>
+<p>This issue occurs because all contexts share the same microtask and nextTick
+queues.</p>
       </div>
     </div>
   </div>

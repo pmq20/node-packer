@@ -64,30 +64,28 @@ const {
   onStreamRead,
   kUpdateTimer
 } = require('internal/stream_base_commons');
-const errors = require('internal/errors');
 const {
-  ERR_INVALID_ADDRESS_FAMILY,
-  ERR_INVALID_ARG_TYPE,
-  ERR_INVALID_FD_TYPE,
-  ERR_INVALID_IP_ADDRESS,
-  ERR_INVALID_OPT_VALUE,
-  ERR_SERVER_ALREADY_LISTEN,
-  ERR_SERVER_NOT_RUNNING,
-  ERR_SOCKET_BAD_PORT,
-  ERR_SOCKET_CLOSED
-} = errors.codes;
+  codes: {
+    ERR_INVALID_ADDRESS_FAMILY,
+    ERR_INVALID_ARG_TYPE,
+    ERR_INVALID_FD_TYPE,
+    ERR_INVALID_IP_ADDRESS,
+    ERR_INVALID_OPT_VALUE,
+    ERR_SERVER_ALREADY_LISTEN,
+    ERR_SERVER_NOT_RUNNING,
+    ERR_SOCKET_BAD_PORT,
+    ERR_SOCKET_CLOSED
+  },
+  errnoException,
+  exceptionWithHostPort,
+  uvExceptionWithHostPort
+} = require('internal/errors');
 const { validateInt32, validateString } = require('internal/validators');
 const kLastWriteQueueSize = Symbol('lastWriteQueueSize');
 
 // Lazy loaded to improve startup performance.
 let cluster;
 let dns;
-
-const {
-  errnoException,
-  exceptionWithHostPort,
-  uvExceptionWithHostPort
-} = errors;
 
 const {
   kTimeout,
@@ -263,9 +261,16 @@ function Socket(options) {
     const { fd } = options;
     let err;
 
+    // createHandle will throw ERR_INVALID_FD_TYPE if `fd` is not
+    // a valid `PIPE` or `TCP` descriptor
     this._handle = createHandle(fd, false);
 
     err = this._handle.open(fd);
+
+    // While difficult to fabricate, in some architectures
+    // `open` may return an error code for valid file descriptors
+    // which cannot be opened. This is difficult to test as most
+    // un-openable fds will throw on `createHandle`
     if (err)
       throw errnoException(err, 'open');
 
@@ -335,14 +340,6 @@ Socket.prototype._unrefTimer = function _unrefTimer() {
 };
 
 
-function shutdownSocket(self, callback) {
-  var req = new ShutdownWrap();
-  req.oncomplete = afterShutdown;
-  req.handle = self._handle;
-  req.callback = callback;
-  return self._handle.shutdown(req);
-}
-
 // the user has called .end(), and all the bytes have been
 // sent out to the other side.
 Socket.prototype._final = function(cb) {
@@ -352,23 +349,16 @@ Socket.prototype._final = function(cb) {
     return this.once('connect', () => this._final(cb));
   }
 
-  if (!this.readable || this._readableState.ended) {
-    debug('_final: ended, destroy', this._readableState);
-    cb();
-    return this.destroy();
-  }
+  if (!this._handle)
+    return cb();
 
   debug('_final: not ended, call shutdown()');
 
-  // otherwise, just shutdown, or destroy() if not possible
-  if (!this._handle || !this._handle.shutdown) {
-    cb();
-    return this.destroy();
-  }
-
-  var err = defaultTriggerAsyncIdScope(
-    this[async_id_symbol], shutdownSocket, this, cb
-  );
+  var req = new ShutdownWrap();
+  req.oncomplete = afterShutdown;
+  req.handle = this._handle;
+  req.callback = cb;
+  var err = this._handle.shutdown(req);
 
   if (err)
     return this.destroy(errnoException(err, 'shutdown'));
@@ -387,7 +377,7 @@ function afterShutdown(status, handle) {
   if (self.destroyed)
     return;
 
-  if (self._readableState.ended) {
+  if (!self.readable || self._readableState.ended) {
     debug('readableState ended, destroying');
     self.destroy();
   }
@@ -839,12 +829,9 @@ function internalConnect(
     if (addressType === 4) {
       localAddress = localAddress || '0.0.0.0';
       err = self._handle.bind(localAddress, localPort);
-    } else if (addressType === 6) {
+    } else { // addressType === 6
       localAddress = localAddress || '::';
       err = self._handle.bind6(localAddress, localPort);
-    } else {
-      self.destroy(new ERR_INVALID_ADDRESS_FAMILY(addressType));
-      return;
     }
     debug('binding to localAddress: %s and localPort: %d (addressType: %d)',
           localAddress, localPort, addressType);

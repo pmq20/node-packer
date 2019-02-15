@@ -64,7 +64,22 @@ Then,
     curl -L http://enclose.io/nodec/nodec-linux-x64.gz | gunzip > nodec
     chmod +x nodec
     ./nodec
-    
+
+#### Additional Notes on the compatibility between RHEL based (CentOS) / Ubuntu
+It is known that the default repo for Red Hat and CentOS distros contains a very outdated gcc / g++ (3.8.5) while the latest Long Term Support (LTS) of Ubuntu as of 15 Feb 2018 (Ubuntu 18.04 LTS) contains a relatively updated gcc / g++ (7.3.0).
+
+It is known that compilation can fail when using unsupported configuration where the version of prerequisites is older than prescribed.
+
+Therefore, it is crucial for the users of Red Hat based distros to install gcc / g++ outside from official repos.
+For starters, one may look at: 
+- https://developers.redhat.com/blog/2018/07/07/yum-install-gcc7-clang/
+- http://blog.stevedoria.net/20180214/how-to-install-gcc-7-on-centos-7
+
+Additionally, binaries that are compiled from Ubuntu 18.04 LTS is known NOT to work in Red Hat 7 based distro (Including CentOS) due to 'glibcxx_3.4.20' not found' related error. However, binaries that are compiled from either Red Hat or CentOS 7 are known to work with Ubuntu 18.04 LTS based on my internal experiment.
+
+Having said that, I will still recommend that binaries distributors should compile 2 versions for Linux where one caters for RHEL based and the other for Ubuntu based.
+
+
 ### Install on macOS
 
 First install the prerequisites:

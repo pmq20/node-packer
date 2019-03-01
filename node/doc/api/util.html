@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Util | Node.js v10.15.1 Documentation</title>
+  <title>Util | Node.js v10.15.2 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -79,7 +79,7 @@
 
     <div id="column1" data-id="util" class="interior">
       <header>
-        <h1>Node.js v10.15.1 Documentation</h1>
+        <h1>Node.js v10.15.2 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -252,7 +252,7 @@ internal APIs. However, many of the utilities are useful for application and
 module developers as well. It can be accessed using:</p>
 <pre><code class="language-js">const util = require('util');
 </code></pre>
-<h2>util.callbackify(original)<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/util.js#L340">[src]</a><span><a class="mark" href="#util_util_callbackify_original" id="util_util_callbackify_original">#</a></span></h2>
+<h2>util.callbackify(original)<a class="srclink" href="https://github.com/nodejs/node/blob/7e530ce306792f060f2316345465af72b8ff5f0c/lib/util.js#L340">[src]</a><span><a class="mark" href="#util_util_callbackify_original" id="util_util_callbackify_original">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v8.2.0</span>
 </div>
@@ -298,7 +298,7 @@ callbackFunction((err, ret) => {
   err &#x26;&#x26; err.hasOwnProperty('reason') &#x26;&#x26; err.reason === null;  // true
 });
 </code></pre>
-<h2>util.debuglog(section)<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/util.js#L181">[src]</a><span><a class="mark" href="#util_util_debuglog_section" id="util_util_debuglog_section">#</a></span></h2>
+<h2>util.debuglog(section)<a class="srclink" href="https://github.com/nodejs/node/blob/7e530ce306792f060f2316345465af72b8ff5f0c/lib/util.js#L181">[src]</a><span><a class="mark" href="#util_util_debuglog_section" id="util_util_debuglog_section">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.11.3</span>
 </div>
@@ -390,7 +390,7 @@ thrown when the deprecated function is called.</p>
 <p>The <code>--throw-deprecation</code> command line flag and <code>process.throwDeprecation</code>
 property take precedence over <code>--trace-deprecation</code> and
 <code>process.traceDeprecation</code>.</p>
-<h2>util.format(format[, ...args])<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/util.js#L71">[src]</a><span><a class="mark" href="#util_util_format_format_args" id="util_util_format_format_args">#</a></span></h2>
+<h2>util.format(format[, ...args])<a class="srclink" href="https://github.com/nodejs/node/blob/7e530ce306792f060f2316345465af72b8ff5f0c/lib/util.js#L71">[src]</a><span><a class="mark" href="#util_util_format_format_args" id="util_util_format_format_args">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -453,7 +453,7 @@ without any formatting.</p>
 intended as a debugging tool. Some input values can have a significant
 performance overhead that can block the event loop. Use this function
 with care and never in a hot code path.</p>
-<h2>util.formatWithOptions(inspectOptions, format[, ...args])<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/util.js#L75">[src]</a><span><a class="mark" href="#util_util_formatwithoptions_inspectoptions_format_args" id="util_util_formatwithoptions_inspectoptions_format_args">#</a></span></h2>
+<h2>util.formatWithOptions(inspectOptions, format[, ...args])<a class="srclink" href="https://github.com/nodejs/node/blob/7e530ce306792f060f2316345465af72b8ff5f0c/lib/util.js#L75">[src]</a><span><a class="mark" href="#util_util_formatwithoptions_inspectoptions_format_args" id="util_util_formatwithoptions_inspectoptions_format_args">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v10.0.0</span>
 </div>
@@ -468,7 +468,7 @@ an <code>inspectOptions</code> argument which specifies options that are passed 
 // Returns 'See object { foo: 42 }', where `42` is colored as a number
 // when printed to a terminal.
 </code></pre>
-<h2>util.getSystemErrorName(err)<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/util.js#L367">[src]</a><span><a class="mark" href="#util_util_getsystemerrorname_err" id="util_util_getsystemerrorname_err">#</a></span></h2>
+<h2>util.getSystemErrorName(err)<a class="srclink" href="https://github.com/nodejs/node/blob/7e530ce306792f060f2316345465af72b8ff5f0c/lib/util.js#L367">[src]</a><span><a class="mark" href="#util_util_getsystemerrorname_err" id="util_util_getsystemerrorname_err">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v9.7.0</span>
 </div>
@@ -484,7 +484,7 @@ See <a href="errors.html#errors_common_system_errors">Common System Errors</a> f
   console.error(name);  // ENOENT
 });
 </code></pre>
-<h2>util.inherits(constructor, superConstructor)<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/util.js#L274">[src]</a><span><a class="mark" href="#util_util_inherits_constructor_superconstructor" id="util_util_inherits_constructor_superconstructor">#</a></span></h2>
+<h2>util.inherits(constructor, superConstructor)<a class="srclink" href="https://github.com/nodejs/node/blob/7e530ce306792f060f2316345465af72b8ff5f0c/lib/util.js#L274">[src]</a><span><a class="mark" href="#util_util_inherits_constructor_superconstructor" id="util_util_inherits_constructor_superconstructor">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1837,7 +1837,7 @@ util.isArray(new Array());
 util.isArray({});
 // Returns: false
 </code></pre>
-<h3>util.isBoolean(object)<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/util.js#L197">[src]</a><span><a class="mark" href="#util_util_isboolean_object" id="util_util_isboolean_object">#</a></span></h3>
+<h3>util.isBoolean(object)<a class="srclink" href="https://github.com/nodejs/node/blob/7e530ce306792f060f2316345465af72b8ff5f0c/lib/util.js#L197">[src]</a><span><a class="mark" href="#util_util_isboolean_object" id="util_util_isboolean_object">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.5</span><span>Deprecated since: v4.0.0</span>
 </div>
@@ -1926,7 +1926,7 @@ obj[Symbol.toStringTag] = 'Error';
 util.isError(obj);
 // Returns: true
 </code></pre>
-<h3>util.isFunction(object)<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/util.js#L229">[src]</a><span><a class="mark" href="#util_util_isfunction_object" id="util_util_isfunction_object">#</a></span></h3>
+<h3>util.isFunction(object)<a class="srclink" href="https://github.com/nodejs/node/blob/7e530ce306792f060f2316345465af72b8ff5f0c/lib/util.js#L229">[src]</a><span><a class="mark" href="#util_util_isfunction_object" id="util_util_isfunction_object">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.5</span><span>Deprecated since: v4.0.0</span>
 </div>
@@ -1949,7 +1949,7 @@ util.isFunction(Foo);
 util.isFunction(Bar);
 // Returns: true
 </code></pre>
-<h3>util.isNull(object)<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/util.js#L201">[src]</a><span><a class="mark" href="#util_util_isnull_object" id="util_util_isnull_object">#</a></span></h3>
+<h3>util.isNull(object)<a class="srclink" href="https://github.com/nodejs/node/blob/7e530ce306792f060f2316345465af72b8ff5f0c/lib/util.js#L201">[src]</a><span><a class="mark" href="#util_util_isnull_object" id="util_util_isnull_object">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.5</span><span>Deprecated since: v4.0.0</span>
 </div>
@@ -1969,7 +1969,7 @@ util.isNull(undefined);
 util.isNull(null);
 // Returns: true
 </code></pre>
-<h3>util.isNullOrUndefined(object)<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/util.js#L205">[src]</a><span><a class="mark" href="#util_util_isnullorundefined_object" id="util_util_isnullorundefined_object">#</a></span></h3>
+<h3>util.isNullOrUndefined(object)<a class="srclink" href="https://github.com/nodejs/node/blob/7e530ce306792f060f2316345465af72b8ff5f0c/lib/util.js#L205">[src]</a><span><a class="mark" href="#util_util_isnullorundefined_object" id="util_util_isnullorundefined_object">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.5</span><span>Deprecated since: v4.0.0</span>
 </div>
@@ -1990,7 +1990,7 @@ util.isNullOrUndefined(undefined);
 util.isNullOrUndefined(null);
 // Returns: true
 </code></pre>
-<h3>util.isNumber(object)<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/util.js#L209">[src]</a><span><a class="mark" href="#util_util_isnumber_object" id="util_util_isnumber_object">#</a></span></h3>
+<h3>util.isNumber(object)<a class="srclink" href="https://github.com/nodejs/node/blob/7e530ce306792f060f2316345465af72b8ff5f0c/lib/util.js#L209">[src]</a><span><a class="mark" href="#util_util_isnumber_object" id="util_util_isnumber_object">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.5</span><span>Deprecated since: v4.0.0</span>
 </div>
@@ -2011,7 +2011,7 @@ util.isNumber(0);
 util.isNumber(NaN);
 // Returns: true
 </code></pre>
-<h3>util.isObject(object)<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/util.js#L225">[src]</a><span><a class="mark" href="#util_util_isobject_object" id="util_util_isobject_object">#</a></span></h3>
+<h3>util.isObject(object)<a class="srclink" href="https://github.com/nodejs/node/blob/7e530ce306792f060f2316345465af72b8ff5f0c/lib/util.js#L225">[src]</a><span><a class="mark" href="#util_util_isobject_object" id="util_util_isobject_object">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.5</span><span>Deprecated since: v4.0.0</span>
 </div>
@@ -2035,7 +2035,7 @@ util.isObject({});
 util.isObject(() => {});
 // Returns: false
 </code></pre>
-<h3>util.isPrimitive(object)<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/util.js#L233">[src]</a><span><a class="mark" href="#util_util_isprimitive_object" id="util_util_isprimitive_object">#</a></span></h3>
+<h3>util.isPrimitive(object)<a class="srclink" href="https://github.com/nodejs/node/blob/7e530ce306792f060f2316345465af72b8ff5f0c/lib/util.js#L233">[src]</a><span><a class="mark" href="#util_util_isprimitive_object" id="util_util_isprimitive_object">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.5</span><span>Deprecated since: v4.0.0</span>
 </div>
@@ -2088,7 +2088,7 @@ util.isRegExp(new RegExp('another regexp'));
 util.isRegExp({});
 // Returns: false
 </code></pre>
-<h3>util.isString(object)<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/util.js#L213">[src]</a><span><a class="mark" href="#util_util_isstring_object" id="util_util_isstring_object">#</a></span></h3>
+<h3>util.isString(object)<a class="srclink" href="https://github.com/nodejs/node/blob/7e530ce306792f060f2316345465af72b8ff5f0c/lib/util.js#L213">[src]</a><span><a class="mark" href="#util_util_isstring_object" id="util_util_isstring_object">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.5</span><span>Deprecated since: v4.0.0</span>
 </div>
@@ -2109,7 +2109,7 @@ util.isString(String('foo'));
 util.isString(5);
 // Returns: false
 </code></pre>
-<h3>util.isSymbol(object)<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/util.js#L217">[src]</a><span><a class="mark" href="#util_util_issymbol_object" id="util_util_issymbol_object">#</a></span></h3>
+<h3>util.isSymbol(object)<a class="srclink" href="https://github.com/nodejs/node/blob/7e530ce306792f060f2316345465af72b8ff5f0c/lib/util.js#L217">[src]</a><span><a class="mark" href="#util_util_issymbol_object" id="util_util_issymbol_object">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.5</span><span>Deprecated since: v4.0.0</span>
 </div>
@@ -2128,7 +2128,7 @@ util.isSymbol('foo');
 util.isSymbol(Symbol('foo'));
 // Returns: true
 </code></pre>
-<h3>util.isUndefined(object)<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/util.js#L221">[src]</a><span><a class="mark" href="#util_util_isundefined_object" id="util_util_isundefined_object">#</a></span></h3>
+<h3>util.isUndefined(object)<a class="srclink" href="https://github.com/nodejs/node/blob/7e530ce306792f060f2316345465af72b8ff5f0c/lib/util.js#L221">[src]</a><span><a class="mark" href="#util_util_isundefined_object" id="util_util_isundefined_object">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.5</span><span>Deprecated since: v4.0.0</span>
 </div>
@@ -2148,7 +2148,7 @@ util.isUndefined(foo);
 util.isUndefined(null);
 // Returns: false
 </code></pre>
-<h3>util.log(string)<a class="srclink" href="https://github.com/nodejs/node/blob/3867ef02440e1f207ef4cf70367fba6028dc0064/lib/util.js#L255">[src]</a><span><a class="mark" href="#util_util_log_string" id="util_util_log_string">#</a></span></h3>
+<h3>util.log(string)<a class="srclink" href="https://github.com/nodejs/node/blob/7e530ce306792f060f2316345465af72b8ff5f0c/lib/util.js#L255">[src]</a><span><a class="mark" href="#util_util_log_string" id="util_util_log_string">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.3.0</span><span>Deprecated since: v6.0.0</span>
 </div>

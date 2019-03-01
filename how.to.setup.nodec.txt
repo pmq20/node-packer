@@ -3,7 +3,7 @@ How to setup nodec
 nodec is used to compile node application into a single exe binary for deployment.
 nodec was originally published at github repo https://github.com/pmq20/node-packer.
 But the official release did not get updated to latest node version.
-So we did a local fork and updated it to 10.15.1 as of 2019-02-01.
+So we did a local fork and updated it to 10.15.2 as of 2019-03-01.
 
 This guide is currenly only for windows, although nodec shall be able to compile nodejs for linux environment as well (not tested yet with our own fork, official release tested previously to be working).
 
@@ -24,8 +24,8 @@ NOTE:
 - install x64 (64 bit) versions
 - install portable version if available/where possible (just unzip to c:\bin)
 
-nodejs - https://nodejs.org/dist/v10.15.1/node-v10.15.1-win-x64.zip
-install the same version as what nodec supports (10.15.1 currently)
+nodejs - https://nodejs.org/dist/v10.15.2/node-v10.15.2-win-x64.zip
+install the same version as what nodec supports (10.15.2 currently)
 
 Ruby - https://rubyinstaller.org/downloads/
 Just download latest stable version for windows x64 shall be fine.

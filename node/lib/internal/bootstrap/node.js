@@ -209,7 +209,7 @@
 
     perf.markMilestone(NODE_PERFORMANCE_MILESTONE_BOOTSTRAP_COMPLETE);
 
-    setupAllowedFlags();
+    perThreadSetup.setupAllowedFlags();
 
     // There are various modes that Node can run in. The most common two
     // are running from a script and running the REPL - but there are a few
@@ -223,7 +223,7 @@
       // To allow people to extend Node in different ways, this hook allows
       // one to drop a file lib/_third_party_main.js into the build
       // directory which will be executed instead of Node's normal loading.
-      process.nextTick(function() {
+      process.nextTick(() => {
         NativeModule.require('_third_party_main');
       });
     } else if (process.argv[1] === 'inspect' || process.argv[1] === 'debug') {
@@ -234,7 +234,7 @@
       }
 
       // Start the debugger agent.
-      process.nextTick(function() {
+      process.nextTick(() => {
         NativeModule.require('internal/deps/node-inspect/lib/_inspect').start();
       });
 
@@ -287,14 +287,14 @@
         if (process._forceRepl || NativeModule.require('tty').isatty(0)) {
           // REPL
           const cliRepl = NativeModule.require('internal/repl');
-          cliRepl.createInternalRepl(process.env, function(err, repl) {
+          cliRepl.createInternalRepl(process.env, (err, repl) => {
             if (err) {
               throw err;
             }
-            repl.on('exit', function() {
+            repl.on('exit', () => {
               if (repl._flushing) {
                 repl.pause();
-                return repl.once('flushHistory', function() {
+                return repl.once('flushHistory', () => {
                   process.exit();
                 });
               }
@@ -311,7 +311,7 @@
           process.stdin.setEncoding('utf8');
 
           let code = '';
-          process.stdin.on('data', function(d) {
+          process.stdin.on('data', (d) => {
             code += d;
           });
 
@@ -434,7 +434,9 @@
 
   function setupDOMException() {
     // Registers the constructor with C++.
-    NativeModule.require('internal/domexception');
+    const DOMException = NativeModule.require('internal/domexception');
+    const { registerDOMException } = internalBinding('messaging');
+    registerDOMException(DOMException);
   }
 
   function setupInspector(originalConsole, wrappedConsole) {
@@ -484,7 +486,7 @@
       emitAfter
     } = NativeModule.require('internal/async_hooks');
 
-    process._fatalException = function(er) {
+    process._fatalException = (er) => {
       // It's possible that defaultTriggerAsyncId was set for a constructor
       // call that threw and was never cleared. So clear it now.
       clearDefaultTriggerAsyncId();
@@ -615,129 +617,6 @@
     source = CJSModule.wrap(source);
     // Compile the script, this will throw if it fails.
     new vm.Script(source, { displayErrors: true, filename });
-  }
-
-  function setupAllowedFlags() {
-    // This builds process.allowedNodeEnvironmentFlags
-    // from data in the config binding
-
-    const replaceUnderscoresRegex = /_/g;
-    const leadingDashesRegex = /^--?/;
-    const trailingValuesRegex = /=.*$/;
-
-    // Save references so user code does not interfere
-    const replace = Function.call.bind(String.prototype.replace);
-    const has = Function.call.bind(Set.prototype.has);
-    const test = Function.call.bind(RegExp.prototype.test);
-
-    const get = () => {
-      const {
-        envSettings: { kAllowedInEnvironment }
-      } = internalBinding('options');
-      const { options, aliases } = NativeModule.require('internal/options');
-
-      const allowedNodeEnvironmentFlags = [];
-      for (const [name, info] of options) {
-        if (info.envVarSettings === kAllowedInEnvironment) {
-          allowedNodeEnvironmentFlags.push(name);
-        }
-      }
-
-      for (const [ from, expansion ] of aliases) {
-        let isAccepted = true;
-        for (const to of expansion) {
-          if (!to.startsWith('-') || to === '--') continue;
-          const recursiveExpansion = aliases.get(to);
-          if (recursiveExpansion) {
-            if (recursiveExpansion[0] === to)
-              recursiveExpansion.splice(0, 1);
-            expansion.push(...recursiveExpansion);
-            continue;
-          }
-          isAccepted = options.get(to).envVarSettings === kAllowedInEnvironment;
-          if (!isAccepted) break;
-        }
-        if (isAccepted) {
-          let canonical = from;
-          if (canonical.endsWith('='))
-            canonical = canonical.substr(0, canonical.length - 1);
-          if (canonical.endsWith(' <arg>'))
-            canonical = canonical.substr(0, canonical.length - 4);
-          allowedNodeEnvironmentFlags.push(canonical);
-        }
-      }
-
-      const trimLeadingDashes = (flag) => replace(flag, leadingDashesRegex, '');
-
-      // Save these for comparison against flags provided to
-      // process.allowedNodeEnvironmentFlags.has() which lack leading dashes.
-      // Avoid interference w/ user code by flattening `Set.prototype` into
-      // each object.
-      const nodeFlags = Object.defineProperties(
-        new Set(allowedNodeEnvironmentFlags.map(trimLeadingDashes)),
-        Object.getOwnPropertyDescriptors(Set.prototype)
-      );
-
-      class NodeEnvironmentFlagsSet extends Set {
-        constructor(...args) {
-          super(...args);
-
-          // the super constructor consumes `add`, but
-          // disallow any future adds.
-          this.add = () => this;
-        }
-
-        delete() {
-          // noop, `Set` API compatible
-          return false;
-        }
-
-        clear() {
-          // noop
-        }
-
-        has(key) {
-          // This will return `true` based on various possible
-          // permutations of a flag, including present/missing leading
-          // dash(es) and/or underscores-for-dashes.
-          // Strips any values after `=`, inclusive.
-          // TODO(addaleax): It might be more flexible to run the option parser
-          // on a dummy option set and see whether it rejects the argument or
-          // not.
-          if (typeof key === 'string') {
-            key = replace(key, replaceUnderscoresRegex, '-');
-            if (test(leadingDashesRegex, key)) {
-              key = replace(key, trailingValuesRegex, '');
-              return has(this, key);
-            }
-            return has(nodeFlags, key);
-          }
-          return false;
-        }
-      }
-
-      Object.freeze(NodeEnvironmentFlagsSet.prototype.constructor);
-      Object.freeze(NodeEnvironmentFlagsSet.prototype);
-
-      return process.allowedNodeEnvironmentFlags = Object.freeze(
-        new NodeEnvironmentFlagsSet(
-          allowedNodeEnvironmentFlags
-        ));
-    };
-
-    Object.defineProperty(process, 'allowedNodeEnvironmentFlags', {
-      get,
-      set(value) {
-        Object.defineProperty(this, 'allowedNodeEnvironmentFlags', {
-          value,
-          configurable: true,
-          enumerable: true,
-          writable: true
-        });
-      },
-      enumerable: true,
-      configurable: true
-    });
   }
 
   startup();

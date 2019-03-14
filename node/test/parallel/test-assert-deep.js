@@ -380,6 +380,14 @@ assertOnlyDeepEqual(
   new Map([[1, {}]]),
   new Map([[true, {}]])
 );
+assertOnlyDeepEqual(
+  new Map([[undefined, true]]),
+  new Map([[null, true]])
+);
+assertNotDeepOrStrict(
+  new Map([[undefined, true]]),
+  new Map([[true, true]])
+);
 
 // GH-6416. Make sure circular refs don't throw.
 {
@@ -549,9 +557,20 @@ assertOnlyDeepEqual(
   assertDeepAndStrictEqual(m3, m4);
 }
 
-// Handle sparse arrays
-assertDeepAndStrictEqual([1, , , 3], [1, , , 3]);
-assertOnlyDeepEqual([1, , , 3], [1, , , 3, , , ]);
+// Handle sparse arrays.
+{
+  assertDeepAndStrictEqual([1, , , 3], [1, , , 3]);
+  assertOnlyDeepEqual([1, , , 3], [1, , , 3, , , ]);
+  const a = new Array(3);
+  const b = new Array(3);
+  a[2] = true;
+  b[1] = true;
+  assertNotDeepOrStrict(a, b);
+  b[2] = true;
+  assertNotDeepOrStrict(a, b);
+  a[0] = true;
+  assertNotDeepOrStrict(a, b);
+}
 
 // Handle different error messages
 {

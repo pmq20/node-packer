@@ -1,7 +1,7 @@
 'use strict';
 
 const { NativeModule } = require('internal/bootstrap/loaders');
-const { ModuleWrap } = internalBinding('module_wrap');
+const { ModuleWrap, callbackMap } = internalBinding('module_wrap');
 const {
   stripShebang,
   stripBOM
@@ -15,6 +15,8 @@ const { _makeLong } = require('path');
 const { SafeMap } = require('internal/safe_globals');
 const { URL } = require('url');
 const { debuglog, promisify } = require('util');
+const esmLoader = require('internal/process/esm_loader');
+
 const readFileAsync = promisify(fs.readFile);
 const readFileSync = fs.readFileSync;
 const StringReplace = Function.call.bind(String.prototype.replace);
@@ -25,13 +27,27 @@ const debug = debuglog('esm');
 const translators = new SafeMap();
 module.exports = translators;
 
+function initializeImportMeta(meta, { url }) {
+  meta.url = url;
+}
+
+async function importModuleDynamically(specifier, { url }) {
+  const loader = await esmLoader.loaderPromise;
+  return loader.import(specifier, url);
+}
+
 // Strategy for loading a standard JavaScript module
 translators.set('esm', async (url) => {
   const source = `${await readFileAsync(new URL(url))}`;
   debug(`Translating StandardModule ${url}`);
+  const module = new ModuleWrap(stripShebang(source), url);
+  callbackMap.set(module, {
+    initializeImportMeta,
+    importModuleDynamically,
+  });
   return {
-    module: new ModuleWrap(stripShebang(source), url),
-    reflect: undefined
+    module,
+    reflect: undefined,
   };
 });
 
@@ -44,9 +60,10 @@ translators.set('cjs', async (url, isMain) => {
   const module = CJSModule._cache[
     isWindows ? StringReplace(pathname, winSepRegEx, '\\') : pathname];
   if (module && module.loaded) {
-    const ctx = createDynamicModule(['default'], url);
-    ctx.reflect.exports.default.set(module.exports);
-    return ctx;
+    const exports = module.exports;
+    return createDynamicModule(['default'], url, (reflect) => {
+      reflect.exports.default.set(exports);
+    });
   }
   return createDynamicModule(['default'], url, () => {
     debug(`Loading CJSModule ${url}`);

@@ -6,7 +6,7 @@ environment:
   DEPEND_DIR: C:\dependencies
   PRJROOT_DIR: C:\projects\node-packer
   NODEC_TESTS_TMPDIR: C:\tmp
-  NODEC_NODE: 10.15.2
+  NODEC_NODE: 10.15.3
   GYP_MSVS_VERSION: 2017
   mode: release
   arch: x64

@@ -29,6 +29,7 @@ const assert = require('assert').ok;
 const fs = require('fs');
 const internalFS = require('internal/fs/utils');
 const path = require('path');
+const { URL } = require('url');
 const {
   internalModuleReadJSON,
   internalModuleStat
@@ -46,10 +47,10 @@ const preserveSymlinksMain = getOptionValue('--preserve-symlinks-main');
 const experimentalModules = getOptionValue('--experimental-modules');
 
 const {
-  ERR_INVALID_ARG_TYPE,
   ERR_INVALID_ARG_VALUE,
   ERR_REQUIRE_ESM
 } = require('internal/errors').codes;
+const { validateString } = require('internal/validators');
 
 module.exports = Module;
 
@@ -602,23 +603,24 @@ Module.prototype.load = function(filename) {
   if (experimentalModules) {
     if (asyncESM === undefined) lazyLoadESM();
     const ESMLoader = asyncESM.ESMLoader;
-    const url = pathToFileURL(filename);
-    const urlString = `${url}`;
+    const url = `${pathToFileURL(filename)}`;
+    const module = ESMLoader.moduleMap.get(url);
+    // create module entry at load time to snapshot exports correctly
     const exports = this.exports;
-    if (ESMLoader.moduleMap.has(urlString) !== true) {
+    if (module !== undefined) { // called from cjs translator
+      module.reflect.onReady((reflect) => {
+        reflect.exports.default.set(exports);
+      });
+    } else { // preemptively cache
       ESMLoader.moduleMap.set(
-        urlString,
+        url,
         new ModuleJob(ESMLoader, url, async () => {
-          const ctx = createDynamicModule(
-            ['default'], url);
-          ctx.reflect.exports.default.set(exports);
-          return ctx;
+          return createDynamicModule(
+            ['default'], url, (reflect) => {
+              reflect.exports.default.set(exports);
+            });
         })
       );
-    } else {
-      const job = ESMLoader.moduleMap.get(urlString);
-      if (job.reflect)
-        job.reflect.exports.default.set(exports);
     }
   }
 };
@@ -627,9 +629,7 @@ Module.prototype.load = function(filename) {
 // Loads a module at the given file path. Returns that module's
 // `exports` property.
 Module.prototype.require = function(id) {
-  if (typeof id !== 'string') {
-    throw new ERR_INVALID_ARG_TYPE('id', 'string', id);
-  }
+  validateString(id, 'id');
   if (id === '') {
     throw new ERR_INVALID_ARG_VALUE('id', id,
                                     'must be a non-empty string');
@@ -641,6 +641,13 @@ Module.prototype.require = function(id) {
 // Resolved path to process.argv[1] will be lazily placed here
 // (needed for setting breakpoint when called with --inspect-brk)
 var resolvedArgv;
+
+function normalizeReferrerURL(referrer) {
+  if (typeof referrer === 'string' && path.isAbsolute(referrer)) {
+    return pathToFileURL(referrer).href;
+  }
+  return new URL(referrer).href;
+}
 
 
 // Run the file contents in the correct scope or sandbox. Expose
@@ -657,7 +664,12 @@ Module.prototype._compile = function(content, filename) {
   var compiledWrapper = vm.runInThisContext(wrapper, {
     filename: filename,
     lineOffset: 0,
-    displayErrors: true
+    displayErrors: true,
+    importModuleDynamically: experimentalModules ? async (specifier) => {
+      if (asyncESM === undefined) lazyLoadESM();
+      const loader = await asyncESM.loaderPromise;
+      return loader.import(specifier, normalizeReferrerURL(filename));
+    } : undefined,
   });
 
   var inspectorWrapper = null;

@@ -1383,7 +1383,8 @@
               "name": "randomFillSync",
               "meta": {
                 "added": [
-                  "v7.10.0"
+                  "v7.10.0",
+                  "v6.13.0"
                 ],
                 "changes": [
                   {
@@ -1433,7 +1434,8 @@
               "name": "randomFill",
               "meta": {
                 "added": [
-                  "v7.10.0"
+                  "v7.10.0",
+                  "v6.13.0"
                 ],
                 "changes": [
                   {

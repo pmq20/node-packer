@@ -1617,9 +1617,16 @@
             {
               "textRaw": "ERR_VALID_PERFORMANCE_ENTRY_TYPE",
               "name": "err_valid_performance_entry_type",
-              "desc": "<p>While using the Performance Timing API (<code>perf_hooks</code>), no valid performance\nentry types were found.</p>\n<p><a id=\"ERR_VM_MODULE_ALREADY_LINKED\"></a></p>",
+              "desc": "<p>While using the Performance Timing API (<code>perf_hooks</code>), no valid performance\nentry types were found.</p>\n<p><a id=\"ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING\"></a></p>",
               "type": "module",
               "displayName": "ERR_VALID_PERFORMANCE_ENTRY_TYPE"
+            },
+            {
+              "textRaw": "ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING",
+              "name": "err_vm_dynamic_import_callback_missing",
+              "desc": "<p>A dynamic import callback was not specified.</p>\n<p><a id=\"ERR_VM_MODULE_ALREADY_LINKED\"></a></p>",
+              "type": "module",
+              "displayName": "ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING"
             },
             {
               "textRaw": "ERR_VM_MODULE_ALREADY_LINKED",

@@ -27,7 +27,8 @@
               "name": "URL",
               "meta": {
                 "added": [
-                  "v7.0.0"
+                  "v7.0.0",
+                  "v6.13.0"
                 ],
                 "changes": [
                   {
@@ -182,7 +183,8 @@
               "name": "URLSearchParams",
               "meta": {
                 "added": [
-                  "v7.5.0"
+                  "v7.5.0",
+                  "v6.13.0"
                 ],
                 "changes": [
                   {
@@ -385,7 +387,8 @@
                   "name": "sort",
                   "meta": {
                     "added": [
-                      "v7.7.0"
+                      "v7.7.0",
+                      "v6.13.0"
                     ],
                     "changes": []
                   },
@@ -493,7 +496,8 @@
               "name": "domainToASCII",
               "meta": {
                 "added": [
-                  "v7.4.0"
+                  "v7.4.0",
+                  "v6.13.0"
                 ],
                 "changes": []
               },
@@ -521,7 +525,8 @@
               "name": "domainToUnicode",
               "meta": {
                 "added": [
-                  "v7.4.0"
+                  "v7.4.0",
+                  "v6.13.0"
                 ],
                 "changes": []
               },
@@ -547,6 +552,12 @@
               "textRaw": "url.fileURLToPath(url)",
               "type": "method",
               "name": "fileURLToPath",
+              "meta": {
+                "added": [
+                  "v10.12.0"
+                ],
+                "changes": []
+              },
               "signatures": [
                 {
                   "return": {
@@ -636,6 +647,12 @@
               "textRaw": "url.pathToFileURL(path)",
               "type": "method",
               "name": "pathToFileURL",
+              "meta": {
+                "added": [
+                  "v10.12.0"
+                ],
+                "changes": []
+              },
               "signatures": [
                 {
                   "return": {

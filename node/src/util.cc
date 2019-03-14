@@ -102,7 +102,7 @@ BufferValue::BufferValue(Isolate* isolate, Local<Value> value) {
 
 void LowMemoryNotification() {
   if (v8_initialized) {
-    auto isolate = v8::Isolate::GetCurrent();
+    auto isolate = Isolate::GetCurrent();
     if (isolate != nullptr) {
       isolate->LowMemoryNotification();
     }
@@ -116,7 +116,8 @@ std::string GetHumanReadableProcessName() {
 }
 
 void GetHumanReadableProcessName(char (*name)[1024]) {
-  char title[1024] = "Node.js";
+  // Leave room after title for pid, which can be up to 20 digits for 64 bit.
+  char title[1000] = "Node.js";
   uv_get_process_title(title, sizeof(title));
   snprintf(*name, sizeof(*name), "%s[%d]", title, uv_os_getpid());
 }
@@ -134,7 +135,7 @@ std::set<std::string> ParseCommaSeparatedSet(const std::string& in) {
   return out;
 }
 
-void ThrowErrStringTooLong(v8::Isolate* isolate) {
+void ThrowErrStringTooLong(Isolate* isolate) {
   isolate->ThrowException(ERR_STRING_TOO_LONG(isolate));
 }
 

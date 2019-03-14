@@ -1,4 +1,3 @@
-from __future__ import print_function
 # Copyright 2008 the V8 project authors. All rights reserved.
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
@@ -26,11 +25,23 @@ from __future__ import print_function
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from __future__ import print_function
+
 import test
 import os
 from os.path import join, exists, basename, isdir
 import re
 import utils
+
+try:
+  reduce           # Python 2
+except NameError:  # Python 3
+  from functools import reduce
+
+try:
+  xrange          # Python 2
+except NameError:
+  xrange = range  # Python 3
 
 FLAGS_PATTERN = re.compile(r"//\s+Flags:(.*)")
 
@@ -51,7 +62,7 @@ class TTYTestCase(test.TestCase):
     else: return str.startswith('==') or str.startswith('**')
 
   def IsFailureOutput(self, output):
-    f = file(self.expected)
+    f = open(self.expected)
     # Convert output lines to regexps that we can match
     env = { 'basename': basename(self.file) }
     patterns = [ ]

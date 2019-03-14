@@ -1,7 +1,7 @@
 language: node_js
 env:
     global:
-        - NODEVER=10.15.2
+        - NODEVER=10.15.3
         - RubyMajMinVer=2.5
         - RubyRevVer=3
         - xcodeVer=xcode10.1

@@ -2,9 +2,9 @@
 
 *Packing your Node.js application into a single executable.*
 
-[![Build status](https://ci.appveyor.com/api/projects/status/fsuhe9x6mamohuym/branch/Series10?svg=true)](https://ci.appveyor.com/project/slee047/node-packer/branch/Series10)
-[![Status](https://travis-ci.org/slee047/node-packer.svg?branch=Series10)](https://travis-ci.org/slee047/node-packer)
-[![GitHub version](https://img.shields.io/badge/version-1.6.0%20(10.15.2)-blue.svg	)](https://badge.fury.io/gh/slee047%2Fnode-packer)
+[![Build status](https://ci.appveyor.com/api/projects/status/appwi7yrdntwuv3k/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler/branch/master)
+[![Status](https://travis-ci.org/pmq20/node-compiler.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler)
+[![GitHub version](https://badge.fury.io/gh/pmq20%2Fnode-compiler.svg)](https://badge.fury.io/gh/pmq20%2Fnode-compiler)
 
 ![Terminal simulation of a simple compilation](https://github.com/pmq20/node-compiler/raw/master/doc/nodec.gif)
 

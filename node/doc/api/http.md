@@ -129,6 +129,8 @@ added: v0.3.4
   * `timeout` {number} Socket timeout in milliseconds.
     This will set the timeout after the socket is connected.
 
+`options` in [`socket.connect()`][] are also supported.
+
 The default [`http.globalAgent`][] that is used by [`http.request()`][] has all
 of these values set to their respective defaults.
 
@@ -1594,6 +1596,7 @@ header name:
 `last-modified`, `location`, `max-forwards`, `proxy-authorization`, `referer`,
 `retry-after`, or `user-agent` are discarded.
 * `set-cookie` is always an array. Duplicates are added to the array.
+* For duplicate `cookie` headers, the values are joined together with '; '.
 * For all other headers, the values are joined together with ', '.
 
 ### message.httpVersion
@@ -2080,9 +2083,9 @@ will be emitted in the following order:
 * `'socket'`
 * (`req.abort()` called here)
 * `'abort'`
-* `'close'`
 * `'error'` with an error with message `'Error: socket hang up'` and code
   `'ECONNRESET'`
+* `'close'`
 
 If `req.abort()` is called after the response is received, the following events
 will be emitted in the following order:
@@ -2092,10 +2095,10 @@ will be emitted in the following order:
   * `'data'` any number of times, on the `res` object
 * (`req.abort()` called here)
 * `'abort'`
+* `'aborted'` on the `res` object
 * `'close'`
-  * `'aborted'` on the `res` object
-  * `'end'` on the `res` object
-  * `'close'` on the `res` object
+* `'end'` on the `res` object
+* `'close'` on the `res` object
 
 Note that setting the `timeout` option or using the `setTimeout()` function will
 not abort the request or do anything besides add a `'timeout'` event.
@@ -2144,6 +2147,7 @@ not abort the request or do anything besides add a `'timeout'` event.
 [`server.listen()`]: net.html#net_server_listen
 [`server.timeout`]: #http_server_timeout
 [`setHeader(name, value)`]: #http_request_setheader_name_value
+[`socket.connect()`]: net.html#net_socket_connect_options_connectlistener
 [`socket.setKeepAlive()`]: net.html#net_socket_setkeepalive_enable_initialdelay
 [`socket.setNoDelay()`]: net.html#net_socket_setnodelay_nodelay
 [`socket.setTimeout()`]: net.html#net_socket_settimeout_timeout_callback

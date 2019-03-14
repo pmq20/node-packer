@@ -568,16 +568,27 @@ class Http2ServerResponse extends Stream {
     if (this[kStream].headersSent)
       throw new ERR_HTTP2_HEADERS_SENT();
 
+    // If the stream is destroyed, we return false,
+    // like require('http').
+    if (this.stream.destroyed)
+      return false;
+
     if (typeof statusMessage === 'string')
       statusMessageWarn();
 
     if (headers === undefined && typeof statusMessage === 'object')
       headers = statusMessage;
 
-    if (typeof headers === 'object') {
+    var i;
+    if (Array.isArray(headers)) {
+      for (i = 0; i < headers.length; i++) {
+        const header = headers[i];
+        this[kSetHeader](header[0], header[1]);
+      }
+    } else if (typeof headers === 'object') {
       const keys = Object.keys(headers);
       let key = '';
-      for (var i = 0; i < keys.length; i++) {
+      for (i = 0; i < keys.length; i++) {
         key = keys[i];
         this[kSetHeader](key, headers[key]);
       }

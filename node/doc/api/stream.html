@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Stream | Node.js v10.15.2 Documentation</title>
+  <title>Stream | Node.js v10.15.3 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -79,7 +79,7 @@
 
     <div id="column1" data-id="stream" class="interior">
       <header>
-        <h1>Node.js v10.15.2 Documentation</h1>
+        <h1>Node.js v10.15.3 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -265,7 +265,7 @@
       </div>
 
       <div id="apicontent">
-        <h1>Stream<a class="srclink" href="https://github.com/nodejs/node/blob/7e530ce306792f060f2316345465af72b8ff5f0c/lib/stream.js#L30">[src]</a><span><a class="mark" href="#stream_stream" id="stream_stream">#</a></span></h1>
+        <h1>Stream<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/stream.js#L30">[src]</a><span><a class="mark" href="#stream_stream" id="stream_stream">#</a></span></h1>
 
 <p></p><div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><p></p>
 <p>A stream is an abstract interface for working with streaming data in Node.js.
@@ -1504,6 +1504,7 @@ implement streams using JavaScript's prototypal inheritance model.</p>
 of the four basic stream classes (<code>stream.Writable</code>, <code>stream.Readable</code>,
 <code>stream.Duplex</code>, or <code>stream.Transform</code>), making sure they call the appropriate
 parent class constructor:</p>
+<!-- eslint-disable no-useless-constructor -->
 <pre><code class="language-js">const { Writable } = require('stream');
 
 class MyWritable extends Writable {
@@ -1613,6 +1614,7 @@ after it has been destroyed. <strong>Default:</strong> <code>true</code>.</li>
 </ul>
 </li>
 </ul>
+<!-- eslint-disable no-useless-constructor -->
 <pre><code class="language-js">const { Writable } = require('stream');
 
 class MyWritable extends Writable {
@@ -1755,11 +1757,6 @@ required elements of a custom <a href="#stream_class_stream_writable"><code>Writ
 <pre><code class="language-js">const { Writable } = require('stream');
 
 class MyWritable extends Writable {
-  constructor(options) {
-    super(options);
-    // ...
-  }
-
   _write(chunk, encoding, callback) {
     if (chunk.toString().indexOf('a') >= 0) {
       callback(new Error('chunk is invalid'));
@@ -1829,6 +1826,7 @@ method.</li>
 </ul>
 </li>
 </ul>
+<!-- eslint-disable no-useless-constructor -->
 <pre><code class="language-js">const { Readable } = require('stream');
 
 class MyReadable extends Readable {
@@ -2063,6 +2061,7 @@ of the stream. Has no effect if <code>highWaterMark</code> is provided.</li>
 </ul>
 </li>
 </ul>
+<!-- eslint-disable no-useless-constructor -->
 <pre><code class="language-js">const { Duplex } = require('stream');
 
 class MyDuplex extends Duplex {
@@ -2197,6 +2196,7 @@ method.</li>
 </ul>
 </li>
 </ul>
+<!-- eslint-disable no-useless-constructor -->
 <pre><code class="language-js">const { Transform } = require('stream');
 
 class MyTransform extends Transform {

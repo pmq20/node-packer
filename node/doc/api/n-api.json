@@ -2061,6 +2061,8 @@
             {
               "textRaw": "napi_add_finalizer",
               "name": "napi_add_finalizer",
+              "stability": 1,
+              "stabilityText": "Experimental",
               "meta": {
                 "added": [
                   "v8.0.0"

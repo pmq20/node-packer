@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>VM (Executing JavaScript) | Node.js v10.15.2 Documentation</title>
+  <title>VM (Executing JavaScript) | Node.js v10.15.3 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -79,7 +79,7 @@
 
     <div id="column1" data-id="vm" class="interior">
       <header>
-        <h1>Node.js v10.15.2 Documentation</h1>
+        <h1>Node.js v10.15.3 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -310,9 +310,18 @@ const contextifiedSandbox = vm.createContext({ secret: 42 });
 in stack traces produced by this <code>Module</code>.</li>
 <li><code>columnOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> Specifies the column number offset that is
 displayed in stack traces produced by this <code>Module</code>.</li>
-<li><code>initalizeImportMeta</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> Called during evaluation of this <code>Module</code>
+<li><code>initializeImportMeta</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> Called during evaluation of this <code>Module</code>
 to initialize the <code>import.meta</code>. This function has the signature <code>(meta, module)</code>, where <code>meta</code> is the <code>import.meta</code> object in the <code>Module</code>, and
 <code>module</code> is this <code>vm.SourceTextModule</code> object.</li>
+<li><code>importModuleDynamically</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> Called during evaluation of this
+module when <code>import()</code> is called. This function has the signature
+<code>(specifier, module)</code> where <code>specifier</code> is the specifier passed to
+<code>import()</code> and <code>module</code> is this <code>vm.SourceTextModule</code>. If this option is
+not specified, calls to <code>import()</code> will reject with
+<a href="errors.html#ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING"><code>ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING</code></a>. This method can return a
+<a href="https://tc39.github.io/ecma262/#sec-module-namespace-exotic-objects">Module Namespace Object</a>, but returning a <code>vm.SourceTextModule</code> is
+recommended in order to take advantage of error tracking, and to avoid
+issues with namespaces that contain <code>then</code> function exports.</li>
 </ul>
 </li>
 </ul>
@@ -568,6 +577,15 @@ will attempt to produce code cache data for <code>code</code>. Upon success, a
 The <code>cachedDataProduced</code> value will be set to either <code>true</code> or <code>false</code>
 depending on whether code cache data is produced successfully.
 This option is deprecated in favor of <code>script.createCachedData()</code>.</li>
+<li><code>importModuleDynamically</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> Called during evaluation of this
+module when <code>import()</code> is called. This function has the signature
+<code>(specifier, module)</code> where <code>specifier</code> is the specifier passed to
+<code>import()</code> and <code>module</code> is this <code>vm.SourceTextModule</code>. If this option is
+not specified, calls to <code>import()</code> will reject with
+<a href="errors.html#ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING"><code>ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING</code></a>. This method can return a
+<a href="https://tc39.github.io/ecma262/#sec-module-namespace-exotic-objects">Module Namespace Object</a>, but returning a <code>vm.SourceTextModule</code> is
+recommended in order to take advantage of error tracking, and to avoid
+issues with namespaces that contain <code>then</code> function exports.</li>
 </ul>
 </li>
 </ul>
@@ -598,7 +616,7 @@ script.runInThisContext();
 
 const cacheWithX = script.createCachedData();
 </code></pre>
-<h3>script.runInContext(contextifiedSandbox[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/7e530ce306792f060f2316345465af72b8ff5f0c/lib/vm.js#L100">[src]</a><span><a class="mark" href="#vm_script_runincontext_contextifiedsandbox_options" id="vm_script_runincontext_contextifiedsandbox_options">#</a></span></h3>
+<h3>script.runInContext(contextifiedSandbox[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/vm.js#L123">[src]</a><span><a class="mark" href="#vm_script_runincontext_contextifiedsandbox_options" id="vm_script_runincontext_contextifiedsandbox_options">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -664,7 +682,7 @@ console.log(util.inspect(sandbox));
 <p>Using the <code>timeout</code> or <code>breakOnSigint</code> options will result in new event loops
 and corresponding threads being started, which have a non-zero performance
 overhead.</p>
-<h3>script.runInNewContext([sandbox[, options]])<a class="srclink" href="https://github.com/nodejs/node/blob/7e530ce306792f060f2316345465af72b8ff5f0c/lib/vm.js#L111">[src]</a><span><a class="mark" href="#vm_script_runinnewcontext_sandbox_options" id="vm_script_runinnewcontext_sandbox_options">#</a></span></h3>
+<h3>script.runInNewContext([sandbox[, options]])<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/vm.js#L134">[src]</a><span><a class="mark" href="#vm_script_runinnewcontext_sandbox_options" id="vm_script_runinnewcontext_sandbox_options">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -736,7 +754,7 @@ console.log(util.inspect(sandboxes));
 
 // [{ globalVar: 'set' }, { globalVar: 'set' }, { globalVar: 'set' }]
 </code></pre>
-<h3>script.runInThisContext([options])<a class="srclink" href="https://github.com/nodejs/node/blob/7e530ce306792f060f2316345465af72b8ff5f0c/lib/vm.js#L91">[src]</a><span><a class="mark" href="#vm_script_runinthiscontext_options" id="vm_script_runinthiscontext_options">#</a></span></h3>
+<h3>script.runInThisContext([options])<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/vm.js#L114">[src]</a><span><a class="mark" href="#vm_script_runinthiscontext_options" id="vm_script_runinthiscontext_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.3.1</span>
 </div>
@@ -778,7 +796,7 @@ console.log(globalVar);
 
 // 1000
 </code></pre>
-<h2>vm.compileFunction(code[, params[, options]])<a class="srclink" href="https://github.com/nodejs/node/blob/7e530ce306792f060f2316345465af72b8ff5f0c/lib/vm.js#L306">[src]</a><span><a class="mark" href="#vm_vm_compilefunction_code_params_options" id="vm_vm_compilefunction_code_params_options">#</a></span></h2>
+<h2>vm.compileFunction(code[, params[, options]])<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/vm.js#L329">[src]</a><span><a class="mark" href="#vm_vm_compilefunction_code_params_options" id="vm_vm_compilefunction_code_params_options">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v10.10.0</span>
 </div>
@@ -810,7 +828,7 @@ compiling. <strong>Default:</strong> <code>[]</code>.</li>
 <p>Compiles the given code into the provided context/sandbox (if no context is
 supplied, the current context is used), and returns it wrapped inside a
 function with the given <code>params</code>.</p>
-<h2>vm.createContext([sandbox[, options]])<a class="srclink" href="https://github.com/nodejs/node/blob/7e530ce306792f060f2316345465af72b8ff5f0c/lib/vm.js#L217">[src]</a><span><a class="mark" href="#vm_vm_createcontext_sandbox_options" id="vm_vm_createcontext_sandbox_options">#</a></span></h2>
+<h2>vm.createContext([sandbox[, options]])<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/vm.js#L240">[src]</a><span><a class="mark" href="#vm_vm_createcontext_sandbox_options" id="vm_vm_createcontext_sandbox_options">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -881,7 +899,7 @@ window's global object, then run all <code>&#x3C;script></code> tags together wi
 of that sandbox.</p>
 <p>The provided <code>name</code> and <code>origin</code> of the context are made visible through the
 Inspector API.</p>
-<h2>vm.isContext(sandbox)<a class="srclink" href="https://github.com/nodejs/node/blob/7e530ce306792f060f2316345465af72b8ff5f0c/lib/vm.js#L209">[src]</a><span><a class="mark" href="#vm_vm_iscontext_sandbox" id="vm_vm_iscontext_sandbox">#</a></span></h2>
+<h2>vm.isContext(sandbox)<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/vm.js#L232">[src]</a><span><a class="mark" href="#vm_vm_iscontext_sandbox" id="vm_vm_iscontext_sandbox">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.11.7</span>
 </div>
@@ -891,7 +909,7 @@ Inspector API.</p>
 </ul>
 <p>Returns <code>true</code> if the given <code>sandbox</code> object has been <a href="#vm_what_does_it_mean_to_contextify_an_object">contextified</a> using
 <a href="#vm_vm_createcontext_sandbox_options"><code>vm.createContext()</code></a>.</p>
-<h2>vm.runInContext(code, contextifiedSandbox[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/7e530ce306792f060f2316345465af72b8ff5f0c/lib/vm.js#L272">[src]</a><span><a class="mark" href="#vm_vm_runincontext_code_contextifiedsandbox_options" id="vm_vm_runincontext_code_contextifiedsandbox_options">#</a></span></h2>
+<h2>vm.runInContext(code, contextifiedSandbox[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/vm.js#L295">[src]</a><span><a class="mark" href="#vm_vm_runincontext_code_contextifiedsandbox_options" id="vm_vm_runincontext_code_contextifiedsandbox_options">#</a></span></h2>
 <ul>
 <li><code>code</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The JavaScript code to compile and run.</li>
 <li><code>contextifiedSandbox</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> The <a href="#vm_what_does_it_mean_to_contextify_an_object">contextified</a> object that will be used
@@ -934,7 +952,7 @@ console.log(util.inspect(sandbox));
 
 // { globalVar: 1024 }
 </code></pre>
-<h2>vm.runInNewContext(code[, sandbox[, options]])<a class="srclink" href="https://github.com/nodejs/node/blob/7e530ce306792f060f2316345465af72b8ff5f0c/lib/vm.js#L288">[src]</a><span><a class="mark" href="#vm_vm_runinnewcontext_code_sandbox_options" id="vm_vm_runinnewcontext_code_sandbox_options">#</a></span></h2>
+<h2>vm.runInNewContext(code[, sandbox[, options]])<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/vm.js#L311">[src]</a><span><a class="mark" href="#vm_vm_runinnewcontext_code_sandbox_options" id="vm_vm_runinnewcontext_code_sandbox_options">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.3.1</span>
 </div>
@@ -989,7 +1007,7 @@ console.log(util.inspect(sandbox));
 
 // { animal: 'cat', count: 3, name: 'kitty' }
 </code></pre>
-<h2>vm.runInThisContext(code[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/7e530ce306792f060f2316345465af72b8ff5f0c/lib/vm.js#L299">[src]</a><span><a class="mark" href="#vm_vm_runinthiscontext_code_options" id="vm_vm_runinthiscontext_code_options">#</a></span></h2>
+<h2>vm.runInThisContext(code[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/vm.js#L322">[src]</a><span><a class="mark" href="#vm_vm_runinthiscontext_code_options" id="vm_vm_runinthiscontext_code_options">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.3.1</span>
 </div>

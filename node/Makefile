@@ -647,16 +647,16 @@ out/doc/api/assets/%: doc/api_assets/% out/doc/api/assets
 
 run-npm-ci = $(PWD)/$(NPM) ci
 
+LINK_DATA = out/doc/apilinks.json
 gen-api = tools/doc/generate.js --node-version=$(FULLVERSION) \
-		--apilinks=out/apilinks.json $< --output-directory=out/doc/api
-gen-apilink = tools/doc/apilinks.js $(wildcard lib/*.js) > $@
+		--apilinks=$(LINK_DATA) $< --output-directory=out/doc/api
+gen-apilink = tools/doc/apilinks.js $(LINK_DATA) $(wildcard lib/*.js)
 
-out/apilinks.json: $(wildcard lib/*.js) tools/doc/apilinks.js
+$(LINK_DATA): $(wildcard lib/*.js) tools/doc/apilinks.js
 	$(call available-node, $(gen-apilink))
 
 out/doc/api/%.json out/doc/api/%.html: doc/api/%.md tools/doc/generate.js \
-	tools/doc/html.js tools/doc/json.js tools/doc/apilinks.js | \
-	out/apilinks.json
+	tools/doc/html.js tools/doc/json.js tools/doc/apilinks.js | $(LINK_DATA)
 	$(call available-node, $(gen-api))
 
 out/doc/api/all.html: $(apidocs_html) tools/doc/allhtml.js \
@@ -806,13 +806,29 @@ BINARYNAME=$(TARNAME)-$(PLATFORM)-$(ARCH)
 endif
 BINARYTAR=$(BINARYNAME).tar
 # OSX doesn't have xz installed by default, http://macpkg.sourceforge.net/
-XZ=$(shell which xz > /dev/null 2>&1; echo $$?)
+HAS_XZ ?= $(shell which xz > /dev/null 2>&1; [ $$? -eq 0 ] && echo 1 || echo 0)
+# Supply SKIP_XZ=1 to explicitly skip .tar.xz creation
+SKIP_XZ ?= 0
+XZ = $(shell [ $(HAS_XZ) -eq 1 -a $(SKIP_XZ) -eq 0 ] && echo 1 || echo 0)
 XZ_COMPRESSION ?= 9e
 PKG=$(TARNAME).pkg
 MACOSOUTDIR=out/macos
 
+ifeq ($(SKIP_XZ), 1)
+check-xz:
+	@echo "SKIP_XZ=1 supplied, skipping .tar.xz creation"
+else
+ifeq ($(HAS_XZ), 1)
+check-xz:
+else
+check-xz:
+	@echo "No xz command, cannot continue"
+	@exit 1
+endif
+endif
+
 .PHONY: release-only
-release-only:
+release-only: check-xz
 	@if [ "$(DISTTYPE)" = "release" ] && `grep -q REPLACEME doc/api/*.md`; then \
 		echo 'Please update REPLACEME in Added: tags in doc/api/*.md (See doc/releases.md)' ; \
 		exit 1 ; \
@@ -938,7 +954,7 @@ $(TARBALL): release-only $(NODE_EXE) doc
 	tar -cf $(TARNAME).tar $(TARNAME)
 	$(RM) -r $(TARNAME)
 	gzip -c -f -9 $(TARNAME).tar > $(TARNAME).tar.gz
-ifeq ($(XZ), 0)
+ifeq ($(XZ), 1)
 	xz -c -f -$(XZ_COMPRESSION) $(TARNAME).tar > $(TARNAME).tar.xz
 endif
 	$(RM) $(TARNAME).tar
@@ -952,7 +968,7 @@ tar-upload: tar
 	chmod 664 $(TARNAME).tar.gz
 	scp -p $(TARNAME).tar.gz $(STAGINGSERVER):nodejs/$(DISTTYPEDIR)/$(FULLVERSION)/$(TARNAME).tar.gz
 	ssh $(STAGINGSERVER) "touch nodejs/$(DISTTYPEDIR)/$(FULLVERSION)/$(TARNAME).tar.gz.done"
-ifeq ($(XZ), 0)
+ifeq ($(XZ), 1)
 	chmod 664 $(TARNAME).tar.xz
 	scp -p $(TARNAME).tar.xz $(STAGINGSERVER):nodejs/$(DISTTYPEDIR)/$(FULLVERSION)/$(TARNAME).tar.xz
 	ssh $(STAGINGSERVER) "touch nodejs/$(DISTTYPEDIR)/$(FULLVERSION)/$(TARNAME).tar.xz.done"
@@ -978,7 +994,7 @@ $(TARBALL)-headers: release-only
 	tar -cf $(TARNAME)-headers.tar $(TARNAME)
 	$(RM) -r $(TARNAME)
 	gzip -c -f -9 $(TARNAME)-headers.tar > $(TARNAME)-headers.tar.gz
-ifeq ($(XZ), 0)
+ifeq ($(XZ), 1)
 	xz -c -f -$(XZ_COMPRESSION) $(TARNAME)-headers.tar > $(TARNAME)-headers.tar.xz
 endif
 	$(RM) $(TARNAME)-headers.tar
@@ -990,7 +1006,7 @@ tar-headers-upload: tar-headers
 	chmod 664 $(TARNAME)-headers.tar.gz
 	scp -p $(TARNAME)-headers.tar.gz $(STAGINGSERVER):nodejs/$(DISTTYPEDIR)/$(FULLVERSION)/$(TARNAME)-headers.tar.gz
 	ssh $(STAGINGSERVER) "touch nodejs/$(DISTTYPEDIR)/$(FULLVERSION)/$(TARNAME)-headers.tar.gz.done"
-ifeq ($(XZ), 0)
+ifeq ($(XZ), 1)
 	chmod 664 $(TARNAME)-headers.tar.xz
 	scp -p $(TARNAME)-headers.tar.xz $(STAGINGSERVER):nodejs/$(DISTTYPEDIR)/$(FULLVERSION)/$(TARNAME)-headers.tar.xz
 	ssh $(STAGINGSERVER) "touch nodejs/$(DISTTYPEDIR)/$(FULLVERSION)/$(TARNAME)-headers.tar.xz.done"
@@ -1015,7 +1031,7 @@ endif
 	tar -cf $(BINARYNAME).tar $(BINARYNAME)
 	$(RM) -r $(BINARYNAME)
 	gzip -c -f -9 $(BINARYNAME).tar > $(BINARYNAME).tar.gz
-ifeq ($(XZ), 0)
+ifeq ($(XZ), 1)
 	xz -c -f -$(XZ_COMPRESSION) $(BINARYNAME).tar > $(BINARYNAME).tar.xz
 endif
 	$(RM) $(BINARYNAME).tar
@@ -1030,7 +1046,7 @@ binary-upload: binary
 	chmod 664 $(TARNAME)-$(OSTYPE)-$(ARCH).tar.gz
 	scp -p $(TARNAME)-$(OSTYPE)-$(ARCH).tar.gz $(STAGINGSERVER):nodejs/$(DISTTYPEDIR)/$(FULLVERSION)/$(TARNAME)-$(OSTYPE)-$(ARCH).tar.gz
 	ssh $(STAGINGSERVER) "touch nodejs/$(DISTTYPEDIR)/$(FULLVERSION)/$(TARNAME)-$(OSTYPE)-$(ARCH).tar.gz.done"
-ifeq ($(XZ), 0)
+ifeq ($(XZ), 1)
 	chmod 664 $(TARNAME)-$(OSTYPE)-$(ARCH).tar.xz
 	scp -p $(TARNAME)-$(OSTYPE)-$(ARCH).tar.xz $(STAGINGSERVER):nodejs/$(DISTTYPEDIR)/$(FULLVERSION)/$(TARNAME)-$(OSTYPE)-$(ARCH).tar.xz
 	ssh $(STAGINGSERVER) "touch nodejs/$(DISTTYPEDIR)/$(FULLVERSION)/$(TARNAME)-$(OSTYPE)-$(ARCH).tar.xz.done"
@@ -1079,7 +1095,7 @@ tools/.docmdlintstamp: $(LINT_MD_DOC_FILES)
 LINT_MD_TARGETS = src lib benchmark test tools/doc tools/icu
 LINT_MD_ROOT_DOCS := $(wildcard *.md)
 LINT_MD_MISC_FILES := $(shell find $(LINT_MD_TARGETS) -type f \
-  -not -path '*node_modules*' -not -path 'test/fixtures/*' -name '*.md') \
+  ! -path '*node_modules*' ! -path 'test/fixtures/*' -name '*.md') \
   $(LINT_MD_ROOT_DOCS)
 run-lint-misc-md = tools/lint-md.js -q -f $(LINT_MD_MISC_FILES)
 # Lint other changed markdown files maintained by us
@@ -1200,10 +1216,14 @@ tools/.cpplintstamp: $(LINT_CPP_FILES)
 	@$(PYTHON) tools/check-imports.py
 	@touch $@
 
-lint-addon-docs: test/addons/.docbuildstamp
+.PHONY: lint-addon-docs
+lint-addon-docs: tools/.doclintstamp
+
+tools/.doclintstamp: test/addons/.docbuildstamp
 	@echo "Running C++ linter on addon docs..."
 	@$(PYTHON) tools/cpplint.py $(CPPLINT_QUIET) --filter=$(ADDON_DOC_LINT_FLAGS) \
 		$(LINT_CPP_ADDON_DOC_FILES_GLOB)
+	@touch $@
 
 cpplint: lint-cpp
 	@echo "Please use lint-cpp instead of cpplint"
@@ -1223,7 +1243,7 @@ ifneq ("","$(wildcard tools/pip/site-packages)")
 lint-py:
 	PYTHONPATH=tools/pip $(PYTHON) -m flake8 . \
 		--count --show-source --statistics --select=E901,E999,F821,F822,F823 \
-		--exclude=deps,lib,src,tools/*_macros.py,tools/gyp,tools/jinja2,tools/pip
+		--exclude=.git,deps,lib,src,tools/*_macros.py,tools/gyp,tools/inspector_protocol,tools/jinja2,tools/markupsafe,tools/pip
 else
 lint-py:
 	@echo "Python linting with flake8 is not avalible"

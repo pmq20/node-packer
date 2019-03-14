@@ -20,6 +20,7 @@ using v8::Integer;
 using v8::Isolate;
 using v8::Local;
 using v8::MaybeLocal;
+using v8::NewStringType;
 using v8::Null;
 using v8::Object;
 using v8::String;
@@ -30,7 +31,7 @@ using v8::Value;
 inline Local<String> Utf8String(Isolate* isolate, const std::string& str) {
   return String::NewFromUtf8(isolate,
                              str.data(),
-                             v8::NewStringType::kNormal,
+                             NewStringType::kNormal,
                              str.length()).ToLocalChecked();
 }
 
@@ -785,10 +786,11 @@ inline bool ToASCII(const std::string& input, std::string* output) {
 
 void URLHost::ParseIPv6Host(const char* input, size_t length) {
   CHECK_EQ(type_, HostType::H_FAILED);
-  for (unsigned n = 0; n < 8; n++)
+  unsigned size = arraysize(value_.ipv6);
+  for (unsigned n = 0; n < size; n++)
     value_.ipv6[n] = 0;
   uint16_t* piece_pointer = &value_.ipv6[0];
-  uint16_t* const buffer_end = piece_pointer + 8;
+  uint16_t* const buffer_end = piece_pointer + size;
   uint16_t* compress_pointer = nullptr;
   const char* pointer = input;
   const char* end = pointer + length;
@@ -950,7 +952,7 @@ void URLHost::ParseIPv4Host(const char* input, size_t length, bool* is_ipv4) {
     const char ch = pointer < end ? pointer[0] : kEOL;
     const int remaining = end - pointer - 1;
     if (ch == '.' || ch == kEOL) {
-      if (++parts > 4)
+      if (++parts > static_cast<int>(arraysize(numbers)))
         return;
       if (pointer == mark)
         return;
@@ -1207,21 +1209,33 @@ inline url_data HarvestBase(Environment* env, Local<Object> base_obj) {
       base_obj->Get(env->context(), env->scheme_string()).ToLocalChecked();
   base.scheme = Utf8Value(env->isolate(), scheme).out();
 
-  auto GetStr = [&](std::string url_data::* member,
+  auto GetStr = [&](std::string url_data::*member,
                     int flag,
-                    Local<String> name) {
+                    Local<String> name,
+                    bool empty_as_present) {
     Local<Value> value = base_obj->Get(env->context(), name).ToLocalChecked();
     if (value->IsString()) {
       Utf8Value utf8value(env->isolate(), value.As<String>());
       (base.*member).assign(*utf8value, utf8value.length());
-      base.flags |= flag;
+      if (empty_as_present || value.As<String>()->Length() != 0) {
+        base.flags |= flag;
+      }
     }
   };
-  GetStr(&url_data::username, URL_FLAGS_HAS_USERNAME, env->username_string());
-  GetStr(&url_data::password, URL_FLAGS_HAS_PASSWORD, env->password_string());
-  GetStr(&url_data::host, URL_FLAGS_HAS_HOST, env->host_string());
-  GetStr(&url_data::query, URL_FLAGS_HAS_QUERY, env->query_string());
-  GetStr(&url_data::fragment, URL_FLAGS_HAS_FRAGMENT, env->fragment_string());
+  GetStr(&url_data::username,
+         URL_FLAGS_HAS_USERNAME,
+         env->username_string(),
+         false);
+  GetStr(&url_data::password,
+         URL_FLAGS_HAS_PASSWORD,
+         env->password_string(),
+         false);
+  GetStr(&url_data::host, URL_FLAGS_HAS_HOST, env->host_string(), true);
+  GetStr(&url_data::query, URL_FLAGS_HAS_QUERY, env->query_string(), true);
+  GetStr(&url_data::fragment,
+         URL_FLAGS_HAS_FRAGMENT,
+         env->fragment_string(),
+         true);
 
   Local<Value> port =
       base_obj->Get(env->context(), env->port_string()).ToLocalChecked();
@@ -1362,6 +1376,7 @@ void URL::Parse(const char* input,
       else
         break;
     }
+    input = p;
     len = end - p;
   }
 
@@ -2158,7 +2173,7 @@ static void Parse(Environment* env,
     argv[ERR_ARG_INPUT] =
       String::NewFromUtf8(env->isolate(),
                           input,
-                          v8::NewStringType::kNormal).ToLocalChecked();
+                          NewStringType::kNormal).ToLocalChecked();
     error_cb.As<Function>()->Call(context, recv, arraysize(argv), argv)
         .FromMaybe(Local<Value>());
   }
@@ -2208,7 +2223,7 @@ static void EncodeAuthSet(const FunctionCallbackInfo<Value>& args) {
   args.GetReturnValue().Set(
       String::NewFromUtf8(env->isolate(),
                           output.c_str(),
-                          v8::NewStringType::kNormal).ToLocalChecked());
+                          NewStringType::kNormal).ToLocalChecked());
 }
 
 static void ToUSVString(const FunctionCallbackInfo<Value>& args) {
@@ -2242,7 +2257,7 @@ static void ToUSVString(const FunctionCallbackInfo<Value>& args) {
   args.GetReturnValue().Set(
       String::NewFromTwoByte(env->isolate(),
                              *value,
-                             v8::NewStringType::kNormal,
+                             NewStringType::kNormal,
                              n).ToLocalChecked());
 }
 
@@ -2263,7 +2278,7 @@ static void DomainToASCII(const FunctionCallbackInfo<Value>& args) {
   args.GetReturnValue().Set(
       String::NewFromUtf8(env->isolate(),
                           out.c_str(),
-                          v8::NewStringType::kNormal).ToLocalChecked());
+                          NewStringType::kNormal).ToLocalChecked());
 }
 
 static void DomainToUnicode(const FunctionCallbackInfo<Value>& args) {
@@ -2283,7 +2298,7 @@ static void DomainToUnicode(const FunctionCallbackInfo<Value>& args) {
   args.GetReturnValue().Set(
       String::NewFromUtf8(env->isolate(),
                           out.c_str(),
-                          v8::NewStringType::kNormal).ToLocalChecked());
+                          NewStringType::kNormal).ToLocalChecked());
 }
 
 std::string URL::ToFilePath() const {

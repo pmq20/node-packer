@@ -275,11 +275,8 @@ function Socket(options) {
       throw errnoException(err, 'open');
 
     this[async_id_symbol] = this._handle.getAsyncId();
-    // options.fd can be string (since it is user-defined),
-    // so changing this to === would be semver-major
-    // See: https://github.com/nodejs/node/pull/11513
-    // eslint-disable-next-line eqeqeq
-    if ((fd == 1 || fd == 2) &&
+
+    if ((fd === 1 || fd === 2) &&
         (this._handle instanceof Pipe) &&
         process.platform === 'win32') {
       // Make stdout and stderr blocking on Windows
@@ -1070,10 +1067,6 @@ function afterConnect(status, handle, req, readable, writable) {
   if (self.destroyed) {
     return;
   }
-
-  // Update handle if it was wrapped
-  // TODO(indutny): assert that the handle is actually an ancestor of old one
-  handle = self._handle;
 
   debug('afterConnect');
 

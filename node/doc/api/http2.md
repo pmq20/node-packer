@@ -125,7 +125,7 @@ Every `Http2Session` instance is associated with exactly one [`net.Socket`][] or
 [`tls.TLSSocket`][] when it is created. When either the `Socket` or the
 `Http2Session` are destroyed, both will be destroyed.
 
-Because the of the specific serialization and processing requirements imposed
+Because of the specific serialization and processing requirements imposed
 by the HTTP/2 protocol, it is not recommended for user code to read data from
 or write data to a `Socket` instance bound to a `Http2Session`. Doing so can
 put the HTTP/2 session into an indeterminate state causing the session and
@@ -1123,7 +1123,7 @@ added: v9.5.0
 
 * {HTTP/2 Headers Object}
 
-An object containing the outbound trailers sent for this this `HttpStream`.
+An object containing the outbound trailers sent for this `HttpStream`.
 
 #### http2stream.session
 <!-- YAML
@@ -2288,7 +2288,7 @@ For incoming headers:
 `upgrade-insecure-requests`, `user-agent` or `x-content-type-options` are
 discarded.
 * `set-cookie` is always an array. Duplicates are added to the array.
-* `cookie`: the values are joined together with '; '.
+* For duplicate `cookie` headers, the values are joined together with '; '.
 * For all other headers, the values are joined together with ', '.
 
 ```js
@@ -2645,6 +2645,16 @@ added: v10.1.0
 The `request.aborted` property will be `true` if the request has
 been aborted.
 
+#### request.authority
+<!-- YAML
+added: v8.4.0
+-->
+
+* {string}
+
+The request authority pseudo header field. It can also be accessed via
+`req.headers[':authority']`.
+
 #### request.destroy([error])
 <!-- YAML
 added: v8.4.0
@@ -2752,6 +2762,16 @@ added: v8.4.0
 
 The raw request/response trailer keys and values exactly as they were
 received. Only populated at the `'end'` event.
+
+#### request.scheme
+<!-- YAML
+added: v8.4.0
+-->
+
+* {string}
+
+The request scheme pseudo header field indicating the scheme
+portion of the target URL.
 
 #### request.setTimeout(msecs, callback)
 <!-- YAML

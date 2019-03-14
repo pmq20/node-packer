@@ -352,6 +352,12 @@
                           "desc": "Current working directory of the child process."
                         },
                         {
+                          "textRaw": "`detached` {boolean} Prepare child to run independently of its parent process. Specific behavior depends on the platform, see [`options.detached`][]).",
+                          "name": "detached",
+                          "type": "boolean",
+                          "desc": "Prepare child to run independently of its parent process. Specific behavior depends on the platform, see [`options.detached`][])."
+                        },
+                        {
                           "textRaw": "`env` {Object} Environment key-value pairs.",
                           "name": "env",
                           "type": "Object",

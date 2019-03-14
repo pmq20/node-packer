@@ -20,14 +20,16 @@ function writeOut(message) {
 }
 
 function onClose(fd) {
-  return function() {
+  return () => {
     if (fs === null) fs = require('fs');
-    fs.close(fd, nop);
+    try {
+      fs.closeSync(fd);
+    } catch {}
   };
 }
 
 function onOpen(cb) {
-  return function(err, fd) {
+  return (err, fd) => {
     acquiringFd = false;
     if (fd !== undefined) {
       cachedFd = fd;
@@ -41,7 +43,7 @@ function onOpen(cb) {
 function onAcquired(message) {
   // make a best effort attempt at writing the message
   // to the fd. Errors are ignored at this point.
-  return function(err, fd) {
+  return (err, fd) => {
     if (err)
       return writeOut(message);
     if (fs === null) fs = require('fs');
@@ -70,7 +72,7 @@ function output(message) {
 }
 
 function doEmitWarning(warning) {
-  return function() {
+  return () => {
     process.emit('warning', warning);
   };
 }
@@ -104,7 +106,7 @@ function setupProcessWarnings() {
   // process.emitWarning(error)
   // process.emitWarning(str[, type[, code]][, ctor])
   // process.emitWarning(str[, options])
-  process.emitWarning = function(warning, type, code, ctor, now) {
+  process.emitWarning = (warning, type, code, ctor, now) => {
     var detail;
     if (type !== null && typeof type === 'object' && !Array.isArray(type)) {
       ctor = type.ctor;

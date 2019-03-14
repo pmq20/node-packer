@@ -484,6 +484,12 @@ void SecureContext::Init(const FunctionCallbackInfo<Value>& args) {
                                  SSL_SESS_CACHE_NO_AUTO_CLEAR);
 
   SSL_CTX_set_min_proto_version(sc->ctx_.get(), min_version);
+
+  if (max_version == 0) {
+    // Selecting some secureProtocol methods allows the TLS version to be "any
+    // supported", but we don't support TLSv1.3, even if OpenSSL does.
+    max_version = TLS1_2_VERSION;
+  }
   SSL_CTX_set_max_proto_version(sc->ctx_.get(), max_version);
   // OpenSSL 1.1.0 changed the ticket key size, but the OpenSSL 1.0.x size was
   // exposed in the public API. To retain compatibility, install a callback
@@ -3331,7 +3337,6 @@ bool Hash::HashInit(const char* hash_type) {
     mdctx_.reset();
     return false;
   }
-  finalized_ = false;
   return true;
 }
 
@@ -3385,7 +3390,6 @@ void Hash::HashDigest(const FunctionCallbackInfo<Value>& args) {
   unsigned int md_len;
 
   EVP_DigestFinal_ex(hash->mdctx_.get(), md_value, &md_len);
-  hash->finalized_ = true;
 
   Local<Value> error;
   MaybeLocal<Value> rc =
@@ -4115,9 +4119,11 @@ void DiffieHellman::GenerateKeys(const FunctionCallbackInfo<Value>& args) {
 
   const BIGNUM* pub_key;
   DH_get0_key(diffieHellman->dh_.get(), &pub_key, nullptr);
-  size_t size = BN_num_bytes(pub_key);
+  const int size = BN_num_bytes(pub_key);
+  CHECK_GE(size, 0);
   char* data = Malloc(size);
-  BN_bn2bin(pub_key, reinterpret_cast<unsigned char*>(data));
+  CHECK_EQ(size,
+           BN_bn2binpad(pub_key, reinterpret_cast<unsigned char*>(data), size));
   args.GetReturnValue().Set(Buffer::New(env, data, size).ToLocalChecked());
 }
 
@@ -4133,9 +4139,11 @@ void DiffieHellman::GetField(const FunctionCallbackInfo<Value>& args,
   const BIGNUM* num = get_field(dh->dh_.get());
   if (num == nullptr) return env->ThrowError(err_if_null);
 
-  size_t size = BN_num_bytes(num);
+  const int size = BN_num_bytes(num);
+  CHECK_GE(size, 0);
   char* data = Malloc(size);
-  BN_bn2bin(num, reinterpret_cast<unsigned char*>(data));
+  CHECK_EQ(size,
+           BN_bn2binpad(num, reinterpret_cast<unsigned char*>(data), size));
   args.GetReturnValue().Set(Buffer::New(env, data, size).ToLocalChecked());
 }
 
@@ -4470,13 +4478,9 @@ void ECDH::GetPrivateKey(const FunctionCallbackInfo<Value>& args) {
   if (b == nullptr)
     return env->ThrowError("Failed to get ECDH private key");
 
-  int size = BN_num_bytes(b);
+  const int size = BN_num_bytes(b);
   unsigned char* out = node::Malloc<unsigned char>(size);
-
-  if (size != BN_bn2bin(b, out)) {
-    free(out);
-    return env->ThrowError("Failed to convert ECDH private key to Buffer");
-  }
+  CHECK_EQ(size, BN_bn2binpad(b, out, size));
 
   Local<Object> buf =
       Buffer::New(env, reinterpret_cast<char*>(out), size).ToLocalChecked();

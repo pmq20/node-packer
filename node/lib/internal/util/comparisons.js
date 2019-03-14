@@ -401,9 +401,7 @@ function mapMightHaveLoosePrim(a, b, prim, item, memo) {
       !innerDeepEqual(item, curB, false, memo)) {
     return false;
   }
-  const curA = a.get(altValue);
-  return curA === undefined && a.has(altValue) ||
-         innerDeepEqual(item, curA, false, memo);
+  return !a.has(altValue) && innerDeepEqual(item, curB, false, memo);
 }
 
 function setEquiv(a, b, strict, memo) {
@@ -545,11 +543,10 @@ function objEquiv(a, b, strict, keys, memos, iterationType) {
       } else {
         // Array is sparse.
         const keysA = objectKeys(a);
-        i++;
         for (; i < keysA.length; i++) {
           const key = keysA[i];
           if (!hasOwnProperty(b, key) ||
-              !innerDeepEqual(a[key], b[i], strict, memos)) {
+              !innerDeepEqual(a[key], b[key], strict, memos)) {
             return false;
           }
         }

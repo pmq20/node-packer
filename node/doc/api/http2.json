@@ -44,7 +44,7 @@
             {
               "textRaw": "Headers Object",
               "name": "headers_object",
-              "desc": "<p>Headers are represented as own-properties on JavaScript objects. The property\nkeys will be serialized to lower-case. Property values should be strings (if\nthey are not they will be coerced to strings) or an <code>Array</code> of strings (in order\nto send more than one value per header field).</p>\n<pre><code class=\"language-js\">const headers = {\n  ':status': '200',\n  'content-type': 'text-plain',\n  'ABC': ['has', 'more', 'than', 'one', 'value']\n};\n\nstream.respond(headers);\n</code></pre>\n<p>Header objects passed to callback functions will have a <code>null</code> prototype. This\nmeans that normal JavaScript object methods such as\n<code>Object.prototype.toString()</code> and <code>Object.prototype.hasOwnProperty()</code> will\nnot work.</p>\n<p>For incoming headers:</p>\n<ul>\n<li>The <code>:status</code> header is converted to <code>number</code>.</li>\n<li>Duplicates of <code>:status</code>, <code>:method</code>, <code>:authority</code>, <code>:scheme</code>, <code>:path</code>,\n<code>:protocol</code>, <code>age</code>, <code>authorization</code>, <code>access-control-allow-credentials</code>,\n<code>access-control-max-age</code>, <code>access-control-request-method</code>, <code>content-encoding</code>,\n<code>content-language</code>, <code>content-length</code>, <code>content-location</code>, <code>content-md5</code>,\n<code>content-range</code>, <code>content-type</code>, <code>date</code>, <code>dnt</code>, <code>etag</code>, <code>expires</code>, <code>from</code>,\n<code>if-match</code>, <code>if-modified-since</code>, <code>if-none-match</code>, <code>if-range</code>,\n<code>if-unmodified-since</code>, <code>last-modified</code>, <code>location</code>, <code>max-forwards</code>,\n<code>proxy-authorization</code>, <code>range</code>, <code>referer</code>,<code>retry-after</code>, <code>tk</code>,\n<code>upgrade-insecure-requests</code>, <code>user-agent</code> or <code>x-content-type-options</code> are\ndiscarded.</li>\n<li><code>set-cookie</code> is always an array. Duplicates are added to the array.</li>\n<li><code>cookie</code>: the values are joined together with '; '.</li>\n<li>For all other headers, the values are joined together with ', '.</li>\n</ul>\n<pre><code class=\"language-js\">const http2 = require('http2');\nconst server = http2.createServer();\nserver.on('stream', (stream, headers) => {\n  console.log(headers[':path']);\n  console.log(headers.ABC);\n});\n</code></pre>",
+              "desc": "<p>Headers are represented as own-properties on JavaScript objects. The property\nkeys will be serialized to lower-case. Property values should be strings (if\nthey are not they will be coerced to strings) or an <code>Array</code> of strings (in order\nto send more than one value per header field).</p>\n<pre><code class=\"language-js\">const headers = {\n  ':status': '200',\n  'content-type': 'text-plain',\n  'ABC': ['has', 'more', 'than', 'one', 'value']\n};\n\nstream.respond(headers);\n</code></pre>\n<p>Header objects passed to callback functions will have a <code>null</code> prototype. This\nmeans that normal JavaScript object methods such as\n<code>Object.prototype.toString()</code> and <code>Object.prototype.hasOwnProperty()</code> will\nnot work.</p>\n<p>For incoming headers:</p>\n<ul>\n<li>The <code>:status</code> header is converted to <code>number</code>.</li>\n<li>Duplicates of <code>:status</code>, <code>:method</code>, <code>:authority</code>, <code>:scheme</code>, <code>:path</code>,\n<code>:protocol</code>, <code>age</code>, <code>authorization</code>, <code>access-control-allow-credentials</code>,\n<code>access-control-max-age</code>, <code>access-control-request-method</code>, <code>content-encoding</code>,\n<code>content-language</code>, <code>content-length</code>, <code>content-location</code>, <code>content-md5</code>,\n<code>content-range</code>, <code>content-type</code>, <code>date</code>, <code>dnt</code>, <code>etag</code>, <code>expires</code>, <code>from</code>,\n<code>if-match</code>, <code>if-modified-since</code>, <code>if-none-match</code>, <code>if-range</code>,\n<code>if-unmodified-since</code>, <code>last-modified</code>, <code>location</code>, <code>max-forwards</code>,\n<code>proxy-authorization</code>, <code>range</code>, <code>referer</code>,<code>retry-after</code>, <code>tk</code>,\n<code>upgrade-insecure-requests</code>, <code>user-agent</code> or <code>x-content-type-options</code> are\ndiscarded.</li>\n<li><code>set-cookie</code> is always an array. Duplicates are added to the array.</li>\n<li>For duplicate <code>cookie</code> headers, the values are joined together with '; '.</li>\n<li>For all other headers, the values are joined together with ', '.</li>\n</ul>\n<pre><code class=\"language-js\">const http2 = require('http2');\nconst server = http2.createServer();\nserver.on('stream', (stream, headers) => {\n  console.log(headers[':path']);\n  console.log(headers.ABC);\n});\n</code></pre>",
               "type": "module",
               "displayName": "Headers Object"
             },
@@ -126,7 +126,7 @@
                 {
                   "textRaw": "Http2Session and Sockets",
                   "name": "http2session_and_sockets",
-                  "desc": "<p>Every <code>Http2Session</code> instance is associated with exactly one <a href=\"net.html#net_class_net_socket\"><code>net.Socket</code></a> or\n<a href=\"tls.html#tls_class_tls_tlssocket\"><code>tls.TLSSocket</code></a> when it is created. When either the <code>Socket</code> or the\n<code>Http2Session</code> are destroyed, both will be destroyed.</p>\n<p>Because the of the specific serialization and processing requirements imposed\nby the HTTP/2 protocol, it is not recommended for user code to read data from\nor write data to a <code>Socket</code> instance bound to a <code>Http2Session</code>. Doing so can\nput the HTTP/2 session into an indeterminate state causing the session and\nthe socket to become unusable.</p>\n<p>Once a <code>Socket</code> has been bound to an <code>Http2Session</code>, user code should rely\nsolely on the API of the <code>Http2Session</code>.</p>",
+                  "desc": "<p>Every <code>Http2Session</code> instance is associated with exactly one <a href=\"net.html#net_class_net_socket\"><code>net.Socket</code></a> or\n<a href=\"tls.html#tls_class_tls_tlssocket\"><code>tls.TLSSocket</code></a> when it is created. When either the <code>Socket</code> or the\n<code>Http2Session</code> are destroyed, both will be destroyed.</p>\n<p>Because of the specific serialization and processing requirements imposed\nby the HTTP/2 protocol, it is not recommended for user code to read data from\nor write data to a <code>Socket</code> instance bound to a <code>Http2Session</code>. Doing so can\nput the HTTP/2 session into an indeterminate state causing the session and\nthe socket to become unusable.</p>\n<p>Once a <code>Socket</code> has been bound to an <code>Http2Session</code>, user code should rely\nsolely on the API of the <code>Http2Session</code>.</p>",
                   "type": "module",
                   "displayName": "Http2Session and Sockets"
                 }
@@ -1171,7 +1171,7 @@
                     ],
                     "changes": []
                   },
-                  "desc": "<p>An object containing the outbound trailers sent for this this <code>HttpStream</code>.</p>"
+                  "desc": "<p>An object containing the outbound trailers sent for this <code>HttpStream</code>.</p>"
                 },
                 {
                   "textRaw": "`session` {Http2Session}",
@@ -2720,6 +2720,18 @@
                   "desc": "<p>The <code>request.aborted</code> property will be <code>true</code> if the request has\nbeen aborted.</p>"
                 },
                 {
+                  "textRaw": "`authority` {string}",
+                  "type": "string",
+                  "name": "authority",
+                  "meta": {
+                    "added": [
+                      "v8.4.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<p>The request authority pseudo header field. It can also be accessed via\n<code>req.headers[':authority']</code>.</p>"
+                },
+                {
                   "textRaw": "`headers` {Object}",
                   "type": "Object",
                   "name": "headers",
@@ -2778,6 +2790,18 @@
                     "changes": []
                   },
                   "desc": "<p>The raw request/response trailer keys and values exactly as they were\nreceived. Only populated at the <code>'end'</code> event.</p>"
+                },
+                {
+                  "textRaw": "`scheme` {string}",
+                  "type": "string",
+                  "name": "scheme",
+                  "meta": {
+                    "added": [
+                      "v8.4.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<p>The request scheme pseudo header field indicating the scheme\nportion of the target URL.</p>"
                 },
                 {
                   "textRaw": "`socket` {net.Socket|tls.TLSSocket}",

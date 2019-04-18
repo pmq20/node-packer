@@ -1107,6 +1107,31 @@ multiple of the element size.
 While calling `napi_create_typedarray()`, `(length * size_of_element) +
 byte_offset` was larger than the length of given `buffer`.
 
+<a id="ERR_NAPI_TSFN_CALL_JS"></a>
+### ERR_NAPI_TSFN_CALL_JS
+
+An error occurred while invoking the JavaScript portion of the thread-safe
+function.
+
+<a id="ERR_NAPI_TSFN_GET_UNDEFINED"></a>
+### ERR_NAPI_TSFN_GET_UNDEFINED
+
+An error occurred while attempting to retrieve the JavaScript `undefined`
+value.
+
+<a id="ERR_NAPI_TSFN_START_IDLE_LOOP"></a>
+### ERR_NAPI_TSFN_START_IDLE_LOOP
+
+On the main thread, values are removed from the queue associated with the
+thread-safe function in an idle loop. This error indicates that an error
+has occurred when attemping to start the loop.
+
+<a id="ERR_NAPI_TSFN_STOP_IDLE_LOOP"></a>
+### ERR_NAPI_TSFN_STOP_IDLE_LOOP
+
+Once no more items are left in the queue, the idle loop must be suspended. This
+error indicates that the idle loop has failed to stop.
+
 <a id="ERR_NO_ICU"></a>
 ### ERR_NO_ICU
 
@@ -1147,11 +1172,31 @@ A call was made and the UDP subsystem was not running.
 <a id="ERR_STDERR_CLOSE"></a>
 ### ERR_STDERR_CLOSE
 
+<!-- YAML
+removed: v8.16.0
+changes:
+  - version: v8.16.0
+    pr-url: https://github.com/nodejs/node/pull/23053
+    description: Rather than emitting an error, `process.stderr.end()` now
+                 only closes the stream side but not the underlying resource,
+                 making this error obsolete.
+-->
+
 An attempt was made to close the `process.stderr` stream. By design, Node.js
 does not allow `stdout` or `stderr` streams to be closed by user code.
 
 <a id="ERR_STDOUT_CLOSE"></a>
 ### ERR_STDOUT_CLOSE
+
+<!-- YAML
+removed: v8.16.0
+changes:
+  - version: v8.16.0
+    pr-url: https://github.com/nodejs/node/pull/23053
+    description: Rather than emitting an error, `process.stderr.end()` now
+                 only closes the stream side but not the underlying resource,
+                 making this error obsolete.
+-->
 
 An attempt was made to close the `process.stdout` stream. By design, Node.js
 does not allow `stdout` or `stderr` streams to be closed by user code.

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>HTTP | Node.js v8.15.1 Documentation</title>
+  <title>HTTP | Node.js v8.16.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -81,7 +81,7 @@
 
     <div id="column1" data-id="http" class="interior">
       <header>
-        <h1>Node.js v8.15.1 Documentation</h1>
+        <h1>Node.js v8.16.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -728,8 +728,9 @@ here to send multiple headers with the same name.</p>
 <li><code>timeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Milliseconds before a request times out.</li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a> Optional function to be called when a timeout occurs. Same as binding to the <code>timeout</code> event.</li>
 </ul>
-<p>Once a socket is assigned to this request and is connected
-<a href="net.html#net_socket_settimeout_timeout_callback"><code>socket.setTimeout()</code></a> will be called.</p>
+<p>If no socket is assigned to this request then <a href="net.html#net_socket_settimeout_timeout_callback"><code>socket.setTimeout()</code></a> will be
+called immediately. Otherwise <a href="net.html#net_socket_settimeout_timeout_callback"><code>socket.setTimeout()</code></a> will be called after the
+assigned socket is connected.</p>
 <p>Returns <code>request</code>.</p>
 <h3>request.socket<span><a class="mark" href="#http_request_socket" id="http_request_socket">#</a></span></h3>
 <div class="api_metadata">

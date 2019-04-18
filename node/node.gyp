@@ -178,6 +178,9 @@
       'sources': [
         'src/node_main.cc'
       ],
+      'includes': [
+        'node.gypi'
+      ],
       'include_dirs': [
         'src',
         'deps/v8/include',
@@ -198,9 +201,6 @@
         }],
         [ 'node_intermediate_lib_type=="static_library" and '
             'node_shared=="false"', {
-          'includes': [
-            'node.gypi'
-          ],
           'xcode_settings': {
             'OTHER_LDFLAGS': [
               '-Wl,-force_load,<(PRODUCT_DIR)/<(STATIC_LIB_PREFIX)'
@@ -451,22 +451,8 @@
               ],
             }],
           ],
-          'defines!': [
-            'NODE_PLATFORM="win"',
-          ],
-          'defines': [
-            'FD_SETSIZE=1024',
-            # we need to use node's preferred "win32" rather than gyp's preferred "win"
-            'NODE_PLATFORM="win32"',
-            # Stop <windows.h> from defining macros that conflict with
-            # std::min() and std::max().  We don't use <windows.h> (much)
-            # but we still inherit it from uv.h.
-            'NOMINMAX',
-            '_UNICODE=1',
-          ],
           'libraries': [ '-lpsapi.lib' ]
         }, { # POSIX
-          'defines': [ '__POSIX__' ],
           'sources': [ 'src/backtrace_posix.cc' ],
         }],
         [ 'node_use_etw=="true"', {
@@ -969,6 +955,15 @@
         }],
         ['OS=="solaris"', {
           'ldflags': [ '-I<(SHARED_INTERMEDIATE_DIR)' ]
+        }],
+        [ 'node_shared=="true"', {
+          'xcode_settings': {
+            'OTHER_LDFLAGS': [ '-Wl,-rpath,@loader_path', ],
+          },
+        }],
+        # Skip cctest while building shared lib node for Windows
+        [ 'OS=="win" and node_shared=="true"', {
+          'type': 'none',
         }],
       ],
     }

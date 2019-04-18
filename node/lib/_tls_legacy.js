@@ -659,6 +659,10 @@ function onclienthello(hello) {
     if (err) return self.socket.destroy(err);
 
     setImmediate(function() {
+      // SecurePair might have been destroyed in the time window
+      // between callback() and this function.
+      if (!self.ssl) return;
+
       self.ssl.loadSession(session);
       self.ssl.endParser();
 
@@ -691,8 +695,9 @@ function onnewsession(key, session) {
       return;
     once = true;
 
-    if (self.ssl)
-      self.ssl.newSessionDone();
+    // Cycle data
+    self.cleartext.read(0);
+    self.encrypted.read(0);
   }
 }
 

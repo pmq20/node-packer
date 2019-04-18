@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Errors | Node.js v8.15.1 Documentation</title>
+  <title>Errors | Node.js v8.16.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -81,7 +81,7 @@
 
     <div id="column1" data-id="errors" class="interior">
       <header>
-        <h1>Node.js v8.15.1 Documentation</h1>
+        <h1>Node.js v8.16.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -233,6 +233,10 @@
 <li><span class="stability_undefined"><a href="#errors_err_napi_invalid_dataview_args">ERR_NAPI_INVALID_DATAVIEW_ARGS</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_napi_invalid_typedarray_alignment">ERR_NAPI_INVALID_TYPEDARRAY_ALIGNMENT</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_napi_invalid_typedarray_length">ERR_NAPI_INVALID_TYPEDARRAY_LENGTH</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_napi_tsfn_call_js">ERR_NAPI_TSFN_CALL_JS</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_napi_tsfn_get_undefined">ERR_NAPI_TSFN_GET_UNDEFINED</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_napi_tsfn_start_idle_loop">ERR_NAPI_TSFN_START_IDLE_LOOP</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_napi_tsfn_stop_idle_loop">ERR_NAPI_TSFN_STOP_IDLE_LOOP</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_no_icu">ERR_NO_ICU</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_socket_already_bound">ERR_SOCKET_ALREADY_BOUND</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_socket_bad_port">ERR_SOCKET_BAD_PORT</a></span></li>
@@ -1091,6 +1095,23 @@ multiple of the element size.</p>
 <h3>ERR_NAPI_INVALID_TYPEDARRAY_LENGTH<span><a class="mark" href="#errors_err_napi_invalid_typedarray_length" id="errors_err_napi_invalid_typedarray_length">#</a></span><span><a class="mark" href="#ERR_NAPI_INVALID_TYPEDARRAY_LENGTH" id="ERR_NAPI_INVALID_TYPEDARRAY_LENGTH">#</a></span></h3>
 <p>While calling <code>napi_create_typedarray()</code>, <code>(length * size_of_element) +
 byte_offset</code> was larger than the length of given <code>buffer</code>.</p>
+<p><a id="ERR_NAPI_TSFN_CALL_JS"></a></p>
+<h3>ERR_NAPI_TSFN_CALL_JS<span><a class="mark" href="#errors_err_napi_tsfn_call_js" id="errors_err_napi_tsfn_call_js">#</a></span><span><a class="mark" href="#ERR_NAPI_TSFN_CALL_JS" id="ERR_NAPI_TSFN_CALL_JS">#</a></span></h3>
+<p>An error occurred while invoking the JavaScript portion of the thread-safe
+function.</p>
+<p><a id="ERR_NAPI_TSFN_GET_UNDEFINED"></a></p>
+<h3>ERR_NAPI_TSFN_GET_UNDEFINED<span><a class="mark" href="#errors_err_napi_tsfn_get_undefined" id="errors_err_napi_tsfn_get_undefined">#</a></span><span><a class="mark" href="#ERR_NAPI_TSFN_GET_UNDEFINED" id="ERR_NAPI_TSFN_GET_UNDEFINED">#</a></span></h3>
+<p>An error occurred while attempting to retrieve the JavaScript <code>undefined</code>
+value.</p>
+<p><a id="ERR_NAPI_TSFN_START_IDLE_LOOP"></a></p>
+<h3>ERR_NAPI_TSFN_START_IDLE_LOOP<span><a class="mark" href="#errors_err_napi_tsfn_start_idle_loop" id="errors_err_napi_tsfn_start_idle_loop">#</a></span><span><a class="mark" href="#ERR_NAPI_TSFN_START_IDLE_LOOP" id="ERR_NAPI_TSFN_START_IDLE_LOOP">#</a></span></h3>
+<p>On the main thread, values are removed from the queue associated with the
+thread-safe function in an idle loop. This error indicates that an error
+has occurred when attemping to start the loop.</p>
+<p><a id="ERR_NAPI_TSFN_STOP_IDLE_LOOP"></a></p>
+<h3>ERR_NAPI_TSFN_STOP_IDLE_LOOP<span><a class="mark" href="#errors_err_napi_tsfn_stop_idle_loop" id="errors_err_napi_tsfn_stop_idle_loop">#</a></span><span><a class="mark" href="#ERR_NAPI_TSFN_STOP_IDLE_LOOP" id="ERR_NAPI_TSFN_STOP_IDLE_LOOP">#</a></span></h3>
+<p>Once no more items are left in the queue, the idle loop must be suspended. This
+error indicates that the idle loop has failed to stop.</p>
 <p><a id="ERR_NO_ICU"></a></p>
 <h3>ERR_NO_ICU<span><a class="mark" href="#errors_err_no_icu" id="errors_err_no_icu">#</a></span><span><a class="mark" href="#ERR_NO_ICU" id="ERR_NO_ICU">#</a></span></h3>
 <p>An attempt was made to use features that require <a href="intl.html#intl_internationalization_support">ICU</a>, but Node.js was not
@@ -1116,11 +1137,29 @@ value.</p>
 <p>A call was made and the UDP subsystem was not running.</p>
 <p><a id="ERR_STDERR_CLOSE"></a></p>
 <h3>ERR_STDERR_CLOSE<span><a class="mark" href="#errors_err_stderr_close" id="errors_err_stderr_close">#</a></span><span><a class="mark" href="#ERR_STDERR_CLOSE" id="ERR_STDERR_CLOSE">#</a></span></h3>
-<p>An attempt was made to close the <code>process.stderr</code> stream. By design, Node.js
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v8.16.0</td>
+<td><p>Rather than emitting an error, <code>process.stderr.end()</code> now only closes the stream side but not the underlying resource, making this error obsolete.</p>
+</td></tr>
+</table>
+</details>
+</div><p>An attempt was made to close the <code>process.stderr</code> stream. By design, Node.js
 does not allow <code>stdout</code> or <code>stderr</code> streams to be closed by user code.</p>
 <p><a id="ERR_STDOUT_CLOSE"></a></p>
 <h3>ERR_STDOUT_CLOSE<span><a class="mark" href="#errors_err_stdout_close" id="errors_err_stdout_close">#</a></span><span><a class="mark" href="#ERR_STDOUT_CLOSE" id="ERR_STDOUT_CLOSE">#</a></span></h3>
-<p>An attempt was made to close the <code>process.stdout</code> stream. By design, Node.js
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v8.16.0</td>
+<td><p>Rather than emitting an error, <code>process.stderr.end()</code> now only closes the stream side but not the underlying resource, making this error obsolete.</p>
+</td></tr>
+</table>
+</details>
+</div><p>An attempt was made to close the <code>process.stdout</code> stream. By design, Node.js
 does not allow <code>stdout</code> or <code>stderr</code> streams to be closed by user code.</p>
 <p><a id="ERR_TLS_CERT_ALTNAME_INVALID"></a></p>
 <h3>ERR_TLS_CERT_ALTNAME_INVALID<span><a class="mark" href="#errors_err_tls_cert_altname_invalid" id="errors_err_tls_cert_altname_invalid">#</a></span><span><a class="mark" href="#ERR_TLS_CERT_ALTNAME_INVALID" id="ERR_TLS_CERT_ALTNAME_INVALID">#</a></span></h3>

@@ -819,9 +819,37 @@
             {
               "textRaw": "ERR_NAPI_INVALID_TYPEDARRAY_LENGTH",
               "name": "err_napi_invalid_typedarray_length",
-              "desc": "<p>While calling <code>napi_create_typedarray()</code>, <code>(length * size_of_element) +\nbyte_offset</code> was larger than the length of given <code>buffer</code>.</p>\n<p><a id=\"ERR_NO_ICU\"></a></p>\n",
+              "desc": "<p>While calling <code>napi_create_typedarray()</code>, <code>(length * size_of_element) +\nbyte_offset</code> was larger than the length of given <code>buffer</code>.</p>\n<p><a id=\"ERR_NAPI_TSFN_CALL_JS\"></a></p>\n",
               "type": "module",
               "displayName": "ERR_NAPI_INVALID_TYPEDARRAY_LENGTH"
+            },
+            {
+              "textRaw": "ERR_NAPI_TSFN_CALL_JS",
+              "name": "err_napi_tsfn_call_js",
+              "desc": "<p>An error occurred while invoking the JavaScript portion of the thread-safe\nfunction.</p>\n<p><a id=\"ERR_NAPI_TSFN_GET_UNDEFINED\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_NAPI_TSFN_CALL_JS"
+            },
+            {
+              "textRaw": "ERR_NAPI_TSFN_GET_UNDEFINED",
+              "name": "err_napi_tsfn_get_undefined",
+              "desc": "<p>An error occurred while attempting to retrieve the JavaScript <code>undefined</code>\nvalue.</p>\n<p><a id=\"ERR_NAPI_TSFN_START_IDLE_LOOP\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_NAPI_TSFN_GET_UNDEFINED"
+            },
+            {
+              "textRaw": "ERR_NAPI_TSFN_START_IDLE_LOOP",
+              "name": "err_napi_tsfn_start_idle_loop",
+              "desc": "<p>On the main thread, values are removed from the queue associated with the\nthread-safe function in an idle loop. This error indicates that an error\nhas occurred when attemping to start the loop.</p>\n<p><a id=\"ERR_NAPI_TSFN_STOP_IDLE_LOOP\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_NAPI_TSFN_START_IDLE_LOOP"
+            },
+            {
+              "textRaw": "ERR_NAPI_TSFN_STOP_IDLE_LOOP",
+              "name": "err_napi_tsfn_stop_idle_loop",
+              "desc": "<p>Once no more items are left in the queue, the idle loop must be suspended. This\nerror indicates that the idle loop has failed to stop.</p>\n<p><a id=\"ERR_NO_ICU\"></a></p>\n",
+              "type": "module",
+              "displayName": "ERR_NAPI_TSFN_STOP_IDLE_LOOP"
             },
             {
               "textRaw": "ERR_NO_ICU",
@@ -875,6 +903,16 @@
             {
               "textRaw": "ERR_STDERR_CLOSE",
               "name": "err_stderr_close",
+              "meta": {
+                "removed": "v8.16.0",
+                "changes": [
+                  {
+                    "version": "v8.16.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/23053",
+                    "description": "Rather than emitting an error, `process.stderr.end()` now only closes the stream side but not the underlying resource, making this error obsolete."
+                  }
+                ]
+              },
               "desc": "<p>An attempt was made to close the <code>process.stderr</code> stream. By design, Node.js\ndoes not allow <code>stdout</code> or <code>stderr</code> streams to be closed by user code.</p>\n<p><a id=\"ERR_STDOUT_CLOSE\"></a></p>\n",
               "type": "module",
               "displayName": "ERR_STDERR_CLOSE"
@@ -882,6 +920,16 @@
             {
               "textRaw": "ERR_STDOUT_CLOSE",
               "name": "err_stdout_close",
+              "meta": {
+                "removed": "v8.16.0",
+                "changes": [
+                  {
+                    "version": "v8.16.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/23053",
+                    "description": "Rather than emitting an error, `process.stderr.end()` now only closes the stream side but not the underlying resource, making this error obsolete."
+                  }
+                ]
+              },
               "desc": "<p>An attempt was made to close the <code>process.stdout</code> stream. By design, Node.js\ndoes not allow <code>stdout</code> or <code>stderr</code> streams to be closed by user code.</p>\n<p><a id=\"ERR_TLS_CERT_ALTNAME_INVALID\"></a></p>\n",
               "type": "module",
               "displayName": "ERR_STDOUT_CLOSE"

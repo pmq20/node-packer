@@ -1,0 +1,48 @@
+#!/usr/bin/env ruby
+
+# Copyright (c) 2017 Minqi Pan <pmq2001@gmail.com>
+#                    Yuwei Ba <xiaobayuwei@gmail.com>
+#                    Alessandro Agosto <agosto.alessandro@gmail.com>
+# 
+# This file is part of Node.js Compiler, distributed under the MIT License
+# For full terms see the included LICENSE file
+
+STDERR.puts "Testing coffeescript"
+
+require 'shellwords'
+require 'fileutils'
+require 'tmpdir'
+
+def escape(arg)
+  if Gem.win_platform?
+    if arg.include?('"')
+      raise NotImplementedError
+    end
+    %Q{"#{arg}"}
+  else
+    Shellwords.escape(arg)
+  end
+end
+
+if ENV['PRJROOT_DIR'] && ENV['PRJROOT_DIR'].length > 0
+  STDERR.puts "Using ENV['PRJROOT_DIR'] #{ENV['PRJROOT_DIR']}"
+else
+  raise "Please set ENV['PRJROOT_DIR']"
+end
+makedir = File.join(ENV['PRJROOT_DIR'], "node")
+
+# PART 2
+STDERR.puts "Testing coffeescript with node's official test cases"
+Dir.chdir(makedir)
+ENV['ENCLOSE_IO_USE_ORIGINAL_NODE'] = '1'
+if Gem.win_platform?
+  pid = spawn("call vcbuild.bat release test-simple ignore-flaky")
+  pid, status = Process.wait2(pid)
+  raise "Failed running call vcbuild.bat release test-simple ignore-flaky" unless status.success?
+else
+  ENV['FLAKY_TESTS'] = 'dontcare'
+  pid = spawn("./configure && make test-simple")
+  pid, status = Process.wait2(pid)
+  raise "Failed running make test-simple" unless status.success?
+end
+STDERR.puts "coffeescript with node's official test cases Passed"

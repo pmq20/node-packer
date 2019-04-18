@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Process | Node.js v8.15.1 Documentation</title>
+  <title>Process | Node.js v8.16.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -81,7 +81,7 @@
 
     <div id="column1" data-id="process" class="interior">
       <header>
-        <h1>Node.js v8.15.1 Documentation</h1>
+        <h1>Node.js v8.16.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -1559,8 +1559,6 @@ important ways:</p>
 <ol>
 <li>They are used internally by <a href="console.html#console_console_log_data_args"><code>console.log()</code></a> and <a href="console.html#console_console_error_data_args"><code>console.error()</code></a>,
 respectively.</li>
-<li>They cannot be closed (<a href="stream.html#stream_writable_end_chunk_encoding_callback"><code>end()</code></a> will throw).</li>
-<li>They will never emit the <a href="stream.html#stream_event_finish"><code>&#39;finish&#39;</code></a> event.</li>
 <li>Writes may be synchronous depending on what the stream is connected to
 and whether the system is Windows or POSIX:<ul>
 <li>Files: <em>synchronous</em> on Windows and POSIX</li>

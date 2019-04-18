@@ -23,8 +23,8 @@
 #define SRC_NODE_VERSION_H_
 
 #define NODE_MAJOR_VERSION 8
-#define NODE_MINOR_VERSION 15
-#define NODE_PATCH_VERSION 1
+#define NODE_MINOR_VERSION 16
+#define NODE_PATCH_VERSION 0
 
 #define NODE_VERSION_IS_LTS 1
 #define NODE_VERSION_LTS_CODENAME "Carbon"
@@ -108,6 +108,6 @@
 #define NODE_MODULE_VERSION 57
 
 // the NAPI_VERSION provided by this version of the runtime
-#define NAPI_VERSION  3
+#define NAPI_VERSION  4
 
 #endif  // SRC_NODE_VERSION_H_

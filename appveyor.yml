@@ -1,35 +1,53 @@
 version: '{build}'
 
+image: 
+- Visual Studio 2017
 environment:
-  NODEC_TESTS_TMPDIR: C:\projects\node-compiler\nodec_tests_tmpdir
-  NODEC_NODE: 8.15.1
+  DEPEND_DIR: C:\dependencies
+  PRJROOT_DIR: C:\projects\node-packer
+  NODEC_TESTS_TMPDIR: C:\tmp
+  NODEC_NODE: 8.16.0
+  GYP_MSVS_VERSION: 2017
+  mode: release
+  arch: x64
   matrix:
-    - TEST_SCRIPT: coffeescript
-    - TEST_SCRIPT: microtime
+    - TEST_SCRIPT: coffeescript_1
+    - TEST_SCRIPT: coffeescript_2
+    - TEST_SCRIPT: datetime
+cache:
+  - node_modules
 
 build_script:
 - ps: |
     $ErrorActionPreference="Stop"
 
-    mkdir C:\projects\node-compiler\nodec_tests_tmpdir
+    mkdir $env:NODEC_TESTS_TMPDIR
 
-    Start-FileDownload https://github.com/pmq20/rubyinstaller/files/689117/rb240-win32.zip -FileName C:\projects\node-compiler\ruby240_win32.zip
+    mkdir $env:DEPEND_DIR
 
-    Start-FileDownload https://github.com/pmq20/squashfuse/files/691217/sqfs43-win32.zip -FileName C:\projects\node-compiler\sqfs43-win32.zip
+    Start-FileDownload https://raw.githubusercontent.com/slee047/node-packer/AppVeyorDeps/ruby.zip -FileName $env:DEPEND_DIR\ruby.zip
 
-    Start-FileDownload https://nodejs.org/dist/v$env:NODEC_NODE/node-v$env:NODEC_NODE-win-x64.zip -FileName C:\projects\node-compiler\node.zip
+    Start-FileDownload https://github.com/pmq20/squashfuse/files/691217/sqfs43-win32.zip -FileName $env:DEPEND_DIR\sqfs43-win32.zip
+
+    Start-FileDownload https://nodejs.org/dist/v$env:NODEC_NODE/node-v$env:NODEC_NODE-win-$env:arch.zip -FileName $env:DEPEND_DIR\node.zip
+
+    Start-FileDownload https://raw.githubusercontent.com/slee047/node-packer/AppVeyorDeps/nasm.zip -FileName $env:DEPEND_DIR\nasm.zip
 
     Add-Type -AssemblyName System.IO.Compression.FileSystem
 
-    [System.IO.Compression.ZipFile]::ExtractToDirectory("C:\projects\node-compiler\ruby240_win32.zip", "C:\projects\node-compiler")
+    [System.IO.Compression.ZipFile]::ExtractToDirectory("$env:DEPEND_DIR\ruby.zip", "$env:DEPEND_DIR")
 
-    [System.IO.Compression.ZipFile]::ExtractToDirectory("C:\projects\node-compiler\sqfs43-win32.zip", "C:\projects\node-compiler\usr\bin")
+    [System.IO.Compression.ZipFile]::ExtractToDirectory("$env:DEPEND_DIR\sqfs43-win32.zip", "$env:DEPEND_DIR\usr\bin")
 
-    [System.IO.Compression.ZipFile]::ExtractToDirectory("C:\projects\node-compiler\node.zip", "C:\projects\node-compiler\usr\bin")
+    [System.IO.Compression.ZipFile]::ExtractToDirectory("$env:DEPEND_DIR\node.zip", "$env:DEPEND_DIR\usr\bin")
+
+    [System.IO.Compression.ZipFile]::ExtractToDirectory("$env:DEPEND_DIR\nasm.zip", "$env:DEPEND_DIR")
 
 test_script:
 - cmd: |
-    set PATH=C:\projects\node-compiler\usr\bin\node-v%NODEC_NODE%-win-x64;C:\projects\node-compiler\usr\bin;%PATH%
+    set PATH=%DEPEND_DIR%\node-v%NODEC_NODE%-win-%arch%;%DEPEND_DIR%\usr\bin;%PATH%
+
+    npm install npm-cli -g
 
     python --version
 
@@ -39,6 +57,10 @@ test_script:
 
     node --version
 
+    nasm -v
+
     npm --version
+
+    git clone --depth 1 https://github.com/jashkenas/coffeescript.git & exit 0
 
     ruby tests\%TEST_SCRIPT%

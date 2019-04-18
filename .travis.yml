@@ -1,42 +1,74 @@
 language: node_js
-
+env:
+    global:
+        - NODEVER=8.16.0
+        - RubyMajMinVer=2.5
+        - RubyRevVer=3
+        - xcodeVer=xcode10.1
+        - LinDistro=xenial
+        - GCCVER=4.9
+        - arch=x64
+        - mode=release
+        - NODEC_TESTS_TMPDIR=/tmp/nodec_tests_tmpdir
+        - LINPRJDIR=/home/travis/build/slee047/node-packer
+        - OSXPRJDIR=/Users/travis/build/slee047/node-packer
 matrix:
   include:
   - os: osx
-    node_js: 8.15.1
-    env: TEST_SCRIPT=coffeescript
+    osx_image: $xcodeVer
+    node_js: $NODEVER
+    env: TEST_SCRIPT=coffeescript_1
+  - os: linux
+    dist: $LinDistro
+    node_js: $NODEVER
+    env: TEST_SCRIPT=coffeescript_1
   - os: osx
-    node_js: 8.15.1
-    env: TEST_SCRIPT=microtime
+    osx_image: $xcodeVer
+    node_js: $NODEVER
+    env: TEST_SCRIPT=coffeescript_2
   - os: linux
-    node_js: 8.15.1
-    env: TEST_SCRIPT=coffeescript
+    dist: $LinDistro
+    node_js: $NODEVER
+    env: TEST_SCRIPT=coffeescript_2
+  - os: osx
+    osx_image: $xcodeVer
+    node_js: $NODEVER
+    env: TEST_SCRIPT=datetime
   - os: linux
-    node_js: 8.15.1
-    env: TEST_SCRIPT=microtime
-
+    dist: $LinDistro
+    node_js: $NODEVER
+    env: TEST_SCRIPT=datetime
+before_install:
+  # Cache is limited to 1GB, so forget about caching homebrew or temp directories.
+  # Do NOT attempt to skip dependency check, or it will fail.
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get install "gcc-$GCCVER" "g++-$GCCVER" nasm squashfs-tools; fi
 addons:
   apt:
     sources:
       - ubuntu-toolchain-r-test
+  homebrew:
     packages:
-      - squashfs-tools
-      - gcc-4.9
-      - g++-4.9
-
+        - squashfs
+        - openssl
+        - nasm
 install:
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then rm -rf /usr/local/Cellar/openssl/ && brew install squashfs openssl; clang --version; fi
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then export CXX="g++-4.9" CC="gcc-4.9"; gcc-4.9 --version; g++-4.9 --version; fi
-
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then export PRJROOT_DIR="$OSXPRJDIR"; clang --version; fi
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then export PRJROOT_DIR="$LINPRJDIR"; export CXX="g++-$GCCVER" CC="gcc-$GCCVER"; "gcc-$GCCVER" --version; "g++-$GCCVER" --version; fi
+  - mkdir -p $NODEC_TESTS_TMPDIR
+  - git clone --depth 1 https://github.com/jashkenas/coffeescript.git
+  - wget "https://cache.ruby-lang.org/pub/ruby/$RubyMajMinVer/ruby-$RubyMajMinVer.$RubyRevVer.tar.gz"
+  - tar -xf "ruby-$RubyMajMinVer.$RubyRevVer.tar.gz"
+  - cd "ruby-$RubyMajMinVer.$RubyRevVer"
+  - ./configure
+  - make
+  - sudo make install
+  - cd $PRJROOT_DIR
 before_script:
-  - rvm install ruby-2.5.3
-  - rvm use ruby-2.5.3
   - python --version
+  - nasm -v
   - mksquashfs -version
   - ruby --version
   - node --version
   - npm --version
-
 script:
-  - rm -rf /tmp/nodec_tests_tmpdir && mkdir /tmp/nodec_tests_tmpdir
-  - NODEC_TESTS_TMPDIR=/tmp/nodec_tests_tmpdir ruby tests/$TEST_SCRIPT || exit $?
+  - ruby tests/$TEST_SCRIPT || exit $?

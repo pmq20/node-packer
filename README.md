@@ -49,7 +49,7 @@ Please take note that Visual Studio 2019 is NOT supported.
 
 Then download [nodec-x64.zip](http://enclose.io/nodec/nodec-x64.zip), and this zip file contains only one executable. Unzip it. Optionally, rename it to `nodec.exe` and put it under `C:\Windows` (or any other directory that is part of `PATH`). Execute `nodec` from the command line. 
 
-NOTE: This zip file ([nodec-x64.zip]) contains an outdated version of nodec (nodec 1.5.0 with Node.js 8.3.0).
+NOTE: This zip file ([nodec-x64.zip](http://enclose.io/nodec/nodec-x64.zip)) contains an outdated version of nodec (nodec 1.5.0 with Node.js 8.3.0).
 The original maintainer did not specify how to build this repo into single executable, therefore newer versions can only be run on source code directly.
 
 ### Install on Linux
@@ -70,7 +70,7 @@ Then,
     chmod +x nodec
     ./nodec
 
-NOTE: This gz file ([nodec-linux-x64.gz]) contains an outdated version of nodec (nodec 1.5.0 with Node.js 8.3.0).
+NOTE: This gz file ([nodec-linux-x64.gz](http://enclose.io/nodec/nodec-linux-x64.gz)) contains an outdated version of nodec (nodec 1.5.0 with Node.js 8.3.0).
 The original maintainer did not specify how to build this repo into single executable, therefore newer versions can only be run on source code directly.
 
 #### Additional Notes on the compatibility between RHEL based (CentOS) / Ubuntu
@@ -106,7 +106,7 @@ Then,
     chmod +x nodec
     ./nodec
 
-NOTE: This gz file ([nodec-darwin-x64.gz]) contains an outdated version of nodec (nodec 1.5.0 with Node.js 8.3.0).
+NOTE: This gz file ([nodec-darwin-x64.gz](http://enclose.io/nodec/nodec-darwin-x64.gz)) contains an outdated version of nodec (nodec 1.5.0 with Node.js 8.3.0).
 The original maintainer did not specify how to build this repo into single executable, therefore newer versions can only be run on source code directly.
 
 ## Usage

@@ -2407,7 +2407,7 @@
                   }
                 ]
               },
-              "desc": "<p>Type: Documentation-only</p>\n<p>The <code>process.binding()</code> API is intended for use by Node.js internal code\nonly. Use of <code>process.binding()</code> by userland code is unsupported.</p>",
+              "desc": "<p>Type: Documentation-only</p>\n<p><code>process.binding()</code> is for use by Node.js internal code only.</p>",
               "type": "module",
               "displayName": "DEP0111: process.binding()"
             }

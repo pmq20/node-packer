@@ -219,13 +219,19 @@ added: v0.9.4
 ##### Event: 'close'
 <!-- YAML
 added: v0.9.4
+changes:
+  - version: v10.0.0
+    pr-url: https://github.com/nodejs/node/pull/18438
+    description: Add `emitClose` option to specify if `'close'` is emitted on
+                 destroy.
 -->
 
 The `'close'` event is emitted when the stream and any of its underlying
 resources (a file descriptor, for example) have been closed. The event indicates
 that no more events will be emitted, and no further computation will occur.
 
-Not all `Writable` streams will emit the `'close'` event.
+A [`Writable`][] stream will always emit the `'close'` event if it is
+created with the `emitClose` option.
 
 ##### Event: 'drain'
 <!-- YAML
@@ -704,13 +710,19 @@ added: v0.9.4
 ##### Event: 'close'
 <!-- YAML
 added: v0.9.4
+changes:
+  - version: v10.0.0
+    pr-url: https://github.com/nodejs/node/pull/18438
+    description: Add `emitClose` option to specify if `'close'` is emitted on
+                 destroy.
 -->
 
 The `'close'` event is emitted when the stream and any of its underlying
 resources (a file descriptor, for example) have been closed. The event indicates
 that no more events will be emitted, and no further computation will occur.
 
-Not all [`Readable`][] streams will emit the `'close'` event.
+A [`Readable`][] stream will always emit the `'close'` event if it is
+created with the `emitClose` option.
 
 ##### Event: 'data'
 <!-- YAML
@@ -1011,6 +1023,10 @@ readable.on('readable', () => {
   }
 });
 ```
+
+Note that the `while` loop is necessary when processing data with
+`readable.read()`. Only after `readable.read()` returns `null`,
+[`'readable'`]() will be emitted.
 
 A `Readable` stream in object mode will always return a single item from
 a call to [`readable.read(size)`][stream-read], regardless of the value of the
@@ -1503,16 +1519,23 @@ changes:
     pr-url: https://github.com/nodejs/node/pull/18438
     description: >
       Add `emitClose` option to specify if `'close'` is emitted on destroy
+  - version: v10.16.0
+    pr-url: https://github.com/nodejs/node/pull/22795
+    description: >
+      Add `autoDestroy` option to automatically `destroy()` the stream
+      when it emits `'finish'` or errors
 -->
 
 * `options` {Object}
   * `highWaterMark` {number} Buffer level when
     [`stream.write()`][stream-write] starts returning `false`. **Default:**
     `16384` (16kb), or `16` for `objectMode` streams.
-  * `decodeStrings` {boolean} Whether or not to encode strings as
-    `Buffer`s before passing them to [`stream._write()`][stream-_write],
-    using the encoding specified in the [`stream.write()`][stream-write] call.
-    **Default:** `true`.
+  * `decodeStrings` {boolean} Whether to encode `string`s passed to
+    [`stream.write()`][stream-write] to `Buffer`s (with the encoding
+    specified in the [`stream.write()`][stream-write] call) before passing
+    them to [`stream._write()`][stream-_write]. Other types of data are not
+    converted (i.e. `Buffer`s are not decoded into `string`s). Setting to
+    false will prevent `string`s from being converted.  **Default:** `true`.
   * `defaultEncoding` {string} The default encoding that is used when no
     encoding is specified as an argument to [`stream.write()`][stream-write].
     **Default:** `'utf8'`.
@@ -1531,6 +1554,8 @@ changes:
     [`stream._destroy()`][writable-_destroy] method.
   * `final` {Function} Implementation for the
     [`stream._final()`][stream-_final] method.
+  * `autoDestroy` {boolean} Whether this stream should automatically call
+    `.destroy()` on itself after ending. **Default:** `false`.
 
 <!-- eslint-disable no-useless-constructor -->
 ```js
@@ -1576,9 +1601,11 @@ const myWritable = new Writable({
 
 #### writable.\_write(chunk, encoding, callback)
 
-* `chunk` {Buffer|string|any} The chunk to be written. Will **always**
-  be a buffer unless the `decodeStrings` option was set to `false`
-  or the stream is operating in object mode.
+* `chunk` {Buffer|string|any} The `Buffer` to be written, converted from the
+  `string` passed to [`stream.write()`][stream-write]. If the stream's
+  `decodeStrings` option is `false` or the stream is operating in object mode,
+  the chunk will not be converted & will be whatever was passed to
+  [`stream.write()`][stream-write].
 * `encoding` {string} If the chunk is a string, then `encoding` is the
   character encoding of that string. If chunk is a `Buffer`, or if the
   stream is operating in object mode, `encoding` may be ignored.
@@ -1762,6 +1789,14 @@ Custom `Readable` streams *must* call the `new stream.Readable([options])`
 constructor and implement the `readable._read()` method.
 
 #### new stream.Readable([options])
+<!-- YAML
+changes:
+  - version: v10.16.0
+    pr-url: https://github.com/nodejs/node/pull/22795
+    description: >
+      Add `autoDestroy` option to automatically `destroy()` the stream
+      when it emits `'end'` or errors
+-->
 
 * `options` {Object}
   * `highWaterMark` {number} The maximum [number of bytes][hwm-gotcha] to store
@@ -1776,6 +1811,8 @@ constructor and implement the `readable._read()` method.
     method.
   * `destroy` {Function} Implementation for the
     [`stream._destroy()`][readable-_destroy] method.
+  * `autoDestroy` {boolean} Whether this stream should automatically call
+    `.destroy()` on itself after ending. **Default:** `false`.
 
 <!-- eslint-disable no-useless-constructor -->
 ```js
@@ -2268,9 +2305,11 @@ user programs.
 
 #### transform.\_transform(chunk, encoding, callback)
 
-* `chunk` {Buffer|string|any} The chunk to be transformed. Will **always**
-  be a buffer unless the `decodeStrings` option was set to `false`
-  or the stream is operating in object mode.
+* `chunk` {Buffer|string|any} The `Buffer` to be transformed, converted from
+  the `string` passed to [`stream.write()`][stream-write]. If the stream's
+  `decodeStrings` option is `false` or the stream is operating in object mode,
+  the chunk will not be converted & will be whatever was passed to
+  [`stream.write()`][stream-write].
 * `encoding` {string} If the chunk is a string, then this is the
   encoding type. If chunk is a buffer, then this is the special
   value - 'buffer', ignore it in this case.

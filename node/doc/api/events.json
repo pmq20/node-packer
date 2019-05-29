@@ -616,6 +616,41 @@
             }
           ]
         }
+      ],
+      "methods": [
+        {
+          "textRaw": "events.once(emitter, name)",
+          "type": "method",
+          "name": "once",
+          "meta": {
+            "added": [
+              "v10.16.0"
+            ],
+            "changes": []
+          },
+          "signatures": [
+            {
+              "return": {
+                "textRaw": "Returns: {Promise}",
+                "name": "return",
+                "type": "Promise"
+              },
+              "params": [
+                {
+                  "textRaw": "`emitter` {EventEmitter}",
+                  "name": "emitter",
+                  "type": "EventEmitter"
+                },
+                {
+                  "textRaw": "`name` {string}",
+                  "name": "name",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "desc": "<p>Creates a <code>Promise</code> that is resolved when the <code>EventEmitter</code> emits the given\nevent or that is rejected when the <code>EventEmitter</code> emits <code>'error'</code>.\nThe <code>Promise</code> will resolve with an array of all the arguments emitted to the\ngiven event.</p>\n<pre><code class=\"language-js\">const { once, EventEmitter } = require('events');\n\nasync function run() {\n  const ee = new EventEmitter();\n\n  process.nextTick(() => {\n    ee.emit('myevent', 42);\n  });\n\n  const [value] = await once(ee, 'myevent');\n  console.log(value);\n\n  const err = new Error('kaboom');\n  process.nextTick(() => {\n    ee.emit('error', err);\n  });\n\n  try {\n    await once(ee, 'myevent');\n  } catch (err) {\n    console.log('error happened', err);\n  }\n}\n\nrun();\n</code></pre>"
+        }
       ]
     }
   ]

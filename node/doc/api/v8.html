@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>V8 | Node.js v10.15.3 Documentation</title>
+  <title>V8 | Node.js v10.16.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -69,7 +69,7 @@
 <li><a href="v8.html" class="nav-v8 active">V8</a></li>
 <li><a href="vm.html" class="nav-vm">VM</a></li>
 <li><a href="worker_threads.html" class="nav-worker_threads">Worker Threads</a></li>
-<li><a href="zlib.html" class="nav-zlib">ZLIB</a></li>
+<li><a href="zlib.html" class="nav-zlib">Zlib</a></li>
 </ul>
 <div class="line"></div>
 <ul>
@@ -79,7 +79,7 @@
 
     <div id="column1" data-id="v8" class="interior">
       <header>
-        <h1>Node.js v10.15.3 Documentation</h1>
+        <h1>Node.js v10.16.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -94,12 +94,13 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v11.x/api/v8.html">11.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v12.x/api/v8.html">12.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v11.x/api/v8.html">11.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v10.x/api/v8.html">10.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v9.x/api/v8.html">9.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v8.x/api/v8.html">8.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v7.x/api/v8.html">7.x</a></li>
-<li><a href="https://nodejs.org/docs/latest-v6.x/api/v8.html">6.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v6.x/api/v8.html">6.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v5.x/api/v8.html">5.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v4.x/api/v8.html">4.x</a></li></ol>
     </li>
@@ -186,7 +187,7 @@ built into the Node.js binary. It can be accessed using:</p>
 command line flags and detected CPU features. This is useful for determining
 whether a <a href="vm.html#vm_new_vm_script_code_options"><code>vm.Script</code></a> <code>cachedData</code> buffer is compatible with this instance
 of V8.</p>
-<h2>v8.getHeapSpaceStatistics()<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/v8.js#L92">[src]</a><span><a class="mark" href="#v8_v8_getheapspacestatistics" id="v8_v8_getheapspacestatistics">#</a></span></h2>
+<h2>v8.getHeapSpaceStatistics()<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/v8.js#L92">[src]</a><span><a class="mark" href="#v8_v8_getheapspacestatistics" id="v8_v8_getheapspacestatistics">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -252,7 +253,7 @@ next.</p>
   }
 ]
 </code></pre>
-<h2>v8.getHeapStatistics()<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/v8.js#L74">[src]</a><span><a class="mark" href="#v8_v8_getheapstatistics" id="v8_v8_getheapstatistics">#</a></span></h2>
+<h2>v8.getHeapStatistics()<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/v8.js#L74">[src]</a><span><a class="mark" href="#v8_v8_getheapstatistics" id="v8_v8_getheapstatistics">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -299,7 +300,7 @@ to get swapped out by the operating system.</p>
   does_zap_garbage: 0
 }
 </code></pre>
-<h2>v8.setFlagsFromString(flags)<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/v8.js#L68">[src]</a><span><a class="mark" href="#v8_v8_setflagsfromstring_flags" id="v8_v8_setflagsfromstring_flags">#</a></span></h2>
+<h2>v8.setFlagsFromString(flags)<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/v8.js#L68">[src]</a><span><a class="mark" href="#v8_v8_setflagsfromstring_flags" id="v8_v8_setflagsfromstring_flags">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v1.0.0</span>
 </div>
@@ -326,7 +327,7 @@ that is compatible with the <a href="https://developer.mozilla.org/en-US/docs/We
 The format is backward-compatible (i.e. safe to store to disk).</p>
 <p>This API is under development, and changes (including incompatible
 changes to the API or wire format) may occur until this warning is removed.</p>
-<h3>v8.serialize(value)<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/v8.js#L199">[src]</a><span><a class="mark" href="#v8_v8_serialize_value" id="v8_v8_serialize_value">#</a></span></h3>
+<h3>v8.serialize(value)<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/v8.js#L199">[src]</a><span><a class="mark" href="#v8_v8_serialize_value" id="v8_v8_serialize_value">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
 </div>
@@ -335,12 +336,12 @@ changes to the API or wire format) may occur until this warning is removed.</p>
 <li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a></li>
 </ul>
 <p>Uses a <a href="#v8_class_v8_defaultserializer"><code>DefaultSerializer</code></a> to serialize <code>value</code> into a buffer.</p>
-<h3>v8.deserialize(buffer)<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/v8.js#L206">[src]</a><span><a class="mark" href="#v8_v8_deserialize_buffer" id="v8_v8_deserialize_buffer">#</a></span></h3>
+<h3>v8.deserialize(buffer)<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/v8.js#L206">[src]</a><span><a class="mark" href="#v8_v8_deserialize_buffer" id="v8_v8_deserialize_buffer">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
 </div>
 <ul>
-<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&#x3C;Uint8Array></a> A buffer returned by <a href="#v8_v8_serialize_value"><code>serialize()</code></a>.</li>
+<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a> A buffer returned by <a href="#v8_v8_serialize_value"><code>serialize()</code></a>.</li>
 </ul>
 <p>Uses a <a href="#v8_class_v8_defaultdeserializer"><code>DefaultDeserializer</code></a> with default options to read a JS value
 from a buffer.</p>
@@ -395,7 +396,7 @@ For use inside of a custom <a href="#v8_serializer_writehostobject_object"><code
 For use inside of a custom <a href="#v8_serializer_writehostobject_object"><code>serializer._writeHostObject()</code></a>.</p>
 <h4>serializer.writeRawBytes(buffer)<span><a class="mark" href="#v8_serializer_writerawbytes_buffer" id="v8_serializer_writerawbytes_buffer">#</a></span></h4>
 <ul>
-<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&#x3C;Uint8Array></a></li>
+<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a></li>
 </ul>
 <p>Write raw bytes into the serializer’s internal buffer. The deserializer
 will require a way to compute the length of the buffer.
@@ -441,7 +442,7 @@ host objects, i.e. pass them to <a href="#v8_serializer_writehostobject_object">
 </div>
 <h4>new Deserializer(buffer)<span><a class="mark" href="#v8_new_deserializer_buffer" id="v8_new_deserializer_buffer">#</a></span></h4>
 <ul>
-<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array" class="type">&#x3C;Uint8Array></a> A buffer returned by
+<li><code>buffer</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a> A buffer returned by
 <a href="#v8_serializer_releasebuffer"><code>serializer.releaseBuffer()</code></a>.</li>
 </ul>
 <p>Creates a new <code>Deserializer</code> object.</p>
@@ -486,7 +487,7 @@ For use inside of a custom <a href="#v8_deserializer_readhostobject"><code>deser
 </ul>
 <p>Read a JS <code>number</code> value.
 For use inside of a custom <a href="#v8_deserializer_readhostobject"><code>deserializer._readHostObject()</code></a>.</p>
-<h4>deserializer.readRawBytes(length)<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/v8.js#L116">[src]</a><span><a class="mark" href="#v8_deserializer_readrawbytes_length" id="v8_deserializer_readrawbytes_length">#</a></span></h4>
+<h4>deserializer.readRawBytes(length)<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/v8.js#L116">[src]</a><span><a class="mark" href="#v8_deserializer_readrawbytes_length" id="v8_deserializer_readrawbytes_length">#</a></span></h4>
 <ul>
 <li><code>length</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
 <li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a></li>

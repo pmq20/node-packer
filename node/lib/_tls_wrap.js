@@ -877,6 +877,8 @@ function Server(options, listener) {
     ciphers: this.ciphers,
     ecdhCurve: this.ecdhCurve,
     dhparam: this.dhparam,
+    minVersion: this.minVersion,
+    maxVersion: this.maxVersion,
     secureProtocol: this.secureProtocol,
     secureOptions: this.secureOptions,
     honorCipherOrder: this.honorCipherOrder,
@@ -948,6 +950,8 @@ Server.prototype.setOptions = function(options) {
   if (options.clientCertEngine)
     this.clientCertEngine = options.clientCertEngine;
   if (options.ca) this.ca = options.ca;
+  if (options.minVersion) this.minVersion = options.minVersion;
+  if (options.maxVersion) this.maxVersion = options.maxVersion;
   if (options.secureProtocol) this.secureProtocol = options.secureProtocol;
   if (options.crl) this.crl = options.crl;
   if (options.ciphers) this.ciphers = options.ciphers;
@@ -1122,7 +1126,7 @@ exports.connect = function connect(...args) {
 
   const context = options.secureContext || tls.createSecureContext(options);
 
-  var socket = new TLSSocket(options.socket, {
+  var tlssock = new TLSSocket(options.socket, {
     pipe: !!options.path,
     secureContext: context,
     isServer: false,
@@ -1133,36 +1137,44 @@ exports.connect = function connect(...args) {
     requestOCSP: options.requestOCSP
   });
 
-  socket[kConnectOptions] = options;
+  tlssock[kConnectOptions] = options;
 
   if (cb)
-    socket.once('secureConnect', cb);
+    tlssock.once('secureConnect', cb);
 
   if (!options.socket) {
+    // If user provided the socket, its their responsibility to manage its
+    // connectivity. If we created one internally, we connect it.
     const connectOpt = {
       path: options.path,
       port: options.port,
       host: options.host,
       family: options.family,
       localAddress: options.localAddress,
+      localPort: options.localPort,
       lookup: options.lookup
     };
-    socket.connect(connectOpt, socket._start);
+
+    if (options.timeout) {
+      tlssock.setTimeout(options.timeout);
+    }
+
+    tlssock.connect(connectOpt, tlssock._start);
   }
 
-  socket._releaseControl();
+  tlssock._releaseControl();
 
   if (options.session)
-    socket.setSession(options.session);
+    tlssock.setSession(options.session);
 
   if (options.servername)
-    socket.setServername(options.servername);
+    tlssock.setServername(options.servername);
 
   if (options.socket)
-    socket._start();
+    tlssock._start();
 
-  socket.on('secure', onConnectSecure);
-  socket.once('end', onConnectEnd);
+  tlssock.on('secure', onConnectSecure);
+  tlssock.once('end', onConnectEnd);
 
-  return socket;
+  return tlssock;
 };

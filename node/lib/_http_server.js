@@ -302,7 +302,6 @@ function Server(options, requestListener) {
 
   this.timeout = 2 * 60 * 1000;
   this.keepAliveTimeout = 5000;
-  this._pendingResponseData = 0;
   this.maxHeadersCount = null;
   this.headersTimeout = 40 * 1000; // 40 seconds
 }
@@ -500,13 +499,15 @@ function onParserExecute(server, socket, parser, state, ret) {
   onParserExecuteCommon(server, socket, parser, state, ret, undefined);
 }
 
+const noop = () => {};
 const badRequestResponse = Buffer.from(
-  `HTTP/1.1 400 ${STATUS_CODES[400]}${CRLF}${CRLF}`, 'ascii'
+  `HTTP/1.1 400 ${STATUS_CODES[400]}${CRLF}` +
+  `Connection: close${CRLF}${CRLF}`, 'ascii'
 );
 function socketOnError(e) {
   // Ignore further errors
   this.removeListener('error', socketOnError);
-  this.on('error', () => {});
+  this.on('error', noop);
 
   if (!this.server.emit('clientError', e, this)) {
     if (this.writable) {
@@ -740,7 +741,7 @@ function resetHeadersTimeoutOnReqEnd() {
   const parser = this.socket.parser;
   // Parser can be null if the socket was destroyed
   // in that case, there is nothing to do.
-  if (parser !== null) {
+  if (parser) {
     parser.parsingHeadersStart = nowDate();
   }
 }

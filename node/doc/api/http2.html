@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>HTTP/2 | Node.js v10.15.3 Documentation</title>
+  <title>HTTP/2 | Node.js v10.16.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -69,7 +69,7 @@
 <li><a href="v8.html" class="nav-v8">V8</a></li>
 <li><a href="vm.html" class="nav-vm">VM</a></li>
 <li><a href="worker_threads.html" class="nav-worker_threads">Worker Threads</a></li>
-<li><a href="zlib.html" class="nav-zlib">ZLIB</a></li>
+<li><a href="zlib.html" class="nav-zlib">Zlib</a></li>
 </ul>
 <div class="line"></div>
 <ul>
@@ -79,7 +79,7 @@
 
     <div id="column1" data-id="http2" class="interior">
       <header>
-        <h1>Node.js v10.15.3 Documentation</h1>
+        <h1>Node.js v10.16.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -94,7 +94,8 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v11.x/api/http2.html">11.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v12.x/api/http2.html">12.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v11.x/api/http2.html">11.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v10.x/api/http2.html">10.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v9.x/api/http2.html">9.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v8.x/api/http2.html">8.x <b>LTS</b></a></li></ol>
@@ -187,6 +188,7 @@
 <li><a href="#http2_event_trailers">Event: 'trailers'</a></li>
 <li><a href="#http2_event_wanttrailers">Event: 'wantTrailers'</a></li>
 <li><a href="#http2_http2stream_aborted">http2stream.aborted</a></li>
+<li><a href="#http2_http2stream_buffersize">http2stream.bufferSize</a></li>
 <li><a href="#http2_http2stream_close_code_callback">http2stream.close(code[, callback])</a></li>
 <li><a href="#http2_http2stream_closed">http2stream.closed</a></li>
 <li><a href="#http2_http2stream_destroyed">http2stream.destroyed</a></li>
@@ -1204,6 +1206,15 @@ option must be set for this event to be emitted.</p>
 </ul>
 <p>Set to <code>true</code> if the <code>Http2Stream</code> instance was aborted abnormally. When set,
 the <code>'aborted'</code> event will have been emitted.</p>
+<h4>http2stream.bufferSize<span><a class="mark" href="#http2_http2stream_buffersize" id="http2_http2stream_buffersize">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v10.16.0</span>
+</div>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
+</ul>
+<p>This property shows the number of characters currently buffered to be written.
+See <a href="net.html#net_socket_buffersize"><code>net.Socket.bufferSize</code></a> for details.</p>
 <h4>http2stream.close(code[, callback])<span><a class="mark" href="#http2_http2stream_close_code_callback" id="http2_http2stream_close_code_callback">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
@@ -1747,7 +1758,7 @@ that could happen before the delivery of the file is initiated. The
 default behavior is to destroy the stream.</p>
 <p>When the <code>options.waitForTrailers</code> option is set, the <code>'wantTrailers'</code> event
 will be emitted immediately after queuing the last chunk of payload data to be
-sent. The <code>http2stream.sendTrilers()</code> method can then be used to sent trailing
+sent. The <code>http2stream.sendTrailers()</code> method can then be used to sent trailing
 header fields to the peer.</p>
 <p>When <code>options.waitForTrailers</code> is set, the <code>Http2Stream</code> will not automatically
 close when the final <code>DATA</code> frame is transmitted. User code must call either
@@ -1849,7 +1860,7 @@ server.on('stream', (stream, headers, flags) => {
 <p>The <code>'timeout'</code> event is emitted when there is no activity on the Server for
 a given number of milliseconds set using <code>http2server.setTimeout()</code>.
 <strong>Default:</strong> 2 minutes.</p>
-<h4>server.close([callback])<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/net.js#L1552">[src]</a><span><a class="mark" href="#http2_server_close_callback" id="http2_server_close_callback">#</a></span></h4>
+<h4>server.close([callback])<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/net.js#L1561">[src]</a><span><a class="mark" href="#http2_server_close_callback" id="http2_server_close_callback">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
 </div>
@@ -1860,7 +1871,7 @@ a given number of milliseconds set using <code>http2server.setTimeout()</code>.
 <p>Note that this is not analogous to restricting new requests since HTTP/2
 connections are persistent. To achieve a similar graceful shutdown behavior,
 consider also using <a href="#http2_http2session_close_callback"><code>http2session.close()</code></a> on active sessions.</p>
-<h4>server.setTimeout([msecs][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/https.js#L82">[src]</a><span><a class="mark" href="#http2_server_settimeout_msecs_callback" id="http2_server_settimeout_msecs_callback">#</a></span></h4>
+<h4>server.setTimeout([msecs][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/https.js#L82">[src]</a><span><a class="mark" href="#http2_server_settimeout_msecs_callback" id="http2_server_settimeout_msecs_callback">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
 </div>
@@ -1970,7 +1981,7 @@ a given number of milliseconds set using <code>http2secureServer.setTimeout()</c
 negotiate an allowed protocol (i.e. HTTP/2 or HTTP/1.1). The event handler
 receives the socket for handling. If no listener is registered for this event,
 the connection is terminated. See the <a href="#http2_compatibility_api">Compatibility API</a>.</p>
-<h4>server.close([callback])<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/net.js#L1552">[src]</a><span><a class="mark" href="#http2_server_close_callback_1" id="http2_server_close_callback_1">#</a></span></h4>
+<h4>server.close([callback])<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/net.js#L1561">[src]</a><span><a class="mark" href="#http2_server_close_callback_1" id="http2_server_close_callback_1">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
 </div>
@@ -1981,7 +1992,7 @@ the connection is terminated. See the <a href="#http2_compatibility_api">Compati
 <p>Note that this is not analogous to restricting new requests since HTTP/2
 connections are persistent. To achieve a similar graceful shutdown behavior,
 consider also using <a href="#http2_http2session_close_callback"><code>http2session.close()</code></a> on active sessions.</p>
-<h4>server.setTimeout([msecs][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/https.js#L82">[src]</a><span><a class="mark" href="#http2_server_settimeout_msecs_callback_1" id="http2_server_settimeout_msecs_callback_1">#</a></span></h4>
+<h4>server.setTimeout([msecs][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/https.js#L82">[src]</a><span><a class="mark" href="#http2_server_settimeout_msecs_callback_1" id="http2_server_settimeout_msecs_callback_1">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
 </div>
@@ -2518,7 +2529,7 @@ meaningful if sent by the server. Once the <code>enableConnectProtocol</code> se
 has been enabled for a given <code>Http2Session</code>, it cannot be disabled.</li>
 </ul>
 <p>All additional properties on the settings object are ignored.</p>
-<h3>Using `options.selectPadding()`<span><a class="mark" href="#http2_using_options_selectpadding" id="http2_using_options_selectpadding">#</a></span></h3>
+<h3>Using <code>options.selectPadding()</code><span><a class="mark" href="#http2_using_options_selectpadding" id="http2_using_options_selectpadding">#</a></span></h3>
 <p>When <code>options.paddingStrategy</code> is equal to
 <code>http2.constants.PADDING_STRATEGY_CALLBACK</code>, the HTTP/2 implementation will
 consult the <code>options.selectPadding()</code> callback function, if provided, to

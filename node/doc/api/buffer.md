@@ -221,7 +221,7 @@ elements, and not as a byte array of the target type. That is,
    `[0x1020304]` or `[0x4030201]`.
 
 It is possible to create a new `Buffer` that shares the same allocated memory as
-a [`TypedArray`] instance by using the `TypeArray` object's `.buffer` property.
+a [`TypedArray`] instance by using the `TypedArray` object's `.buffer` property.
 
 ```js
 const arr = new Uint16Array(2);
@@ -641,15 +641,16 @@ then copying out the relevant bits.
 const store = [];
 
 socket.on('readable', () => {
-  const data = socket.read();
+  let data;
+  while (null !== (data = readable.read())) {
+    // Allocate for retained data
+    const sb = Buffer.allocUnsafeSlow(10);
 
-  // Allocate for retained data
-  const sb = Buffer.allocUnsafeSlow(10);
+    // Copy the data into the new allocation
+    data.copy(sb, 0, 0, 10);
 
-  // Copy the data into the new allocation
-  data.copy(sb, 0, 0, 10);
-
-  store.push(sb);
+    store.push(sb);
+  }
 });
 ```
 
@@ -861,31 +862,6 @@ console.log(buf2.toString());
 
 A `TypeError` will be thrown if `buffer` is not a `Buffer`.
 
-### Class Method: Buffer.from(string[, encoding])
-<!-- YAML
-added: v5.10.0
--->
-
-* `string` {string} A string to encode.
-* `encoding` {string} The encoding of `string`. **Default:** `'utf8'`.
-
-Creates a new `Buffer` containing `string`. The `encoding` parameter identifies
-the character encoding of `string`.
-
-```js
-const buf1 = Buffer.from('this is a tést');
-const buf2 = Buffer.from('7468697320697320612074c3a97374', 'hex');
-
-console.log(buf1.toString());
-// Prints: this is a tést
-console.log(buf2.toString());
-// Prints: this is a tést
-console.log(buf1.toString('ascii'));
-// Prints: this is a tC)st
-```
-
-A `TypeError` will be thrown if `string` is not a string.
-
 ### Class Method: Buffer.from(object[, offsetOrEncoding[, length]])
 <!-- YAML
 added: v8.2.0
@@ -919,6 +895,31 @@ class Foo {
 const buf = Buffer.from(new Foo(), 'utf8');
 // Prints: <Buffer 74 68 69 73 20 69 73 20 61 20 74 65 73 74>
 ```
+
+### Class Method: Buffer.from(string[, encoding])
+<!-- YAML
+added: v5.10.0
+-->
+
+* `string` {string} A string to encode.
+* `encoding` {string} The encoding of `string`. **Default:** `'utf8'`.
+
+Creates a new `Buffer` containing `string`. The `encoding` parameter identifies
+the character encoding of `string`.
+
+```js
+const buf1 = Buffer.from('this is a tést');
+const buf2 = Buffer.from('7468697320697320612074c3a97374', 'hex');
+
+console.log(buf1.toString());
+// Prints: this is a tést
+console.log(buf2.toString());
+// Prints: this is a tést
+console.log(buf1.toString('ascii'));
+// Prints: this is a tC)st
+```
+
+A `TypeError` will be thrown if `string` is not a string.
 
 ### Class Method: Buffer.isBuffer(obj)
 <!-- YAML
@@ -1234,7 +1235,9 @@ console.log(b.toString());
 // Prints: hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh
 ```
 
-`value` is coerced to a `uint32` value if it is not a string or integer.
+`value` is coerced to a `uint32` value if it is not a string, `Buffer`, or
+integer. If the resulting integer is greater than `255` (decimal), `buf` will be
+filled with `value & 255`.
 
 If the final write of a `fill()` operation falls on a multi-byte character,
 then only the bytes of that character that fit into `buf` are written:
@@ -2558,15 +2561,16 @@ un-pooled `Buffer` instance using `SlowBuffer` then copy out the relevant bits.
 const store = [];
 
 socket.on('readable', () => {
-  const data = socket.read();
+  let data;
+  while (null !== (data = readable.read())) {
+    // Allocate for retained data
+    const sb = SlowBuffer(10);
 
-  // Allocate for retained data
-  const sb = SlowBuffer(10);
+    // Copy the data into the new allocation
+    data.copy(sb, 0, 0, 10);
 
-  // Copy the data into the new allocation
-  data.copy(sb, 0, 0, 10);
-
-  store.push(sb);
+    store.push(sb);
+  }
 });
 ```
 
@@ -2637,6 +2641,9 @@ in UTF-16 code units.
 
 This value may depend on the JS engine that is being used.
 
+[RFC1345]: https://tools.ietf.org/html/rfc1345
+[RFC4648, Section 5]: https://tools.ietf.org/html/rfc4648#section-5
+[WHATWG Encoding Standard]: https://encoding.spec.whatwg.org/
 [`ArrayBuffer#slice()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer/slice
 [`ArrayBuffer`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer
 [`Buffer.alloc()`]: #buffer_class_method_buffer_alloc_size_fill_encoding
@@ -2673,7 +2680,4 @@ This value may depend on the JS engine that is being used.
 [`buffer.constants.MAX_STRING_LENGTH`]: #buffer_buffer_constants_max_string_length
 [`buffer.kMaxLength`]: #buffer_buffer_kmaxlength
 [`util.inspect()`]: util.html#util_util_inspect_object_options
-[RFC1345]: https://tools.ietf.org/html/rfc1345
-[RFC4648, Section 5]: https://tools.ietf.org/html/rfc4648#section-5
-[WHATWG Encoding Standard]: https://encoding.spec.whatwg.org/
 [iterator]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols

@@ -33,6 +33,7 @@ const {
   ERR_INVALID_OPT_VALUE
 } = require('internal/errors').codes;
 const { debug, inherits } = require('util');
+const { emitExperimentalWarning } = require('internal/util');
 const { Buffer } = require('buffer');
 const EventEmitter = require('events');
 const {
@@ -54,10 +55,15 @@ const {
 // Lazy load StringDecoder for startup performance.
 let StringDecoder;
 
+// Lazy load Readable for startup performance.
+let Readable;
+
 const kHistorySize = 30;
 const kMincrlfDelay = 100;
 // \r\n, \n, or \r followed by something other than \n
 const lineEnding = /\r?\n|\r(?!\n)/;
+
+const kLineObjectStream = Symbol('line object stream');
 
 const KEYPRESS_DECODER = Symbol('keypress-decoder');
 const ESCAPE_DECODER = Symbol('escape-decoder');
@@ -82,6 +88,7 @@ function Interface(input, output, completer, terminal) {
   this.isCompletionEnabled = true;
   this._sawKeyPress = false;
   this._previousKey = null;
+  this.escapeCodeTimeout = ESCAPE_CODE_TIMEOUT;
 
   EventEmitter.call(this);
   var historySize;
@@ -98,6 +105,16 @@ function Interface(input, output, completer, terminal) {
     removeHistoryDuplicates = input.removeHistoryDuplicates;
     if (input.prompt !== undefined) {
       prompt = input.prompt;
+    }
+    if (input.escapeCodeTimeout !== undefined) {
+      if (Number.isFinite(input.escapeCodeTimeout)) {
+        this.escapeCodeTimeout = input.escapeCodeTimeout;
+      } else {
+        throw new ERR_INVALID_OPT_VALUE(
+          'escapeCodeTimeout',
+          this.escapeCodeTimeout
+        );
+      }
     }
     crlfDelay = input.crlfDelay;
     input = input.input;
@@ -131,7 +148,6 @@ function Interface(input, output, completer, terminal) {
   this.removeHistoryDuplicates = !!removeHistoryDuplicates;
   this.crlfDelay = crlfDelay ?
     Math.max(kMincrlfDelay, crlfDelay) : kMincrlfDelay;
-
   // Check arity, 2 - for async, 1 for sync
   if (typeof completer === 'function') {
     this.completer = completer.length === 2 ?
@@ -179,6 +195,8 @@ function Interface(input, output, completer, terminal) {
   function onresize() {
     self._refreshLine();
   }
+
+  this[kLineObjectStream] = undefined;
 
   if (!this.terminal) {
     function onSelfCloseWithoutTerminal() {
@@ -986,6 +1004,41 @@ Interface.prototype._ttyWrite = function(s, key) {
   }
 };
 
+Interface.prototype[Symbol.asyncIterator] = function() {
+  emitExperimentalWarning('readline Interface [Symbol.asyncIterator]');
+
+  if (this[kLineObjectStream] === undefined) {
+    if (Readable === undefined) {
+      Readable = require('stream').Readable;
+    }
+    const readable = new Readable({
+      objectMode: true,
+      read: () => {
+        this.resume();
+      },
+      destroy: (err, cb) => {
+        this.off('line', lineListener);
+        this.off('close', closeListener);
+        this.close();
+        cb(err);
+      }
+    });
+    const lineListener = (input) => {
+      if (!readable.push(input)) {
+        this.pause();
+      }
+    };
+    const closeListener = () => {
+      readable.push(null);
+    };
+    this.on('line', lineListener);
+    this.on('close', closeListener);
+    this[kLineObjectStream] = readable;
+  }
+
+  return this[kLineObjectStream][Symbol.asyncIterator]();
+};
+
 /**
  * accepts a readable Stream instance and makes it emit "keypress" events
  */
@@ -1022,7 +1075,10 @@ function emitKeypressEvents(stream, iface) {
             stream[ESCAPE_DECODER].next(r[i]);
             // Escape letter at the tail position
             if (r[i] === kEscape && i + 1 === r.length) {
-              timeoutId = setTimeout(escapeCodeTimeout, ESCAPE_CODE_TIMEOUT);
+              timeoutId = setTimeout(
+                escapeCodeTimeout,
+                iface ? iface.escapeCodeTimeout : ESCAPE_CODE_TIMEOUT
+              );
             }
           } catch (err) {
             // if the generator throws (it could happen in the `keypress`

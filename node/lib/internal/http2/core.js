@@ -470,8 +470,8 @@ function onOrigin(origins) {
   const session = this[kOwner];
   if (session.destroyed)
     return;
-  debug(`Http2Session ${sessionName(session[kType])}: origin received: ` +
-        `${origins.join(', ')}`);
+  debug('Http2Session %s: origin received: %j',
+        sessionName(session[kType]), origins);
   session[kUpdateTimer]();
   if (!session.encrypted || session.destroyed)
     return undefined;
@@ -1685,6 +1685,12 @@ class Http2Stream extends Duplex {
     return `Http2Stream ${util.format(obj)}`;
   }
 
+  get bufferSize() {
+    // `bufferSize` properties of `net.Socket` are `undefined` when
+    // their `_handle` are falsy. Here we avoid the behavior.
+    return this[kState].writeQueueSize + this.writableLength;
+  }
+
   get endAfterHeaders() {
     return this[kState].endAfterHeaders;
   }
@@ -1767,8 +1773,7 @@ class Http2Stream extends Duplex {
   }
 
   [kProceed]() {
-    assert.fail(null, null,
-                'Implementors MUST implement this. Please report this as a ' +
+    assert.fail('Implementors MUST implement this. Please report this as a ' +
                 'bug in Node.js');
   }
 
@@ -1819,7 +1824,7 @@ class Http2Stream extends Duplex {
 
   _final(cb) {
     const handle = this[kHandle];
-    if (this[kID] === undefined) {
+    if (this.pending) {
       this.once('ready', () => this._final(cb));
     } else if (handle !== undefined) {
       debug(`Http2Stream ${this[kID]} [Http2Session ` +
@@ -1828,7 +1833,9 @@ class Http2Stream extends Duplex {
       req.oncomplete = afterShutdown;
       req.callback = cb;
       req.handle = handle;
-      handle.shutdown(req);
+      const err = handle.shutdown(req);
+      if (err === 1)  // synchronous finish
+        return afterShutdown.call(req, 0);
     } else {
       cb();
     }

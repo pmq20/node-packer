@@ -147,8 +147,8 @@ function normalizeExecArgs(command, options, callback) {
 }
 
 
-exports.exec = function exec(/* command , options, callback */) {
-  const opts = normalizeExecArgs.apply(null, arguments);
+exports.exec = function exec(command, options, callback) {
+  const opts = normalizeExecArgs(command, options, callback);
   return exports.execFile(opts.file,
                           opts.options,
                           opts.callback);
@@ -342,9 +342,15 @@ exports.execFile = function execFile(file /* , args, options, callback */) {
 
     child.stdout.on('data', function onChildStdout(chunk) {
       var encoding = child.stdout._readableState.encoding;
-      stdoutLen += encoding ? Buffer.byteLength(chunk, encoding) : chunk.length;
+      const length = encoding ?
+        Buffer.byteLength(chunk, encoding) :
+        chunk.length;
+      stdoutLen += length;
 
       if (stdoutLen > options.maxBuffer) {
+        const truncatedLen = options.maxBuffer - (stdoutLen - length);
+        _stdout.push(chunk.slice(0, truncatedLen));
+
         ex = new ERR_CHILD_PROCESS_STDIO_MAXBUFFER('stdout');
         kill();
       } else {
@@ -359,9 +365,15 @@ exports.execFile = function execFile(file /* , args, options, callback */) {
 
     child.stderr.on('data', function onChildStderr(chunk) {
       var encoding = child.stderr._readableState.encoding;
-      stderrLen += encoding ? Buffer.byteLength(chunk, encoding) : chunk.length;
+      const length = encoding ?
+        Buffer.byteLength(chunk, encoding) :
+        chunk.length;
+      stderrLen += length;
 
       if (stderrLen > options.maxBuffer) {
+        const truncatedLen = options.maxBuffer - (stderrLen - length);
+        _stderr.push(chunk.slice(0, truncatedLen));
+
         ex = new ERR_CHILD_PROCESS_STDIO_MAXBUFFER('stderr');
         kill();
       } else {
@@ -440,8 +452,9 @@ function normalizeSpawnArguments(file, args, options) {
 
   if (Array.isArray(args)) {
     args = args.slice(0);
-  } else if (args !== undefined &&
-             (args === null || typeof args !== 'object')) {
+  } else if (args == null) {
+    args = [];
+  } else if (typeof args !== 'object') {
     throw new ERR_INVALID_ARG_TYPE('args', 'object', args);
   } else {
     options = args;
@@ -692,11 +705,11 @@ function normalizeSpawnArguments(file, args, options) {
 }
 
 
-var spawn = exports.spawn = function spawn(/* file, args, options */) {
-  var opts = normalizeSpawnArguments.apply(null, arguments);
-  var options = opts.options;
-  var child = new ChildProcess();
+var spawn = exports.spawn = function spawn(file, args, options) {
+  const opts = normalizeSpawnArguments(file, args, options);
+  const child = new ChildProcess();
 
+  options = opts.options;
   debug('spawn', opts.args, options);
 
   child.spawn({
@@ -715,10 +728,10 @@ var spawn = exports.spawn = function spawn(/* file, args, options */) {
   return child;
 };
 
-function spawnSync(/* file, args, options */) {
-  var opts = normalizeSpawnArguments.apply(null, arguments);
+function spawnSync(file, args, options) {
+  const opts = normalizeSpawnArguments(file, args, options);
 
-  var options = opts.options;
+  options = opts.options;
 
   debug('spawnSync', opts.args, options);
 
@@ -786,8 +799,8 @@ function checkExecSyncError(ret, args, cmd) {
 }
 
 
-function execFileSync(/* command, args, options */) {
-  var opts = normalizeSpawnArguments.apply(null, arguments);
+function execFileSync(command, args, options) {
+  var opts = normalizeSpawnArguments(command, args, options);
   var inheritStderr = !opts.options.stdio;
 
   var ret = spawnSync(opts.file, opts.args.slice(1), opts.options);
@@ -805,8 +818,8 @@ function execFileSync(/* command, args, options */) {
 exports.execFileSync = execFileSync;
 
 
-function execSync(command /* , options */) {
-  var opts = normalizeExecArgs.apply(null, arguments);
+function execSync(command, options) {
+  var opts = normalizeExecArgs(command, options, null);
   var inheritStderr = !opts.options.stdio;
 
   var ret = spawnSync(opts.file, opts.options);

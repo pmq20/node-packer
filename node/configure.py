@@ -742,7 +742,7 @@ def get_gas_version(cc):
 # quite prepared to go that far yet.
 def check_compiler(o):
   if sys.platform == 'win32':
-    if not options.openssl_no_asm:
+    if not options.openssl_no_asm and options.dest_cpu in ('x86', 'x64'):
       nasm_version = get_nasm_version('nasm')
       o['variables']['nasm_version'] = nasm_version
       if nasm_version == 0:
@@ -1135,8 +1135,8 @@ def configure_library(lib, output):
     if options.__dict__[shared_lib + '_includes']:
       output['include_dirs'] += [options.__dict__[shared_lib + '_includes']]
     elif pkg_cflags:
-      output['include_dirs'] += (
-          filter(None, map(str.strip, pkg_cflags.split('-I'))))
+      stripped_flags = [flag.strip() for flag in pkg_cflags.split('-I')]
+      output['include_dirs'] += [flag for flag in stripped_flags if flag]
 
     # libpath needs to be provided ahead libraries
     if options.__dict__[shared_lib + '_libpath']:
@@ -1152,7 +1152,7 @@ def configure_library(lib, output):
       output['libraries'] += [pkg_libpath]
 
     default_libs = getattr(options, shared_lib + '_libname')
-    default_libs = map('-l{0}'.format, default_libs.split(','))
+    default_libs = ['-l{0}'.format(lib) for lib in default_libs.split(',')]
 
     if default_libs:
       output['libraries'] += default_libs
@@ -1240,7 +1240,7 @@ def configure_openssl(o):
   if options.openssl_no_asm and options.shared_openssl:
     error('--openssl-no-asm is incompatible with --shared-openssl')
 
-  if options.openssl_fips:
+  if options.openssl_fips or options.openssl_fips == '':
      error('FIPS is not supported in this version of Node.js')
 
   configure_library('openssl', o)
@@ -1312,8 +1312,8 @@ def configure_intl(o):
         if (md5 == gotmd5):
           return targetfile
         else:
-          error('Expected: %s      *MISMATCH*' % md5)
-          error('\n ** Corrupted ZIP? Delete %s to retry download.\n' % targetfile)
+          warn('Expected: %s      *MISMATCH*' % md5)
+          warn('\n ** Corrupted ZIP? Delete %s to retry download.\n' % targetfile)
     return None
   icu_config = {
     'variables': {}
@@ -1375,7 +1375,8 @@ def configure_intl(o):
     # safe to split, cannot contain spaces
     o['libraries'] += libs.split()
     if cflags:
-      o['include_dirs'] += filter(None, map(str.strip, cflags.split('-I')))
+      stripped_flags = [flag.strip() for flag in cflags.split('-I')]
+      o['include_dirs'] += [flag for flag in stripped_flags if flag]
     # use the "system" .gyp
     o['variables']['icu_gyp_path'] = 'tools/icu/icu-system.gyp'
     return
@@ -1462,11 +1463,12 @@ def configure_intl(o):
   # ICU source dir relative to tools/icu (for .gyp file)
   o['variables']['icu_path'] = icu_full_path
   if not os.path.isdir(icu_full_path):
-    warn('* ECMA-402 (Intl) support didn\'t find ICU in %s..' % icu_full_path)
     # can we download (or find) a zipfile?
     localzip = icu_download(icu_full_path)
     if localzip:
       nodedownload.unpack(localzip, icu_parent_path)
+    else:
+      warn('* ECMA-402 (Intl) support didn\'t find ICU in %s..' % icu_full_path)
   if not os.path.isdir(icu_full_path):
     error('''Cannot build Intl without ICU in %s.
        Fix, or disable with "--with-intl=none"''' % icu_full_path)
@@ -1655,7 +1657,7 @@ config = {
 if options.prefix:
   config['PREFIX'] = options.prefix
 
-config = '\n'.join(map('='.join, config.iteritems())) + '\n'
+config = '\n'.join(['='.join(item) for item in config.items()]) + '\n'
 
 # On Windows there's no reason to search for a different python binary.
 bin_override = None if sys.platform == 'win32' else make_bin_override()

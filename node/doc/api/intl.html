@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Internationalization Support | Node.js v10.15.3 Documentation</title>
+  <title>Internationalization Support | Node.js v10.16.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -69,7 +69,7 @@
 <li><a href="v8.html" class="nav-v8">V8</a></li>
 <li><a href="vm.html" class="nav-vm">VM</a></li>
 <li><a href="worker_threads.html" class="nav-worker_threads">Worker Threads</a></li>
-<li><a href="zlib.html" class="nav-zlib">ZLIB</a></li>
+<li><a href="zlib.html" class="nav-zlib">Zlib</a></li>
 </ul>
 <div class="line"></div>
 <ul>
@@ -79,7 +79,7 @@
 
     <div id="column1" data-id="intl" class="interior">
       <header>
-        <h1>Node.js v10.15.3 Documentation</h1>
+        <h1>Node.js v10.16.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -94,7 +94,8 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v11.x/api/intl.html">11.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v12.x/api/intl.html">12.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v11.x/api/intl.html">11.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v10.x/api/intl.html">10.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v9.x/api/intl.html">9.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v8.x/api/intl.html">8.x <b>LTS</b></a></li></ol>
@@ -283,10 +284,10 @@ option:</p>
 operation just like the non-<code>Locale</code> version of the function, if one
 exists. For example, under <code>none</code> mode, <code>Date.prototype.toLocaleString()</code>'s
 operation is identical to that of <code>Date.prototype.toString()</code>.</p>
-<h3>Disable all internationalization features (`none`)<span><a class="mark" href="#intl_disable_all_internationalization_features_none" id="intl_disable_all_internationalization_features_none">#</a></span></h3>
+<h3>Disable all internationalization features (<code>none</code>)<span><a class="mark" href="#intl_disable_all_internationalization_features_none" id="intl_disable_all_internationalization_features_none">#</a></span></h3>
 <p>If this option is chosen, most internationalization features mentioned above
 will be <strong>unavailable</strong> in the resulting <code>node</code> binary.</p>
-<h3>Build with a pre-installed ICU (`system-icu`)<span><a class="mark" href="#intl_build_with_a_pre_installed_icu_system_icu" id="intl_build_with_a_pre_installed_icu_system_icu">#</a></span></h3>
+<h3>Build with a pre-installed ICU (<code>system-icu</code>)<span><a class="mark" href="#intl_build_with_a_pre_installed_icu_system_icu" id="intl_build_with_a_pre_installed_icu_system_icu">#</a></span></h3>
 <p>Node.js can link against an ICU build already installed on the system. In fact,
 most Linux distributions already come with ICU installed, and this option would
 make it possible to reuse the same set of data used by other components in the
@@ -297,7 +298,7 @@ supported under <code>system-icu</code>. Features that require ICU locale data i
 addition, such as <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DateTimeFormat"><code>Intl.DateTimeFormat</code></a> <em>may</em> be fully or partially
 supported, depending on the completeness of the ICU data installed on the
 system.</p>
-<h3>Embed a limited set of ICU data (`small-icu`)<span><a class="mark" href="#intl_embed_a_limited_set_of_icu_data_small_icu" id="intl_embed_a_limited_set_of_icu_data_small_icu">#</a></span></h3>
+<h3>Embed a limited set of ICU data (<code>small-icu</code>)<span><a class="mark" href="#intl_embed_a_limited_set_of_icu_data_small_icu" id="intl_embed_a_limited_set_of_icu_data_small_icu">#</a></span></h3>
 <p>This option makes the resulting binary link against the ICU library statically,
 and includes a subset of ICU data (typically only the English locale) within
 the <code>node</code> executable.</p>
@@ -348,7 +349,7 @@ appropriate data file. After installing the module through <code>npm i full-icu<
 the data file will be available at <code>./node_modules/full-icu</code>. This path can be
 then passed either to <code>NODE_ICU_DATA</code> or <code>--icu-data-dir</code> as shown above to
 enable full <code>Intl</code> support.</p>
-<h3>Embed the entire ICU (`full-icu`)<span><a class="mark" href="#intl_embed_the_entire_icu_full_icu" id="intl_embed_the_entire_icu_full_icu">#</a></span></h3>
+<h3>Embed the entire ICU (<code>full-icu</code>)<span><a class="mark" href="#intl_embed_the_entire_icu_full_icu" id="intl_embed_the_entire_icu_full_icu">#</a></span></h3>
 <p>This option makes the resulting binary link against ICU statically and include
 a full set of ICU data. A binary created this way has no further external
 dependencies and supports all locales, but might be rather large. See

@@ -26,7 +26,7 @@ const customTypesMap = {
 
   'this': `${jsDocPrefix}Reference/Operators/this`,
 
-  'AsyncIterator': 'https://github.com/tc39/proposal-async-iteration',
+  'AsyncIterator': 'https://tc39.github.io/ecma262/#sec-asynciterator-interface',
 
   'bigint': 'https://github.com/tc39/proposal-bigint',
 
@@ -37,6 +37,8 @@ const customTypesMap = {
 
   'AsyncHook': 'async_hooks.html#async_hooks_async_hooks_createhook_callbacks',
   'AsyncResource': 'async_hooks.html#async_hooks_class_asyncresource',
+
+  'brotli options': 'zlib.html#zlib_class_brotlioptions',
 
   'Buffer': 'buffer.html#buffer_class_buffer',
 

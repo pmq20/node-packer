@@ -51,7 +51,6 @@ resources:
 
 * [Questions tagged 'node.js' on StackOverflow][]
 * [#node.js channel on chat.freenode.net][]
-* [Node.js Discord Community](https://discordapp.com/invite/v7rrPdE)
 * [Node.js Slack Community](https://node-js.slack.com/)
   * To register: [nodeslackers.com](http://www.nodeslackers.com/)
 
@@ -186,6 +185,8 @@ For information about the governance of the Node.js project, see
 **Gabriel Schulhof** &lt;gabriel.schulhof@intel.com&gt;
 * [jasnell](https://github.com/jasnell) -
 **James M Snell** &lt;jasnell@gmail.com&gt; (he/him)
+* [gireeshpunathil](https://github.com/gireeshpunathil) -
+**Gireesh Punathil** &lt;gpunathi@in.ibm.com&gt; (he/him)
 * [joyeecheung](https://github.com/joyeecheung) -
 **Joyee Cheung** &lt;joyeec9h3@gmail.com&gt; (she/her)
 * [mcollina](https://github.com/mcollina) -
@@ -202,6 +203,8 @@ For information about the governance of the Node.js project, see
 **Michaël Zasso** &lt;targos@protonmail.com&gt; (he/him)
 * [thefourtheye](https://github.com/thefourtheye) -
 **Sakthipriyan Vairamani** &lt;thechargingvolcano@gmail.com&gt; (he/him)
+* [Trott](https://github.com/Trott) -
+**Rich Trott** &lt;rtrott@gmail.com&gt; (he/him)
 
 ### TSC Emeriti
 
@@ -233,8 +236,6 @@ For information about the governance of the Node.js project, see
 **Tiancheng "Timothy" Gu** &lt;timothygu99@gmail.com&gt; (he/him)
 * [trevnorris](https://github.com/trevnorris) -
 **Trevor Norris** &lt;trev.norris@gmail.com&gt;
-* [Trott](https://github.com/Trott) -
-**Rich Trott** &lt;rtrott@gmail.com&gt; (he/him)
 
 ### Collaborators
 
@@ -486,6 +487,8 @@ For information about the governance of the Node.js project, see
 **Yorkie Liu** &lt;yorkiefixer@gmail.com&gt;
 * [yosuke-furukawa](https://github.com/yosuke-furukawa) -
 **Yosuke Furukawa** &lt;yosuke.furukawa@gmail.com&gt;
+* [ZYSzys](https://github.com/ZYSzys) -
+**Yongsheng Zhang** &lt;zyszys98@gmail.com&gt; (he/him)
 
 ### Collaborator Emeriti
 

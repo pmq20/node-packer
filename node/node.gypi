@@ -205,25 +205,9 @@
       'dependencies': [ 'deps/nghttp2/nghttp2.gyp:nghttp2' ],
     }],
 
-    # [ 'OS=="win"', {
-    #   'sources': [
-    #     'src/backtrace_win32.cc',
-    #     'src/res/node.rc',
-    #   ],
-    #   'defines!': [
-    #     'NODE_PLATFORM="win"',
-    #   ],
-    #   'defines': [
-    #     'FD_SETSIZE=1024',
-    #     # we need to use node's preferred "win32" rather than gyp's preferred "win"
-    #     'NODE_PLATFORM="win32"',
-    #     '_UNICODE=1',
-    #   ],
-    #   'libraries': [ '-lpsapi.lib', '-lOle32.lib' ]
-    # }, { # POSIX
-    #   'defines': [ '__POSIX__' ],
-    #   'sources': [ 'src/backtrace_posix.cc' ],
-    # }],
+    [ 'node_shared_brotli=="false"', {
+      'dependencies': [ 'deps/brotli/brotli.gyp:brotli' ],
+    }],
 
     [ 'OS=="mac"', {
       # linking Corefoundation is needed since certain OSX debugging tools

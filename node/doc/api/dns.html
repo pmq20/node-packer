@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>DNS | Node.js v10.15.3 Documentation</title>
+  <title>DNS | Node.js v10.16.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -69,7 +69,7 @@
 <li><a href="v8.html" class="nav-v8">V8</a></li>
 <li><a href="vm.html" class="nav-vm">VM</a></li>
 <li><a href="worker_threads.html" class="nav-worker_threads">Worker Threads</a></li>
-<li><a href="zlib.html" class="nav-zlib">ZLIB</a></li>
+<li><a href="zlib.html" class="nav-zlib">Zlib</a></li>
 </ul>
 <div class="line"></div>
 <ul>
@@ -79,7 +79,7 @@
 
     <div id="column1" data-id="dns" class="interior">
       <header>
-        <h1>Node.js v10.15.3 Documentation</h1>
+        <h1>Node.js v10.16.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -94,12 +94,13 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v11.x/api/dns.html">11.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v12.x/api/dns.html">12.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v11.x/api/dns.html">11.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v10.x/api/dns.html">10.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v9.x/api/dns.html">9.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v8.x/api/dns.html">8.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v7.x/api/dns.html">7.x</a></li>
-<li><a href="https://nodejs.org/docs/latest-v6.x/api/dns.html">6.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v6.x/api/dns.html">6.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v5.x/api/dns.html">5.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v4.x/api/dns.html">4.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v0.12.x/api/dns.html">0.12.x</a></li>
@@ -288,7 +289,7 @@ section if a custom port is used.</p>
   '[2001:4860:4860::8888]:1053'
 ]
 </code></pre>
-<h2>dns.lookup(hostname[, options], callback)<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/dns.js#L86">[src]</a><span><a class="mark" href="#dns_dns_lookup_hostname_options_callback" id="dns_dns_lookup_hostname_options_callback">#</a></span></h2>
+<h2>dns.lookup(hostname[, options], callback)<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/dns.js#L86">[src]</a><span><a class="mark" href="#dns_dns_lookup_hostname_options_callback" id="dns_dns_lookup_hostname_options_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -377,7 +378,7 @@ configured. Loopback addresses are not considered.</li>
 found, then return IPv4 mapped IPv6 addresses. Note that it is not supported
 on some operating systems (e.g FreeBSD 10.1).</li>
 </ul>
-<h2>dns.lookupService(address, port, callback)<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/dns.js#L161">[src]</a><span><a class="mark" href="#dns_dns_lookupservice_address_port_callback" id="dns_dns_lookupservice_address_port_callback">#</a></span></h2>
+<h2>dns.lookupService(address, port, callback)<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/dns.js#L161">[src]</a><span><a class="mark" href="#dns_dns_lookupservice_address_port_callback" id="dns_dns_lookupservice_address_port_callback">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.11.14</span>
 </div>
@@ -657,6 +658,9 @@ will be present on the object:</p>
     expire: 1800,
     minttl: 60 } ]
 </code></pre>
+<p>DNS server operators may choose not to respond to <code>ANY</code>
+queries. It may be better to call individual methods like <a href="#dns_dns_resolve4_hostname_options_callback"><code>dns.resolve4()</code></a>,
+<a href="#dns_dns_resolvemx_hostname_callback"><code>dns.resolveMx()</code></a>, and so on. For more details, see <a href="https://tools.ietf.org/html/rfc8482">RFC 8482</a>.</p>
 <h2>dns.resolveCname(hostname, callback)<span><a class="mark" href="#dns_dns_resolvecname_hostname_callback" id="dns_dns_resolvecname_hostname_callback">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.3.2</span>
@@ -841,7 +845,7 @@ be an array of objects with the following properties:</p>
 <p><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></p>
 <ul>
 <li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&#x3C;Error></a></li>
-<li><code>records</code> {string<a href=""></a>}</li>
+<li><code>records</code> {string[][]}</li>
 </ul>
 </li>
 </ul>
@@ -889,6 +893,9 @@ addresses. If the port is the IANA default DNS port (53) it can be omitted.</p>
 <p>An error will be thrown if an invalid address is provided.</p>
 <p>The <code>dns.setServers()</code> method must not be called while a DNS query is in
 progress.</p>
+<p>The <a href="#dns_dns_setservers_servers"><code>dns.setServers()</code></a> method affects only <a href="#dns_dns_resolve_hostname_rrtype_callback"><code>dns.resolve()</code></a>,
+[<code>dns.resolve*()</code>][] and <a href="#dns_dns_reverse_ip_callback"><code>dns.reverse()</code></a> (and specifically <em>not</em>
+<a href="#dns_dns_lookup_hostname_options_callback"><code>dns.lookup()</code></a>).</p>
 <p>Note that this method works much like
 <a href="http://man7.org/linux/man-pages/man5/resolv.conf.5.html">resolve.conf</a>.
 That is, if attempting to resolve with the first server provided results in a
@@ -1475,7 +1482,7 @@ host names. If that is an issue, consider resolving the hostname to an address
 using <code>dns.resolve()</code> and using the address instead of a host name. Also, some
 networking APIs (such as <a href="net.html#net_socket_connect_options_connectlistener"><code>socket.connect()</code></a> and <a href="dgram.html#dgram_dgram_createsocket_options_callback"><code>dgram.createSocket()</code></a>)
 allow the default resolver, <code>dns.lookup()</code>, to be replaced.</p>
-<h3>`dns.resolve()`, `dns.resolve*()` and `dns.reverse()`<span><a class="mark" href="#dns_dns_resolve_dns_resolve_and_dns_reverse" id="dns_dns_resolve_dns_resolve_and_dns_reverse">#</a></span></h3>
+<h3><code>dns.resolve()</code>, <code>dns.resolve*()</code> and <code>dns.reverse()</code><span><a class="mark" href="#dns_dns_resolve_dns_resolve_and_dns_reverse" id="dns_dns_resolve_dns_resolve_and_dns_reverse">#</a></span></h3>
 <p>These functions are implemented quite differently than <a href="#dns_dns_lookup_hostname_options_callback"><code>dns.lookup()</code></a>. They
 do not use <a href="http://man7.org/linux/man-pages/man3/getaddrinfo.3.html"><code>getaddrinfo(3)</code></a> and they <em>always</em> perform a DNS query on the
 network. This network communication is always done asynchronously, and does not

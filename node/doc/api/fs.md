@@ -488,6 +488,16 @@ argument to `fs.createReadStream()`. If `path` is passed as a string, then
 `readStream.path` will be a string. If `path` is passed as a `Buffer`, then
 `readStream.path` will be a `Buffer`.
 
+### readStream.pending
+<!-- YAML
+added: v10.16.0
+-->
+
+* {boolean}
+
+This property is `true` if the underlying file has not been opened yet,
+i.e. before the `'ready'` event is emitted.
+
 ## Class: fs.Stats
 <!-- YAML
 added: v0.1.21
@@ -832,6 +842,16 @@ The path to the file the stream is writing to as specified in the first
 argument to [`fs.createWriteStream()`][]. If `path` is passed as a string, then
 `writeStream.path` will be a string. If `path` is passed as a `Buffer`, then
 `writeStream.path` will be a `Buffer`.
+
+### writeStream.pending
+<!-- YAML
+added: v10.16.0
+-->
+
+* {boolean}
+
+This property is `true` if the underlying file has not been opened yet,
+i.e. before the `'ready'` event is emitted.
 
 ## fs.access(path[, mode], callback)
 <!-- YAML
@@ -2187,6 +2207,15 @@ fs.mkdir('/tmp/a/apple', { recursive: true }, (err) => {
 });
 ```
 
+On Windows, using `fs.mkdir()` on the root directory even with recursion will
+result in an error:
+
+```js
+fs.mkdir('/', { recursive: true }, (err) => {
+  // => [Error: EPERM: operation not permitted, mkdir 'C:\']
+});
+```
+
 See also: mkdir(2).
 
 ## fs.mkdirSync(path[, options])
@@ -2304,7 +2333,7 @@ this API: [`fs.mkdtemp()`][].
 The optional `options` argument can be a string specifying an encoding, or an
 object with an `encoding` property specifying the character encoding to use.
 
-## fs.open(path, flags[, mode], callback)
+## fs.open(path[, flags[, mode]], callback)
 <!-- YAML
 added: v0.0.2
 changes:
@@ -2322,6 +2351,7 @@ changes:
 
 * `path` {string|Buffer|URL}
 * `flags` {string|number} See [support of file system `flags`][].
+  **Default:** `'r'`.
 * `mode` {integer} **Default:** `0o666` (readable and writable)
 * `callback` {Function}
   * `err` {Error}
@@ -2343,7 +2373,7 @@ a colon, Node.js will open a file system stream, as described by
 Functions based on `fs.open()` exhibit this behavior as well:
 `fs.writeFile()`, `fs.readFile()`, etc.
 
-## fs.openSync(path, flags[, mode])
+## fs.openSync(path[, flags, mode])
 <!-- YAML
 added: v0.1.21
 changes:
@@ -2360,7 +2390,8 @@ changes:
 -->
 
 * `path` {string|Buffer|URL}
-* `flags` {string|number} See [support of file system `flags`][].
+* `flags` {string|number} **Default:** `'r'`.
+   See [support of file system `flags`][].
 * `mode` {integer} **Default:** `0o666`
 * Returns: {number}
 

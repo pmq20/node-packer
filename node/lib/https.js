@@ -189,6 +189,14 @@ Agent.prototype.getName = function getName(options) {
     name += options.servername;
 
   name += ':';
+  if (options.minVersion)
+    name += options.minVersion;
+
+  name += ':';
+  if (options.maxVersion)
+    name += options.maxVersion;
+
+  name += ':';
   if (options.secureProtocol)
     name += options.secureProtocol;
 
@@ -275,7 +283,7 @@ function request(...args) {
     options = util._extend(options, args.shift());
   }
 
-  options._defaultAgent = globalAgent;
+  options._defaultAgent = module.exports.globalAgent;
   args.unshift(options);
 
   return new ClientRequest(...args);

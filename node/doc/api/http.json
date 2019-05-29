@@ -254,11 +254,11 @@
                   "desc": "Set of configurable options to set on the agent. Can have the following fields:",
                   "options": [
                     {
-                      "textRaw": "`keepAlive` {boolean} Keep sockets around even when there are no outstanding requests, so they can be used for future requests without having to reestablish a TCP connection. **Default:** `false`.",
+                      "textRaw": "`keepAlive` {boolean} Keep sockets around even when there are no outstanding requests, so they can be used for future requests without having to reestablish a TCP connection. Not to be confused with the `keep-alive` value of the `Connection` header. The `Connection: keep-alive` header is always sent when using an agent except when the `Connection` header is explicitly specified or when the `keepAlive` and `maxSockets` options are respectively set to `false` and `Infinity`, in which case `Connection: close` will be used. **Default:** `false`.",
                       "name": "keepAlive",
                       "type": "boolean",
                       "default": "`false`",
-                      "desc": "Keep sockets around even when there are no outstanding requests, so they can be used for future requests without having to reestablish a TCP connection."
+                      "desc": "Keep sockets around even when there are no outstanding requests, so they can be used for future requests without having to reestablish a TCP connection. Not to be confused with the `keep-alive` value of the `Connection` header. The `Connection: keep-alive` header is always sent when using an agent except when the `Connection` header is explicitly specified or when the `keepAlive` and `maxSockets` options are respectively set to `false` and `Infinity`, in which case `Connection: close` will be used."
                     },
                     {
                       "textRaw": "`keepAliveMsecs` {number} When using the `keepAlive` option, specifies the [initial delay](net.html#net_socket_setkeepalive_enable_initialdelay) for TCP Keep-Alive packets. Ignored when the `keepAlive` option is `false` or `undefined`. **Default:** `1000`.",
@@ -268,11 +268,11 @@
                       "desc": "When using the `keepAlive` option, specifies the [initial delay](net.html#net_socket_setkeepalive_enable_initialdelay) for TCP Keep-Alive packets. Ignored when the `keepAlive` option is `false` or `undefined`."
                     },
                     {
-                      "textRaw": "`maxSockets` {number} Maximum number of sockets to allow per host. **Default:** `Infinity`.",
+                      "textRaw": "`maxSockets` {number} Maximum number of sockets to allow per host. Each request will use a new socket until the maximum is reached. **Default:** `Infinity`.",
                       "name": "maxSockets",
                       "type": "number",
                       "default": "`Infinity`",
-                      "desc": "Maximum number of sockets to allow per host."
+                      "desc": "Maximum number of sockets to allow per host. Each request will use a new socket until the maximum is reached."
                     },
                     {
                       "textRaw": "`maxFreeSockets` {number} Maximum number of sockets to leave open in a free state. Only relevant if `keepAlive` is set to `true`. **Default:** `256`.",
@@ -282,10 +282,10 @@
                       "desc": "Maximum number of sockets to leave open in a free state. Only relevant if `keepAlive` is set to `true`."
                     },
                     {
-                      "textRaw": "`timeout` {number} Socket timeout in milliseconds. This will set the timeout after the socket is connected.",
+                      "textRaw": "`timeout` {number} Socket timeout in milliseconds. This will set the timeout when the socket is created.",
                       "name": "timeout",
                       "type": "number",
-                      "desc": "Socket timeout in milliseconds. This will set the timeout after the socket is connected."
+                      "desc": "Socket timeout in milliseconds. This will set the timeout when the socket is created."
                     }
                   ],
                   "optional": true
@@ -679,7 +679,13 @@
                 "added": [
                   "v0.5.9"
                 ],
-                "changes": []
+                "changes": [
+                  {
+                    "version": "v9.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/8895",
+                    "description": "Consistently set socket timeout only when the socket connects."
+                  }
+                ]
               },
               "signatures": [
                 {
@@ -1137,7 +1143,7 @@
                 "changes": []
               },
               "default": "`40000`",
-              "desc": "<p>Limit the amount of time the parser will wait to receive the complete HTTP\nheaders.</p>\n<p>In case of inactivity, the rules defined in <a href=\"\">server.timeout</a> apply. However,\nthat inactivity based timeout would still allow the connection to be kept open\nif the headers are being sent very slowly (by default, up to a byte per 2\nminutes). In order to prevent this, whenever header data arrives an additional\ncheck is made that more than <code>server.headersTimeout</code> milliseconds has not\npassed since the connection was established. If the check fails, a <code>'timeout'</code>\nevent is emitted on the server object, and (by default) the socket is destroyed.\nSee <a href=\"\">server.timeout</a> for more information on how timeout behaviour can be\ncustomised.</p>"
+              "desc": "<p>Limit the amount of time the parser will wait to receive the complete HTTP\nheaders.</p>\n<p>In case of inactivity, the rules defined in [server.timeout][] apply. However,\nthat inactivity based timeout would still allow the connection to be kept open\nif the headers are being sent very slowly (by default, up to a byte per 2\nminutes). In order to prevent this, whenever header data arrives an additional\ncheck is made that more than <code>server.headersTimeout</code> milliseconds has not\npassed since the connection was established. If the check fails, a <code>'timeout'</code>\nevent is emitted on the server object, and (by default) the socket is destroyed.\nSee [server.timeout][] for more information on how timeout behaviour can be\ncustomised.</p>"
             },
             {
               "textRaw": "`timeout` {number} Timeout in milliseconds. **Default:** `120000` (2 minutes).",
@@ -1277,7 +1283,7 @@
                   ]
                 }
               ],
-              "desc": "<p>This method signals to the server that all of the response headers and body\nhave been sent; that server should consider this message complete.\nThe method, <code>response.end()</code>, MUST be called on each response.</p>\n<p>If <code>data</code> is specified, it is equivalent to calling\n<a href=\"#http_response_write_chunk_encoding_callback\"><code>response.write(data, encoding)</code></a> followed by <code>response.end(callback)</code>.</p>\n<p>If <code>callback</code> is specified, it will be called when the response stream\nis finished.</p>"
+              "desc": "<p>This method signals to the server that all of the response headers and body\nhave been sent; that server should consider this message complete.\nThe method, <code>response.end()</code>, MUST be called on each response.</p>\n<p>If <code>data</code> is specified, it is similar in effect to calling\n<a href=\"#http_response_write_chunk_encoding_callback\"><code>response.write(data, encoding)</code></a> followed by <code>response.end(callback)</code>.</p>\n<p>If <code>callback</code> is specified, it will be called when the response stream\nis finished.</p>"
             },
             {
               "textRaw": "response.getHeader(name)",
@@ -1975,7 +1981,7 @@
             ],
             "changes": [
               {
-                "version": "v9.6.0",
+                "version": "v9.6.0, v8.12.0",
                 "pr-url": "https://github.com/nodejs/node/pull/15752",
                 "description": "The `options` argument is supported now."
               }

@@ -341,7 +341,7 @@ Socket.prototype._unrefTimer = function _unrefTimer() {
 // sent out to the other side.
 Socket.prototype._final = function(cb) {
   // If still connecting - defer handling `_final` until 'connect' will happen
-  if (this.connecting) {
+  if (this.pending) {
     debug('_final: not yet connected');
     return this.once('connect', () => this._final(cb));
   }
@@ -357,13 +357,15 @@ Socket.prototype._final = function(cb) {
   req.callback = cb;
   var err = this._handle.shutdown(req);
 
-  if (err)
+  if (err === 1)  // synchronous finish
+    return afterShutdown.call(req, 0);
+  else if (err !== 0)
     return this.destroy(errnoException(err, 'shutdown'));
 };
 
 
-function afterShutdown(status, handle) {
-  var self = handle[owner_symbol];
+function afterShutdown(status) {
+  var self = this.handle[owner_symbol];
 
   debug('afterShutdown destroyed=%j', self.destroyed,
         self._readableState);
@@ -478,6 +480,13 @@ Object.defineProperty(Socket.prototype, '_connecting', {
   get: function() {
     return this.connecting;
   }
+});
+
+Object.defineProperty(Socket.prototype, 'pending', {
+  get() {
+    return !this._handle || this.connecting;
+  },
+  configurable: true
 });
 
 

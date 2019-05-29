@@ -54,10 +54,6 @@ enum nghttp2_session_type {
   NGHTTP2_SESSION_CLIENT
 };
 
-enum nghttp2_shutdown_flags {
-  NGHTTP2_SHUTDOWN_FLAG_GRACEFUL
-};
-
 enum nghttp2_stream_flags {
   NGHTTP2_STREAM_FLAG_NONE = 0x0,
   // Writable side has ended
@@ -339,9 +335,6 @@ enum session_state_flags {
   SESSION_STATE_CLOSING = 0x8,
   SESSION_STATE_SENDING = 0x10,
 };
-
-// This allows for 4 default-sized frames with their frame headers
-static const size_t kAllocBufferSize = 4 * (16384 + 9);
 
 typedef uint32_t(*get_setting)(nghttp2_session* session,
                                nghttp2_settings_id id);

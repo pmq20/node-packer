@@ -161,8 +161,6 @@ function inspect(value, opts) {
     colors: inspectDefaultOptions.colors,
     customInspect: inspectDefaultOptions.customInspect,
     showProxy: inspectDefaultOptions.showProxy,
-    // TODO(BridgeAR): Deprecate `maxArrayLength` and replace it with
-    // `maxEntries`.
     maxArrayLength: inspectDefaultOptions.maxArrayLength,
     breakLength: inspectDefaultOptions.breakLength,
     compact: inspectDefaultOptions.compact,
@@ -594,7 +592,10 @@ function formatRaw(ctx, value, recurseTimes) {
       }
     } else if (typeof value === 'function') {
       const type = constructor || tag || 'Function';
-      const name = `${type}${value.name ? `: ${value.name}` : ''}`;
+      let name = `${type}`;
+      if (value.name && typeof value.name === 'string') {
+        name += `: ${value.name}`;
+      }
       if (keys.length === 0)
         return ctx.stylize(`[${name}]`, 'special');
       base = `[${name}]`;

@@ -447,6 +447,9 @@ inline uint32_t Environment::get_next_module_id() {
 inline uint32_t Environment::get_next_script_id() {
   return script_id_counter_++;
 }
+inline uint32_t Environment::get_next_function_id() {
+  return function_id_counter_++;
+}
 
 Environment::ShouldNotAbortOnUncaughtScope::ShouldNotAbortOnUncaughtScope(
     Environment* env)
@@ -590,8 +593,7 @@ void Environment::CreateImmediate(native_immediate_callback cb,
   native_immediate_callbacks_.push_back({
     cb,
     data,
-    std::unique_ptr<Persistent<v8::Object>>(obj.IsEmpty() ?
-        nullptr : new Persistent<v8::Object>(isolate_, obj)),
+    v8::Global<v8::Object>(isolate_, obj),
     ref
   });
   immediate_info()->count_inc(1);

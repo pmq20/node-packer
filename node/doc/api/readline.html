@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Readline | Node.js v10.15.3 Documentation</title>
+  <title>Readline | Node.js v10.16.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -69,7 +69,7 @@
 <li><a href="v8.html" class="nav-v8">V8</a></li>
 <li><a href="vm.html" class="nav-vm">VM</a></li>
 <li><a href="worker_threads.html" class="nav-worker_threads">Worker Threads</a></li>
-<li><a href="zlib.html" class="nav-zlib">ZLIB</a></li>
+<li><a href="zlib.html" class="nav-zlib">Zlib</a></li>
 </ul>
 <div class="line"></div>
 <ul>
@@ -79,7 +79,7 @@
 
     <div id="column1" data-id="readline" class="interior">
       <header>
-        <h1>Node.js v10.15.3 Documentation</h1>
+        <h1>Node.js v10.16.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -94,12 +94,13 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v11.x/api/readline.html">11.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v12.x/api/readline.html">12.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v11.x/api/readline.html">11.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v10.x/api/readline.html">10.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v9.x/api/readline.html">9.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v8.x/api/readline.html">8.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v7.x/api/readline.html">7.x</a></li>
-<li><a href="https://nodejs.org/docs/latest-v6.x/api/readline.html">6.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v6.x/api/readline.html">6.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v5.x/api/readline.html">5.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v4.x/api/readline.html">4.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v0.12.x/api/readline.html">0.12.x</a></li>
@@ -135,6 +136,7 @@
 <li><a href="#readline_rl_resume">rl.resume()</a></li>
 <li><a href="#readline_rl_setprompt_prompt">rl.setPrompt(prompt)</a></li>
 <li><a href="#readline_rl_write_data_key">rl.write(data[, key])</a></li>
+<li><span class="stability_1"><a href="#readline_rl_symbol_asynciterator">rl[Symbol.asyncIterator]()</a></span></li>
 </ul>
 </li>
 <li><a href="#readline_readline_clearline_stream_dir">readline.clearLine(stream, dir)</a></li>
@@ -396,7 +398,37 @@ rl.write(null, { ctrl: true, name: 'u' });
 </code></pre>
 <p>The <code>rl.write()</code> method will write the data to the <code>readline</code> <code>Interface</code>'s
 <code>input</code> <em>as if it were provided by the user</em>.</p>
-<h2>readline.clearLine(stream, dir)<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/readline.js#L1110">[src]</a><span><a class="mark" href="#readline_readline_clearline_stream_dir" id="readline_readline_clearline_stream_dir">#</a></span></h2>
+<h3>rl[Symbol.asyncIterator]()<span><a class="mark" href="#readline_rl_symbol_asynciterator" id="readline_rl_symbol_asynciterator">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v10.16.0</span>
+</div>
+<p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
+<ul>
+<li>Returns: <a href="https://tc39.github.io/ecma262/#sec-asynciterator-interface" class="type">&#x3C;AsyncIterator></a></li>
+</ul>
+<p>Create an <code>AsyncIterator</code> object that iterates through each line in the input
+stream as a string. This method allows asynchronous iteration of
+<code>readline.Interface</code> objects through <code>for</code>-<code>await</code>-<code>of</code> loops.</p>
+<p>Errors in the input stream are not forwarded.</p>
+<p>If the loop is terminated with <code>break</code>, <code>throw</code>, or <code>return</code>,
+<a href="#readline_rl_close"><code>rl.close()</code></a> will be called. In other words, iterating over a
+<code>readline.Interface</code> will always consume the input stream fully.</p>
+<p>A caveat with using this experimental API is that the performance is
+currently not on par with the traditional <code>'line'</code> event API, and thus it is
+not recommended for performance-sensitive applications. We expect this
+situation to improve in the future.</p>
+<pre><code class="language-js">async function processLineByLine() {
+  const rl = readline.createInterface({
+    // ...
+  });
+
+  for await (const line of rl) {
+    // Each line in the readline input will be successively available here as
+    // `line`.
+  }
+}
+</code></pre>
+<h2>readline.clearLine(stream, dir)<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/readline.js#L1166">[src]</a><span><a class="mark" href="#readline_readline_clearline_stream_dir" id="readline_readline_clearline_stream_dir">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.7.7</span>
 </div>
@@ -413,7 +445,7 @@ rl.write(null, { ctrl: true, name: 'u' });
 </ul>
 <p>The <code>readline.clearLine()</code> method clears current line of given <a href="tty.html">TTY</a> stream
 in a specified direction identified by <code>dir</code>.</p>
-<h2>readline.clearScreenDown(stream)<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/readline.js#L1130">[src]</a><span><a class="mark" href="#readline_readline_clearscreendown_stream" id="readline_readline_clearscreendown_stream">#</a></span></h2>
+<h2>readline.clearScreenDown(stream)<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/readline.js#L1186">[src]</a><span><a class="mark" href="#readline_readline_clearscreendown_stream" id="readline_readline_clearscreendown_stream">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.7.7</span>
 </div>
@@ -422,7 +454,7 @@ in a specified direction identified by <code>dir</code>.</p>
 </ul>
 <p>The <code>readline.clearScreenDown()</code> method clears the given <a href="tty.html">TTY</a> stream from
 the current position of the cursor down.</p>
-<h2>readline.createInterface(options)<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/readline.js#L68">[src]</a><span><a class="mark" href="#readline_readline_createinterface_options" id="readline_readline_createinterface_options">#</a></span></h2>
+<h2>readline.createInterface(options)<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/readline.js#L74">[src]</a><span><a class="mark" href="#readline_readline_createinterface_options" id="readline_readline_createinterface_options">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -467,6 +499,11 @@ will always be considered a single newline (which may be reasonable for
 <li><code>removeHistoryDuplicates</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> If <code>true</code>, when a new input line added
 to the history list duplicates an older one, this removes the older line
 from the list. <strong>Default:</strong> <code>false</code>.</li>
+<li><code>escapeCodeTimeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> The duration <code>readline</code> will wait for a
+character (when reading an ambiguous key sequence in milliseconds one that
+can both form a complete key sequence using the input read so far and can
+take additional input to complete a longer key sequence).
+<strong>Default:</strong> <code>500</code>.</li>
 </ul>
 </li>
 </ul>
@@ -488,7 +525,7 @@ listen for the <code>'line'</code> event:</p>
 the best compatibility if it defines an <code>output.columns</code> property and emits
 a <code>'resize'</code> event on the <code>output</code> if or when the columns ever change
 (<a href="process.html#process_process_stdout"><code>process.stdout</code></a> does this automatically when it is a TTY).</p>
-<h3>Use of the `completer` Function<span><a class="mark" href="#readline_use_of_the_completer_function" id="readline_use_of_the_completer_function">#</a></span></h3>
+<h3>Use of the <code>completer</code> Function<span><a class="mark" href="#readline_use_of_the_completer_function" id="readline_use_of_the_completer_function">#</a></span></h3>
 <p>The <code>completer</code> function takes the current line entered by the user
 as an argument, and returns an <code>Array</code> with 2 entries:</p>
 <ul>
@@ -509,7 +546,7 @@ arguments:</p>
   callback(null, [['123'], linePartial]);
 }
 </code></pre>
-<h2>readline.cursorTo(stream, x, y)<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/readline.js#L1065">[src]</a><span><a class="mark" href="#readline_readline_cursorto_stream_x_y" id="readline_readline_cursorto_stream_x_y">#</a></span></h2>
+<h2>readline.cursorTo(stream, x, y)<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/readline.js#L1121">[src]</a><span><a class="mark" href="#readline_readline_cursorto_stream_x_y" id="readline_readline_cursorto_stream_x_y">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.7.7</span>
 </div>
@@ -520,7 +557,7 @@ arguments:</p>
 </ul>
 <p>The <code>readline.cursorTo()</code> method moves cursor to the specified position in a
 given <a href="tty.html">TTY</a> <code>stream</code>.</p>
-<h2>readline.emitKeypressEvents(stream[, interface])<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/readline.js#L993">[src]</a><span><a class="mark" href="#readline_readline_emitkeypressevents_stream_interface" id="readline_readline_emitkeypressevents_stream_interface">#</a></span></h2>
+<h2>readline.emitKeypressEvents(stream[, interface])<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/readline.js#L1046">[src]</a><span><a class="mark" href="#readline_readline_emitkeypressevents_stream_interface" id="readline_readline_emitkeypressevents_stream_interface">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.7.7</span>
 </div>
@@ -540,7 +577,7 @@ the <code>input</code> from emitting <code>'keypress'</code> events.</p>
 if (process.stdin.isTTY)
   process.stdin.setRawMode(true);
 </code></pre>
-<h2>readline.moveCursor(stream, dx, dy)<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/readline.js#L1086">[src]</a><span><a class="mark" href="#readline_readline_movecursor_stream_dx_dy" id="readline_readline_movecursor_stream_dx_dy">#</a></span></h2>
+<h2>readline.moveCursor(stream, dx, dy)<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/readline.js#L1142">[src]</a><span><a class="mark" href="#readline_readline_movecursor_stream_dx_dy" id="readline_readline_movecursor_stream_dx_dy">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.7.7</span>
 </div>
@@ -579,10 +616,33 @@ rl.on('line', (line) => {
 });
 </code></pre>
 <h2>Example: Read File Stream Line-by-Line<span><a class="mark" href="#readline_example_read_file_stream_line_by_line" id="readline_example_read_file_stream_line_by_line">#</a></span></h2>
-<p>A common use case for <code>readline</code> is to consume input from a filesystem
-<a href="stream.html#stream_readable_streams">Readable</a> stream one line at a time:</p>
-<pre><code class="language-js">const readline = require('readline');
-const fs = require('fs');
+<p>A common use case for <code>readline</code> is to consume an input file one line at a
+time. The easiest way to do so is leveraging the <a href="fs.html#fs_class_fs_readstream"><code>fs.ReadStream</code></a> API as
+well as a <code>for</code>-<code>await</code>-<code>of</code> loop:</p>
+<pre><code class="language-js">const fs = require('fs');
+const readline = require('readline');
+
+async function processLineByLine() {
+  const fileStream = fs.createReadStream('input.txt');
+
+  const rl = readline.createInterface({
+    input: fileStream,
+    crlfDelay: Infinity
+  });
+  // Note: we use the crlfDelay option to recognize all instances of CR LF
+  // ('\r\n') in input.txt as a single line break.
+
+  for await (const line of rl) {
+    // Each line in input.txt will be successively available here as `line`.
+    console.log(`Line from file: ${line}`);
+  }
+}
+
+processLineByLine();
+</code></pre>
+<p>Alternatively, one could use the <a href="#readline_event_line"><code>'line'</code></a> event:</p>
+<pre><code class="language-js">const fs = require('fs');
+const readline = require('readline');
 
 const rl = readline.createInterface({
   input: fs.createReadStream('sample.txt'),
@@ -592,6 +652,31 @@ const rl = readline.createInterface({
 rl.on('line', (line) => {
   console.log(`Line from file: ${line}`);
 });
+</code></pre>
+<p>Currently, <code>for</code>-<code>await</code>-<code>of</code> loop can be a bit slower. If <code>async</code> / <code>await</code>
+flow and speed are both essential, a mixed approach can be applied:</p>
+<pre><code class="language-js">const { once } = require('events');
+const { createReadStream } = require('fs');
+const { createInterface } = require('readline');
+
+(async function processLineByLine() {
+  try {
+    const rl = createInterface({
+      input: createReadStream('big-file.txt'),
+      crlfDelay: Infinity
+    });
+
+    rl.on('line', (line) => {
+      // Process the line.
+    });
+
+    await once(rl, 'close');
+
+    console.log('File processed.');
+  } catch (err) {
+    console.error(err);
+  }
+})();
 </code></pre>
       </div>
     </div>

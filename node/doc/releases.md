@@ -473,6 +473,9 @@ following command:
 $ git push <remote> <vx.y.z>
 ```
 
+*Note*: Please do not push the tag unless you are ready to complete the
+remainder of the release steps.
+
 ### 12. Set Up For the Next Release
 
 On release proposal branch, edit `src/node_version.h` again and:
@@ -642,5 +645,5 @@ _In whatever form you do this..._
 [CI lockdown procedure]: https://github.com/nodejs/build/blob/master/doc/jenkins-guide.md#restricting-access-for-security-releases
 [Build issue tracker]: https://github.com/nodejs/build/issues/new
 [nodejs.org release-post.js script]: https://github.com/nodejs/nodejs.org/blob/master/scripts/release-post.js
-[Partner Communities]: https://github.com/nodejs/community-committee/blob/master/PARTNER_COMMUNITIES.md
+[Partner Communities]: https://github.com/nodejs/community-committee/blob/master/governance/PARTNER_COMMUNITIES.md
 [webchat.freenode.net]: https://webchat.freenode.net/

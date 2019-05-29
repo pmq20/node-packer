@@ -659,11 +659,12 @@ added: v6.1.0
 -->
 
 If `true`,
+[`socket.connect(options[, connectListener])`][`socket.connect(options)`] was
+called and has not yet finished. It will stay `true` until the socket becomes
+connected, then it is set to `false` and the `'connect'` event is emitted.  Note
+that the
 [`socket.connect(options[, connectListener])`][`socket.connect(options)`]
-was called and has not yet finished. Will be set to `true` before emitting
-`'connect'` event and/or calling
-[`socket.connect(options[, connectListener])`][`socket.connect(options)`]'s
-callback.
+callback is a listener for the `'connect'` event.
 
 ### socket.destroy([exception])
 <!-- YAML
@@ -723,6 +724,17 @@ The numeric representation of the local port. For example, `80` or `21`.
 
 Pauses the reading of data. That is, [`'data'`][] events will not be emitted.
 Useful to throttle back an upload.
+
+### socket.pending
+<!-- YAML
+added: v10.16.0
+-->
+
+* {boolean}
+
+This is `true` if the socket is not connected yet, either because `.connect()`
+has not yet been called or because it is still in the process of connecting
+(see [`socket.connecting`][]).
 
 ### socket.ref()
 <!-- YAML
@@ -1168,6 +1180,7 @@ Returns `true` if input is a version 6 IP address, otherwise returns `false`.
 [`socket.connect(options)`]: #net_socket_connect_options_connectlistener
 [`socket.connect(path)`]: #net_socket_connect_path_connectlistener
 [`socket.connect(port, host)`]: #net_socket_connect_port_host_connectlistener
+[`socket.connecting`]: #net_socket_connecting
 [`socket.destroy()`]: #net_socket_destroy_exception
 [`socket.end()`]: #net_socket_end_data_encoding_callback
 [`socket.pause()`]: #net_socket_pause

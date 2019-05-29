@@ -1,5 +1,9 @@
 @if not defined DEBUG_HELPER @ECHO OFF
 
+:: Other scripts rely on the environment variables set in this script, so we
+:: explicitly allow them to persist in the calling shell.
+endlocal
+
 if /i "%1"=="help" goto help
 if /i "%1"=="--help" goto help
 if /i "%1"=="-help" goto help
@@ -59,6 +63,7 @@ set no_cctest=
 set cctest=
 set openssl_no_asm=
 set doc=
+set extra_msbuild_args=^
 
 :next-arg
 if "%1"=="" goto args-done
@@ -68,6 +73,7 @@ if /i "%1"=="clean"         set target=Clean&goto arg-ok
 if /i "%1"=="ia32"          set target_arch=x86&goto arg-ok
 if /i "%1"=="x86"           set target_arch=x86&goto arg-ok
 if /i "%1"=="x64"           set target_arch=x64&goto arg-ok
+if /i "%1"=="arm64"         set target_arch=arm64&goto arg-ok
 if /i "%1"=="vs2017"        set target_env=vs2017&goto arg-ok
 if /i "%1"=="noprojgen"     set noprojgen=1&goto arg-ok
 if /i "%1"=="projgen"       set projgen=1&goto arg-ok
@@ -131,6 +137,8 @@ if /i "%1"=="no-cctest"     set no_cctest=1&goto arg-ok
 if /i "%1"=="cctest"        set cctest=1&goto arg-ok
 if /i "%1"=="openssl-no-asm"   set openssl_no_asm=1&goto arg-ok
 if /i "%1"=="doc"           set doc=1&goto arg-ok
+if /i "%1"=="binlog"        set extra_msbuild_args=%extra_msbuild_args% /binaryLogger:%config%\node.binlog&goto arg-ok
+if /i "%1"=="msbuild_arg"   set extra_msbuild_args=%extra_msbuild_args% %2&goto arg-ok-2
 
 echo Error: invalid command line option `%1`.
 exit /b 1
@@ -193,7 +201,8 @@ if "%target%"=="Clean" rmdir /S /Q %~dp0deps\icu
 call tools\msvs\find_python.cmd
 if errorlevel 1 goto :exit
 
-if not defined openssl_no_asm call tools\msvs\find_nasm.cmd
+REM NASM is only needed on IA32 and x86_64.
+if not defined openssl_no_asm if "%target_arch%" NEQ "arm64" call tools\msvs\find_nasm.cmd
 if errorlevel 1 echo Could not find NASM, install it or build with openssl-no-asm. See BUILDING.md.
 
 call :getnodeversion || exit /b 1
@@ -304,14 +313,14 @@ set "msbcpu=/m:2"
 if "%NUMBER_OF_PROCESSORS%"=="1" set "msbcpu=/m:1"
 set "msbplatform=Win32"
 if "%target_arch%"=="x64" set "msbplatform=x64"
+if "%target_arch%"=="arm64" set "msbplatform=ARM64"
 if "%target%"=="Build" (
   if defined no_cctest set target=rename_node_bin_win
   if "%test_args%"=="" set target=rename_node_bin_win
   if defined cctest set target="Build"
 )
 if "%target%"=="rename_node_bin_win" if exist "%config%\cctest.exe" del "%config%\cctest.exe"
-
-msbuild node.sln %msbcpu% /t:%target% /p:Configuration=%config% /p:Platform=%msbplatform% /clp:NoSummary;NoItemAndPropertyList;Verbosity=minimal /nologo
+msbuild node.sln %msbcpu% /t:%target% /p:Configuration=%config% /p:Platform=%msbplatform% /clp:NoSummary;NoItemAndPropertyList;Verbosity=minimal /nologo %extra_msbuild_args%
 
 if errorlevel 1 (
   if not defined project_generated echo Building Node with reused solution failed. To regenerate project files use "vcbuild projgen"
@@ -442,8 +451,8 @@ if errorlevel 1 goto exit
 
 
 :install-doctools
-REM only install if building doc OR testing doctool
-if not defined doc (
+REM only install if building doc OR testing doctool OR building addons
+if not defined doc if not defined build_addons (
   echo.%test_args% | findstr doctool 1>nul
   if errorlevel 1 goto :skip-install-doctools
 )

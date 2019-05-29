@@ -142,6 +142,14 @@ Environment::Environment(IsolateData* isolate_data,
   AssignToContext(context, ContextInfo(""));
 
   destroy_async_id_list_.reserve(512);
+  BeforeExit(
+      [](void* arg) {
+        Environment* env = static_cast<Environment*>(arg);
+        if (!env->destroy_async_id_list()->empty())
+          AsyncWrap::DestroyAsyncIdsCallback(env, nullptr);
+      },
+      this);
+
   performance_state_.reset(new performance::performance_state(isolate()));
   performance_state_->Mark(
       performance::NODE_PERFORMANCE_MILESTONE_ENVIRONMENT);
@@ -166,6 +174,11 @@ Environment::Environment(IsolateData* isolate_data,
   }
 }
 
+CompileFnEntry::CompileFnEntry(Environment* env, uint32_t id)
+    : env(env), id(id) {
+  env->compile_fn_entries.insert(this);
+}
+
 Environment::~Environment() {
   isolate()->GetHeapProfiler()->RemoveBuildEmbedderGraphCallback(
       BuildEmbedderGraph, this);
@@ -174,7 +187,13 @@ Environment::~Environment() {
   // CleanupHandles() should have removed all of them.
   CHECK(file_handle_read_wrap_freelist_.empty());
 
-  v8::HandleScope handle_scope(isolate());
+  // dispose the Persistent references to the compileFunction
+  // wrappers used in the dynamic import callback
+  for (auto& entry : compile_fn_entries) {
+    delete entry;
+  }
+
+  HandleScope handle_scope(isolate());
 
 #if HAVE_INSPECTOR
   // Destroy inspector agent before erasing the context. The inspector
@@ -673,10 +692,13 @@ void Environment::AsyncHooks::grow_async_ids_stack() {
 uv_key_t Environment::thread_local_env = {};
 
 void Environment::Exit(int exit_code) {
-  if (is_main_thread())
+  if (is_main_thread()) {
+    stop_sub_worker_contexts();
+    DisposePlatform();
     exit(exit_code);
-  else
+  } else {
     worker_context_->Exit(exit_code);
+  }
 }
 
 void Environment::stop_sub_worker_contexts() {

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Process | Node.js v10.15.3 Documentation</title>
+  <title>Process | Node.js v10.16.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -69,7 +69,7 @@
 <li><a href="v8.html" class="nav-v8">V8</a></li>
 <li><a href="vm.html" class="nav-vm">VM</a></li>
 <li><a href="worker_threads.html" class="nav-worker_threads">Worker Threads</a></li>
-<li><a href="zlib.html" class="nav-zlib">ZLIB</a></li>
+<li><a href="zlib.html" class="nav-zlib">Zlib</a></li>
 </ul>
 <div class="line"></div>
 <ul>
@@ -79,7 +79,7 @@
 
     <div id="column1" data-id="process" class="interior">
       <header>
-        <h1>Node.js v10.15.3 Documentation</h1>
+        <h1>Node.js v10.16.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -94,12 +94,13 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v11.x/api/process.html">11.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v12.x/api/process.html">12.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v11.x/api/process.html">11.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v10.x/api/process.html">10.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v9.x/api/process.html">9.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v8.x/api/process.html">8.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v7.x/api/process.html">7.x</a></li>
-<li><a href="https://nodejs.org/docs/latest-v6.x/api/process.html">6.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v6.x/api/process.html">6.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v5.x/api/process.html">5.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v4.x/api/process.html">4.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v0.12.x/api/process.html">0.12.x</a></li>
@@ -408,7 +409,7 @@ setTimeout(() => {
 nonexistentFunc();
 console.log('This will not run.');
 </code></pre>
-<h4>Warning: Using `'uncaughtException'` correctly<span><a class="mark" href="#process_warning_using_uncaughtexception_correctly" id="process_warning_using_uncaughtexception_correctly">#</a></span></h4>
+<h4>Warning: Using <code>'uncaughtException'</code> correctly<span><a class="mark" href="#process_warning_using_uncaughtexception_correctly" id="process_warning_using_uncaughtexception_correctly">#</a></span></h4>
 <p>Note that <code>'uncaughtException'</code> is a crude mechanism for exception handling
 intended to be used only as a last resort. The event <em>should not</em> be used as
 an equivalent to <code>On Error Resume Next</code>. Unhandled exceptions inherently mean
@@ -1797,8 +1798,9 @@ a <a href="stream.html#stream_readable_streams">Readable</a> stream.</p>
 <pre><code class="language-js">process.stdin.setEncoding('utf8');
 
 process.stdin.on('readable', () => {
-  const chunk = process.stdin.read();
-  if (chunk !== null) {
+  let chunk;
+  // Use a loop to make sure we read all available data.
+  while ((chunk = process.stdin.read()) !== null) {
     process.stdout.write(`data: ${chunk}`);
   }
 });

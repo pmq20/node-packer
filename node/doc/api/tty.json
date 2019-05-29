@@ -244,6 +244,45 @@
               "desc": "<p><code>writeStream.getWindowSize()</code> returns the size of the <a href=\"tty.html\">TTY</a>\ncorresponding to this <code>WriteStream</code>. The array is of the type\n<code>[numColumns, numRows]</code> where <code>numColumns</code> and <code>numRows</code> represent the number\nof columns and rows in the corresponding <a href=\"tty.html\">TTY</a>.</p>"
             },
             {
+              "textRaw": "writeStream.hasColors([count][, env])",
+              "type": "method",
+              "name": "hasColors",
+              "meta": {
+                "added": [
+                  "v10.16.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {boolean}",
+                    "name": "return",
+                    "type": "boolean"
+                  },
+                  "params": [
+                    {
+                      "textRaw": "`count` {integer} The number of colors that are requested (minimum 2). **Default:** 16.",
+                      "name": "count",
+                      "type": "integer",
+                      "default": "16",
+                      "desc": "The number of colors that are requested (minimum 2).",
+                      "optional": true
+                    },
+                    {
+                      "textRaw": "`env` {Object} An object containing the environment variables to check. This enables simulating the usage of a specific terminal. **Default:** `process.env`.",
+                      "name": "env",
+                      "type": "Object",
+                      "default": "`process.env`",
+                      "desc": "An object containing the environment variables to check. This enables simulating the usage of a specific terminal.",
+                      "optional": true
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Returns <code>true</code> if the <code>writeStream</code> supports at least as many colors as provided\nin <code>count</code>. Minimum support is 2 (black and white).</p>\n<p>This has the same false positives and negatives as described in\n<a href=\"#tty_writestream_getcolordepth_env\"><code>writeStream.getColorDepth()</code></a>.</p>\n<pre><code class=\"language-js\">process.stdout.hasColors();\n// Returns true or false depending on if `stdout` supports at least 16 colors.\nprocess.stdout.hasColors(256);\n// Returns true or false depending on if `stdout` supports at least 256 colors.\nprocess.stdout.hasColors({ TMUX: '1' });\n// Returns true.\nprocess.stdout.hasColors(2 ** 24, { TMUX: '1' });\n// Returns false (the environment setting pretends to support 2 ** 8 colors).\n</code></pre>"
+            },
+            {
               "textRaw": "writeStream.moveCursor(dx, dy)",
               "type": "method",
               "name": "moveCursor",

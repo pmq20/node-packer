@@ -2016,6 +2016,18 @@
                 "changes": []
               },
               "desc": "<p>The path to the file the stream is reading from as specified in the first\nargument to <code>fs.createReadStream()</code>. If <code>path</code> is passed as a string, then\n<code>readStream.path</code> will be a string. If <code>path</code> is passed as a <code>Buffer</code>, then\n<code>readStream.path</code> will be a <code>Buffer</code>.</p>"
+            },
+            {
+              "textRaw": "`pending` {boolean}",
+              "type": "boolean",
+              "name": "pending",
+              "meta": {
+                "added": [
+                  "v10.16.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>This property is <code>true</code> if the underlying file has not been opened yet,\ni.e. before the <code>'ready'</code> event is emitted.</p>"
             }
           ]
         },
@@ -2441,6 +2453,18 @@
                 "changes": []
               },
               "desc": "<p>The path to the file the stream is writing to as specified in the first\nargument to <a href=\"#fs_fs_createwritestream_path_options\"><code>fs.createWriteStream()</code></a>. If <code>path</code> is passed as a string, then\n<code>writeStream.path</code> will be a string. If <code>path</code> is passed as a <code>Buffer</code>, then\n<code>writeStream.path</code> will be a <code>Buffer</code>.</p>"
+            },
+            {
+              "textRaw": "`pending` {boolean}",
+              "type": "boolean",
+              "name": "pending",
+              "meta": {
+                "added": [
+                  "v10.16.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>This property is <code>true</code> if the underlying file has not been opened yet,\ni.e. before the <code>'ready'</code> event is emitted.</p>"
             }
           ]
         }
@@ -4392,7 +4416,7 @@
               ]
             }
           ],
-          "desc": "<p>Asynchronously creates a directory. No arguments other than a possible exception\nare given to the completion callback.</p>\n<p>The optional <code>options</code> argument can be an integer specifying mode (permission\nand sticky bits), or an object with a <code>mode</code> property and a <code>recursive</code>\nproperty indicating whether parent folders should be created.</p>\n<pre><code class=\"language-js\">// Creates /tmp/a/apple, regardless of whether `/tmp` and /tmp/a exist.\nfs.mkdir('/tmp/a/apple', { recursive: true }, (err) => {\n  if (err) throw err;\n});\n</code></pre>\n<p>See also: <a href=\"http://man7.org/linux/man-pages/man2/mkdir.2.html\"><code>mkdir(2)</code></a>.</p>"
+          "desc": "<p>Asynchronously creates a directory. No arguments other than a possible exception\nare given to the completion callback.</p>\n<p>The optional <code>options</code> argument can be an integer specifying mode (permission\nand sticky bits), or an object with a <code>mode</code> property and a <code>recursive</code>\nproperty indicating whether parent folders should be created.</p>\n<pre><code class=\"language-js\">// Creates /tmp/a/apple, regardless of whether `/tmp` and /tmp/a exist.\nfs.mkdir('/tmp/a/apple', { recursive: true }, (err) => {\n  if (err) throw err;\n});\n</code></pre>\n<p>On Windows, using <code>fs.mkdir()</code> on the root directory even with recursion will\nresult in an error:</p>\n<pre><code class=\"language-js\">fs.mkdir('/', { recursive: true }, (err) => {\n  // => [Error: EPERM: operation not permitted, mkdir 'C:\\']\n});\n</code></pre>\n<p>See also: <a href=\"http://man7.org/linux/man-pages/man2/mkdir.2.html\"><code>mkdir(2)</code></a>.</p>"
         },
         {
           "textRaw": "fs.mkdirSync(path[, options])",
@@ -4562,7 +4586,7 @@
           "desc": "<p>Returns the created folder path.</p>\n<p>For detailed information, see the documentation of the asynchronous version of\nthis API: <a href=\"#fs_fs_mkdtemp_prefix_options_callback\"><code>fs.mkdtemp()</code></a>.</p>\n<p>The optional <code>options</code> argument can be a string specifying an encoding, or an\nobject with an <code>encoding</code> property specifying the character encoding to use.</p>"
         },
         {
-          "textRaw": "fs.open(path, flags[, mode], callback)",
+          "textRaw": "fs.open(path[, flags[, mode]], callback)",
           "type": "method",
           "name": "open",
           "meta": {
@@ -4596,10 +4620,12 @@
                   "type": "string|Buffer|URL"
                 },
                 {
-                  "textRaw": "`flags` {string|number} See [support of file system `flags`][].",
+                  "textRaw": "`flags` {string|number} See [support of file system `flags`][]. **Default:** `'r'`.",
                   "name": "flags",
                   "type": "string|number",
-                  "desc": "See [support of file system `flags`][]."
+                  "default": "`'r'`",
+                  "desc": "See [support of file system `flags`][].",
+                  "optional": true
                 },
                 {
                   "textRaw": "`mode` {integer} **Default:** `0o666` (readable and writable)",
@@ -4631,7 +4657,7 @@
           "desc": "<p>Asynchronous file open. See <a href=\"http://man7.org/linux/man-pages/man2/open.2.html\"><code>open(2)</code></a>.</p>\n<p><code>mode</code> sets the file mode (permission and sticky bits), but only if the file was\ncreated. On Windows, only the write permission can be manipulated; see\n<a href=\"#fs_fs_chmod_path_mode_callback\"><code>fs.chmod()</code></a>.</p>\n<p>The callback gets two arguments <code>(err, fd)</code>.</p>\n<p>Some characters (<code>&#x3C; > : \" / \\ | ? *</code>) are reserved under Windows as documented\nby <a href=\"https://docs.microsoft.com/en-us/windows/desktop/FileIO/naming-a-file\">Naming Files, Paths, and Namespaces</a>. Under NTFS, if the filename contains\na colon, Node.js will open a file system stream, as described by\n<a href=\"https://docs.microsoft.com/en-us/windows/desktop/FileIO/using-streams\">this MSDN page</a>.</p>\n<p>Functions based on <code>fs.open()</code> exhibit this behavior as well:\n<code>fs.writeFile()</code>, <code>fs.readFile()</code>, etc.</p>"
         },
         {
-          "textRaw": "fs.openSync(path, flags[, mode])",
+          "textRaw": "fs.openSync(path[, flags, mode])",
           "type": "method",
           "name": "openSync",
           "meta": {
@@ -4670,10 +4696,11 @@
                   "type": "string|Buffer|URL"
                 },
                 {
-                  "textRaw": "`flags` {string|number} See [support of file system `flags`][].",
+                  "textRaw": "`flags` {string|number} **Default:** `'r'`. See [support of file system `flags`][].",
                   "name": "flags",
                   "type": "string|number",
-                  "desc": "See [support of file system `flags`][]."
+                  "default": "`'r'`. See [support of file system `flags`][]",
+                  "optional": true
                 },
                 {
                   "textRaw": "`mode` {integer} **Default:** `0o666`",

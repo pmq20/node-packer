@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Modules | Node.js v10.15.3 Documentation</title>
+  <title>Modules | Node.js v10.16.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -69,7 +69,7 @@
 <li><a href="v8.html" class="nav-v8">V8</a></li>
 <li><a href="vm.html" class="nav-vm">VM</a></li>
 <li><a href="worker_threads.html" class="nav-worker_threads">Worker Threads</a></li>
-<li><a href="zlib.html" class="nav-zlib">ZLIB</a></li>
+<li><a href="zlib.html" class="nav-zlib">Zlib</a></li>
 </ul>
 <div class="line"></div>
 <ul>
@@ -79,7 +79,7 @@
 
     <div id="column1" data-id="modules" class="interior">
       <header>
-        <h1>Node.js v10.15.3 Documentation</h1>
+        <h1>Node.js v10.16.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -94,12 +94,13 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v11.x/api/modules.html">11.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v12.x/api/modules.html">12.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v11.x/api/modules.html">11.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v10.x/api/modules.html">10.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v9.x/api/modules.html">9.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v8.x/api/modules.html">8.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v7.x/api/modules.html">7.x</a></li>
-<li><a href="https://nodejs.org/docs/latest-v6.x/api/modules.html">6.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v6.x/api/modules.html">6.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v5.x/api/modules.html">5.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v4.x/api/modules.html">4.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v0.12.x/api/modules.html">0.12.x</a></li>
@@ -462,7 +463,7 @@ example, then <code>require('./some-library')</code> would attempt to load:</p>
 with the default error:</p>
 <pre><code class="language-txt">Error: Cannot find module 'some-library'
 </code></pre>
-<h2>Loading from `node_modules` Folders<span><a class="mark" href="#modules_loading_from_node_modules_folders" id="modules_loading_from_node_modules_folders">#</a></span></h2>
+<h2>Loading from <code>node_modules</code> Folders<span><a class="mark" href="#modules_loading_from_node_modules_folders" id="modules_loading_from_node_modules_folders">#</a></span></h2>
 
 <p>If the module identifier passed to <code>require()</code> is not a
 <a href="#modules_core_modules">core</a> module, and does not begin with <code>'/'</code>, <code>'../'</code>, or
@@ -728,7 +729,7 @@ but rather than loading the module, just return the resolved filename.</p>
 <p>Returns an array containing the paths searched during resolution of <code>request</code> or
 <code>null</code> if the <code>request</code> string references a core module, for example <code>http</code> or
 <code>fs</code>.</p>
-<h2>The `module` Object<span><a class="mark" href="#modules_the_module_object" id="modules_the_module_object">#</a></span></h2>
+<h2>The <code>module</code> Object<span><a class="mark" href="#modules_the_module_object" id="modules_the_module_object">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.16</span>
 </div>
@@ -881,7 +882,7 @@ loading.</p>
 Since <code>require()</code> returns the <code>module.exports</code>, and the <code>module</code> is typically
 <em>only</em> available within a specific module's code, it must be explicitly exported
 in order to be used.</p>
-<h2>The `Module` Object<span><a class="mark" href="#modules_the_module_object_1" id="modules_the_module_object_1">#</a></span></h2>
+<h2>The <code>Module</code> Object<span><a class="mark" href="#modules_the_module_object_1" id="modules_the_module_object_1">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.3.7</span>
 </div>

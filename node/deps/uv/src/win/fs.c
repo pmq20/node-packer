@@ -96,14 +96,17 @@
     return;                                                                 \
   }
 
+#define MILLIONu (1000U * 1000U)
+#define BILLIONu (1000U * 1000U * 1000U)
+
 #define FILETIME_TO_UINT(filetime)                                          \
-   (*((uint64_t*) &(filetime)) - 116444736000000000ULL)
+   (*((uint64_t*) &(filetime)) - (uint64_t) 116444736 * BILLIONu)
 
 #define FILETIME_TO_TIME_T(filetime)                                        \
-   (FILETIME_TO_UINT(filetime) / 10000000ULL)
+   (FILETIME_TO_UINT(filetime) / (10u * MILLIONu))
 
 #define FILETIME_TO_TIME_NS(filetime, secs)                                 \
-   ((FILETIME_TO_UINT(filetime) - (secs * 10000000ULL)) * 100)
+   ((FILETIME_TO_UINT(filetime) - (secs * (uint64_t) 10 * MILLIONu)) * 100U)
 
 #define FILETIME_TO_TIMESPEC(ts, filetime)                                  \
    do {                                                                     \
@@ -113,8 +116,8 @@
 
 #define TIME_T_TO_FILETIME(time, filetime_ptr)                              \
   do {                                                                      \
-    uint64_t bigtime = ((uint64_t) ((time) * 10000000ULL)) +                \
-                                  116444736000000000ULL;                    \
+    uint64_t bigtime = ((uint64_t) ((time) * (uint64_t) 10 * MILLIONu)) +   \
+                       (uint64_t) 116444736 * BILLIONu;                     \
     (filetime_ptr)->dwLowDateTime = bigtime & 0xFFFFFFFF;                   \
     (filetime_ptr)->dwHighDateTime = bigtime >> 32;                         \
   } while(0)
@@ -505,6 +508,33 @@ void fs__open(uv_fs_t* req) {
   }
 
   if (flags & UV_FS_O_DIRECT) {
+    /*
+     * FILE_APPEND_DATA and FILE_FLAG_NO_BUFFERING are mutually exclusive.
+     * Windows returns 87, ERROR_INVALID_PARAMETER if these are combined.
+     *
+     * FILE_APPEND_DATA is included in FILE_GENERIC_WRITE:
+     *
+     * FILE_GENERIC_WRITE = STANDARD_RIGHTS_WRITE |
+     *                      FILE_WRITE_DATA |
+     *                      FILE_WRITE_ATTRIBUTES |
+     *                      FILE_WRITE_EA |
+     *                      FILE_APPEND_DATA |
+     *                      SYNCHRONIZE
+     *
+     * Note: Appends are also permitted by FILE_WRITE_DATA.
+     *
+     * In order for direct writes and direct appends to succeed, we therefore
+     * exclude FILE_APPEND_DATA if FILE_WRITE_DATA is specified, and otherwise
+     * fail if the user's sole permission is a direct append, since this
+     * particular combination is invalid.
+     */
+    if (access & FILE_APPEND_DATA) {
+      if (access & FILE_WRITE_DATA) {
+        access &= ~FILE_APPEND_DATA;
+      } else {
+        goto einval;
+      }
+    }
     attributes |= FILE_FLAG_NO_BUFFERING;
   }
 
@@ -786,9 +816,8 @@ void fs__unlink(uv_fs_t* req) {
     /* Remove read-only attribute */
     FILE_BASIC_INFORMATION basic = { 0 };
 
-    basic.FileAttributes = info.dwFileAttributes
-                           & ~(FILE_ATTRIBUTE_READONLY)
-                           | FILE_ATTRIBUTE_ARCHIVE;
+    basic.FileAttributes = (info.dwFileAttributes & ~FILE_ATTRIBUTE_READONLY) |
+                           FILE_ATTRIBUTE_ARCHIVE;
 
     status = pNtSetInformationFile(handle,
                                    &iosb,
@@ -1096,6 +1125,137 @@ cleanup:
     uv__free(dirents);
 }
 
+void fs__opendir(uv_fs_t* req) {
+  WCHAR* pathw;
+  size_t len;
+  const WCHAR* fmt;
+  WCHAR* find_path;
+  uv_dir_t* dir;
+
+  pathw = req->file.pathw;
+  dir = NULL;
+  find_path = NULL;
+
+  /* Figure out whether path is a file or a directory. */
+  if (!(GetFileAttributesW(pathw) & FILE_ATTRIBUTE_DIRECTORY)) {
+    SET_REQ_UV_ERROR(req, UV_ENOTDIR, ERROR_DIRECTORY);
+    goto error;
+  }
+
+  dir = uv__malloc(sizeof(*dir));
+  if (dir == NULL) {
+    SET_REQ_UV_ERROR(req, UV_ENOMEM, ERROR_OUTOFMEMORY);
+    goto error;
+  }
+
+  len = wcslen(pathw);
+
+  if (len == 0)
+    fmt = L"./*";
+  else if (IS_SLASH(pathw[len - 1]))
+    fmt = L"%s*";
+  else
+    fmt = L"%s\\*";
+
+  find_path = uv__malloc(sizeof(WCHAR) * (len + 4));
+  if (find_path == NULL) {
+    SET_REQ_UV_ERROR(req, UV_ENOMEM, ERROR_OUTOFMEMORY);
+    goto error;
+  }
+
+  _snwprintf(find_path, len + 3, fmt, pathw);
+  dir->dir_handle = FindFirstFileW(find_path, &dir->find_data);
+  uv__free(find_path);
+  find_path = NULL;
+  if (dir->dir_handle == INVALID_HANDLE_VALUE &&
+      GetLastError() != ERROR_FILE_NOT_FOUND) {
+    SET_REQ_WIN32_ERROR(req, GetLastError());
+    goto error;
+  }
+
+  dir->need_find_call = FALSE;
+  req->ptr = dir;
+  SET_REQ_RESULT(req, 0);
+  return;
+
+error:
+  uv__free(dir);
+  uv__free(find_path);
+  req->ptr = NULL;
+}
+
+void fs__readdir(uv_fs_t* req) {
+  uv_dir_t* dir;
+  uv_dirent_t* dirents;
+  uv__dirent_t dent;
+  unsigned int dirent_idx;
+  PWIN32_FIND_DATAW find_data;
+  unsigned int i;
+  int r;
+
+  req->flags |= UV_FS_FREE_PTR;
+  dir = req->ptr;
+  dirents = dir->dirents;
+  memset(dirents, 0, dir->nentries * sizeof(*dir->dirents));
+  find_data = &dir->find_data;
+  dirent_idx = 0;
+
+  while (dirent_idx < dir->nentries) {
+    if (dir->need_find_call && FindNextFileW(dir->dir_handle, find_data) == 0) {
+      if (GetLastError() == ERROR_NO_MORE_FILES)
+        break;
+      goto error;
+    }
+
+    /* Skip "." and ".." entries. */
+    if (find_data->cFileName[0] == L'.' &&
+        (find_data->cFileName[1] == L'\0' ||
+        (find_data->cFileName[1] == L'.' &&
+        find_data->cFileName[2] == L'\0'))) {
+      dir->need_find_call = TRUE;
+      continue;
+    }
+
+    r = uv__convert_utf16_to_utf8((const WCHAR*) &find_data->cFileName,
+                                  -1,
+                                  (char**) &dirents[dirent_idx].name);
+    if (r != 0)
+      goto error;
+
+    /* Copy file type. */
+    if ((find_data->dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
+      dent.d_type = UV__DT_DIR;
+    else if ((find_data->dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0)
+      dent.d_type = UV__DT_LINK;
+    else if ((find_data->dwFileAttributes & FILE_ATTRIBUTE_DEVICE) != 0)
+      dent.d_type = UV__DT_CHAR;
+    else
+      dent.d_type = UV__DT_FILE;
+
+    dirents[dirent_idx].type = uv__fs_get_dirent_type(&dent);
+    dir->need_find_call = TRUE;
+    ++dirent_idx;
+  }
+
+  SET_REQ_RESULT(req, dirent_idx);
+  return;
+
+error:
+  SET_REQ_WIN32_ERROR(req, GetLastError());
+  for (i = 0; i < dirent_idx; ++i) {
+    uv__free((char*) dirents[i].name);
+    dirents[i].name = NULL;
+  }
+}
+
+void fs__closedir(uv_fs_t* req) {
+  uv_dir_t* dir;
+
+  dir = req->ptr;
+  FindClose(dir->dir_handle);
+  uv__free(req->ptr);
+  SET_REQ_RESULT(req, 0);
+}
 
 INLINE static int fs__stat_handle(HANDLE handle, uv_stat_t* statbuf,
     int do_lstat) {
@@ -1199,7 +1359,7 @@ INLINE static int fs__stat_handle(HANDLE handle, uv_stat_t* statbuf,
 
   /* st_blocks contains the on-disk allocation size in 512-byte units. */
   statbuf->st_blocks =
-      file_info.StandardInformation.AllocationSize.QuadPart >> 9ULL;
+      (uint64_t) file_info.StandardInformation.AllocationSize.QuadPart >> 9;
 
   statbuf->st_nlink = file_info.StandardInformation.NumberOfLinks;
 
@@ -1890,7 +2050,7 @@ static void fs__readlink(uv_fs_t* req) {
 }
 
 
-static size_t fs__realpath_handle(HANDLE handle, char** realpath_ptr) {
+static ssize_t fs__realpath_handle(HANDLE handle, char** realpath_ptr) {
   int r;
   DWORD w_realpath_len;
   WCHAR* w_realpath_ptr = NULL;
@@ -2010,6 +2170,9 @@ static void uv__fs_work(struct uv__work* w) {
     XX(MKDTEMP, mkdtemp)
     XX(RENAME, rename)
     XX(SCANDIR, scandir)
+    XX(READDIR, readdir)
+    XX(OPENDIR, opendir)
+    XX(CLOSEDIR, closedir)
     XX(LINK, link)
     XX(SYMLINK, symlink)
     XX(READLINK, readlink)
@@ -2051,6 +2214,8 @@ void uv_fs_req_cleanup(uv_fs_t* req) {
   if (req->flags & UV_FS_FREE_PTR) {
     if (req->fs_type == UV_FS_SCANDIR && req->ptr != NULL)
       uv__fs_scandir_cleanup(req);
+    else if (req->fs_type == UV_FS_READDIR)
+      uv__fs_readdir_cleanup(req);
     else
       uv__free(req->ptr);
   }
@@ -2218,6 +2383,45 @@ int uv_fs_scandir(uv_loop_t* loop, uv_fs_t* req, const char* path, int flags,
   POST;
 }
 
+int uv_fs_opendir(uv_loop_t* loop,
+                  uv_fs_t* req,
+                  const char* path,
+                  uv_fs_cb cb) {
+  int err;
+
+  INIT(UV_FS_OPENDIR);
+  err = fs__capture_path(req, path, NULL, cb != NULL);
+  if (err)
+    return uv_translate_sys_error(err);
+  POST;
+}
+
+int uv_fs_readdir(uv_loop_t* loop,
+                  uv_fs_t* req,
+                  uv_dir_t* dir,
+                  uv_fs_cb cb) {
+  INIT(UV_FS_READDIR);
+
+  if (dir == NULL ||
+      dir->dirents == NULL ||
+      dir->dir_handle == INVALID_HANDLE_VALUE) {
+    return UV_EINVAL;
+  }
+
+  req->ptr = dir;
+  POST;
+}
+
+int uv_fs_closedir(uv_loop_t* loop,
+                   uv_fs_t* req,
+                   uv_dir_t* dir,
+                   uv_fs_cb cb) {
+  INIT(UV_FS_CLOSEDIR);
+  if (dir == NULL)
+    return UV_EINVAL;
+  req->ptr = dir;
+  POST;
+}
 
 int uv_fs_link(uv_loop_t* loop, uv_fs_t* req, const char* path,
     const char* new_path, uv_fs_cb cb) {

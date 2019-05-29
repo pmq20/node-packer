@@ -35,7 +35,7 @@ are handled using the [`try…catch` construct][try-catch] provided by the
 JavaScript language.
 
 ```js
-// Throws with a ReferenceError because z is undefined
+// Throws with a ReferenceError because z is not defined.
 try {
   const m = 1;
   const n = m + z;
@@ -623,6 +623,16 @@ An attempt was made to register something that is not a function as an
 
 The type of an asynchronous resource was invalid. Note that users are also able
 to define their own types if using the public embedder API.
+
+<a id="ERR_BROTLI_COMPRESSION_FAILED"></a>
+### ERR_BROTLI_COMPRESSION_FAILED
+
+Data passed to a Brotli stream was not successfully compressed.
+
+<a id="ERR_BROTLI_INVALID_PARAM"></a>
+### ERR_BROTLI_INVALID_PARAM
+
+An invalid parameter key was passed during construction of a Brotli stream.
 
 <a id="ERR_BUFFER_OUT_OF_BOUNDS"></a>
 ### ERR_BUFFER_OUT_OF_BOUNDS
@@ -1651,6 +1661,17 @@ recommended to use 2048 bits or larger for stronger security.
 
 A TLS/SSL handshake timed out. In this case, the server must also abort the
 connection.
+
+<a id="ERR_TLS_INVALID_PROTOCOL_VERSION"></a>
+### ERR_TLS_INVALID_PROTOCOL_VERSION
+
+Valid TLS protocol versions are `'TLSv1'`, `'TLSv1.1'`, or `'TLSv1.2'`.
+
+<a id="ERR_TLS_PROTOCOL_VERSION_CONFLICT"></a>
+### ERR_TLS_PROTOCOL_VERSION_CONFLICT
+
+Attempting to set a TLS protocol `minVersion` or `maxVersion` conflicts with an
+attempt to set the `secureProtocol` explicitly. Use one mechanism or the other.
 
 <a id="ERR_TLS_RENEGOTIATE"></a>
 ### ERR_TLS_RENEGOTIATE

@@ -76,7 +76,7 @@ The externally maintained libraries used by Node.js are:
 
 - c-ares, located at deps/cares, is licensed as follows:
   """
-    Copyright (c) 2007 - 2016, Daniel Stenberg with many contributors, see AUTHORS
+    Copyright (c) 2007 - 2018, Daniel Stenberg with many contributors, see AUTHORS
     file.
 
     Copyright 1998 by the Massachusetts Institute of Technology.
@@ -118,8 +118,8 @@ The externally maintained libraries used by Node.js are:
   """
     COPYRIGHT AND PERMISSION NOTICE (ICU 58 and later)
 
-    Copyright © 1991-2018 Unicode, Inc. All rights reserved.
-    Distributed under the Terms of Use in http://www.unicode.org/copyright.html.
+    Copyright © 1991-2019 Unicode, Inc. All rights reserved.
+    Distributed under the Terms of Use in https://www.unicode.org/copyright.html.
 
     Permission is hereby granted, free of charge, to any person obtaining
     a copy of the Unicode data files and any associated documentation
@@ -748,6 +748,17 @@ The externally maintained libraries used by Node.js are:
     OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   """
 
+- SipHash, located at deps/v8/src/third_party/siphash, is licensed as follows:
+  """
+    SipHash reference C implementation
+
+    Copyright (c) 2016 Jean-Philippe Aumasson <jeanphilippe.aumasson@gmail.com>
+
+    To the extent possible under law, the author(s) have dedicated all
+    copyright and related and neighboring rights to this software to the public
+    domain worldwide. This software is distributed without any warranty.
+  """
+
 - zlib, located at deps/zlib, is licensed as follows:
   """
     zlib.h -- interface of the 'zlib' general purpose compression library
@@ -1066,7 +1077,7 @@ The externally maintained libraries used by Node.js are:
     // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   """
 
-- jinja2, located at tools/jinja2, is licensed as follows:
+- jinja2, located at tools/inspector_protocol/jinja2, is licensed as follows:
   """
     Copyright (c) 2009 by the Jinja Team, see AUTHORS for more details.
 
@@ -1101,7 +1112,7 @@ The externally maintained libraries used by Node.js are:
     OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   """
 
-- markupsafe, located at tools/markupsafe, is licensed as follows:
+- markupsafe, located at tools/inspector_protocol/markupsafe, is licensed as follows:
   """
     Copyright (c) 2010 by Armin Ronacher and contributors.  See AUTHORS
     for more details.
@@ -1218,7 +1229,7 @@ The externally maintained libraries used by Node.js are:
     WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   """
 
-- gtest, located at deps/gtest, is licensed as follows:
+- gtest, located at test/cctest/gtest, is licensed as follows:
   """
     Copyright 2008, Google Inc.
     All rights reserved.
@@ -1298,4 +1309,50 @@ The externally maintained libraries used by Node.js are:
     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
     IN THE SOFTWARE.
+  """
+
+- large_pages, located at src/large_pages, is licensed as follows:
+  """
+     Copyright (C) 2018 Intel Corporation
+
+     Permission is hereby granted, free of charge, to any person obtaining a copy
+     of this software and associated documentation files (the "Software"),
+     to deal in the Software without restriction, including without limitation
+     the rights to use, copy, modify, merge, publish, distribute, sublicense,
+     and/or sell copies of the Software, and to permit persons to whom
+     the Software is furnished to do so, subject to the following conditions:
+
+     The above copyright notice and this permission notice shall be included
+     in all copies or substantial portions of the Software.
+
+     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+     OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+     THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES
+     OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+     ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
+     OR OTHER DEALINGS IN THE SOFTWARE.
+  """
+
+- brotli, located at deps/brotli, is licensed as follows:
+  """
+    Copyright (c) 2009, 2010, 2013-2016 by the Brotli Authors.
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+    THE SOFTWARE.
   """

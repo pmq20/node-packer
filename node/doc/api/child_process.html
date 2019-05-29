@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Child Process | Node.js v10.15.3 Documentation</title>
+  <title>Child Process | Node.js v10.16.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -69,7 +69,7 @@
 <li><a href="v8.html" class="nav-v8">V8</a></li>
 <li><a href="vm.html" class="nav-vm">VM</a></li>
 <li><a href="worker_threads.html" class="nav-worker_threads">Worker Threads</a></li>
-<li><a href="zlib.html" class="nav-zlib">ZLIB</a></li>
+<li><a href="zlib.html" class="nav-zlib">Zlib</a></li>
 </ul>
 <div class="line"></div>
 <ul>
@@ -79,7 +79,7 @@
 
     <div id="column1" data-id="child_process" class="interior">
       <header>
-        <h1>Node.js v10.15.3 Documentation</h1>
+        <h1>Node.js v10.16.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -94,12 +94,13 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v11.x/api/child_process.html">11.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v12.x/api/child_process.html">12.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v11.x/api/child_process.html">11.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v10.x/api/child_process.html">10.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v9.x/api/child_process.html">9.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v8.x/api/child_process.html">8.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v7.x/api/child_process.html">7.x</a></li>
-<li><a href="https://nodejs.org/docs/latest-v6.x/api/child_process.html">6.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v6.x/api/child_process.html">6.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v5.x/api/child_process.html">5.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v4.x/api/child_process.html">4.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v0.12.x/api/child_process.html">0.12.x</a></li>
@@ -245,7 +246,7 @@ the life cycle of the child process.</p>
 <p>The <a href="#child_process_child_process_exec_command_options_callback"><code>child_process.exec()</code></a> and <a href="#child_process_child_process_execfile_file_args_options_callback"><code>child_process.execFile()</code></a> methods additionally
 allow for an optional <code>callback</code> function to be specified that is invoked
 when the child process terminates.</p>
-<h3>Spawning `.bat` and `.cmd` files on Windows<span><a class="mark" href="#child_process_spawning_bat_and_cmd_files_on_windows" id="child_process_spawning_bat_and_cmd_files_on_windows">#</a></span></h3>
+<h3>Spawning <code>.bat</code> and <code>.cmd</code> files on Windows<span><a class="mark" href="#child_process_spawning_bat_and_cmd_files_on_windows" id="child_process_spawning_bat_and_cmd_files_on_windows">#</a></span></h3>
 <p>The importance of the distinction between <a href="#child_process_child_process_exec_command_options_callback"><code>child_process.exec()</code></a> and
 <a href="#child_process_child_process_execfile_file_args_options_callback"><code>child_process.execFile()</code></a> can vary based on platform. On Unix-type operating
 systems (Unix, Linux, macOS) <a href="#child_process_child_process_execfile_file_args_options_callback"><code>child_process.execFile()</code></a> can be more efficient
@@ -290,7 +291,7 @@ exec('"my script.cmd" a b', (err, stdout, stderr) => {
   // ...
 });
 </code></pre>
-<h3>child_process.exec(command[, options][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/child_process.js#L150">[src]</a><span><a class="mark" href="#child_process_child_process_exec_command_options_callback" id="child_process_child_process_exec_command_options_callback">#</a></span></h3>
+<h3>child_process.exec(command[, options][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/child_process.js#L150">[src]</a><span><a class="mark" href="#child_process_child_process_exec_command_options_callback" id="child_process_child_process_exec_command_options_callback">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -316,8 +317,9 @@ exec('"my script.cmd" a b', (err, stdout, stderr) => {
 <code>'/bin/sh'</code> on UNIX, <code>process.env.ComSpec</code> on Windows.</li>
 <li><code>timeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> <strong>Default:</strong> <code>0</code></li>
 <li><code>maxBuffer</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Largest amount of data in bytes allowed on stdout or
-stderr. If exceeded, the child process is terminated. See caveat at
-<a href="#child_process_maxbuffer_and_unicode"><code>maxBuffer</code> and Unicode</a>. <strong>Default:</strong> <code>200 * 1024</code>.</li>
+stderr. If exceeded, the child process is terminated and any output is
+truncated. See caveat at <a href="#child_process_maxbuffer_and_unicode"><code>maxBuffer</code> and Unicode</a>.
+<strong>Default:</strong> <code>200 * 1024</code>.</li>
 <li><code>killSignal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> <strong>Default:</strong> <code>'SIGTERM'</code></li>
 <li><code>uid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Sets the user identity of the process (see <a href="http://man7.org/linux/man-pages/man2/setuid.2.html"><code>setuid(2)</code></a>).</li>
 <li><code>gid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Sets the group identity of the process (see <a href="http://man7.org/linux/man-pages/man2/setgid.2.html"><code>setgid(2)</code></a>).</li>
@@ -391,7 +393,7 @@ async function lsExample() {
 }
 lsExample();
 </code></pre>
-<h3>child_process.execFile(file[, args][, options][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/child_process.js#L178">[src]</a><span><a class="mark" href="#child_process_child_process_execfile_file_args_options_callback" id="child_process_child_process_execfile_file_args_options_callback">#</a></span></h3>
+<h3>child_process.execFile(file[, args][, options][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/child_process.js#L178">[src]</a><span><a class="mark" href="#child_process_child_process_execfile_file_args_options_callback" id="child_process_child_process_execfile_file_args_options_callback">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -414,8 +416,9 @@ lsExample();
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> <strong>Default:</strong> <code>'utf8'</code></li>
 <li><code>timeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> <strong>Default:</strong> <code>0</code></li>
 <li><code>maxBuffer</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Largest amount of data in bytes allowed on stdout or
-stderr. If exceeded, the child process is terminated. See caveat at
-<a href="#child_process_maxbuffer_and_unicode"><code>maxBuffer</code> and Unicode</a>. <strong>Default:</strong> <code>200 * 1024</code>.</li>
+stderr. If exceeded, the child process is terminated and any output is
+truncated. See caveat at <a href="#child_process_maxbuffer_and_unicode"><code>maxBuffer</code> and Unicode</a>.
+<strong>Default:</strong> <code>200 * 1024</code>.</li>
 <li><code>killSignal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> <strong>Default:</strong> <code>'SIGTERM'</code></li>
 <li><code>uid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Sets the user identity of the process (see <a href="http://man7.org/linux/man-pages/man2/setuid.2.html"><code>setuid(2)</code></a>).</li>
 <li><code>gid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Sets the group identity of the process (see <a href="http://man7.org/linux/man-pages/man2/setgid.2.html"><code>setgid(2)</code></a>).</li>
@@ -475,7 +478,7 @@ getVersion();
 <p><strong>If the <code>shell</code> option is enabled, do not pass unsanitized user input to this
 function. Any input containing shell metacharacters may be used to trigger
 arbitrary command execution.</strong></p>
-<h3>child_process.fork(modulePath[, args][, options])<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/child_process.js#L61">[src]</a><span><a class="mark" href="#child_process_child_process_fork_modulepath_args_options" id="child_process_child_process_fork_modulepath_args_options">#</a></span></h3>
+<h3>child_process.fork(modulePath[, args][, options])<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/child_process.js#L61">[src]</a><span><a class="mark" href="#child_process_child_process_fork_modulepath_args_options" id="child_process_child_process_fork_modulepath_args_options">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -541,7 +544,7 @@ environment variable <code>NODE_CHANNEL_FD</code> on the child process.</p>
 current process.</p>
 <p>The <code>shell</code> option available in <a href="#child_process_child_process_spawn_command_args_options"><code>child_process.spawn()</code></a> is not supported by
 <code>child_process.fork()</code> and will be ignored if set.</p>
-<h3>child_process.spawn(command[, args][, options])<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/child_process.js#L531">[src]</a><span><a class="mark" href="#child_process_child_process_spawn_command_args_options" id="child_process_child_process_spawn_command_args_options">#</a></span></h3>
+<h3>child_process.spawn(command[, args][, options])<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/child_process.js#L544">[src]</a><span><a class="mark" href="#child_process_child_process_spawn_command_args_options" id="child_process_child_process_spawn_command_args_options">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -786,7 +789,8 @@ event has occurred).</p>
 <li>
 <p>Positive integer - The integer value is interpreted as a file descriptor
 that is currently open in the parent process. It is shared with the child
-process, similar to how <a href="stream.html#stream_stream" class="type">&#x3C;Stream></a> objects can be shared.</p>
+process, similar to how <a href="stream.html#stream_stream" class="type">&#x3C;Stream></a> objects can be shared. Passing sockets
+is not supported on Windows.</p>
 </li>
 <li>
 <p><code>null</code>, <code>undefined</code> - Use default value. For stdio fds 0, 1, and 2 (in other
@@ -826,7 +830,7 @@ spawned process exits.</p>
 <p>Blocking calls like these are mostly useful for simplifying general-purpose
 scripting tasks and for simplifying the loading/processing of application
 configuration at startup.</p>
-<h3>child_process.execFileSync(file[, args][, options])<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/child_process.js#L625">[src]</a><span><a class="mark" href="#child_process_child_process_execfilesync_file_args_options" id="child_process_child_process_execfilesync_file_args_options">#</a></span></h3>
+<h3>child_process.execFileSync(file[, args][, options])<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/child_process.js#L638">[src]</a><span><a class="mark" href="#child_process_child_process_execfilesync_file_args_options" id="child_process_child_process_execfilesync_file_args_options">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -893,7 +897,7 @@ throw an <a href="errors.html#errors_class_error"><code>Error</code></a> that wi
 <p><strong>If the <code>shell</code> option is enabled, do not pass unsanitized user input to this
 function. Any input containing shell metacharacters may be used to trigger
 arbitrary command execution.</strong></p>
-<h3>child_process.execSync(command[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/child_process.js#L644">[src]</a><span><a class="mark" href="#child_process_child_process_execsync_command_options" id="child_process_child_process_execsync_command_options">#</a></span></h3>
+<h3>child_process.execSync(command[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/child_process.js#L657">[src]</a><span><a class="mark" href="#child_process_child_process_execsync_command_options" id="child_process_child_process_execsync_command_options">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -932,8 +936,9 @@ is allowed to run. <strong>Default:</strong> <code>undefined</code>.</li>
 <li><code>killSignal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> The signal value to be used when the spawned
 process will be killed. <strong>Default:</strong> <code>'SIGTERM'</code>.</li>
 <li><code>maxBuffer</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Largest amount of data in bytes allowed on stdout or
-stderr. If exceeded, the child process is terminated. See caveat at
-<a href="#child_process_maxbuffer_and_unicode"><code>maxBuffer</code> and Unicode</a>. <strong>Default:</strong> <code>200 * 1024</code>.</li>
+stderr. If exceeded, the child process is terminated and any output is
+truncated. See caveat at <a href="#child_process_maxbuffer_and_unicode"><code>maxBuffer</code> and Unicode</a>.
+<strong>Default:</strong> <code>200 * 1024</code>.</li>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The encoding used for all stdio inputs and outputs.
 <strong>Default:</strong> <code>'buffer'</code>.</li>
 <li><code>windowsHide</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> Hide the subprocess console window that would
@@ -954,7 +959,7 @@ throw. The <a href="errors.html#errors_class_error"><code>Error</code></a> objec
 <a href="#child_process_child_process_spawnsync_command_args_options"><code>child_process.spawnSync()</code></a>.</p>
 <p><strong>Never pass unsanitized user input to this function. Any input containing shell
 metacharacters may be used to trigger arbitrary command execution.</strong></p>
-<h3>child_process.spawnSync(command[, args][, options])<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/child_process.js#L554">[src]</a><span><a class="mark" href="#child_process_child_process_spawnsync_command_args_options" id="child_process_child_process_spawnsync_command_args_options">#</a></span></h3>
+<h3>child_process.spawnSync(command[, args][, options])<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/child_process.js#L567">[src]</a><span><a class="mark" href="#child_process_child_process_spawnsync_command_args_options" id="child_process_child_process_spawnsync_command_args_options">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -995,8 +1000,9 @@ is allowed to run. <strong>Default:</strong> <code>undefined</code>.</li>
 <li><code>killSignal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> The signal value to be used when the spawned
 process will be killed. <strong>Default:</strong> <code>'SIGTERM'</code>.</li>
 <li><code>maxBuffer</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Largest amount of data in bytes allowed on stdout or
-stderr. If exceeded, the child process is terminated. See caveat at
-<a href="#child_process_maxbuffer_and_unicode"><code>maxBuffer</code> and Unicode</a>. <strong>Default:</strong> <code>200 * 1024</code>.</li>
+stderr. If exceeded, the child process is terminated and any output is
+truncated. See caveat at <a href="#child_process_maxbuffer_and_unicode"><code>maxBuffer</code> and Unicode</a>.
+<strong>Default:</strong> <code>200 * 1024</code>.</li>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The encoding used for all stdio inputs and outputs.
 <strong>Default:</strong> <code>'buffer'</code>.</li>
 <li><code>shell</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> If <code>true</code>, runs <code>command</code> inside of a shell. Uses
@@ -1017,8 +1023,10 @@ normally be created on Windows systems. <strong>Default:</strong> <code>false</c
 <li><code>output</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&#x3C;Array></a> Array of results from stdio output.</li>
 <li><code>stdout</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The contents of <code>output[1]</code>.</li>
 <li><code>stderr</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The contents of <code>output[2]</code>.</li>
-<li><code>status</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> The exit code of the child process.</li>
-<li><code>signal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The signal used to kill the child process.</li>
+<li><code>status</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Null_type" class="type">&#x3C;null></a> The exit code of the subprocess, or <code>null</code> if the
+subprocess terminated due to a signal.</li>
+<li><code>signal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Null_type" class="type">&#x3C;null></a> The signal used to kill the subprocess, or <code>null</code> if
+the subprocess did not terminate due to a signal.</li>
 <li><code>error</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&#x3C;Error></a> The error object if the child process failed or timed out.</li>
 </ul>
 </li>
@@ -1482,7 +1490,7 @@ const subprocess = spawn(process.argv[0], ['child_program.js'], {
 
 subprocess.unref();
 </code></pre>
-<h2>`maxBuffer` and Unicode<span><a class="mark" href="#child_process_maxbuffer_and_unicode" id="child_process_maxbuffer_and_unicode">#</a></span></h2>
+<h2><code>maxBuffer</code> and Unicode<span><a class="mark" href="#child_process_maxbuffer_and_unicode" id="child_process_maxbuffer_and_unicode">#</a></span></h2>
 <p>The <code>maxBuffer</code> option specifies the largest number of bytes allowed on <code>stdout</code>
 or <code>stderr</code>. If this value is exceeded, then the child process is terminated.
 This impacts output that includes multibyte character encodings such as UTF-8 or

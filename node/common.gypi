@@ -33,7 +33,7 @@
 
     # Reset this number to 0 on major V8 upgrades.
     # Increment by one for each non-official patch applied to deps/v8.
-    'v8_embedder_string': '-node.51',
+    'v8_embedder_string': '-node.52',
 
     # Enable disassembler for `--print-code` v8 options
     'v8_enable_disassembler': 1,
@@ -113,28 +113,8 @@
             'msvs_configuration_platform': 'x64',
           }],
           ['OS=="aix"', {
-            'variables': {'real_os_name': '<!(uname -s)',},
             'cflags': [ '-gxcoff' ],
             'ldflags': [ '-Wl,-bbigtoc' ],
-            'conditions': [
-              ['target_arch=="ppc64"', {
-                'ldflags': [
-                  '-Wl,-blibpath:/usr/lib:/lib:'
-                    '/opt/freeware/lib/pthread/ppc64'
-                ],
-              }],
-              ['target_arch=="ppc"', {
-                'ldflags': [
-                  '-Wl,-blibpath:/usr/lib:/lib:/opt/freeware/lib/pthread'
-                ],
-              }],
-              ['"<(real_os_name)"=="OS400"', {
-                'ldflags': [
-                  '-Wl,-blibpath:/QOpenSys/pkgs/lib:/QOpenSys/usr/lib',
-                  '-Wl,-brtl',
-                ],
-              }],
-            ],
           }],
           ['OS == "android"', {
             'cflags': [ '-fPIE' ],
@@ -307,6 +287,14 @@
               }],
             ],
           }],
+          ['target_arch=="arm64"', {
+            'TargetMachine' : 0, # /MACHINE:ARM64 is inferred from the input files.
+            'target_conditions': [
+              ['_type=="executable"', {
+                'AdditionalOptions': [ '/SubSystem:Console' ],
+              }],
+            ],
+          }],
         ],
         'GenerateDebugInformation': 'true',
         'GenerateMapFile': 'true', # /MAP
@@ -332,6 +320,9 @@
     #   Ususaly safe. Disable for `dep`, enable for `src`
     'msvs_disabled_warnings': [4351, 4355, 4800, 4251, 4275, 4244, 4267],
     'conditions': [
+      [ 'target_arch=="arm64"', {
+        'msvs_configuration_platform': 'arm64',
+      }],
       ['asan == 1 and OS != "mac"', {
         'cflags+': [
           '-fno-omit-frame-pointer',
@@ -411,9 +402,9 @@
             'ldflags': [ '-m32' ],
           }],
           [ 'target_arch=="ppc64" and OS!="aix"', {
-	    'cflags': [ '-m64', '-mminimal-toc' ],
-	    'ldflags': [ '-m64' ],
-	   }],
+            'cflags': [ '-m64', '-mminimal-toc' ],
+            'ldflags': [ '-m64' ],
+          }],
           [ 'target_arch=="s390"', {
             'cflags': [ '-m31', '-march=z196' ],
             'ldflags': [ '-m31', '-march=z196' ],
@@ -428,35 +419,32 @@
             'cflags!': [ '-pthread' ],
             'ldflags!': [ '-pthread' ],
           }],
-          [ 'OS=="aix"', {
-            'variables': {'real_os_name': '<!(uname -s)',},
-            'conditions': [
-              [ 'target_arch=="ppc"', {
-                'ldflags': [
-                  '-Wl,-bmaxdata:0x60000000/dsa',
-                  '-Wl,-blibpath:/usr/lib:/lib:/opt/freeware/lib/pthread',
-                 ],
-              }],
-              [ 'target_arch=="ppc64"', {
-                'cflags': [ '-maix64' ],
-                'ldflags': [
-                  '-maix64',
-                  '-Wl,-blibpath:/usr/lib:/lib:'
-                    '/opt/freeware/lib/pthread/ppc64',
-                ],
-              }],
-              ['"<(real_os_name)"=="OS400"', {
-                'ldflags': [
-                  '-Wl,-blibpath:/QOpenSys/pkgs/lib:/QOpenSys/usr/lib',
-                  '-Wl,-brtl',
-                ],
-              }],
-            ],
-            'ldflags': [ '-Wl,-bbigtoc' ],
-            'ldflags!': [ '-rdynamic' ],
-          }],
           [ 'node_shared=="true"', {
             'cflags': [ '-fPIC' ],
+          }],
+        ],
+      }],
+      [ 'OS=="aix"', {
+        'variables': {
+          # Used to differentiate `AIX` and `OS400`(IBM i).
+          'aix_variant_name': '<!(uname -s)',
+        },
+        'cflags': [ '-maix64', ],
+        'ldflags!': [ '-rdynamic', ],
+        'ldflags': [
+          '-Wl,-bbigtoc',
+          '-maix64',
+        ],
+        'conditions': [
+          [ '"<(aix_variant_name)"=="OS400"', {            # a.k.a. `IBM i`
+            'ldflags': [
+              '-Wl,-blibpath:/QOpenSys/pkgs/lib:/QOpenSys/usr/lib',
+              '-Wl,-brtl',
+            ],
+          }, {                                             # else it's `AIX`
+            'ldflags': [
+              '-Wl,-blibpath:/usr/lib:/lib:/opt/freeware/lib/pthread/ppc64',
+            ],
           }],
         ],
       }],

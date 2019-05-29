@@ -38,7 +38,6 @@ except NameError:
 
 
 FLAGS_PATTERN = re.compile(r"//\s+Flags:(.*)")
-FILES_PATTERN = re.compile(r"//\s+Files:(.*)")
 
 
 class SimpleTestCase(test.TestCase):
@@ -78,21 +77,15 @@ class SimpleTestCase(test.TestCase):
       # failure so such tests are also skipped.
       if (any(flag.startswith('--inspect') for flag in flags) and
           not self.context.v8_enable_inspector):
-        print('Skipping as node was compiled without inspector support')
+        print(': Skipping as node was compiled without inspector support')
       elif (('--use-bundled-ca' in flags or
           '--use-openssl-ca' in flags or
           '--tls-v1.0' in flags or
           '--tls-v1.1' in flags) and
           not self.context.node_has_crypto):
-        print('Skipping as node was compiled without crypto support')
+        print(': Skipping as node was compiled without crypto support')
       else:
         result += flags
-    files_match = FILES_PATTERN.search(source);
-    additional_files = []
-    if files_match:
-      additional_files += files_match.group(1).strip().split()
-    for a_file in additional_files:
-      result.append(join(dirname(self.config.root), '..', a_file))
 
     if self.additional_flags:
       result += self.additional_flags

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>ECMAScript Modules | Node.js v10.15.3 Documentation</title>
+  <title>ECMAScript Modules | Node.js v10.16.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -69,7 +69,7 @@
 <li><a href="v8.html" class="nav-v8">V8</a></li>
 <li><a href="vm.html" class="nav-vm">VM</a></li>
 <li><a href="worker_threads.html" class="nav-worker_threads">Worker Threads</a></li>
-<li><a href="zlib.html" class="nav-zlib">ZLIB</a></li>
+<li><a href="zlib.html" class="nav-zlib">Zlib</a></li>
 </ul>
 <div class="line"></div>
 <ul>
@@ -79,7 +79,7 @@
 
     <div id="column1" data-id="esm" class="interior">
       <header>
-        <h1>Node.js v10.15.3 Documentation</h1>
+        <h1>Node.js v10.16.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -94,7 +94,8 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v11.x/api/esm.html">11.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v12.x/api/esm.html">12.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v11.x/api/esm.html">11.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v10.x/api/esm.html">10.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v9.x/api/esm.html">9.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v8.x/api/esm.html">8.x <b>LTS</b></a></li></ol>
@@ -195,14 +196,14 @@ property:</p>
 
 
 <table><thead><tr><th>Feature</th><th>Reason</th></tr></thead><tbody><tr><td><code>require('./foo.mjs')</code></td><td>ES Modules have differing resolution and timing, use dynamic import</td></tr></tbody></table>
-<h2>Notable differences between `import` and `require`<span><a class="mark" href="#esm_notable_differences_between_import_and_require" id="esm_notable_differences_between_import_and_require">#</a></span></h2>
+<h2>Notable differences between <code>import</code> and <code>require</code><span><a class="mark" href="#esm_notable_differences_between_import_and_require" id="esm_notable_differences_between_import_and_require">#</a></span></h2>
 <h3>No NODE_PATH<span><a class="mark" href="#esm_no_node_path" id="esm_no_node_path">#</a></span></h3>
 <p><code>NODE_PATH</code> is not part of resolving <code>import</code> specifiers. Please use symlinks
 if this behavior is desired.</p>
-<h3>No `require.extensions`<span><a class="mark" href="#esm_no_require_extensions" id="esm_no_require_extensions">#</a></span></h3>
+<h3>No <code>require.extensions</code><span><a class="mark" href="#esm_no_require_extensions" id="esm_no_require_extensions">#</a></span></h3>
 <p><code>require.extensions</code> is not used by <code>import</code>. The expectation is that loader
 hooks can provide this workflow in the future.</p>
-<h3>No `require.cache`<span><a class="mark" href="#esm_no_require_cache" id="esm_no_require_cache">#</a></span></h3>
+<h3>No <code>require.cache</code><span><a class="mark" href="#esm_no_require_cache" id="esm_no_require_cache">#</a></span></h3>
 <p><code>require.cache</code> is not used by <code>import</code>. It has a separate cache.</p>
 <h3>URL based paths<span><a class="mark" href="#esm_url_based_paths" id="esm_url_based_paths">#</a></span></h3>
 <p>ESM are resolved and cached based upon <a href="https://url.spec.whatwg.org/">URL</a>
@@ -223,7 +224,7 @@ representing the value of <code>module.exports</code> at the time they finished 
 <pre><code class="language-js">// foo.js
 module.exports = { one: 1 };
 
-// bar.js
+// bar.mjs
 import foo from './foo.js';
 foo.one === 1; // true
 </code></pre>

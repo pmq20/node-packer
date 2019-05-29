@@ -12,6 +12,7 @@
     'node_shared%': 'false',
     'force_dynamic_crt%': 0,
     'node_module_version%': '',
+    'node_shared_brotli%': 'false',
     'node_shared_zlib%': 'false',
     'node_shared_http_parser%': 'false',
     'node_shared_cares%': 'false',
@@ -154,7 +155,6 @@
       'lib/internal/socket_list.js',
       'lib/internal/test/binding.js',
       'lib/internal/test/heap.js',
-      'lib/internal/test/unicode.js',
       'lib/internal/timers.js',
       'lib/internal/tls.js',
       'lib/internal/trace_events_async_hooks.js',
@@ -912,7 +912,7 @@
                 '<(PRODUCT_DIR)/<(node_core_target_name).exe',
               ],
               'action': [
-                'mv', '<@(_inputs)', '<@(_outputs)',
+                'move', '<@(_inputs)', '<@(_outputs)',
               ],
             },
           ],
@@ -999,7 +999,6 @@
 
   'conditions': [
     [ 'OS=="aix" and node_shared=="true"', {
-      'variables': {'real_os_name': '<!(uname -s)',},
       'targets': [
         {
           'target_name': 'node_aix_shared',
@@ -1007,26 +1006,6 @@
           'product_name': '<(node_core_target_name)',
           'ldflags': [ '--shared' ],
           'product_extension': '<(shlib_suffix)',
-          'conditions': [
-            ['target_arch=="ppc64"', {
-              'ldflags': [
-                '-Wl,-blibpath:/usr/lib:/lib:'
-                  '/opt/freeware/lib/pthread/ppc64'
-              ],
-            }],
-            ['target_arch=="ppc"', {
-              'ldflags': [
-                '-Wl,-blibpath:/usr/lib:/lib:/opt/freeware/lib/pthread'
-              ],
-            }],
-            ['"<(real_os_name)"=="OS400"', {
-              'ldflags': [
-                '-Wl,-blibpath:/QOpenSys/pkgs/lib:/QOpenSys/usr/lib',
-                '-Wl,-bbigtoc',
-                '-Wl,-brtl',
-              ],
-            }],
-          ],
           'includes': [
             'node.gypi'
           ],

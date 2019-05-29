@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>N-API | Node.js v10.15.3 Documentation</title>
+  <title>N-API | Node.js v10.16.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -69,7 +69,7 @@
 <li><a href="v8.html" class="nav-v8">V8</a></li>
 <li><a href="vm.html" class="nav-vm">VM</a></li>
 <li><a href="worker_threads.html" class="nav-worker_threads">Worker Threads</a></li>
-<li><a href="zlib.html" class="nav-zlib">ZLIB</a></li>
+<li><a href="zlib.html" class="nav-zlib">Zlib</a></li>
 </ul>
 <div class="line"></div>
 <ul>
@@ -79,7 +79,7 @@
 
     <div id="column1" data-id="n-api" class="interior">
       <header>
-        <h1>Node.js v10.15.3 Documentation</h1>
+        <h1>Node.js v10.16.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -94,7 +94,8 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v11.x/api/n-api.html">11.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v12.x/api/n-api.html">12.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v11.x/api/n-api.html">11.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v10.x/api/n-api.html">10.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v9.x/api/n-api.html">9.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v8.x/api/n-api.html">8.x <b>LTS</b></a></li>
@@ -483,7 +484,7 @@ if (status != napi_ok) {
   return;
 }
 
-status = napi_crate_string_utf8(env, "bar", NAPI_AUTO_LENGTH, &#x26;string);
+status = napi_create_string_utf8(env, "bar", NAPI_AUTO_LENGTH, &#x26;string);
 if (status != napi_ok) {
   napi_throw_error(env, ...);
   return;
@@ -594,7 +595,13 @@ available to the module code.</p>
 
 
 
-<table><thead><tr><th align="center"></th><th align="center">1</th><th align="center">2</th><th align="center">3</th></tr></thead><tbody><tr><td align="center">v4.x</td><td align="center"></td><td align="center"></td><td align="center"></td></tr><tr><td align="center">v6.x</td><td align="center"></td><td align="center"></td><td align="center">v6.14.2*</td></tr><tr><td align="center">v8.x</td><td align="center">v8.0.0*</td><td align="center">v8.10.0*</td><td align="center"></td></tr><tr><td align="center">v9.x</td><td align="center">v9.0.0*</td><td align="center">v9.3.0*</td><td align="center">v9.11.0*</td></tr><tr><td align="center">v10.x</td><td align="center"></td><td align="center"></td><td align="center">v10.0.0</td></tr></tbody></table>
+
+
+
+
+
+
+<table><thead><tr><th align="center"></th><th align="center">1</th><th align="center">2</th><th align="center">3</th><th align="center">4</th></tr></thead><tbody><tr><td align="center">v6.x</td><td align="center"></td><td align="center"></td><td align="center">v6.14.2*</td><td align="center"></td></tr><tr><td align="center">v8.x</td><td align="center">v8.0.0*</td><td align="center">v8.10.0*</td><td align="center">v8.11.2</td><td align="center"></td></tr><tr><td align="center">v9.x</td><td align="center">v9.0.0*</td><td align="center">v9.3.0*</td><td align="center">v9.11.0*</td><td align="center"></td></tr><tr><td align="center">v10.x</td><td align="center"></td><td align="center"></td><td align="center">v10.0.0</td><td align="center">v10.16.0</td></tr><tr><td align="center">v11.x</td><td align="center"></td><td align="center"></td><td align="center">v11.0.0</td><td align="center">v11.8.0</td></tr></tbody></table>
 <p>* Indicates that the N-API version was released as experimental</p>
 <h2>Basic N-API Data Types<span><a class="mark" href="#n_api_basic_n_api_data_types" id="n_api_basic_n_api_data_types">#</a></span></h2>
 <p>N-API exposes the following fundamental datatypes as abstractions that are
@@ -655,12 +662,12 @@ not allowed.</p>
 <h3>napi_value<span><a class="mark" href="#n_api_napi_value" id="n_api_napi_value">#</a></span></h3>
 <p>This is an opaque pointer that is used to represent a JavaScript value.</p>
 <h3>napi_threadsafe_function<span><a class="mark" href="#n_api_napi_threadsafe_function" id="n_api_napi_threadsafe_function">#</a></span></h3>
-<p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
+<p></p><div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><p></p>
 <p>This is an opaque pointer that represents a JavaScript function which can be
 called asynchronously from multiple threads via
 <code>napi_call_threadsafe_function()</code>.</p>
 <h3>napi_threadsafe_function_release_mode<span><a class="mark" href="#n_api_napi_threadsafe_function_release_mode" id="n_api_napi_threadsafe_function_release_mode">#</a></span></h3>
-<p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
+<p></p><div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><p></p>
 <p>A value to be given to <code>napi_release_threadsafe_function()</code> to indicate whether
 the thread-safe function is to be closed immediately (<code>napi_tsfn_abort</code>) or
 merely released (<code>napi_tsfn_release</code>) and thus available for subsequent use via
@@ -671,7 +678,7 @@ merely released (<code>napi_tsfn_release</code>) and thus available for subseque
 } napi_threadsafe_function_release_mode;
 </code></pre>
 <h3>napi_threadsafe_function_call_mode<span><a class="mark" href="#n_api_napi_threadsafe_function_call_mode" id="n_api_napi_threadsafe_function_call_mode">#</a></span></h3>
-<p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
+<p></p><div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><p></p>
 <p>A value to be given to <code>napi_call_threadsafe_function()</code> to indicate whether
 the call should block whenever the queue associated with the thread-safe
 function is full.</p>
@@ -743,7 +750,7 @@ operations. Callback functions must statisfy the following signature:</p>
                                              void* data);
 </code></pre>
 <h4>napi_threadsafe_function_call_js<span><a class="mark" href="#n_api_napi_threadsafe_function_call_js" id="n_api_napi_threadsafe_function_call_js">#</a></span></h4>
-<p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
+<p></p><div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><p></p>
 <p>Function pointer used with asynchronous thread-safe function calls. The callback
 will be called on the main thread. Its purpose is to use a data item arriving
 via the queue from one of the secondary threads to construct the parameters
@@ -850,6 +857,14 @@ exception is pending and no additional action is required. If the
 <code>napi_pending_exception</code>, in order to try to recover and continue
 instead of simply returning immediately, <a href="#n_api_napi_is_exception_pending"><code>napi_is_exception_pending</code></a>
 must be called in order to determine if an exception is pending or not.</p>
+<p>In many cases when an N-API function is called and an exception is
+already pending, the function will return immediately with a
+<code>napi_status</code> of <code>napi_pending_exception</code>. However, this is not the case
+for all functions. N-API allows a subset of the functions to be
+called to allow for some minimal cleanup before returning to JavaScript.
+In that case, <code>napi_status</code> will reflect the status for the function. It
+will not reflect previous pending exceptions. To avoid confusion, check
+the error status after every function call.</p>
 <p>When an exception is pending one of two approaches can be employed.</p>
 <p>The first approach is to do any appropriate cleanup and then return so that
 execution will return to JavaScript. As part of the transition back to
@@ -3921,7 +3936,7 @@ may be required when implementing custom async behavior that does not use
 </code></pre>
 <ul>
 <li><code>[in] env</code>: The environment that the API is invoked under.</li>
-<li><code>[in] resource_object</code>: An optional object associated with the async work
+<li><code>[in] resource_object</code>: An object associated with the async work
 that will be passed to possible <code>async_hooks</code> <a href="async_hooks.html#async_hooks_init_asyncid_type_triggerasyncid_resource"><code>init</code> hooks</a>.</li>
 <li><code>[in] context</code>: Context for the async operation that is
 invoking the callback. This should be a value previously obtained
@@ -4274,7 +4289,7 @@ is destroyed. In contrast, an "unreferenced" thread-safe function will not
 prevent the event loop from exiting. The APIs <code>napi_ref_threadsafe_function</code> and
 <code>napi_unref_threadsafe_function</code> exist for this purpose.</p>
 <h3>napi_create_threadsafe_function<span><a class="mark" href="#n_api_napi_create_threadsafe_function" id="n_api_napi_create_threadsafe_function">#</a></span></h3>
-<p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
+<p></p><div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><p></p>
 <div class="api_metadata">
 <span>Added in: v10.6.0</span>
 </div>
@@ -4314,7 +4329,7 @@ parameters and with <code>undefined</code> as its <code>this</code> value.</li>
 <li><code>[out] result</code>: The asynchronous thread-safe JavaScript function.</li>
 </ul>
 <h3>napi_get_threadsafe_function_context<span><a class="mark" href="#n_api_napi_get_threadsafe_function_context" id="n_api_napi_get_threadsafe_function_context">#</a></span></h3>
-<p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
+<p></p><div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><p></p>
 <div class="api_metadata">
 <span>Added in: v10.6.0</span>
 </div>
@@ -4328,7 +4343,7 @@ napi_get_threadsafe_function_context(napi_threadsafe_function func,
 </ul>
 <p>This API may be called from any thread which makes use of <code>func</code>.</p>
 <h3>napi_call_threadsafe_function<span><a class="mark" href="#n_api_napi_call_threadsafe_function" id="n_api_napi_call_threadsafe_function">#</a></span></h3>
-<p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
+<p></p><div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><p></p>
 <div class="api_metadata">
 <span>Added in: v10.6.0</span>
 </div>
@@ -4351,7 +4366,7 @@ called with <code>abort</code> set to <code>napi_tsfn_abort</code> from any thre
 added to the queue if the API returns <code>napi_ok</code>.</p>
 <p>This API may be called from any thread which makes use of <code>func</code>.</p>
 <h3>napi_acquire_threadsafe_function<span><a class="mark" href="#n_api_napi_acquire_threadsafe_function" id="n_api_napi_acquire_threadsafe_function">#</a></span></h3>
-<p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
+<p></p><div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><p></p>
 <div class="api_metadata">
 <span>Added in: v10.6.0</span>
 </div>
@@ -4368,7 +4383,7 @@ function APIs to indicate that it will be making use of <code>func</code>. This 
 it.</p>
 <p>This API may be called from any thread which will start making use of <code>func</code>.</p>
 <h3>napi_release_threadsafe_function<span><a class="mark" href="#n_api_napi_release_threadsafe_function" id="n_api_napi_release_threadsafe_function">#</a></span></h3>
-<p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
+<p></p><div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><p></p>
 <div class="api_metadata">
 <span>Added in: v10.6.0</span>
 </div>
@@ -4391,7 +4406,7 @@ to any thread-safe APIs after having called this API has undefined results, as
 <code>func</code> may have been destroyed.</p>
 <p>This API may be called from any thread which will stop making use of <code>func</code>.</p>
 <h3>napi_ref_threadsafe_function<span><a class="mark" href="#n_api_napi_ref_threadsafe_function" id="n_api_napi_ref_threadsafe_function">#</a></span></h3>
-<p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
+<p></p><div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><p></p>
 <div class="api_metadata">
 <span>Added in: v10.6.0</span>
 </div>
@@ -4407,7 +4422,7 @@ should not exit until <code>func</code> has been destroyed. Similar to <a href="
 also idempotent.</p>
 <p>This API may only be called from the main thread.</p>
 <h3>napi_unref_threadsafe_function<span><a class="mark" href="#n_api_napi_unref_threadsafe_function" id="n_api_napi_unref_threadsafe_function">#</a></span></h3>
-<p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
+<p></p><div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><p></p>
 <div class="api_metadata">
 <span>Added in: v10.6.0</span>
 </div>

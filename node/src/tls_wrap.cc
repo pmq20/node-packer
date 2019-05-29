@@ -112,8 +112,7 @@ void TLSWrap::InitSSL() {
   SSL_set_verify(ssl_.get(), SSL_VERIFY_NONE, crypto::VerifyCallback);
 
 #ifdef SSL_MODE_RELEASE_BUFFERS
-  long mode = SSL_get_mode(ssl_.get());  // NOLINT(runtime/int)
-  SSL_set_mode(ssl_.get(), mode | SSL_MODE_RELEASE_BUFFERS);
+  SSL_set_mode(ssl_.get(), SSL_MODE_RELEASE_BUFFERS);
 #endif  // SSL_MODE_RELEASE_BUFFERS
 
   SSL_set_app_data(ssl_.get(), this);
@@ -221,7 +220,10 @@ void TLSWrap::SSLInfoCallback(const SSL* ssl_, int where, int ret) {
     }
   }
 
-  if (where & SSL_CB_HANDSHAKE_DONE) {
+  // SSL_CB_HANDSHAKE_START and SSL_CB_HANDSHAKE_DONE are called
+  // sending HelloRequest in OpenSSL-1.1.1.
+  // We need to check whether this is in a renegotiation state or not.
+  if (where & SSL_CB_HANDSHAKE_DONE && !SSL_renegotiate_pending(ssl)) {
     c->established_ = true;
     Local<Value> callback = object->Get(env->onhandshakedone_string());
     if (callback->IsFunction()) {

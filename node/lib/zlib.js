@@ -22,10 +22,11 @@
 'use strict';
 
 const {
+  ERR_BROTLI_INVALID_PARAM,
   ERR_BUFFER_TOO_LARGE,
   ERR_INVALID_ARG_TYPE,
   ERR_OUT_OF_RANGE,
-  ERR_ZLIB_INITIALIZATION_FAILED
+  ERR_ZLIB_INITIALIZATION_FAILED,
 } = require('internal/errors').codes;
 const Transform = require('_stream_transform');
 const {
@@ -46,11 +47,18 @@ const { owner_symbol } = require('internal/async_hooks').symbols;
 
 const constants = process.binding('constants').zlib;
 const {
+  // Zlib flush levels
   Z_NO_FLUSH, Z_BLOCK, Z_PARTIAL_FLUSH, Z_SYNC_FLUSH, Z_FULL_FLUSH, Z_FINISH,
+  // Zlib option values
   Z_MIN_CHUNK, Z_MIN_WINDOWBITS, Z_MAX_WINDOWBITS, Z_MIN_LEVEL, Z_MAX_LEVEL,
   Z_MIN_MEMLEVEL, Z_MAX_MEMLEVEL, Z_DEFAULT_CHUNK, Z_DEFAULT_COMPRESSION,
   Z_DEFAULT_STRATEGY, Z_DEFAULT_WINDOWBITS, Z_DEFAULT_MEMLEVEL, Z_FIXED,
-  DEFLATE, DEFLATERAW, INFLATE, INFLATERAW, GZIP, GUNZIP, UNZIP
+  // Node's compression stream modes (node_zlib_mode)
+  DEFLATE, DEFLATERAW, INFLATE, INFLATERAW, GZIP, GUNZIP, UNZIP,
+  BROTLI_DECODE, BROTLI_ENCODE,
+  // Brotli operations (~flush levels)
+  BROTLI_OPERATION_PROCESS, BROTLI_OPERATION_FLUSH,
+  BROTLI_OPERATION_FINISH
 } = constants;
 
 // translation table for return codes.
@@ -205,24 +213,13 @@ function checkRangesOrGetDefault(number, name, lower, upper, def) {
   return number;
 }
 
-// the Zlib class they all inherit from
-// This thing manages the queue of requests, and returns
-// true or false if there is anything in the queue when
-// you call the .write() method.
-function Zlib(opts, mode) {
+// The base class for all Zlib-style streams.
+function ZlibBase(opts, mode, handle, { flush, finishFlush, fullFlush }) {
   var chunkSize = Z_DEFAULT_CHUNK;
-  var flush = Z_NO_FLUSH;
-  var finishFlush = Z_FINISH;
-  var windowBits = Z_DEFAULT_WINDOWBITS;
-  var level = Z_DEFAULT_COMPRESSION;
-  var memLevel = Z_DEFAULT_MEMLEVEL;
-  var strategy = Z_DEFAULT_STRATEGY;
-  var dictionary;
-
-  // The Zlib class is not exported to user land, the mode should only be
+  // The ZlibBase class is not exported to user land, the mode should only be
   // passed in by us.
   assert(typeof mode === 'number');
-  assert(mode >= DEFLATE && mode <= UNZIP);
+  assert(mode >= DEFLATE && mode <= BROTLI_ENCODE);
 
   if (opts) {
     chunkSize = opts.chunkSize;
@@ -235,50 +232,11 @@ function Zlib(opts, mode) {
 
     flush = checkRangesOrGetDefault(
       opts.flush, 'options.flush',
-      Z_NO_FLUSH, Z_BLOCK, Z_NO_FLUSH);
+      Z_NO_FLUSH, Z_BLOCK, flush);
 
     finishFlush = checkRangesOrGetDefault(
       opts.finishFlush, 'options.finishFlush',
-      Z_NO_FLUSH, Z_BLOCK, Z_FINISH);
-
-    // windowBits is special. On the compression side, 0 is an invalid value.
-    // But on the decompression side, a value of 0 for windowBits tells zlib
-    // to use the window size in the zlib header of the compressed stream.
-    if ((opts.windowBits == null || opts.windowBits === 0) &&
-        (mode === INFLATE ||
-         mode === GUNZIP ||
-         mode === UNZIP)) {
-      windowBits = 0;
-    } else {
-      windowBits = checkRangesOrGetDefault(
-        opts.windowBits, 'options.windowBits',
-        Z_MIN_WINDOWBITS, Z_MAX_WINDOWBITS, Z_DEFAULT_WINDOWBITS);
-    }
-
-    level = checkRangesOrGetDefault(
-      opts.level, 'options.level',
-      Z_MIN_LEVEL, Z_MAX_LEVEL, Z_DEFAULT_COMPRESSION);
-
-    memLevel = checkRangesOrGetDefault(
-      opts.memLevel, 'options.memLevel',
-      Z_MIN_MEMLEVEL, Z_MAX_MEMLEVEL, Z_DEFAULT_MEMLEVEL);
-
-    strategy = checkRangesOrGetDefault(
-      opts.strategy, 'options.strategy',
-      Z_DEFAULT_STRATEGY, Z_FIXED, Z_DEFAULT_STRATEGY);
-
-    dictionary = opts.dictionary;
-    if (dictionary !== undefined && !isArrayBufferView(dictionary)) {
-      if (isAnyArrayBuffer(dictionary)) {
-        dictionary = Buffer.from(dictionary);
-      } else {
-        throw new ERR_INVALID_ARG_TYPE(
-          'options.dictionary',
-          ['Buffer', 'TypedArray', 'DataView', 'ArrayBuffer'],
-          dictionary
-        );
-      }
-    }
+      Z_NO_FLUSH, Z_BLOCK, finishFlush);
 
     if (opts.encoding || opts.objectMode || opts.writableObjectMode) {
       opts = _extend({}, opts);
@@ -287,39 +245,29 @@ function Zlib(opts, mode) {
       opts.writableObjectMode = false;
     }
   }
+
   Transform.call(this, opts);
-  this.bytesWritten = 0;
-  this._handle = new binding.Zlib(mode);
-  // Used by processCallback() and zlibOnError()
-  this._handle[owner_symbol] = this;
-  this._handle.onerror = zlibOnError;
   this._hadError = false;
-  this._writeState = new Uint32Array(2);
-
-  if (!this._handle.init(windowBits,
-                         level,
-                         memLevel,
-                         strategy,
-                         this._writeState,
-                         processCallback,
-                         dictionary)) {
-    throw new ERR_ZLIB_INITIALIZATION_FAILED();
-  }
-
+  this.bytesWritten = 0;
+  this._handle = handle;
+  handle[owner_symbol] = this;
+  // Used by processCallback() and zlibOnError()
+  handle.onerror = zlibOnError;
   this._outBuffer = Buffer.allocUnsafe(chunkSize);
   this._outOffset = 0;
-  this._level = level;
-  this._strategy = strategy;
+
   this._chunkSize = chunkSize;
   this._defaultFlushFlag = flush;
   this._finishFlushFlag = finishFlush;
   this._nextFlush = -1;
-  this._info = opts && opts.info;
+  this._defaultFullFlushFlag = fullFlush;
   this.once('end', this.close);
+  this._info = opts && opts.info;
 }
-inherits(Zlib, Transform);
 
-Object.defineProperty(Zlib.prototype, '_closed', {
+inherits(ZlibBase, Transform);
+
+Object.defineProperty(ZlibBase.prototype, '_closed', {
   configurable: true,
   enumerable: true,
   get() {
@@ -331,7 +279,7 @@ Object.defineProperty(Zlib.prototype, '_closed', {
 // perspective, but it is inconsistent with all other streams exposed by Node.js
 // that have this concept, where it stands for the number of bytes read
 // *from* the stream (that is, net.Socket/tls.Socket & file system streams).
-Object.defineProperty(Zlib.prototype, 'bytesRead', {
+Object.defineProperty(ZlibBase.prototype, 'bytesRead', {
   configurable: true,
   enumerable: true,
   get() {
@@ -342,33 +290,7 @@ Object.defineProperty(Zlib.prototype, 'bytesRead', {
   }
 });
 
-// This callback is used by `.params()` to wait until a full flush happened
-// before adjusting the parameters. In particular, the call to the native
-// `params()` function should not happen while a write is currently in progress
-// on the threadpool.
-function paramsAfterFlushCallback(level, strategy, callback) {
-  assert(this._handle, 'zlib binding closed');
-  this._handle.params(level, strategy);
-  if (!this._hadError) {
-    this._level = level;
-    this._strategy = strategy;
-    if (callback) callback();
-  }
-}
-
-Zlib.prototype.params = function params(level, strategy, callback) {
-  checkRangesOrGetDefault(level, 'level', Z_MIN_LEVEL, Z_MAX_LEVEL);
-  checkRangesOrGetDefault(strategy, 'strategy', Z_DEFAULT_STRATEGY, Z_FIXED);
-
-  if (this._level !== level || this._strategy !== strategy) {
-    this.flush(Z_SYNC_FLUSH,
-               paramsAfterFlushCallback.bind(this, level, strategy, callback));
-  } else {
-    process.nextTick(callback);
-  }
-};
-
-Zlib.prototype.reset = function reset() {
+ZlibBase.prototype.reset = function() {
   if (!this._handle)
     assert(false, 'zlib binding closed');
   return this._handle.reset();
@@ -376,7 +298,7 @@ Zlib.prototype.reset = function reset() {
 
 // This is the _flush function called by the transform class,
 // internally, when the last chunk has been written.
-Zlib.prototype._flush = function _flush(callback) {
+ZlibBase.prototype._flush = function(callback) {
   this._transform(Buffer.alloc(0), '', callback);
 };
 
@@ -397,12 +319,12 @@ function maxFlush(a, b) {
 }
 
 const flushBuffer = Buffer.alloc(0);
-Zlib.prototype.flush = function flush(kind, callback) {
+ZlibBase.prototype.flush = function(kind, callback) {
   var ws = this._writableState;
 
   if (typeof kind === 'function' || (kind === undefined && !callback)) {
     callback = kind;
-    kind = Z_FULL_FLUSH;
+    kind = this._defaultFullFlushFlag;
   }
 
   if (ws.ended) {
@@ -421,17 +343,17 @@ Zlib.prototype.flush = function flush(kind, callback) {
   }
 };
 
-Zlib.prototype.close = function close(callback) {
+ZlibBase.prototype.close = function(callback) {
   _close(this, callback);
   this.destroy();
 };
 
-Zlib.prototype._destroy = function _destroy(err, callback) {
+ZlibBase.prototype._destroy = function(err, callback) {
   _close(this);
   callback(err);
 };
 
-Zlib.prototype._transform = function _transform(chunk, encoding, cb) {
+ZlibBase.prototype._transform = function(chunk, encoding, cb) {
   var flushFlag = this._defaultFlushFlag;
   // We use a 'fake' zero-length chunk to carry information about flushes from
   // the public API to the actual stream implementation.
@@ -448,7 +370,7 @@ Zlib.prototype._transform = function _transform(chunk, encoding, cb) {
   processChunk(this, chunk, flushFlag, cb);
 };
 
-Zlib.prototype._processChunk = function _processChunk(chunk, flushFlag, cb) {
+ZlibBase.prototype._processChunk = function(chunk, flushFlag, cb) {
   // _processChunk() is left for backwards compatibility
   if (typeof cb === 'function')
     processChunk(this, chunk, flushFlag, cb);
@@ -564,7 +486,7 @@ function processCallback() {
   // important to null out the values once they are no longer needed since
   // `_handle` can stay in memory long after the buffer is needed.
   var handle = this;
-  var self = this.jsref;
+  var self = this[owner_symbol];
   var state = self._writeState;
 
   if (self._hadError) {
@@ -638,6 +560,112 @@ function _close(engine, callback) {
   engine._handle = null;
 }
 
+const zlibDefaultOpts = {
+  flush: Z_NO_FLUSH,
+  finishFlush: Z_FINISH,
+  fullFlush: Z_FULL_FLUSH
+};
+// Base class for all streams actually backed by zlib and using zlib-specific
+// parameters.
+function Zlib(opts, mode) {
+  var windowBits = Z_DEFAULT_WINDOWBITS;
+  var level = Z_DEFAULT_COMPRESSION;
+  var memLevel = Z_DEFAULT_MEMLEVEL;
+  var strategy = Z_DEFAULT_STRATEGY;
+  var dictionary;
+
+  if (opts) {
+    // windowBits is special. On the compression side, 0 is an invalid value.
+    // But on the decompression side, a value of 0 for windowBits tells zlib
+    // to use the window size in the zlib header of the compressed stream.
+    if ((opts.windowBits == null || opts.windowBits === 0) &&
+        (mode === INFLATE ||
+         mode === GUNZIP ||
+         mode === UNZIP)) {
+      windowBits = 0;
+    } else {
+      windowBits = checkRangesOrGetDefault(
+        opts.windowBits, 'options.windowBits',
+        Z_MIN_WINDOWBITS, Z_MAX_WINDOWBITS, Z_DEFAULT_WINDOWBITS);
+    }
+
+    level = checkRangesOrGetDefault(
+      opts.level, 'options.level',
+      Z_MIN_LEVEL, Z_MAX_LEVEL, Z_DEFAULT_COMPRESSION);
+
+    memLevel = checkRangesOrGetDefault(
+      opts.memLevel, 'options.memLevel',
+      Z_MIN_MEMLEVEL, Z_MAX_MEMLEVEL, Z_DEFAULT_MEMLEVEL);
+
+    strategy = checkRangesOrGetDefault(
+      opts.strategy, 'options.strategy',
+      Z_DEFAULT_STRATEGY, Z_FIXED, Z_DEFAULT_STRATEGY);
+
+    dictionary = opts.dictionary;
+    if (dictionary !== undefined && !isArrayBufferView(dictionary)) {
+      if (isAnyArrayBuffer(dictionary)) {
+        dictionary = Buffer.from(dictionary);
+      } else {
+        throw new ERR_INVALID_ARG_TYPE(
+          'options.dictionary',
+          ['Buffer', 'TypedArray', 'DataView', 'ArrayBuffer'],
+          dictionary
+        );
+      }
+    }
+  }
+
+  const handle = new binding.Zlib(mode);
+  // Ideally, we could let ZlibBase() set up _writeState. I haven't been able
+  // to come up with a good solution that doesn't break our internal API,
+  // and with it all supported npm versions at the time of writing.
+  this._writeState = new Uint32Array(2);
+  if (!handle.init(windowBits,
+                   level,
+                   memLevel,
+                   strategy,
+                   this._writeState,
+                   processCallback,
+                   dictionary)) {
+    // TODO(addaleax): Sometimes we generate better error codes in C++ land,
+    // e.g. ERR_BROTLI_PARAM_SET_FAILED -- it's hard to access them with
+    // the current bindings setup, though.
+    throw new ERR_ZLIB_INITIALIZATION_FAILED();
+  }
+
+  ZlibBase.call(this, opts, mode, handle, zlibDefaultOpts);
+
+  this._level = level;
+  this._strategy = strategy;
+}
+inherits(Zlib, ZlibBase);
+
+// This callback is used by `.params()` to wait until a full flush happened
+// before adjusting the parameters. In particular, the call to the native
+// `params()` function should not happen while a write is currently in progress
+// on the threadpool.
+function paramsAfterFlushCallback(level, strategy, callback) {
+  assert(this._handle, 'zlib binding closed');
+  this._handle.params(level, strategy);
+  if (!this._hadError) {
+    this._level = level;
+    this._strategy = strategy;
+    if (callback) callback();
+  }
+}
+
+Zlib.prototype.params = function params(level, strategy, callback) {
+  checkRangesOrGetDefault(level, 'level', Z_MIN_LEVEL, Z_MAX_LEVEL);
+  checkRangesOrGetDefault(strategy, 'strategy', Z_DEFAULT_STRATEGY, Z_FIXED);
+
+  if (this._level !== level || this._strategy !== strategy) {
+    this.flush(Z_SYNC_FLUSH,
+               paramsAfterFlushCallback.bind(this, level, strategy, callback));
+  } else {
+    process.nextTick(callback);
+  }
+};
+
 // generic zlib
 // minimal 2-byte header
 function Deflate(opts) {
@@ -706,6 +734,70 @@ function createConvenienceMethod(ctor, sync) {
   }
 }
 
+const kMaxBrotliParam = Math.max(...Object.keys(constants).map((key) => {
+  return key.startsWith('BROTLI_PARAM_') ? constants[key] : 0;
+}));
+
+const brotliInitParamsArray = new Uint32Array(kMaxBrotliParam + 1);
+
+const brotliDefaultOpts = {
+  flush: BROTLI_OPERATION_PROCESS,
+  finishFlush: BROTLI_OPERATION_FINISH,
+  fullFlush: BROTLI_OPERATION_FLUSH
+};
+function Brotli(opts, mode) {
+  assert(mode === BROTLI_DECODE || mode === BROTLI_ENCODE);
+
+  brotliInitParamsArray.fill(-1);
+  if (opts && opts.params) {
+    for (const origKey of Object.keys(opts.params)) {
+      const key = +origKey;
+      if (Number.isNaN(key) || key < 0 || key > kMaxBrotliParam ||
+          (brotliInitParamsArray[key] | 0) !== -1) {
+        throw new ERR_BROTLI_INVALID_PARAM(origKey);
+      }
+
+      const value = opts.params[origKey];
+      if (typeof value !== 'number' && typeof value !== 'boolean') {
+        throw new ERR_INVALID_ARG_TYPE('options.params[key]',
+                                       'number', opts.params[origKey]);
+      }
+      brotliInitParamsArray[key] = value;
+    }
+  }
+
+  const handle = mode === BROTLI_DECODE ?
+    new binding.BrotliDecoder(mode) : new binding.BrotliEncoder(mode);
+
+  this._writeState = new Uint32Array(2);
+  if (!handle.init(brotliInitParamsArray,
+                   this._writeState,
+                   processCallback)) {
+    throw new ERR_ZLIB_INITIALIZATION_FAILED();
+  }
+
+  ZlibBase.call(this, opts, mode, handle, brotliDefaultOpts);
+}
+Object.setPrototypeOf(Brotli.prototype, Zlib.prototype);
+Object.setPrototypeOf(Brotli, Zlib);
+
+function BrotliCompress(opts) {
+  if (!(this instanceof BrotliCompress))
+    return new BrotliCompress(opts);
+  Brotli.call(this, opts, BROTLI_ENCODE);
+}
+Object.setPrototypeOf(BrotliCompress.prototype, Brotli.prototype);
+Object.setPrototypeOf(BrotliCompress, Brotli);
+
+function BrotliDecompress(opts) {
+  if (!(this instanceof BrotliDecompress))
+    return new BrotliDecompress(opts);
+  Brotli.call(this, opts, BROTLI_DECODE);
+}
+Object.setPrototypeOf(BrotliDecompress.prototype, Brotli.prototype);
+Object.setPrototypeOf(BrotliDecompress, Brotli);
+
+
 function createProperty(ctor) {
   return {
     configurable: true,
@@ -731,6 +823,8 @@ module.exports = {
   DeflateRaw,
   InflateRaw,
   Unzip,
+  BrotliCompress,
+  BrotliDecompress,
 
   // Convenience methods.
   // compress/decompress a string or buffer in one step.
@@ -747,7 +841,11 @@ module.exports = {
   gunzip: createConvenienceMethod(Gunzip, false),
   gunzipSync: createConvenienceMethod(Gunzip, true),
   inflateRaw: createConvenienceMethod(InflateRaw, false),
-  inflateRawSync: createConvenienceMethod(InflateRaw, true)
+  inflateRawSync: createConvenienceMethod(InflateRaw, true),
+  brotliCompress: createConvenienceMethod(BrotliCompress, false),
+  brotliCompressSync: createConvenienceMethod(BrotliCompress, true),
+  brotliDecompress: createConvenienceMethod(BrotliDecompress, false),
+  brotliDecompressSync: createConvenienceMethod(BrotliDecompress, true),
 };
 
 Object.defineProperties(module.exports, {
@@ -758,6 +856,8 @@ Object.defineProperties(module.exports, {
   createGzip: createProperty(Gzip),
   createGunzip: createProperty(Gunzip),
   createUnzip: createProperty(Unzip),
+  createBrotliCompress: createProperty(BrotliCompress),
+  createBrotliDecompress: createProperty(BrotliDecompress),
   constants: {
     configurable: false,
     enumerable: true,
@@ -775,6 +875,7 @@ Object.defineProperties(module.exports, {
 const bkeys = Object.keys(constants);
 for (var bk = 0; bk < bkeys.length; bk++) {
   var bkey = bkeys[bk];
+  if (bkey.startsWith('BROTLI')) continue;
   Object.defineProperty(module.exports, bkey, {
     enumerable: true, value: constants[bkey], writable: false
   });

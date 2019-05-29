@@ -31,13 +31,14 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
-#include <netdb.h>
+#include <netdb.h>  /* MAXHOSTNAMELEN on Solaris */
 
 #include <termios.h>
 #include <pwd.h>
 
 #if !defined(__MVS__)
 #include <semaphore.h>
+#include <sys/param.h> /* MAXHOSTNAMELEN on Linux and the BSDs */
 #endif
 #include <pthread.h>
 #include <signal.h>
@@ -63,6 +64,8 @@
       defined(__NetBSD__)
 # include "uv/bsd.h"
 #elif defined(__CYGWIN__) || defined(__MSYS__)
+# include "uv/posix.h"
+#elif defined(__GNU__)
 # include "uv/posix.h"
 #endif
 
@@ -134,7 +137,9 @@ typedef pthread_cond_t uv_cond_t;
 typedef pthread_key_t uv_key_t;
 
 /* Note: guard clauses should match uv_barrier_init's in src/unix/thread.c. */
-#if defined(_AIX) || !defined(PTHREAD_BARRIER_SERIAL_THREAD)
+#if defined(_AIX) || \
+    defined(__OpenBSD__) || \
+    !defined(PTHREAD_BARRIER_SERIAL_THREAD)
 /* TODO(bnoordhuis) Merge into uv_barrier_t in v2. */
 struct _uv_barrier {
   uv_mutex_t mutex;
@@ -160,6 +165,9 @@ typedef gid_t uv_gid_t;
 typedef uid_t uv_uid_t;
 
 typedef struct dirent uv__dirent_t;
+
+#define UV_DIR_PRIVATE_FIELDS \
+  DIR* dir;
 
 #if defined(DT_UNKNOWN)
 # define HAVE_DIRENT_TYPES

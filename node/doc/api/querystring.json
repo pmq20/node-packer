@@ -11,6 +11,40 @@
       "desc": "<p>The <code>querystring</code> module provides utilities for parsing and formatting URL\nquery strings. It can be accessed using:</p>\n<pre><code class=\"language-js\">const querystring = require('querystring');\n</code></pre>",
       "methods": [
         {
+          "textRaw": "querystring.decode()",
+          "type": "method",
+          "name": "decode",
+          "meta": {
+            "added": [
+              "v0.1.99"
+            ],
+            "changes": []
+          },
+          "signatures": [
+            {
+              "params": []
+            }
+          ],
+          "desc": "<p>The <code>querystring.decode()</code> function is an alias for <code>querystring.parse()</code>.</p>"
+        },
+        {
+          "textRaw": "querystring.encode()",
+          "type": "method",
+          "name": "encode",
+          "meta": {
+            "added": [
+              "v0.1.99"
+            ],
+            "changes": []
+          },
+          "signatures": [
+            {
+              "params": []
+            }
+          ],
+          "desc": "<p>The <code>querystring.encode()</code> function is an alias for <code>querystring.stringify()</code>.</p>"
+        },
+        {
           "textRaw": "querystring.escape(str)",
           "type": "method",
           "name": "escape",

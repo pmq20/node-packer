@@ -1274,6 +1274,8 @@ function urlToOptions(url) {
   return options;
 }
 
+const forwardSlashRegEx = /\//g;
+
 function getPathFromURLWin32(url) {
   var hostname = url.hostname;
   var pathname = url.pathname;
@@ -1288,6 +1290,7 @@ function getPathFromURLWin32(url) {
       }
     }
   }
+  pathname = pathname.replace(forwardSlashRegEx, '\\');
   pathname = decodeURIComponent(pathname);
   if (hostname !== '') {
     // If hostname is set, then we have a UNC path
@@ -1296,7 +1299,7 @@ function getPathFromURLWin32(url) {
     // about percent encoding because the URL parser will have
     // already taken care of that for us. Note that this only
     // causes IDNs with an appropriate `xn--` prefix to be decoded.
-    return `//${domainToUnicode(hostname)}${pathname}`;
+    return `\\\\${domainToUnicode(hostname)}${pathname}`;
   } else {
     // Otherwise, it's a local path that requires a drive letter
     var letter = pathname.codePointAt(1) | 0x20;
@@ -1338,11 +1341,22 @@ function fileURLToPath(path) {
   return isWindows ? getPathFromURLWin32(path) : getPathFromURLPosix(path);
 }
 
-// We percent-encode % character when converting from file path to URL,
-// as this is the only character that won't be percent encoded by
-// default URL percent encoding when pathname is set.
+// The following characters are percent-encoded when converting from file path
+// to URL:
+// - %: The percent character is the only character not encoded by the
+//        `pathname` setter.
+// - \: Backslash is encoded on non-windows platforms since it's a valid
+//      character but the `pathname` setters replaces it by a forward slash.
+// - LF: The newline character is stripped out by the `pathname` setter.
+//       (See whatwg/url#419)
+// - CR: The carriage return character is also stripped out by the `pathname`
+//       setter.
+// - TAB: The tab character is also stripped out by the `pathname` setter.
 const percentRegEx = /%/g;
 const backslashRegEx = /\\/g;
+const newlineRegEx = /\n/g;
+const carriageReturnRegEx = /\r/g;
+const tabRegEx = /\t/g;
 function pathToFileURL(filepath) {
   let resolved = path.resolve(filepath);
   // path.resolve strips trailing slashes so we must add them back
@@ -1357,6 +1371,12 @@ function pathToFileURL(filepath) {
   // in posix, "/" is a valid character in paths
   if (!isWindows && resolved.includes('\\'))
     resolved = resolved.replace(backslashRegEx, '%5C');
+  if (resolved.includes('\n'))
+    resolved = resolved.replace(newlineRegEx, '%0A');
+  if (resolved.includes('\r'))
+    resolved = resolved.replace(carriageReturnRegEx, '%0D');
+  if (resolved.includes('\t'))
+    resolved = resolved.replace(tabRegEx, '%09');
   outURL.pathname = resolved;
   return outURL;
 }

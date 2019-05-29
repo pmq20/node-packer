@@ -388,6 +388,7 @@ class IsolateData {
   PER_ISOLATE_SYMBOL_PROPERTIES(VY)
   PER_ISOLATE_STRING_PROPERTIES(VS)
 #undef V
+#undef VY
 #undef VS
 #undef VP
 
@@ -404,6 +405,7 @@ class IsolateData {
   PER_ISOLATE_SYMBOL_PROPERTIES(VY)
   PER_ISOLATE_STRING_PROPERTIES(VS)
 #undef V
+#undef VY
 #undef VS
 #undef VP
 
@@ -421,6 +423,12 @@ struct ContextInfo {
   const std::string name;
   std::string origin;
   bool is_default = false;
+};
+
+struct CompileFnEntry {
+  Environment* env;
+  uint32_t id;
+  CompileFnEntry(Environment* env, uint32_t id);
 };
 
 // Listing the AsyncWrap provider types first enables us to cast directly
@@ -679,9 +687,12 @@ class Environment {
   std::unordered_map<uint32_t, loader::ModuleWrap*> id_to_module_map;
   std::unordered_map<uint32_t, contextify::ContextifyScript*>
       id_to_script_map;
+  std::unordered_set<CompileFnEntry*> compile_fn_entries;
+  std::unordered_map<uint32_t, Persistent<v8::Function>> id_to_function_map;
 
   inline uint32_t get_next_module_id();
   inline uint32_t get_next_script_id();
+  inline uint32_t get_next_function_id();
 
   std::unordered_map<std::string, const loader::PackageConfig>
       package_json_cache;
@@ -911,6 +922,7 @@ class Environment {
 
   uint32_t module_id_counter_ = 0;
   uint32_t script_id_counter_ = 0;
+  uint32_t function_id_counter_ = 0;
 
   AliasedBuffer<uint32_t, v8::Uint32Array> should_abort_on_uncaught_toggle_;
   int should_not_abort_scope_counter_ = 0;
@@ -977,7 +989,7 @@ class Environment {
   struct NativeImmediateCallback {
     native_immediate_callback cb_;
     void* data_;
-    std::unique_ptr<Persistent<v8::Object>> keep_alive_;
+    v8::Global<v8::Object> keep_alive_;
     bool refed_;
   };
   std::vector<NativeImmediateCallback> native_immediate_callbacks_;

@@ -53,6 +53,7 @@
 
 #include "ares.h"
 #include "async_wrap-inl.h"
+#include "brotli/encode.h"
 #include "env-inl.h"
 #include "handle_wrap.h"
 #include "http_parser.h"
@@ -258,7 +259,6 @@ class NodeTraceStateObserver :
 
     // This only runs the first time tracing is enabled
     controller_->RemoveTraceStateObserver(this);
-    delete this;
   }
 
   void OnTraceDisabled() override {
@@ -280,8 +280,10 @@ static struct {
   void Initialize(int thread_pool_size) {
     tracing_agent_.reset(new tracing::Agent());
     node::tracing::TraceEventHelper::SetAgent(tracing_agent_.get());
-    auto controller = tracing_agent_->GetTracingController();
-    controller->AddTraceStateObserver(new NodeTraceStateObserver(controller));
+    node::tracing::TracingController* controller =
+        tracing_agent_->GetTracingController();
+    trace_state_observer_.reset(new NodeTraceStateObserver(controller));
+    controller->AddTraceStateObserver(trace_state_observer_.get());
     StartTracingAgent();
     // Tracing must be initialized before platform threads are created.
     platform_ = new NodePlatform(thread_pool_size, controller);
@@ -295,6 +297,7 @@ static struct {
     // Destroy tracing after the platform (and platform threads) have been
     // stopped.
     tracing_agent_.reset(nullptr);
+    trace_state_observer_.reset(nullptr);
   }
 
   void DrainVMTasks(Isolate* isolate) {
@@ -345,6 +348,7 @@ static struct {
     return platform_;
   }
 
+  std::unique_ptr<NodeTraceStateObserver> trace_state_observer_;
   std::unique_ptr<tracing::Agent> tracing_agent_;
   tracing::AgentWriterHandle tracing_file_writer_;
   NodePlatform* platform_;
@@ -382,6 +386,10 @@ static struct {
   }
 #endif  //  !NODE_USE_V8_PLATFORM || !HAVE_INSPECTOR
 } v8_platform;
+
+void DisposePlatform() {
+  v8_platform.Dispose();
+}
 
 #ifdef __POSIX__
 static const unsigned kMaxSignal = 32;
@@ -1768,6 +1776,14 @@ void SetupProcessObject(Environment* env,
                                      NODE_STRINGIFY(HTTP_PARSER_VERSION_MINOR)
                                      "."
                                      NODE_STRINGIFY(HTTP_PARSER_VERSION_PATCH);
+
+  const std::string brotli_version =
+      std::to_string(BrotliEncoderVersion() >> 24) +
+      "." +
+      std::to_string((BrotliEncoderVersion() & 0xFFF000) >> 12) +
+      "." +
+      std::to_string(BrotliEncoderVersion() & 0xFFF);
+
   READONLY_PROPERTY(versions,
                     "http_parser",
                     FIXED_ONE_BYTE_STRING(env->isolate(), http_parser_version));
@@ -1784,6 +1800,9 @@ void SetupProcessObject(Environment* env,
   READONLY_PROPERTY(versions,
                     "zlib",
                     FIXED_ONE_BYTE_STRING(env->isolate(), ZLIB_VERSION));
+  READONLY_PROPERTY(versions,
+                    "brotli",
+                    OneByteString(env->isolate(), brotli_version.c_str()));
   READONLY_PROPERTY(versions,
                     "ares",
                     FIXED_ONE_BYTE_STRING(env->isolate(), ARES_VERSION_STR));
@@ -2870,6 +2889,11 @@ Environment* CreateEnvironment(IsolateData* isolate_data,
 void FreeEnvironment(Environment* env) {
   env->RunCleanup();
   delete env;
+}
+
+
+Environment* GetCurrentEnvironment(Local<Context> context) {
+  return Environment::GetCurrent(context);
 }
 
 

@@ -512,6 +512,7 @@ E('ERR_ARG_NOT_ITERABLE', '%s must be iterable', TypeError);
 E('ERR_ASSERTION', '%s', Error);
 E('ERR_ASYNC_CALLBACK', '%s must be a function', TypeError);
 E('ERR_ASYNC_TYPE', 'Invalid name for async "type": %s', TypeError);
+E('ERR_BROTLI_INVALID_PARAM', '%s is not a valid Brotli parameter', RangeError);
 E('ERR_BUFFER_OUT_OF_BOUNDS',
   // Using a default argument here is important so the argument is not counted
   // towards `Function#length`.
@@ -870,6 +871,10 @@ E('ERR_TLS_CERT_ALTNAME_INVALID',
   'Hostname/IP does not match certificate\'s altnames: %s', Error);
 E('ERR_TLS_DH_PARAM_SIZE', 'DH parameter size %s is less than 2048', Error);
 E('ERR_TLS_HANDSHAKE_TIMEOUT', 'TLS handshake timeout', Error);
+E('ERR_TLS_INVALID_PROTOCOL_VERSION',
+  '%j is not a valid %s TLS protocol version', TypeError);
+E('ERR_TLS_PROTOCOL_VERSION_CONFLICT',
+  'TLS protocol version %j conflicts with secureProtocol %j', TypeError);
 E('ERR_TLS_RENEGOTIATE', 'Attempt to renegotiate TLS session failed', Error);
 E('ERR_TLS_RENEGOTIATION_DISABLED',
   'TLS session renegotiation disabled for this socket', Error);

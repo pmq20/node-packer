@@ -161,7 +161,7 @@ function linkJsTypeDocs(text) {
 
 // Preprocess headers, stability blockquotes, and YAML blocks.
 function preprocessElements({ filename }) {
-  return (tree, file) => {
+  return (tree) => {
     const STABILITY_RE = /(.*:)\s*(\d)([\s\S]*)/;
     let headingIndex = -1;
     let heading = null;
@@ -170,26 +170,6 @@ function preprocessElements({ filename }) {
       if (node.type === 'heading') {
         headingIndex = index;
         heading = node;
-
-        // Ensure optional API parameters are not treated as links by
-        // collapsing all of heading into a single text node.
-        if (heading.children.length > 1) {
-          const position = {
-            start: heading.children[0].position.start,
-            end: heading.position.end
-          };
-
-          heading.children = [{
-            type: 'text',
-            value: file.contents.slice(
-              position.start.offset, position.end.offset)
-              .replace('&lt;', '<')
-              .replace('&gt;', '>')
-              .replace(/\\(.{1})/g, '$1'),
-            position
-          }];
-        }
-
       } else if (node.type === 'html' && common.isYAMLBlock(node.value)) {
         node.value = parseYAML(node.value);
 
@@ -404,12 +384,13 @@ function altDocs(filename, docCreated) {
   const [, docCreatedMajor, docCreatedMinor] = docCreated.map(Number);
   const host = 'https://nodejs.org';
   const versions = [
+    { num: '12.x' },
     { num: '11.x' },
     { num: '10.x', lts: true },
     { num: '9.x' },
     { num: '8.x', lts: true },
     { num: '7.x' },
-    { num: '6.x', lts: true },
+    { num: '6.x' },
     { num: '5.x' },
     { num: '4.x' },
     { num: '0.12.x' },

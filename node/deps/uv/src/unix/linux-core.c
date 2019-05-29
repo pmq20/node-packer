@@ -141,6 +141,7 @@ void uv__platform_invalidate_fd(uv_loop_t* loop, int fd) {
   uintptr_t nfds;
 
   assert(loop->watchers != NULL);
+  assert(fd >= 0);
 
   events = (struct epoll_event*) loop->watchers[loop->nwatchers];
   nfds = (uintptr_t) loop->watchers[loop->nwatchers + 1];
@@ -170,6 +171,7 @@ int uv__io_check_fd(uv_loop_t* loop, int fd) {
   struct epoll_event e;
   int rc;
 
+  memset(&e, 0, sizeof(e));
   e.events = POLLIN;
   e.data.fd = -1;
 
@@ -217,6 +219,8 @@ void uv__io_poll(uv_loop_t* loop, int timeout) {
     assert(QUEUE_EMPTY(&loop->watcher_queue));
     return;
   }
+
+  memset(&e, 0, sizeof(e));
 
   while (!QUEUE_EMPTY(&loop->watcher_queue)) {
     q = QUEUE_HEAD(&loop->watcher_queue);
@@ -826,9 +830,10 @@ static int uv__ifaddr_exclude(struct ifaddrs *ent, int exclude_type) {
   return !exclude_type;
 }
 
-int uv_interface_addresses(uv_interface_address_t** addresses,
-  int* count) {
+int uv_interface_addresses(uv_interface_address_t** addresses, int* count) {
 #ifndef HAVE_IFADDRS_H
+  *count = 0;
+  *addresses = NULL;
   return UV_ENOSYS;
 #else
   struct ifaddrs *addrs, *ent;
@@ -836,11 +841,11 @@ int uv_interface_addresses(uv_interface_address_t** addresses,
   int i;
   struct sockaddr_ll *sll;
 
-  if (getifaddrs(&addrs))
-    return UV__ERR(errno);
-
   *count = 0;
   *addresses = NULL;
+
+  if (getifaddrs(&addrs))
+    return UV__ERR(errno);
 
   /* Count the number of interfaces */
   for (ent = addrs; ent != NULL; ent = ent->ifa_next) {
@@ -850,10 +855,13 @@ int uv_interface_addresses(uv_interface_address_t** addresses,
     (*count)++;
   }
 
-  if (*count == 0)
+  if (*count == 0) {
+    freeifaddrs(addrs);
     return 0;
+  }
 
-  *addresses = uv__malloc(*count * sizeof(**addresses));
+  /* Make sure the memory is initiallized to zero using calloc() */
+  *addresses = uv__calloc(*count, sizeof(**addresses));
   if (!(*addresses)) {
     freeifaddrs(addrs);
     return UV_ENOMEM;
@@ -890,7 +898,6 @@ int uv_interface_addresses(uv_interface_address_t** addresses,
       continue;
 
     address = *addresses;
-    memset(address->phys_addr, 0, sizeof(address->phys_addr));
 
     for (i = 0; i < (*count); i++) {
       if (strcmp(address->name, ent->ifa_name) == 0) {

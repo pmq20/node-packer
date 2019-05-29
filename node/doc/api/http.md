@@ -116,18 +116,24 @@ added: v0.3.4
   Can have the following fields:
   * `keepAlive` {boolean} Keep sockets around even when there are no
     outstanding requests, so they can be used for future requests without
-    having to reestablish a TCP connection. **Default:** `false`.
+    having to reestablish a TCP connection. Not to be confused with the
+    `keep-alive` value of the `Connection` header. The `Connection: keep-alive`
+    header is always sent when using an agent except when the `Connection`
+    header is explicitly specified or when the `keepAlive` and `maxSockets`
+    options are respectively set to `false` and `Infinity`, in which case
+    `Connection: close` will be used. **Default:** `false`.
   * `keepAliveMsecs` {number} When using the `keepAlive` option, specifies
     the [initial delay](net.html#net_socket_setkeepalive_enable_initialdelay)
     for TCP Keep-Alive packets. Ignored when the
     `keepAlive` option is `false` or `undefined`. **Default:** `1000`.
   * `maxSockets` {number} Maximum number of sockets to allow per
-    host. **Default:** `Infinity`.
+    host. Each request will use a new socket until the maximum is reached.
+    **Default:** `Infinity`.
   * `maxFreeSockets` {number} Maximum number of sockets to leave open
     in a free state. Only relevant if `keepAlive` is set to `true`.
     **Default:** `256`.
   * `timeout` {number} Socket timeout in milliseconds.
-    This will set the timeout after the socket is connected.
+    This will set the timeout when the socket is created.
 
 `options` in [`socket.connect()`][] are also supported.
 
@@ -689,6 +695,10 @@ Once a socket is assigned to this request and is connected
 ### request.setTimeout(timeout[, callback])
 <!-- YAML
 added: v0.5.9
+changes:
+  - version: v9.0.0
+    pr-url: https://github.com/nodejs/node/pull/8895
+    description: Consistently set socket timeout only when the socket connects.
 -->
 
 * `timeout` {number} Milliseconds before a request times out.
@@ -1114,7 +1124,7 @@ This method signals to the server that all of the response headers and body
 have been sent; that server should consider this message complete.
 The method, `response.end()`, MUST be called on each response.
 
-If `data` is specified, it is equivalent to calling
+If `data` is specified, it is similar in effect to calling
 [`response.write(data, encoding)`][] followed by `response.end(callback)`.
 
 If `callback` is specified, it will be called when the response stream
@@ -1810,7 +1820,7 @@ Found'`.
 <!-- YAML
 added: v0.1.13
 changes:
-  - version: v9.6.0
+  - version: v9.6.0, v8.12.0
     pr-url: https://github.com/nodejs/node/pull/15752
     description: The `options` argument is supported now.
 -->

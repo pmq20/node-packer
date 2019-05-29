@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Stream | Node.js v10.15.3 Documentation</title>
+  <title>Stream | Node.js v10.16.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -69,7 +69,7 @@
 <li><a href="v8.html" class="nav-v8">V8</a></li>
 <li><a href="vm.html" class="nav-vm">VM</a></li>
 <li><a href="worker_threads.html" class="nav-worker_threads">Worker Threads</a></li>
-<li><a href="zlib.html" class="nav-zlib">ZLIB</a></li>
+<li><a href="zlib.html" class="nav-zlib">Zlib</a></li>
 </ul>
 <div class="line"></div>
 <ul>
@@ -79,7 +79,7 @@
 
     <div id="column1" data-id="stream" class="interior">
       <header>
-        <h1>Node.js v10.15.3 Documentation</h1>
+        <h1>Node.js v10.16.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -94,12 +94,13 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v11.x/api/stream.html">11.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v12.x/api/stream.html">12.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v11.x/api/stream.html">11.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v10.x/api/stream.html">10.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v9.x/api/stream.html">9.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v8.x/api/stream.html">8.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v7.x/api/stream.html">7.x</a></li>
-<li><a href="https://nodejs.org/docs/latest-v6.x/api/stream.html">6.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v6.x/api/stream.html">6.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v5.x/api/stream.html">5.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v4.x/api/stream.html">4.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v0.12.x/api/stream.html">0.12.x</a></li>
@@ -265,7 +266,7 @@
       </div>
 
       <div id="apicontent">
-        <h1>Stream<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/stream.js#L30">[src]</a><span><a class="mark" href="#stream_stream" id="stream_stream">#</a></span></h1>
+        <h1>Stream<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/stream.js#L30">[src]</a><span><a class="mark" href="#stream_stream" id="stream_stream">#</a></span></h1>
 
 <p></p><div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><p></p>
 <p>A stream is an abstract interface for working with streaming data in Node.js.
@@ -439,12 +440,21 @@ myStream.end('done writing data');
 
 <h5>Event: 'close'<span><a class="mark" href="#stream_event_close" id="stream_event_close">#</a></span></h5>
 <div class="api_metadata">
-<span>Added in: v0.9.4</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v10.0.0</td>
+<td><p>Add <code>emitClose</code> option to specify if <code>'close'</code> is emitted on destroy.</p></td></tr>
+<tr><td>v0.9.4</td>
+<td><p><span>Added in: v0.9.4</span></p></td></tr>
+</tbody></table>
+</details>
 </div>
 <p>The <code>'close'</code> event is emitted when the stream and any of its underlying
 resources (a file descriptor, for example) have been closed. The event indicates
 that no more events will be emitted, and no further computation will occur.</p>
-<p>Not all <code>Writable</code> streams will emit the <code>'close'</code> event.</p>
+<p>A <a href="#stream_class_stream_writable"><code>Writable</code></a> stream will always emit the <code>'close'</code> event if it is
+created with the <code>emitClose</code> option.</p>
 <h5>Event: 'drain'<span><a class="mark" href="#stream_event_drain" id="stream_event_drain">#</a></span></h5>
 <div class="api_metadata">
 <span>Added in: v0.9.4</span>
@@ -659,7 +669,7 @@ process.nextTick(() => {
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a></li>
 </ul>
-<p>Is <code>true</code> if it is safe to call <a href=""><code>writable.write()</code></a>.</p>
+<p>Is <code>true</code> if it is safe to call [<code>writable.write()</code>][].</p>
 <h5>writable.writableHighWaterMark<span><a class="mark" href="#stream_writable_writablehighwatermark" id="stream_writable_writablehighwatermark">#</a></span></h5>
 <div class="api_metadata">
 <span>Added in: v9.3.0</span>
@@ -865,12 +875,21 @@ or the <code>readable.pause()</code>/<code>readable.resume()</code> APIs.</p>
 
 <h5>Event: 'close'<span><a class="mark" href="#stream_event_close_1" id="stream_event_close_1">#</a></span></h5>
 <div class="api_metadata">
-<span>Added in: v0.9.4</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v10.0.0</td>
+<td><p>Add <code>emitClose</code> option to specify if <code>'close'</code> is emitted on destroy.</p></td></tr>
+<tr><td>v0.9.4</td>
+<td><p><span>Added in: v0.9.4</span></p></td></tr>
+</tbody></table>
+</details>
 </div>
 <p>The <code>'close'</code> event is emitted when the stream and any of its underlying
 resources (a file descriptor, for example) have been closed. The event indicates
 that no more events will be emitted, and no further computation will occur.</p>
-<p>Not all <a href="#stream_class_stream_readable"><code>Readable</code></a> streams will emit the <code>'close'</code> event.</p>
+<p>A <a href="#stream_class_stream_readable"><code>Readable</code></a> stream will always emit the <code>'close'</code> event if it is
+created with the <code>emitClose</code> option.</p>
 <h5>Event: 'data'<span><a class="mark" href="#stream_event_data" id="stream_event_data">#</a></span></h5>
 <div class="api_metadata">
 <span>Added in: v0.9.4</span>
@@ -1125,6 +1144,9 @@ readable.on('readable', () => {
   }
 });
 </code></pre>
+<p>Note that the <code>while</code> loop is necessary when processing data with
+<code>readable.read()</code>. Only after <code>readable.read()</code> returns <code>null</code>,
+<a href=""><code>'readable'</code></a> will be emitted.</p>
 <p>A <code>Readable</code> stream in object mode will always return a single item from
 a call to <a href="#stream_readable_read_size"><code>readable.read(size)</code></a>, regardless of the value of the
 <code>size</code> argument.</p>
@@ -1139,7 +1161,7 @@ been emitted will return <code>null</code>. No runtime error will be raised.</p>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a></li>
 </ul>
-<p>Is <code>true</code> if it is safe to call <a href=""><code>readable.read()</code></a>.</p>
+<p>Is <code>true</code> if it is safe to call [<code>readable.read()</code>][].</p>
 <h5>readable.readableHighWaterMark<span><a class="mark" href="#stream_readable_readablehighwatermark" id="stream_readable_readablehighwatermark">#</a></span></h5>
 <div class="api_metadata">
 <span>Added in: v9.3.0</span>
@@ -1340,7 +1362,7 @@ myReader.on('readable', () => {
 </div>
 <p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
 <ul>
-<li>Returns: <a href="https://github.com/tc39/proposal-async-iteration" class="type">&#x3C;AsyncIterator></a> to fully consume the stream.</li>
+<li>Returns: <a href="https://tc39.github.io/ecma262/#sec-asynciterator-interface" class="type">&#x3C;AsyncIterator></a> to fully consume the stream.</li>
 </ul>
 <pre><code class="language-js">const fs = require('fs');
 
@@ -1577,6 +1599,8 @@ constructor and implement the <code>writable._write()</code> method. The
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v10.16.0</td>
+<td><p>Add <code>autoDestroy</code> option to automatically <code>destroy()</code> the stream when it emits <code>'finish'</code> or errors</p></td></tr>
 <tr><td>v10.0.0</td>
 <td><p>Add <code>emitClose</code> option to specify if <code>'close'</code> is emitted on destroy</p></td></tr>
 </tbody></table>
@@ -1589,10 +1613,12 @@ constructor and implement the <code>writable._write()</code> method. The
 <li><code>highWaterMark</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Buffer level when
 <a href="#stream_writable_write_chunk_encoding_callback"><code>stream.write()</code></a> starts returning <code>false</code>. <strong>Default:</strong>
 <code>16384</code> (16kb), or <code>16</code> for <code>objectMode</code> streams.</li>
-<li><code>decodeStrings</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> Whether or not to encode strings as
-<code>Buffer</code>s before passing them to <a href="#stream_writable_write_chunk_encoding_callback_1"><code>stream._write()</code></a>,
-using the encoding specified in the <a href="#stream_writable_write_chunk_encoding_callback"><code>stream.write()</code></a> call.
-<strong>Default:</strong> <code>true</code>.</li>
+<li><code>decodeStrings</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> Whether to encode <code>string</code>s passed to
+<a href="#stream_writable_write_chunk_encoding_callback"><code>stream.write()</code></a> to <code>Buffer</code>s (with the encoding
+specified in the <a href="#stream_writable_write_chunk_encoding_callback"><code>stream.write()</code></a> call) before passing
+them to <a href="#stream_writable_write_chunk_encoding_callback_1"><code>stream._write()</code></a>. Other types of data are not
+converted (i.e. <code>Buffer</code>s are not decoded into <code>string</code>s). Setting to
+false will prevent <code>string</code>s from being converted.  <strong>Default:</strong> <code>true</code>.</li>
 <li><code>defaultEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The default encoding that is used when no
 encoding is specified as an argument to <a href="#stream_writable_write_chunk_encoding_callback"><code>stream.write()</code></a>.
 <strong>Default:</strong> <code>'utf8'</code>.</li>
@@ -1611,6 +1637,8 @@ after it has been destroyed. <strong>Default:</strong> <code>true</code>.</li>
 <a href="#stream_writable_destroy_err_callback"><code>stream._destroy()</code></a> method.</li>
 <li><code>final</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> Implementation for the
 <a href="#stream_writable_final_callback"><code>stream._final()</code></a> method.</li>
+<li><code>autoDestroy</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> Whether this stream should automatically call
+<code>.destroy()</code> on itself after ending. <strong>Default:</strong> <code>false</code>.</li>
 </ul>
 </li>
 </ul>
@@ -1650,9 +1678,11 @@ const myWritable = new Writable({
 </code></pre>
 <h4>writable._write(chunk, encoding, callback)<span><a class="mark" href="#stream_writable_write_chunk_encoding_callback_1" id="stream_writable_write_chunk_encoding_callback_1">#</a></span></h4>
 <ul>
-<li><code>chunk</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Data_types" class="type">&#x3C;any></a> The chunk to be written. Will <strong>always</strong>
-be a buffer unless the <code>decodeStrings</code> option was set to <code>false</code>
-or the stream is operating in object mode.</li>
+<li><code>chunk</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Data_types" class="type">&#x3C;any></a> The <code>Buffer</code> to be written, converted from the
+<code>string</code> passed to <a href="#stream_writable_write_chunk_encoding_callback"><code>stream.write()</code></a>. If the stream's
+<code>decodeStrings</code> option is <code>false</code> or the stream is operating in object mode,
+the chunk will not be converted &#x26; will be whatever was passed to
+<a href="#stream_writable_write_chunk_encoding_callback"><code>stream.write()</code></a>.</li>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> If the chunk is a string, then <code>encoding</code> is the
 character encoding of that string. If chunk is a <code>Buffer</code>, or if the
 stream is operating in object mode, <code>encoding</code> may be ignored.</li>
@@ -1807,6 +1837,15 @@ console.log(w.data); // currency: €
 <p>Custom <code>Readable</code> streams <em>must</em> call the <code>new stream.Readable([options])</code>
 constructor and implement the <code>readable._read()</code> method.</p>
 <h4>new stream.Readable([options])<span><a class="mark" href="#stream_new_stream_readable_options" id="stream_new_stream_readable_options">#</a></span></h4>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v10.16.0</td>
+<td><p>Add <code>autoDestroy</code> option to automatically <code>destroy()</code> the stream when it emits <code>'end'</code> or errors</p></td></tr>
+</tbody></table>
+</details>
+</div>
 <ul>
 <li>
 <p><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></p>
@@ -1823,6 +1862,8 @@ a single value instead of a <code>Buffer</code> of size <code>n</code>. <strong>
 method.</li>
 <li><code>destroy</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> Implementation for the
 <a href="#stream_readable_destroy_err_callback"><code>stream._destroy()</code></a> method.</li>
+<li><code>autoDestroy</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> Whether this stream should automatically call
+<code>.destroy()</code> on itself after ending. <strong>Default:</strong> <code>false</code>.</li>
 </ul>
 </li>
 </ul>
@@ -2258,9 +2299,11 @@ internal to the class that defines it, and should never be called directly by
 user programs.</p>
 <h4>transform._transform(chunk, encoding, callback)<span><a class="mark" href="#stream_transform_transform_chunk_encoding_callback" id="stream_transform_transform_chunk_encoding_callback">#</a></span></h4>
 <ul>
-<li><code>chunk</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Data_types" class="type">&#x3C;any></a> The chunk to be transformed. Will <strong>always</strong>
-be a buffer unless the <code>decodeStrings</code> option was set to <code>false</code>
-or the stream is operating in object mode.</li>
+<li><code>chunk</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Data_types" class="type">&#x3C;any></a> The <code>Buffer</code> to be transformed, converted from
+the <code>string</code> passed to <a href="#stream_writable_write_chunk_encoding_callback"><code>stream.write()</code></a>. If the stream's
+<code>decodeStrings</code> option is <code>false</code> or the stream is operating in object mode,
+the chunk will not be converted &#x26; will be whatever was passed to
+<a href="#stream_writable_write_chunk_encoding_callback"><code>stream.write()</code></a>.</li>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> If the chunk is a string, then this is the
 encoding type. If chunk is a buffer, then this is the special
 value - 'buffer', ignore it in this case.</li>
@@ -2380,7 +2423,7 @@ object mode has an interesting side effect. Because it <em>is</em> a call to
 <a href="#stream_readable_push_chunk_encoding"><code>readable.push()</code></a>, the call will end the reading process.
 However, because the argument is an empty string, no data is added to the
 readable buffer so there is nothing for a user to consume.</p>
-<h3>`highWaterMark` discrepancy after calling `readable.setEncoding()`<span><a class="mark" href="#stream_highwatermark_discrepancy_after_calling_readable_setencoding" id="stream_highwatermark_discrepancy_after_calling_readable_setencoding">#</a></span></h3>
+<h3><code>highWaterMark</code> discrepancy after calling <code>readable.setEncoding()</code><span><a class="mark" href="#stream_highwatermark_discrepancy_after_calling_readable_setencoding" id="stream_highwatermark_discrepancy_after_calling_readable_setencoding">#</a></span></h3>
 <p>The use of <code>readable.setEncoding()</code> will change the behavior of how the
 <code>highWaterMark</code> operates in non-object mode.</p>
 <p>Typically, the size of the current buffer is measured against the

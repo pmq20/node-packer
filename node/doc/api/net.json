@@ -1208,7 +1208,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>If <code>true</code>,\n<a href=\"#net_socket_connect_options_connectlistener\"><code>socket.connect(options[, connectListener])</code></a>\nwas called and has not yet finished. Will be set to <code>true</code> before emitting\n<code>'connect'</code> event and/or calling\n<a href=\"#net_socket_connect_options_connectlistener\"><code>socket.connect(options[, connectListener])</code></a>'s\ncallback.</p>"
+              "desc": "<p>If <code>true</code>,\n<a href=\"#net_socket_connect_options_connectlistener\"><code>socket.connect(options[, connectListener])</code></a> was\ncalled and has not yet finished. It will stay <code>true</code> until the socket becomes\nconnected, then it is set to <code>false</code> and the <code>'connect'</code> event is emitted.  Note\nthat the\n<a href=\"#net_socket_connect_options_connectlistener\"><code>socket.connect(options[, connectListener])</code></a>\ncallback is a listener for the <code>'connect'</code> event.</p>"
             },
             {
               "textRaw": "`destroyed` {boolean} Indicates if the connection is destroyed or not. Once a connection is destroyed no further data can be transferred using it.",
@@ -1237,6 +1237,18 @@
                 "changes": []
               },
               "desc": "<p>The numeric representation of the local port. For example, <code>80</code> or <code>21</code>.</p>"
+            },
+            {
+              "textRaw": "`pending` {boolean}",
+              "type": "boolean",
+              "name": "pending",
+              "meta": {
+                "added": [
+                  "v10.16.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>This is <code>true</code> if the socket is not connected yet, either because <code>.connect()</code>\nhas not yet been called or because it is still in the process of connecting\n(see <a href=\"#net_socket_connecting\"><code>socket.connecting</code></a>).</p>"
             },
             {
               "textRaw": "socket.remoteAddress",

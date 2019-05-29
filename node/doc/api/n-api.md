@@ -60,7 +60,7 @@ if (status != napi_ok) {
   return;
 }
 
-status = napi_crate_string_utf8(env, "bar", NAPI_AUTO_LENGTH, &string);
+status = napi_create_string_utf8(env, "bar", NAPI_AUTO_LENGTH, &string);
 if (status != napi_ok) {
   napi_throw_error(env, ...);
   return;
@@ -145,13 +145,13 @@ available to the module code.
 
 ## N-API Version Matrix
 
-|       | 1       | 2        | 3        |
-|:-----:|:-------:|:--------:|:--------:|
-| v4.x  |         |          |          |
-| v6.x  |         |          | v6.14.2* |
-| v8.x  | v8.0.0* | v8.10.0* |          |
-| v9.x  | v9.0.0* | v9.3.0*  | v9.11.0* |
-| v10.x |         |          | v10.0.0  |
+|       | 1       | 2        | 3        | 4        |
+|:-----:|:-------:|:--------:|:--------:|:--------:|
+| v6.x  |         |          | v6.14.2* |          |
+| v8.x  | v8.0.0* | v8.10.0* | v8.11.2  |          |
+| v9.x  | v9.0.0* | v9.3.0*  | v9.11.0* |          |
+| v10.x |         |          | v10.0.0  | v10.16.0 |
+| v11.x |         |          | v11.0.0  | v11.8.0  |
 
 \* Indicates that the N-API version was released as experimental
 
@@ -223,7 +223,7 @@ This is an opaque pointer that is used to represent a JavaScript value.
 
 ### napi_threadsafe_function
 
-> Stability: 1 - Experimental
+> Stability: 2 - Stable
 
 This is an opaque pointer that represents a JavaScript function which can be
 called asynchronously from multiple threads via
@@ -231,7 +231,7 @@ called asynchronously from multiple threads via
 
 ### napi_threadsafe_function_release_mode
 
-> Stability: 1 - Experimental
+> Stability: 2 - Stable
 
 A value to be given to `napi_release_threadsafe_function()` to indicate whether
 the thread-safe function is to be closed immediately (`napi_tsfn_abort`) or
@@ -246,7 +246,7 @@ typedef enum {
 
 ### napi_threadsafe_function_call_mode
 
-> Stability: 1 - Experimental
+> Stability: 2 - Stable
 
 A value to be given to `napi_call_threadsafe_function()` to indicate whether
 the call should block whenever the queue associated with the thread-safe
@@ -341,7 +341,7 @@ typedef void (*napi_async_complete_callback)(napi_env env,
 
 #### napi_threadsafe_function_call_js
 
-> Stability: 1 - Experimental
+> Stability: 2 - Stable
 
 Function pointer used with asynchronous thread-safe function calls. The callback
 will be called on the main thread. Its purpose is to use a data item arriving
@@ -467,6 +467,15 @@ exception is pending and no additional action is required. If the
 `napi_pending_exception`, in order to try to recover and continue
 instead of simply returning immediately, [`napi_is_exception_pending`][]
 must be called in order to determine if an exception is pending or not.
+
+In many cases when an N-API function is called and an exception is
+already pending, the function will return immediately with a
+`napi_status` of `napi_pending_exception`. However, this is not the case
+for all functions. N-API allows a subset of the functions to be
+called to allow for some minimal cleanup before returning to JavaScript.
+In that case, `napi_status` will reflect the status for the function. It
+will not reflect previous pending exceptions. To avoid confusion, check
+the error status after every function call.
 
 When an exception is pending one of two approaches can be employed.
 
@@ -4050,7 +4059,7 @@ NAPI_EXTERN napi_status napi_open_callback_scope(napi_env env,
                                                  napi_callback_scope* result)
 ```
 - `[in] env`: The environment that the API is invoked under.
-- `[in] resource_object`: An optional object associated with the async work
+- `[in] resource_object`: An object associated with the async work
   that will be passed to possible `async_hooks` [`init` hooks][].
 - `[in] context`: Context for the async operation that is
 invoking the callback. This should be a value previously obtained
@@ -4458,7 +4467,7 @@ prevent the event loop from exiting. The APIs `napi_ref_threadsafe_function` and
 
 ### napi_create_threadsafe_function
 
-> Stability: 1 - Experimental
+> Stability: 2 - Stable
 
 <!-- YAML
 added: v10.6.0
@@ -4501,7 +4510,7 @@ parameters and with `undefined` as its `this` value.
 
 ### napi_get_threadsafe_function_context
 
-> Stability: 1 - Experimental
+> Stability: 2 - Stable
 
 <!-- YAML
 added: v10.6.0
@@ -4519,7 +4528,7 @@ This API may be called from any thread which makes use of `func`.
 
 ### napi_call_threadsafe_function
 
-> Stability: 1 - Experimental
+> Stability: 2 - Stable
 
 <!-- YAML
 added: v10.6.0
@@ -4547,7 +4556,7 @@ This API may be called from any thread which makes use of `func`.
 
 ### napi_acquire_threadsafe_function
 
-> Stability: 1 - Experimental
+> Stability: 2 - Stable
 
 <!-- YAML
 added: v10.6.0
@@ -4569,7 +4578,7 @@ This API may be called from any thread which will start making use of `func`.
 
 ### napi_release_threadsafe_function
 
-> Stability: 1 - Experimental
+> Stability: 2 - Stable
 
 <!-- YAML
 added: v10.6.0
@@ -4597,7 +4606,7 @@ This API may be called from any thread which will stop making use of `func`.
 
 ### napi_ref_threadsafe_function
 
-> Stability: 1 - Experimental
+> Stability: 2 - Stable
 
 <!-- YAML
 added: v10.6.0
@@ -4618,7 +4627,7 @@ This API may only be called from the main thread.
 
 ### napi_unref_threadsafe_function
 
-> Stability: 1 - Experimental
+> Stability: 2 - Stable
 
 <!-- YAML
 added: v10.6.0

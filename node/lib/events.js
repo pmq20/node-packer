@@ -27,6 +27,7 @@ function EventEmitter() {
   EventEmitter.init.call(this);
 }
 module.exports = EventEmitter;
+module.exports.once = once;
 
 // Backwards-compat with node 0.10.x
 EventEmitter.EventEmitter = EventEmitter;
@@ -103,30 +104,29 @@ EventEmitter.prototype.getMaxListeners = function getMaxListeners() {
   return $getMaxListeners(this);
 };
 
-// Returns the longest sequence of `a` that fully appears in `b`,
-// of length at least 3.
-// This is a lazy approach but should work well enough, given that stack
-// frames are usually unequal or otherwise appear in groups, and that
-// we only run this code in case of an unhandled exception.
-function longestSeqContainedIn(a, b) {
-  for (var len = a.length; len >= 3; --len) {
-    for (var i = 0; i < a.length - len; ++i) {
-      // Attempt to find a[i:i+len] in b
-      for (var j = 0; j < b.length - len; ++j) {
-        let matches = true;
-        for (var k = 0; k < len; ++k) {
-          if (a[i + k] !== b[j + k]) {
-            matches = false;
-            break;
-          }
+// Returns the length and line number of the first sequence of `a` that fully
+// appears in `b` with a length of at least 4.
+function identicalSequenceRange(a, b) {
+  for (var i = 0; i < a.length - 3; i++) {
+    // Find the first entry of b that matches the current entry of a.
+    const pos = b.indexOf(a[i]);
+    if (pos !== -1) {
+      const rest = b.length - pos;
+      if (rest > 3) {
+        let len = 1;
+        const maxLen = Math.min(a.length - i, rest);
+        // Count the number of consecutive entries.
+        while (maxLen > len && a[i + len] === b[pos + len]) {
+          len++;
         }
-        if (matches)
-          return [ len, i, j ];
+        if (len > 3) {
+          return [len, i];
+        }
       }
     }
   }
 
-  return [ 0, 0, 0 ];
+  return [0, 0];
 }
 
 function enhanceStackTrace(err, own) {
@@ -135,9 +135,9 @@ function enhanceStackTrace(err, own) {
   const errStack = err.stack.split('\n').slice(1);
   const ownStack = own.stack.split('\n').slice(1);
 
-  const [ len, off ] = longestSeqContainedIn(ownStack, errStack);
+  const [ len, off ] = identicalSequenceRange(ownStack, errStack);
   if (len > 0) {
-    ownStack.splice(off + 1, len - 1,
+    ownStack.splice(off + 1, len - 2,
                     '    [... lines matching original stack trace ...]');
   }
   // Do this last, because it is the only operation with side effects.
@@ -173,9 +173,18 @@ EventEmitter.prototype.emit = function emit(type, ...args) {
       // up in Node's output if this results in an unhandled exception.
       throw er; // Unhandled 'error' event
     }
+
+    let stringifiedEr;
+    const { inspect } = require('internal/util/inspect');
+    try {
+      stringifiedEr = inspect(er);
+    } catch {
+      stringifiedEr = er;
+    }
+
     // At least give some kind of context to the user
     const errors = lazyErrors();
-    const err = new errors.ERR_UNHANDLED_ERROR(er);
+    const err = new errors.ERR_UNHANDLED_ERROR(stringifiedEr);
     err.context = er;
     throw err; // Unhandled 'error' event
   }
@@ -274,7 +283,7 @@ function onceWrapper(...args) {
   if (!this.fired) {
     this.target.removeListener(this.type, this.wrapFn);
     this.fired = true;
-    Reflect.apply(this.listener, this.target, args);
+    return Reflect.apply(this.listener, this.target, args);
   }
 }
 
@@ -382,10 +391,7 @@ EventEmitter.prototype.removeAllListeners =
 
       // emit removeListener for all listeners on all events
       if (arguments.length === 0) {
-        var keys = Object.keys(events);
-        var key;
-        for (i = 0; i < keys.length; ++i) {
-          key = keys[i];
+        for (const key of Object.keys(events)) {
           if (key === 'removeListener') continue;
           this.removeAllListeners(key);
         }
@@ -476,4 +482,33 @@ function unwrapListeners(arr) {
     ret[i] = arr[i].listener || arr[i];
   }
   return ret;
+}
+
+function once(emitter, name) {
+  return new Promise((resolve, reject) => {
+    const eventListener = (...args) => {
+      if (errorListener !== undefined) {
+        emitter.removeListener('error', errorListener);
+      }
+      resolve(args);
+    };
+    let errorListener;
+
+    // Adding an error listener is not optional because
+    // if an error is thrown on an event emitter we cannot
+    // guarantee that the actual event we are waiting will
+    // be fired. The result could be a silent way to create
+    // memory or file descriptor leaks, which is something
+    // we should avoid.
+    if (name !== 'error') {
+      errorListener = (err) => {
+        emitter.removeListener(name, eventListener);
+        reject(err);
+      };
+
+      emitter.once('error', errorListener);
+    }
+
+    emitter.once(name, eventListener);
+  });
 }

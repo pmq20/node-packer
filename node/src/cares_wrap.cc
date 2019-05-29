@@ -163,9 +163,7 @@ class ChannelWrap : public AsyncWrap {
 
   inline uv_timer_t* timer_handle() { return timer_handle_; }
   inline ares_channel cares_channel() { return channel_; }
-  inline bool query_last_ok() const { return query_last_ok_; }
   inline void set_query_last_ok(bool ok) { query_last_ok_ = ok; }
-  inline bool is_servers_default() const { return is_servers_default_; }
   inline void set_is_servers_default(bool is_default) {
     is_servers_default_ = is_default;
   }
@@ -1265,6 +1263,7 @@ class QueryAnyWrap: public QueryWrap {
     }
 
     CHECK_EQ(aaaa_count, naddr6ttls);
+    CHECK_EQ(ret->Length(), a_count + aaaa_count);
     for (uint32_t i = a_count; i < ret->Length(); i++) {
       Local<Object> obj = Object::New(env()->isolate());
       obj->Set(context,
@@ -1272,7 +1271,8 @@ class QueryAnyWrap: public QueryWrap {
                ret->Get(context, i).ToLocalChecked()).FromJust();
       obj->Set(context,
                env()->ttl_string(),
-               Integer::New(env()->isolate(), addr6ttls[i].ttl)).FromJust();
+               Integer::New(env()->isolate(), addr6ttls[i - a_count].ttl))
+          .FromJust();
       obj->Set(context,
                env()->type_string(),
                env()->dns_aaaa_string()).FromJust();

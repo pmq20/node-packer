@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>HTTP | Node.js v10.15.3 Documentation</title>
+  <title>HTTP | Node.js v10.16.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -69,7 +69,7 @@
 <li><a href="v8.html" class="nav-v8">V8</a></li>
 <li><a href="vm.html" class="nav-vm">VM</a></li>
 <li><a href="worker_threads.html" class="nav-worker_threads">Worker Threads</a></li>
-<li><a href="zlib.html" class="nav-zlib">ZLIB</a></li>
+<li><a href="zlib.html" class="nav-zlib">Zlib</a></li>
 </ul>
 <div class="line"></div>
 <ul>
@@ -79,7 +79,7 @@
 
     <div id="column1" data-id="http" class="interior">
       <header>
-        <h1>Node.js v10.15.3 Documentation</h1>
+        <h1>Node.js v10.16.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -94,12 +94,13 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v11.x/api/http.html">11.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v12.x/api/http.html">12.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v11.x/api/http.html">11.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v10.x/api/http.html">10.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v9.x/api/http.html">9.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v8.x/api/http.html">8.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v7.x/api/http.html">7.x</a></li>
-<li><a href="https://nodejs.org/docs/latest-v6.x/api/http.html">6.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v6.x/api/http.html">6.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v5.x/api/http.html">5.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v4.x/api/http.html">4.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v0.12.x/api/http.html">0.12.x</a></li>
@@ -340,18 +341,24 @@ Can have the following fields:</p>
 <ul>
 <li><code>keepAlive</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> Keep sockets around even when there are no
 outstanding requests, so they can be used for future requests without
-having to reestablish a TCP connection. <strong>Default:</strong> <code>false</code>.</li>
+having to reestablish a TCP connection. Not to be confused with the
+<code>keep-alive</code> value of the <code>Connection</code> header. The <code>Connection: keep-alive</code>
+header is always sent when using an agent except when the <code>Connection</code>
+header is explicitly specified or when the <code>keepAlive</code> and <code>maxSockets</code>
+options are respectively set to <code>false</code> and <code>Infinity</code>, in which case
+<code>Connection: close</code> will be used. <strong>Default:</strong> <code>false</code>.</li>
 <li><code>keepAliveMsecs</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> When using the <code>keepAlive</code> option, specifies
 the <a href="net.html#net_socket_setkeepalive_enable_initialdelay">initial delay</a>
 for TCP Keep-Alive packets. Ignored when the
 <code>keepAlive</code> option is <code>false</code> or <code>undefined</code>. <strong>Default:</strong> <code>1000</code>.</li>
 <li><code>maxSockets</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Maximum number of sockets to allow per
-host. <strong>Default:</strong> <code>Infinity</code>.</li>
+host. Each request will use a new socket until the maximum is reached.
+<strong>Default:</strong> <code>Infinity</code>.</li>
 <li><code>maxFreeSockets</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Maximum number of sockets to leave open
 in a free state. Only relevant if <code>keepAlive</code> is set to <code>true</code>.
 <strong>Default:</strong> <code>256</code>.</li>
 <li><code>timeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Socket timeout in milliseconds.
-This will set the timeout after the socket is connected.</li>
+This will set the timeout when the socket is created.</li>
 </ul>
 </li>
 </ul>
@@ -364,7 +371,7 @@ const keepAliveAgent = new http.Agent({ keepAlive: true });
 options.agent = keepAliveAgent;
 http.request(options, onResponseCallback);
 </code></pre>
-<h3>agent.createConnection(options[, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/https.js#L91">[src]</a><span><a class="mark" href="#http_agent_createconnection_options_callback" id="http_agent_createconnection_options_callback">#</a></span></h3>
+<h3>agent.createConnection(options[, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/https.js#L91">[src]</a><span><a class="mark" href="#http_agent_createconnection_options_callback" id="http_agent_createconnection_options_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.4</span>
 </div>
@@ -380,7 +387,7 @@ custom agents may override this method in case greater flexibility is desired.</
 <p>A socket/stream can be supplied in one of two ways: by returning the
 socket/stream from this function, or by passing the socket/stream to <code>callback</code>.</p>
 <p><code>callback</code> has a signature of <code>(err, stream)</code>.</p>
-<h3>agent.keepSocketAlive(socket)<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/_http_agent.js#L316">[src]</a><span><a class="mark" href="#http_agent_keepsocketalive_socket" id="http_agent_keepsocketalive_socket">#</a></span></h3>
+<h3>agent.keepSocketAlive(socket)<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/_http_agent.js#L316">[src]</a><span><a class="mark" href="#http_agent_keepsocketalive_socket" id="http_agent_keepsocketalive_socket">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.1.0</span>
 </div>
@@ -396,7 +403,7 @@ return true;
 <p>This method can be overridden by a particular <code>Agent</code> subclass. If this
 method returns a falsy value, the socket will be destroyed instead of persisting
 it for use with the next request.</p>
-<h3>agent.reuseSocket(socket, request)<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/_http_agent.js#L323">[src]</a><span><a class="mark" href="#http_agent_reusesocket_socket_request" id="http_agent_reusesocket_socket_request">#</a></span></h3>
+<h3>agent.reuseSocket(socket, request)<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/_http_agent.js#L323">[src]</a><span><a class="mark" href="#http_agent_reusesocket_socket_request" id="http_agent_reusesocket_socket_request">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.1.0</span>
 </div>
@@ -409,7 +416,7 @@ the keep-alive options. Default behavior is to:</p>
 <pre><code class="language-js">socket.ref();
 </code></pre>
 <p>This method can be overridden by a particular <code>Agent</code> subclass.</p>
-<h3>agent.destroy()<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/_http_agent.js#L328">[src]</a><span><a class="mark" href="#http_agent_destroy" id="http_agent_destroy">#</a></span></h3>
+<h3>agent.destroy()<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/_http_agent.js#L328">[src]</a><span><a class="mark" href="#http_agent_destroy" id="http_agent_destroy">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.4</span>
 </div>
@@ -428,7 +435,7 @@ terminates them.</p>
 </ul>
 <p>An object which contains arrays of sockets currently awaiting use by
 the agent when <code>keepAlive</code> is enabled. Do not modify.</p>
-<h3>agent.getName(options)<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/https.js#L156">[src]</a><span><a class="mark" href="#http_agent_getname_options" id="http_agent_getname_options">#</a></span></h3>
+<h3>agent.getName(options)<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/https.js#L156">[src]</a><span><a class="mark" href="#http_agent_getname_options" id="http_agent_getname_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.4</span>
 </div>
@@ -827,7 +834,7 @@ for network transmission.</p>
 </ul>
 <p>Once a socket is assigned to this request and is connected
 <a href="net.html#net_socket_setnodelay_nodelay"><code>socket.setNoDelay()</code></a> will be called.</p>
-<h3>request.setSocketKeepAlive([enable][, initialDelay])<span><a class="mark" href="#http_request_setsocketkeepalive_enable_initialdelay" id="http_request_setsocketkeepalive_enable_initialdelay">#</a></span></h3>
+<h3>request.setSocketKeepAlive([enable][, initialdelay])<span><a class="mark" href="#http_request_setsocketkeepalive_enable_initialdelay" id="http_request_setsocketkeepalive_enable_initialdelay">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.5.9</span>
 </div>
@@ -839,7 +846,15 @@ for network transmission.</p>
 <a href="net.html#net_socket_setkeepalive_enable_initialdelay"><code>socket.setKeepAlive()</code></a> will be called.</p>
 <h3>request.setTimeout(timeout[, callback])<span><a class="mark" href="#http_request_settimeout_timeout_callback" id="http_request_settimeout_timeout_callback">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.5.9</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v9.0.0</td>
+<td><p>Consistently set socket timeout only when the socket connects.</p></td></tr>
+<tr><td>v0.5.9</td>
+<td><p><span>Added in: v0.5.9</span></p></td></tr>
+</tbody></table>
+</details>
 </div>
 <ul>
 <li><code>timeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Milliseconds before a request times out.</li>
@@ -1046,7 +1061,7 @@ is optional and clients cannot insist on a protocol change.</p>
 <p>After this event is emitted, the request's socket will not have a <code>'data'</code>
 event listener, meaning it will need to be bound in order to handle data
 sent to the server on that socket.</p>
-<h3>server.close([callback])<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/net.js#L1552">[src]</a><span><a class="mark" href="#http_server_close_callback" id="http_server_close_callback">#</a></span></h3>
+<h3>server.close([callback])<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/net.js#L1561">[src]</a><span><a class="mark" href="#http_server_close_callback" id="http_server_close_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.90</span>
 </div>
@@ -1054,7 +1069,7 @@ sent to the server on that socket.</p>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
 </ul>
 <p>Stops the server from accepting new connections. See <a href="net.html#net_server_close_callback"><code>net.Server.close()</code></a>.</p>
-<h3>server.listen()<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/net.js#L1350">[src]</a><span><a class="mark" href="#http_server_listen" id="http_server_listen">#</a></span></h3>
+<h3>server.listen()<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/net.js#L1359">[src]</a><span><a class="mark" href="#http_server_listen" id="http_server_listen">#</a></span></h3>
 <p>Starts the HTTP server listening for connections.
 This method is identical to <a href="net.html#net_server_listen"><code>server.listen()</code></a> from <a href="net.html#net_class_net_server"><code>net.Server</code></a>.</p>
 <h3>server.listening<span><a class="mark" href="#http_server_listening" id="http_server_listening">#</a></span></h3>
@@ -1081,16 +1096,16 @@ This method is identical to <a href="net.html#net_server_listen"><code>server.li
 </ul>
 <p>Limit the amount of time the parser will wait to receive the complete HTTP
 headers.</p>
-<p>In case of inactivity, the rules defined in <a href="">server.timeout</a> apply. However,
+<p>In case of inactivity, the rules defined in [server.timeout][] apply. However,
 that inactivity based timeout would still allow the connection to be kept open
 if the headers are being sent very slowly (by default, up to a byte per 2
 minutes). In order to prevent this, whenever header data arrives an additional
 check is made that more than <code>server.headersTimeout</code> milliseconds has not
 passed since the connection was established. If the check fails, a <code>'timeout'</code>
 event is emitted on the server object, and (by default) the socket is destroyed.
-See <a href="">server.timeout</a> for more information on how timeout behaviour can be
+See [server.timeout][] for more information on how timeout behaviour can be
 customised.</p>
-<h3>server.setTimeout([msecs][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/https.js#L82">[src]</a><span><a class="mark" href="#http_server_settimeout_msecs_callback" id="http_server_settimeout_msecs_callback">#</a></span></h3>
+<h3>server.setTimeout([msecs][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/https.js#L82">[src]</a><span><a class="mark" href="#http_server_settimeout_msecs_callback" id="http_server_settimeout_msecs_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.9.12</span>
 </div>
@@ -1210,7 +1225,7 @@ will result in a <a href="errors.html#errors_class_typeerror"><code>TypeError</c
 <p>This method signals to the server that all of the response headers and body
 have been sent; that server should consider this message complete.
 The method, <code>response.end()</code>, MUST be called on each response.</p>
-<p>If <code>data</code> is specified, it is equivalent to calling
+<p>If <code>data</code> is specified, it is similar in effect to calling
 <a href="#http_response_write_chunk_encoding_callback"><code>response.write(data, encoding)</code></a> followed by <code>response.end(callback)</code>.</p>
 <p>If <code>callback</code> is specified, it will be called when the response stream
 is finished.</p>
@@ -1785,12 +1800,12 @@ Url {
 </ul>
 <p>A collection of all the standard HTTP response status codes, and the
 short description of each. For example, <code>http.STATUS_CODES[404] === 'Not Found'</code>.</p>
-<h2>http.createServer([options][, requestListener])<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/http.js#L37">[src]</a><span><a class="mark" href="#http_http_createserver_options_requestlistener" id="http_http_createserver_options_requestlistener">#</a></span></h2>
+<h2>http.createServer([options][, requestlistener])<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/http.js#L37">[src]</a><span><a class="mark" href="#http_http_createserver_options_requestlistener" id="http_http_createserver_options_requestlistener">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
-<tr><td>v9.6.0</td>
+<tr><td>v9.6.0, v8.12.0</td>
 <td><p>The <code>options</code> argument is supported now.</p></td></tr>
 <tr><td>v0.1.13</td>
 <td><p><span>Added in: v0.1.13</span></p></td></tr>
@@ -1819,8 +1834,8 @@ to be used. Useful for extending the original <code>ServerResponse</code>. <stro
 <p>Returns a new instance of <a href="#http_class_http_server"><code>http.Server</code></a>.</p>
 <p>The <code>requestListener</code> is a function which is automatically
 added to the <a href="#http_event_request"><code>'request'</code></a> event.</p>
-<h2>http.get(options[, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/http.js#L45">[src]</a><span><a class="mark" href="#http_http_get_options_callback" id="http_http_get_options_callback">#</a></span></h2>
-<h2>http.get(url[, options][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/http.js#L45">[src]</a><span><a class="mark" href="#http_http_get_url_options_callback" id="http_http_get_url_options_callback">#</a></span></h2>
+<h2>http.get(options[, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/http.js#L45">[src]</a><span><a class="mark" href="#http_http_get_options_callback" id="http_http_get_options_callback">#</a></span></h2>
+<h2>http.get(url[, options][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/http.js#L45">[src]</a><span><a class="mark" href="#http_http_get_url_options_callback" id="http_http_get_url_options_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1902,8 +1917,8 @@ requests.</p>
 </ul>
 <p>Read-only property specifying the maximum allowed size of HTTP headers in bytes.
 Defaults to 8KB. Configurable using the <a href="cli.html#cli_max_http_header_size_size"><code>--max-http-header-size</code></a> CLI option.</p>
-<h2>http.request(options[, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/http.js#L41">[src]</a><span><a class="mark" href="#http_http_request_options_callback" id="http_http_request_options_callback">#</a></span></h2>
-<h2>http.request(url[, options][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/http.js#L41">[src]</a><span><a class="mark" href="#http_http_request_url_options_callback" id="http_http_request_url_options_callback">#</a></span></h2>
+<h2>http.request(options[, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/http.js#L41">[src]</a><span><a class="mark" href="#http_http_request_options_callback" id="http_http_request_options_callback">#</a></span></h2>
+<h2>http.request(url[, options][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/http.js#L41">[src]</a><span><a class="mark" href="#http_http_request_url_options_callback" id="http_http_request_url_options_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>

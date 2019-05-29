@@ -136,10 +136,16 @@
                         "added": [
                           "v0.9.4"
                         ],
-                        "changes": []
+                        "changes": [
+                          {
+                            "version": "v10.0.0",
+                            "pr-url": "https://github.com/nodejs/node/pull/18438",
+                            "description": "Add `emitClose` option to specify if `'close'` is emitted on destroy."
+                          }
+                        ]
                       },
                       "params": [],
-                      "desc": "<p>The <code>'close'</code> event is emitted when the stream and any of its underlying\nresources (a file descriptor, for example) have been closed. The event indicates\nthat no more events will be emitted, and no further computation will occur.</p>\n<p>Not all <code>Writable</code> streams will emit the <code>'close'</code> event.</p>"
+                      "desc": "<p>The <code>'close'</code> event is emitted when the stream and any of its underlying\nresources (a file descriptor, for example) have been closed. The event indicates\nthat no more events will be emitted, and no further computation will occur.</p>\n<p>A <a href=\"#stream_class_stream_writable\"><code>Writable</code></a> stream will always emit the <code>'close'</code> event if it is\ncreated with the <code>emitClose</code> option.</p>"
                     },
                     {
                       "textRaw": "Event: 'drain'",
@@ -447,7 +453,7 @@
                         ],
                         "changes": []
                       },
-                      "desc": "<p>Is <code>true</code> if it is safe to call <a href=\"\"><code>writable.write()</code></a>.</p>"
+                      "desc": "<p>Is <code>true</code> if it is safe to call [<code>writable.write()</code>][].</p>"
                     },
                     {
                       "textRaw": "`writableHighWaterMark` {number}",
@@ -525,10 +531,16 @@
                         "added": [
                           "v0.9.4"
                         ],
-                        "changes": []
+                        "changes": [
+                          {
+                            "version": "v10.0.0",
+                            "pr-url": "https://github.com/nodejs/node/pull/18438",
+                            "description": "Add `emitClose` option to specify if `'close'` is emitted on destroy."
+                          }
+                        ]
                       },
                       "params": [],
-                      "desc": "<p>The <code>'close'</code> event is emitted when the stream and any of its underlying\nresources (a file descriptor, for example) have been closed. The event indicates\nthat no more events will be emitted, and no further computation will occur.</p>\n<p>Not all <a href=\"#stream_class_stream_readable\"><code>Readable</code></a> streams will emit the <code>'close'</code> event.</p>"
+                      "desc": "<p>The <code>'close'</code> event is emitted when the stream and any of its underlying\nresources (a file descriptor, for example) have been closed. The event indicates\nthat no more events will be emitted, and no further computation will occur.</p>\n<p>A <a href=\"#stream_class_stream_readable\"><code>Readable</code></a> stream will always emit the <code>'close'</code> event if it is\ncreated with the <code>emitClose</code> option.</p>"
                     },
                     {
                       "textRaw": "Event: 'data'",
@@ -755,7 +767,7 @@
                           ]
                         }
                       ],
-                      "desc": "<p>The <code>readable.read()</code> method pulls some data out of the internal buffer and\nreturns it. If no data available to be read, <code>null</code> is returned. By default,\nthe data will be returned as a <code>Buffer</code> object unless an encoding has been\nspecified using the <code>readable.setEncoding()</code> method or the stream is operating\nin object mode.</p>\n<p>The optional <code>size</code> argument specifies a specific number of bytes to read. If\n<code>size</code> bytes are not available to be read, <code>null</code> will be returned <em>unless</em>\nthe stream has ended, in which case all of the data remaining in the internal\nbuffer will be returned.</p>\n<p>If the <code>size</code> argument is not specified, all of the data contained in the\ninternal buffer will be returned.</p>\n<p>The <code>readable.read()</code> method should only be called on <code>Readable</code> streams\noperating in paused mode. In flowing mode, <code>readable.read()</code> is called\nautomatically until the internal buffer is fully drained.</p>\n<pre><code class=\"language-js\">const readable = getReadableStreamSomehow();\nreadable.on('readable', () => {\n  let chunk;\n  while (null !== (chunk = readable.read())) {\n    console.log(`Received ${chunk.length} bytes of data.`);\n  }\n});\n</code></pre>\n<p>A <code>Readable</code> stream in object mode will always return a single item from\na call to <a href=\"#stream_readable_read_size\"><code>readable.read(size)</code></a>, regardless of the value of the\n<code>size</code> argument.</p>\n<p>If the <code>readable.read()</code> method returns a chunk of data, a <code>'data'</code> event will\nalso be emitted.</p>\n<p>Calling <a href=\"#stream_readable_read_size\"><code>stream.read([size])</code></a> after the <a href=\"#stream_event_end\"><code>'end'</code></a> event has\nbeen emitted will return <code>null</code>. No runtime error will be raised.</p>"
+                      "desc": "<p>The <code>readable.read()</code> method pulls some data out of the internal buffer and\nreturns it. If no data available to be read, <code>null</code> is returned. By default,\nthe data will be returned as a <code>Buffer</code> object unless an encoding has been\nspecified using the <code>readable.setEncoding()</code> method or the stream is operating\nin object mode.</p>\n<p>The optional <code>size</code> argument specifies a specific number of bytes to read. If\n<code>size</code> bytes are not available to be read, <code>null</code> will be returned <em>unless</em>\nthe stream has ended, in which case all of the data remaining in the internal\nbuffer will be returned.</p>\n<p>If the <code>size</code> argument is not specified, all of the data contained in the\ninternal buffer will be returned.</p>\n<p>The <code>readable.read()</code> method should only be called on <code>Readable</code> streams\noperating in paused mode. In flowing mode, <code>readable.read()</code> is called\nautomatically until the internal buffer is fully drained.</p>\n<pre><code class=\"language-js\">const readable = getReadableStreamSomehow();\nreadable.on('readable', () => {\n  let chunk;\n  while (null !== (chunk = readable.read())) {\n    console.log(`Received ${chunk.length} bytes of data.`);\n  }\n});\n</code></pre>\n<p>Note that the <code>while</code> loop is necessary when processing data with\n<code>readable.read()</code>. Only after <code>readable.read()</code> returns <code>null</code>,\n<a href=\"\"><code>'readable'</code></a> will be emitted.</p>\n<p>A <code>Readable</code> stream in object mode will always return a single item from\na call to <a href=\"#stream_readable_read_size\"><code>readable.read(size)</code></a>, regardless of the value of the\n<code>size</code> argument.</p>\n<p>If the <code>readable.read()</code> method returns a chunk of data, a <code>'data'</code> event will\nalso be emitted.</p>\n<p>Calling <a href=\"#stream_readable_read_size\"><code>stream.read([size])</code></a> after the <a href=\"#stream_event_end\"><code>'end'</code></a> event has\nbeen emitted will return <code>null</code>. No runtime error will be raised.</p>"
                     },
                     {
                       "textRaw": "readable.resume()",
@@ -940,7 +952,7 @@
                         ],
                         "changes": []
                       },
-                      "desc": "<p>Is <code>true</code> if it is safe to call <a href=\"\"><code>readable.read()</code></a>.</p>"
+                      "desc": "<p>Is <code>true</code> if it is safe to call [<code>readable.read()</code>][].</p>"
                     },
                     {
                       "textRaw": "`readableHighWaterMark` {number}",
@@ -1135,6 +1147,11 @@
                         "version": "v10.0.0",
                         "pr-url": "https://github.com/nodejs/node/pull/18438",
                         "description": "Add `emitClose` option to specify if `'close'` is emitted on destroy\n"
+                      },
+                      {
+                        "version": "v10.16.0",
+                        "pr-url": "https://github.com/nodejs/node/pull/22795",
+                        "description": "Add `autoDestroy` option to automatically `destroy()` the stream when it emits `'finish'` or errors\n"
                       }
                     ]
                   },
@@ -1154,11 +1171,11 @@
                               "desc": "Buffer level when [`stream.write()`][stream-write] starts returning `false`."
                             },
                             {
-                              "textRaw": "`decodeStrings` {boolean} Whether or not to encode strings as `Buffer`s before passing them to [`stream._write()`][stream-_write], using the encoding specified in the [`stream.write()`][stream-write] call. **Default:** `true`.",
+                              "textRaw": "`decodeStrings` {boolean} Whether to encode `string`s passed to [`stream.write()`][stream-write] to `Buffer`s (with the encoding specified in the [`stream.write()`][stream-write] call) before passing them to [`stream._write()`][stream-_write]. Other types of data are not converted (i.e. `Buffer`s are not decoded into `string`s). Setting to false will prevent `string`s from being converted. **Default:** `true`.",
                               "name": "decodeStrings",
                               "type": "boolean",
                               "default": "`true`",
-                              "desc": "Whether or not to encode strings as `Buffer`s before passing them to [`stream._write()`][stream-_write], using the encoding specified in the [`stream.write()`][stream-write] call."
+                              "desc": "Whether to encode `string`s passed to [`stream.write()`][stream-write] to `Buffer`s (with the encoding specified in the [`stream.write()`][stream-write] call) before passing them to [`stream._write()`][stream-_write]. Other types of data are not converted (i.e. `Buffer`s are not decoded into `string`s). Setting to false will prevent `string`s from being converted."
                             },
                             {
                               "textRaw": "`defaultEncoding` {string} The default encoding that is used when no encoding is specified as an argument to [`stream.write()`][stream-write]. **Default:** `'utf8'`.",
@@ -1204,6 +1221,13 @@
                               "name": "final",
                               "type": "Function",
                               "desc": "Implementation for the [`stream._final()`][stream-_final] method."
+                            },
+                            {
+                              "textRaw": "`autoDestroy` {boolean} Whether this stream should automatically call `.destroy()` on itself after ending. **Default:** `false`.",
+                              "name": "autoDestroy",
+                              "type": "boolean",
+                              "default": "`false`",
+                              "desc": "Whether this stream should automatically call `.destroy()` on itself after ending."
                             }
                           ],
                           "optional": true
@@ -1223,10 +1247,10 @@
                     {
                       "params": [
                         {
-                          "textRaw": "`chunk` {Buffer|string|any} The chunk to be written. Will **always** be a buffer unless the `decodeStrings` option was set to `false` or the stream is operating in object mode.",
+                          "textRaw": "`chunk` {Buffer|string|any} The `Buffer` to be written, converted from the `string` passed to [`stream.write()`][stream-write]. If the stream's `decodeStrings` option is `false` or the stream is operating in object mode, the chunk will not be converted & will be whatever was passed to [`stream.write()`][stream-write].",
                           "name": "chunk",
                           "type": "Buffer|string|any",
-                          "desc": "The chunk to be written. Will **always** be a buffer unless the `decodeStrings` option was set to `false` or the stream is operating in object mode."
+                          "desc": "The `Buffer` to be written, converted from the `string` passed to [`stream.write()`][stream-write]. If the stream's `decodeStrings` option is `false` or the stream is operating in object mode, the chunk will not be converted & will be whatever was passed to [`stream.write()`][stream-write]."
                         },
                         {
                           "textRaw": "`encoding` {string} If the chunk is a string, then `encoding` is the character encoding of that string. If chunk is a `Buffer`, or if the stream is operating in object mode, `encoding` may be ignored.",
@@ -1359,6 +1383,15 @@
                   "textRaw": "new stream.Readable([options])",
                   "type": "ctor",
                   "name": "stream.Readable",
+                  "meta": {
+                    "changes": [
+                      {
+                        "version": "v10.16.0",
+                        "pr-url": "https://github.com/nodejs/node/pull/22795",
+                        "description": "Add `autoDestroy` option to automatically `destroy()` the stream when it emits `'end'` or errors\n"
+                      }
+                    ]
+                  },
                   "signatures": [
                     {
                       "params": [
@@ -1399,6 +1432,13 @@
                               "name": "destroy",
                               "type": "Function",
                               "desc": "Implementation for the [`stream._destroy()`][readable-_destroy] method."
+                            },
+                            {
+                              "textRaw": "`autoDestroy` {boolean} Whether this stream should automatically call `.destroy()` on itself after ending. **Default:** `false`.",
+                              "name": "autoDestroy",
+                              "type": "boolean",
+                              "default": "`false`",
+                              "desc": "Whether this stream should automatically call `.destroy()` on itself after ending."
                             }
                           ],
                           "optional": true
@@ -1693,10 +1733,10 @@
                     {
                       "params": [
                         {
-                          "textRaw": "`chunk` {Buffer|string|any} The chunk to be transformed. Will **always** be a buffer unless the `decodeStrings` option was set to `false` or the stream is operating in object mode.",
+                          "textRaw": "`chunk` {Buffer|string|any} The `Buffer` to be transformed, converted from the `string` passed to [`stream.write()`][stream-write]. If the stream's `decodeStrings` option is `false` or the stream is operating in object mode, the chunk will not be converted & will be whatever was passed to [`stream.write()`][stream-write].",
                           "name": "chunk",
                           "type": "Buffer|string|any",
-                          "desc": "The chunk to be transformed. Will **always** be a buffer unless the `decodeStrings` option was set to `false` or the stream is operating in object mode."
+                          "desc": "The `Buffer` to be transformed, converted from the `string` passed to [`stream.write()`][stream-write]. If the stream's `decodeStrings` option is `false` or the stream is operating in object mode, the chunk will not be converted & will be whatever was passed to [`stream.write()`][stream-write]."
                         },
                         {
                           "textRaw": "`encoding` {string} If the chunk is a string, then this is the encoding type. If chunk is a buffer, then this is the special value - 'buffer', ignore it in this case.",

@@ -233,7 +233,7 @@ function REPLServer(prompt,
     var awaitPromise = false;
     var input = code;
 
-    if (/^\s*\{/.test(code) && /\}\s*$/.test(code)) {
+    if (/^\s*{/.test(code) && /}\s*$/.test(code)) {
       // It's confusing for `{ a : 1 }` to be interpreted as a block
       // statement rather than an object literal.  So, we first try
       // to wrap it in parentheses, so that it will be interpreted as
@@ -436,7 +436,10 @@ function REPLServer(prompt,
     }
 
     if (errStack === '') {
-      errStack = `Thrown: ${util.inspect(e)}`;
+      errStack = `Thrown: ${util.inspect(e)}\n`;
+    } else {
+      const ln = errStack.endsWith('\n') ? '' : '\n';
+      errStack = `Thrown:\n${errStack}${ln}`;
     }
 
     if (!self.underscoreErrAssigned) {
@@ -444,7 +447,7 @@ function REPLServer(prompt,
     }
 
     const top = replMap.get(self);
-    top.outputStream.write(`${errStack}\n`);
+    top.outputStream.write(errStack);
     top.clearBufferedCommand();
     top.lines.level = [];
     top.displayPrompt();
@@ -1315,11 +1318,11 @@ function _memory(cmd) {
   if (cmd) {
     // Going down is { and (   e.g. function() {
     // going up is } and )
-    var dw = cmd.match(/{|\(/g);
-    var up = cmd.match(/}|\)/g);
+    let dw = cmd.match(/[{(]/g);
+    let up = cmd.match(/[})]/g);
     up = up ? up.length : 0;
     dw = dw ? dw.length : 0;
-    var depth = dw - up;
+    let depth = dw - up;
 
     if (depth) {
       (function workIt() {
@@ -1338,9 +1341,9 @@ function _memory(cmd) {
           });
         } else if (depth < 0) {
           // Going... up.
-          var curr = self.lines.level.pop();
+          const curr = self.lines.level.pop();
           if (curr) {
-            var tmp = curr.depth + depth;
+            const tmp = curr.depth + depth;
             if (tmp < 0) {
               // More to go, recurse
               depth += curr.depth;

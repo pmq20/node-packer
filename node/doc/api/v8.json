@@ -165,9 +165,9 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`buffer` {Buffer|Uint8Array} A buffer returned by [`serialize()`][].",
+                      "textRaw": "`buffer` {Buffer|TypedArray|DataView} A buffer returned by [`serialize()`][].",
                       "name": "buffer",
-                      "type": "Buffer|Uint8Array",
+                      "type": "Buffer|TypedArray|DataView",
                       "desc": "A buffer returned by [`serialize()`][]."
                     }
                   ]
@@ -320,9 +320,9 @@
                     {
                       "params": [
                         {
-                          "textRaw": "`buffer` {Buffer|Uint8Array}",
+                          "textRaw": "`buffer` {Buffer|TypedArray|DataView}",
                           "name": "buffer",
-                          "type": "Buffer|Uint8Array"
+                          "type": "Buffer|TypedArray|DataView"
                         }
                       ]
                     }
@@ -565,9 +565,9 @@
                 {
                   "params": [
                     {
-                      "textRaw": "`buffer` {Buffer|Uint8Array} A buffer returned by [`serializer.releaseBuffer()`][].",
+                      "textRaw": "`buffer` {Buffer|TypedArray|DataView} A buffer returned by [`serializer.releaseBuffer()`][].",
                       "name": "buffer",
-                      "type": "Buffer|Uint8Array",
+                      "type": "Buffer|TypedArray|DataView",
                       "desc": "A buffer returned by [`serializer.releaseBuffer()`][]."
                     }
                   ],

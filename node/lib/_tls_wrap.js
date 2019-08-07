@@ -573,6 +573,9 @@ TLSSocket.prototype.renegotiate = function(options, callback) {
     this._requestCert = requestCert;
     this._rejectUnauthorized = rejectUnauthorized;
   }
+  // Ensure that we'll cycle through internal openssl's state
+  this.write('');
+
   if (!this._handle.renegotiate()) {
     if (callback) {
       process.nextTick(callback, new ERR_TLS_RENEGOTIATE());
@@ -929,8 +932,8 @@ Server.prototype._setServerData = function(data) {
 };
 
 
-Server.prototype.getTicketKeys = function getTicketKeys(keys) {
-  return this._sharedCreds.context.getTicketKeys(keys);
+Server.prototype.getTicketKeys = function getTicketKeys() {
+  return this._sharedCreds.context.getTicketKeys();
 };
 
 

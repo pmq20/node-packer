@@ -19,7 +19,7 @@
 #include <stdio.h>
 #include "internal/dso.h"
 #if defined(__linux)
-# include <sys/syscall.h>
+# include <asm/unistd.h>
 #endif
 #if defined(__FreeBSD__)
 # include <sys/types.h>
@@ -324,8 +324,8 @@ static ssize_t syscall_random(void *buf, size_t buflen)
 #  endif
 
     /* Linux supports this since version 3.17 */
-#  if defined(__linux) && defined(SYS_getrandom)
-    return syscall(SYS_getrandom, buf, buflen, 0);
+#  if defined(__linux) && defined(__NR_getrandom)
+    return syscall(__NR_getrandom, buf, buflen, 0);
 #  elif (defined(__FreeBSD__) || defined(__NetBSD__)) && defined(KERN_ARND)
     return sysctl_random(buf, buflen);
 #  else

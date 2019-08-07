@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>UDP/Datagram Sockets | Node.js v10.16.0 Documentation</title>
+  <title>UDP/Datagram Sockets | Node.js v10.16.2 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -79,7 +79,7 @@
 
     <div id="column1" data-id="dgram" class="interior">
       <header>
-        <h1>Node.js v10.16.0 Documentation</h1>
+        <h1>Node.js v10.16.2 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -192,7 +192,7 @@ server.on('listening', () => {
 server.bind(41234);
 // server listening 0.0.0.0:41234
 </code></pre>
-<h2>Class: dgram.Socket<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/dgram.js#L70">[src]</a><span><a class="mark" href="#dgram_class_dgram_socket" id="dgram_class_dgram_socket">#</a></span></h2>
+<h2>Class: dgram.Socket<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/dgram.js#L70">[src]</a><span><a class="mark" href="#dgram_class_dgram_socket" id="dgram_class_dgram_socket">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.99</span>
 </div>
@@ -239,7 +239,7 @@ The event handler function is passed two arguments: <code>msg</code> and <code>r
 </ul>
 </li>
 </ul>
-<h3>socket.addMembership(multicastAddress[, multicastInterface])<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/dgram.js#L570">[src]</a><span><a class="mark" href="#dgram_socket_addmembership_multicastaddress_multicastinterface" id="dgram_socket_addmembership_multicastaddress_multicastinterface">#</a></span></h3>
+<h3>socket.addMembership(multicastAddress[, multicastInterface])<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/dgram.js#L570">[src]</a><span><a class="mark" href="#dgram_socket_addmembership_multicastaddress_multicastinterface" id="dgram_socket_addmembership_multicastaddress_multicastinterface">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.6.9</span>
 </div>
@@ -267,7 +267,7 @@ if (cluster.isMaster) {
   });
 }
 </code></pre>
-<h3>socket.address()<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/net.js#L474">[src]</a><span><a class="mark" href="#dgram_socket_address" id="dgram_socket_address">#</a></span></h3>
+<h3>socket.address()<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/net.js#L474">[src]</a><span><a class="mark" href="#dgram_socket_address" id="dgram_socket_address">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.99</span>
 </div>
@@ -277,7 +277,7 @@ if (cluster.isMaster) {
 <p>Returns an object containing the address information for a socket.
 For UDP sockets, this object will contain <code>address</code>, <code>family</code> and <code>port</code>
 properties.</p>
-<h3>socket.bind([port][, address][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/dgram.js#L158">[src]</a><span><a class="mark" href="#dgram_socket_bind_port_address_callback" id="dgram_socket_bind_port_address_callback">#</a></span></h3>
+<h3>socket.bind([port][, address][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/dgram.js#L158">[src]</a><span><a class="mark" href="#dgram_socket_bind_port_address_callback" id="dgram_socket_bind_port_address_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.99</span>
 </div>
@@ -321,7 +321,7 @@ server.on('listening', () => {
 server.bind(41234);
 // server listening 0.0.0.0:41234
 </code></pre>
-<h3>socket.bind(options[, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/dgram.js#L158">[src]</a><span><a class="mark" href="#dgram_socket_bind_options_callback" id="dgram_socket_bind_options_callback">#</a></span></h3>
+<h3>socket.bind(options[, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/dgram.js#L158">[src]</a><span><a class="mark" href="#dgram_socket_bind_options_callback" id="dgram_socket_bind_options_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.14</span>
 </div>
@@ -364,7 +364,7 @@ attempting to bind with a closed socket), an <a href="errors.html#errors_class_e
   exclusive: true
 });
 </code></pre>
-<h3>socket.close([callback])<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/dgram.js#L475">[src]</a><span><a class="mark" href="#dgram_socket_close_callback" id="dgram_socket_close_callback">#</a></span></h3>
+<h3>socket.close([callback])<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/dgram.js#L475">[src]</a><span><a class="mark" href="#dgram_socket_close_callback" id="dgram_socket_close_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.99</span>
 </div>
@@ -373,7 +373,7 @@ attempting to bind with a closed socket), an <a href="errors.html#errors_class_e
 </ul>
 <p>Close the underlying socket and stop listening for data on it. If a callback is
 provided, it is added as a listener for the <a href="#dgram_event_close"><code>'close'</code></a> event.</p>
-<h3>socket.dropMembership(multicastAddress[, multicastInterface])<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/dgram.js#L586">[src]</a><span><a class="mark" href="#dgram_socket_dropmembership_multicastaddress_multicastinterface" id="dgram_socket_dropmembership_multicastaddress_multicastinterface">#</a></span></h3>
+<h3>socket.dropMembership(multicastAddress[, multicastInterface])<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/dgram.js#L586">[src]</a><span><a class="mark" href="#dgram_socket_dropmembership_multicastaddress_multicastinterface" id="dgram_socket_dropmembership_multicastaddress_multicastinterface">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.6.9</span>
 </div>
@@ -387,21 +387,21 @@ kernel when the socket is closed or the process terminates, so most apps will
 never have reason to call this.</p>
 <p>If <code>multicastInterface</code> is not specified, the operating system will attempt to
 drop membership on all valid interfaces.</p>
-<h3>socket.getRecvBufferSize()<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/dgram.js#L662">[src]</a><span><a class="mark" href="#dgram_socket_getrecvbuffersize" id="dgram_socket_getrecvbuffersize">#</a></span></h3>
+<h3>socket.getRecvBufferSize()<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/dgram.js#L662">[src]</a><span><a class="mark" href="#dgram_socket_getrecvbuffersize" id="dgram_socket_getrecvbuffersize">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.7.0</span>
 </div>
 <ul>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> the <code>SO_RCVBUF</code> socket receive buffer size in bytes.</li>
 </ul>
-<h3>socket.getSendBufferSize()<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/dgram.js#L667">[src]</a><span><a class="mark" href="#dgram_socket_getsendbuffersize" id="dgram_socket_getsendbuffersize">#</a></span></h3>
+<h3>socket.getSendBufferSize()<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/dgram.js#L667">[src]</a><span><a class="mark" href="#dgram_socket_getsendbuffersize" id="dgram_socket_getsendbuffersize">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.7.0</span>
 </div>
 <ul>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> the <code>SO_SNDBUF</code> socket send buffer size in bytes.</li>
 </ul>
-<h3>socket.ref()<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/net.js#L1044">[src]</a><span><a class="mark" href="#dgram_socket_ref" id="dgram_socket_ref">#</a></span></h3>
+<h3>socket.ref()<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/net.js#L1044">[src]</a><span><a class="mark" href="#dgram_socket_ref" id="dgram_socket_ref">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.9.1</span>
 </div>
@@ -413,7 +413,7 @@ counting and restores the default behavior.</p>
 <p>Calling <code>socket.ref()</code> multiples times will have no additional effect.</p>
 <p>The <code>socket.ref()</code> method returns a reference to the socket so calls can be
 chained.</p>
-<h3>socket.send(msg[, offset, length], port[, address][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/dgram.js#L352">[src]</a><span><a class="mark" href="#dgram_socket_send_msg_offset_length_port_address_callback" id="dgram_socket_send_msg_offset_length_port_address_callback">#</a></span></h3>
+<h3>socket.send(msg[, offset, length], port[, address][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/dgram.js#L352">[src]</a><span><a class="mark" href="#dgram_socket_send_msg_offset_length_port_address_callback" id="dgram_socket_send_msg_offset_length_port_address_callback">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -517,7 +517,7 @@ minimum <code>MTU</code> of <code>1500</code>.</p>
 a packet might travel. Sending a datagram greater than the receiver <code>MTU</code> will
 not work because the packet will get silently dropped without informing the
 source that the data did not reach its intended recipient.</p>
-<h3>socket.setBroadcast(flag)<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/dgram.js#L518">[src]</a><span><a class="mark" href="#dgram_socket_setbroadcast_flag" id="dgram_socket_setbroadcast_flag">#</a></span></h3>
+<h3>socket.setBroadcast(flag)<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/dgram.js#L518">[src]</a><span><a class="mark" href="#dgram_socket_setbroadcast_flag" id="dgram_socket_setbroadcast_flag">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.6.9</span>
 </div>
@@ -526,7 +526,7 @@ source that the data did not reach its intended recipient.</p>
 </ul>
 <p>Sets or clears the <code>SO_BROADCAST</code> socket option. When set to <code>true</code>, UDP
 packets may be sent to a local interface's broadcast address.</p>
-<h3>socket.setMulticastInterface(multicastInterface)<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/dgram.js#L560">[src]</a><span><a class="mark" href="#dgram_socket_setmulticastinterface_multicastinterface" id="dgram_socket_setmulticastinterface_multicastinterface">#</a></span></h3>
+<h3>socket.setMulticastInterface(multicastInterface)<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/dgram.js#L560">[src]</a><span><a class="mark" href="#dgram_socket_setmulticastinterface_multicastinterface" id="dgram_socket_setmulticastinterface_multicastinterface">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.6.0</span>
 </div>
@@ -584,7 +584,7 @@ continuing to use (or returning to) the system's default interface selection.</p
 <p>A socket's address family's ANY address (IPv4 <code>'0.0.0.0'</code> or IPv6 <code>'::'</code>) can be
 used to return control of the sockets default outgoing interface to the system
 for future multicast packets.</p>
-<h3>socket.setMulticastLoopback(flag)<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/dgram.js#L550">[src]</a><span><a class="mark" href="#dgram_socket_setmulticastloopback_flag" id="dgram_socket_setmulticastloopback_flag">#</a></span></h3>
+<h3>socket.setMulticastLoopback(flag)<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/dgram.js#L550">[src]</a><span><a class="mark" href="#dgram_socket_setmulticastloopback_flag" id="dgram_socket_setmulticastloopback_flag">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.3.8</span>
 </div>
@@ -593,7 +593,7 @@ for future multicast packets.</p>
 </ul>
 <p>Sets or clears the <code>IP_MULTICAST_LOOP</code> socket option. When set to <code>true</code>,
 multicast packets will also be received on the local interface.</p>
-<h3>socket.setMulticastTTL(ttl)<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/dgram.js#L538">[src]</a><span><a class="mark" href="#dgram_socket_setmulticastttl_ttl" id="dgram_socket_setmulticastttl_ttl">#</a></span></h3>
+<h3>socket.setMulticastTTL(ttl)<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/dgram.js#L538">[src]</a><span><a class="mark" href="#dgram_socket_setmulticastttl_ttl" id="dgram_socket_setmulticastttl_ttl">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.3.8</span>
 </div>
@@ -607,7 +607,7 @@ router or gateway that forwards a packet decrements the TTL. If the TTL is
 decremented to 0 by a router, it will not be forwarded.</p>
 <p>The argument passed to <code>socket.setMulticastTTL()</code> is a number of hops
 between 0 and 255. The default on most systems is <code>1</code> but can vary.</p>
-<h3>socket.setRecvBufferSize(size)<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/dgram.js#L652">[src]</a><span><a class="mark" href="#dgram_socket_setrecvbuffersize_size" id="dgram_socket_setrecvbuffersize_size">#</a></span></h3>
+<h3>socket.setRecvBufferSize(size)<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/dgram.js#L652">[src]</a><span><a class="mark" href="#dgram_socket_setrecvbuffersize_size" id="dgram_socket_setrecvbuffersize_size">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.7.0</span>
 </div>
@@ -616,7 +616,7 @@ between 0 and 255. The default on most systems is <code>1</code> but can vary.</
 </ul>
 <p>Sets the <code>SO_RCVBUF</code> socket option. Sets the maximum socket receive buffer
 in bytes.</p>
-<h3>socket.setSendBufferSize(size)<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/dgram.js#L657">[src]</a><span><a class="mark" href="#dgram_socket_setsendbuffersize_size" id="dgram_socket_setsendbuffersize_size">#</a></span></h3>
+<h3>socket.setSendBufferSize(size)<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/dgram.js#L657">[src]</a><span><a class="mark" href="#dgram_socket_setsendbuffersize_size" id="dgram_socket_setsendbuffersize_size">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.7.0</span>
 </div>
@@ -625,7 +625,7 @@ in bytes.</p>
 </ul>
 <p>Sets the <code>SO_SNDBUF</code> socket option. Sets the maximum socket send buffer
 in bytes.</p>
-<h3>socket.setTTL(ttl)<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/dgram.js#L526">[src]</a><span><a class="mark" href="#dgram_socket_setttl_ttl" id="dgram_socket_setttl_ttl">#</a></span></h3>
+<h3>socket.setTTL(ttl)<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/dgram.js#L526">[src]</a><span><a class="mark" href="#dgram_socket_setttl_ttl" id="dgram_socket_setttl_ttl">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.101</span>
 </div>
@@ -639,7 +639,7 @@ TTL. If the TTL is decremented to 0 by a router, it will not be forwarded.
 Changing TTL values is typically done for network probes or when multicasting.</p>
 <p>The argument to <code>socket.setTTL()</code> is a number of hops between 1 and 255.
 The default on most systems is 64 but can vary.</p>
-<h3>socket.unref()<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/net.js#L1058">[src]</a><span><a class="mark" href="#dgram_socket_unref" id="dgram_socket_unref">#</a></span></h3>
+<h3>socket.unref()<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/net.js#L1058">[src]</a><span><a class="mark" href="#dgram_socket_unref" id="dgram_socket_unref">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.9.1</span>
 </div>
@@ -666,7 +666,7 @@ s.bind(1234, () => {
 });
 </code></pre>
 <h2><code>dgram</code> module functions<span><a class="mark" href="#dgram_dgram_module_functions" id="dgram_dgram_module_functions">#</a></span></h2>
-<h3>dgram.createSocket(options[, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/dgram.js#L107">[src]</a><span><a class="mark" href="#dgram_dgram_createsocket_options_callback" id="dgram_dgram_createsocket_options_callback">#</a></span></h3>
+<h3>dgram.createSocket(options[, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/dgram.js#L107">[src]</a><span><a class="mark" href="#dgram_dgram_createsocket_options_callback" id="dgram_dgram_createsocket_options_callback">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -704,7 +704,7 @@ method will bind the socket to the "all interfaces" address on a random port
 (it does the right thing for both <code>udp4</code> and <code>udp6</code> sockets). The bound address
 and port can be retrieved using <a href="#dgram_socket_address"><code>socket.address().address</code></a> and
 <a href="#dgram_socket_address"><code>socket.address().port</code></a>.</p>
-<h3>dgram.createSocket(type[, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/308b8b943a94f34a323c19d47d623d2ef8bc7122/lib/dgram.js#L107">[src]</a><span><a class="mark" href="#dgram_dgram_createsocket_type_callback" id="dgram_dgram_createsocket_type_callback">#</a></span></h3>
+<h3>dgram.createSocket(type[, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/dgram.js#L107">[src]</a><span><a class="mark" href="#dgram_dgram_createsocket_type_callback" id="dgram_dgram_createsocket_type_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.99</span>
 </div>

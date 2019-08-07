@@ -321,9 +321,22 @@ Readable.prototype.isPaused = function() {
 Readable.prototype.setEncoding = function(enc) {
   if (!StringDecoder)
     StringDecoder = require('string_decoder').StringDecoder;
-  this._readableState.decoder = new StringDecoder(enc);
-  // if setEncoding(null), decoder.encoding equals utf8
+  const decoder = new StringDecoder(enc);
+  this._readableState.decoder = decoder;
+  // If setEncoding(null), decoder.encoding equals utf8
   this._readableState.encoding = this._readableState.decoder.encoding;
+
+  // Iterate over current buffer to convert already stored Buffers:
+  let p = this._readableState.buffer.head;
+  let content = '';
+  while (p !== null) {
+    content += decoder.write(p.data);
+    p = p.next;
+  }
+  this._readableState.buffer.clear();
+  if (content !== '')
+    this._readableState.buffer.push(content);
+  this._readableState.length = content.length;
   return this;
 };
 
@@ -469,7 +482,7 @@ Readable.prototype.read = function(n) {
     ret = null;
 
   if (ret === null) {
-    state.needReadable = true;
+    state.needReadable = state.length <= state.highWaterMark;
     n = 0;
   } else {
     state.length -= n;
@@ -494,6 +507,7 @@ Readable.prototype.read = function(n) {
 };
 
 function onEofChunk(stream, state) {
+  debug('onEofChunk');
   if (state.ended) return;
   if (state.decoder) {
     var chunk = state.decoder.end();
@@ -524,6 +538,7 @@ function onEofChunk(stream, state) {
 // a nextTick recursion warning, but that's not so bad.
 function emitReadable(stream) {
   var state = stream._readableState;
+  debug('emitReadable', state.needReadable, state.emittedReadable);
   state.needReadable = false;
   if (!state.emittedReadable) {
     debug('emitReadable', state.flowing);
@@ -537,6 +552,7 @@ function emitReadable_(stream) {
   debug('emitReadable_', state.destroyed, state.length, state.ended);
   if (!state.destroyed && (state.length || state.ended)) {
     stream.emit('readable');
+    state.emittedReadable = false;
   }
 
   // The stream needs another readable event if

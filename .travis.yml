@@ -1,12 +1,12 @@
 language: node_js
 env:
     global:
-        - NODEVER=10.16.0
-        - RubyMajMinVer=2.5
+        - NODEVER=10.16.2
+        - RubyMajMinVer=2.6
         - RubyRevVer=3
-        - xcodeVer=xcode10.1
-        - LinDistro=xenial
-        - GCCVER=4.9
+        - xcodeVer=xcode11
+        - LinDistro=bionic
+        - GCCVER=7
         - arch=x64
         - mode=release
         - NODEC_TESTS_TMPDIR=/tmp/nodec_tests_tmpdir

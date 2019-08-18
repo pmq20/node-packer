@@ -31,6 +31,11 @@
 #  define WIN32
 #endif
 
+/* Compatibility for non-Clang compilers */
+#ifndef __has_declspec_attribute
+#  define __has_declspec_attribute(x) 0
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -51,7 +56,8 @@ extern "C" {
 
 #ifdef NGHTTP2_STATICLIB
 #  define NGHTTP2_EXTERN
-#elif defined(WIN32)
+#elif defined(WIN32) || (__has_declspec_attribute(dllexport) &&                \
+                         __has_declspec_attribute(dllimport))
 #  ifdef BUILDING_NGHTTP2
 #    define NGHTTP2_EXTERN __declspec(dllexport)
 #  else /* !BUILDING_NGHTTP2 */
@@ -2641,6 +2647,17 @@ nghttp2_option_set_max_deflate_dynamic_table_size(nghttp2_option *option,
  */
 NGHTTP2_EXTERN void nghttp2_option_set_no_closed_streams(nghttp2_option *option,
                                                          int val);
+
+/**
+ * @function
+ *
+ * This function sets the maximum number of outgoing SETTINGS ACK and
+ * PING ACK frames retained in :type:`nghttp2_session` object.  If
+ * more than those frames are retained, the peer is considered to be
+ * misbehaving and session will be closed.  The default value is 1000.
+ */
+NGHTTP2_EXTERN void nghttp2_option_set_max_outbound_ack(nghttp2_option *option,
+                                                        size_t val);
 
 /**
  * @function

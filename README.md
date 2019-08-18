@@ -4,7 +4,7 @@
 
 [![Build status](https://ci.appveyor.com/api/projects/status/fsuhe9x6mamohuym/branch/Series10?svg=true)](https://ci.appveyor.com/project/slee047/node-packer/branch/Series10)
 [![Status](https://travis-ci.org/slee047/node-packer.svg?branch=Series10)](https://travis-ci.org/slee047/node-packer)
-[![GitHub version](https://img.shields.io/badge/version-1.6.0%20(10.15.3)-blue.svg)](https://badge.fury.io/gh/slee047%2Fnode-packer)
+[![GitHub version](https://img.shields.io/badge/version-1.6.0%20(10.16.3)-blue.svg)](https://badge.fury.io/gh/slee047%2Fnode-packer)
 
 ![Terminal simulation of a simple compilation](https://github.com/pmq20/node-compiler/raw/master/doc/nodec.gif)
 
@@ -88,6 +88,13 @@ Additionally, binaries that are compiled from Ubuntu 18.04 LTS is known NOT to w
 
 Having said that, I will still recommend that binaries distributors should compile 2 versions for Linux where one caters for RHEL based and the other for Ubuntu based.
 
+#### Additional Notes on Build failure in Linux
+According to recent Travis Build, Linux has been failing to build since nodec-1.6.0-10.16.0 (Node.js 10.16.0).
+The root cause is yet to be determined, and the last known good build is 10.15.3 which can be downloaded here:
+https://github.com/slee047/node-packer/releases/tag/1.6.0-10.15.3-1
+
+The issue can be found here:
+https://github.com/slee047/node-packer/issues/11
 
 ### Install on macOS
 
@@ -98,6 +105,7 @@ First install the prerequisites:
   * You also need to install the `Command Line Tools` via Xcode. You can find
     this under the menu `Xcode -> Preferences -> Downloads`
   * This step will install `gcc` and the related toolchain containing `make`
+  * Do not use XCode 11 (Beta) until further notice
 * Python 2.6 or 2.7
 * GNU Make 3.81 or newer
 
@@ -109,6 +117,11 @@ Then,
 
 NOTE: This gz file ([nodec-darwin-x64.gz](http://enclose.io/nodec/nodec-darwin-x64.gz)) contains an outdated version of nodec (nodec 1.5.0 with Node.js 8.3.0).
 The original maintainer did not specify how to build this repo into single executable, therefore newer versions can only be run on source code directly.
+
+#### Additional Notes on Build failure in macOS XCode 11
+According to recent Travis Build, the test cases will fail shortly after its launch occurs when the Build Environement is XCode 11. Currently, it is not known whether the issue is caused by XCode 11 or other factors within Travis CI that may not impact on actual macOS deployment.
+
+Therefore, the build environment for macOS under Travis is XCode 10.2 so as to ensure the test case can be successfully executed and completed.
 
 ## Usage
 

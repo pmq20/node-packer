@@ -127,6 +127,26 @@ const { StreamPipe } = internalBinding('stream_pipe');
 const { _connectionListener: httpConnectionListener } = http;
 const debug = util.debuglog('http2');
 
+// TODO(addaleax): See if this can be made more efficient by figuring out
+// whether debugging is enabled before we perform any further steps. Currently,
+// this seems pretty fast, though.
+function debugStream(id, sessionType, message, ...args) {
+  debug('Http2Stream %s [Http2Session %s]: ' + message,
+        id, sessionName(sessionType), ...args);
+}
+
+function debugStreamObj(stream, message, ...args) {
+  debugStream(stream[kID], stream[kSession][kType], ...args);
+}
+
+function debugSession(sessionType, message, ...args) {
+  debug('Http2Session %s: ' + message, sessionName(sessionType), ...args);
+}
+
+function debugSessionObj(session, message, ...args) {
+  debugSession(session[kType], message, ...args);
+}
+
 const kMaxFrameSize = (2 ** 24) - 1;
 const kMaxInt = (2 ** 32) - 1;
 const kMaxStreams = (2 ** 31) - 1;
@@ -147,6 +167,7 @@ const kID = Symbol('id');
 const kInit = Symbol('init');
 const kInfoHeaders = Symbol('sent-info-headers');
 const kLocalSettings = Symbol('local-settings');
+const kNativeFields = Symbol('kNativeFields');
 const kOptions = Symbol('options');
 const kOwner = owner_symbol;
 const kOrigin = Symbol('origin');
@@ -168,7 +189,15 @@ const {
   paddingBuffer,
   PADDING_BUF_FRAME_LENGTH,
   PADDING_BUF_MAX_PAYLOAD_LENGTH,
-  PADDING_BUF_RETURN_VALUE
+  PADDING_BUF_RETURN_VALUE,
+  kBitfield,
+  kSessionPriorityListenerCount,
+  kSessionFrameErrorListenerCount,
+  kSessionUint8FieldCount,
+  kSessionHasRemoteSettingsListeners,
+  kSessionRemoteSettingsIsUpToDate,
+  kSessionHasPingListeners,
+  kSessionHasAltsvcListeners,
 } = binding;
 
 const {
@@ -248,8 +277,7 @@ function onSessionHeaders(handle, id, cat, flags, headers) {
 
   const type = session[kType];
   session[kUpdateTimer]();
-  debug(`Http2Stream ${id} [Http2Session ` +
-        `${sessionName(type)}]: headers received`);
+  debugStream(id, type, 'headers received');
   const streams = session[kState].streams;
 
   const endOfStream = !!(flags & NGHTTP2_FLAG_END_STREAM);
@@ -309,8 +337,7 @@ function onSessionHeaders(handle, id, cat, flags, headers) {
       const originSet = session[kState].originSet = initOriginSet(session);
       originSet.delete(stream[kOrigin]);
     }
-    debug(`Http2Stream ${id} [Http2Session ` +
-          `${sessionName(type)}]: emitting stream '${event}' event`);
+    debugStream(id, type, "emitting stream '%s' event", event);
     process.nextTick(emit, stream, event, obj, flags, headers);
   }
   if (endOfStream) {
@@ -346,12 +373,82 @@ function submitRstStream(code) {
   }
 }
 
+// Keep track of the number/presence of JS event listeners. Knowing that there
+// are no listeners allows the C++ code to skip calling into JS for an event.
+function sessionListenerAdded(name) {
+  switch (name) {
+    case 'ping':
+      this[kNativeFields][kBitfield] |= 1 << kSessionHasPingListeners;
+      break;
+    case 'altsvc':
+      this[kNativeFields][kBitfield] |= 1 << kSessionHasAltsvcListeners;
+      break;
+    case 'remoteSettings':
+      this[kNativeFields][kBitfield] |= 1 << kSessionHasRemoteSettingsListeners;
+      break;
+    case 'priority':
+      this[kNativeFields][kSessionPriorityListenerCount]++;
+      break;
+    case 'frameError':
+      this[kNativeFields][kSessionFrameErrorListenerCount]++;
+      break;
+  }
+}
+
+function sessionListenerRemoved(name) {
+  switch (name) {
+    case 'ping':
+      if (this.listenerCount(name) > 0) return;
+      this[kNativeFields][kBitfield] &= ~(1 << kSessionHasPingListeners);
+      break;
+    case 'altsvc':
+      if (this.listenerCount(name) > 0) return;
+      this[kNativeFields][kBitfield] &= ~(1 << kSessionHasAltsvcListeners);
+      break;
+    case 'remoteSettings':
+      if (this.listenerCount(name) > 0) return;
+      this[kNativeFields][kBitfield] &=
+          ~(1 << kSessionHasRemoteSettingsListeners);
+      break;
+    case 'priority':
+      this[kNativeFields][kSessionPriorityListenerCount]--;
+      break;
+    case 'frameError':
+      this[kNativeFields][kSessionFrameErrorListenerCount]--;
+      break;
+  }
+}
+
+// Also keep track of listeners for the Http2Stream instances, as some events
+// are emitted on those objects.
+function streamListenerAdded(name) {
+  switch (name) {
+    case 'priority':
+      this[kSession][kNativeFields][kSessionPriorityListenerCount]++;
+      break;
+    case 'frameError':
+      this[kSession][kNativeFields][kSessionFrameErrorListenerCount]++;
+      break;
+  }
+}
+
+function streamListenerRemoved(name) {
+  switch (name) {
+    case 'priority':
+      this[kSession][kNativeFields][kSessionPriorityListenerCount]--;
+      break;
+    case 'frameError':
+      this[kSession][kNativeFields][kSessionFrameErrorListenerCount]--;
+      break;
+  }
+}
+
 function onPing(payload) {
   const session = this[kOwner];
   if (session.destroyed)
     return;
   session[kUpdateTimer]();
-  debug(`Http2Session ${sessionName(session[kType])}: new ping received`);
+  debugSessionObj(session, 'new ping received');
   session.emit('ping', payload);
 }
 
@@ -366,8 +463,7 @@ function onStreamClose(code) {
   if (stream.destroyed)
     return;
 
-  debug(`Http2Stream ${stream[kID]} [Http2Session ` +
-        `${sessionName(stream[kSession][kType])}]: closed with code ${code}`);
+  debugStreamObj(stream, 'closed with code %d', code);
 
   if (!stream.closed)
     closeStream(stream, code, kNoRstStream);
@@ -403,8 +499,7 @@ function onSettings() {
   if (session.destroyed)
     return;
   session[kUpdateTimer]();
-  debug(`Http2Session ${sessionName(session[kType])}: new settings received`);
-  session[kRemoteSettings] = undefined;
+  debugSessionObj(session, 'new settings received');
   session.emit('remoteSettings', session.remoteSettings);
 }
 
@@ -415,9 +510,9 @@ function onPriority(id, parent, weight, exclusive) {
   const session = this[kOwner];
   if (session.destroyed)
     return;
-  debug(`Http2Stream ${id} [Http2Session ` +
-        `${sessionName(session[kType])}]: priority [parent: ${parent}, ` +
-        `weight: ${weight}, exclusive: ${exclusive}]`);
+  debugStream(id, session[kType],
+              'priority [parent: %d, weight: %d, exclusive: %s]',
+              parent, weight, exclusive);
   const emitter = session[kState].streams.get(id) || session;
   if (!emitter.destroyed) {
     emitter[kUpdateTimer]();
@@ -431,8 +526,8 @@ function onFrameError(id, type, code) {
   const session = this[kOwner];
   if (session.destroyed)
     return;
-  debug(`Http2Session ${sessionName(session[kType])}: error sending frame ` +
-        `type ${type} on stream ${id}, code: ${code}`);
+  debugSessionObj(session, 'error sending frame type %d on stream %d, code: %d',
+                  type, id, code);
   const emitter = session[kState].streams.get(id) || session;
   emitter[kUpdateTimer]();
   emitter.emit('frameError', type, code, id);
@@ -442,8 +537,8 @@ function onAltSvc(stream, origin, alt) {
   const session = this[kOwner];
   if (session.destroyed)
     return;
-  debug(`Http2Session ${sessionName(session[kType])}: altsvc received: ` +
-        `stream: ${stream}, origin: ${origin}, alt: ${alt}`);
+  debugSessionObj(session, 'altsvc received: stream: %d, origin: %s, alt: %s',
+                  stream, origin, alt);
   session[kUpdateTimer]();
   session.emit('altsvc', alt, origin, stream);
 }
@@ -470,8 +565,7 @@ function onOrigin(origins) {
   const session = this[kOwner];
   if (session.destroyed)
     return;
-  debug('Http2Session %s: origin received: %j',
-        sessionName(session[kType]), origins);
+  debugSessionObj(session, 'origin received: %j', origins);
   session[kUpdateTimer]();
   if (!session.encrypted || session.destroyed)
     return undefined;
@@ -491,8 +585,8 @@ function onGoawayData(code, lastStreamID, buf) {
   const session = this[kOwner];
   if (session.destroyed)
     return;
-  debug(`Http2Session ${sessionName(session[kType])}: goaway ${code} ` +
-        `received [last stream id: ${lastStreamID}]`);
+  debugSessionObj(session, 'goaway %d received [last stream id: %d]',
+                  code, lastStreamID);
 
   const state = session[kState];
   state.goawayCode = code;
@@ -545,8 +639,7 @@ function requestOnConnect(headers, options) {
     return;
   }
 
-  debug(`Http2Session ${sessionName(session[kType])}: connected, ` +
-        'initializing request');
+  debugSessionObj(session, 'connected, initializing request');
 
   let streamOptions = 0;
   if (options.endStream)
@@ -641,13 +734,13 @@ function settingsCallback(cb, ack, duration) {
   this[kState].pendingAck--;
   this[kLocalSettings] = undefined;
   if (ack) {
-    debug(`Http2Session ${sessionName(this[kType])}: settings received`);
+    debugSessionObj(this, 'settings received');
     const settings = this.localSettings;
     if (typeof cb === 'function')
       cb(null, settings, duration);
     this.emit('localSettings', settings);
   } else {
-    debug(`Http2Session ${sessionName(this[kType])}: settings canceled`);
+    debugSessionObj(this, 'settings canceled');
     if (typeof cb === 'function')
       cb(new ERR_HTTP2_SETTINGS_CANCEL());
   }
@@ -657,7 +750,7 @@ function settingsCallback(cb, ack, duration) {
 function submitSettings(settings, callback) {
   if (this.destroyed)
     return;
-  debug(`Http2Session ${sessionName(this[kType])}: submitting settings`);
+  debugSessionObj(this, 'submitting settings');
   this[kUpdateTimer]();
   updateSettingsBuffer(settings);
   if (!this[kHandle].settings(settingsCallback.bind(this, callback))) {
@@ -691,7 +784,7 @@ function submitPriority(options) {
 function submitGoaway(code, lastStreamID, opaqueData) {
   if (this.destroyed)
     return;
-  debug(`Http2Session ${sessionName(this[kType])}: submitting goaway`);
+  debugSessionObj(this, 'submitting goaway');
   this[kUpdateTimer]();
   this[kHandle].goaway(code, lastStreamID, opaqueData);
 }
@@ -821,7 +914,9 @@ function setupHandle(socket, type, options) {
     process.nextTick(emit, this, 'connect', this, socket);
     return;
   }
-  debug(`Http2Session ${sessionName(type)}: setting up session handle`);
+
+  debugSession(type, 'setting up session handle');
+
   this[kState].flags |= SESSION_FLAGS_READY;
 
   updateOptionsBuffer(options);
@@ -846,6 +941,10 @@ function setupHandle(socket, type, options) {
   handle.consume(socket._handle._externalStream);
 
   this[kHandle] = handle;
+  if (this[kNativeFields])
+    handle.fields.set(this[kNativeFields]);
+  else
+    this[kNativeFields] = handle.fields;
 
   if (socket.encrypted) {
     this[kAlpnProtocol] = socket.alpnProtocol;
@@ -887,6 +986,7 @@ function finishSessionDestroy(session, error) {
   session[kProxySocket] = undefined;
   session[kSocket] = undefined;
   session[kHandle] = undefined;
+  session[kNativeFields] = new Uint8Array(kSessionUint8FieldCount);
   socket[kSession] = undefined;
   socket[kServer] = undefined;
 
@@ -965,6 +1065,7 @@ class Http2Session extends EventEmitter {
     this[kProxySocket] = null;
     this[kSocket] = socket;
     this[kTimeout] = null;
+    this[kHandle] = undefined;
 
     // Do not use nagle's algorithm
     if (typeof socket.setNoDelay === 'function')
@@ -983,7 +1084,12 @@ class Http2Session extends EventEmitter {
       setupFn();
     }
 
-    debug(`Http2Session ${sessionName(type)}: created`);
+    if (!this[kNativeFields])
+      this[kNativeFields] = new Uint8Array(kSessionUint8FieldCount);
+    this.on('newListener', sessionListenerAdded);
+    this.on('removeListener', sessionListenerRemoved);
+
+    debugSession(type, 'created');
   }
 
   // Returns undefined if the socket is not yet connected, true if the
@@ -1137,13 +1243,18 @@ class Http2Session extends EventEmitter {
 
   // The settings currently in effect for the remote peer.
   get remoteSettings() {
-    const settings = this[kRemoteSettings];
-    if (settings !== undefined)
-      return settings;
+    if (this[kNativeFields][kBitfield] &
+        (1 << kSessionRemoteSettingsIsUpToDate)) {
+      const settings = this[kRemoteSettings];
+      if (settings !== undefined) {
+        return settings;
+      }
+    }
 
     if (this.destroyed || this.connecting)
       return {};
 
+    this[kNativeFields][kBitfield] |= (1 << kSessionRemoteSettingsIsUpToDate);
     return this[kRemoteSettings] = getSettings(this[kHandle], true); // Remote
   }
 
@@ -1156,7 +1267,7 @@ class Http2Session extends EventEmitter {
 
     if (callback && typeof callback !== 'function')
       throw new ERR_INVALID_CALLBACK();
-    debug(`Http2Session ${sessionName(this[kType])}: sending settings`);
+    debugSessionObj(this, 'sending settings');
 
     this[kState].pendingAck++;
 
@@ -1197,7 +1308,7 @@ class Http2Session extends EventEmitter {
   destroy(error = NGHTTP2_NO_ERROR, code) {
     if (this.destroyed)
       return;
-    debug(`Http2Session ${sessionName(this[kType])}: destroying`);
+    debugSessionObj(this, 'destroying');
 
     if (typeof error === 'number') {
       code = error;
@@ -1258,7 +1369,7 @@ class Http2Session extends EventEmitter {
   close(callback) {
     if (this.closed || this.destroyed)
       return;
-    debug(`Http2Session ${sessionName(this[kType])}: marking session closed`);
+    debugSessionObj(this, 'marking session closed');
     this[kState].flags |= SESSION_FLAGS_CLOSED;
     if (typeof callback === 'function')
       this.once('close', callback);
@@ -1326,6 +1437,12 @@ class ServerHttp2Session extends Http2Session {
   constructor(options, socket, server) {
     super(NGHTTP2_SESSION_SERVER, options, socket);
     this[kServer] = server;
+    // This is a bit inaccurate because it does not reflect changes to
+    // number of listeners made after the session was created. This should
+    // not be an issue in practice. Additionally, the 'priority' event on
+    // server instances (or any other object) is fully undocumented.
+    this[kNativeFields][kSessionPriorityListenerCount] =
+      server.listenerCount('priority');
   }
 
   get server() {
@@ -1430,7 +1547,7 @@ class ClientHttp2Session extends Http2Session {
   // Submits a new HTTP2 request to the connected peer. Returns the
   // associated Http2Stream instance.
   request(headers, options) {
-    debug(`Http2Session ${sessionName(this[kType])}: initiating request`);
+    debugSessionObj(this, 'initiating request');
 
     if (this.destroyed)
       throw new ERR_HTTP2_INVALID_SESSION();
@@ -1643,6 +1760,9 @@ class Http2Stream extends Duplex {
     };
 
     this.on('pause', streamOnPause);
+
+    this.on('newListener', streamListenerAdded);
+    this.on('removeListener', streamListenerRemoved);
   }
 
   [kUpdateTimer]() {
@@ -1827,8 +1947,7 @@ class Http2Stream extends Duplex {
     if (this.pending) {
       this.once('ready', () => this._final(cb));
     } else if (handle !== undefined) {
-      debug(`Http2Stream ${this[kID]} [Http2Session ` +
-            `${sessionName(this[kSession][kType])}]: _final shutting down`);
+      debugStreamObj(this, '_final shutting down');
       const req = new ShutdownWrap();
       req.oncomplete = afterShutdown;
       req.callback = cb;
@@ -1887,9 +2006,7 @@ class Http2Stream extends Duplex {
     assertIsObject(headers, 'headers');
     headers = Object.assign(Object.create(null), headers);
 
-    const session = this[kSession];
-    debug(`Http2Stream ${this[kID]} [Http2Session ` +
-    `${sessionName(session[kType])}]: sending trailers`);
+    debugStreamObj(this, 'sending trailers');
 
     this[kUpdateTimer]();
 
@@ -1944,8 +2061,8 @@ class Http2Stream extends Duplex {
     const handle = this[kHandle];
     const id = this[kID];
 
-    debug(`Http2Stream ${this[kID] || '<pending>'} [Http2Session ` +
-          `${sessionName(session[kType])}]: destroying stream`);
+    debugStream(this[kID] || 'pending', session[kType], 'destroying stream');
+
     const state = this[kState];
     const code = err != null ?
       NGHTTP2_INTERNAL_ERROR : (state.rstCode || NGHTTP2_NO_ERROR);
@@ -2256,8 +2373,7 @@ class ServerHttp2Stream extends Http2Stream {
 
     const session = this[kSession];
 
-    debug(`Http2Stream ${this[kID]} [Http2Session ` +
-          `${sessionName(session[kType])}]: initiating push stream`);
+    debugStreamObj(this, 'initiating push stream');
 
     this[kUpdateTimer]();
 
@@ -2339,9 +2455,7 @@ class ServerHttp2Stream extends Http2Stream {
     assertIsObject(options, 'options');
     options = Object.assign({}, options);
 
-    const session = this[kSession];
-    debug(`Http2Stream ${this[kID]} [Http2Session ` +
-          `${sessionName(session[kType])}]: initiating response`);
+    debugStreamObj(this, 'initiating response');
     this[kUpdateTimer]();
 
     options.endStream = !!options.endStream;
@@ -2420,8 +2534,7 @@ class ServerHttp2Stream extends Http2Stream {
 
     validateNumber(fd, 'fd');
 
-    debug(`Http2Stream ${this[kID]} [Http2Session ` +
-          `${sessionName(session[kType])}]: initiating response from fd`);
+    debugStreamObj(this, 'initiating response from fd');
     this[kUpdateTimer]();
     this.ownsFd = false;
 
@@ -2481,8 +2594,7 @@ class ServerHttp2Stream extends Http2Stream {
     }
 
     const session = this[kSession];
-    debug(`Http2Stream ${this[kID]} [Http2Session ` +
-          `${sessionName(session[kType])}]: initiating response from file`);
+    debugStreamObj(this, 'initiating response from file');
     this[kUpdateTimer]();
     this.ownsFd = true;
 
@@ -2515,9 +2627,7 @@ class ServerHttp2Stream extends Http2Stream {
     assertIsObject(headers, 'headers');
     headers = Object.assign(Object.create(null), headers);
 
-    const session = this[kSession];
-    debug(`Http2Stream ${this[kID]} [Http2Session ` +
-    `${sessionName(session[kType])}]: sending additional headers`);
+    debugStreamObj(this, 'sending additional headers');
 
     if (headers[HTTP2_HEADER_STATUS] != null) {
       const statusCode = headers[HTTP2_HEADER_STATUS] |= 0;
@@ -2608,8 +2718,7 @@ function socketOnError(error) {
     // we can do and the other side is fully within its rights to do so.
     if (error.code === 'ECONNRESET' && session[kState].goawayCode !== null)
       return session.destroy();
-    debug(`Http2Session ${sessionName(session[kType])}: socket error [` +
-          `${error.message}]`);
+    debugSessionObj(this, 'socket error [%s]', error.message);
     session.destroy(error);
   }
 }
@@ -2627,7 +2736,7 @@ function sessionOnPriority(stream, parent, weight, exclusive) {
 }
 
 function sessionOnError(error) {
-  if (this[kServer])
+  if (this[kServer] !== undefined)
     this[kServer].emit('sessionError', error, this);
 }
 
@@ -2654,7 +2763,8 @@ function connectionListener(socket) {
       return httpConnectionListener.call(this, socket);
     }
     // Let event handler deal with the socket
-    debug(`Unknown protocol from ${socket.remoteAddress}:${socket.remotePort}`);
+    debug('Unknown protocol from %s:%s',
+          socket.remoteAddress, socket.remotePort);
     if (!this.emit('unknownProtocol', socket)) {
       // We don't know what to do, so let's just tell the other side what's
       // going on in a format that they *might* understand.
@@ -2675,8 +2785,10 @@ function connectionListener(socket) {
   const session = new ServerHttp2Session(options, socket, this);
 
   session.on('stream', sessionOnStream);
-  session.on('priority', sessionOnPriority);
   session.on('error', sessionOnError);
+  // Don't count our own internal listener.
+  session.on('priority', sessionOnPriority);
+  session[kNativeFields][kSessionPriorityListenerCount]--;
 
   if (this.timeout)
     session.setTimeout(this.timeout, sessionOnTimeout);
@@ -2779,7 +2891,7 @@ function setupCompat(ev) {
 function socketOnClose() {
   const session = this[kSession];
   if (session !== undefined) {
-    debug(`Http2Session ${sessionName(session[kType])}: socket closed`);
+    debugSessionObj(session, 'socket closed');
     const err = session.connecting ? new ERR_SOCKET_CLOSED() : null;
     const state = session[kState];
     state.streams.forEach((stream) => stream.close(NGHTTP2_CANCEL));

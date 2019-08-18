@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Buffer | Node.js v10.16.2 Documentation</title>
+  <title>Buffer | Node.js v10.16.3 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -79,7 +79,7 @@
 
     <div id="column1" data-id="buffer" class="interior">
       <header>
-        <h1>Node.js v10.16.2 Documentation</h1>
+        <h1>Node.js v10.16.3 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -688,7 +688,7 @@ console.log(buf2.toString());
 console.log(buf1.toString('ascii'));
 // Prints: this is a tC)st
 </code></pre>
-<h3>Class Method: Buffer.alloc(size[, fill[, encoding]])<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/buffer.js#L277">[src]</a><span><a class="mark" href="#buffer_class_method_buffer_alloc_size_fill_encoding" id="buffer_class_method_buffer_alloc_size_fill_encoding">#</a></span></h3>
+<h3>Class Method: Buffer.alloc(size[, fill[, encoding]])<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/buffer.js#L277">[src]</a><span><a class="mark" href="#buffer_class_method_buffer_alloc_size_fill_encoding" id="buffer_class_method_buffer_alloc_size_fill_encoding">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -739,7 +739,7 @@ console.log(buf);
 <a href="#buffer_class_method_buffer_allocunsafe_size"><code>Buffer.allocUnsafe()</code></a> but ensures that the newly created <code>Buffer</code> instance
 contents will <em>never contain sensitive data</em>.</p>
 <p>A <code>TypeError</code> will be thrown if <code>size</code> is not a number.</p>
-<h3>Class Method: Buffer.allocUnsafe(size)<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/buffer.js#L290">[src]</a><span><a class="mark" href="#buffer_class_method_buffer_allocunsafe_size" id="buffer_class_method_buffer_allocunsafe_size">#</a></span></h3>
+<h3>Class Method: Buffer.allocUnsafe(size)<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/buffer.js#L290">[src]</a><span><a class="mark" href="#buffer_class_method_buffer_allocunsafe_size" id="buffer_class_method_buffer_allocunsafe_size">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -784,7 +784,7 @@ pool, while <code>Buffer.allocUnsafe(size).fill(fill)</code> <em>will</em> use t
 <code>Buffer</code> pool if <code>size</code> is less than or equal to half <a href="#buffer_class_property_buffer_poolsize"><code>Buffer.poolSize</code></a>. The
 difference is subtle but can be important when an application requires the
 additional performance that <a href="#buffer_class_method_buffer_allocunsafe_size"><code>Buffer.allocUnsafe()</code></a> provides.</p>
-<h3>Class Method: Buffer.allocUnsafeSlow(size)<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/buffer.js#L300">[src]</a><span><a class="mark" href="#buffer_class_method_buffer_allocunsafeslow_size" id="buffer_class_method_buffer_allocunsafeslow_size">#</a></span></h3>
+<h3>Class Method: Buffer.allocUnsafeSlow(size)<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/buffer.js#L300">[src]</a><span><a class="mark" href="#buffer_class_method_buffer_allocunsafeslow_size" id="buffer_class_method_buffer_allocunsafeslow_size">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v5.12.0</span>
 </div>
@@ -827,7 +827,7 @@ socket.on('readable', () => {
 <p><code>Buffer.allocUnsafeSlow()</code> should be used only as a last resort after a
 developer has observed undue memory retention in their applications.</p>
 <p>A <code>TypeError</code> will be thrown if <code>size</code> is not a number.</p>
-<h3>Class Method: Buffer.byteLength(string[, encoding])<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/buffer.js#L509">[src]</a><span><a class="mark" href="#buffer_class_method_buffer_bytelength_string_encoding" id="buffer_class_method_buffer_bytelength_string_encoding">#</a></span></h3>
+<h3>Class Method: Buffer.byteLength(string[, encoding])<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/buffer.js#L509">[src]</a><span><a class="mark" href="#buffer_class_method_buffer_bytelength_string_encoding" id="buffer_class_method_buffer_bytelength_string_encoding">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -862,7 +862,7 @@ console.log(`${str}: ${str.length} characters, ` +
 </code></pre>
 <p>When <code>string</code> is a <code>Buffer</code>/<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView"><code>DataView</code></a>/<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray"><code>TypedArray</code></a>/<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer"><code>ArrayBuffer</code></a>/
 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SharedArrayBuffer"><code>SharedArrayBuffer</code></a>, the actual byte length is returned.</p>
-<h3>Class Method: Buffer.compare(buf1, buf2)<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/buffer.js#L433">[src]</a><span><a class="mark" href="#buffer_class_method_buffer_compare_buf1_buf2" id="buffer_class_method_buffer_compare_buf1_buf2">#</a></span></h3>
+<h3>Class Method: Buffer.compare(buf1, buf2)<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/buffer.js#L433">[src]</a><span><a class="mark" href="#buffer_class_method_buffer_compare_buf1_buf2" id="buffer_class_method_buffer_compare_buf1_buf2">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -890,7 +890,7 @@ console.log(arr.sort(Buffer.compare));
 // Prints: [ &#x3C;Buffer 30 31 32 33>, &#x3C;Buffer 31 32 33 34> ]
 // (This result is equal to: [buf2, buf1])
 </code></pre>
-<h3>Class Method: Buffer.concat(list[, totalLength])<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/buffer.js#L455">[src]</a><span><a class="mark" href="#buffer_class_method_buffer_concat_list_totallength" id="buffer_class_method_buffer_concat_list_totallength">#</a></span></h3>
+<h3>Class Method: Buffer.concat(list[, totalLength])<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/buffer.js#L455">[src]</a><span><a class="mark" href="#buffer_class_method_buffer_concat_list_totallength" id="buffer_class_method_buffer_concat_list_totallength">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -937,7 +937,7 @@ console.log(bufA);
 console.log(bufA.length);
 // Prints: 42
 </code></pre>
-<h3>Class Method: Buffer.from(array)<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/buffer.js#L199">[src]</a><span><a class="mark" href="#buffer_class_method_buffer_from_array" id="buffer_class_method_buffer_from_array">#</a></span></h3>
+<h3>Class Method: Buffer.from(array)<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/buffer.js#L199">[src]</a><span><a class="mark" href="#buffer_class_method_buffer_from_array" id="buffer_class_method_buffer_from_array">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v5.10.0</span>
 </div>
@@ -949,7 +949,7 @@ console.log(bufA.length);
 const buf = Buffer.from([0x62, 0x75, 0x66, 0x66, 0x65, 0x72]);
 </code></pre>
 <p>A <code>TypeError</code> will be thrown if <code>array</code> is not an <code>Array</code>.</p>
-<h3>Class Method: Buffer.from(arrayBuffer[, byteOffset[, length]])<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/buffer.js#L199">[src]</a><span><a class="mark" href="#buffer_class_method_buffer_from_arraybuffer_byteoffset_length" id="buffer_class_method_buffer_from_arraybuffer_byteoffset_length">#</a></span></h3>
+<h3>Class Method: Buffer.from(arrayBuffer[, byteOffset[, length]])<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/buffer.js#L199">[src]</a><span><a class="mark" href="#buffer_class_method_buffer_from_arraybuffer_byteoffset_length" id="buffer_class_method_buffer_from_arraybuffer_byteoffset_length">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v5.10.0</span>
 </div>
@@ -991,7 +991,7 @@ console.log(buf.length);
 </code></pre>
 <p>A <code>TypeError</code> will be thrown if <code>arrayBuffer</code> is not an <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer"><code>ArrayBuffer</code></a> or a
 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SharedArrayBuffer"><code>SharedArrayBuffer</code></a>.</p>
-<h3>Class Method: Buffer.from(buffer)<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/buffer.js#L199">[src]</a><span><a class="mark" href="#buffer_class_method_buffer_from_buffer" id="buffer_class_method_buffer_from_buffer">#</a></span></h3>
+<h3>Class Method: Buffer.from(buffer)<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/buffer.js#L199">[src]</a><span><a class="mark" href="#buffer_class_method_buffer_from_buffer" id="buffer_class_method_buffer_from_buffer">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v5.10.0</span>
 </div>
@@ -1011,7 +1011,7 @@ console.log(buf2.toString());
 // Prints: buffer
 </code></pre>
 <p>A <code>TypeError</code> will be thrown if <code>buffer</code> is not a <code>Buffer</code>.</p>
-<h3>Class Method: Buffer.from(object[, offsetOrEncoding[, length]])<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/buffer.js#L199">[src]</a><span><a class="mark" href="#buffer_class_method_buffer_from_object_offsetorencoding_length" id="buffer_class_method_buffer_from_object_offsetorencoding_length">#</a></span></h3>
+<h3>Class Method: Buffer.from(object[, offsetOrEncoding[, length]])<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/buffer.js#L199">[src]</a><span><a class="mark" href="#buffer_class_method_buffer_from_object_offsetorencoding_length" id="buffer_class_method_buffer_from_object_offsetorencoding_length">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.2.0</span>
 </div>
@@ -1039,7 +1039,7 @@ the value returned either by <code>object.valueOf()</code> or
 const buf = Buffer.from(new Foo(), 'utf8');
 // Prints: &#x3C;Buffer 74 68 69 73 20 69 73 20 61 20 74 65 73 74>
 </code></pre>
-<h3>Class Method: Buffer.from(string[, encoding])<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/buffer.js#L199">[src]</a><span><a class="mark" href="#buffer_class_method_buffer_from_string_encoding" id="buffer_class_method_buffer_from_string_encoding">#</a></span></h3>
+<h3>Class Method: Buffer.from(string[, encoding])<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/buffer.js#L199">[src]</a><span><a class="mark" href="#buffer_class_method_buffer_from_string_encoding" id="buffer_class_method_buffer_from_string_encoding">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v5.10.0</span>
 </div>
@@ -1060,7 +1060,7 @@ console.log(buf1.toString('ascii'));
 // Prints: this is a tC)st
 </code></pre>
 <p>A <code>TypeError</code> will be thrown if <code>string</code> is not a string.</p>
-<h3>Class Method: Buffer.isBuffer(obj)<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/buffer.js#L429">[src]</a><span><a class="mark" href="#buffer_class_method_buffer_isbuffer_obj" id="buffer_class_method_buffer_isbuffer_obj">#</a></span></h3>
+<h3>Class Method: Buffer.isBuffer(obj)<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/buffer.js#L429">[src]</a><span><a class="mark" href="#buffer_class_method_buffer_isbuffer_obj" id="buffer_class_method_buffer_isbuffer_obj">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.101</span>
 </div>
@@ -1069,7 +1069,7 @@ console.log(buf1.toString('ascii'));
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a></li>
 </ul>
 <p>Returns <code>true</code> if <code>obj</code> is a <code>Buffer</code>, <code>false</code> otherwise.</p>
-<h3>Class Method: Buffer.isEncoding(encoding)<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/buffer.js#L449">[src]</a><span><a class="mark" href="#buffer_class_method_buffer_isencoding_encoding" id="buffer_class_method_buffer_isencoding_encoding">#</a></span></h3>
+<h3>Class Method: Buffer.isEncoding(encoding)<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/buffer.js#L449">[src]</a><span><a class="mark" href="#buffer_class_method_buffer_isencoding_encoding" id="buffer_class_method_buffer_isencoding_encoding">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.9.1</span>
 </div>
@@ -1079,7 +1079,7 @@ console.log(buf1.toString('ascii'));
 </ul>
 <p>Returns <code>true</code> if <code>encoding</code> contains a supported character encoding, or <code>false</code>
 otherwise.</p>
-<h3>Class Property: Buffer.poolSize<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/buffer.js#L102">[src]</a><span><a class="mark" href="#buffer_class_property_buffer_poolsize" id="buffer_class_property_buffer_poolsize">#</a></span></h3>
+<h3>Class Property: Buffer.poolSize<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/buffer.js#L102">[src]</a><span><a class="mark" href="#buffer_class_property_buffer_poolsize" id="buffer_class_property_buffer_poolsize">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.3</span>
 </div>
@@ -1141,7 +1141,7 @@ const nodeBuffer = new Buffer.from([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
 // byteOffset.
 new Int8Array(nodeBuffer.buffer, nodeBuffer.byteOffset, nodeBuffer.length);
 </code></pre>
-<h3>buf.compare(target[, targetStart[, targetEnd[, sourceStart[, sourceEnd]]]])<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/buffer.js#L692">[src]</a><span><a class="mark" href="#buffer_buf_compare_target_targetstart_targetend_sourcestart_sourceend" id="buffer_buf_compare_target_targetstart_targetend_sourcestart_sourceend">#</a></span></h3>
+<h3>buf.compare(target[, targetStart[, targetEnd[, sourceStart[, sourceEnd]]]])<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/buffer.js#L692">[src]</a><span><a class="mark" href="#buffer_buf_compare_target_targetstart_targetend_sourcestart_sourceend" id="buffer_buf_compare_target_targetstart_targetend_sourcestart_sourceend">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1209,7 +1209,7 @@ console.log(buf1.compare(buf2, 5, 6, 5));
 </code></pre>
 <p><a href="errors.html#ERR_INDEX_OUT_OF_RANGE"><code>ERR_INDEX_OUT_OF_RANGE</code></a> is thrown if <code>targetStart &#x3C; 0</code>, <code>sourceStart &#x3C; 0</code>,
 <code>targetEnd > target.byteLength</code>, or <code>sourceEnd > source.byteLength</code>.</p>
-<h3>buf.copy(target[, targetStart[, sourceStart[, sourceEnd]]])<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/buffer.js#L634">[src]</a><span><a class="mark" href="#buffer_buf_copy_target_targetstart_sourcestart_sourceend" id="buffer_buf_copy_target_targetstart_sourcestart_sourceend">#</a></span></h3>
+<h3>buf.copy(target[, targetStart[, sourceStart[, sourceEnd]]])<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/buffer.js#L634">[src]</a><span><a class="mark" href="#buffer_buf_copy_target_targetstart_sourcestart_sourceend" id="buffer_buf_copy_target_targetstart_sourcestart_sourceend">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.90</span>
 </div>
@@ -1279,7 +1279,7 @@ for (const pair of buf.entries()) {
 //   [4, 101]
 //   [5, 114]
 </code></pre>
-<h3>buf.equals(otherBuffer)<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/buffer.js#L670">[src]</a><span><a class="mark" href="#buffer_buf_equals_otherbuffer" id="buffer_buf_equals_otherbuffer">#</a></span></h3>
+<h3>buf.equals(otherBuffer)<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/buffer.js#L670">[src]</a><span><a class="mark" href="#buffer_buf_equals_otherbuffer" id="buffer_buf_equals_otherbuffer">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1307,7 +1307,7 @@ console.log(buf1.equals(buf2));
 console.log(buf1.equals(buf3));
 // Prints: false
 </code></pre>
-<h3>buf.fill(value[, offset[, end]][, encoding])<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/buffer.js#L828">[src]</a><span><a class="mark" href="#buffer_buf_fill_value_offset_end_encoding" id="buffer_buf_fill_value_offset_end_encoding">#</a></span></h3>
+<h3>buf.fill(value[, offset[, end]][, encoding])<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/buffer.js#L828">[src]</a><span><a class="mark" href="#buffer_buf_fill_value_offset_end_encoding" id="buffer_buf_fill_value_offset_end_encoding">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1365,7 +1365,7 @@ console.log(buf.fill('aazz', 'hex'));
 console.log(buf.fill('zz', 'hex'));
 // Throws an exception.
 </code></pre>
-<h3>buf.includes(value[, byteOffset][, encoding])<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/buffer.js#L820">[src]</a><span><a class="mark" href="#buffer_buf_includes_value_byteoffset_encoding" id="buffer_buf_includes_value_byteoffset_encoding">#</a></span></h3>
+<h3>buf.includes(value[, byteOffset][, encoding])<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/buffer.js#L820">[src]</a><span><a class="mark" href="#buffer_buf_includes_value_byteoffset_encoding" id="buffer_buf_includes_value_byteoffset_encoding">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v5.3.0</span>
 </div>
@@ -1394,7 +1394,7 @@ console.log(buf.includes(Buffer.from('a buffer example').slice(0, 8)));
 console.log(buf.includes('this', 4));
 // Prints: false
 </code></pre>
-<h3>buf.indexOf(value[, byteOffset][, encoding])<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/buffer.js#L812">[src]</a><span><a class="mark" href="#buffer_buf_indexof_value_byteoffset_encoding" id="buffer_buf_indexof_value_byteoffset_encoding">#</a></span></h3>
+<h3>buf.indexOf(value[, byteOffset][, encoding])<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/buffer.js#L812">[src]</a><span><a class="mark" href="#buffer_buf_indexof_value_byteoffset_encoding" id="buffer_buf_indexof_value_byteoffset_encoding">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1492,7 +1492,7 @@ for (const key of buf.keys()) {
 //   4
 //   5
 </code></pre>
-<h3>buf.lastIndexOf(value[, byteOffset][, encoding])<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/buffer.js#L816">[src]</a><span><a class="mark" href="#buffer_buf_lastindexof_value_byteoffset_encoding" id="buffer_buf_lastindexof_value_byteoffset_encoding">#</a></span></h3>
+<h3>buf.lastIndexOf(value[, byteOffset][, encoding])<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/buffer.js#L816">[src]</a><span><a class="mark" href="#buffer_buf_lastindexof_value_byteoffset_encoding" id="buffer_buf_lastindexof_value_byteoffset_encoding">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1914,7 +1914,7 @@ console.log(buf.readUIntLE(0, 6).toString(16));
 console.log(buf.readUIntBE(1, 6).toString(16));
 // Throws ERR_OUT_OF_RANGE
 </code></pre>
-<h3>buf.slice([start[, end]])<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/buffer.js#L1007">[src]</a><span><a class="mark" href="#buffer_buf_slice_start_end" id="buffer_buf_slice_start_end">#</a></span></h3>
+<h3>buf.slice([start[, end]])<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/buffer.js#L1007">[src]</a><span><a class="mark" href="#buffer_buf_slice_start_end" id="buffer_buf_slice_start_end">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1976,7 +1976,7 @@ console.log(buf.slice(-5, -2).toString());
 // Prints: uff
 // (Equivalent to buf.slice(1, 4))
 </code></pre>
-<h3>buf.swap16()<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/buffer.js#L1021">[src]</a><span><a class="mark" href="#buffer_buf_swap16" id="buffer_buf_swap16">#</a></span></h3>
+<h3>buf.swap16()<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/buffer.js#L1021">[src]</a><span><a class="mark" href="#buffer_buf_swap16" id="buffer_buf_swap16">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v5.10.0</span>
 </div>
@@ -2006,7 +2006,7 @@ between UTF-16 little-endian and UTF-16 big-endian:</p>
 <pre><code class="language-js">const buf = Buffer.from('This is little-endian UTF-16', 'utf16le');
 buf.swap16(); // Convert to big-endian UTF-16 text.
 </code></pre>
-<h3>buf.swap32()<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/buffer.js#L1036">[src]</a><span><a class="mark" href="#buffer_buf_swap32" id="buffer_buf_swap32">#</a></span></h3>
+<h3>buf.swap32()<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/buffer.js#L1036">[src]</a><span><a class="mark" href="#buffer_buf_swap32" id="buffer_buf_swap32">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v5.10.0</span>
 </div>
@@ -2031,7 +2031,7 @@ const buf2 = Buffer.from([0x1, 0x2, 0x3]);
 buf2.swap32();
 // Throws ERR_INVALID_BUFFER_SIZE
 </code></pre>
-<h3>buf.swap64()<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/buffer.js#L1053">[src]</a><span><a class="mark" href="#buffer_buf_swap64" id="buffer_buf_swap64">#</a></span></h3>
+<h3>buf.swap64()<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/buffer.js#L1053">[src]</a><span><a class="mark" href="#buffer_buf_swap64" id="buffer_buf_swap64">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v6.3.0</span>
 </div>
@@ -2057,7 +2057,7 @@ buf2.swap64();
 </code></pre>
 <p>Note that JavaScript cannot encode 64-bit integers. This method is intended
 for working with 64-bit floats.</p>
-<h3>buf.toJSON()<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/buffer.js#L979">[src]</a><span><a class="mark" href="#buffer_buf_tojson" id="buffer_buf_tojson">#</a></span></h3>
+<h3>buf.toJSON()<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/buffer.js#L979">[src]</a><span><a class="mark" href="#buffer_buf_tojson" id="buffer_buf_tojson">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.9.2</span>
 </div>
@@ -2081,7 +2081,7 @@ const copy = JSON.parse(json, (key, value) => {
 console.log(copy);
 // Prints: &#x3C;Buffer 01 02 03 04 05>
 </code></pre>
-<h3>buf.toString([encoding[, start[, end]]])<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/buffer.js#L643">[src]</a><span><a class="mark" href="#buffer_buf_tostring_encoding_start_end" id="buffer_buf_tostring_encoding_start_end">#</a></span></h3>
+<h3>buf.toString([encoding[, start[, end]]])<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/buffer.js#L643">[src]</a><span><a class="mark" href="#buffer_buf_tostring_encoding_start_end" id="buffer_buf_tostring_encoding_start_end">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.90</span>
 </div>
@@ -2150,7 +2150,7 @@ for (const value of buf) {
 //   101
 //   114
 </code></pre>
-<h3>buf.write(string[, offset[, length]][, encoding])<a class="srclink" href="https://github.com/nodejs/node/blob/47c891d3d292183f78ec87720a0e8cb441190be5/lib/buffer.js#L896">[src]</a><span><a class="mark" href="#buffer_buf_write_string_offset_length_encoding" id="buffer_buf_write_string_offset_length_encoding">#</a></span></h3>
+<h3>buf.write(string[, offset[, length]][, encoding])<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/buffer.js#L896">[src]</a><span><a class="mark" href="#buffer_buf_write_string_offset_length_encoding" id="buffer_buf_write_string_offset_length_encoding">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.90</span>
 </div>

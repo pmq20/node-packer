@@ -1084,7 +1084,6 @@
       'dependencies': [
         '<(node_lib_target_name)',
         'deps/histogram/histogram.gyp:histogram',
-        'rename_node_bin_win',
         'deps/libsquash/enclose_io_libsquash.gyp:enclose_io_libsquash',
         'deps/libautoupdate/libautoupdate.gyp:libautoupdate',
         'node_dtrace_header',

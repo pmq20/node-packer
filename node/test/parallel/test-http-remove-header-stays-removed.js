@@ -26,13 +26,13 @@ const assert = require('assert');
 const http = require('http');
 
 const server = http.createServer(function(request, response) {
-  // removed headers should stay removed, even if node automatically adds them
+  // Removed headers should stay removed, even if node automatically adds them
   // to the output:
   response.removeHeader('connection');
   response.removeHeader('transfer-encoding');
   response.removeHeader('content-length');
 
-  // make sure that removing and then setting still works:
+  // Make sure that removing and then setting still works:
   response.removeHeader('date');
   response.setHeader('date', 'coffee o clock');
 

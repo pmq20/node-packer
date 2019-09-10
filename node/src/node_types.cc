@@ -1,4 +1,5 @@
-#include "node_internals.h"
+#include "env-inl.h"
+#include "node.h"
 
 using v8::Context;
 using v8::FunctionCallbackInfo;
@@ -62,7 +63,8 @@ static void IsBoxedPrimitive(const FunctionCallbackInfo<Value>& args) {
 
 void InitializeTypes(Local<Object> target,
                      Local<Value> unused,
-                     Local<Context> context) {
+                     Local<Context> context,
+                     void* priv) {
   Environment* env = Environment::GetCurrent(context);
 
 #define V(type) env->SetMethodNoSideEffect(target,     \

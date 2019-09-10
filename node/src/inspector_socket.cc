@@ -1,6 +1,8 @@
 #include "inspector_socket.h"
 
-#include "http_parser.h"
+#define NODE_EXPERIMENTAL_HTTP
+#include "http_parser_adaptor.h"
+
 #include "util-inl.h"
 
 #define NODE_WANT_INTERNALS 1
@@ -8,11 +10,10 @@
 
 #include "openssl/sha.h"  // Sha-1 hash
 
+#include <cstring>
 #include <map>
-#include <string.h>
 
 #define ACCEPT_KEY_LENGTH base64_encoded_size(20)
-#define BUFFER_GROWTH_CHUNK_SIZE 1024
 
 #define DUMP_READS 0
 #define DUMP_WRITES 0
@@ -155,10 +156,10 @@ static void generate_accept_string(const std::string& client_key,
 }
 
 static std::string TrimPort(const std::string& host) {
-  size_t last_colon_pos = host.rfind(":");
+  size_t last_colon_pos = host.rfind(':');
   if (last_colon_pos == std::string::npos)
     return host;
-  size_t bracket = host.rfind("]");
+  size_t bracket = host.rfind(']');
   if (bracket == std::string::npos || last_colon_pos > bracket)
     return host.substr(0, last_colon_pos);
   return host;
@@ -361,7 +362,7 @@ class WsHandler : public ProtocolHandler {
   }
 
  private:
-  using Callback = void (WsHandler::*)(void);
+  using Callback = void (WsHandler::*)();
 
   static void OnCloseFrameWritten(uv_write_t* req, int status) {
     WriteRequest* wr = WriteRequest::from_write_req(req);
@@ -433,8 +434,8 @@ class HttpHandler : public ProtocolHandler {
   explicit HttpHandler(InspectorSocket* inspector, TcpHolder::Pointer tcp)
                        : ProtocolHandler(inspector, std::move(tcp)),
                          parsing_value_(false) {
-    http_parser_init(&parser_, HTTP_REQUEST);
-    http_parser_settings_init(&parser_settings);
+    llhttp_init(&parser_, HTTP_REQUEST, &parser_settings);
+    llhttp_settings_init(&parser_settings);
     parser_settings.on_header_field = OnHeaderField;
     parser_settings.on_header_value = OnHeaderValue;
     parser_settings.on_message_complete = OnMessageComplete;
@@ -478,9 +479,15 @@ class HttpHandler : public ProtocolHandler {
   }
 
   void OnData(std::vector<char>* data) override {
-    http_parser_execute(&parser_, &parser_settings, data->data(), data->size());
+    parser_errno_t err;
+    err = llhttp_execute(&parser_, data->data(), data->size());
+
+    if (err == HPE_PAUSED_UPGRADE) {
+      err = HPE_OK;
+      llhttp_resume_after_upgrade(&parser_);
+    }
     data->clear();
-    if (parser_.http_errno != HPE_OK) {
+    if (err != HPE_OK) {
       CancelHandshake();
     }
     // Event handling may delete *this
@@ -517,14 +524,14 @@ class HttpHandler : public ProtocolHandler {
     handler->inspector()->SwitchProtocol(nullptr);
   }
 
-  static int OnHeaderValue(http_parser* parser, const char* at, size_t length) {
+  static int OnHeaderValue(parser_t* parser, const char* at, size_t length) {
     HttpHandler* handler = From(parser);
     handler->parsing_value_ = true;
     handler->headers_[handler->current_header_].append(at, length);
     return 0;
   }
 
-  static int OnHeaderField(http_parser* parser, const char* at, size_t length) {
+  static int OnHeaderField(parser_t* parser, const char* at, size_t length) {
     HttpHandler* handler = From(parser);
     if (handler->parsing_value_) {
       handler->parsing_value_ = false;
@@ -534,23 +541,24 @@ class HttpHandler : public ProtocolHandler {
     return 0;
   }
 
-  static int OnPath(http_parser* parser, const char* at, size_t length) {
+  static int OnPath(parser_t* parser, const char* at, size_t length) {
     HttpHandler* handler = From(parser);
     handler->path_.append(at, length);
     return 0;
   }
 
-  static HttpHandler* From(http_parser* parser) {
+  static HttpHandler* From(parser_t* parser) {
     return node::ContainerOf(&HttpHandler::parser_, parser);
   }
 
-  static int OnMessageComplete(http_parser* parser) {
+  static int OnMessageComplete(parser_t* parser) {
     // Event needs to be fired after the parser is done.
     HttpHandler* handler = From(parser);
-    handler->events_.push_back(
-        HttpEvent(handler->path_, parser->upgrade, parser->method == HTTP_GET,
-                  handler->HeaderValue("Sec-WebSocket-Key"),
-                  handler->HeaderValue("Host")));
+    handler->events_.emplace_back(handler->path_,
+                                  parser->upgrade,
+                                  parser->method == HTTP_GET,
+                                  handler->HeaderValue("Sec-WebSocket-Key"),
+                                  handler->HeaderValue("Host"));
     handler->path_ = "";
     handler->parsing_value_ = false;
     handler->headers_.clear();
@@ -581,8 +589,8 @@ class HttpHandler : public ProtocolHandler {
   }
 
   bool parsing_value_;
-  http_parser parser_;
-  http_parser_settings parser_settings;
+  parser_t parser_;
+  parser_settings_t parser_settings;
   std::vector<HttpEvent> events_;
   std::string current_header_;
   std::map<std::string, std::string> headers_;

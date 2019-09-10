@@ -7,23 +7,23 @@
 #include <cmath>  // For isfinite.
 #include <vector>
 
-#include "src/ast/compile-time-value.h"
 #include "src/ast/prettyprinter.h"
 #include "src/ast/scopes.h"
 #include "src/base/hashmap.h"
 #include "src/builtins/builtins-constructor.h"
 #include "src/builtins/builtins.h"
-#include "src/code-stubs.h"
-#include "src/contexts.h"
-#include "src/conversions-inl.h"
-#include "src/double.h"
-#include "src/elements.h"
-#include "src/objects-inl.h"
+#include "src/numbers/conversions-inl.h"
+#include "src/numbers/double.h"
+#include "src/objects/contexts.h"
+#include "src/objects/elements.h"
+#include "src/objects/literal-objects-inl.h"
 #include "src/objects/literal-objects.h"
 #include "src/objects/map.h"
-#include "src/property-details.h"
-#include "src/property.h"
-#include "src/string-stream.h"
+#include "src/objects/objects-inl.h"
+#include "src/objects/property-details.h"
+#include "src/objects/property.h"
+#include "src/strings/string-stream.h"
+#include "src/zone/zone-list-inl.h"
 
 namespace v8 {
 namespace internal {
@@ -71,15 +71,6 @@ IterationStatement* AstNode::AsIterationStatement() {
   }
 }
 
-BreakableStatement* AstNode::AsBreakableStatement() {
-  switch (node_type()) {
-    BREAKABLE_NODE_LIST(RETURN_NODE);
-    ITERATION_NODE_LIST(RETURN_NODE);
-    default:
-      return nullptr;
-  }
-}
-
 MaterializedLiteral* AstNode::AsMaterializedLiteral() {
   switch (node_type()) {
     LITERAL_NODE_LIST(RETURN_NODE);
@@ -114,6 +105,13 @@ bool Expression::IsTheHoleLiteral() const {
   return IsLiteral() && AsLiteral()->type() == Literal::kTheHole;
 }
 
+bool Expression::IsCompileTimeValue() {
+  if (IsLiteral()) return true;
+  MaterializedLiteral* literal = AsMaterializedLiteral();
+  if (literal == nullptr) return false;
+  return literal->IsSimple();
+}
+
 bool Expression::IsUndefinedLiteral() const {
   if (IsLiteral() && AsLiteral()->type() == Literal::kUndefined) return true;
 
@@ -135,10 +133,6 @@ bool Expression::ToBooleanIsFalse() const {
 }
 
 bool Expression::IsValidReferenceExpression() const {
-  // We don't want expressions wrapped inside RewritableExpression to be
-  // considered as valid reference expressions, as they will be rewritten
-  // to something (most probably involving a do expression).
-  if (IsRewritableExpression()) return false;
   return IsProperty() ||
          (IsVariableProxy() && AsVariableProxy()->IsValidReferenceExpression());
 }
@@ -158,32 +152,12 @@ bool Expression::IsAccessorFunctionDefinition() const {
   return IsFunctionLiteral() && IsAccessorFunction(AsFunctionLiteral()->kind());
 }
 
-bool Statement::IsJump() const {
-  switch (node_type()) {
-#define JUMP_NODE_LIST(V) \
-  V(Block)                \
-  V(ExpressionStatement)  \
-  V(ContinueStatement)    \
-  V(BreakStatement)       \
-  V(ReturnStatement)      \
-  V(IfStatement)
-#define GENERATE_CASE(Node) \
-  case k##Node:             \
-    return static_cast<const Node*>(this)->IsJump();
-    JUMP_NODE_LIST(GENERATE_CASE)
-#undef GENERATE_CASE
-#undef JUMP_NODE_LIST
-    default:
-      return false;
-  }
-}
-
 VariableProxy::VariableProxy(Variable* var, int start_position)
     : Expression(start_position, kVariableProxy),
       raw_name_(var->raw_name()),
       next_unresolved_(nullptr) {
-  bit_field_ |= IsThisField::encode(var->is_this()) |
-                IsAssignedField::encode(false) |
+  DCHECK(!var->is_this());
+  bit_field_ |= IsAssignedField::encode(false) |
                 IsResolvedField::encode(false) |
                 HoleCheckModeField::encode(HoleCheckMode::kElided);
   BindTo(var);
@@ -198,7 +172,7 @@ VariableProxy::VariableProxy(const VariableProxy* copy_from)
 }
 
 void VariableProxy::BindTo(Variable* var) {
-  DCHECK((is_this() && var->is_this()) || raw_name() == var->raw_name());
+  DCHECK_EQ(raw_name(), var->raw_name());
   set_var(var);
   set_is_resolved();
   var->set_is_used();
@@ -238,6 +212,18 @@ void FunctionLiteral::SetShouldEagerCompile() {
 
 bool FunctionLiteral::AllowsLazyCompilation() {
   return scope()->AllowsLazyCompilation();
+}
+
+bool FunctionLiteral::SafeToSkipArgumentsAdaptor() const {
+  // TODO(bmeurer,verwaest): The --fast_calls_with_arguments_mismatches
+  // is mostly here for checking the real-world impact of the calling
+  // convention. There's not really a point in turning off this flag
+  // otherwise, so we should remove it at some point, when we're done
+  // with the experiments (https://crbug.com/v8/8895).
+  return FLAG_fast_calls_with_arguments_mismatches &&
+         language_mode() == LanguageMode::kStrict &&
+         scope()->arguments() == nullptr &&
+         scope()->rest_parameter() == nullptr;
 }
 
 Handle<String> FunctionLiteral::name(Isolate* isolate) const {
@@ -296,6 +282,17 @@ std::unique_ptr<char[]> FunctionLiteral::GetDebugName() const {
   return result;
 }
 
+bool FunctionLiteral::requires_brand_initialization() const {
+  Scope* outer = scope_->outer_scope();
+
+  // If there are no variables declared in the outer scope other than
+  // the class name variable, the outer class scope may be elided when
+  // the function is deserialized after preparsing.
+  if (!outer->is_class_scope()) return false;
+
+  return outer->AsClassScope()->brand() != nullptr;
+}
+
 ObjectLiteralProperty::ObjectLiteralProperty(Expression* key, Expression* value,
                                              Kind kind, bool is_computed_name)
     : LiteralProperty(key, value, is_computed_name),
@@ -319,23 +316,24 @@ ObjectLiteralProperty::ObjectLiteralProperty(AstValueFactory* ast_value_factory,
 }
 
 bool LiteralProperty::NeedsSetFunctionName() const {
-  return is_computed_name_ && (value_->IsAnonymousFunctionDefinition() ||
-                               value_->IsConciseMethodDefinition() ||
-                               value_->IsAccessorFunctionDefinition());
+  return is_computed_name() && (value_->IsAnonymousFunctionDefinition() ||
+                                value_->IsConciseMethodDefinition() ||
+                                value_->IsAccessorFunctionDefinition());
 }
 
 ClassLiteralProperty::ClassLiteralProperty(Expression* key, Expression* value,
                                            Kind kind, bool is_static,
-                                           bool is_computed_name)
+                                           bool is_computed_name,
+                                           bool is_private)
     : LiteralProperty(key, value, is_computed_name),
       kind_(kind),
       is_static_(is_static),
+      is_private_(is_private),
       private_or_computed_name_var_(nullptr) {}
 
 bool ObjectLiteral::Property::IsCompileTimeValue() const {
   return kind_ == CONSTANT ||
-      (kind_ == MATERIALIZED_LITERAL &&
-       CompileTimeValue::IsCompileTimeValue(value_));
+         (kind_ == MATERIALIZED_LITERAL && value_->IsCompileTimeValue());
 }
 
 
@@ -360,19 +358,37 @@ void ObjectLiteral::CalculateEmitStore(Zone* zone) {
     Literal* literal = property->key()->AsLiteral();
     DCHECK(!literal->IsNullLiteral());
 
-    // If there is an existing entry do not emit a store unless the previous
-    // entry was also an accessor.
     uint32_t hash = literal->Hash();
     ZoneHashMap::Entry* entry = table.LookupOrInsert(literal, hash, allocator);
-    if (entry->value != nullptr) {
-      auto previous_kind =
+    if (entry->value == nullptr) {
+      entry->value = property;
+    } else {
+      // We already have a later definition of this property, so we don't need
+      // to emit a store for the current one.
+      //
+      // There are two subtleties here.
+      //
+      // (1) Emitting a store might actually be incorrect. For example, in {get
+      // foo() {}, foo: 42}, the getter store would override the data property
+      // (which, being a non-computed compile-time valued property, is already
+      // part of the initial literal object.
+      //
+      // (2) If the later definition is an accessor (say, a getter), and the
+      // current definition is a complementary accessor (here, a setter), then
+      // we still must emit a store for the current definition.
+
+      auto later_kind =
           static_cast<ObjectLiteral::Property*>(entry->value)->kind();
-      if (!((property->kind() == GETTER && previous_kind == SETTER) ||
-            (property->kind() == SETTER && previous_kind == GETTER))) {
+      bool complementary_accessors =
+          (property->kind() == GETTER && later_kind == SETTER) ||
+          (property->kind() == SETTER && later_kind == GETTER);
+      if (!complementary_accessors) {
         property->set_emit_store(false);
+        if (later_kind == GETTER || later_kind == SETTER) {
+          entry->value = property;
+        }
       }
     }
-    entry->value = property;
   }
 }
 
@@ -427,7 +443,7 @@ int ObjectLiteral::InitDepthAndFlags() {
     Literal* key = property->key()->AsLiteral();
     Expression* value = property->value();
 
-    bool is_compile_time_value = CompileTimeValue::IsCompileTimeValue(value);
+    bool is_compile_time_value = value->IsCompileTimeValue();
     is_simple = is_simple && is_compile_time_value;
 
     // Keep track of the number of elements in the object literal and
@@ -454,8 +470,8 @@ int ObjectLiteral::InitDepthAndFlags() {
   return depth_acc;
 }
 
-void ObjectLiteral::BuildConstantProperties(Isolate* isolate) {
-  if (!constant_properties_.is_null()) return;
+void ObjectLiteral::BuildBoilerplateDescription(Isolate* isolate) {
+  if (!boilerplate_description_.is_null()) return;
 
   int index_keys = 0;
   bool has_seen_proto = false;
@@ -465,28 +481,23 @@ void ObjectLiteral::BuildConstantProperties(Isolate* isolate) {
       has_seen_proto = true;
       continue;
     }
-    if (property->is_computed_name()) {
-      continue;
-    }
+    if (property->is_computed_name()) continue;
 
     Literal* key = property->key()->AsLiteral();
-
-    if (!key->IsPropertyName()) {
-      index_keys++;
-    }
+    if (!key->IsPropertyName()) index_keys++;
   }
 
-  Handle<BoilerplateDescription> constant_properties =
-      isolate->factory()->NewBoilerplateDescription(boilerplate_properties_,
-                                                    properties()->length(),
-                                                    index_keys, has_seen_proto);
+  Handle<ObjectBoilerplateDescription> boilerplate_description =
+      isolate->factory()->NewObjectBoilerplateDescription(
+          boilerplate_properties_, properties()->length(), index_keys,
+          has_seen_proto);
 
   int position = 0;
   for (int i = 0; i < properties()->length(); i++) {
     ObjectLiteral::Property* property = properties()->at(i);
     if (property->IsPrototype()) continue;
 
-    if (static_cast<uint32_t>(position) == boilerplate_properties_ * 2) {
+    if (static_cast<uint32_t>(position) == boilerplate_properties_) {
       DCHECK(property->is_computed_name());
       break;
     }
@@ -510,11 +521,12 @@ void ObjectLiteral::BuildConstantProperties(Isolate* isolate) {
     Handle<Object> value = GetBoilerplateValue(property->value(), isolate);
 
     // Add name, value pair to the fixed array.
-    constant_properties->set(position++, *key);
-    constant_properties->set(position++, *value);
+    boilerplate_description->set_key_value(position++, *key, *value);
   }
 
-  constant_properties_ = constant_properties;
+  boilerplate_description->set_flags(EncodeLiteralType());
+
+  boilerplate_description_ = boilerplate_description;
 }
 
 bool ObjectLiteral::IsFastCloningSupported() const {
@@ -524,12 +536,6 @@ bool ObjectLiteral::IsFastCloningSupported() const {
   return fast_elements() && is_shallow() &&
          properties_count() <=
              ConstructorBuiltins::kMaximumClonedShallowObjectProperties;
-}
-
-bool ArrayLiteral::is_empty() const {
-  DCHECK(is_initialized());
-  return values()->is_empty() &&
-         (constant_elements().is_null() || constant_elements()->is_empty());
 }
 
 int ArrayLiteral::InitDepthAndFlags() {
@@ -550,7 +556,7 @@ int ArrayLiteral::InitDepthAndFlags() {
       if (subliteral_depth > depth_acc) depth_acc = subliteral_depth;
     }
 
-    if (!CompileTimeValue::IsCompileTimeValue(element)) {
+    if (!element->IsCompileTimeValue()) {
       is_simple = false;
     }
   }
@@ -563,8 +569,8 @@ int ArrayLiteral::InitDepthAndFlags() {
   return depth_acc;
 }
 
-void ArrayLiteral::BuildConstantElements(Isolate* isolate) {
-  if (!constant_elements_.is_null()) return;
+void ArrayLiteral::BuildBoilerplateDescription(Isolate* isolate) {
+  if (!boilerplate_description_.is_null()) return;
 
   int constants_length =
       first_spread_index_ >= 0 ? first_spread_index_ : values()->length();
@@ -606,7 +612,7 @@ void ArrayLiteral::BuildConstantElements(Isolate* isolate) {
   // elements array to a copy-on-write array.
   if (is_simple() && depth() == 1 && array_index > 0 &&
       IsSmiOrObjectElementsKind(kind)) {
-    fixed_array->set_map(isolate->heap()->fixed_cow_array_map());
+    fixed_array->set_map(ReadOnlyRoots(isolate).fixed_cow_array_map());
   }
 
   Handle<FixedArrayBase> elements = fixed_array;
@@ -615,19 +621,17 @@ void ArrayLiteral::BuildConstantElements(Isolate* isolate) {
     elements = isolate->factory()->NewFixedDoubleArray(constants_length);
     // We are copying from non-fast-double to fast-double.
     ElementsKind from_kind = TERMINAL_FAST_ELEMENTS_KIND;
-    accessor->CopyElements(fixed_array, from_kind, elements, constants_length);
+    accessor->CopyElements(isolate, fixed_array, from_kind, elements,
+                           constants_length);
   }
 
-  // Remember both the literal's constant values as well as the ElementsKind.
-  Handle<ConstantElementsPair> literals =
-      isolate->factory()->NewConstantElementsPair(kind, elements);
-
-  constant_elements_ = literals;
+  boilerplate_description_ =
+      isolate->factory()->NewArrayBoilerplateDescription(kind, elements);
 }
 
 bool ArrayLiteral::IsFastCloningSupported() const {
   return depth() <= 1 &&
-         values()->length() <=
+         values_.length() <=
              ConstructorBuiltins::kMaximumClonedShallowArrayElements;
 }
 
@@ -643,8 +647,17 @@ Handle<Object> MaterializedLiteral::GetBoilerplateValue(Expression* expression,
   if (expression->IsLiteral()) {
     return expression->AsLiteral()->BuildValue(isolate);
   }
-  if (CompileTimeValue::IsCompileTimeValue(expression)) {
-    return CompileTimeValue::GetValue(isolate, expression);
+  if (expression->IsCompileTimeValue()) {
+    if (expression->IsObjectLiteral()) {
+      ObjectLiteral* object_literal = expression->AsObjectLiteral();
+      DCHECK(object_literal->is_simple());
+      return object_literal->boilerplate_description();
+    } else {
+      DCHECK(expression->IsArrayLiteral());
+      ArrayLiteral* array_literal = expression->AsArrayLiteral();
+      DCHECK(array_literal->is_simple());
+      return array_literal->boilerplate_description();
+    }
   }
   return isolate->factory()->uninitialized_value();
 }
@@ -669,18 +682,20 @@ bool MaterializedLiteral::NeedsInitialAllocationSite() {
 
 void MaterializedLiteral::BuildConstants(Isolate* isolate) {
   if (IsArrayLiteral()) {
-    return AsArrayLiteral()->BuildConstantElements(isolate);
+    AsArrayLiteral()->BuildBoilerplateDescription(isolate);
+    return;
   }
   if (IsObjectLiteral()) {
-    return AsObjectLiteral()->BuildConstantProperties(isolate);
+    AsObjectLiteral()->BuildBoilerplateDescription(isolate);
+    return;
   }
   DCHECK(IsRegExpLiteral());
 }
 
 Handle<TemplateObjectDescription> GetTemplateObject::GetOrBuildDescription(
     Isolate* isolate) {
-  Handle<FixedArray> raw_strings =
-      isolate->factory()->NewFixedArray(this->raw_strings()->length(), TENURED);
+  Handle<FixedArray> raw_strings = isolate->factory()->NewFixedArray(
+      this->raw_strings()->length(), AllocationType::kOld);
   bool raw_and_cooked_match = true;
   for (int i = 0; i < raw_strings->length(); ++i) {
     if (this->cooked_strings()->at(i) == nullptr ||
@@ -693,12 +708,12 @@ Handle<TemplateObjectDescription> GetTemplateObject::GetOrBuildDescription(
   Handle<FixedArray> cooked_strings = raw_strings;
   if (!raw_and_cooked_match) {
     cooked_strings = isolate->factory()->NewFixedArray(
-        this->cooked_strings()->length(), TENURED);
+        this->cooked_strings()->length(), AllocationType::kOld);
     for (int i = 0; i < cooked_strings->length(); ++i) {
       if (this->cooked_strings()->at(i) != nullptr) {
         cooked_strings->set(i, *this->cooked_strings()->at(i)->string());
       } else {
-        cooked_strings->set(i, isolate->heap()->undefined_value());
+        cooked_strings->set(i, ReadOnlyRoots(isolate).undefined_value());
       }
     }
   }
@@ -714,7 +729,7 @@ static bool IsCommutativeOperationWithSmiLiteral(Token::Value op) {
 
 // Check for the pattern: x + 1.
 static bool MatchSmiLiteralOperation(Expression* left, Expression* right,
-                                     Expression** expr, Smi** literal) {
+                                     Expression** expr, Smi* literal) {
   if (right->IsSmiLiteral()) {
     *expr = left;
     *literal = right->AsLiteral()->AsSmiLiteral();
@@ -724,7 +739,7 @@ static bool MatchSmiLiteralOperation(Expression* left, Expression* right,
 }
 
 bool BinaryOperation::IsSmiLiteralOperation(Expression** subexpr,
-                                            Smi** literal) {
+                                            Smi* literal) {
   return MatchSmiLiteralOperation(left_, right_, subexpr, literal) ||
          (IsCommutativeOperationWithSmiLiteral(op()) &&
           MatchSmiLiteralOperation(right_, left_, subexpr, literal));
@@ -806,9 +821,10 @@ Call::CallType Call::GetCallType() const {
     if (proxy->var()->IsUnallocated()) {
       return GLOBAL_CALL;
     } else if (proxy->var()->IsLookupSlot()) {
-      // Calls going through 'with' always use DYNAMIC rather than DYNAMIC_LOCAL
-      // or DYNAMIC_GLOBAL.
-      return proxy->var()->mode() == DYNAMIC ? WITH_CALL : OTHER_CALL;
+      // Calls going through 'with' always use VariableMode::kDynamic rather
+      // than VariableMode::kDynamicLocal or VariableMode::kDynamicGlobal.
+      return proxy->var()->mode() == VariableMode::kDynamic ? WITH_CALL
+                                                            : OTHER_CALL;
     }
   }
 
@@ -831,8 +847,11 @@ Call::CallType Call::GetCallType() const {
   return OTHER_CALL;
 }
 
-CaseClause::CaseClause(Expression* label, ZoneList<Statement*>* statements)
-    : label_(label), statements_(statements) {}
+CaseClause::CaseClause(Zone* zone, Expression* label,
+                       const ScopedPtrList<Statement>& statements)
+    : label_(label), statements_(0, nullptr) {
+  statements.CopyTo(&statements_, zone);
+}
 
 bool Literal::IsPropertyName() const {
   if (type() != kString) return false;
@@ -864,7 +883,7 @@ Handle<Object> Literal::BuildValue(Isolate* isolate) const {
     case kSmi:
       return handle(Smi::FromInt(smi_), isolate);
     case kHeapNumber:
-      return isolate->factory()->NewNumber(number_, TENURED);
+      return isolate->factory()->NewNumber(number_, AllocationType::kOld);
     case kString:
       return string_->string();
     case kSymbol:
@@ -954,7 +973,7 @@ const char* CallRuntime::debug_name() {
   case k##NodeType:             \
     return static_cast<const NodeType*>(this)->labels();
 
-ZoneList<const AstRawString*>* BreakableStatement::labels() const {
+ZonePtrList<const AstRawString>* BreakableStatement::labels() const {
   switch (node_type()) {
     BREAKABLE_NODE_LIST(RETURN_LABELS)
     ITERATION_NODE_LIST(RETURN_LABELS)

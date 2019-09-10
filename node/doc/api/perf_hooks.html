@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Performance Timing API | Node.js v10.15.3 Documentation</title>
+  <title>Performance Timing API | Node.js v12.10.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -52,11 +52,13 @@
 <li><a href="os.html" class="nav-os">OS</a></li>
 <li><a href="path.html" class="nav-path">Path</a></li>
 <li><a href="perf_hooks.html" class="nav-perf_hooks active">Performance Hooks</a></li>
+<li><a href="policy.html" class="nav-policy">Policies</a></li>
 <li><a href="process.html" class="nav-process">Process</a></li>
 <li><a href="punycode.html" class="nav-punycode">Punycode</a></li>
 <li><a href="querystring.html" class="nav-querystring">Query Strings</a></li>
 <li><a href="readline.html" class="nav-readline">Readline</a></li>
 <li><a href="repl.html" class="nav-repl">REPL</a></li>
+<li><a href="report.html" class="nav-report">Report</a></li>
 <li><a href="stream.html" class="nav-stream">Stream</a></li>
 <li><a href="string_decoder.html" class="nav-string_decoder">String Decoder</a></li>
 <li><a href="timers.html" class="nav-timers">Timers</a></li>
@@ -69,7 +71,7 @@
 <li><a href="v8.html" class="nav-v8">V8</a></li>
 <li><a href="vm.html" class="nav-vm">VM</a></li>
 <li><a href="worker_threads.html" class="nav-worker_threads">Worker Threads</a></li>
-<li><a href="zlib.html" class="nav-zlib">ZLIB</a></li>
+<li><a href="zlib.html" class="nav-zlib">Zlib</a></li>
 </ul>
 <div class="line"></div>
 <ul>
@@ -79,7 +81,7 @@
 
     <div id="column1" data-id="perf_hooks" class="interior">
       <header>
-        <h1>Node.js v10.15.3 Documentation</h1>
+        <h1>Node.js v12.10.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -94,7 +96,8 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v11.x/api/perf_hooks.html">11.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v12.x/api/perf_hooks.html">12.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v11.x/api/perf_hooks.html">11.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v10.x/api/perf_hooks.html">10.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v9.x/api/perf_hooks.html">9.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v8.x/api/perf_hooks.html">8.x <b>LTS</b></a></li></ol>
@@ -138,6 +141,7 @@
 <p><a href="#perf_hooks_class_performancenodetiming_extends_performanceentry">Class: PerformanceNodeTiming extends PerformanceEntry</a></p>
 <ul>
 <li><a href="#perf_hooks_performancenodetiming_bootstrapcomplete">performanceNodeTiming.bootstrapComplete</a></li>
+<li><a href="#perf_hooks_performancenodetiming_environment">performanceNodeTiming.environment</a></li>
 <li><a href="#perf_hooks_performancenodetiming_loopexit">performanceNodeTiming.loopExit</a></li>
 <li><a href="#perf_hooks_performancenodetiming_loopstart">performanceNodeTiming.loopStart</a></li>
 <li><a href="#perf_hooks_performancenodetiming_nodestart">performanceNodeTiming.nodeStart</a></li>
@@ -158,6 +162,26 @@
 <li><a href="#perf_hooks_performanceobserverentrylist_getentries">performanceObserverEntryList.getEntries()</a></li>
 <li><a href="#perf_hooks_performanceobserverentrylist_getentriesbyname_name_type">performanceObserverEntryList.getEntriesByName(name[, type])</a></li>
 <li><a href="#perf_hooks_performanceobserverentrylist_getentriesbytype_type">performanceObserverEntryList.getEntriesByType(type)</a></li>
+</ul>
+</li>
+<li>
+<p><a href="#perf_hooks_perf_hooks_monitoreventloopdelay_options">perf_hooks.monitorEventLoopDelay([options])</a></p>
+<ul>
+<li>
+<p><a href="#perf_hooks_class_histogram">Class: Histogram</a></p>
+<ul>
+<li><a href="#perf_hooks_histogram_disable">histogram.disable()</a></li>
+<li><a href="#perf_hooks_histogram_enable">histogram.enable()</a></li>
+<li><a href="#perf_hooks_histogram_exceeds">histogram.exceeds</a></li>
+<li><a href="#perf_hooks_histogram_max">histogram.max</a></li>
+<li><a href="#perf_hooks_histogram_mean">histogram.mean</a></li>
+<li><a href="#perf_hooks_histogram_min">histogram.min</a></li>
+<li><a href="#perf_hooks_histogram_percentile_percentile">histogram.percentile(percentile)</a></li>
+<li><a href="#perf_hooks_histogram_percentiles">histogram.percentiles</a></li>
+<li><a href="#perf_hooks_histogram_reset">histogram.reset()</a></li>
+<li><a href="#perf_hooks_histogram_stddev">histogram.stddev</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li>
@@ -336,7 +360,7 @@ Performance Entry.</p>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
 <p>The type of the performance entry. Currently it may be one of: <code>'node'</code>,
-<code>'mark'</code>, <code>'measure'</code>, <code>'gc'</code>, <code>'function'</code>, or <code>'http2'</code>.</p>
+<code>'mark'</code>, <code>'measure'</code>, <code>'gc'</code>, <code>'function'</code>, <code>'http2'</code> or <code>'http'</code>.</p>
 <h3>performanceEntry.kind<span><a class="mark" href="#perf_hooks_performanceentry_kind" id="perf_hooks_performanceentry_kind">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.5.0</span>
@@ -368,6 +392,15 @@ The value may be one of:</p>
 <p>The high resolution millisecond timestamp at which the Node.js process
 completed bootstrapping. If bootstrapping has not yet finished, the property
 has the value of -1.</p>
+<h3>performanceNodeTiming.environment<span><a class="mark" href="#perf_hooks_performancenodetiming_environment" id="perf_hooks_performancenodetiming_environment">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.5.0</span>
+</div>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
+</ul>
+<p>The high resolution millisecond timestamp at which the Node.js environment was
+initialized.</p>
 <h3>performanceNodeTiming.loopExit<span><a class="mark" href="#perf_hooks_performancenodetiming_loopexit" id="perf_hooks_performancenodetiming_loopexit">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.5.0</span>
@@ -406,8 +439,8 @@ initialized.</p>
 </ul>
 <p>The high resolution millisecond timestamp at which the V8 platform was
 initialized.</p>
-<h2>Class: PerformanceObserver<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/perf_hooks.js#L277">[src]</a><span><a class="mark" href="#perf_hooks_class_performanceobserver" id="perf_hooks_class_performanceobserver">#</a></span></h2>
-<h3>new PerformanceObserver(callback)<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/perf_hooks.js#L278">[src]</a><span><a class="mark" href="#perf_hooks_new_performanceobserver_callback" id="perf_hooks_new_performanceobserver_callback">#</a></span></h3>
+<h2>Class: PerformanceObserver<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/perf_hooks.js#L285">[src]</a><span><a class="mark" href="#perf_hooks_class_performanceobserver" id="perf_hooks_class_performanceobserver">#</a></span></h2>
+<h3>new PerformanceObserver(callback)<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/perf_hooks.js#L286">[src]</a><span><a class="mark" href="#perf_hooks_new_performanceobserver_callback" id="perf_hooks_new_performanceobserver_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.5.0</span>
 </div>
@@ -443,12 +476,12 @@ longer needed.</p>
 notified about new <code>PerformanceEntry</code> instances. The callback receives a
 <code>PerformanceObserverEntryList</code> instance and a reference to the
 <code>PerformanceObserver</code>.</p>
-<h3>performanceObserver.disconnect()<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/perf_hooks.js#L313">[src]</a><span><a class="mark" href="#perf_hooks_performanceobserver_disconnect" id="perf_hooks_performanceobserver_disconnect">#</a></span></h3>
+<h3>performanceObserver.disconnect()<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/perf_hooks.js#L320">[src]</a><span><a class="mark" href="#perf_hooks_performanceobserver_disconnect" id="perf_hooks_performanceobserver_disconnect">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.5.0</span>
 </div>
 <p>Disconnects the <code>PerformanceObserver</code> instance from all notifications.</p>
-<h3>performanceObserver.observe(options)<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/perf_hooks.js#L326">[src]</a><span><a class="mark" href="#perf_hooks_performanceobserver_observe_options" id="perf_hooks_performanceobserver_observe_options">#</a></span></h3>
+<h3>performanceObserver.observe(options)<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/perf_hooks.js#L333">[src]</a><span><a class="mark" href="#perf_hooks_performanceobserver_observe_options" id="perf_hooks_performanceobserver_observe_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.5.0</span>
 </div>
@@ -476,7 +509,7 @@ every <code>PerformanceEntry</code> instance:</p>
 } = require('perf_hooks');
 
 const obs = new PerformanceObserver((list, observer) => {
-  // called three times synchronously. list contains one item
+  // Called three times synchronously. `list` contains one item.
 });
 obs.observe({ entryTypes: ['mark'] });
 
@@ -489,7 +522,7 @@ for (let n = 0; n &#x3C; 3; n++)
 } = require('perf_hooks');
 
 const obs = new PerformanceObserver((list, observer) => {
-  // called once. list contains three items
+  // Called once. `list` contains three items.
 });
 obs.observe({ entryTypes: ['mark'], buffered: true });
 
@@ -535,6 +568,126 @@ equal to <code>name</code>, and optionally, whose <code>performanceEntry.entryTy
 <p>Returns a list of <code>PerformanceEntry</code> objects in chronological order
 with respect to <code>performanceEntry.startTime</code> whose <code>performanceEntry.entryType</code>
 is equal to <code>type</code>.</p>
+<h2>perf_hooks.monitorEventLoopDelay([options])<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/perf_hooks.js#L594">[src]</a><span><a class="mark" href="#perf_hooks_perf_hooks_monitoreventloopdelay_options" id="perf_hooks_perf_hooks_monitoreventloopdelay_options">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v11.10.0</span>
+</div>
+<ul>
+<li>
+<p><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></p>
+<ul>
+<li><code>resolution</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> The sampling rate in milliseconds. Must be greater
+than zero. <strong>Default:</strong> <code>10</code>.</li>
+</ul>
+</li>
+<li>Returns: <a href="perf_hooks.html#perf_hooks_class_histogram" class="type">&#x3C;Histogram></a></li>
+</ul>
+<p>Creates a <code>Histogram</code> object that samples and reports the event loop delay
+over time. The delays will be reported in nanoseconds.</p>
+<p>Using a timer to detect approximate event loop delay works because the
+execution of timers is tied specifically to the lifecycle of the libuv
+event loop. That is, a delay in the loop will cause a delay in the execution
+of the timer, and those delays are specifically what this API is intended to
+detect.</p>
+<pre><code class="language-js">const { monitorEventLoopDelay } = require('perf_hooks');
+const h = monitorEventLoopDelay({ resolution: 20 });
+h.enable();
+// Do something.
+h.disable();
+console.log(h.min);
+console.log(h.max);
+console.log(h.mean);
+console.log(h.stddev);
+console.log(h.percentiles);
+console.log(h.percentile(50));
+console.log(h.percentile(99));
+</code></pre>
+<h3>Class: Histogram<span><a class="mark" href="#perf_hooks_class_histogram" id="perf_hooks_class_histogram">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v11.10.0</span>
+</div>
+<p>Tracks the event loop delay at a given sampling rate.</p>
+<h4>histogram.disable()<span><a class="mark" href="#perf_hooks_histogram_disable" id="perf_hooks_histogram_disable">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v11.10.0</span>
+</div>
+<ul>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a></li>
+</ul>
+<p>Disables the event loop delay sample timer. Returns <code>true</code> if the timer was
+stopped, <code>false</code> if it was already stopped.</p>
+<h4>histogram.enable()<span><a class="mark" href="#perf_hooks_histogram_enable" id="perf_hooks_histogram_enable">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v11.10.0</span>
+</div>
+<ul>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a></li>
+</ul>
+<p>Enables the event loop delay sample timer. Returns <code>true</code> if the timer was
+started, <code>false</code> if it was already started.</p>
+<h4>histogram.exceeds<span><a class="mark" href="#perf_hooks_histogram_exceeds" id="perf_hooks_histogram_exceeds">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v11.10.0</span>
+</div>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
+</ul>
+<p>The number of times the event loop delay exceeded the maximum 1 hour event
+loop delay threshold.</p>
+<h4>histogram.max<span><a class="mark" href="#perf_hooks_histogram_max" id="perf_hooks_histogram_max">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v11.10.0</span>
+</div>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
+</ul>
+<p>The maximum recorded event loop delay.</p>
+<h4>histogram.mean<span><a class="mark" href="#perf_hooks_histogram_mean" id="perf_hooks_histogram_mean">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v11.10.0</span>
+</div>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
+</ul>
+<p>The mean of the recorded event loop delays.</p>
+<h4>histogram.min<span><a class="mark" href="#perf_hooks_histogram_min" id="perf_hooks_histogram_min">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v11.10.0</span>
+</div>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
+</ul>
+<p>The minimum recorded event loop delay.</p>
+<h4>histogram.percentile(percentile)<span><a class="mark" href="#perf_hooks_histogram_percentile_percentile" id="perf_hooks_histogram_percentile_percentile">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v11.10.0</span>
+</div>
+<ul>
+<li><code>percentile</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> A percentile value between 1 and 100.</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
+</ul>
+<p>Returns the value at the given percentile.</p>
+<h4>histogram.percentiles<span><a class="mark" href="#perf_hooks_histogram_percentiles" id="perf_hooks_histogram_percentiles">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v11.10.0</span>
+</div>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map" class="type">&#x3C;Map></a></li>
+</ul>
+<p>Returns a <code>Map</code> object detailing the accumulated percentile distribution.</p>
+<h4>histogram.reset()<span><a class="mark" href="#perf_hooks_histogram_reset" id="perf_hooks_histogram_reset">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v11.10.0</span>
+</div>
+<p>Resets the collected histogram data.</p>
+<h4>histogram.stddev<span><a class="mark" href="#perf_hooks_histogram_stddev" id="perf_hooks_histogram_stddev">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v11.10.0</span>
+</div>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
+</ul>
+<p>The standard deviation of the recorded event loop delays.</p>
 <h2>Examples<span><a class="mark" href="#perf_hooks_examples" id="perf_hooks_examples">#</a></span></h2>
 <h3>Measuring the duration of async operations<span><a class="mark" href="#perf_hooks_measuring_the_duration_of_async_operations" id="perf_hooks_measuring_the_duration_of_async_operations">#</a></span></h3>
 <p>The following example uses the <a href="async_hooks.html">Async Hooks</a> and Performance APIs to measure

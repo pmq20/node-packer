@@ -1,5 +1,7 @@
 'use strict';
 
+const { JSON } = primordials;
+
 const vm = require('vm');
 
 const scriptFiles = [
@@ -18,9 +20,8 @@ const scriptFiles = [
 ];
 var script = '';
 
-
 scriptFiles.forEach((s) => {
-  script += process.binding('natives')[s] + '\n';
+  script += internalBinding('natives')[s] + '\n';
 });
 
 const tickArguments = [];

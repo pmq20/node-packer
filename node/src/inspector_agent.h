@@ -1,19 +1,16 @@
-#ifndef SRC_INSPECTOR_AGENT_H_
-#define SRC_INSPECTOR_AGENT_H_
+#pragma once
 
 #if defined(NODE_WANT_INTERNALS) && NODE_WANT_INTERNALS
-
-#include <memory>
-
-#include <stddef.h>
 
 #if !HAVE_INSPECTOR
 #error("This header can only be used when inspector is enabled")
 #endif
 
 #include "node_options.h"
-#include "node_persistent.h"
 #include "v8.h"
+
+#include <cstddef>
+#include <memory>
 
 namespace v8_inspector {
 class StringView;
@@ -32,7 +29,7 @@ class WorkerManager;
 
 class InspectorSession {
  public:
-  virtual ~InspectorSession() {}
+  virtual ~InspectorSession() = default;
   virtual void Dispatch(const v8_inspector::StringView& message) = 0;
 };
 
@@ -50,8 +47,9 @@ class Agent {
 
   // Create client_, may create io_ if option enabled
   bool Start(const std::string& path,
-             std::shared_ptr<DebugOptions> options,
-             bool is_worker);
+             const DebugOptions& options,
+             std::shared_ptr<HostPort> host_port,
+             bool is_main);
   // Stop and destroy io_
   void Stop();
 
@@ -67,8 +65,8 @@ class Agent {
   void WaitForConnect();
   // Blocks till all the sessions with "WaitForDisconnectOnShutdown" disconnect
   void WaitForDisconnect();
-  void FatalException(v8::Local<v8::Value> error,
-                      v8::Local<v8::Message> message);
+  void ReportUncaughtException(v8::Local<v8::Value> error,
+                               v8::Local<v8::Message> message);
 
   // Async stack traces instrumentation.
   void AsyncTaskScheduled(const v8_inspector::StringView& taskName, void* task,
@@ -84,7 +82,9 @@ class Agent {
   void EnableAsyncHook();
   void DisableAsyncHook();
 
-  void AddWorkerInspector(int thread_id, const std::string& url, Agent* agent);
+  void SetParentHandle(std::unique_ptr<ParentInspectorHandle> parent_handle);
+  std::unique_ptr<ParentInspectorHandle> GetParentHandle(
+      int thread_id, const std::string& url);
 
   // Called to create inspector sessions that can be used from the main thread.
   // The inspector responds by using the delegate to send messages back.
@@ -94,9 +94,7 @@ class Agent {
 
   void PauseOnNextJavascriptStatement(const std::string& reason);
 
-  InspectorIo* io() {
-    return io_.get();
-  }
+  std::string GetWsUrl() const;
 
   // Can only be called from the main thread.
   bool StartIoThread();
@@ -104,7 +102,8 @@ class Agent {
   // Calls StartIoThread() from off the main thread.
   void RequestIoThreadStart();
 
-  std::shared_ptr<DebugOptions> options() { return debug_options_; }
+  const DebugOptions& options() { return debug_options_; }
+  std::shared_ptr<HostPort> host_port() { return host_port_; }
   void ContextCreated(v8::Local<v8::Context> context, const ContextInfo& info);
 
   // Interface for interacting with inspectors in worker threads
@@ -112,7 +111,7 @@ class Agent {
 
  private:
   void ToggleAsyncHook(v8::Isolate* isolate,
-                       const node::Persistent<v8::Function>& fn);
+                       const v8::Global<v8::Function>& fn);
 
   node::Environment* parent_env_;
   // Encapsulates majority of the Inspector functionality
@@ -121,17 +120,21 @@ class Agent {
   std::unique_ptr<InspectorIo> io_;
   std::unique_ptr<ParentInspectorHandle> parent_handle_;
   std::string path_;
-  std::shared_ptr<DebugOptions> debug_options_;
+
+  // This is a copy of the debug options parsed from CLI in the Environment.
+  // Do not use the host_port in that, instead manipulate the shared host_port_
+  // pointer which is meant to store the actual host and port of the inspector
+  // server.
+  DebugOptions debug_options_;
+  std::shared_ptr<HostPort> host_port_;
 
   bool pending_enable_async_hook_ = false;
   bool pending_disable_async_hook_ = false;
-  node::Persistent<v8::Function> enable_async_hook_function_;
-  node::Persistent<v8::Function> disable_async_hook_function_;
+  v8::Global<v8::Function> enable_async_hook_function_;
+  v8::Global<v8::Function> disable_async_hook_function_;
 };
 
 }  // namespace inspector
 }  // namespace node
 
 #endif  // defined(NODE_WANT_INTERNALS) && NODE_WANT_INTERNALS
-
-#endif  // SRC_INSPECTOR_AGENT_H_

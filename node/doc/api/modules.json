@@ -8,7 +8,7 @@
       "introduced_in": "v0.10.0",
       "stability": 2,
       "stabilityText": "Stable",
-      "desc": "<p>In the Node.js module system, each file is treated as a separate module. For\nexample, consider a file named <code>foo.js</code>:</p>\n<pre><code class=\"language-js\">const circle = require('./circle.js');\nconsole.log(`The area of a circle of radius 4 is ${circle.area(4)}`);\n</code></pre>\n<p>On the first line, <code>foo.js</code> loads the module <code>circle.js</code> that is in the same\ndirectory as <code>foo.js</code>.</p>\n<p>Here are the contents of <code>circle.js</code>:</p>\n<pre><code class=\"language-js\">const { PI } = Math;\n\nexports.area = (r) => PI * r ** 2;\n\nexports.circumference = (r) => 2 * PI * r;\n</code></pre>\n<p>The module <code>circle.js</code> has exported the functions <code>area()</code> and\n<code>circumference()</code>. Functions and objects are added to the root of a module\nby specifying additional properties on the special <code>exports</code> object.</p>\n<p>Variables local to the module will be private, because the module is wrapped\nin a function by Node.js (see <a href=\"#modules_the_module_wrapper\">module wrapper</a>).\nIn this example, the variable <code>PI</code> is private to <code>circle.js</code>.</p>\n<p>The <code>module.exports</code> property can be assigned a new value (such as a function\nor object).</p>\n<p>Below, <code>bar.js</code> makes use of the <code>square</code> module, which exports a Square class:</p>\n<pre><code class=\"language-js\">const Square = require('./square.js');\nconst mySquare = new Square(2);\nconsole.log(`The area of mySquare is ${mySquare.area()}`);\n</code></pre>\n<p>The <code>square</code> module is defined in <code>square.js</code>:</p>\n<pre><code class=\"language-js\">// assigning to exports will not modify module, must use module.exports\nmodule.exports = class Square {\n  constructor(width) {\n    this.width = width;\n  }\n\n  area() {\n    return this.width ** 2;\n  }\n};\n</code></pre>\n<p>The module system is implemented in the <code>require('module')</code> module.</p>",
+      "desc": "<p>In the Node.js module system, each file is treated as a separate module. For\nexample, consider a file named <code>foo.js</code>:</p>\n<pre><code class=\"language-js\">const circle = require('./circle.js');\nconsole.log(`The area of a circle of radius 4 is ${circle.area(4)}`);\n</code></pre>\n<p>On the first line, <code>foo.js</code> loads the module <code>circle.js</code> that is in the same\ndirectory as <code>foo.js</code>.</p>\n<p>Here are the contents of <code>circle.js</code>:</p>\n<pre><code class=\"language-js\">const { PI } = Math;\n\nexports.area = (r) => PI * r ** 2;\n\nexports.circumference = (r) => 2 * PI * r;\n</code></pre>\n<p>The module <code>circle.js</code> has exported the functions <code>area()</code> and\n<code>circumference()</code>. Functions and objects are added to the root of a module\nby specifying additional properties on the special <code>exports</code> object.</p>\n<p>Variables local to the module will be private, because the module is wrapped\nin a function by Node.js (see <a href=\"#modules_the_module_wrapper\">module wrapper</a>).\nIn this example, the variable <code>PI</code> is private to <code>circle.js</code>.</p>\n<p>The <code>module.exports</code> property can be assigned a new value (such as a function\nor object).</p>\n<p>Below, <code>bar.js</code> makes use of the <code>square</code> module, which exports a Square class:</p>\n<pre><code class=\"language-js\">const Square = require('./square.js');\nconst mySquare = new Square(2);\nconsole.log(`The area of mySquare is ${mySquare.area()}`);\n</code></pre>\n<p>The <code>square</code> module is defined in <code>square.js</code>:</p>\n<pre><code class=\"language-js\">// Assigning to exports will not modify module, must use module.exports\nmodule.exports = class Square {\n  constructor(width) {\n    this.width = width;\n  }\n\n  area() {\n    return this.width ** 2;\n  }\n};\n</code></pre>\n<p>The module system is implemented in the <code>require('module')</code> module.</p>",
       "miscs": [
         {
           "textRaw": "Accessing the main module",
@@ -26,19 +26,19 @@
           "textRaw": "All Together...",
           "name": "All Together...",
           "type": "misc",
-          "desc": "<p>To get the exact filename that will be loaded when <code>require()</code> is called, use\nthe <code>require.resolve()</code> function.</p>\n<p>Putting together all of the above, here is the high-level algorithm\nin pseudocode of what <code>require.resolve()</code> does:</p>\n<pre><code class=\"language-txt\">require(X) from module at path Y\n1. If X is a core module,\n   a. return the core module\n   b. STOP\n2. If X begins with '/'\n   a. set Y to be the filesystem root\n3. If X begins with './' or '/' or '../'\n   a. LOAD_AS_FILE(Y + X)\n   b. LOAD_AS_DIRECTORY(Y + X)\n4. LOAD_NODE_MODULES(X, dirname(Y))\n5. THROW \"not found\"\n\nLOAD_AS_FILE(X)\n1. If X is a file, load X as JavaScript text.  STOP\n2. If X.js is a file, load X.js as JavaScript text.  STOP\n3. If X.json is a file, parse X.json to a JavaScript Object.  STOP\n4. If X.node is a file, load X.node as binary addon.  STOP\n\nLOAD_INDEX(X)\n1. If X/index.js is a file, load X/index.js as JavaScript text.  STOP\n2. If X/index.json is a file, parse X/index.json to a JavaScript object. STOP\n3. If X/index.node is a file, load X/index.node as binary addon.  STOP\n\nLOAD_AS_DIRECTORY(X)\n1. If X/package.json is a file,\n   a. Parse X/package.json, and look for \"main\" field.\n   b. let M = X + (json main field)\n   c. LOAD_AS_FILE(M)\n   d. LOAD_INDEX(M)\n2. LOAD_INDEX(X)\n\nLOAD_NODE_MODULES(X, START)\n1. let DIRS = NODE_MODULES_PATHS(START)\n2. for each DIR in DIRS:\n   a. LOAD_AS_FILE(DIR/X)\n   b. LOAD_AS_DIRECTORY(DIR/X)\n\nNODE_MODULES_PATHS(START)\n1. let PARTS = path split(START)\n2. let I = count of PARTS - 1\n3. let DIRS = [GLOBAL_FOLDERS]\n4. while I >= 0,\n   a. if PARTS[I] = \"node_modules\" CONTINUE\n   b. DIR = path join(PARTS[0 .. I] + \"node_modules\")\n   c. DIRS = DIRS + DIR\n   d. let I = I - 1\n5. return DIRS\n</code></pre>"
+          "desc": "<p>To get the exact filename that will be loaded when <code>require()</code> is called, use\nthe <code>require.resolve()</code> function.</p>\n<p>Putting together all of the above, here is the high-level algorithm\nin pseudocode of what <code>require()</code> does:</p>\n<pre><code class=\"language-txt\">require(X) from module at path Y\n1. If X is a core module,\n   a. return the core module\n   b. STOP\n2. If X begins with '/'\n   a. set Y to be the filesystem root\n3. If X begins with './' or '/' or '../'\n   a. LOAD_AS_FILE(Y + X)\n   b. LOAD_AS_DIRECTORY(Y + X)\n4. LOAD_NODE_MODULES(X, dirname(Y))\n5. THROW \"not found\"\n\nLOAD_AS_FILE(X)\n1. If X is a file, load X as JavaScript text.  STOP\n2. If X.js is a file, load X.js as JavaScript text.  STOP\n3. If X.json is a file, parse X.json to a JavaScript Object.  STOP\n4. If X.node is a file, load X.node as binary addon.  STOP\n\nLOAD_INDEX(X)\n1. If X/index.js is a file, load X/index.js as JavaScript text.  STOP\n2. If X/index.json is a file, parse X/index.json to a JavaScript object. STOP\n3. If X/index.node is a file, load X/index.node as binary addon.  STOP\n\nLOAD_AS_DIRECTORY(X)\n1. If X/package.json is a file,\n   a. Parse X/package.json, and look for \"main\" field.\n   b. If \"main\" is a falsy value, GOTO 2.\n   c. let M = X + (json main field)\n   d. LOAD_AS_FILE(M)\n   e. LOAD_INDEX(M)\n   f. LOAD_INDEX(X) DEPRECATED\n   g. THROW \"not found\"\n2. LOAD_INDEX(X)\n\nLOAD_NODE_MODULES(X, START)\n1. let DIRS = NODE_MODULES_PATHS(START)\n2. for each DIR in DIRS:\n   a. LOAD_AS_FILE(DIR/X)\n   b. LOAD_AS_DIRECTORY(DIR/X)\n\nNODE_MODULES_PATHS(START)\n1. let PARTS = path split(START)\n2. let I = count of PARTS - 1\n3. let DIRS = [GLOBAL_FOLDERS]\n4. while I >= 0,\n   a. if PARTS[I] = \"node_modules\" CONTINUE\n   b. DIR = path join(PARTS[0 .. I] + \"node_modules\")\n   c. DIRS = DIRS + DIR\n   d. let I = I - 1\n5. return DIRS\n</code></pre>\n<p>If <code>--experimental-exports</code> is enabled, Node.js allows packages loaded via\n<code>LOAD_NODE_MODULES</code> to explicitly declare which file paths to expose and how\nthey should be interpreted. This expands on the control packages already had\nusing the <code>main</code> field.</p>\n<p>With this feature enabled, the <code>LOAD_NODE_MODULES</code> changes are:</p>\n<pre><code class=\"language-txt\">LOAD_NODE_MODULES(X, START)\n1. let DIRS = NODE_MODULES_PATHS(START)\n2. for each DIR in DIRS:\n   a. let FILE_PATH = RESOLVE_BARE_SPECIFIER(DIR, X)\n   a. LOAD_AS_FILE(FILE_PATH)\n   b. LOAD_AS_DIRECTORY(FILE_PATH)\n\nRESOLVE_BARE_SPECIFIER(DIR, X)\n1. Try to interpret X as a combination of name and subpath where the name\n   may have a @scope/ prefix and the subpath begins with a slash (`/`).\n2. If X matches this pattern and DIR/name/package.json is a file:\n   a. Parse DIR/name/package.json, and look for \"exports\" field.\n   b. If \"exports\" is null or undefined, GOTO 3.\n   c. Find the longest key in \"exports\" that the subpath starts with.\n   d. If no such key can be found, throw \"not found\".\n   e. let RESOLVED_URL =\n        PACKAGE_EXPORTS_TARGET_RESOLVE(pathToFileURL(DIR/name), exports[key],\n        subpath.slice(key.length)), as defined in the esm resolver.\n   f. return fileURLToPath(RESOLVED_URL)\n3. return DIR/X\n</code></pre>\n<p><code>\"exports\"</code> is only honored when loading a package \"name\" as defined above. Any\n<code>\"exports\"</code> values within nested directories and packages must be declared by\nthe <code>package.json</code> responsible for the \"name\".</p>"
         },
         {
           "textRaw": "Caching",
           "name": "Caching",
           "type": "misc",
-          "desc": "<p>Modules are cached after the first time they are loaded. This means\n(among other things) that every call to <code>require('foo')</code> will get\nexactly the same object returned, if it would resolve to the same file.</p>\n<p>Provided <code>require.cache</code> is not modified, multiple calls to\n<code>require('foo')</code> will not cause the module code to be executed multiple times.\nThis is an important feature. With it, \"partially done\" objects can be returned,\nthus allowing transitive dependencies to be loaded even when they would cause\ncycles.</p>\n<p>To have a module execute code multiple times, export a function, and call\nthat function.</p>",
+          "desc": "<p>Modules are cached after the first time they are loaded. This means (among other\nthings) that every call to <code>require('foo')</code> will get exactly the same object\nreturned, if it would resolve to the same file.</p>\n<p>Provided <code>require.cache</code> is not modified, multiple calls to <code>require('foo')</code>\nwill not cause the module code to be executed multiple times. This is an\nimportant feature. With it, \"partially done\" objects can be returned, thus\nallowing transitive dependencies to be loaded even when they would cause cycles.</p>\n<p>To have a module execute code multiple times, export a function, and call that\nfunction.</p>",
           "miscs": [
             {
               "textRaw": "Module Caching Caveats",
               "name": "Module Caching Caveats",
               "type": "misc",
-              "desc": "<p>Modules are cached based on their resolved filename. Since modules may\nresolve to a different filename based on the location of the calling\nmodule (loading from <code>node_modules</code> folders), it is not a <em>guarantee</em>\nthat <code>require('foo')</code> will always return the exact same object, if it\nwould resolve to different files.</p>\n<p>Additionally, on case-insensitive file systems or operating systems, different\nresolved filenames can point to the same file, but the cache will still treat\nthem as different modules and will reload the file multiple times. For example,\n<code>require('./foo')</code> and <code>require('./FOO')</code> return two different objects,\nirrespective of whether or not <code>./foo</code> and <code>./FOO</code> are the same file.</p>"
+              "desc": "<p>Modules are cached based on their resolved filename. Since modules may resolve\nto a different filename based on the location of the calling module (loading\nfrom <code>node_modules</code> folders), it is not a <em>guarantee</em> that <code>require('foo')</code> will\nalways return the exact same object, if it would resolve to different files.</p>\n<p>Additionally, on case-insensitive file systems or operating systems, different\nresolved filenames can point to the same file, but the cache will still treat\nthem as different modules and will reload the file multiple times. For example,\n<code>require('./foo')</code> and <code>require('./FOO')</code> return two different objects,\nirrespective of whether or not <code>./foo</code> and <code>./FOO</code> are the same file.</p>"
             }
           ]
         },
@@ -58,13 +58,13 @@
           "textRaw": "File Modules",
           "name": "File Modules",
           "type": "misc",
-          "desc": "<p>If the exact filename is not found, then Node.js will attempt to load the\nrequired filename with the added extensions: <code>.js</code>, <code>.json</code>, and finally\n<code>.node</code>.</p>\n<p><code>.js</code> files are interpreted as JavaScript text files, and <code>.json</code> files are\nparsed as JSON text files. <code>.node</code> files are interpreted as compiled addon\nmodules loaded with <code>dlopen</code>.</p>\n<p>A required module prefixed with <code>'/'</code> is an absolute path to the file. For\nexample, <code>require('/home/marco/foo.js')</code> will load the file at\n<code>/home/marco/foo.js</code>.</p>\n<p>A required module prefixed with <code>'./'</code> is relative to the file calling\n<code>require()</code>. That is, <code>circle.js</code> must be in the same directory as <code>foo.js</code> for\n<code>require('./circle')</code> to find it.</p>\n<p>Without a leading <code>'/'</code>, <code>'./'</code>, or <code>'../'</code> to indicate a file, the module must\neither be a core module or is loaded from a <code>node_modules</code> folder.</p>\n<p>If the given path does not exist, <code>require()</code> will throw an <a href=\"errors.html#errors_class_error\"><code>Error</code></a> with its\n<code>code</code> property set to <code>'MODULE_NOT_FOUND'</code>.</p>"
+          "desc": "<p>If the exact filename is not found, then Node.js will attempt to load the\nrequired filename with the added extensions: <code>.js</code>, <code>.json</code>, and finally\n<code>.node</code>.</p>\n<p><code>.js</code> files are interpreted as JavaScript text files, and <code>.json</code> files are\nparsed as JSON text files. <code>.node</code> files are interpreted as compiled addon\nmodules loaded with <code>process.dlopen()</code>.</p>\n<p>A required module prefixed with <code>'/'</code> is an absolute path to the file. For\nexample, <code>require('/home/marco/foo.js')</code> will load the file at\n<code>/home/marco/foo.js</code>.</p>\n<p>A required module prefixed with <code>'./'</code> is relative to the file calling\n<code>require()</code>. That is, <code>circle.js</code> must be in the same directory as <code>foo.js</code> for\n<code>require('./circle')</code> to find it.</p>\n<p>Without a leading <code>'/'</code>, <code>'./'</code>, or <code>'../'</code> to indicate a file, the module must\neither be a core module or is loaded from a <code>node_modules</code> folder.</p>\n<p>If the given path does not exist, <code>require()</code> will throw an <a href=\"errors.html#errors_class_error\"><code>Error</code></a> with its\n<code>code</code> property set to <code>'MODULE_NOT_FOUND'</code>.</p>"
         },
         {
           "textRaw": "Folders as Modules",
           "name": "Folders as Modules",
           "type": "misc",
-          "desc": "<p>It is convenient to organize programs and libraries into self-contained\ndirectories, and then provide a single entry point to that library.\nThere are three ways in which a folder may be passed to <code>require()</code> as\nan argument.</p>\n<p>The first is to create a <code>package.json</code> file in the root of the folder,\nwhich specifies a <code>main</code> module. An example <code>package.json</code> file might\nlook like this:</p>\n<pre><code class=\"language-json\">{ \"name\" : \"some-library\",\n  \"main\" : \"./lib/some-library.js\" }\n</code></pre>\n<p>If this was in a folder at <code>./some-library</code>, then\n<code>require('./some-library')</code> would attempt to load\n<code>./some-library/lib/some-library.js</code>.</p>\n<p>This is the extent of Node.js's awareness of <code>package.json</code> files.</p>\n<p>If there is no <code>package.json</code> file present in the directory, or if the\n<code>'main'</code> entry is missing or cannot be resolved, then Node.js\nwill attempt to load an <code>index.js</code> or <code>index.node</code> file out of that\ndirectory. For example, if there was no <code>package.json</code> file in the above\nexample, then <code>require('./some-library')</code> would attempt to load:</p>\n<ul>\n<li><code>./some-library/index.js</code></li>\n<li><code>./some-library/index.node</code></li>\n</ul>\n<p>If these attempts fail, then Node.js will report the entire module as missing\nwith the default error:</p>\n<pre><code class=\"language-txt\">Error: Cannot find module 'some-library'\n</code></pre>"
+          "desc": "<p>It is convenient to organize programs and libraries into self-contained\ndirectories, and then provide a single entry point to those directories.\nThere are three ways in which a folder may be passed to <code>require()</code> as\nan argument.</p>\n<p>The first is to create a <code>package.json</code> file in the root of the folder,\nwhich specifies a <code>main</code> module. An example <code>package.json</code> file might\nlook like this:</p>\n<pre><code class=\"language-json\">{ \"name\" : \"some-library\",\n  \"main\" : \"./lib/some-library.js\" }\n</code></pre>\n<p>If this was in a folder at <code>./some-library</code>, then\n<code>require('./some-library')</code> would attempt to load\n<code>./some-library/lib/some-library.js</code>.</p>\n<p>This is the extent of Node.js's awareness of <code>package.json</code> files.</p>\n<p>If there is no <code>package.json</code> file present in the directory, or if the\n<code>'main'</code> entry is missing or cannot be resolved, then Node.js\nwill attempt to load an <code>index.js</code> or <code>index.node</code> file out of that\ndirectory. For example, if there was no <code>package.json</code> file in the above\nexample, then <code>require('./some-library')</code> would attempt to load:</p>\n<ul>\n<li><code>./some-library/index.js</code></li>\n<li><code>./some-library/index.node</code></li>\n</ul>\n<p>If these attempts fail, then Node.js will report the entire module as missing\nwith the default error:</p>\n<pre><code class=\"language-txt\">Error: Cannot find module 'some-library'\n</code></pre>"
         },
         {
           "textRaw": "Loading from `node_modules` Folders",
@@ -76,7 +76,7 @@
           "textRaw": "Loading from the global folders",
           "name": "Loading from the global folders",
           "type": "misc",
-          "desc": "<p>If the <code>NODE_PATH</code> environment variable is set to a colon-delimited list\nof absolute paths, then Node.js will search those paths for modules if they\nare not found elsewhere.</p>\n<p>On Windows, <code>NODE_PATH</code> is delimited by semicolons (<code>;</code>) instead of colons.</p>\n<p><code>NODE_PATH</code> was originally created to support loading modules from\nvarying paths before the current <a href=\"#modules_all_together\">module resolution</a> algorithm was frozen.</p>\n<p><code>NODE_PATH</code> is still supported, but is less necessary now that the Node.js\necosystem has settled on a convention for locating dependent modules.\nSometimes deployments that rely on <code>NODE_PATH</code> show surprising behavior\nwhen people are unaware that <code>NODE_PATH</code> must be set. Sometimes a\nmodule's dependencies change, causing a different version (or even a\ndifferent module) to be loaded as the <code>NODE_PATH</code> is searched.</p>\n<p>Additionally, Node.js will search in the following list of GLOBAL_FOLDERS:</p>\n<ul>\n<li>1: <code>$HOME/.node_modules</code></li>\n<li>2: <code>$HOME/.node_libraries</code></li>\n<li>3: <code>$PREFIX/lib/node</code></li>\n</ul>\n<p>Where <code>$HOME</code> is the user's home directory, and <code>$PREFIX</code> is Node.js's\nconfigured <code>node_prefix</code>.</p>\n<p>These are mostly for historic reasons.</p>\n<p>It is strongly encouraged to place dependencies in the local <code>node_modules</code>\nfolder. These will be loaded faster, and more reliably.</p>"
+          "desc": "<p>If the <code>NODE_PATH</code> environment variable is set to a colon-delimited list\nof absolute paths, then Node.js will search those paths for modules if they\nare not found elsewhere.</p>\n<p>On Windows, <code>NODE_PATH</code> is delimited by semicolons (<code>;</code>) instead of colons.</p>\n<p><code>NODE_PATH</code> was originally created to support loading modules from\nvarying paths before the current <a href=\"#modules_all_together\">module resolution</a> algorithm was defined.</p>\n<p><code>NODE_PATH</code> is still supported, but is less necessary now that the Node.js\necosystem has settled on a convention for locating dependent modules.\nSometimes deployments that rely on <code>NODE_PATH</code> show surprising behavior\nwhen people are unaware that <code>NODE_PATH</code> must be set. Sometimes a\nmodule's dependencies change, causing a different version (or even a\ndifferent module) to be loaded as the <code>NODE_PATH</code> is searched.</p>\n<p>Additionally, Node.js will search in the following list of GLOBAL_FOLDERS:</p>\n<ul>\n<li>1: <code>$HOME/.node_modules</code></li>\n<li>2: <code>$HOME/.node_libraries</code></li>\n<li>3: <code>$PREFIX/lib/node</code></li>\n</ul>\n<p>Where <code>$HOME</code> is the user's home directory, and <code>$PREFIX</code> is Node.js's\nconfigured <code>node_prefix</code>.</p>\n<p>These are mostly for historic reasons.</p>\n<p>It is strongly encouraged to place dependencies in the local <code>node_modules</code>\nfolder. These will be loaded faster, and more reliably.</p>"
         },
         {
           "textRaw": "The module wrapper",
@@ -86,6 +86,13 @@
         }
       ],
       "modules": [
+        {
+          "textRaw": "Addenda: The .mjs extension",
+          "name": "addenda:_the_.mjs_extension",
+          "desc": "<p>It is not possible to <code>require()</code> files that have the <code>.mjs</code> extension.\nAttempting to do so will throw <a href=\"errors.html#errors_err_require_esm\">an error</a>. The <code>.mjs</code> extension is\nreserved for <a href=\"esm.html\">ECMAScript Modules</a> which cannot be loaded via <code>require()</code>.\nSee <a href=\"esm.html\">ECMAScript Modules</a> for more details.</p>",
+          "type": "module",
+          "displayName": "Addenda: The .mjs extension"
+        },
         {
           "textRaw": "The module scope",
           "name": "the_module_scope",
@@ -124,7 +131,7 @@
                 "changes": []
               },
               "type": "var",
-              "desc": "<p>A reference to the <code>module.exports</code> that is shorter to type.\nSee the section about the <a href=\"#modules_exports_shortcut\">exports shortcut</a> for details on when to use\n<code>exports</code> and when to use <code>module.exports</code>.</p>"
+              "desc": "<ul>\n<li><a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object\" class=\"type\">&lt;Object&gt;</a></li>\n</ul>\n<p>A reference to the <code>module.exports</code> that is shorter to type.\nSee the section about the <a href=\"#modules_exports_shortcut\">exports shortcut</a> for details on when to use\n<code>exports</code> and when to use <code>module.exports</code>.</p>"
             },
             {
               "textRaw": "module",
@@ -136,10 +143,10 @@
                 "changes": []
               },
               "type": "var",
-              "desc": "<ul>\n<li><a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object\" class=\"type\">&lt;Object&gt;</a></li>\n</ul>\n<p>A reference to the current module, see the section about the\n<a href=\"#modules_the_module_object\"><code>module</code> object</a>. In particular, <code>module.exports</code> is used for defining what\na module exports and makes available through <code>require()</code>.</p>"
+              "desc": "<ul>\n<li><a href=\"modules.html#modules_the_module_object\" class=\"type\">&lt;module&gt;</a></li>\n</ul>\n<p>A reference to the current module, see the section about the\n<a href=\"#modules_the_module_object\"><code>module</code> object</a>. In particular, <code>module.exports</code> is used for defining what\na module exports and makes available through <code>require()</code>.</p>"
             },
             {
-              "textRaw": "require()",
+              "textRaw": "require(id)",
               "type": "var",
               "name": "require",
               "meta": {
@@ -148,7 +155,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<ul>\n<li><a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function\" class=\"type\">&lt;Function&gt;</a></li>\n</ul>\n<p>Used to import modules, <code>JSON</code>, and local files. Modules can be imported\nfrom <code>node_modules</code>. Local modules and JSON files can be imported using\na relative path (e.g. <code>./</code>, <code>./foo</code>, <code>./bar/baz</code>, <code>../foo</code>) that will be\nresolved against the directory named by <a href=\"#modules_dirname\"><code>__dirname</code></a> (if defined) or\nthe current working directory.</p>\n<pre><code class=\"language-js\">// Importing a local module:\nconst myLocalModule = require('./path/myLocalModule');\n\n// Importing a JSON file:\nconst jsonData = require('./path/filename.json');\n\n// Importing a module from node_modules or Node.js built-in module:\nconst crypto = require('crypto');\n</code></pre>",
+              "desc": "<ul>\n<li><code>id</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type\" class=\"type\">&lt;string&gt;</a> module name or path</li>\n<li>Returns: <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Data_types\" class=\"type\">&lt;any&gt;</a> exported module content</li>\n</ul>\n<p>Used to import modules, <code>JSON</code>, and local files. Modules can be imported\nfrom <code>node_modules</code>. Local modules and JSON files can be imported using\na relative path (e.g. <code>./</code>, <code>./foo</code>, <code>./bar/baz</code>, <code>../foo</code>) that will be\nresolved against the directory named by <a href=\"#modules_dirname\"><code>__dirname</code></a> (if defined) or\nthe current working directory.</p>\n<pre><code class=\"language-js\">// Importing a local module:\nconst myLocalModule = require('./path/myLocalModule');\n\n// Importing a JSON file:\nconst jsonData = require('./path/filename.json');\n\n// Importing a module from node_modules or Node.js built-in module:\nconst crypto = require('crypto');\n</code></pre>",
               "properties": [
                 {
                   "textRaw": "`cache` {Object}",
@@ -160,7 +167,7 @@
                     ],
                     "changes": []
                   },
-                  "desc": "<p>Modules are cached in this object when they are required. By deleting a key\nvalue from this object, the next <code>require</code> will reload the module. Note that\nthis does not apply to <a href=\"addons.html\">native addons</a>, for which reloading will result in an\nerror.</p>"
+                  "desc": "<p>Modules are cached in this object when they are required. By deleting a key\nvalue from this object, the next <code>require</code> will reload the module.\nThis does not apply to <a href=\"addons.html\">native addons</a>, for which reloading will result in an\nerror.</p>\n<p>Adding or replacing entries is also possible. This cache is checked before\nnative modules and if a name matching a native module is added to the cache,\nno require call is\ngoing to receive the native module anymore. Use with care!</p>"
                 },
                 {
                   "textRaw": "`extensions` {Object}",
@@ -177,11 +184,11 @@
                   },
                   "stability": 0,
                   "stabilityText": "Deprecated",
-                  "desc": "<p>Instruct <code>require</code> on how to handle certain file extensions.</p>\n<p>Process files with the extension <code>.sjs</code> as <code>.js</code>:</p>\n<pre><code class=\"language-js\">require.extensions['.sjs'] = require.extensions['.js'];\n</code></pre>\n<p><strong>Deprecated</strong> In the past, this list has been used to load\nnon-JavaScript modules into Node.js by compiling them on-demand.\nHowever, in practice, there are much better ways to do this, such as\nloading modules via some other Node.js program, or compiling them to\nJavaScript ahead of time.</p>\n<p>Since the module system is locked, this feature will probably never go\naway. However, it may have subtle bugs and complexities that are best\nleft untouched.</p>\n<p>Note that the number of file system operations that the module system\nhas to perform in order to resolve a <code>require(...)</code> statement to a\nfilename scales linearly with the number of registered extensions.</p>\n<p>In other words, adding extensions slows down the module loader and\nshould be discouraged.</p>"
+                  "desc": "<p>Instruct <code>require</code> on how to handle certain file extensions.</p>\n<p>Process files with the extension <code>.sjs</code> as <code>.js</code>:</p>\n<pre><code class=\"language-js\">require.extensions['.sjs'] = require.extensions['.js'];\n</code></pre>\n<p><strong>Deprecated.</strong> In the past, this list has been used to load non-JavaScript\nmodules into Node.js by compiling them on-demand. However, in practice, there\nare much better ways to do this, such as loading modules via some other Node.js\nprogram, or compiling them to JavaScript ahead of time.</p>\n<p>Avoid using <code>require.extensions</code>. Use could cause subtle bugs and resolving the\nextensions gets slower with each registered extension.</p>"
                 },
                 {
-                  "textRaw": "`main` {Object}",
-                  "type": "Object",
+                  "textRaw": "`main` {module}",
+                  "type": "module",
                   "name": "main",
                   "meta": {
                     "added": [
@@ -229,10 +236,10 @@
                           "type": "Object",
                           "options": [
                             {
-                              "textRaw": "`paths` {string[]} Paths to resolve module location from. If present, these paths are used instead of the default resolution paths, with the exception of [GLOBAL_FOLDERS][] like `$HOME/.node_modules`, which are always included. Note that each of these paths is used as a starting point for the module resolution algorithm, meaning that the `node_modules` hierarchy is checked from this location.",
+                              "textRaw": "`paths` {string[]} Paths to resolve module location from. If present, these paths are used instead of the default resolution paths, with the exception of [GLOBAL_FOLDERS][] like `$HOME/.node_modules`, which are always included. Each of these paths is used as a starting point for the module resolution algorithm, meaning that the `node_modules` hierarchy is checked from this location.",
                               "name": "paths",
                               "type": "string[]",
-                              "desc": "Paths to resolve module location from. If present, these paths are used instead of the default resolution paths, with the exception of [GLOBAL_FOLDERS][] like `$HOME/.node_modules`, which are always included. Note that each of these paths is used as a starting point for the module resolution algorithm, meaning that the `node_modules` hierarchy is checked from this location."
+                              "desc": "Paths to resolve module location from. If present, these paths are used instead of the default resolution paths, with the exception of [GLOBAL_FOLDERS][] like `$HOME/.node_modules`, which are always included. Each of these paths is used as a starting point for the module resolution algorithm, meaning that the `node_modules` hierarchy is checked from this location."
                             }
                           ],
                           "optional": true
@@ -240,36 +247,38 @@
                       ]
                     }
                   ],
-                  "desc": "<p>Use the internal <code>require()</code> machinery to look up the location of a module,\nbut rather than loading the module, just return the resolved filename.</p>"
-                },
-                {
-                  "textRaw": "require.resolve.paths(request)",
-                  "type": "method",
-                  "name": "paths",
-                  "meta": {
-                    "added": [
-                      "v8.9.0"
-                    ],
-                    "changes": []
-                  },
-                  "signatures": [
+                  "desc": "<p>Use the internal <code>require()</code> machinery to look up the location of a module,\nbut rather than loading the module, just return the resolved filename.</p>",
+                  "methods": [
                     {
-                      "return": {
-                        "textRaw": "Returns: {string[]|null}",
-                        "name": "return",
-                        "type": "string[]|null"
+                      "textRaw": "require.resolve.paths(request)",
+                      "type": "method",
+                      "name": "paths",
+                      "meta": {
+                        "added": [
+                          "v8.9.0"
+                        ],
+                        "changes": []
                       },
-                      "params": [
+                      "signatures": [
                         {
-                          "textRaw": "`request` {string} The module path whose lookup paths are being retrieved.",
-                          "name": "request",
-                          "type": "string",
-                          "desc": "The module path whose lookup paths are being retrieved."
+                          "return": {
+                            "textRaw": "Returns: {string[]|null}",
+                            "name": "return",
+                            "type": "string[]|null"
+                          },
+                          "params": [
+                            {
+                              "textRaw": "`request` {string} The module path whose lookup paths are being retrieved.",
+                              "name": "request",
+                              "type": "string",
+                              "desc": "The module path whose lookup paths are being retrieved."
+                            }
+                          ]
                         }
-                      ]
+                      ],
+                      "desc": "<p>Returns an array containing the paths searched during resolution of <code>request</code> or\n<code>null</code> if the <code>request</code> string references a core module, for example <code>http</code> or\n<code>fs</code>.</p>"
                     }
-                  ],
-                  "desc": "<p>Returns an array containing the paths searched during resolution of <code>request</code> or\n<code>null</code> if the <code>request</code> string references a core module, for example <code>http</code> or\n<code>fs</code>.</p>"
+                  ]
                 }
               ]
             }
@@ -298,10 +307,40 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>A list of the names of all modules provided by Node.js. Can be used to verify\nif a module is maintained by a third party or not.</p>\n<p>Note that <code>module</code> in this context isn't the same object that's provided\nby the <a href=\"#modules_the_module_wrapper\">module wrapper</a>. To access it, require the <code>Module</code> module:</p>\n<pre><code class=\"language-js\">const builtin = require('module').builtinModules;\n</code></pre>"
+              "desc": "<p>A list of the names of all modules provided by Node.js. Can be used to verify\nif a module is maintained by a third party or not.</p>\n<p><code>module</code> in this context isn't the same object that's provided\nby the <a href=\"#modules_the_module_wrapper\">module wrapper</a>. To access it, require the <code>Module</code> module:</p>\n<pre><code class=\"language-js\">const builtin = require('module').builtinModules;\n</code></pre>"
             }
           ],
           "methods": [
+            {
+              "textRaw": "module.createRequire(filename)",
+              "type": "method",
+              "name": "createRequire",
+              "meta": {
+                "added": [
+                  "v12.2.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {require} Require function",
+                    "name": "return",
+                    "type": "require",
+                    "desc": "Require function"
+                  },
+                  "params": [
+                    {
+                      "textRaw": "`filename` {string|URL} Filename to be used to construct the require function. Must be a file URL object, file URL string, or absolute path string.",
+                      "name": "filename",
+                      "type": "string|URL",
+                      "desc": "Filename to be used to construct the require function. Must be a file URL object, file URL string, or absolute path string."
+                    }
+                  ]
+                }
+              ],
+              "desc": "<pre><code class=\"language-js\">import { createRequire } from 'module';\nconst require = createRequire(import.meta.url);\n\n// sibling-module.js is a CommonJS module.\nconst siblingModule = require('./sibling-module');\n</code></pre>"
+            },
             {
               "textRaw": "module.createRequireFromPath(filename)",
               "type": "method",
@@ -310,14 +349,19 @@
                 "added": [
                   "v10.12.0"
                 ],
+                "deprecated": [
+                  "v12.2.0"
+                ],
                 "changes": []
               },
+              "stability": 0,
+              "stabilityText": "Deprecated: Please use [`createRequire()`][] instead.",
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns: {[`require`][]} Require function",
+                    "textRaw": "Returns: {require} Require function",
                     "name": "return",
-                    "type": "[`require`][]",
+                    "type": "require",
                     "desc": "Require function"
                   },
                   "params": [
@@ -330,7 +374,7 @@
                   ]
                 }
               ],
-              "desc": "<pre><code class=\"language-js\">const { createRequireFromPath } = require('module');\nconst requireUtil = createRequireFromPath('../src/utils');\n\n// require `../src/utils/some-tool`\nrequireUtil('./some-tool');\n</code></pre>"
+              "desc": "<pre><code class=\"language-js\">const { createRequireFromPath } = require('module');\nconst requireUtil = createRequireFromPath('../src/utils/');\n\n// Require `../src/utils/some-tool`\nrequireUtil('./some-tool');\n</code></pre>"
             }
           ],
           "type": "module",
@@ -372,7 +416,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>The <code>module.exports</code> object is created by the <code>Module</code> system. Sometimes this is\nnot acceptable; many want their module to be an instance of some class. To do\nthis, assign the desired export object to <code>module.exports</code>. Note that assigning\nthe desired object to <code>exports</code> will simply rebind the local <code>exports</code> variable,\nwhich is probably not what is desired.</p>\n<p>For example, suppose we were making a module called <code>a.js</code>:</p>\n<pre><code class=\"language-js\">const EventEmitter = require('events');\n\nmodule.exports = new EventEmitter();\n\n// Do some work, and after some time emit\n// the 'ready' event from the module itself.\nsetTimeout(() => {\n  module.exports.emit('ready');\n}, 1000);\n</code></pre>\n<p>Then in another file we could do:</p>\n<pre><code class=\"language-js\">const a = require('./a');\na.on('ready', () => {\n  console.log('module \"a\" is ready');\n});\n</code></pre>\n<p>Note that assignment to <code>module.exports</code> must be done immediately. It cannot be\ndone in any callbacks. This does not work:</p>\n<p><code>x.js</code>:</p>\n<pre><code class=\"language-js\">setTimeout(() => {\n  module.exports = { a: 'hello' };\n}, 0);\n</code></pre>\n<p><code>y.js</code>:</p>\n<pre><code class=\"language-js\">const x = require('./x');\nconsole.log(x.a);\n</code></pre>",
+              "desc": "<p>The <code>module.exports</code> object is created by the <code>Module</code> system. Sometimes this is\nnot acceptable; many want their module to be an instance of some class. To do\nthis, assign the desired export object to <code>module.exports</code>. Assigning\nthe desired object to <code>exports</code> will simply rebind the local <code>exports</code> variable,\nwhich is probably not what is desired.</p>\n<p>For example, suppose we were making a module called <code>a.js</code>:</p>\n<pre><code class=\"language-js\">const EventEmitter = require('events');\n\nmodule.exports = new EventEmitter();\n\n// Do some work, and after some time emit\n// the 'ready' event from the module itself.\nsetTimeout(() => {\n  module.exports.emit('ready');\n}, 1000);\n</code></pre>\n<p>Then in another file we could do:</p>\n<pre><code class=\"language-js\">const a = require('./a');\na.on('ready', () => {\n  console.log('module \"a\" is ready');\n});\n</code></pre>\n<p>Assignment to <code>module.exports</code> must be done immediately. It cannot be\ndone in any callbacks. This does not work:</p>\n<p><code>x.js</code>:</p>\n<pre><code class=\"language-js\">setTimeout(() => {\n  module.exports = { a: 'hello' };\n}, 0);\n</code></pre>\n<p><code>y.js</code>:</p>\n<pre><code class=\"language-js\">const x = require('./x');\nconsole.log(x.a);\n</code></pre>",
               "modules": [
                 {
                   "textRaw": "exports shortcut",
@@ -399,7 +443,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>The fully resolved filename to the module.</p>"
+              "desc": "<p>The fully resolved filename of the module.</p>"
             },
             {
               "textRaw": "`id` {string}",
@@ -464,10 +508,10 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns: {Object} `module.exports` from the resolved module",
+                    "textRaw": "Returns: {any} exported module content",
                     "name": "return",
-                    "type": "Object",
-                    "desc": "`module.exports` from the resolved module"
+                    "type": "any",
+                    "desc": "exported module content"
                   },
                   "params": [
                     {
@@ -478,7 +522,7 @@
                   ]
                 }
               ],
-              "desc": "<p>The <code>module.require</code> method provides a way to load a module as if\n<code>require()</code> was called from the original module.</p>\n<p>In order to do this, it is necessary to get a reference to the <code>module</code> object.\nSince <code>require()</code> returns the <code>module.exports</code>, and the <code>module</code> is typically\n<em>only</em> available within a specific module's code, it must be explicitly exported\nin order to be used.</p>"
+              "desc": "<p>The <code>module.require()</code> method provides a way to load a module as if\n<code>require()</code> was called from the original module.</p>\n<p>In order to do this, it is necessary to get a reference to the <code>module</code> object.\nSince <code>require()</code> returns the <code>module.exports</code>, and the <code>module</code> is typically\n<em>only</em> available within a specific module's code, it must be explicitly exported\nin order to be used.</p>"
             }
           ]
         }

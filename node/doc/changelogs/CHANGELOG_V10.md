@@ -40,6 +40,8 @@
 </table>
 
 * Other Versions
+  * [12.x](CHANGELOG_V12.md)
+  * [11.x](CHANGELOG_V11.md)
   * [9.x](CHANGELOG_V9.md)
   * [8.x](CHANGELOG_V8.md)
   * [7.x](CHANGELOG_V7.md)
@@ -53,7 +55,7 @@
 
 
 <a id="10.15.3"></a>
-## 2018-03-05, Version 10.15.3 'Dubnium' (LTS), @BethGriggs
+## 2019-03-05, Version 10.15.3 'Dubnium' (LTS), @BethGriggs
 
 ### Notable Changes
 

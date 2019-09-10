@@ -5,12 +5,27 @@
 #include "src/ast/modules.h"
 #include "src/ast/ast-value-factory.h"
 #include "src/ast/scopes.h"
-#include "src/objects-inl.h"
-#include "src/objects/module.h"
-#include "src/pending-compilation-error-handler.h"
+#include "src/objects/module-inl.h"
+#include "src/objects/objects-inl.h"
+#include "src/parsing/pending-compilation-error-handler.h"
 
 namespace v8 {
 namespace internal {
+
+bool ModuleDescriptor::AstRawStringComparer::operator()(
+    const AstRawString* lhs, const AstRawString* rhs) const {
+  // Fast path for equal pointers: a pointer is not strictly less than itself.
+  if (lhs == rhs) return false;
+
+  // Order by contents (ordering by hash is unstable across runs).
+  if (lhs->is_one_byte() != rhs->is_one_byte()) {
+    return lhs->is_one_byte();
+  }
+  if (lhs->byte_length() != rhs->byte_length()) {
+    return lhs->byte_length() < rhs->byte_length();
+  }
+  return memcmp(lhs->raw_data(), rhs->raw_data(), lhs->byte_length()) < 0;
+}
 
 void ModuleDescriptor::AddImport(const AstRawString* import_name,
                                  const AstRawString* local_name,
@@ -76,20 +91,11 @@ void ModuleDescriptor::AddStarExport(const AstRawString* module_request,
 }
 
 namespace {
-
 Handle<Object> ToStringOrUndefined(Isolate* isolate, const AstRawString* s) {
   return (s == nullptr)
              ? Handle<Object>::cast(isolate->factory()->undefined_value())
              : Handle<Object>::cast(s->string());
 }
-
-const AstRawString* FromStringOrUndefined(Isolate* isolate,
-                                          AstValueFactory* avfactory,
-                                          Handle<Object> object) {
-  if (object->IsUndefined(isolate)) return nullptr;
-  return avfactory->GetString(Handle<String>::cast(object));
-}
-
 }  // namespace
 
 Handle<ModuleInfoEntry> ModuleDescriptor::Entry::Serialize(
@@ -100,21 +106,6 @@ Handle<ModuleInfoEntry> ModuleDescriptor::Entry::Serialize(
       ToStringOrUndefined(isolate, local_name),
       ToStringOrUndefined(isolate, import_name), module_request, cell_index,
       location.beg_pos, location.end_pos);
-}
-
-ModuleDescriptor::Entry* ModuleDescriptor::Entry::Deserialize(
-    Isolate* isolate, AstValueFactory* avfactory,
-    Handle<ModuleInfoEntry> entry) {
-  Entry* result = new (avfactory->zone()) Entry(Scanner::Location::invalid());
-  result->export_name = FromStringOrUndefined(
-      isolate, avfactory, handle(entry->export_name(), isolate));
-  result->local_name = FromStringOrUndefined(
-      isolate, avfactory, handle(entry->local_name(), isolate));
-  result->import_name = FromStringOrUndefined(
-      isolate, avfactory, handle(entry->import_name(), isolate));
-  result->module_request = entry->module_request();
-  result->cell_index = entry->cell_index();
-  return result;
 }
 
 Handle<FixedArray> ModuleDescriptor::SerializeRegularExports(Isolate* isolate,
@@ -166,29 +157,6 @@ Handle<FixedArray> ModuleDescriptor::SerializeRegularExports(Isolate* isolate,
     result->set(i, *data[i]);
   }
   return result;
-}
-
-void ModuleDescriptor::DeserializeRegularExports(
-    Isolate* isolate, AstValueFactory* avfactory,
-    Handle<ModuleInfo> module_info) {
-  for (int i = 0, count = module_info->RegularExportCount(); i < count; ++i) {
-    Handle<String> local_name(module_info->RegularExportLocalName(i), isolate);
-    int cell_index = module_info->RegularExportCellIndex(i);
-    Handle<FixedArray> export_names(module_info->RegularExportExportNames(i),
-                                    isolate);
-
-    for (int j = 0, length = export_names->length(); j < length; ++j) {
-      Handle<String> export_name(String::cast(export_names->get(j)), isolate);
-
-      Entry* entry =
-          new (avfactory->zone()) Entry(Scanner::Location::invalid());
-      entry->local_name = avfactory->GetString(local_name);
-      entry->export_name = avfactory->GetString(export_name);
-      entry->cell_index = cell_index;
-
-      AddRegularExport(entry);
-    }
-  }
 }
 
 void ModuleDescriptor::MakeIndirectExportsExplicit(Zone* zone) {

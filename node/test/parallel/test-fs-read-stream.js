@@ -55,6 +55,7 @@ const rangeFile = fixtures.path('x.txt');
 
   file.on('data', function(data) {
     assert.ok(data instanceof Buffer);
+    assert.ok(data.byteOffset % 8 === 0);
     assert.ok(!paused);
     file.length += data.length;
 
@@ -148,8 +149,8 @@ common.expectsError(
   },
   {
     code: 'ERR_OUT_OF_RANGE',
-    message: 'The value of "start" is out of range. It must be <= "end". ' +
-             'Received {start: 10, end: 2}',
+    message: 'The value of "start" is out of range. It must be <= "end"' +
+             ' (here: 2). Received 10',
     type: RangeError
   });
 
@@ -206,7 +207,7 @@ if (!common.isWindows) {
 }
 
 {
-  // pause and then resume immediately.
+  // Pause and then resume immediately.
   const pauseRes = fs.createReadStream(rangeFile);
   pauseRes.pause();
   pauseRes.resume();

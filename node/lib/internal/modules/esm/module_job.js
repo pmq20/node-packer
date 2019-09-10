@@ -1,10 +1,21 @@
 'use strict';
 
+const {
+  Object,
+  SafeSet,
+  SafePromise
+} = primordials;
+
 const { ModuleWrap } = internalBinding('module_wrap');
-const { SafeSet, SafePromise } = require('internal/safe_globals');
+
 const { decorateErrorStack } = require('internal/util');
-const assert = require('assert');
+const { getOptionValue } = require('internal/options');
+const assert = require('internal/assert');
 const resolvedPromise = SafePromise.resolve();
+
+function noop() {}
+
+let hasPausedEntry = false;
 
 /* A ModuleJob tracks the loading of a single Module, and the ModuleJobs of
  * its dependencies, over time. */
@@ -17,7 +28,7 @@ class ModuleJob {
 
     // This is a Promise<{ module, reflect }>, whose fields will be copied
     // onto `this` by `link()` below once it has been resolved.
-    this.modulePromise = moduleProvider(url, isMain);
+    this.modulePromise = moduleProvider.call(loader, url, isMain);
     this.module = undefined;
     this.reflect = undefined;
 
@@ -41,6 +52,9 @@ class ModuleJob {
     };
     // Promise for the list of all dependencyJobs.
     this.linked = link();
+    // This promise is awaited later anyway, so silence
+    // 'unhandled rejection' warnings.
+    this.linked.catch(noop);
 
     // instantiated == deep dependency jobs wrappers instantiated,
     // module wrapper instantiated
@@ -71,9 +85,9 @@ class ModuleJob {
     };
     await addJobsToDependencyGraph(this);
     try {
-      if (this.isMain && process._breakFirstLine) {
-        delete process._breakFirstLine;
-        const initWrapper = process.binding('inspector').callAndPauseOnStart;
+      if (!hasPausedEntry && this.isMain && getOptionValue('--inspect-brk')) {
+        hasPausedEntry = true;
+        const initWrapper = internalBinding('inspector').callAndPauseOnStart;
         initWrapper(this.module.instantiate, this.module);
       } else {
         this.module.instantiate();
@@ -92,8 +106,9 @@ class ModuleJob {
 
   async run() {
     const module = await this.instantiate();
-    module.evaluate(-1, false);
-    return module;
+    const timeout = -1;
+    const breakOnSigint = false;
+    return { module, result: module.evaluate(timeout, breakOnSigint) };
   }
 }
 Object.setPrototypeOf(ModuleJob.prototype, null);

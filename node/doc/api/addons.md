@@ -8,7 +8,13 @@ can be loaded into Node.js using the [`require()`][require] function, and used
 just as if they were an ordinary Node.js module. They are used primarily to
 provide an interface between JavaScript running in Node.js and C/C++ libraries.
 
-At the moment, the method for implementing Addons is rather complicated,
+There are three options for implementing Addons: N-API, nan, or direct
+use of internal V8, libuv and Node.js libraries. Unless you need direct
+access to functionality which is not exposed by N-API, use N-API.
+Refer to the section [C/C++ Addons - N-API](n-api.html)
+for more information on N-API.
+
+When not using N-API, implementing Addons is complicated,
 involving knowledge of several components and APIs:
 
  - V8: the C++ library Node.js currently uses to provide the
@@ -83,7 +89,7 @@ NODE_MODULE(NODE_GYP_MODULE_NAME, Initialize)
 }  // namespace demo
 ```
 
-Note that all Node.js Addons must export an initialization function following
+All Node.js Addons must export an initialization function following
 the pattern:
 
 ```cpp
@@ -234,6 +240,28 @@ NODE_MODULE_INIT(/* exports, module, context */) {
 }
 ```
 
+#### Worker support
+
+In order to support [`Worker`][] threads, addons need to clean up any resources
+they may have allocated when such a thread exists. This can be achieved through
+the usage of the `AddEnvironmentCleanupHook()` function:
+
+```c++
+void AddEnvironmentCleanupHook(v8::Isolate* isolate,
+                               void (*fun)(void* arg),
+                               void* arg);
+```
+
+This function adds a hook that will run before a given Node.js instance shuts
+down. If necessary, such hooks can be removed using
+`RemoveEnvironmentCleanupHook()` before they are run, which has the same
+signature.
+
+In order to be loaded from multiple Node.js environments,
+such as a main thread and a Worker thread, an add-on needs to either:
+- Be an N-API addon, or
+- Be declared as context-aware using `NODE_MODULE_INIT()` as described above
+
 ### Building
 
 Once the source code has been written, it must be compiled into the binary
@@ -284,16 +312,12 @@ console.log(addon.hello());
 // Prints: 'world'
 ```
 
-Please see the examples below for further information or
-<https://github.com/arturadib/node-qt> for an example in production.
-
 Because the exact path to the compiled Addon binary can vary depending on how
 it is compiled (i.e. sometimes it may be in `./build/Debug/`), Addons can use
 the [bindings][] package to load the compiled module.
 
-Note that while the `bindings` package implementation is more sophisticated
-in how it locates Addon modules, it is essentially using a try-catch pattern
-similar to:
+While the `bindings` package implementation is more sophisticated in how it
+locates Addon modules, it is essentially using a `try…catch` pattern similar to:
 
 ```js
 try {
@@ -386,7 +410,7 @@ napi_value Method(napi_env env, napi_callback_info args) {
   napi_value greeting;
   napi_status status;
 
-  status = napi_create_string_utf8(env, "hello", NAPI_AUTO_LENGTH, &greeting);
+  status = napi_create_string_utf8(env, "world", NAPI_AUTO_LENGTH, &greeting);
   if (status != napi_ok) return nullptr;
   return greeting;
 }
@@ -569,10 +593,10 @@ NODE_MODULE(NODE_GYP_MODULE_NAME, Init)
 }  // namespace demo
 ```
 
-Note that this example uses a two-argument form of `Init()` that receives
-the full `module` object as the second argument. This allows the Addon
-to completely overwrite `exports` with a single function instead of
-adding the function as a property of `exports`.
+This example uses a two-argument form of `Init()` that receives the full
+`module` object as the second argument. This allows the Addon to completely
+overwrite `exports` with a single function instead of adding the function as a
+property of `exports`.
 
 To test it, run the following JavaScript:
 
@@ -586,7 +610,7 @@ addon((msg) => {
 });
 ```
 
-Note that, in this example, the callback function is invoked synchronously.
+In this example, the callback function is invoked synchronously.
 
 ### Object factory
 
@@ -1349,6 +1373,7 @@ Test in JavaScript by running:
 require('./build/Release/addon');
 ```
 
+[`Worker`]: worker_threads.html#worker_threads_class_worker
 [Electron]: https://electronjs.org/
 [Embedder's Guide]: https://github.com/v8/v8/wiki/Embedder's%20Guide
 [Linking to Node.js' own dependencies]: #addons_linking_to_node_js_own_dependencies
@@ -1359,5 +1384,5 @@ require('./build/Release/addon');
 [installation instructions]: https://github.com/nodejs/node-gyp#installation
 [libuv]: https://github.com/libuv/libuv
 [node-gyp]: https://github.com/nodejs/node-gyp
-[require]: modules.html#modules_require
+[require]: modules.html#modules_require_id
 [v8-docs]: https://v8docs.nodesource.com/

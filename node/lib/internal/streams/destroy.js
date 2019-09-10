@@ -1,6 +1,6 @@
 'use strict';
 
-// undocumented cb() API, needed for core, not for public API
+// Undocumented cb() API, needed for core, not for public API
 function destroy(err, cb) {
   const readableDestroyed = this._readableState &&
     this._readableState.destroyed;
@@ -10,30 +10,39 @@ function destroy(err, cb) {
   if (readableDestroyed || writableDestroyed) {
     if (cb) {
       cb(err);
-    } else if (err &&
-               (!this._writableState || !this._writableState.errorEmitted)) {
-      process.nextTick(emitErrorNT, this, err);
+    } else if (err) {
+      if (!this._writableState) {
+        process.nextTick(emitErrorNT, this, err);
+      } else if (!this._writableState.errorEmitted) {
+        this._writableState.errorEmitted = true;
+        process.nextTick(emitErrorNT, this, err);
+      }
     }
+
     return this;
   }
 
-  // we set destroyed to true before firing error callbacks in order
+  // We set destroyed to true before firing error callbacks in order
   // to make it re-entrance safe in case destroy() is called within callbacks
 
   if (this._readableState) {
     this._readableState.destroyed = true;
   }
 
-  // if this is a duplex stream mark the writable part as destroyed as well
+  // If this is a duplex stream mark the writable part as destroyed as well
   if (this._writableState) {
     this._writableState.destroyed = true;
   }
 
   this._destroy(err || null, (err) => {
     if (!cb && err) {
-      process.nextTick(emitErrorAndCloseNT, this, err);
-      if (this._writableState) {
+      if (!this._writableState) {
+        process.nextTick(emitErrorAndCloseNT, this, err);
+      } else if (!this._writableState.errorEmitted) {
         this._writableState.errorEmitted = true;
+        process.nextTick(emitErrorAndCloseNT, this, err);
+      } else {
+        process.nextTick(emitCloseNT, this);
       }
     } else if (cb) {
       process.nextTick(emitCloseNT, this);
@@ -82,7 +91,25 @@ function emitErrorNT(self, err) {
   self.emit('error', err);
 }
 
+function errorOrDestroy(stream, err) {
+  // We have tests that rely on errors being emitted
+  // in the same tick, so changing this is semver major.
+  // For now when you opt-in to autoDestroy we allow
+  // the error to be emitted nextTick. In a future
+  // semver major update we should change the default to this.
+
+  const rState = stream._readableState;
+  const wState = stream._writableState;
+
+  if ((rState && rState.autoDestroy) || (wState && wState.autoDestroy))
+    stream.destroy(err);
+  else
+    stream.emit('error', err);
+}
+
+
 module.exports = {
   destroy,
-  undestroy
+  undestroy,
+  errorOrDestroy
 };

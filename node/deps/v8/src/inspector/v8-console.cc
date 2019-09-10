@@ -24,9 +24,9 @@ namespace v8_inspector {
 namespace {
 
 String16 consoleContextToString(
-    const v8::debug::ConsoleContext& consoleContext) {
+    v8::Isolate* isolate, const v8::debug::ConsoleContext& consoleContext) {
   if (consoleContext.id() == 0) return String16();
-  return toProtocolString(consoleContext.name()) + "#" +
+  return toProtocolString(isolate, consoleContext.name()) + "#" +
          String16::fromInteger(consoleContext.id());
 }
 
@@ -63,6 +63,7 @@ class ConsoleHelper {
   void reportCall(ConsoleAPIType type) {
     if (!m_info.Length()) return;
     std::vector<v8::Local<v8::Value>> arguments;
+    arguments.reserve(m_info.Length());
     for (int i = 0; i < m_info.Length(); ++i) arguments.push_back(m_info[i]);
     reportCall(type, arguments);
   }
@@ -72,6 +73,14 @@ class ConsoleHelper {
     std::vector<v8::Local<v8::Value>> arguments;
     for (int i = 0; i < m_info.Length(); ++i) arguments.push_back(m_info[i]);
     if (!m_info.Length()) arguments.push_back(toV8String(m_isolate, message));
+    reportCall(type, arguments);
+  }
+
+  void reportCallAndReplaceFirstArgument(ConsoleAPIType type,
+                                         const String16& message) {
+    std::vector<v8::Local<v8::Value>> arguments;
+    arguments.push_back(toV8String(m_isolate, message));
+    for (int i = 1; i < m_info.Length(); ++i) arguments.push_back(m_info[i]);
     reportCall(type, arguments);
   }
 
@@ -88,7 +97,7 @@ class ConsoleHelper {
         V8ConsoleMessage::createForConsoleAPI(
             m_context, m_contextId, m_groupId, m_inspector,
             m_inspector->client()->currentTimeMS(), type, arguments,
-            consoleContextToString(m_consoleContext),
+            consoleContextToString(m_isolate, m_consoleContext),
             m_inspector->debugger()->captureStackTrace(false));
     consoleMessageStorage()->addMessage(std::move(message));
   }
@@ -106,7 +115,7 @@ class ConsoleHelper {
   bool firstArgToBoolean(bool defaultValue) {
     if (m_info.Length() < 1) return defaultValue;
     if (m_info[0]->IsBoolean()) return m_info[0].As<v8::Boolean>()->Value();
-    return m_info[0]->BooleanValue(m_context).FromMaybe(defaultValue);
+    return m_info[0]->BooleanValue(m_context->GetIsolate());
   }
 
   String16 firstArgToString(const String16& defaultValue,
@@ -115,16 +124,9 @@ class ConsoleHelper {
       return defaultValue;
     }
     v8::Local<v8::String> titleValue;
-    v8::TryCatch tryCatch(m_context->GetIsolate());
-    if (m_info[0]->IsObject()) {
-      if (!m_info[0].As<v8::Object>()->ObjectProtoToString(m_context).ToLocal(
-              &titleValue))
-        return defaultValue;
-    } else {
-      if (!m_info[0]->ToString(m_context).ToLocal(&titleValue))
-        return defaultValue;
-    }
-    return toProtocolString(titleValue);
+    if (!m_info[0]->ToString(m_context).ToLocal(&titleValue))
+      return defaultValue;
+    return toProtocolString(m_context->GetIsolate(), titleValue);
   }
 
   v8::MaybeLocal<v8::Object> firstArgAsObject() {
@@ -143,7 +145,7 @@ class ConsoleHelper {
   }
 
   void forEachSession(std::function<void(V8InspectorSessionImpl*)> callback) {
-    m_inspector->forEachSession(m_groupId, callback);
+    m_inspector->forEachSession(m_groupId, std::move(callback));
   }
 
  private:
@@ -297,7 +299,8 @@ static String16 identifierFromTitleOrStackTrace(
   } else {
     identifier = title + "@";
   }
-  identifier = consoleContextToString(consoleContext) + "@" + identifier;
+  identifier = consoleContextToString(inspector->isolate(), consoleContext) +
+               "@" + identifier;
 
   return identifier;
 }
@@ -345,16 +348,6 @@ void V8Console::Assert(const v8::debug::ConsoleCallArguments& info,
   m_inspector->debugger()->breakProgramOnAssert(helper.groupId());
 }
 
-void V8Console::MarkTimeline(const v8::debug::ConsoleCallArguments& info,
-                             const v8::debug::ConsoleContext& consoleContext) {
-  ConsoleHelper(info, consoleContext, m_inspector)
-      .reportDeprecatedCall("V8Console#markTimelineDeprecated",
-                            "'console.markTimeline' is "
-                            "deprecated. Please use "
-                            "'console.timeStamp' instead.");
-  TimeStamp(info, consoleContext);
-}
-
 void V8Console::Profile(const v8::debug::ConsoleCallArguments& info,
                         const v8::debug::ConsoleContext& consoleContext) {
   ConsoleHelper helper(info, consoleContext, m_inspector);
@@ -380,7 +373,8 @@ static void timeFunction(const v8::debug::ConsoleCallArguments& info,
   String16 protocolTitle = helper.firstArgToString("default", false);
   if (timelinePrefix) protocolTitle = "Timeline '" + protocolTitle + "'";
   const String16& timerId =
-      protocolTitle + "@" + consoleContextToString(consoleContext);
+      protocolTitle + "@" +
+      consoleContextToString(inspector->isolate(), consoleContext);
   if (helper.consoleMessageStorage()->hasTimer(helper.contextId(), timerId)) {
     helper.reportCallWithArgument(
         ConsoleAPIType::kWarning,
@@ -393,12 +387,12 @@ static void timeFunction(const v8::debug::ConsoleCallArguments& info,
 
 static void timeEndFunction(const v8::debug::ConsoleCallArguments& info,
                             const v8::debug::ConsoleContext& consoleContext,
-                            bool timelinePrefix, V8InspectorImpl* inspector) {
+                            bool timeLog, V8InspectorImpl* inspector) {
   ConsoleHelper helper(info, consoleContext, inspector);
   String16 protocolTitle = helper.firstArgToString("default", false);
-  if (timelinePrefix) protocolTitle = "Timeline '" + protocolTitle + "'";
   const String16& timerId =
-      protocolTitle + "@" + consoleContextToString(consoleContext);
+      protocolTitle + "@" +
+      consoleContextToString(inspector->isolate(), consoleContext);
   if (!helper.consoleMessageStorage()->hasTimer(helper.contextId(), timerId)) {
     helper.reportCallWithArgument(
         ConsoleAPIType::kWarning,
@@ -406,36 +400,32 @@ static void timeEndFunction(const v8::debug::ConsoleCallArguments& info,
     return;
   }
   inspector->client()->consoleTimeEnd(toStringView(protocolTitle));
-  double elapsed = helper.consoleMessageStorage()->timeEnd(
-      helper.contextId(),
-      protocolTitle + "@" + consoleContextToString(consoleContext));
+  String16 title = protocolTitle + "@" +
+                   consoleContextToString(inspector->isolate(), consoleContext);
+  double elapsed;
+  if (timeLog) {
+    elapsed =
+        helper.consoleMessageStorage()->timeLog(helper.contextId(), title);
+  } else {
+    elapsed =
+        helper.consoleMessageStorage()->timeEnd(helper.contextId(), title);
+  }
   String16 message =
       protocolTitle + ": " + String16::fromDouble(elapsed) + "ms";
-  helper.reportCallWithArgument(ConsoleAPIType::kTimeEnd, message);
-}
-
-void V8Console::Timeline(const v8::debug::ConsoleCallArguments& info,
-                         const v8::debug::ConsoleContext& consoleContext) {
-  ConsoleHelper(info, consoleContext, m_inspector)
-      .reportDeprecatedCall("V8Console#timeline",
-                            "'console.timeline' is deprecated. Please use "
-                            "'console.time' instead.");
-  timeFunction(info, consoleContext, true, m_inspector);
-}
-
-void V8Console::TimelineEnd(const v8::debug::ConsoleCallArguments& info,
-                            const v8::debug::ConsoleContext& consoleContext) {
-  ConsoleHelper(info, consoleContext, m_inspector)
-      .reportDeprecatedCall("V8Console#timelineEnd",
-                            "'console.timelineEnd' is "
-                            "deprecated. Please use "
-                            "'console.timeEnd' instead.");
-  timeEndFunction(info, consoleContext, true, m_inspector);
+  if (timeLog)
+    helper.reportCallAndReplaceFirstArgument(ConsoleAPIType::kLog, message);
+  else
+    helper.reportCallWithArgument(ConsoleAPIType::kTimeEnd, message);
 }
 
 void V8Console::Time(const v8::debug::ConsoleCallArguments& info,
                      const v8::debug::ConsoleContext& consoleContext) {
   timeFunction(info, consoleContext, false, m_inspector);
+}
+
+void V8Console::TimeLog(const v8::debug::ConsoleCallArguments& info,
+                        const v8::debug::ConsoleContext& consoleContext) {
+  timeEndFunction(info, consoleContext, true, m_inspector);
 }
 
 void V8Console::TimeEnd(const v8::debug::ConsoleCallArguments& info,
@@ -556,7 +546,8 @@ void V8Console::monitorFunctionCallback(
   v8::Local<v8::Value> name = function->GetName();
   if (!name->IsString() || !v8::Local<v8::String>::Cast(name)->Length())
     name = function->GetInferredName();
-  String16 functionName = toProtocolStringWithTypeCheck(name);
+  String16 functionName =
+      toProtocolStringWithTypeCheck(info.GetIsolate(), name);
   String16Builder builder;
   builder.append("console.log(\"function ");
   if (functionName.isEmpty())
@@ -602,9 +593,8 @@ static void inspectImpl(const v8::FunctionCallbackInfo<v8::Value>& info,
   InjectedScript* injectedScript = helper.injectedScript(sessionId);
   if (!injectedScript) return;
   std::unique_ptr<protocol::Runtime::RemoteObject> wrappedObject;
-  protocol::Response response =
-      injectedScript->wrapObject(value, "", false /** forceValueType */,
-                                 false /** generatePreview */, &wrappedObject);
+  protocol::Response response = injectedScript->wrapObject(
+      value, "", WrapMode::kNoPreview, &wrappedObject);
   if (!response.isSuccess()) return;
 
   std::unique_ptr<protocol::DictionaryValue> hints =
@@ -808,7 +798,8 @@ void V8Console::CommandLineAPIScope::accessorGetterCallback(
 
   v8::Local<v8::Value> value;
   if (!commandLineAPI->Get(context, name).ToLocal(&value)) return;
-  if (isCommandLineAPIGetter(toProtocolStringWithTypeCheck(name))) {
+  if (isCommandLineAPIGetter(
+          toProtocolStringWithTypeCheck(info.GetIsolate(), name))) {
     DCHECK(value->IsFunction());
     v8::MicrotasksScope microtasks(info.GetIsolate(),
                                    v8::MicrotasksScope::kDoNotRunMicrotasks);

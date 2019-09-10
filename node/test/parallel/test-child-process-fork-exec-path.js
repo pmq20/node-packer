@@ -21,23 +21,28 @@
 
 'use strict';
 const common = require('../common');
-const assert = require('assert');
-const fs = require('fs');
-const { COPYFILE_FICLONE } = fs.constants;
-const path = require('path');
+
+// Test that `fork()` respects the `execPath` option.
+
 const tmpdir = require('../common/tmpdir');
+const { addLibraryPath } = require('../common/shared-lib-util');
+const assert = require('assert');
+const path = require('path');
+const fs = require('fs');
+const { fork } = require('child_process');
+
 const msg = { test: 'this' };
 const nodePath = process.execPath;
 const copyPath = path.join(tmpdir.path, 'node-copy.exe');
-const { addLibraryPath } = require('../common/shared-lib-util');
 
 addLibraryPath(process.env);
 
+// Child
 if (process.env.FORK) {
-  assert(process.send);
-  assert.strictEqual(process.argv[0], copyPath);
+  assert.strictEqual(process.execPath, copyPath);
+  assert.ok(process.send);
   process.send(msg);
-  process.exit();
+  return process.exit();
 } else {
   tmpdir.refresh();
   try {
@@ -64,3 +69,18 @@ if (process.env.FORK) {
     assert.strictEqual(code, 0);
   }));
 }
+
+// Parent
+tmpdir.refresh();
+assert.strictEqual(fs.existsSync(copyPath), false);
+fs.copyFileSync(nodePath, copyPath, fs.constants.COPYFILE_FICLONE);
+fs.chmodSync(copyPath, '0755');
+
+const envCopy = Object.assign({}, process.env, { 'FORK': 'true' });
+const child = fork(__filename, { execPath: copyPath, env: envCopy });
+child.on('message', common.mustCall(function(recv) {
+  assert.deepStrictEqual(recv, msg);
+}));
+child.on('exit', common.mustCall(function(code) {
+  assert.strictEqual(code, 0);
+}));

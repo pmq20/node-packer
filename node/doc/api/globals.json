@@ -88,6 +88,18 @@
       "desc": "<ul>\n<li><a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object\" class=\"type\">&lt;Object&gt;</a></li>\n</ul>\n<p>The process object. See the <a href=\"process.html#process_process\"><code>process</code> object</a> section.</p>"
     },
     {
+      "textRaw": "queueMicrotask(callback)",
+      "type": "global",
+      "name": "queueMicrotask",
+      "meta": {
+        "added": [
+          "v11.0.0"
+        ],
+        "changes": []
+      },
+      "desc": "<ul>\n<li><code>callback</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function\" class=\"type\">&lt;Function&gt;</a> Function to be queued.</li>\n</ul>\n<p>The <code>queueMicrotask()</code> method queues a microtask to invoke <code>callback</code>. If\n<code>callback</code> throws an exception, the <a href=\"process.html#process_process\"><code>process</code> object</a> <code>'uncaughtException'</code>\nevent will be emitted.</p>\n<p>The microtask queue is managed by V8 and may be used in a similar manner to\nthe <a href=\"process.html#process_process_nexttick_callback_args\"><code>process.nextTick()</code></a> queue, which is managed by Node.js. The\n<code>process.nextTick()</code> queue is always processed before the microtask queue\nwithin each turn of the Node.js event loop.</p>\n<pre><code class=\"language-js\">// Here, `queueMicrotask()` is used to ensure the 'load' event is always\n// emitted asynchronously, and therefore consistently. Using\n// `process.nextTick()` here would result in the 'load' event always emitting\n// before any other promise jobs.\n\nDataHandler.prototype.load = async function load(key) {\n  const hit = this._cache.get(url);\n  if (hit !== undefined) {\n    queueMicrotask(() => {\n      this.emit('load', hit);\n    });\n    return;\n  }\n\n  const data = await fetchData(key);\n  this._cache.set(url, data);\n  this.emit('load', data);\n};\n</code></pre>"
+    },
+    {
       "textRaw": "setImmediate(callback[, ...args])",
       "type": "global",
       "name": "setImmediate",
@@ -122,6 +134,30 @@
         "changes": []
       },
       "desc": "<p><a href=\"timers.html#timers_settimeout_callback_delay_args\"><code>setTimeout</code></a> is described in the <a href=\"timers.html\">timers</a> section.</p>"
+    },
+    {
+      "textRaw": "TextDecoder",
+      "name": "TextDecoder",
+      "meta": {
+        "added": [
+          "v11.0.0"
+        ],
+        "changes": []
+      },
+      "type": "global",
+      "desc": "<p>The WHATWG <code>TextDecoder</code> class. See the <a href=\"util.html#util_class_util_textdecoder\"><code>TextDecoder</code></a> section.</p>"
+    },
+    {
+      "textRaw": "TextEncoder",
+      "name": "TextEncoder",
+      "meta": {
+        "added": [
+          "v11.0.0"
+        ],
+        "changes": []
+      },
+      "type": "global",
+      "desc": "<p>The WHATWG <code>TextEncoder</code> class. See the <a href=\"util.html#util_class_util_textencoder\"><code>TextEncoder</code></a> section.</p>"
     },
     {
       "textRaw": "URL",
@@ -170,7 +206,7 @@
           "params": []
         }
       ],
-      "desc": "<p>This variable may appear to be global but is not. See <a href=\"modules.html#modules_require\"><code>require()</code></a>.</p>"
+      "desc": "<p>This variable may appear to be global but is not. See <a href=\"modules.html#modules_require_id\"><code>require()</code></a>.</p>"
     }
   ],
   "miscs": [
@@ -179,7 +215,7 @@
       "name": "Global Objects",
       "introduced_in": "v0.10.0",
       "type": "misc",
-      "desc": "<p>These objects are available in all modules. The following variables may appear\nto be global but are not. They exist only in the scope of modules, see the\n<a href=\"modules.html\">module system documentation</a>:</p>\n<ul>\n<li><a href=\"modules.html#modules_dirname\"><code>__dirname</code></a></li>\n<li><a href=\"modules.html#modules_filename\"><code>__filename</code></a></li>\n<li><a href=\"modules.html#modules_exports\"><code>exports</code></a></li>\n<li><a href=\"modules.html#modules_module\"><code>module</code></a></li>\n<li><a href=\"modules.html#modules_require\"><code>require()</code></a></li>\n</ul>\n<p>The objects listed here are specific to Node.js. There are a number of\n<a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects\">built-in objects</a> that are part of the JavaScript language itself, which are\nalso globally accessible.</p>",
+      "desc": "<p>These objects are available in all modules. The following variables may appear\nto be global but are not. They exist only in the scope of modules, see the\n<a href=\"modules.html\">module system documentation</a>:</p>\n<ul>\n<li><a href=\"modules.html#modules_dirname\"><code>__dirname</code></a></li>\n<li><a href=\"modules.html#modules_filename\"><code>__filename</code></a></li>\n<li><a href=\"modules.html#modules_exports\"><code>exports</code></a></li>\n<li><a href=\"modules.html#modules_module\"><code>module</code></a></li>\n<li><a href=\"modules.html#modules_require_id\"><code>require()</code></a></li>\n</ul>\n<p>The objects listed here are specific to Node.js. There are a number of\n<a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects\">built-in objects</a> that are part of the JavaScript language itself, which are\nalso globally accessible.</p>",
       "globals": [
         {
           "textRaw": "Class: Buffer",
@@ -266,6 +302,18 @@
           "desc": "<ul>\n<li><a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object\" class=\"type\">&lt;Object&gt;</a></li>\n</ul>\n<p>The process object. See the <a href=\"process.html#process_process\"><code>process</code> object</a> section.</p>"
         },
         {
+          "textRaw": "queueMicrotask(callback)",
+          "type": "global",
+          "name": "queueMicrotask",
+          "meta": {
+            "added": [
+              "v11.0.0"
+            ],
+            "changes": []
+          },
+          "desc": "<ul>\n<li><code>callback</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function\" class=\"type\">&lt;Function&gt;</a> Function to be queued.</li>\n</ul>\n<p>The <code>queueMicrotask()</code> method queues a microtask to invoke <code>callback</code>. If\n<code>callback</code> throws an exception, the <a href=\"process.html#process_process\"><code>process</code> object</a> <code>'uncaughtException'</code>\nevent will be emitted.</p>\n<p>The microtask queue is managed by V8 and may be used in a similar manner to\nthe <a href=\"process.html#process_process_nexttick_callback_args\"><code>process.nextTick()</code></a> queue, which is managed by Node.js. The\n<code>process.nextTick()</code> queue is always processed before the microtask queue\nwithin each turn of the Node.js event loop.</p>\n<pre><code class=\"language-js\">// Here, `queueMicrotask()` is used to ensure the 'load' event is always\n// emitted asynchronously, and therefore consistently. Using\n// `process.nextTick()` here would result in the 'load' event always emitting\n// before any other promise jobs.\n\nDataHandler.prototype.load = async function load(key) {\n  const hit = this._cache.get(url);\n  if (hit !== undefined) {\n    queueMicrotask(() => {\n      this.emit('load', hit);\n    });\n    return;\n  }\n\n  const data = await fetchData(key);\n  this._cache.set(url, data);\n  this.emit('load', data);\n};\n</code></pre>"
+        },
+        {
           "textRaw": "setImmediate(callback[, ...args])",
           "type": "global",
           "name": "setImmediate",
@@ -300,6 +348,30 @@
             "changes": []
           },
           "desc": "<p><a href=\"timers.html#timers_settimeout_callback_delay_args\"><code>setTimeout</code></a> is described in the <a href=\"timers.html\">timers</a> section.</p>"
+        },
+        {
+          "textRaw": "TextDecoder",
+          "name": "TextDecoder",
+          "meta": {
+            "added": [
+              "v11.0.0"
+            ],
+            "changes": []
+          },
+          "type": "global",
+          "desc": "<p>The WHATWG <code>TextDecoder</code> class. See the <a href=\"util.html#util_class_util_textdecoder\"><code>TextDecoder</code></a> section.</p>"
+        },
+        {
+          "textRaw": "TextEncoder",
+          "name": "TextEncoder",
+          "meta": {
+            "added": [
+              "v11.0.0"
+            ],
+            "changes": []
+          },
+          "type": "global",
+          "desc": "<p>The WHATWG <code>TextEncoder</code> class. See the <a href=\"util.html#util_class_util_textencoder\"><code>TextEncoder</code></a> section.</p>"
         },
         {
           "textRaw": "URL",
@@ -378,7 +450,7 @@
               "params": []
             }
           ],
-          "desc": "<p>This variable may appear to be global but is not. See <a href=\"modules.html#modules_require\"><code>require()</code></a>.</p>"
+          "desc": "<p>This variable may appear to be global but is not. See <a href=\"modules.html#modules_require_id\"><code>require()</code></a>.</p>"
         }
       ]
     }

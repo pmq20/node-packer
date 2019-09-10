@@ -4,15 +4,15 @@
 
 #include "tracing/traced_value.h"
 
-#include <cmath>
-#include <sstream>
-#include <stdio.h>
-#include <string>
-
 #if defined(NODE_HAVE_I18N_SUPPORT)
 #include <unicode/utf8.h>
 #include <unicode/utypes.h>
 #endif
+
+#include <cmath>
+#include <cstdio>
+#include <sstream>
+#include <string>
 
 #if defined(_STLP_VENDOR_CSTD)
 // STLPort doesn't import fpclassify into the std namespace.
@@ -112,8 +112,6 @@ std::unique_ptr<TracedValue> TracedValue::CreateArray() {
 
 TracedValue::TracedValue(bool root_is_array) :
     first_item_(true), root_is_array_(root_is_array) {}
-
-TracedValue::~TracedValue() {}
 
 void TracedValue::SetInteger(const char* name, int value) {
   WriteName(name);

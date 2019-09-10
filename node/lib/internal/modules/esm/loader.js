@@ -1,5 +1,7 @@
 'use strict';
 
+const { FunctionPrototype } = primordials;
+
 const {
   ERR_INVALID_RETURN_PROPERTY,
   ERR_INVALID_RETURN_PROPERTY_VALUE,
@@ -7,30 +9,41 @@ const {
   ERR_MISSING_DYNAMIC_INSTANTIATE_HOOK,
   ERR_UNKNOWN_MODULE_FORMAT
 } = require('internal/errors').codes;
-const { URL } = require('url');
+const {
+  URL,
+  pathToFileURL
+} = require('url');
 const { validateString } = require('internal/validators');
 const ModuleMap = require('internal/modules/esm/module_map');
 const ModuleJob = require('internal/modules/esm/module_job');
+
 const defaultResolve = require('internal/modules/esm/default_resolve');
 const createDynamicModule = require(
   'internal/modules/esm/create_dynamic_module');
-const translators = require('internal/modules/esm/translators');
+const { translators } = require('internal/modules/esm/translators');
+const { ModuleWrap } = internalBinding('module_wrap');
 
-const FunctionBind = Function.call.bind(Function.prototype.bind);
+const debug = require('internal/util/debuglog').debuglog('esm');
 
-const debug = require('util').debuglog('esm');
+const {
+  Object,
+  SafeMap
+} = primordials;
 
 /* A Loader instance is used as the main entry point for loading ES modules.
  * Currently, this is a singleton -- there is only one used for loading
  * the main module and everything in its dependency graph. */
 class Loader {
   constructor() {
-    // methods which translate input code or other information
+    // Methods which translate input code or other information
     // into es modules
     this.translators = translators;
 
-    // registry of loaded modules, akin to `require.cache`
+    // Registry of loaded modules, akin to `require.cache`
     this.moduleMap = new ModuleMap();
+
+    // Map of already-loaded CJS modules to use
+    this.cjsCache = new SafeMap();
 
     // The resolver has the signature
     //   (specifier : string, parentURL : string, defaultResolve)
@@ -48,6 +61,8 @@ class Loader {
     // an object with the same keys as `exports`, whose values are get/set
     // functions for the actual exported values.
     this._dynamicInstantiate = undefined;
+    // The index for assigning unique URLs to anonymous module evaluation
+    this.evalIndex = 0;
   }
 
   async resolve(specifier, parentURL) {
@@ -87,26 +102,50 @@ class Loader {
       }
     }
 
-    if (format !== 'dynamic' && !url.startsWith('file:'))
+    if (format !== 'dynamic' &&
+      !url.startsWith('file:') &&
+      !url.startsWith('data:')
+    )
       throw new ERR_INVALID_RETURN_PROPERTY(
-        'file: url', 'loader resolve', 'url', url
+        'file: or data: url', 'loader resolve', 'url', url
       );
 
     return { url, format };
   }
 
+  async eval(
+    source,
+    url = pathToFileURL(`${process.cwd()}/[eval${++this.evalIndex}]`).href
+  ) {
+    const evalInstance = async (url) => {
+      return {
+        module: new ModuleWrap(source, url),
+        reflect: undefined
+      };
+    };
+    const job = new ModuleJob(this, url, evalInstance, false);
+    this.moduleMap.set(url, job);
+    const { module, result } = await job.run();
+    return {
+      namespace: module.namespace(),
+      result
+    };
+  }
+
   async import(specifier, parent) {
     const job = await this.getModuleJob(specifier, parent);
-    const module = await job.run();
+    const { module } = await job.run();
     return module.namespace();
   }
 
   hook({ resolve, dynamicInstantiate }) {
     // Use .bind() to avoid giving access to the Loader instance when called.
     if (resolve !== undefined)
-      this._resolve = FunctionBind(resolve, null);
-    if (dynamicInstantiate !== undefined)
-      this._dynamicInstantiate = FunctionBind(dynamicInstantiate, null);
+      this._resolve = FunctionPrototype.bind(resolve, null);
+    if (dynamicInstantiate !== undefined) {
+      this._dynamicInstantiate =
+        FunctionPrototype.bind(dynamicInstantiate, null);
+    }
   }
 
   async getModuleJob(specifier, parentURL) {
@@ -123,7 +162,7 @@ class Loader {
       loaderInstance = async (url) => {
         debug(`Translating dynamic ${url}`);
         const { exports, execute } = await this._dynamicInstantiate(url);
-        return createDynamicModule(exports, url, (reflect) => {
+        return createDynamicModule([], exports, url, (reflect) => {
           debug(`Loading dynamic ${url}`);
           execute(reflect.exports);
         });
@@ -143,4 +182,4 @@ class Loader {
 
 Object.setPrototypeOf(Loader.prototype, null);
 
-module.exports = Loader;
+exports.Loader = Loader;

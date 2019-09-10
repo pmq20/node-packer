@@ -26,6 +26,8 @@
 // No new pull requests targeting this module will be accepted
 // unless they address existing, critical bugs.
 
+const { Object, Reflect } = primordials;
+
 const util = require('util');
 const EventEmitter = require('events');
 const {
@@ -35,9 +37,13 @@ const {
 } = require('internal/errors').codes;
 const { createHook } = require('async_hooks');
 
-// overwrite process.domain with a getter/setter that will allow for more
+// TODO(addaleax): Use a non-internal solution for this.
+const kWeak = Symbol('kWeak');
+const { WeakReference } = internalBinding('util');
+
+// Overwrite process.domain with a getter/setter that will allow for more
 // effective optimizations
-var _domain = [null];
+const _domain = [null];
 Object.defineProperty(process, 'domain', {
   enumerable: true,
   get: function() {
@@ -52,28 +58,33 @@ const pairing = new Map();
 const asyncHook = createHook({
   init(asyncId, type, triggerAsyncId, resource) {
     if (process.domain !== null && process.domain !== undefined) {
-      // if this operation is created while in a domain, let's mark it
-      pairing.set(asyncId, process.domain);
-      resource.domain = process.domain;
-      if (resource.promise !== undefined &&
-          resource.promise instanceof Promise) {
-        // resource.promise instanceof Promise make sure that the
-        // promise comes from the same context
-        // see https://github.com/nodejs/node/issues/15673
-        resource.promise.domain = process.domain;
-      }
+      // If this operation is created while in a domain, let's mark it
+      pairing.set(asyncId, process.domain[kWeak]);
+      Object.defineProperty(resource, 'domain', {
+        configurable: true,
+        enumerable: false,
+        value: process.domain,
+        writable: true
+      });
     }
   },
   before(asyncId) {
     const current = pairing.get(asyncId);
-    if (current !== undefined) { // enter domain for this cb
-      current.enter();
+    if (current !== undefined) { // Enter domain for this cb
+      // We will get the domain through current.get(), because the resource
+      // object's .domain property makes sure it is not garbage collected.
+      // However, we do need to make the reference to the domain non-weak,
+      // so that it cannot be garbage collected before the after() hook.
+      current.incRef();
+      current.get().enter();
     }
   },
   after(asyncId) {
     const current = pairing.get(asyncId);
-    if (current !== undefined) { // exit domain for this cb
-      current.exit();
+    if (current !== undefined) { // Exit domain for this cb
+      const domain = current.get();
+      current.decRef();
+      domain.exit();
     }
   },
   destroy(asyncId) {
@@ -174,6 +185,7 @@ class Domain extends EventEmitter {
     super();
 
     this.members = [];
+    this[kWeak] = new WeakReference(this);
     asyncHook.enable();
 
     this.on('removeListener', updateExceptionCapture);
@@ -187,7 +199,7 @@ exports.create = exports.createDomain = function createDomain() {
   return new Domain();
 };
 
-// the active domain is always the one that we're currently in.
+// The active domain is always the one that we're currently in.
 exports.active = null;
 Domain.prototype.members = undefined;
 
@@ -196,7 +208,12 @@ Domain.prototype._errorHandler = function(er) {
   var caught = false;
 
   if (!util.isPrimitive(er)) {
-    er.domain = this;
+    Object.defineProperty(er, 'domain', {
+      configurable: true,
+      enumerable: false,
+      value: this,
+      writable: true
+    });
     er.domainThrown = true;
   }
 
@@ -226,7 +243,7 @@ Domain.prototype._errorHandler = function(er) {
       }
     }
   } else {
-    // wrap this in a try/catch so we don't get infinite throwing
+    // Wrap this in a try/catch so we don't get infinite throwing
     try {
       // One of three things will happen here.
       //
@@ -266,7 +283,7 @@ Domain.prototype._errorHandler = function(er) {
 
 
 Domain.prototype.enter = function() {
-  // note that this might be a no-op, but we still need
+  // Note that this might be a no-op, but we still need
   // to push it onto the stack so that we can pop it later.
   exports.active = process.domain = this;
   stack.push(this);
@@ -275,11 +292,11 @@ Domain.prototype.enter = function() {
 
 
 Domain.prototype.exit = function() {
-  // don't do anything if this domain is not on the stack.
-  var index = stack.lastIndexOf(this);
+  // Don't do anything if this domain is not on the stack.
+  const index = stack.lastIndexOf(this);
   if (index === -1) return;
 
-  // exit all domains until this one.
+  // Exit all domains until this one.
   stack.splice(index);
 
   exports.active = stack[stack.length - 1];
@@ -294,11 +311,11 @@ Domain.prototype.add = function(ee) {
   if (ee.domain === this)
     return;
 
-  // has a domain already - remove it first.
+  // Has a domain already - remove it first.
   if (ee.domain)
     ee.domain.remove(ee);
 
-  // check for circular Domain->Domain links.
+  // Check for circular Domain->Domain links.
   // This causes bad insanity!
   //
   // For example:
@@ -313,14 +330,19 @@ Domain.prototype.add = function(ee) {
     }
   }
 
-  ee.domain = this;
+  Object.defineProperty(ee, 'domain', {
+    configurable: true,
+    enumerable: false,
+    value: this,
+    writable: true
+  });
   this.members.push(ee);
 };
 
 
 Domain.prototype.remove = function(ee) {
   ee.domain = null;
-  var index = this.members.indexOf(ee);
+  const index = this.members.indexOf(ee);
   if (index !== -1)
     this.members.splice(index, 1);
 };
@@ -350,16 +372,19 @@ Domain.prototype.run = function(fn) {
 function intercepted(_this, self, cb, fnargs) {
   if (fnargs[0] && fnargs[0] instanceof Error) {
     var er = fnargs[0];
-    util._extend(er, {
-      domainBound: cb,
-      domainThrown: false,
-      domain: self
+    er.domainBound = cb;
+    er.domainThrown = false;
+    Object.defineProperty(er, 'domain', {
+      configurable: true,
+      enumerable: false,
+      value: self,
+      writable: true
     });
     self.emit('error', er);
     return;
   }
 
-  var args = [];
+  const args = [];
   var i, ret;
 
   self.enter();
@@ -377,7 +402,7 @@ function intercepted(_this, self, cb, fnargs) {
 
 
 Domain.prototype.intercept = function(cb) {
-  var self = this;
+  const self = this;
 
   function runIntercepted() {
     return intercepted(this, self, cb, arguments);
@@ -402,13 +427,18 @@ function bound(_this, self, cb, fnargs) {
 
 
 Domain.prototype.bind = function(cb) {
-  var self = this;
+  const self = this;
 
   function runBound() {
     return bound(this, self, cb, arguments);
   }
 
-  runBound.domain = this;
+  Object.defineProperty(runBound, 'domain', {
+    configurable: true,
+    enumerable: false,
+    value: this,
+    writable: true
+  });
 
   return runBound;
 };
@@ -418,7 +448,12 @@ EventEmitter.usingDomains = true;
 
 const eventInit = EventEmitter.init;
 EventEmitter.init = function() {
-  this.domain = null;
+  Object.defineProperty(this, 'domain', {
+    configurable: true,
+    enumerable: false,
+    value: null,
+    writable: true
+  });
   if (exports.active && !(this instanceof exports.Domain)) {
     this.domain = exports.active;
   }
@@ -447,7 +482,12 @@ EventEmitter.prototype.emit = function(...args) {
 
     if (typeof er === 'object') {
       er.domainEmitter = this;
-      er.domain = domain;
+      Object.defineProperty(er, 'domain', {
+        configurable: true,
+        enumerable: false,
+        value: domain,
+        writable: true
+      });
       er.domainThrown = false;
     }
 

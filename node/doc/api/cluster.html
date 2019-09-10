@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Cluster | Node.js v10.15.3 Documentation</title>
+  <title>Cluster | Node.js v12.10.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -52,11 +52,13 @@
 <li><a href="os.html" class="nav-os">OS</a></li>
 <li><a href="path.html" class="nav-path">Path</a></li>
 <li><a href="perf_hooks.html" class="nav-perf_hooks">Performance Hooks</a></li>
+<li><a href="policy.html" class="nav-policy">Policies</a></li>
 <li><a href="process.html" class="nav-process">Process</a></li>
 <li><a href="punycode.html" class="nav-punycode">Punycode</a></li>
 <li><a href="querystring.html" class="nav-querystring">Query Strings</a></li>
 <li><a href="readline.html" class="nav-readline">Readline</a></li>
 <li><a href="repl.html" class="nav-repl">REPL</a></li>
+<li><a href="report.html" class="nav-report">Report</a></li>
 <li><a href="stream.html" class="nav-stream">Stream</a></li>
 <li><a href="string_decoder.html" class="nav-string_decoder">String Decoder</a></li>
 <li><a href="timers.html" class="nav-timers">Timers</a></li>
@@ -69,7 +71,7 @@
 <li><a href="v8.html" class="nav-v8">V8</a></li>
 <li><a href="vm.html" class="nav-vm">VM</a></li>
 <li><a href="worker_threads.html" class="nav-worker_threads">Worker Threads</a></li>
-<li><a href="zlib.html" class="nav-zlib">ZLIB</a></li>
+<li><a href="zlib.html" class="nav-zlib">Zlib</a></li>
 </ul>
 <div class="line"></div>
 <ul>
@@ -79,7 +81,7 @@
 
     <div id="column1" data-id="cluster" class="interior">
       <header>
-        <h1>Node.js v10.15.3 Documentation</h1>
+        <h1>Node.js v12.10.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -94,12 +96,13 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v11.x/api/cluster.html">11.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v12.x/api/cluster.html">12.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v11.x/api/cluster.html">11.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v10.x/api/cluster.html">10.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v9.x/api/cluster.html">9.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v8.x/api/cluster.html">8.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v7.x/api/cluster.html">7.x</a></li>
-<li><a href="https://nodejs.org/docs/latest-v6.x/api/cluster.html">6.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v6.x/api/cluster.html">6.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v5.x/api/cluster.html">5.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v4.x/api/cluster.html">4.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v0.12.x/api/cluster.html">0.12.x</a></li>
@@ -202,8 +205,7 @@ Worker 4520 started
 Worker 6056 started
 Worker 5644 started
 </code></pre>
-<p>Please note that on Windows, it is not yet possible to set up a named pipe
-server in a worker.</p>
+<p>On Windows, it is not yet possible to set up a named pipe server in a worker.</p>
 <h2>How It Works<span><a class="mark" href="#cluster_how_it_works" id="cluster_how_it_works">#</a></span></h2>
 
 <p>The worker processes are spawned using the <a href="child_process.html#child_process_child_process_fork_modulepath_args_options"><code>child_process.fork()</code></a> method,
@@ -236,7 +238,7 @@ idea of what the number 7 file descriptor references.</li>
 the worker to use the supplied handle, rather than talk to the master
 process.</li>
 <li><code>server.listen(0)</code> Normally, this will cause servers to listen on a
-random port.  However, in a cluster, each worker will receive the
+random port. However, in a cluster, each worker will receive the
 same "random" port each time they do <code>listen(0)</code>. In essence, the
 port is random the first time, but predictable thereafter. To listen
 on a unique port, generate a port number based on the cluster worker ID.</li>
@@ -257,6 +259,9 @@ also be used for other use cases requiring worker processes.</p>
 <div class="api_metadata">
 <span>Added in: v0.7.0</span>
 </div>
+<ul>
+<li>Extends: <a href="events.html#events_class_eventemitter" class="type">&#x3C;EventEmitter></a></li>
+</ul>
 <p>A <code>Worker</code> object contains all public information and method about a worker.
 In the master it can be obtained using <code>cluster.workers</code>. In a worker
 it can be obtained using <code>cluster.worker</code>.</p>
@@ -357,7 +362,7 @@ if (cluster.isMaster) {
     res.writeHead(200);
     res.end('hello world\n');
 
-    // notify master about the request
+    // Notify master about the request
     process.send({ cmd: 'notifyRequest' });
   }).listen(8000);
 }
@@ -392,7 +397,7 @@ on those servers, and then disconnect the IPC channel.</p>
 <p>In the master, an internal message is sent to the worker causing it to call
 <code>.disconnect()</code> on itself.</p>
 <p>Causes <code>.exitedAfterDisconnect</code> to be set.</p>
-<p>Note that after a server is closed, it will no longer accept new connections,
+<p>After a server is closed, it will no longer accept new connections,
 but connections may be accepted by any other listening worker. Existing
 connections will be allowed to close as usual. When no more connections exist,
 see <a href="net.html#net_event_close"><code>server.close()</code></a>, the IPC channel to the worker will close allowing it
@@ -400,8 +405,8 @@ to die gracefully.</p>
 <p>The above applies <em>only</em> to server connections, client connections are not
 automatically closed by workers, and disconnect does not wait for them to close
 before exiting.</p>
-<p>Note that in a worker, <code>process.disconnect</code> exists, but it is not this function,
-it is <a href="child_process.html#child_process_subprocess_disconnect"><code>disconnect</code></a>.</p>
+<p>In a worker, <code>process.disconnect</code> exists, but it is not this function;
+it is <a href="child_process.html#child_process_subprocess_disconnect"><code>disconnect()</code></a>.</p>
 <p>Because long living server connections may block workers from disconnecting, it
 may be useful to send a message, so application specific actions may be taken to
 close them. It also may be useful to implement a timeout, killing a worker if
@@ -425,14 +430,14 @@ the <code>'disconnect'</code> event has not been emitted after some time.</p>
 } else if (cluster.isWorker) {
   const net = require('net');
   const server = net.createServer((socket) => {
-    // connections never end
+    // Connections never end
   });
 
   server.listen(8000);
 
   process.on('message', (msg) => {
     if (msg === 'shutdown') {
-      // initiate graceful close of any connections to server
+      // Initiate graceful close of any connections to server
     }
   });
 }
@@ -481,6 +486,34 @@ has been created. It is disconnected after the <code>'disconnect'</code> event i
 </div>
 <p>This function returns <code>true</code> if the worker's process has terminated (either
 because of exiting or being signaled). Otherwise, it returns <code>false</code>.</p>
+<pre><code class="language-js">const cluster = require('cluster');
+const http = require('http');
+const numCPUs = require('os').cpus().length;
+
+if (cluster.isMaster) {
+  console.log(`Master ${process.pid} is running`);
+
+  // Fork workers.
+  for (let i = 0; i &#x3C; numCPUs; i++) {
+    cluster.fork();
+  }
+
+  cluster.on('fork', (worker) => {
+    console.log('worker is dead:', worker.isDead());
+  });
+
+  cluster.on('exit', (worker, code, signal) => {
+    console.log('worker is dead:', worker.isDead());
+  });
+} else {
+  // Workers can share any TCP connection. In this case, it is an HTTP server.
+  http.createServer((req, res) => {
+    res.writeHead(200);
+    res.end(`Current process\n ${process.pid}`);
+    process.kill(process.pid);
+  }).listen(8000);
+}
+</code></pre>
 <h3>worker.kill([signal='SIGTERM'])<span><a class="mark" href="#cluster_worker_kill_signal_sigterm" id="cluster_worker_kill_signal_sigterm">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.9.12</span>
@@ -498,8 +531,8 @@ if the worker enters an infinite loop, a graceful disconnect will never occur.
 If the graceful disconnect behavior is not needed, use <code>worker.process.kill()</code>.</p>
 <p>Causes <code>.exitedAfterDisconnect</code> to be set.</p>
 <p>This method is aliased as <code>worker.destroy()</code> for backwards compatibility.</p>
-<p>Note that in a worker, <code>process.kill()</code> exists, but it is not this function,
-it is <a href="process.html#process_process_kill_pid_signal"><code>kill</code></a>.</p>
+<p>In a worker, <code>process.kill()</code> exists, but it is not this function;
+it is <a href="process.html#process_process_kill_pid_signal"><code>kill()</code></a>.</p>
 <h3>worker.process<span><a class="mark" href="#cluster_worker_process" id="cluster_worker_process">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.7.0</span>
@@ -511,7 +544,7 @@ it is <a href="process.html#process_process_kill_pid_signal"><code>kill</code></
 from this function is stored as <code>.process</code>. In a worker, the global <code>process</code>
 is stored.</p>
 <p>See: <a href="child_process.html#child_process_child_process_fork_modulepath_args_options">Child Process module</a>.</p>
-<p>Note that workers will call <code>process.exit(0)</code> if the <code>'disconnect'</code> event occurs
+<p>Workers will call <code>process.exit(0)</code> if the <code>'disconnect'</code> event occurs
 on <code>process</code> and <code>.exitedAfterDisconnect</code> is not <code>true</code>. This protects against
 accidental disconnection.</p>
 <h3>worker.send(message[, sendHandle][, callback])<span><a class="mark" href="#cluster_worker_send_message_sendhandle_callback" id="cluster_worker_send_message_sendhandle_callback">#</a></span></h3>
@@ -633,7 +666,7 @@ worker is listening on more than one address.</p>
 <ul>
 <li><code>4</code> (TCPv4)</li>
 <li><code>6</code> (TCPv6)</li>
-<li><code>-1</code> (unix domain socket)</li>
+<li><code>-1</code> (Unix domain socket)</li>
 <li><code>'udp4'</code> or <code>'udp6'</code> (UDP v4 or v6)</li>
 </ul>
 <h2>Event: 'message'<span><a class="mark" href="#cluster_event_message_1" id="cluster_event_message_1">#</a></span></h2>
@@ -817,15 +850,12 @@ the settings, including the default values.</p>
 </ul>
 <p><code>setupMaster</code> is used to change the default 'fork' behavior. Once called,
 the settings will be present in <code>cluster.settings</code>.</p>
-<p>Note that:</p>
-<ul>
-<li>Any settings changes only affect future calls to <code>.fork()</code> and have no
-effect on workers that are already running.</li>
-<li>The <em>only</em> attribute of a worker that cannot be set via <code>.setupMaster()</code> is
-the <code>env</code> passed to <code>.fork()</code>.</li>
-<li>The defaults above apply to the first call only, the defaults for later
-calls is the current value at the time of <code>cluster.setupMaster()</code> is called.</li>
-</ul>
+<p>Any settings changes only affect future calls to <code>.fork()</code> and have no
+effect on workers that are already running.</p>
+<p>The only attribute of a worker that cannot be set via <code>.setupMaster()</code> is
+the <code>env</code> passed to <code>.fork()</code>.</p>
+<p>The defaults above apply to the first call only; the defaults for later
+calls are the current values at the time of <code>cluster.setupMaster()</code> is called.</p>
 <pre><code class="language-js">const cluster = require('cluster');
 cluster.setupMaster({
   exec: 'worker.js',

@@ -117,7 +117,7 @@
               ]
             }
           ],
-          "desc": "<p>The <code>util.deprecate()</code> method wraps <code>fn</code> (which may be a function or class) in\nsuch a way that it is marked as deprecated.</p>\n<pre><code class=\"language-js\">const util = require('util');\n\nexports.obsoleteFunction = util.deprecate(() => {\n  // Do something here.\n}, 'obsoleteFunction() is deprecated. Use newShinyFunction() instead.');\n</code></pre>\n<p>When called, <code>util.deprecate()</code> will return a function that will emit a\n<code>DeprecationWarning</code> using the <a href=\"process.html#process_event_warning\"><code>'warning'</code></a> event. The warning will\nbe emitted and printed to <code>stderr</code> the first time the returned function is\ncalled. After the warning is emitted, the wrapped function is called without\nemitting a warning.</p>\n<p>If the same optional <code>code</code> is supplied in multiple calls to <code>util.deprecate()</code>,\nthe warning will be emitted only once for that <code>code</code>.</p>\n<pre><code class=\"language-js\">const util = require('util');\n\nconst fn1 = util.deprecate(someFunction, someMessage, 'DEP0001');\nconst fn2 = util.deprecate(someOtherFunction, someOtherMessage, 'DEP0001');\nfn1(); // emits a deprecation warning with code DEP0001\nfn2(); // does not emit a deprecation warning because it has the same code\n</code></pre>\n<p>If either the <code>--no-deprecation</code> or <code>--no-warnings</code> command line flags are\nused, or if the <code>process.noDeprecation</code> property is set to <code>true</code> <em>prior</em> to\nthe first deprecation warning, the <code>util.deprecate()</code> method does nothing.</p>\n<p>If the <code>--trace-deprecation</code> or <code>--trace-warnings</code> command line flags are set,\nor the <code>process.traceDeprecation</code> property is set to <code>true</code>, a warning and a\nstack trace are printed to <code>stderr</code> the first time the deprecated function is\ncalled.</p>\n<p>If the <code>--throw-deprecation</code> command line flag is set, or the\n<code>process.throwDeprecation</code> property is set to <code>true</code>, then an exception will be\nthrown when the deprecated function is called.</p>\n<p>The <code>--throw-deprecation</code> command line flag and <code>process.throwDeprecation</code>\nproperty take precedence over <code>--trace-deprecation</code> and\n<code>process.traceDeprecation</code>.</p>"
+          "desc": "<p>The <code>util.deprecate()</code> method wraps <code>fn</code> (which may be a function or class) in\nsuch a way that it is marked as deprecated.</p>\n<pre><code class=\"language-js\">const util = require('util');\n\nexports.obsoleteFunction = util.deprecate(() => {\n  // Do something here.\n}, 'obsoleteFunction() is deprecated. Use newShinyFunction() instead.');\n</code></pre>\n<p>When called, <code>util.deprecate()</code> will return a function that will emit a\n<code>DeprecationWarning</code> using the <a href=\"process.html#process_event_warning\"><code>'warning'</code></a> event. The warning will\nbe emitted and printed to <code>stderr</code> the first time the returned function is\ncalled. After the warning is emitted, the wrapped function is called without\nemitting a warning.</p>\n<p>If the same optional <code>code</code> is supplied in multiple calls to <code>util.deprecate()</code>,\nthe warning will be emitted only once for that <code>code</code>.</p>\n<pre><code class=\"language-js\">const util = require('util');\n\nconst fn1 = util.deprecate(someFunction, someMessage, 'DEP0001');\nconst fn2 = util.deprecate(someOtherFunction, someOtherMessage, 'DEP0001');\nfn1(); // Emits a deprecation warning with code DEP0001\nfn2(); // Does not emit a deprecation warning because it has the same code\n</code></pre>\n<p>If either the <code>--no-deprecation</code> or <code>--no-warnings</code> command line flags are\nused, or if the <code>process.noDeprecation</code> property is set to <code>true</code> <em>prior</em> to\nthe first deprecation warning, the <code>util.deprecate()</code> method does nothing.</p>\n<p>If the <code>--trace-deprecation</code> or <code>--trace-warnings</code> command line flags are set,\nor the <code>process.traceDeprecation</code> property is set to <code>true</code>, a warning and a\nstack trace are printed to <code>stderr</code> the first time the deprecated function is\ncalled.</p>\n<p>If the <code>--throw-deprecation</code> command line flag is set, or the\n<code>process.throwDeprecation</code> property is set to <code>true</code>, then an exception will be\nthrown when the deprecated function is called.</p>\n<p>The <code>--throw-deprecation</code> command line flag and <code>process.throwDeprecation</code>\nproperty take precedence over <code>--trace-deprecation</code> and\n<code>process.traceDeprecation</code>.</p>"
         },
         {
           "textRaw": "util.format(format[, ...args])",
@@ -128,6 +128,36 @@
               "v0.5.3"
             ],
             "changes": [
+              {
+                "version": "v11.4.0",
+                "pr-url": "https://github.com/nodejs/node/pull/23708",
+                "description": "The `%d`, `%f` and `%i` specifiers now support Symbols properly."
+              },
+              {
+                "version": "v12.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/23162",
+                "description": "The `format` argument is now only taken as such if it actually contains format specifiers."
+              },
+              {
+                "version": "v12.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/23162",
+                "description": "If the `format` argument is not a format string, the output string's formatting is no longer dependent on the type of the first argument. This change removes previously present quotes from strings that were being output when the first argument was not a string."
+              },
+              {
+                "version": "v11.4.0",
+                "pr-url": "https://github.com/nodejs/node/pull/24806",
+                "description": "The `%o` specifier's `depth` has default depth of 4 again."
+              },
+              {
+                "version": "v11.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/17907",
+                "description": "The `%o` specifier's `depth` option will now fall back to the default depth."
+              },
+              {
+                "version": "v10.12.0",
+                "pr-url": "https://github.com/nodejs/node/pull/22097",
+                "description": "The `%d` and `%i` specifiers now support BigInt."
+              },
               {
                 "version": "v8.4.0",
                 "pr-url": "https://github.com/nodejs/node/pull/14558",
@@ -151,7 +181,7 @@
               ]
             }
           ],
-          "desc": "<p>The <code>util.format()</code> method returns a formatted string using the first argument\nas a <code>printf</code>-like format.</p>\n<p>The first argument is a string containing zero or more <em>placeholder</em> tokens.\nEach placeholder token is replaced with the converted value from the\ncorresponding argument. Supported placeholders are:</p>\n<ul>\n<li><code>%s</code> - <code>String</code>.</li>\n<li><code>%d</code> - <code>Number</code> (integer or floating point value) or <code>BigInt</code>.</li>\n<li><code>%i</code> - Integer or <code>BigInt</code>.</li>\n<li><code>%f</code> - Floating point value.</li>\n<li><code>%j</code> - JSON. Replaced with the string <code>'[Circular]'</code> if the argument\ncontains circular references.</li>\n<li><code>%o</code> - <code>Object</code>. A string representation of an object\nwith generic JavaScript object formatting.\nSimilar to <code>util.inspect()</code> with options\n<code>{ showHidden: true, showProxy: true }</code>. This will show the full object\nincluding non-enumerable properties and proxies.</li>\n<li><code>%O</code> - <code>Object</code>. A string representation of an object with generic JavaScript\nobject formatting. Similar to <code>util.inspect()</code> without options. This will show\nthe full object not including non-enumerable properties and proxies.</li>\n<li><code>%%</code> - single percent sign (<code>'%'</code>). This does not consume an argument.</li>\n<li>Returns: <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type\" class=\"type\">&lt;string&gt;</a> The formatted string</li>\n</ul>\n<p>If the placeholder does not have a corresponding argument, the placeholder is\nnot replaced.</p>\n<pre><code class=\"language-js\">util.format('%s:%s', 'foo');\n// Returns: 'foo:%s'\n</code></pre>\n<p>If there are more arguments passed to the <code>util.format()</code> method than the number\nof placeholders, the extra arguments are coerced into strings then concatenated\nto the returned string, each delimited by a space. Excessive arguments whose\n<code>typeof</code> is <code>'object'</code> or <code>'symbol'</code> (except <code>null</code>) will be transformed by\n<code>util.inspect()</code>.</p>\n<pre><code class=\"language-js\">util.format('%s:%s', 'foo', 'bar', 'baz'); // 'foo:bar baz'\n</code></pre>\n<p>If the first argument is not a string then <code>util.format()</code> returns\na string that is the concatenation of all arguments separated by spaces.\nEach argument is converted to a string using <code>util.inspect()</code>.</p>\n<pre><code class=\"language-js\">util.format(1, 2, 3); // '1 2 3'\n</code></pre>\n<p>If only one argument is passed to <code>util.format()</code>, it is returned as it is\nwithout any formatting.</p>\n<pre><code class=\"language-js\">util.format('%% %s'); // '%% %s'\n</code></pre>\n<p>Please note that <code>util.format()</code> is a synchronous method that is mainly\nintended as a debugging tool. Some input values can have a significant\nperformance overhead that can block the event loop. Use this function\nwith care and never in a hot code path.</p>"
+          "desc": "<p>The <code>util.format()</code> method returns a formatted string using the first argument\nas a <code>printf</code>-like format string which can contain zero or more format\nspecifiers. Each specifier is replaced with the converted value from the\ncorresponding argument. Supported specifiers are:</p>\n<ul>\n<li><code>%s</code> - <code>String</code> will be used to convert all values except <code>BigInt</code>, <code>Object</code>\nand <code>-0</code>. <code>BigInt</code> values will be represented with an <code>n</code> and Objects that\nhave no user defined <code>toString</code> function are inspected using <code>util.inspect()</code>\nwith options <code>{ depth: 0, colors: false, compact: 3 }</code>.</li>\n<li><code>%d</code> - <code>Number</code> will be used to convert all values except <code>BigInt</code> and\n<code>Symbol</code>.</li>\n<li><code>%i</code> - <code>parseInt(value, 10)</code> is used for all values except <code>BigInt</code> and\n<code>Symbol</code>.</li>\n<li><code>%f</code> - <code>parseFloat(value)</code> is used for all values expect <code>Symbol</code>.</li>\n<li><code>%j</code> - JSON. Replaced with the string <code>'[Circular]'</code> if the argument contains\ncircular references.</li>\n<li><code>%o</code> - <code>Object</code>. A string representation of an object with generic JavaScript\nobject formatting. Similar to <code>util.inspect()</code> with options\n<code>{ showHidden: true, showProxy: true }</code>. This will show the full object\nincluding non-enumerable properties and proxies.</li>\n<li><code>%O</code> - <code>Object</code>. A string representation of an object with generic JavaScript\nobject formatting. Similar to <code>util.inspect()</code> without options. This will show\nthe full object not including non-enumerable properties and proxies.</li>\n<li><code>%%</code> - single percent sign (<code>'%'</code>). This does not consume an argument.</li>\n<li>Returns: <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type\" class=\"type\">&lt;string&gt;</a> The formatted string</li>\n</ul>\n<p>If a specifier does not have a corresponding argument, it is not replaced:</p>\n<pre><code class=\"language-js\">util.format('%s:%s', 'foo');\n// Returns: 'foo:%s'\n</code></pre>\n<p>Values that are not part of the format string are formatted using\n<code>util.inspect()</code> if their type is not <code>string</code>.</p>\n<p>If there are more arguments passed to the <code>util.format()</code> method than the\nnumber of specifiers, the extra arguments are concatenated to the returned\nstring, separated by spaces:</p>\n<pre><code class=\"language-js\">util.format('%s:%s', 'foo', 'bar', 'baz');\n// Returns: 'foo:bar baz'\n</code></pre>\n<p>If the first argument does not contain a valid format specifier, <code>util.format()</code>\nreturns a string that is the concatenation of all arguments separated by spaces:</p>\n<pre><code class=\"language-js\">util.format(1, 2, 3);\n// Returns: '1 2 3'\n</code></pre>\n<p>If only one argument is passed to <code>util.format()</code>, it is returned as it is\nwithout any formatting:</p>\n<pre><code class=\"language-js\">util.format('%% %s');\n// Returns: '%% %s'\n</code></pre>\n<p><code>util.format()</code> is a synchronous method that is intended as a debugging tool.\nSome input values can have a significant performance overhead that can block the\nevent loop. Use this function with care and never in a hot code path.</p>"
         },
         {
           "textRaw": "util.formatWithOptions(inspectOptions, format[, ...args])",
@@ -245,7 +275,7 @@
               ]
             }
           ],
-          "desc": "<p>Usage of <code>util.inherits()</code> is discouraged. Please use the ES6 <code>class</code> and\n<code>extends</code> keywords to get language level inheritance support. Also note\nthat the two styles are <a href=\"https://github.com/nodejs/node/issues/4179\">semantically incompatible</a>.</p>\n<p>Inherit the prototype methods from one <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/constructor\">constructor</a> into another. The\nprototype of <code>constructor</code> will be set to a new object created from\n<code>superConstructor</code>.</p>\n<p>As an additional convenience, <code>superConstructor</code> will be accessible\nthrough the <code>constructor.super_</code> property.</p>\n<pre><code class=\"language-js\">const util = require('util');\nconst EventEmitter = require('events');\n\nfunction MyStream() {\n  EventEmitter.call(this);\n}\n\nutil.inherits(MyStream, EventEmitter);\n\nMyStream.prototype.write = function(data) {\n  this.emit('data', data);\n};\n\nconst stream = new MyStream();\n\nconsole.log(stream instanceof EventEmitter); // true\nconsole.log(MyStream.super_ === EventEmitter); // true\n\nstream.on('data', (data) => {\n  console.log(`Received data: \"${data}\"`);\n});\nstream.write('It works!'); // Received data: \"It works!\"\n</code></pre>\n<p>ES6 example using <code>class</code> and <code>extends</code>:</p>\n<pre><code class=\"language-js\">const EventEmitter = require('events');\n\nclass MyStream extends EventEmitter {\n  write(data) {\n    this.emit('data', data);\n  }\n}\n\nconst stream = new MyStream();\n\nstream.on('data', (data) => {\n  console.log(`Received data: \"${data}\"`);\n});\nstream.write('With ES6');\n</code></pre>"
+          "desc": "<p>Usage of <code>util.inherits()</code> is discouraged. Please use the ES6 <code>class</code> and\n<code>extends</code> keywords to get language level inheritance support. Also note\nthat the two styles are <a href=\"https://github.com/nodejs/node/issues/4179\">semantically incompatible</a>.</p>\n<p>Inherit the prototype methods from one <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/constructor\">constructor</a> into another. The\nprototype of <code>constructor</code> will be set to a new object created from\n<code>superConstructor</code>.</p>\n<p>This mainly adds some input validation on top of\n<code>Object.setPrototypeOf(constructor.prototype, superConstructor.prototype)</code>.\nAs an additional convenience, <code>superConstructor</code> will be accessible\nthrough the <code>constructor.super_</code> property.</p>\n<pre><code class=\"language-js\">const util = require('util');\nconst EventEmitter = require('events');\n\nfunction MyStream() {\n  EventEmitter.call(this);\n}\n\nutil.inherits(MyStream, EventEmitter);\n\nMyStream.prototype.write = function(data) {\n  this.emit('data', data);\n};\n\nconst stream = new MyStream();\n\nconsole.log(stream instanceof EventEmitter); // true\nconsole.log(MyStream.super_ === EventEmitter); // true\n\nstream.on('data', (data) => {\n  console.log(`Received data: \"${data}\"`);\n});\nstream.write('It works!'); // Received data: \"It works!\"\n</code></pre>\n<p>ES6 example using <code>class</code> and <code>extends</code>:</p>\n<pre><code class=\"language-js\">const EventEmitter = require('events');\n\nclass MyStream extends EventEmitter {\n  write(data) {\n    this.emit('data', data);\n  }\n}\n\nconst stream = new MyStream();\n\nstream.on('data', (data) => {\n  console.log(`Received data: \"${data}\"`);\n});\nstream.write('With ES6');\n</code></pre>"
         },
         {
           "textRaw": "util.inspect(object[, options])",
@@ -257,9 +287,49 @@
             ],
             "changes": [
               {
+                "version": "v12.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/27109",
+                "description": "The `compact` options default is changed to `3` and the `breakLength` options default is changed to `80`."
+              },
+              {
+                "version": "v11.11.0",
+                "pr-url": "https://github.com/nodejs/node/pull/26269",
+                "description": "The `compact` option accepts numbers for a new output mode."
+              },
+              {
+                "version": "v12.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/24971",
+                "description": "Internal properties no longer appear in the context argument of a custom inspection function."
+              },
+              {
+                "version": "v11.7.0",
+                "pr-url": "https://github.com/nodejs/node/pull/25006",
+                "description": "ArrayBuffers now also show their binary contents."
+              },
+              {
+                "version": "v11.5.0",
+                "pr-url": "https://github.com/nodejs/node/pull/24852",
+                "description": "The `getters` option is supported now."
+              },
+              {
+                "version": "v11.4.0",
+                "pr-url": "https://github.com/nodejs/node/pull/24326",
+                "description": "The `depth` default changed back to `2`."
+              },
+              {
+                "version": "v11.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/22846",
+                "description": "The `depth` default changed to `20`."
+              },
+              {
                 "version": "v10.12.0",
                 "pr-url": "https://github.com/nodejs/node/pull/22788",
                 "description": "The `sorted` option is supported now."
+              },
+              {
+                "version": "v11.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/22756",
+                "description": "The inspection output is now limited to about 128 MB. Data above that size will not be fully inspected."
               },
               {
                 "version": "v10.6.0",
@@ -269,7 +339,7 @@
               {
                 "version": "v10.0.0",
                 "pr-url": "https://github.com/nodejs/node/pull/19259",
-                "description": "The `WeakMap` and `WeakSet` entries can now be inspected."
+                "description": "The `WeakMap` and `WeakSet` entries can now be inspected as well."
               },
               {
                 "version": "v9.9.0",
@@ -301,10 +371,10 @@
           "signatures": [
             {
               "return": {
-                "textRaw": "Returns: {string} The representation of passed object",
+                "textRaw": "Returns: {string} The representation of `object`.",
                 "name": "return",
                 "type": "string",
-                "desc": "The representation of passed object"
+                "desc": "The representation of `object`."
               },
               "params": [
                 {
@@ -319,66 +389,73 @@
                   "type": "Object",
                   "options": [
                     {
-                      "textRaw": "`showHidden` {boolean} If `true`, the `object`'s non-enumerable symbols and properties will be included in the formatted result as well as [`WeakMap`][] and [`WeakSet`][] entries. **Default:** `false`.",
+                      "textRaw": "`showHidden` {boolean} If `true`, `object`'s non-enumerable symbols and properties are included in the formatted result. [`WeakMap`][] and [`WeakSet`][] entries are also included. **Default:** `false`.",
                       "name": "showHidden",
                       "type": "boolean",
                       "default": "`false`",
-                      "desc": "If `true`, the `object`'s non-enumerable symbols and properties will be included in the formatted result as well as [`WeakMap`][] and [`WeakSet`][] entries."
+                      "desc": "If `true`, `object`'s non-enumerable symbols and properties are included in the formatted result. [`WeakMap`][] and [`WeakSet`][] entries are also included."
                     },
                     {
-                      "textRaw": "`depth` {number} Specifies the number of times to recurse while formatting the `object`. This is useful for inspecting large complicated objects. To make it recurse up to the maximum call stack size pass `Infinity` or `null`. **Default:** `2`.",
+                      "textRaw": "`depth` {number} Specifies the number of times to recurse while formatting `object`. This is useful for inspecting large objects. To recurse up to the maximum call stack size pass `Infinity` or `null`. **Default:** `2`.",
                       "name": "depth",
                       "type": "number",
                       "default": "`2`",
-                      "desc": "Specifies the number of times to recurse while formatting the `object`. This is useful for inspecting large complicated objects. To make it recurse up to the maximum call stack size pass `Infinity` or `null`."
+                      "desc": "Specifies the number of times to recurse while formatting `object`. This is useful for inspecting large objects. To recurse up to the maximum call stack size pass `Infinity` or `null`."
                     },
                     {
-                      "textRaw": "`colors` {boolean} If `true`, the output will be styled with ANSI color codes. Colors are customizable, see [Customizing `util.inspect` colors][]. **Default:** `false`.",
+                      "textRaw": "`colors` {boolean} If `true`, the output is styled with ANSI color codes. Colors are customizable. See [Customizing `util.inspect` colors][]. **Default:** `false`.",
                       "name": "colors",
                       "type": "boolean",
                       "default": "`false`",
-                      "desc": "If `true`, the output will be styled with ANSI color codes. Colors are customizable, see [Customizing `util.inspect` colors][]."
+                      "desc": "If `true`, the output is styled with ANSI color codes. Colors are customizable. See [Customizing `util.inspect` colors][]."
                     },
                     {
-                      "textRaw": "`customInspect` {boolean} If `false`, then custom `inspect(depth, opts)` functions will not be called. **Default:** `true`.",
+                      "textRaw": "`customInspect` {boolean} If `false`, `[util.inspect.custom](depth, opts)` functions are not invoked. **Default:** `true`.",
                       "name": "customInspect",
                       "type": "boolean",
                       "default": "`true`",
-                      "desc": "If `false`, then custom `inspect(depth, opts)` functions will not be called."
+                      "desc": "If `false`, `[util.inspect.custom](depth, opts)` functions are not invoked."
                     },
                     {
-                      "textRaw": "`showProxy` {boolean} If `true`, then objects and functions that are `Proxy` objects will be introspected to show their `target` and `handler` objects. **Default:** `false`.",
+                      "textRaw": "`showProxy` {boolean} If `true`, `Proxy` inspection includes the [`target` and `handler`][] objects. **Default:** `false`.",
                       "name": "showProxy",
                       "type": "boolean",
                       "default": "`false`",
-                      "desc": "If `true`, then objects and functions that are `Proxy` objects will be introspected to show their `target` and `handler` objects."
+                      "desc": "If `true`, `Proxy` inspection includes the [`target` and `handler`][] objects."
                     },
                     {
-                      "textRaw": "`maxArrayLength` {number} Specifies the maximum number of `Array`, [`TypedArray`][], [`WeakMap`][] and [`WeakSet`][] elements to include when formatting. Set to `null` or `Infinity` to show all elements. Set to `0` or negative to show no elements. **Default:** `100`.",
+                      "textRaw": "`maxArrayLength` {integer} Specifies the maximum number of `Array`, [`TypedArray`][], [`WeakMap`][] and [`WeakSet`][] elements to include when formatting. Set to `null` or `Infinity` to show all elements. Set to `0` or negative to show no elements. **Default:** `100`.",
                       "name": "maxArrayLength",
-                      "type": "number",
+                      "type": "integer",
                       "default": "`100`",
                       "desc": "Specifies the maximum number of `Array`, [`TypedArray`][], [`WeakMap`][] and [`WeakSet`][] elements to include when formatting. Set to `null` or `Infinity` to show all elements. Set to `0` or negative to show no elements."
                     },
                     {
-                      "textRaw": "`breakLength` {number} The length at which an object's keys are split across multiple lines. Set to `Infinity` to format an object as a single line. **Default:** `60` for legacy compatibility.",
+                      "textRaw": "`breakLength` {integer} The length at which input values are split across multiple lines. Set to `Infinity` to format the input as a single line (in combination with `compact` set to `true` or any number >= `1`). **Default:** `80`.",
                       "name": "breakLength",
-                      "type": "number",
-                      "default": "`60` for legacy compatibility",
-                      "desc": "The length at which an object's keys are split across multiple lines. Set to `Infinity` to format an object as a single line."
+                      "type": "integer",
+                      "default": "`80`",
+                      "desc": "The length at which input values are split across multiple lines. Set to `Infinity` to format the input as a single line (in combination with `compact` set to `true` or any number >= `1`)."
                     },
                     {
-                      "textRaw": "`compact` {boolean} Setting this to `false` changes the default indentation to use a line break for each object key instead of lining up multiple properties in one line. It will also break text that is above the `breakLength` size into smaller and better readable chunks and indents objects the same as arrays. Note that no text will be reduced below 16 characters, no matter the `breakLength` size. For more information, see the example below. **Default:** `true`.",
+                      "textRaw": "`compact` {boolean|integer} Setting this to `false` causes each object key to be displayed on a new line. It will also add new lines to text that is longer than `breakLength`. If set to a number, the most `n` inner elements are united on a single line as long as all properties fit into `breakLength`. Short array elements are also grouped together. No text will be reduced below 16 characters, no matter the `breakLength` size. For more information, see the example below. **Default:** `3`.",
                       "name": "compact",
-                      "type": "boolean",
-                      "default": "`true`",
-                      "desc": "Setting this to `false` changes the default indentation to use a line break for each object key instead of lining up multiple properties in one line. It will also break text that is above the `breakLength` size into smaller and better readable chunks and indents objects the same as arrays. Note that no text will be reduced below 16 characters, no matter the `breakLength` size. For more information, see the example below."
+                      "type": "boolean|integer",
+                      "default": "`3`",
+                      "desc": "Setting this to `false` causes each object key to be displayed on a new line. It will also add new lines to text that is longer than `breakLength`. If set to a number, the most `n` inner elements are united on a single line as long as all properties fit into `breakLength`. Short array elements are also grouped together. No text will be reduced below 16 characters, no matter the `breakLength` size. For more information, see the example below."
                     },
                     {
-                      "textRaw": "`sorted` {boolean|Function} If set to `true` or a function, all properties of an object and Set and Map entries will be sorted in the returned string. If set to `true` the [default sort][] is going to be used. If set to a function, it is used as a [compare function][].",
+                      "textRaw": "`sorted` {boolean|Function} If set to `true` or a function, all properties of an object, and `Set` and `Map` entries are sorted in the resulting string. If set to `true` the [default sort][] is used. If set to a function, it is used as a [compare function][].",
                       "name": "sorted",
                       "type": "boolean|Function",
-                      "desc": "If set to `true` or a function, all properties of an object and Set and Map entries will be sorted in the returned string. If set to `true` the [default sort][] is going to be used. If set to a function, it is used as a [compare function][]."
+                      "desc": "If set to `true` or a function, all properties of an object, and `Set` and `Map` entries are sorted in the resulting string. If set to `true` the [default sort][] is used. If set to a function, it is used as a [compare function][]."
+                    },
+                    {
+                      "textRaw": "`getters` {boolean|string} If set to `true`, getters are inspected. If set to `'get'`, only getters without a corresponding setter are inspected. If set to `'set'`, only getters with a corresponding setter are inspected. This might cause side effects depending on the getter function. **Default:** `false`.",
+                      "name": "getters",
+                      "type": "boolean|string",
+                      "default": "`false`",
+                      "desc": "If set to `true`, getters are inspected. If set to `'get'`, only getters without a corresponding setter are inspected. If set to `'set'`, only getters with a corresponding setter are inspected. This might cause side effects depending on the getter function."
                     }
                   ],
                   "optional": true
@@ -386,7 +463,7 @@
               ]
             }
           ],
-          "desc": "<p>The <code>util.inspect()</code> method returns a string representation of <code>object</code> that is\nintended for debugging. The output of <code>util.inspect</code> may change at any time\nand should not be depended upon programmatically. Additional <code>options</code> may be\npassed that alter certain aspects of the formatted string.\n<code>util.inspect()</code> will use the constructor's name and/or <code>@@toStringTag</code> to make\nan identifiable tag for an inspected value.</p>\n<pre><code class=\"language-js\">class Foo {\n  get [Symbol.toStringTag]() {\n    return 'bar';\n  }\n}\n\nclass Bar {}\n\nconst baz = Object.create(null, { [Symbol.toStringTag]: { value: 'foo' } });\n\nutil.inspect(new Foo()); // 'Foo [bar] {}'\nutil.inspect(new Bar()); // 'Bar {}'\nutil.inspect(baz);       // '[foo] {}'\n</code></pre>\n<p>The following example inspects all properties of the <code>util</code> object:</p>\n<pre><code class=\"language-js\">const util = require('util');\n\nconsole.log(util.inspect(util, { showHidden: true, depth: null }));\n</code></pre>\n<p>Values may supply their own custom <code>inspect(depth, opts)</code> functions, when\ncalled these receive the current <code>depth</code> in the recursive inspection, as well as\nthe options object passed to <code>util.inspect()</code>.</p>\n<p>The following example highlights the difference with the <code>compact</code> option:</p>\n<pre><code class=\"language-js\">const util = require('util');\n\nconst o = {\n  a: [1, 2, [[\n    'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do ' +\n      'eiusmod tempor incididunt ut labore et dolore magna aliqua.',\n    'test',\n    'foo']], 4],\n  b: new Map([['za', 1], ['zb', 'test']])\n};\nconsole.log(util.inspect(o, { compact: true, depth: 5, breakLength: 80 }));\n\n// This will print\n\n// { a:\n//   [ 1,\n//     2,\n//     [ [ 'Lorem ipsum dolor sit amet, consectetur [...]', // A long line\n//           'test',\n//           'foo' ] ],\n//     4 ],\n//   b: Map { 'za' => 1, 'zb' => 'test' } }\n\n// Setting `compact` to false changes the output to be more reader friendly.\nconsole.log(util.inspect(o, { compact: false, depth: 5, breakLength: 80 }));\n\n// {\n//   a: [\n//     1,\n//     2,\n//     [\n//       [\n//         'Lorem ipsum dolor sit amet, consectetur ' +\n//           'adipiscing elit, sed do eiusmod tempor ' +\n//           'incididunt ut labore et dolore magna ' +\n//           'aliqua.,\n//         'test',\n//         'foo'\n//       ]\n//     ],\n//     4\n//   ],\n//   b: Map {\n//     'za' => 1,\n//     'zb' => 'test'\n//   }\n// }\n\n// Setting `breakLength` to e.g. 150 will print the \"Lorem ipsum\" text in a\n// single line.\n// Reducing the `breakLength` will split the \"Lorem ipsum\" text in smaller\n// chunks.\n</code></pre>\n<p>Using the <code>showHidden</code> option allows to inspect <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap\"><code>WeakMap</code></a> and <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakSet\"><code>WeakSet</code></a>\nentries. If there are more entries than <code>maxArrayLength</code>, there is no guarantee\nwhich entries are displayed. That means retrieving the same <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakSet\"><code>WeakSet</code></a>\nentries twice might actually result in a different output. Besides this any item\nmight be collected at any point of time by the garbage collector if there is no\nstrong reference left to that object. Therefore there is no guarantee to get a\nreliable output.</p>\n<pre><code class=\"language-js\">const { inspect } = require('util');\n\nconst obj = { a: 1 };\nconst obj2 = { b: 2 };\nconst weakSet = new WeakSet([obj, obj2]);\n\nconsole.log(inspect(weakSet, { showHidden: true }));\n// WeakSet { { a: 1 }, { b: 2 } }\n</code></pre>\n<p>The <code>sorted</code> option makes sure the output is identical, no matter of the\nproperties insertion order:</p>\n<pre><code class=\"language-js\">const { inspect } = require('util');\nconst assert = require('assert');\n\nconst o1 = {\n  b: [2, 3, 1],\n  a: '`a` comes before `b`',\n  c: new Set([2, 3, 1])\n};\nconsole.log(inspect(o1, { sorted: true }));\n// { a: '`a` comes before `b`', b: [ 2, 3, 1 ], c: Set { 1, 2, 3 } }\nconsole.log(inspect(o1, { sorted: (a, b) => b.localeCompare(a) }));\n// { c: Set { 3, 2, 1 }, b: [ 2, 3, 1 ], a: '`a` comes before `b`' }\n\nconst o2 = {\n  c: new Set([2, 1, 3]),\n  a: '`a` comes before `b`',\n  b: [2, 3, 1]\n};\nassert.strict.equal(\n  inspect(o1, { sorted: true }),\n  inspect(o2, { sorted: true })\n);\n</code></pre>\n<p>Please note that <code>util.inspect()</code> is a synchronous method that is mainly\nintended as a debugging tool. Some input values can have a significant\nperformance overhead that can block the event loop. Use this function\nwith care and never in a hot code path.</p>"
+          "desc": "<p>The <code>util.inspect()</code> method returns a string representation of <code>object</code> that is\nintended for debugging. The output of <code>util.inspect</code> may change at any time\nand should not be depended upon programmatically. Additional <code>options</code> may be\npassed that alter the result.\n<code>util.inspect()</code> will use the constructor's name and/or <code>@@toStringTag</code> to make\nan identifiable tag for an inspected value.</p>\n<pre><code class=\"language-js\">class Foo {\n  get [Symbol.toStringTag]() {\n    return 'bar';\n  }\n}\n\nclass Bar {}\n\nconst baz = Object.create(null, { [Symbol.toStringTag]: { value: 'foo' } });\n\nutil.inspect(new Foo()); // 'Foo [bar] {}'\nutil.inspect(new Bar()); // 'Bar {}'\nutil.inspect(baz);       // '[foo] {}'\n</code></pre>\n<p>The following example inspects all properties of the <code>util</code> object:</p>\n<pre><code class=\"language-js\">const util = require('util');\n\nconsole.log(util.inspect(util, { showHidden: true, depth: null }));\n</code></pre>\n<p>The following example highlights the effect of the <code>compact</code> option:</p>\n<pre><code class=\"language-js\">const util = require('util');\n\nconst o = {\n  a: [1, 2, [[\n    'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do ' +\n      'eiusmod tempor incididunt ut labore et dolore magna aliqua.',\n    'test',\n    'foo']], 4],\n  b: new Map([['za', 1], ['zb', 'test']])\n};\nconsole.log(util.inspect(o, { compact: true, depth: 5, breakLength: 80 }));\n\n// This will print\n\n// { a:\n//   [ 1,\n//     2,\n//     [ [ 'Lorem ipsum dolor sit amet, consectetur [...]', // A long line\n//           'test',\n//           'foo' ] ],\n//     4 ],\n//   b: Map { 'za' => 1, 'zb' => 'test' } }\n\n// Setting `compact` to false changes the output to be more reader friendly.\nconsole.log(util.inspect(o, { compact: false, depth: 5, breakLength: 80 }));\n\n// {\n//   a: [\n//     1,\n//     2,\n//     [\n//       [\n//         'Lorem ipsum dolor sit amet, consectetur ' +\n//           'adipiscing elit, sed do eiusmod tempor ' +\n//           'incididunt ut labore et dolore magna ' +\n//           'aliqua.,\n//         'test',\n//         'foo'\n//       ]\n//     ],\n//     4\n//   ],\n//   b: Map {\n//     'za' => 1,\n//     'zb' => 'test'\n//   }\n// }\n\n// Setting `breakLength` to e.g. 150 will print the \"Lorem ipsum\" text in a\n// single line.\n// Reducing the `breakLength` will split the \"Lorem ipsum\" text in smaller\n// chunks.\n</code></pre>\n<p>The <code>showHidden</code> option allows <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap\"><code>WeakMap</code></a> and <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakSet\"><code>WeakSet</code></a> entries to be\ninspected. If there are more entries than <code>maxArrayLength</code>, there is no\nguarantee which entries are displayed. That means retrieving the same\n<a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakSet\"><code>WeakSet</code></a> entries twice may result in different output. Furthermore, entries\nwith no remaining strong references may be garbage collected at any time.</p>\n<pre><code class=\"language-js\">const { inspect } = require('util');\n\nconst obj = { a: 1 };\nconst obj2 = { b: 2 };\nconst weakSet = new WeakSet([obj, obj2]);\n\nconsole.log(inspect(weakSet, { showHidden: true }));\n// WeakSet { { a: 1 }, { b: 2 } }\n</code></pre>\n<p>The <code>sorted</code> option ensures that an object's property insertion order does not\nimpact the result of <code>util.inspect()</code>.</p>\n<pre><code class=\"language-js\">const { inspect } = require('util');\nconst assert = require('assert');\n\nconst o1 = {\n  b: [2, 3, 1],\n  a: '`a` comes before `b`',\n  c: new Set([2, 3, 1])\n};\nconsole.log(inspect(o1, { sorted: true }));\n// { a: '`a` comes before `b`', b: [ 2, 3, 1 ], c: Set { 1, 2, 3 } }\nconsole.log(inspect(o1, { sorted: (a, b) => b.localeCompare(a) }));\n// { c: Set { 3, 2, 1 }, b: [ 2, 3, 1 ], a: '`a` comes before `b`' }\n\nconst o2 = {\n  c: new Set([2, 1, 3]),\n  a: '`a` comes before `b`',\n  b: [2, 3, 1]\n};\nassert.strict.equal(\n  inspect(o1, { sorted: true }),\n  inspect(o2, { sorted: true })\n);\n</code></pre>\n<p><code>util.inspect()</code> is a synchronous method intended for debugging. Its maximum\noutput length is approximately 128 MB. Inputs that result in longer output will\nbe truncated.</p>"
         },
         {
           "textRaw": "util.inspect(object[, showHidden[, depth[, colors]]])",
@@ -398,9 +475,49 @@
             ],
             "changes": [
               {
+                "version": "v12.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/27109",
+                "description": "The `compact` options default is changed to `3` and the `breakLength` options default is changed to `80`."
+              },
+              {
+                "version": "v11.11.0",
+                "pr-url": "https://github.com/nodejs/node/pull/26269",
+                "description": "The `compact` option accepts numbers for a new output mode."
+              },
+              {
+                "version": "v12.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/24971",
+                "description": "Internal properties no longer appear in the context argument of a custom inspection function."
+              },
+              {
+                "version": "v11.7.0",
+                "pr-url": "https://github.com/nodejs/node/pull/25006",
+                "description": "ArrayBuffers now also show their binary contents."
+              },
+              {
+                "version": "v11.5.0",
+                "pr-url": "https://github.com/nodejs/node/pull/24852",
+                "description": "The `getters` option is supported now."
+              },
+              {
+                "version": "v11.4.0",
+                "pr-url": "https://github.com/nodejs/node/pull/24326",
+                "description": "The `depth` default changed back to `2`."
+              },
+              {
+                "version": "v11.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/22846",
+                "description": "The `depth` default changed to `20`."
+              },
+              {
                 "version": "v10.12.0",
                 "pr-url": "https://github.com/nodejs/node/pull/22788",
                 "description": "The `sorted` option is supported now."
+              },
+              {
+                "version": "v11.0.0",
+                "pr-url": "https://github.com/nodejs/node/pull/22756",
+                "description": "The inspection output is now limited to about 128 MB. Data above that size will not be fully inspected."
               },
               {
                 "version": "v10.6.0",
@@ -410,7 +527,7 @@
               {
                 "version": "v10.0.0",
                 "pr-url": "https://github.com/nodejs/node/pull/19259",
-                "description": "The `WeakMap` and `WeakSet` entries can now be inspected."
+                "description": "The `WeakMap` and `WeakSet` entries can now be inspected as well."
               },
               {
                 "version": "v9.9.0",
@@ -442,10 +559,10 @@
           "signatures": [
             {
               "return": {
-                "textRaw": "Returns: {string} The representation of passed object",
+                "textRaw": "Returns: {string} The representation of `object`.",
                 "name": "return",
                 "type": "string",
-                "desc": "The representation of passed object"
+                "desc": "The representation of `object`."
               },
               "params": [
                 {
@@ -455,45 +572,45 @@
                   "desc": "Any JavaScript primitive or `Object`."
                 },
                 {
-                  "textRaw": "`showHidden` {boolean} If `true`, the `object`'s non-enumerable symbols and properties will be included in the formatted result as well as [`WeakMap`][] and [`WeakSet`][] entries. **Default:** `false`.",
+                  "textRaw": "`showHidden` {boolean} If `true`, `object`'s non-enumerable symbols and properties are included in the formatted result. [`WeakMap`][] and [`WeakSet`][] entries are also included. **Default:** `false`.",
                   "name": "showHidden",
                   "type": "boolean",
                   "default": "`false`",
-                  "desc": "If `true`, the `object`'s non-enumerable symbols and properties will be included in the formatted result as well as [`WeakMap`][] and [`WeakSet`][] entries.",
+                  "desc": "If `true`, `object`'s non-enumerable symbols and properties are included in the formatted result. [`WeakMap`][] and [`WeakSet`][] entries are also included.",
                   "optional": true
                 },
                 {
-                  "textRaw": "`depth` {number} Specifies the number of times to recurse while formatting the `object`. This is useful for inspecting large complicated objects. To make it recurse up to the maximum call stack size pass `Infinity` or `null`. **Default:** `2`.",
+                  "textRaw": "`depth` {number} Specifies the number of times to recurse while formatting `object`. This is useful for inspecting large objects. To recurse up to the maximum call stack size pass `Infinity` or `null`. **Default:** `2`.",
                   "name": "depth",
                   "type": "number",
                   "default": "`2`",
-                  "desc": "Specifies the number of times to recurse while formatting the `object`. This is useful for inspecting large complicated objects. To make it recurse up to the maximum call stack size pass `Infinity` or `null`.",
+                  "desc": "Specifies the number of times to recurse while formatting `object`. This is useful for inspecting large objects. To recurse up to the maximum call stack size pass `Infinity` or `null`.",
                   "optional": true
                 },
                 {
-                  "textRaw": "`colors` {boolean} If `true`, the output will be styled with ANSI color codes. Colors are customizable, see [Customizing `util.inspect` colors][]. **Default:** `false`.",
+                  "textRaw": "`colors` {boolean} If `true`, the output is styled with ANSI color codes. Colors are customizable. See [Customizing `util.inspect` colors][]. **Default:** `false`.",
                   "name": "colors",
                   "type": "boolean",
                   "default": "`false`",
-                  "desc": "If `true`, the output will be styled with ANSI color codes. Colors are customizable, see [Customizing `util.inspect` colors][].",
+                  "desc": "If `true`, the output is styled with ANSI color codes. Colors are customizable. See [Customizing `util.inspect` colors][].",
                   "optional": true
                 }
               ]
             }
           ],
-          "desc": "<p>The <code>util.inspect()</code> method returns a string representation of <code>object</code> that is\nintended for debugging. The output of <code>util.inspect</code> may change at any time\nand should not be depended upon programmatically. Additional <code>options</code> may be\npassed that alter certain aspects of the formatted string.\n<code>util.inspect()</code> will use the constructor's name and/or <code>@@toStringTag</code> to make\nan identifiable tag for an inspected value.</p>\n<pre><code class=\"language-js\">class Foo {\n  get [Symbol.toStringTag]() {\n    return 'bar';\n  }\n}\n\nclass Bar {}\n\nconst baz = Object.create(null, { [Symbol.toStringTag]: { value: 'foo' } });\n\nutil.inspect(new Foo()); // 'Foo [bar] {}'\nutil.inspect(new Bar()); // 'Bar {}'\nutil.inspect(baz);       // '[foo] {}'\n</code></pre>\n<p>The following example inspects all properties of the <code>util</code> object:</p>\n<pre><code class=\"language-js\">const util = require('util');\n\nconsole.log(util.inspect(util, { showHidden: true, depth: null }));\n</code></pre>\n<p>Values may supply their own custom <code>inspect(depth, opts)</code> functions, when\ncalled these receive the current <code>depth</code> in the recursive inspection, as well as\nthe options object passed to <code>util.inspect()</code>.</p>\n<p>The following example highlights the difference with the <code>compact</code> option:</p>\n<pre><code class=\"language-js\">const util = require('util');\n\nconst o = {\n  a: [1, 2, [[\n    'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do ' +\n      'eiusmod tempor incididunt ut labore et dolore magna aliqua.',\n    'test',\n    'foo']], 4],\n  b: new Map([['za', 1], ['zb', 'test']])\n};\nconsole.log(util.inspect(o, { compact: true, depth: 5, breakLength: 80 }));\n\n// This will print\n\n// { a:\n//   [ 1,\n//     2,\n//     [ [ 'Lorem ipsum dolor sit amet, consectetur [...]', // A long line\n//           'test',\n//           'foo' ] ],\n//     4 ],\n//   b: Map { 'za' => 1, 'zb' => 'test' } }\n\n// Setting `compact` to false changes the output to be more reader friendly.\nconsole.log(util.inspect(o, { compact: false, depth: 5, breakLength: 80 }));\n\n// {\n//   a: [\n//     1,\n//     2,\n//     [\n//       [\n//         'Lorem ipsum dolor sit amet, consectetur ' +\n//           'adipiscing elit, sed do eiusmod tempor ' +\n//           'incididunt ut labore et dolore magna ' +\n//           'aliqua.,\n//         'test',\n//         'foo'\n//       ]\n//     ],\n//     4\n//   ],\n//   b: Map {\n//     'za' => 1,\n//     'zb' => 'test'\n//   }\n// }\n\n// Setting `breakLength` to e.g. 150 will print the \"Lorem ipsum\" text in a\n// single line.\n// Reducing the `breakLength` will split the \"Lorem ipsum\" text in smaller\n// chunks.\n</code></pre>\n<p>Using the <code>showHidden</code> option allows to inspect <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap\"><code>WeakMap</code></a> and <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakSet\"><code>WeakSet</code></a>\nentries. If there are more entries than <code>maxArrayLength</code>, there is no guarantee\nwhich entries are displayed. That means retrieving the same <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakSet\"><code>WeakSet</code></a>\nentries twice might actually result in a different output. Besides this any item\nmight be collected at any point of time by the garbage collector if there is no\nstrong reference left to that object. Therefore there is no guarantee to get a\nreliable output.</p>\n<pre><code class=\"language-js\">const { inspect } = require('util');\n\nconst obj = { a: 1 };\nconst obj2 = { b: 2 };\nconst weakSet = new WeakSet([obj, obj2]);\n\nconsole.log(inspect(weakSet, { showHidden: true }));\n// WeakSet { { a: 1 }, { b: 2 } }\n</code></pre>\n<p>The <code>sorted</code> option makes sure the output is identical, no matter of the\nproperties insertion order:</p>\n<pre><code class=\"language-js\">const { inspect } = require('util');\nconst assert = require('assert');\n\nconst o1 = {\n  b: [2, 3, 1],\n  a: '`a` comes before `b`',\n  c: new Set([2, 3, 1])\n};\nconsole.log(inspect(o1, { sorted: true }));\n// { a: '`a` comes before `b`', b: [ 2, 3, 1 ], c: Set { 1, 2, 3 } }\nconsole.log(inspect(o1, { sorted: (a, b) => b.localeCompare(a) }));\n// { c: Set { 3, 2, 1 }, b: [ 2, 3, 1 ], a: '`a` comes before `b`' }\n\nconst o2 = {\n  c: new Set([2, 1, 3]),\n  a: '`a` comes before `b`',\n  b: [2, 3, 1]\n};\nassert.strict.equal(\n  inspect(o1, { sorted: true }),\n  inspect(o2, { sorted: true })\n);\n</code></pre>\n<p>Please note that <code>util.inspect()</code> is a synchronous method that is mainly\nintended as a debugging tool. Some input values can have a significant\nperformance overhead that can block the event loop. Use this function\nwith care and never in a hot code path.</p>",
+          "desc": "<p>The <code>util.inspect()</code> method returns a string representation of <code>object</code> that is\nintended for debugging. The output of <code>util.inspect</code> may change at any time\nand should not be depended upon programmatically. Additional <code>options</code> may be\npassed that alter the result.\n<code>util.inspect()</code> will use the constructor's name and/or <code>@@toStringTag</code> to make\nan identifiable tag for an inspected value.</p>\n<pre><code class=\"language-js\">class Foo {\n  get [Symbol.toStringTag]() {\n    return 'bar';\n  }\n}\n\nclass Bar {}\n\nconst baz = Object.create(null, { [Symbol.toStringTag]: { value: 'foo' } });\n\nutil.inspect(new Foo()); // 'Foo [bar] {}'\nutil.inspect(new Bar()); // 'Bar {}'\nutil.inspect(baz);       // '[foo] {}'\n</code></pre>\n<p>The following example inspects all properties of the <code>util</code> object:</p>\n<pre><code class=\"language-js\">const util = require('util');\n\nconsole.log(util.inspect(util, { showHidden: true, depth: null }));\n</code></pre>\n<p>The following example highlights the effect of the <code>compact</code> option:</p>\n<pre><code class=\"language-js\">const util = require('util');\n\nconst o = {\n  a: [1, 2, [[\n    'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do ' +\n      'eiusmod tempor incididunt ut labore et dolore magna aliqua.',\n    'test',\n    'foo']], 4],\n  b: new Map([['za', 1], ['zb', 'test']])\n};\nconsole.log(util.inspect(o, { compact: true, depth: 5, breakLength: 80 }));\n\n// This will print\n\n// { a:\n//   [ 1,\n//     2,\n//     [ [ 'Lorem ipsum dolor sit amet, consectetur [...]', // A long line\n//           'test',\n//           'foo' ] ],\n//     4 ],\n//   b: Map { 'za' => 1, 'zb' => 'test' } }\n\n// Setting `compact` to false changes the output to be more reader friendly.\nconsole.log(util.inspect(o, { compact: false, depth: 5, breakLength: 80 }));\n\n// {\n//   a: [\n//     1,\n//     2,\n//     [\n//       [\n//         'Lorem ipsum dolor sit amet, consectetur ' +\n//           'adipiscing elit, sed do eiusmod tempor ' +\n//           'incididunt ut labore et dolore magna ' +\n//           'aliqua.,\n//         'test',\n//         'foo'\n//       ]\n//     ],\n//     4\n//   ],\n//   b: Map {\n//     'za' => 1,\n//     'zb' => 'test'\n//   }\n// }\n\n// Setting `breakLength` to e.g. 150 will print the \"Lorem ipsum\" text in a\n// single line.\n// Reducing the `breakLength` will split the \"Lorem ipsum\" text in smaller\n// chunks.\n</code></pre>\n<p>The <code>showHidden</code> option allows <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap\"><code>WeakMap</code></a> and <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakSet\"><code>WeakSet</code></a> entries to be\ninspected. If there are more entries than <code>maxArrayLength</code>, there is no\nguarantee which entries are displayed. That means retrieving the same\n<a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakSet\"><code>WeakSet</code></a> entries twice may result in different output. Furthermore, entries\nwith no remaining strong references may be garbage collected at any time.</p>\n<pre><code class=\"language-js\">const { inspect } = require('util');\n\nconst obj = { a: 1 };\nconst obj2 = { b: 2 };\nconst weakSet = new WeakSet([obj, obj2]);\n\nconsole.log(inspect(weakSet, { showHidden: true }));\n// WeakSet { { a: 1 }, { b: 2 } }\n</code></pre>\n<p>The <code>sorted</code> option ensures that an object's property insertion order does not\nimpact the result of <code>util.inspect()</code>.</p>\n<pre><code class=\"language-js\">const { inspect } = require('util');\nconst assert = require('assert');\n\nconst o1 = {\n  b: [2, 3, 1],\n  a: '`a` comes before `b`',\n  c: new Set([2, 3, 1])\n};\nconsole.log(inspect(o1, { sorted: true }));\n// { a: '`a` comes before `b`', b: [ 2, 3, 1 ], c: Set { 1, 2, 3 } }\nconsole.log(inspect(o1, { sorted: (a, b) => b.localeCompare(a) }));\n// { c: Set { 3, 2, 1 }, b: [ 2, 3, 1 ], a: '`a` comes before `b`' }\n\nconst o2 = {\n  c: new Set([2, 1, 3]),\n  a: '`a` comes before `b`',\n  b: [2, 3, 1]\n};\nassert.strict.equal(\n  inspect(o1, { sorted: true }),\n  inspect(o2, { sorted: true })\n);\n</code></pre>\n<p><code>util.inspect()</code> is a synchronous method intended for debugging. Its maximum\noutput length is approximately 128 MB. Inputs that result in longer output will\nbe truncated.</p>",
           "miscs": [
             {
               "textRaw": "Customizing `util.inspect` colors",
               "name": "Customizing `util.inspect` colors",
               "type": "misc",
-              "desc": "<p>Color output (if enabled) of <code>util.inspect</code> is customizable globally\nvia the <code>util.inspect.styles</code> and <code>util.inspect.colors</code> properties.</p>\n<p><code>util.inspect.styles</code> is a map associating a style name to a color from\n<code>util.inspect.colors</code>.</p>\n<p>The default styles and associated colors are:</p>\n<ul>\n<li><code>number</code> - <code>yellow</code></li>\n<li><code>boolean</code> - <code>yellow</code></li>\n<li><code>string</code> - <code>green</code></li>\n<li><code>date</code> - <code>magenta</code></li>\n<li><code>regexp</code> - <code>red</code></li>\n<li><code>null</code> - <code>bold</code></li>\n<li><code>undefined</code> - <code>grey</code></li>\n<li><code>special</code> - <code>cyan</code> (only applied to functions at this time)</li>\n<li><code>name</code> - (no styling)</li>\n</ul>\n<p>The predefined color codes are: <code>white</code>, <code>grey</code>, <code>black</code>, <code>blue</code>, <code>cyan</code>,\n<code>green</code>, <code>magenta</code>, <code>red</code> and <code>yellow</code>. There are also <code>bold</code>, <code>italic</code>,\n<code>underline</code> and <code>inverse</code> codes.</p>\n<p>Color styling uses ANSI control codes that may not be supported on all\nterminals.</p>"
+              "desc": "<p>Color output (if enabled) of <code>util.inspect</code> is customizable globally\nvia the <code>util.inspect.styles</code> and <code>util.inspect.colors</code> properties.</p>\n<p><code>util.inspect.styles</code> is a map associating a style name to a color from\n<code>util.inspect.colors</code>.</p>\n<p>The default styles and associated colors are:</p>\n<ul>\n<li><code>bigint</code> - <code>yellow</code></li>\n<li><code>boolean</code> - <code>yellow</code></li>\n<li><code>date</code> - <code>magenta</code></li>\n<li><code>module</code> - <code>underline</code></li>\n<li><code>name</code> - (no styling)</li>\n<li><code>null</code> - <code>bold</code></li>\n<li><code>number</code> - <code>yellow</code></li>\n<li><code>regexp</code> - <code>red</code></li>\n<li><code>special</code> - <code>cyan</code> (e.g., <code>Proxies</code>)</li>\n<li><code>string</code> - <code>green</code></li>\n<li><code>symbol</code> - <code>green</code></li>\n<li><code>undefined</code> - <code>grey</code></li>\n</ul>\n<p>The predefined color codes are: <code>white</code>, <code>grey</code>, <code>black</code>, <code>blue</code>, <code>cyan</code>,\n<code>green</code>, <code>magenta</code>, <code>red</code> and <code>yellow</code>. There are also <code>bold</code>, <code>italic</code>,\n<code>underline</code> and <code>inverse</code> codes.</p>\n<p>Color styling uses ANSI control codes that may not be supported on all\nterminals. To verify color support use <a href=\"tty.html#tty_writestream_hascolors_count_env\"><code>tty.hasColors()</code></a>.</p>"
             },
             {
               "textRaw": "Custom inspection functions on Objects",
               "name": "Custom inspection functions on Objects",
               "type": "misc",
-              "desc": "<p>Objects may also define their own\n<a href=\"#util_util_inspect_custom\"><code>[util.inspect.custom](depth, opts)</code></a> (or the equivalent\nbut deprecated <code>inspect(depth, opts)</code>) function, which <code>util.inspect()</code> will\ninvoke and use the result of when inspecting the object:</p>\n<pre><code class=\"language-js\">const util = require('util');\n\nclass Box {\n  constructor(value) {\n    this.value = value;\n  }\n\n  [util.inspect.custom](depth, options) {\n    if (depth &#x3C; 0) {\n      return options.stylize('[Box]', 'special');\n    }\n\n    const newOptions = Object.assign({}, options, {\n      depth: options.depth === null ? null : options.depth - 1\n    });\n\n    // Five space padding because that's the size of \"Box&#x3C; \".\n    const padding = ' '.repeat(5);\n    const inner = util.inspect(this.value, newOptions)\n                      .replace(/\\n/g, `\\n${padding}`);\n    return `${options.stylize('Box', 'special')}&#x3C; ${inner} >`;\n  }\n}\n\nconst box = new Box(true);\n\nutil.inspect(box);\n// Returns: \"Box&#x3C; true >\"\n</code></pre>\n<p>Custom <code>[util.inspect.custom](depth, opts)</code> functions typically return a string\nbut may return a value of any type that will be formatted accordingly by\n<code>util.inspect()</code>.</p>\n<pre><code class=\"language-js\">const util = require('util');\n\nconst obj = { foo: 'this will not show up in the inspect() output' };\nobj[util.inspect.custom] = (depth) => {\n  return { bar: 'baz' };\n};\n\nutil.inspect(obj);\n// Returns: \"{ bar: 'baz' }\"\n</code></pre>"
+              "desc": "<p>Objects may also define their own\n<a href=\"#util_util_inspect_custom\"><code>[util.inspect.custom](depth, opts)</code></a> function,\nwhich <code>util.inspect()</code> will invoke and use the result of when inspecting\nthe object:</p>\n<pre><code class=\"language-js\">const util = require('util');\n\nclass Box {\n  constructor(value) {\n    this.value = value;\n  }\n\n  [util.inspect.custom](depth, options) {\n    if (depth &#x3C; 0) {\n      return options.stylize('[Box]', 'special');\n    }\n\n    const newOptions = Object.assign({}, options, {\n      depth: options.depth === null ? null : options.depth - 1\n    });\n\n    // Five space padding because that's the size of \"Box&#x3C; \".\n    const padding = ' '.repeat(5);\n    const inner = util.inspect(this.value, newOptions)\n                      .replace(/\\n/g, `\\n${padding}`);\n    return `${options.stylize('Box', 'special')}&#x3C; ${inner} >`;\n  }\n}\n\nconst box = new Box(true);\n\nutil.inspect(box);\n// Returns: \"Box&#x3C; true >\"\n</code></pre>\n<p>Custom <code>[util.inspect.custom](depth, opts)</code> functions typically return a string\nbut may return a value of any type that will be formatted accordingly by\n<code>util.inspect()</code>.</p>\n<pre><code class=\"language-js\">const util = require('util');\n\nconst obj = { foo: 'this will not show up in the inspect() output' };\nobj[util.inspect.custom] = (depth) => {\n  return { bar: 'baz' };\n};\n\nutil.inspect(obj);\n// Returns: \"{ bar: 'baz' }\"\n</code></pre>"
             }
           ],
           "properties": [
@@ -525,7 +642,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>The <code>defaultOptions</code> value allows customization of the default options used by\n<code>util.inspect</code>. This is useful for functions like <code>console.log</code> or\n<code>util.format</code> which implicitly call into <code>util.inspect</code>. It shall be set to an\nobject containing one or more valid <a href=\"#util_util_inspect_object_options\"><code>util.inspect()</code></a> options. Setting\noption properties directly is also supported.</p>\n<pre><code class=\"language-js\">const util = require('util');\nconst arr = Array(101).fill(0);\n\nconsole.log(arr); // logs the truncated array\nutil.inspect.defaultOptions.maxArrayLength = null;\nconsole.log(arr); // logs the full array\n</code></pre>"
+              "desc": "<p>The <code>defaultOptions</code> value allows customization of the default options used by\n<code>util.inspect</code>. This is useful for functions like <code>console.log</code> or\n<code>util.format</code> which implicitly call into <code>util.inspect</code>. It shall be set to an\nobject containing one or more valid <a href=\"#util_util_inspect_object_options\"><code>util.inspect()</code></a> options. Setting\noption properties directly is also supported.</p>\n<pre><code class=\"language-js\">const util = require('util');\nconst arr = Array(101).fill(0);\n\nconsole.log(arr); // Logs the truncated array\nutil.inspect.defaultOptions.maxArrayLength = null;\nconsole.log(arr); // logs the full array\n</code></pre>"
             }
           ]
         },
@@ -600,7 +717,7 @@
           ],
           "properties": [
             {
-              "textRaw": "`custom` {symbol}",
+              "textRaw": "`custom` {symbol} that can be used to declare custom promisified variants of functions, see [Custom promisified functions][].",
               "type": "symbol",
               "name": "custom",
               "meta": {
@@ -609,7 +726,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>A <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Symbol_type\" class=\"type\">&lt;symbol&gt;</a> that can be used to declare custom promisified variants of functions,\nsee <a href=\"#util_custom_promisified_functions\">Custom promisified functions</a>.</p>"
+              "desc": "that can be used to declare custom promisified variants of functions, see [Custom promisified functions][]."
             }
           ]
         }
@@ -672,10 +789,10 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`input` {ArrayBuffer|DataView|TypedArray} An `ArrayBuffer`, `DataView` or `Typed Array` instance containing the encoded data.",
+                      "textRaw": "`input` {ArrayBuffer|DataView|TypedArray} An `ArrayBuffer`, `DataView` or `TypedArray` instance containing the encoded data.",
                       "name": "input",
                       "type": "ArrayBuffer|DataView|TypedArray",
-                      "desc": "An `ArrayBuffer`, `DataView` or `Typed Array` instance containing the encoded data.",
+                      "desc": "An `ArrayBuffer`, `DataView` or `TypedArray` instance containing the encoded data.",
                       "optional": true
                     },
                     {
@@ -753,7 +870,7 @@
                   "optional": true
                 }
               ],
-              "desc": "<p>Creates an new <code>TextDecoder</code> instance. The <code>encoding</code> may specify one of the\nsupported encodings or an alias.</p>"
+              "desc": "<p>Creates an new <code>TextDecoder</code> instance. The <code>encoding</code> may specify one of the\nsupported encodings or an alias.</p>\n<p>The <code>TextDecoder</code> class is also available on the global object.</p>"
             }
           ]
         },
@@ -765,9 +882,15 @@
             "added": [
               "v8.3.0"
             ],
-            "changes": []
+            "changes": [
+              {
+                "version": "v11.0.0",
+                "pr-url": "v11.0.0",
+                "description": "The class is now available on the global object."
+              }
+            ]
           },
-          "desc": "<p>An implementation of the <a href=\"https://encoding.spec.whatwg.org/\">WHATWG Encoding Standard</a> <code>TextEncoder</code> API. All\ninstances of <code>TextEncoder</code> only support UTF-8 encoding.</p>\n<pre><code class=\"language-js\">const encoder = new TextEncoder();\nconst uint8array = encoder.encode('this is some data');\n</code></pre>",
+          "desc": "<p>An implementation of the <a href=\"https://encoding.spec.whatwg.org/\">WHATWG Encoding Standard</a> <code>TextEncoder</code> API. All\ninstances of <code>TextEncoder</code> only support UTF-8 encoding.</p>\n<pre><code class=\"language-js\">const encoder = new TextEncoder();\nconst uint8array = encoder.encode('this is some data');\n</code></pre>\n<p>The <code>TextEncoder</code> class is also available on the global object.</p>",
           "methods": [
             {
               "textRaw": "textEncoder.encode([input])",
@@ -927,7 +1050,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Returns <code>true</code> if the value is an <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function\">async function</a>.\nNote that this only reports back what the JavaScript engine is seeing;\nin particular, the return value may not match the original source code if\na transpilation tool was used.</p>\n<pre><code class=\"language-js\">util.types.isAsyncFunction(function foo() {});  // Returns false\nutil.types.isAsyncFunction(async function foo() {});  // Returns true\n</code></pre>"
+              "desc": "<p>Returns <code>true</code> if the value is an <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function\">async function</a>.\nThis only reports back what the JavaScript engine is seeing;\nin particular, the return value may not match the original source code if\na transpilation tool was used.</p>\n<pre><code class=\"language-js\">util.types.isAsyncFunction(function foo() {});  // Returns false\nutil.types.isAsyncFunction(async function foo() {});  // Returns true\n</code></pre>"
             },
             {
               "textRaw": "util.types.isBigInt64Array(value)",
@@ -1207,7 +1330,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Returns <code>true</code> if the value is a generator function.\nNote that this only reports back what the JavaScript engine is seeing;\nin particular, the return value may not match the original source code if\na transpilation tool was used.</p>\n<pre><code class=\"language-js\">util.types.isGeneratorFunction(function foo() {});  // Returns false\nutil.types.isGeneratorFunction(function* foo() {});  // Returns true\n</code></pre>"
+              "desc": "<p>Returns <code>true</code> if the value is a generator function.\nThis only reports back what the JavaScript engine is seeing;\nin particular, the return value may not match the original source code if\na transpilation tool was used.</p>\n<pre><code class=\"language-js\">util.types.isGeneratorFunction(function foo() {});  // Returns false\nutil.types.isGeneratorFunction(function* foo() {});  // Returns true\n</code></pre>"
             },
             {
               "textRaw": "util.types.isGeneratorObject(value)",
@@ -1235,7 +1358,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Returns <code>true</code> if the value is a generator object as returned from a\nbuilt-in generator function.\nNote that this only reports back what the JavaScript engine is seeing;\nin particular, the return value may not match the original source code if\na transpilation tool was used.</p>\n<pre><code class=\"language-js\">function* foo() {}\nconst generator = foo();\nutil.types.isGeneratorObject(generator);  // Returns true\n</code></pre>"
+              "desc": "<p>Returns <code>true</code> if the value is a generator object as returned from a\nbuilt-in generator function.\nThis only reports back what the JavaScript engine is seeing;\nin particular, the return value may not match the original source code if\na transpilation tool was used.</p>\n<pre><code class=\"language-js\">function* foo() {}\nconst generator = foo();\nutil.types.isGeneratorObject(generator);  // Returns true\n</code></pre>"
             },
             {
               "textRaw": "util.types.isInt8Array(value)",
@@ -1952,65 +2075,6 @@
               "desc": "<p>The <code>util._extend()</code> method was never intended to be used outside of internal\nNode.js modules. The community found and used it anyway.</p>\n<p>It is deprecated and should not be used in new code. JavaScript comes with very\nsimilar built-in functionality through <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign\"><code>Object.assign()</code></a>.</p>"
             },
             {
-              "textRaw": "util.debug(string)",
-              "type": "method",
-              "name": "debug",
-              "meta": {
-                "added": [
-                  "v0.3.0"
-                ],
-                "deprecated": [
-                  "v0.11.3"
-                ],
-                "changes": []
-              },
-              "stability": 0,
-              "stabilityText": "Deprecated: Use [`console.error()`][] instead.",
-              "signatures": [
-                {
-                  "params": [
-                    {
-                      "textRaw": "`string` {string} The message to print to `stderr`",
-                      "name": "string",
-                      "type": "string",
-                      "desc": "The message to print to `stderr`"
-                    }
-                  ]
-                }
-              ],
-              "desc": "<p>Deprecated predecessor of <code>console.error</code>.</p>"
-            },
-            {
-              "textRaw": "util.error([...strings])",
-              "type": "method",
-              "name": "error",
-              "meta": {
-                "added": [
-                  "v0.3.0"
-                ],
-                "deprecated": [
-                  "v0.11.3"
-                ],
-                "changes": []
-              },
-              "stability": 0,
-              "stabilityText": "Deprecated: Use [`console.error()`][] instead.",
-              "signatures": [
-                {
-                  "params": [
-                    {
-                      "textRaw": "`...strings` {string} The message to print to `stderr`",
-                      "name": "...strings",
-                      "type": "string",
-                      "desc": "The message to print to `stderr`",
-                      "optional": true
-                    }
-                  ]
-                }
-              ],
-              "desc": "<p>Deprecated predecessor of <code>console.error</code>.</p>"
-            },
-            {
               "textRaw": "util.isArray(object)",
               "type": "method",
               "name": "isArray",
@@ -2173,7 +2237,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Returns <code>true</code> if the given <code>object</code> is an <a href=\"errors.html#errors_class_error\"><code>Error</code></a>. Otherwise, returns\n<code>false</code>.</p>\n<pre><code class=\"language-js\">const util = require('util');\n\nutil.isError(new Error());\n// Returns: true\nutil.isError(new TypeError());\n// Returns: true\nutil.isError({ name: 'Error', message: 'an error occurred' });\n// Returns: false\n</code></pre>\n<p>Note that this method relies on <code>Object.prototype.toString()</code> behavior. It is\npossible to obtain an incorrect result when the <code>object</code> argument manipulates\n<code>@@toStringTag</code>.</p>\n<pre><code class=\"language-js\">const util = require('util');\nconst obj = { name: 'Error', message: 'an error occurred' };\n\nutil.isError(obj);\n// Returns: false\nobj[Symbol.toStringTag] = 'Error';\nutil.isError(obj);\n// Returns: true\n</code></pre>"
+              "desc": "<p>Returns <code>true</code> if the given <code>object</code> is an <a href=\"errors.html#errors_class_error\"><code>Error</code></a>. Otherwise, returns\n<code>false</code>.</p>\n<pre><code class=\"language-js\">const util = require('util');\n\nutil.isError(new Error());\n// Returns: true\nutil.isError(new TypeError());\n// Returns: true\nutil.isError({ name: 'Error', message: 'an error occurred' });\n// Returns: false\n</code></pre>\n<p>This method relies on <code>Object.prototype.toString()</code> behavior. It is\npossible to obtain an incorrect result when the <code>object</code> argument manipulates\n<code>@@toStringTag</code>.</p>\n<pre><code class=\"language-js\">const util = require('util');\nconst obj = { name: 'Error', message: 'an error occurred' };\n\nutil.isError(obj);\n// Returns: false\nobj[Symbol.toStringTag] = 'Error';\nutil.isError(obj);\n// Returns: true\n</code></pre>"
             },
             {
               "textRaw": "util.isFunction(object)",
@@ -2532,60 +2596,6 @@
                 }
               ],
               "desc": "<p>The <code>util.log()</code> method prints the given <code>string</code> to <code>stdout</code> with an included\ntimestamp.</p>\n<pre><code class=\"language-js\">const util = require('util');\n\nutil.log('Timestamped message.');\n</code></pre>"
-            },
-            {
-              "textRaw": "util.print([...strings])",
-              "type": "method",
-              "name": "print",
-              "meta": {
-                "added": [
-                  "v0.3.0"
-                ],
-                "deprecated": [
-                  "v0.11.3"
-                ],
-                "changes": []
-              },
-              "stability": 0,
-              "stabilityText": "Deprecated: Use [`console.log()`][] instead.",
-              "signatures": [
-                {
-                  "params": [
-                    {
-                      "name": "...strings",
-                      "optional": true
-                    }
-                  ]
-                }
-              ],
-              "desc": "<p>Deprecated predecessor of <code>console.log</code>.</p>"
-            },
-            {
-              "textRaw": "util.puts([...strings])",
-              "type": "method",
-              "name": "puts",
-              "meta": {
-                "added": [
-                  "v0.3.0"
-                ],
-                "deprecated": [
-                  "v0.11.3"
-                ],
-                "changes": []
-              },
-              "stability": 0,
-              "stabilityText": "Deprecated: Use [`console.log()`][] instead.",
-              "signatures": [
-                {
-                  "params": [
-                    {
-                      "name": "...strings",
-                      "optional": true
-                    }
-                  ]
-                }
-              ],
-              "desc": "<p>Deprecated predecessor of <code>console.log</code>.</p>"
             }
           ],
           "type": "module",

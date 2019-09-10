@@ -6,11 +6,11 @@ const {
   getHashes: _getHashes,
   setEngine: _setEngine,
   timingSafeEqual: _timingSafeEqual
-} = process.binding('crypto');
+} = internalBinding('crypto');
 
 const {
   ENGINE_METHOD_ALL
-} = process.binding('constants').crypto;
+} = internalBinding('constants').crypto;
 
 const {
   ERR_CRYPTO_ENGINE_UNKNOWN,
@@ -27,6 +27,8 @@ const {
   isArrayBufferView
 } = require('internal/util/types');
 
+const kHandle = Symbol('kHandle');
+
 var defaultEncoding = 'buffer';
 
 function setDefaultEncoding(val) {
@@ -40,13 +42,13 @@ function getDefaultEncoding() {
 // This is here because many functions accepted binary strings without
 // any explicit encoding in older versions of node, and we don't want
 // to break them unnecessarily.
-function toBuf(str, encoding) {
-  if (typeof str === 'string') {
-    if (encoding === 'buffer' || !encoding)
+function toBuf(val, encoding) {
+  if (typeof val === 'string') {
+    if (encoding === 'buffer')
       encoding = 'utf8';
-    return Buffer.from(str, encoding);
+    return Buffer.from(val, encoding);
   }
-  return str;
+  return val;
 }
 
 const getCiphers = cachedResult(() => filterDuplicateStrings(_getCiphers()));
@@ -100,6 +102,7 @@ module.exports = {
   getCurves,
   getDefaultEncoding,
   getHashes,
+  kHandle,
   setDefaultEncoding,
   setEngine,
   timingSafeEqual,

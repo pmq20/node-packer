@@ -36,10 +36,9 @@ process.chdir('..');
 assert.strictEqual(process.cwd().normalize(),
                    path.resolve(tmpdir.path).normalize());
 
-const errMessage = /^TypeError: Bad argument\.$/;
-assert.throws(function() { process.chdir({}); },
-              errMessage, 'Bad argument.');
-assert.throws(function() { process.chdir(); },
-              errMessage, 'Bad argument.');
-assert.throws(function() { process.chdir('x', 'y'); },
-              errMessage, 'Bad argument.');
+const err = {
+  code: 'ERR_INVALID_ARG_TYPE',
+  message: /The "directory" argument must be of type string/
+};
+common.expectsError(function() { process.chdir({}); }, err);
+common.expectsError(function() { process.chdir(); }, err);

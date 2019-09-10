@@ -1,8 +1,7 @@
-/* eslint-disable node-core/required-modules */
+/* eslint-disable node-core/require-common-first, node-core/required-modules */
 'use strict';
 
 const { Stream } = require('stream');
-const { inherits } = require('util');
 function noop() {}
 
 // A stream to push an array into a REPL
@@ -14,7 +13,8 @@ function ArrayStream() {
   };
 }
 
-inherits(ArrayStream, Stream);
+Object.setPrototypeOf(ArrayStream.prototype, Stream.prototype);
+Object.setPrototypeOf(ArrayStream, Stream);
 ArrayStream.prototype.readable = true;
 ArrayStream.prototype.writable = true;
 ArrayStream.prototype.pause = noop;

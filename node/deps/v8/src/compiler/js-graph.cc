@@ -4,10 +4,10 @@
 
 #include "src/compiler/js-graph.h"
 
-#include "src/code-factory.h"
+#include "src/codegen/code-factory.h"
 #include "src/compiler/node-properties.h"
 #include "src/compiler/typer.h"
-#include "src/objects-inl.h"
+#include "src/objects/objects-inl.h"
 
 namespace v8 {
 namespace internal {
@@ -66,22 +66,36 @@ Node* JSGraph::Constant(Handle<Object> value) {
   }
 }
 
+Node* JSGraph::Constant(const ObjectRef& ref) {
+  if (ref.IsSmi()) return Constant(ref.AsSmi());
+  OddballType oddball_type =
+      ref.AsHeapObject().GetHeapObjectType().oddball_type();
+  if (ref.IsHeapNumber()) {
+    return Constant(ref.AsHeapNumber().value());
+  } else if (oddball_type == OddballType::kUndefined) {
+    DCHECK(ref.object().equals(isolate()->factory()->undefined_value()));
+    return UndefinedConstant();
+  } else if (oddball_type == OddballType::kNull) {
+    DCHECK(ref.object().equals(isolate()->factory()->null_value()));
+    return NullConstant();
+  } else if (oddball_type == OddballType::kHole) {
+    DCHECK(ref.object().equals(isolate()->factory()->the_hole_value()));
+    return TheHoleConstant();
+  } else if (oddball_type == OddballType::kBoolean) {
+    if (ref.object().equals(isolate()->factory()->true_value())) {
+      return TrueConstant();
+    } else {
+      DCHECK(ref.object().equals(isolate()->factory()->false_value()));
+      return FalseConstant();
+    }
+  } else {
+    return HeapConstant(ref.AsHeapObject().object());
+  }
+}
+
 Node* JSGraph::Constant(double value) {
   if (bit_cast<int64_t>(value) == bit_cast<int64_t>(0.0)) return ZeroConstant();
   if (bit_cast<int64_t>(value) == bit_cast<int64_t>(1.0)) return OneConstant();
-  return NumberConstant(value);
-}
-
-
-Node* JSGraph::Constant(int32_t value) {
-  if (value == 0) return ZeroConstant();
-  if (value == 1) return OneConstant();
-  return NumberConstant(value);
-}
-
-Node* JSGraph::Constant(uint32_t value) {
-  if (value == 0) return ZeroConstant();
-  if (value == 1) return OneConstant();
   return NumberConstant(value);
 }
 
@@ -111,14 +125,18 @@ void JSGraph::GetCachedNodes(NodeVector* nodes) {
 #undef DO_CACHED_FIELD
 }
 
-DEFINE_GETTER(AllocateInNewSpaceStubConstant,
-              HeapConstant(BUILTIN_CODE(isolate(), AllocateInNewSpace)))
+DEFINE_GETTER(AllocateInYoungGenerationStubConstant,
+              HeapConstant(BUILTIN_CODE(isolate(), AllocateInYoungGeneration)))
 
-DEFINE_GETTER(AllocateInOldSpaceStubConstant,
-              HeapConstant(BUILTIN_CODE(isolate(), AllocateInOldSpace)))
+DEFINE_GETTER(AllocateInOldGenerationStubConstant,
+              HeapConstant(BUILTIN_CODE(isolate(), AllocateInOldGeneration)))
 
 DEFINE_GETTER(ArrayConstructorStubConstant,
-              HeapConstant(ArrayConstructorStub(isolate()).GetCode()))
+              HeapConstant(BUILTIN_CODE(isolate(), ArrayConstructorImpl)))
+
+DEFINE_GETTER(BigIntMapConstant, HeapConstant(factory()->bigint_map()))
+
+DEFINE_GETTER(BooleanMapConstant, HeapConstant(factory()->boolean_map()))
 
 DEFINE_GETTER(ToNumberBuiltinConstant,
               HeapConstant(BUILTIN_CODE(isolate(), ToNumber)))

@@ -8,11 +8,13 @@
 #include <limits>
 
 #include "src/base/compiler-specific.h"
-#include "src/base/format-macros.h"
 #include "src/base/logging.h"
 
 // No-op macro which is used to work around MSVC's funky VA_ARGS support.
 #define EXPAND(x) x
+
+// This macro does nothing. That's all.
+#define NOTHING(...)
 
 // TODO(all) Replace all uses of this macro with C++'s offsetof. To do that, we
 // have to make sure that only standard-layout types and simple field
@@ -106,9 +108,11 @@ V8_INLINE Dest bit_cast(Source const& source) {
 }
 
 // Explicitly declare the assignment operator as deleted.
-#define DISALLOW_ASSIGN(TypeName) TypeName& operator=(const TypeName&) = delete;
+#define DISALLOW_ASSIGN(TypeName) TypeName& operator=(const TypeName&) = delete
 
 // Explicitly declare the copy constructor and assignment operator as deleted.
+// This also deletes the implicit move constructor and implicit move assignment
+// operator, but still allows to manually define them.
 #define DISALLOW_COPY_AND_ASSIGN(TypeName) \
   TypeName(const TypeName&) = delete;      \
   DISALLOW_ASSIGN(TypeName)
@@ -128,9 +132,9 @@ V8_INLINE Dest bit_cast(Source const& source) {
 
 // Disallow copying a type, and only provide move construction and move
 // assignment. Especially useful for move-only structs.
-#define MOVE_ONLY_NO_DEFAULT_CONSTRUCTOR(TypeName) \
-  TypeName(TypeName&&) = default;                  \
-  TypeName& operator=(TypeName&&) = default;       \
+#define MOVE_ONLY_NO_DEFAULT_CONSTRUCTOR(TypeName)       \
+  TypeName(TypeName&&) V8_NOEXCEPT = default;            \
+  TypeName& operator=(TypeName&&) V8_NOEXCEPT = default; \
   DISALLOW_COPY_AND_ASSIGN(TypeName)
 
 // A macro to disallow the dynamic allocation.
@@ -141,13 +145,9 @@ V8_INLINE Dest bit_cast(Source const& source) {
 //  odr-used by the definition of the destructor of that class, [...]
 #define DISALLOW_NEW_AND_DELETE()                            \
   void* operator new(size_t) { base::OS::Abort(); }          \
-  void* operator new[](size_t) { base::OS::Abort(); };       \
+  void* operator new[](size_t) { base::OS::Abort(); }        \
   void operator delete(void*, size_t) { base::OS::Abort(); } \
   void operator delete[](void*, size_t) { base::OS::Abort(); }
-
-// Newly written code should use V8_INLINE and V8_NOINLINE directly.
-#define INLINE(declarator)    V8_INLINE declarator
-#define NO_INLINE(declarator) V8_NOINLINE declarator
 
 // Define V8_USE_ADDRESS_SANITIZER macro.
 #if defined(__has_feature)
@@ -193,8 +193,9 @@ V8_INLINE Dest bit_cast(Source const& source) {
 #define V8_IMMEDIATE_CRASH() ((void(*)())0)()
 #endif
 
-
-// TODO(all) Replace all uses of this macro with static_assert, remove macro.
+// A convenience wrapper around static_assert without a string message argument.
+// Once C++17 becomes the default, this macro can be removed in favor of the
+// new static_assert(condition) overload.
 #define STATIC_ASSERT(test) static_assert(test, #test)
 
 namespace v8 {
@@ -274,6 +275,12 @@ struct Use {
     (void)unused_tmp_array_for_use_macro;                          \
   } while (false)
 
+// Evaluate the instantiations of an expression with parameter packs.
+// Since USE has left-to-right evaluation order of it's arguments,
+// the parameter pack is iterated from left to right and side effects
+// have defined behavior.
+#define ITERATE_PACK(...) USE(0, ((__VA_ARGS__), 0)...)
+
 }  // namespace base
 }  // namespace v8
 
@@ -310,7 +317,7 @@ V8_INLINE A implicit_cast(A x) {
 #define V8PRIdPTR V8_PTR_PREFIX "d"
 #define V8PRIuPTR V8_PTR_PREFIX "u"
 
-#ifdef V8_TARGET_ARCH_64_BIT
+#if V8_TARGET_ARCH_64_BIT
 #define V8_PTR_HEX_DIGITS 12
 #define V8PRIxPTR_FMT "0x%012" V8PRIxPTR
 #else
@@ -344,47 +351,37 @@ V8_INLINE A implicit_cast(A x) {
 //      write V8_2PART_UINT64_C(0x12345678,90123456);
 #define V8_2PART_UINT64_C(a, b) (((static_cast<uint64_t>(a) << 32) + 0x##b##u))
 
-
-// Compute the 0-relative offset of some absolute value x of type T.
-// This allows conversion of Addresses and integral types into
-// 0-relative int offsets.
-template <typename T>
-constexpr inline intptr_t OffsetFrom(T x) {
-  return x - static_cast<T>(0);
-}
-
-
-// Compute the absolute value of type T for some 0-relative offset x.
-// This allows conversion of 0-relative int offsets into Addresses and
-// integral types.
-template <typename T>
-constexpr inline T AddressFrom(intptr_t x) {
-  return static_cast<T>(static_cast<T>(0) + x);
-}
-
-
 // Return the largest multiple of m which is <= x.
 template <typename T>
 inline T RoundDown(T x, intptr_t m) {
+  STATIC_ASSERT(std::is_integral<T>::value);
   // m must be a power of two.
   DCHECK(m != 0 && ((m & (m - 1)) == 0));
-  return AddressFrom<T>(OffsetFrom(x) & -m);
+  return x & -m;
 }
 template <intptr_t m, typename T>
 constexpr inline T RoundDown(T x) {
+  STATIC_ASSERT(std::is_integral<T>::value);
   // m must be a power of two.
   STATIC_ASSERT(m != 0 && ((m & (m - 1)) == 0));
-  return AddressFrom<T>(OffsetFrom(x) & -m);
+  return x & -m;
 }
 
 // Return the smallest multiple of m which is >= x.
 template <typename T>
 inline T RoundUp(T x, intptr_t m) {
+  STATIC_ASSERT(std::is_integral<T>::value);
   return RoundDown<T>(static_cast<T>(x + m - 1), m);
 }
 template <intptr_t m, typename T>
 constexpr inline T RoundUp(T x) {
-  return RoundDown<m, T>(static_cast<T>(x + m - 1));
+  STATIC_ASSERT(std::is_integral<T>::value);
+  return RoundDown<m, T>(static_cast<T>(x + (m - 1)));
+}
+
+template <typename T, typename U>
+constexpr inline bool IsAligned(T value, U alignment) {
+  return (value & (alignment - 1)) == 0;
 }
 
 inline void* AlignedAddress(void* address, size_t alignment) {
@@ -413,5 +410,31 @@ bool is_inbounds(float_t v) {
   return (kLowerBoundIsMin ? (kLowerBound <= v) : (kLowerBound < v)) &&
          (kUpperBoundIsMax ? (v <= kUpperBound) : (v < kUpperBound));
 }
+
+#ifdef V8_OS_WIN
+
+// Setup for Windows shared library export.
+#ifdef BUILDING_V8_SHARED
+#define V8_EXPORT_PRIVATE __declspec(dllexport)
+#elif USING_V8_SHARED
+#define V8_EXPORT_PRIVATE __declspec(dllimport)
+#else
+#define V8_EXPORT_PRIVATE
+#endif  // BUILDING_V8_SHARED
+
+#else  // V8_OS_WIN
+
+// Setup for Linux shared library export.
+#if V8_HAS_ATTRIBUTE_VISIBILITY
+#ifdef BUILDING_V8_SHARED
+#define V8_EXPORT_PRIVATE __attribute__((visibility("default")))
+#else
+#define V8_EXPORT_PRIVATE
+#endif
+#else
+#define V8_EXPORT_PRIVATE
+#endif
+
+#endif  // V8_OS_WIN
 
 #endif  // V8_BASE_MACROS_H_

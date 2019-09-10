@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>Policies | Node.js v12.10.0 Documentation</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="assets/sh.css">
+  <link rel="canonical" href="https://nodejs.org/api/policy.html">
+</head>
+<body class="alt apidoc" id="api-section-policy">
+  <div id="content" class="clearfix">
+    <div id="column2" class="interior">
+      <div id="intro" class="interior">
+        <a href="/" title="Go back to the home page">
+          Node.js
+        </a>
+      </div>
+      <ul>
+<li><a href="documentation.html" class="nav-documentation">About these Docs</a></li>
+<li><a href="synopsis.html" class="nav-synopsis">Usage &#x26; Example</a></li>
+</ul>
+<div class="line"></div>
+<ul>
+<li><a href="assert.html" class="nav-assert">Assertion Testing</a></li>
+<li><a href="async_hooks.html" class="nav-async_hooks">Async Hooks</a></li>
+<li><a href="buffer.html" class="nav-buffer">Buffer</a></li>
+<li><a href="addons.html" class="nav-addons">C++ Addons</a></li>
+<li><a href="n-api.html" class="nav-n-api">C/C++ Addons - N-API</a></li>
+<li><a href="child_process.html" class="nav-child_process">Child Processes</a></li>
+<li><a href="cluster.html" class="nav-cluster">Cluster</a></li>
+<li><a href="cli.html" class="nav-cli">Command Line Options</a></li>
+<li><a href="console.html" class="nav-console">Console</a></li>
+<li><a href="crypto.html" class="nav-crypto">Crypto</a></li>
+<li><a href="debugger.html" class="nav-debugger">Debugger</a></li>
+<li><a href="deprecations.html" class="nav-deprecations">Deprecated APIs</a></li>
+<li><a href="dns.html" class="nav-dns">DNS</a></li>
+<li><a href="domain.html" class="nav-domain">Domain</a></li>
+<li><a href="esm.html" class="nav-esm">ECMAScript Modules</a></li>
+<li><a href="errors.html" class="nav-errors">Errors</a></li>
+<li><a href="events.html" class="nav-events">Events</a></li>
+<li><a href="fs.html" class="nav-fs">File System</a></li>
+<li><a href="globals.html" class="nav-globals">Globals</a></li>
+<li><a href="http.html" class="nav-http">HTTP</a></li>
+<li><a href="http2.html" class="nav-http2">HTTP/2</a></li>
+<li><a href="https.html" class="nav-https">HTTPS</a></li>
+<li><a href="inspector.html" class="nav-inspector">Inspector</a></li>
+<li><a href="intl.html" class="nav-intl">Internationalization</a></li>
+<li><a href="modules.html" class="nav-modules">Modules</a></li>
+<li><a href="net.html" class="nav-net">Net</a></li>
+<li><a href="os.html" class="nav-os">OS</a></li>
+<li><a href="path.html" class="nav-path">Path</a></li>
+<li><a href="perf_hooks.html" class="nav-perf_hooks">Performance Hooks</a></li>
+<li><a href="policy.html" class="nav-policy active">Policies</a></li>
+<li><a href="process.html" class="nav-process">Process</a></li>
+<li><a href="punycode.html" class="nav-punycode">Punycode</a></li>
+<li><a href="querystring.html" class="nav-querystring">Query Strings</a></li>
+<li><a href="readline.html" class="nav-readline">Readline</a></li>
+<li><a href="repl.html" class="nav-repl">REPL</a></li>
+<li><a href="report.html" class="nav-report">Report</a></li>
+<li><a href="stream.html" class="nav-stream">Stream</a></li>
+<li><a href="string_decoder.html" class="nav-string_decoder">String Decoder</a></li>
+<li><a href="timers.html" class="nav-timers">Timers</a></li>
+<li><a href="tls.html" class="nav-tls">TLS/SSL</a></li>
+<li><a href="tracing.html" class="nav-tracing">Trace Events</a></li>
+<li><a href="tty.html" class="nav-tty">TTY</a></li>
+<li><a href="dgram.html" class="nav-dgram">UDP/Datagram</a></li>
+<li><a href="url.html" class="nav-url">URL</a></li>
+<li><a href="util.html" class="nav-util">Utilities</a></li>
+<li><a href="v8.html" class="nav-v8">V8</a></li>
+<li><a href="vm.html" class="nav-vm">VM</a></li>
+<li><a href="worker_threads.html" class="nav-worker_threads">Worker Threads</a></li>
+<li><a href="zlib.html" class="nav-zlib">Zlib</a></li>
+</ul>
+<div class="line"></div>
+<ul>
+<li><a href="https://github.com/nodejs/node" class="nav-https-github-com-nodejs-node">GitHub Repo &#x26; Issue Tracker</a></li>
+</ul>
+    </div>
+
+    <div id="column1" data-id="policy" class="interior">
+      <header>
+        <h1>Node.js v12.10.0 Documentation</h1>
+        <div id="gtoc">
+          <ul>
+            <li>
+              <a href="index.html" name="toc">Index</a>
+            </li>
+            <li>
+              <a href="all.html">View on single page</a>
+            </li>
+            <li>
+              <a href="policy.json">View as JSON</a>
+            </li>
+            
+    <li class="version-picker">
+      <a href="#">View another version <span>&#x25bc;</span></a>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v12.x/api/policy.html">12.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v11.x/api/policy.html">11.x</a></li></ol>
+    </li>
+  
+            <li class="edit_on_github"><a href="https://github.com/nodejs/node/edit/master/doc/api/policy.md"><span class="github_icon"><svg height="16" width="16" viewBox="0 0 16.1 16.1" fill="currentColor"><path d="M8 0a8 8 0 0 0-2.5 15.6c.4 0 .5-.2.5-.4v-1.5c-2 .4-2.5-.5-2.7-1 0-.1-.5-.9-.8-1-.3-.2-.7-.6 0-.6.6 0 1 .6 1.2.8.7 1.2 1.9 1 2.4.7 0-.5.2-.9.5-1-1.8-.3-3.7-1-3.7-4 0-.9.3-1.6.8-2.2 0-.2-.3-1 .1-2 0 0 .7-.3 2.2.7a7.4 7.4 0 0 1 4 0c1.5-1 2.2-.8 2.2-.8.5 1.1.2 2 .1 2.1.5.6.8 1.3.8 2.2 0 3-1.9 3.7-3.6 4 .3.2.5.7.5 1.4v2.2c0 .2.1.5.5.4A8 8 0 0 0 16 8a8 8 0 0 0-8-8z"/></svg></span>Edit on GitHub</a></li>
+          </ul>
+        </div>
+        <hr>
+      </header>
+
+      <div id="toc">
+        <h2>Table of Contents</h2>
+        <ul>
+<li>
+<p><span class="stability_1"><a href="#policy_policies">Policies</a></span></p>
+<ul>
+<li><a href="#policy_enabling">Enabling</a></li>
+<li>
+<p><a href="#policy_features">Features</a></p>
+<ul>
+<li><a href="#policy_error_behavior">Error Behavior</a></li>
+<li><a href="#policy_integrity_checks">Integrity Checks</a></li>
+<li>
+<p><a href="#policy_dependency_redirection">Dependency Redirection</a></p>
+<ul>
+<li><a href="#policy_example_patched_dependency">Example: Patched Dependency</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+      </div>
+
+      <div id="apicontent">
+        <h1>Policies<span><a class="mark" href="#policy_policies" id="policy_policies">#</a></span></h1>
+
+
+<p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
+
+<p>Node.js contains experimental support for creating policies on loading code.</p>
+<p>Policies are a security feature intended to allow guarantees
+about what code Node.js is able to load. The use of policies assumes
+safe practices for the policy files such as ensuring that policy
+files cannot be overwritten by the Node.js application by using
+file permissions.</p>
+<p>A best practice would be to ensure that the policy manifest is read only for
+the running Node.js application, and that the file cannot be changed
+by the running Node.js application in any way. A typical setup would be to
+create the policy file as a different user id than the one running Node.js
+and granting read permissions to the user id running Node.js.</p>
+<h2>Enabling<span><a class="mark" href="#policy_enabling" id="policy_enabling">#</a></span></h2>
+
+<p>The <code>--experimental-policy</code> flag can be used to enable features for policies
+when loading modules.</p>
+<p>Once this has been set, all modules must conform to a policy manifest file
+passed to the flag:</p>
+<pre><code class="language-sh">node --experimental-policy=policy.json app.js
+</code></pre>
+<p>The policy manifest will be used to enforce constraints on code loaded by
+Node.js.</p>
+<p>To mitigate tampering with policy files on disk, an integrity for
+the policy file itself may be provided via <code>--policy-integrity</code>.
+This allows running <code>node</code> and asserting the policy file contents
+even if the file is changed on disk.</p>
+<pre><code class="language-sh">node --experimental-policy=policy.json --policy-integrity="sha384-SggXRQHwCG8g+DktYYzxkXRIkTiEYWBHqev0xnpCxYlqMBufKZHAHQM3/boDaI/0" app.js
+</code></pre>
+<h2>Features<span><a class="mark" href="#policy_features" id="policy_features">#</a></span></h2>
+<h3>Error Behavior<span><a class="mark" href="#policy_error_behavior" id="policy_error_behavior">#</a></span></h3>
+<p>When a policy check fails, Node.js by default will throw an error.
+It is possible to change the error behavior to one of a few possibilities
+by defining an "onerror" field in a policy manifest. The following values are
+available to change the behavior:</p>
+<ul>
+<li><code>"exit"</code> - will exit the process immediately.
+No cleanup code will be allowed to run.</li>
+<li><code>"log"</code> - will log the error at the site of the failure.</li>
+<li><code>"throw"</code> (default) - will throw a JS error at the site of the failure.</li>
+</ul>
+<pre><code class="language-json">{
+  "onerror": "log",
+  "resources": {
+    "./app/checked.js": {
+      "integrity": "sha384-SggXRQHwCG8g+DktYYzxkXRIkTiEYWBHqev0xnpCxYlqMBufKZHAHQM3/boDaI/0"
+    }
+  }
+}
+</code></pre>
+<h3>Integrity Checks<span><a class="mark" href="#policy_integrity_checks" id="policy_integrity_checks">#</a></span></h3>
+<p>Policy files must use integrity checks with Subresource Integrity strings
+compatible with the browser
+<a href="https://www.w3.org/TR/SRI/#the-integrity-attribute">integrity attribute</a>
+associated with absolute URLs.</p>
+<p>When using <code>require()</code> all resources involved in loading are checked for
+integrity if a policy manifest has been specified. If a resource does not match
+the integrity listed in the manifest, an error will be thrown.</p>
+<p>An example policy file that would allow loading a file <code>checked.js</code>:</p>
+<pre><code class="language-json">{
+  "resources": {
+    "./app/checked.js": {
+      "integrity": "sha384-SggXRQHwCG8g+DktYYzxkXRIkTiEYWBHqev0xnpCxYlqMBufKZHAHQM3/boDaI/0"
+    }
+  }
+}
+</code></pre>
+<p>Each resource listed in the policy manifest can be of one the following
+formats to determine its location:</p>
+<ol>
+<li>A <a href="https://url.spec.whatwg.org/#relative-url-with-fragment-string">relative url string</a> to a resource from the manifest such as <code>./resource.js</code>, <code>../resource.js</code>, or <code>/resource.js</code>.</li>
+<li>A complete url string to a resource such as <code>file:///resource.js</code>.</li>
+</ol>
+<p>When loading resources the entire URL must match including search parameters
+and hash fragment. <code>./a.js?b</code> will not be used when attempting to load
+<code>./a.js</code> and vice versa.</p>
+<p>To generate integrity strings, a script such as
+<code>printf "sha384-$(cat checked.js | openssl dgst -sha384 -binary | base64)"</code>
+can be used.</p>
+<p>Integrity can be specified as the boolean value <code>true</code> to accept any
+body for the resource which can be useful for local development. It is not
+recommended in production since it would allow unexpected alteration of
+resources to be considered valid.</p>
+<h3>Dependency Redirection<span><a class="mark" href="#policy_dependency_redirection" id="policy_dependency_redirection">#</a></span></h3>
+<p>An application may need to ship patched versions of modules or to prevent
+modules from allowing all modules access to all other modules. Redirection
+can be used by intercepting attempts to load the modules wishing to be
+replaced.</p>
+<pre><code class="language-json">{
+  "builtins": [],
+  "resources": {
+    "./app/checked.js": {
+      "dependencies": {
+        "fs": true,
+        "os": "./app/node_modules/alt-os"
+      }
+    }
+  }
+}
+</code></pre>
+<p>The dependencies are keyed by the requested string specifier and have values
+of either <code>true</code> or a string pointing to a module that will be resolved.</p>
+<p>The specifier string does not perform any searching and must match exactly
+what is provided to the <code>require()</code>. Therefore, multiple specifiers may be
+needed in the policy if <code>require()</code> uses multiple different strings to point
+to the same module (such as excluding the extension).</p>
+<p>If the value of the redirection is <code>true</code> the default searching algorithms will
+be used to find the module.</p>
+<p>If the value of the redirection is a string, it will be resolved relative to
+the manifest and then immediately be used without searching.</p>
+<p>Any specifier string that is <code>require()</code>ed and not listed in the dependencies
+will result in an error according to the policy.</p>
+<p>Redirection will not prevent access to APIs through means such as direct access
+to <code>require.cache</code> and/or through <code>module.constructor</code> which allow access to
+loading modules. Policy redirection only affect specifiers to <code>require()</code>.
+Other means such as to prevent undesired access to APIs through variables are
+necessary to lock down that path of loading modules.</p>
+<p>A boolean value of <code>true</code> for the dependencies map can be specified to allow a
+module to load any specifier without redirection. This can be useful for local
+development and may have some valid usage in production, but should be used
+only with care after auditing a module to ensure its behavior is valid.</p>
+<h4>Example: Patched Dependency<span><a class="mark" href="#policy_example_patched_dependency" id="policy_example_patched_dependency">#</a></span></h4>
+<p>Since a dependency can be redirected, you can provide attenuated or modified
+forms of dependencies as fits your application. For example, you could log
+data about timing of function durations by wrapping the original:</p>
+<pre><code class="language-js">const original = require('fn');
+module.exports = function fn(...args) {
+  console.time();
+  try {
+    return new.target ?
+      Reflect.construct(original, args) :
+      Reflect.apply(original, this, args);
+  } finally {
+    console.timeEnd();
+  }
+};
+</code></pre>
+      </div>
+    </div>
+  </div>
+  <script src="assets/sh_main.js"></script>
+  <script src="assets/sh_javascript.min.js"></script>
+  <script>highlight(undefined, undefined, 'pre');</script>
+</body>
+</html>

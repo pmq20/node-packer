@@ -12,7 +12,9 @@
 #include "src/asmjs/asm-js.h"
 #include "src/asmjs/asm-types.h"
 #include "src/base/optional.h"
-#include "src/flags.h"
+#include "src/base/overflowing-math.h"
+#include "src/flags/flags.h"
+#include "src/numbers/conversions-inl.h"
 #include "src/parsing/scanner.h"
 #include "src/wasm/wasm-limits.h"
 #include "src/wasm/wasm-opcodes.h"
@@ -318,6 +320,9 @@ int AsmJsParser::FindContinueLabelDepth(AsmJsScanner::token_t label) {
   int count = 0;
   for (auto it = block_stack_.rbegin(); it != block_stack_.rend();
        ++it, ++count) {
+    // A 'continue' statement targets ...
+    //  - The innermost {kLoop} block if no label is given.
+    //  - The matching {kLoop} block (when a label is provided).
     if (it->kind == BlockKind::kLoop &&
         (label == kTokenNone || it->label == label)) {
       return count;
@@ -330,8 +335,12 @@ int AsmJsParser::FindBreakLabelDepth(AsmJsScanner::token_t label) {
   int count = 0;
   for (auto it = block_stack_.rbegin(); it != block_stack_.rend();
        ++it, ++count) {
-    if (it->kind == BlockKind::kRegular &&
-        (label == kTokenNone || it->label == label)) {
+    // A 'break' statement targets ...
+    //  - The innermost {kRegular} block if no label is given.
+    //  - The matching {kRegular} or {kNamed} block (when a label is provided).
+    if ((it->kind == BlockKind::kRegular &&
+         (label == kTokenNone || it->label == label)) ||
+        (it->kind == BlockKind::kNamed && it->label == label)) {
       return count;
     }
   }
@@ -343,7 +352,7 @@ void AsmJsParser::ValidateModule() {
   RECURSE(ValidateModuleParameters());
   EXPECT_TOKEN('{');
   EXPECT_TOKEN(TOK(UseAsm));
-  SkipSemicolon();
+  RECURSE(SkipSemicolon());
   RECURSE(ValidateModuleVars());
   while (Peek(TOK(function))) {
     RECURSE(ValidateFunction());
@@ -352,6 +361,8 @@ void AsmJsParser::ValidateModule() {
     RECURSE(ValidateFunctionTable());
   }
   RECURSE(ValidateExport());
+  RECURSE(SkipSemicolon());
+  EXPECT_TOKEN('}');
 
   // Check that all functions were eventually defined.
   for (auto& info : global_var_info_) {
@@ -517,7 +528,7 @@ void AsmJsParser::ValidateModuleVarFromGlobal(VarInfo* info,
       dvalue = -dvalue;
     }
     DeclareGlobal(info, mutable_variable, AsmType::Float(), kWasmF32,
-                  WasmInitExpr(static_cast<float>(dvalue)));
+                  WasmInitExpr(DoubleToFloat32(dvalue)));
   } else if (CheckForUnsigned(&uvalue)) {
     dvalue = uvalue;
     if (negate) {
@@ -553,7 +564,7 @@ void AsmJsParser::ValidateModuleVarImport(VarInfo* info,
     } else {
       info->kind = VarKind::kImportedFunction;
       info->import = new (zone()->New(sizeof(FunctionImportInfo)))
-          FunctionImportInfo({name, WasmModuleBuilder::SignatureMap(zone())});
+          FunctionImportInfo(name, zone());
       info->mutable_variable = false;
     }
   }
@@ -797,6 +808,9 @@ void AsmJsParser::ValidateFunction() {
   // End function
   current_function_builder_->Emit(kExprEnd);
 
+  if (current_function_builder_->GetPosition() > kV8MaxWasmFunctionSize) {
+    FAIL("Size of function body exceeds internal limit");
+  }
   // Record (or validate) function type.
   AsmType* function_type = AsmType::Function(zone(), return_type_);
   for (auto t : params) {
@@ -1038,7 +1052,8 @@ void AsmJsParser::ValidateStatement() {
 void AsmJsParser::Block() {
   bool can_break_to_block = pending_label_ != 0;
   if (can_break_to_block) {
-    Begin(pending_label_);
+    BareBegin(BlockKind::kNamed, pending_label_);
+    current_function_builder_->EmitWithU8(kExprBlock, kLocalVoid);
   }
   pending_label_ = 0;
   EXPECT_TOKEN('{');
@@ -1080,8 +1095,8 @@ void AsmJsParser::IfStatement() {
   EXPECT_TOKEN('(');
   RECURSE(Expression(AsmType::Int()));
   EXPECT_TOKEN(')');
+  BareBegin(BlockKind::kOther);
   current_function_builder_->EmitWithU8(kExprIf, kLocalVoid);
-  BareBegin();
   RECURSE(ValidateStatement());
   if (Check(TOK(else))) {
     current_function_builder_->Emit(kExprElse);
@@ -1498,9 +1513,14 @@ AsmType* AsmJsParser::AssignmentExpression() {
         FAILn("Illegal type stored to heap view");
       }
       if (heap_type->IsA(AsmType::Float32Array()) &&
-          value->IsA(AsmType::Double())) {
+          value->IsA(AsmType::DoubleQ())) {
         // Assignment to a float32 heap can be used to convert doubles.
         current_function_builder_->Emit(kExprF32ConvertF64);
+      }
+      if (heap_type->IsA(AsmType::Float64Array()) &&
+          value->IsA(AsmType::FloatQ())) {
+        // Assignment to a float64 heap can be used to convert floats.
+        current_function_builder_->Emit(kExprF64ConvertF32);
       }
       ret = value;
 #define V(array_type, wasmload, wasmstore, type)                         \
@@ -1559,7 +1579,8 @@ AsmType* AsmJsParser::UnaryExpression() {
     if (CheckForUnsigned(&uvalue)) {
       // TODO(bradnelson): was supposed to be 0x7FFFFFFF, check errata.
       if (uvalue <= 0x80000000) {
-        current_function_builder_->EmitI32Const(-static_cast<int32_t>(uvalue));
+        current_function_builder_->EmitI32Const(
+            base::NegateWithWraparound(static_cast<int32_t>(uvalue)));
       } else {
         FAILn("Integer numeric literal out of range.");
       }
@@ -1637,6 +1658,7 @@ AsmType* AsmJsParser::UnaryExpression() {
 
 // 6.8.8 MultiplicativeExpression
 AsmType* AsmJsParser::MultiplicativeExpression() {
+  AsmType* a;
   uint32_t uvalue;
   if (CheckForUnsignedBelow(0x100000, &uvalue)) {
     if (Check('*')) {
@@ -1649,8 +1671,10 @@ AsmType* AsmJsParser::MultiplicativeExpression() {
       current_function_builder_->EmitI32Const(value);
       current_function_builder_->Emit(kExprI32Mul);
       return AsmType::Intish();
+    } else {
+      scanner_.Rewind();
+      RECURSEn(a = UnaryExpression());
     }
-    scanner_.Rewind();
   } else if (Check('-')) {
     if (CheckForUnsignedBelow(0x100000, &uvalue)) {
       int32_t value = -static_cast<int32_t>(uvalue);
@@ -1664,12 +1688,14 @@ AsmType* AsmJsParser::MultiplicativeExpression() {
         current_function_builder_->Emit(kExprI32Mul);
         return AsmType::Intish();
       }
-      return AsmType::Signed();
+      a = AsmType::Signed();
+    } else {
+      scanner_.Rewind();
+      RECURSEn(a = UnaryExpression());
     }
-    scanner_.Rewind();
+  } else {
+    RECURSEn(a = UnaryExpression());
   }
-  AsmType* a;
-  RECURSEn(a = UnaryExpression());
   for (;;) {
     if (Check('*')) {
       uint32_t uvalue;
@@ -1987,7 +2013,8 @@ AsmType* AsmJsParser::BitwiseORExpression() {
     // Remember whether the first operand to this OR-expression has requested
     // deferred validation of the |0 annotation.
     // NOTE: This has to happen here to work recursively.
-    bool requires_zero = call_coercion_deferred_->IsExactly(AsmType::Signed());
+    bool requires_zero =
+        AsmType::IsExactly(call_coercion_deferred_, AsmType::Signed());
     call_coercion_deferred_ = nullptr;
     // TODO(bradnelson): Make it prettier.
     bool zero = false;
@@ -2210,14 +2237,14 @@ AsmType* AsmJsParser::ValidateCall() {
     DCHECK_NOT_NULL(function_info->import);
     // TODO(bradnelson): Factor out.
     uint32_t index;
-    auto it = function_info->import->cache.find(sig);
+    auto it = function_info->import->cache.find(*sig);
     if (it != function_info->import->cache.end()) {
       index = it->second;
       DCHECK(function_info->function_defined);
     } else {
       index =
           module_builder_->AddImport(function_info->import->function_name, sig);
-      function_info->import->cache[sig] = index;
+      function_info->import->cache[*sig] = index;
       function_info->function_defined = true;
     }
     current_function_builder_->AddAsmWasmOffset(call_pos, to_number_pos);

@@ -40,9 +40,11 @@ function nextdir() {
   return `test${++dirc}`;
 }
 
-// fs.promises should not be enumerable as long as it causes a warning to be
-// emitted.
-assert.strictEqual(Object.keys(fs).includes('promises'), false);
+// fs.promises should be enumerable.
+assert.strictEqual(
+  Object.prototype.propertyIsEnumerable.call(fs, 'promises'),
+  true
+);
 
 {
   access(__filename, 'r')
@@ -106,7 +108,7 @@ async function getHandle(dest) {
       await handle.sync();
     }
 
-    // test fs.read promises when length to read is zero bytes
+    // Test fs.read promises when length to read is zero bytes
     {
       const dest = path.resolve(tmpDir, 'test1.js');
       const handle = await getHandle(dest);
@@ -119,7 +121,7 @@ async function getHandle(dest) {
       await unlink(dest);
     }
 
-    // bytes written to file match buffer
+    // Bytes written to file match buffer
     {
       const handle = await getHandle(dest);
       const buf = Buffer.from('hello fsPromises');
@@ -130,7 +132,7 @@ async function getHandle(dest) {
       assert.deepStrictEqual(ret.buffer, buf);
     }
 
-    // truncate file to specified length
+    // Truncate file to specified length
     {
       const handle = await getHandle(dest);
       const buf = Buffer.from('hello FileHandle');
@@ -143,7 +145,7 @@ async function getHandle(dest) {
       assert.deepStrictEqual((await readFile(dest)).toString(), 'hello');
     }
 
-    // invalid change of ownership
+    // Invalid change of ownership
     {
       const handle = await getHandle(dest);
 
@@ -164,7 +166,7 @@ async function getHandle(dest) {
         },
         {
           code: 'ERR_OUT_OF_RANGE',
-          name: 'RangeError [ERR_OUT_OF_RANGE]',
+          name: 'RangeError',
           message: 'The value of "gid" is out of range. ' +
                   'It must be >= 0 && < 4294967296. Received -1'
         });
@@ -175,13 +177,13 @@ async function getHandle(dest) {
         },
         {
           code: 'ERR_OUT_OF_RANGE',
-          name: 'RangeError [ERR_OUT_OF_RANGE]',
+          name: 'RangeError',
           message: 'The value of "gid" is out of range. ' +
                     'It must be >= 0 && < 4294967296. Received -1'
         });
     }
 
-    // set modification times
+    // Set modification times
     {
       const handle = await getHandle(dest);
 
@@ -224,7 +226,7 @@ async function getHandle(dest) {
 
         const newMode = 0o666;
         if (common.isOSX) {
-          // lchmod is only available on macOS
+          // `lchmod` is only available on macOS.
           await lchmod(newLink, newMode);
           stats = await lstat(newLink);
           assert.strictEqual(stats.mode & 0o777, newMode);
@@ -254,7 +256,7 @@ async function getHandle(dest) {
       await unlink(newLink);
     }
 
-    // testing readdir lists both files and directories
+    // Testing readdir lists both files and directories
     {
       const newDir = path.resolve(tmpDir, 'dir');
       const newFile = path.resolve(tmpDir, 'foo.js');
@@ -271,7 +273,7 @@ async function getHandle(dest) {
       await unlink(newFile);
     }
 
-    // mkdir when options is number.
+    // `mkdir` when options is number.
     {
       const dir = path.join(tmpDir, nextdir());
       await mkdir(dir, 777);
@@ -279,7 +281,7 @@ async function getHandle(dest) {
       assert(stats.isDirectory());
     }
 
-    // mkdir when options is string.
+    // `mkdir` when options is string.
     {
       const dir = path.join(tmpDir, nextdir());
       await mkdir(dir, '777');
@@ -287,7 +289,7 @@ async function getHandle(dest) {
       assert(stats.isDirectory());
     }
 
-    // mkdirp when folder does not yet exist.
+    // `mkdirp` when folder does not yet exist.
     {
       const dir = path.join(tmpDir, nextdir(), nextdir());
       await mkdir(dir, { recursive: true });
@@ -295,19 +297,37 @@ async function getHandle(dest) {
       assert(stats.isDirectory());
     }
 
-    // mkdirp when path is a file.
+    // `mkdirp` when path is a file.
     {
       const dir = path.join(tmpDir, nextdir(), nextdir());
       await mkdir(path.dirname(dir));
       await writeFile(dir);
-      try {
-        await mkdir(dir, { recursive: true });
-        throw new Error('unreachable');
-      } catch (err) {
-        assert.notStrictEqual(err.message, 'unreachable');
-        assert.strictEqual(err.code, 'EEXIST');
-        assert.strictEqual(err.syscall, 'mkdir');
-      }
+      assert.rejects(
+        mkdir(dir, { recursive: true }),
+        {
+          code: 'EEXIST',
+          message: /EEXIST: .*mkdir/,
+          name: 'Error',
+          syscall: 'mkdir',
+        }
+      );
+    }
+
+    // `mkdirp` when part of the path is a file.
+    {
+      const file = path.join(tmpDir, nextdir(), nextdir());
+      const dir = path.join(file, nextdir(), nextdir());
+      await mkdir(path.dirname(file));
+      await writeFile(file);
+      assert.rejects(
+        mkdir(dir, { recursive: true }),
+        {
+          code: 'ENOTDIR',
+          message: /ENOTDIR: .*mkdir/,
+          name: 'Error',
+          syscall: 'mkdir',
+        }
+      );
     }
 
     // mkdirp ./
@@ -326,8 +346,8 @@ async function getHandle(dest) {
       assert(stats.isDirectory());
     }
 
-    // mkdirp require recursive option to be a boolean.
-    // Anything else generates an error.
+    // fs.mkdirp requires the recursive option to be of type boolean.
+    // Everything else generates an error.
     {
       const dir = path.join(tmpDir, nextdir(), nextdir());
       ['', 1, {}, [], null, Symbol('test'), () => {}].forEach((recursive) => {
@@ -336,7 +356,7 @@ async function getHandle(dest) {
           async () => mkdir(dir, { recursive }),
           {
             code: 'ERR_INVALID_ARG_TYPE',
-            name: 'TypeError [ERR_INVALID_ARG_TYPE]',
+            name: 'TypeError',
             message: 'The "recursive" argument must be of type boolean. ' +
               `Received type ${typeof recursive}`
           }
@@ -344,7 +364,7 @@ async function getHandle(dest) {
       });
     }
 
-    // mkdtemp with invalid numeric prefix
+    // `mkdtemp` with invalid numeric prefix
     {
       await mkdtemp(path.resolve(tmpDir, 'FOO'));
       assert.rejects(
@@ -352,7 +372,7 @@ async function getHandle(dest) {
         async () => mkdtemp(1),
         {
           code: 'ERR_INVALID_ARG_TYPE',
-          name: 'TypeError [ERR_INVALID_ARG_TYPE]'
+          name: 'TypeError'
         }
       );
     }

@@ -27,19 +27,12 @@
 
 import test
 import os
-from os.path import join, dirname, exists, splitext
 import re
-import ast
-
-try:
-  reduce
-except NameError:
-  from functools import reduce
+from functools import reduce
 
 
 FLAGS_PATTERN = re.compile(r"//\s+Flags:(.*)")
-FILES_PATTERN = re.compile(r"//\s+Files:(.*)")
-
+LS_RE = re.compile(r'^test-.*\.m?js$')
 
 class SimpleTestCase(test.TestCase):
 
@@ -78,21 +71,15 @@ class SimpleTestCase(test.TestCase):
       # failure so such tests are also skipped.
       if (any(flag.startswith('--inspect') for flag in flags) and
           not self.context.v8_enable_inspector):
-        print('Skipping as node was compiled without inspector support')
+        print(': Skipping as node was compiled without inspector support')
       elif (('--use-bundled-ca' in flags or
           '--use-openssl-ca' in flags or
           '--tls-v1.0' in flags or
           '--tls-v1.1' in flags) and
           not self.context.node_has_crypto):
-        print('Skipping as node was compiled without crypto support')
+        print(': Skipping as node was compiled without crypto support')
       else:
         result += flags
-    files_match = FILES_PATTERN.search(source);
-    additional_files = []
-    if files_match:
-      additional_files += files_match.group(1).strip().split()
-    for a_file in additional_files:
-      result.append(join(dirname(self.config.root), '..', a_file))
 
     if self.additional_flags:
       result += self.additional_flags
@@ -114,15 +101,15 @@ class SimpleTestConfiguration(test.TestConfiguration):
       self.additional_flags = []
 
   def Ls(self, path):
-    return [f for f in os.listdir(path) if re.match('^test-.*\.m?js$', f)]
+    return [f for f in os.listdir(path) if LS_RE.match(f)]
 
   def ListTests(self, current_path, path, arch, mode):
-    all_tests = [current_path + [t] for t in self.Ls(join(self.root))]
+    all_tests = [current_path + [t] for t in self.Ls(os.path.join(self.root))]
     result = []
-    for test in all_tests:
-      if self.Contains(path, test):
-        file_path = join(self.root, reduce(join, test[1:], ""))
-        test_name = test[:-1] + [splitext(test[-1])[0]]
+    for tst in all_tests:
+      if self.Contains(path, tst):
+        file_path = os.path.join(self.root, reduce(os.path.join, tst[1:], ""))
+        test_name = tst[:-1] + [os.path.splitext(tst[-1])[0]]
         result.append(SimpleTestCase(test_name, file_path, arch, mode,
                                      self.context, self, self.additional_flags))
     return result
@@ -138,8 +125,8 @@ class ParallelTestConfiguration(SimpleTestConfiguration):
   def ListTests(self, current_path, path, arch, mode):
     result = super(ParallelTestConfiguration, self).ListTests(
          current_path, path, arch, mode)
-    for test in result:
-      test.parallel = True
+    for tst in result:
+      tst.parallel = True
     return result
 
 class AddonTestConfiguration(SimpleTestConfiguration):
@@ -152,20 +139,20 @@ class AddonTestConfiguration(SimpleTestConfiguration):
 
     result = []
     for subpath in os.listdir(path):
-      if os.path.isdir(join(path, subpath)):
-        for f in os.listdir(join(path, subpath)):
+      if os.path.isdir(os.path.join(path, subpath)):
+        for f in os.listdir(os.path.join(path, subpath)):
           if SelectTest(f):
             result.append([subpath, f[:-3]])
     return result
 
   def ListTests(self, current_path, path, arch, mode):
-    all_tests = [current_path + t for t in self.Ls(join(self.root))]
+    all_tests = [current_path + t for t in self.Ls(os.path.join(self.root))]
     result = []
-    for test in all_tests:
-      if self.Contains(path, test):
-        file_path = join(self.root, reduce(join, test[1:], "") + ".js")
+    for tst in all_tests:
+      if self.Contains(path, tst):
+        file_path = os.path.join(self.root, reduce(os.path.join, tst[1:], "") + ".js")
         result.append(
-            SimpleTestCase(test, file_path, arch, mode, self.context, self, self.additional_flags))
+            SimpleTestCase(tst, file_path, arch, mode, self.context, self, self.additional_flags))
     return result
 
 class AbortTestConfiguration(SimpleTestConfiguration):
@@ -176,6 +163,6 @@ class AbortTestConfiguration(SimpleTestConfiguration):
   def ListTests(self, current_path, path, arch, mode):
     result = super(AbortTestConfiguration, self).ListTests(
          current_path, path, arch, mode)
-    for test in result:
-      test.disable_core_files = True
+    for tst in result:
+      tst.disable_core_files = True
     return result

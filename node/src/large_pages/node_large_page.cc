@@ -20,22 +20,34 @@
 //
 // SPDX-License-Identifier: MIT
 
-#include <errno.h>
+#include "node_large_page.h"
+#include "util.h"
+#include "uv.h"
+
 #include <fcntl.h>  // _O_RDWR
-#include <limits.h>  // PATH_MAX
-#include <locale.h>
-#include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
 #include <sys/types.h>
 #include <sys/mman.h>
+#if defined(__FreeBSD__)
+#include <sys/sysctl.h>
+#include <sys/user.h>
+#elif defined(__APPLE__)
+#include <mach/vm_map.h>
+#endif
+#include <unistd.h>  // readlink
+
+#include <cerrno>   // NOLINT(build/include)
+#include <climits>  // PATH_MAX
+#include <clocale>
+#include <csignal>
+#include <cstdio>
+#include <cstdlib>
+#include <cstdint>
+#include <cstring>
 #include <string>
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include <unistd.h>  // readlink
+#include <vector>
 
 // The functions in this file map the text segment of node into 2M pages.
 // The algorithm is simple
@@ -85,6 +97,7 @@ inline int64_t hugepage_align_down(int64_t addr) {
 // This is also handling the case where the first line is not the binary
 
 static struct text_region FindNodeTextRegion() {
+#if defined(__linux__)
   std::ifstream ifs;
   std::string map_line;
   std::string permission;
@@ -104,8 +117,12 @@ static struct text_region FindNodeTextRegion() {
   std::string exename;
   {
       char selfexe[PATH_MAX];
-      ssize_t count = readlink("/proc/self/exe", selfexe, PATH_MAX);
-      exename = std::string(selfexe, count);
+
+      size_t size = sizeof(selfexe);
+      if (uv_exepath(selfexe, &size))
+        return nregion;
+
+      exename = std::string(selfexe, size);
   }
 
   while (std::getline(ifs, map_line)) {
@@ -138,9 +155,106 @@ static struct text_region FindNodeTextRegion() {
   }
 
   ifs.close();
+#elif defined(__FreeBSD__)
+  struct text_region nregion;
+  nregion.found_text_region = false;
+
+  std::string exename;
+  {
+    char selfexe[PATH_MAX];
+    size_t count = sizeof(selfexe);
+    if (uv_exepath(selfexe, &count))
+      return nregion;
+
+    exename = std::string(selfexe, count);
+  }
+
+  size_t numpg;
+  int mib[] = {CTL_KERN, KERN_PROC, KERN_PROC_VMMAP, getpid()};
+  const size_t miblen = arraysize(mib);
+  if (sysctl(mib, miblen, nullptr, &numpg, nullptr, 0) == -1) {
+    return nregion;
+  }
+
+  // for struct kinfo_vmentry
+  numpg = numpg * 4 / 3;
+  auto alg = std::vector<char>(numpg);
+
+  if (sysctl(mib, miblen, alg.data(), &numpg, nullptr, 0) == -1) {
+    return nregion;
+  }
+
+  char* start = alg.data();
+  char* end = start + numpg;
+
+  while (start < end) {
+    kinfo_vmentry* entry = reinterpret_cast<kinfo_vmentry*>(start);
+    const size_t cursz = entry->kve_structsize;
+    if (cursz == 0) {
+      break;
+    }
+
+    if (entry->kve_path[0] == '\0') {
+      continue;
+    }
+    bool excmapping = ((entry->kve_protection & KVME_PROT_READ) &&
+     (entry->kve_protection & KVME_PROT_EXEC));
+
+    if (!strcmp(exename.c_str(), entry->kve_path) && excmapping) {
+      char* estart =
+        reinterpret_cast<char*>(hugepage_align_up(entry->kve_start));
+      char* eend =
+        reinterpret_cast<char*>(hugepage_align_down(entry->kve_end));
+      size_t size = eend - estart;
+      nregion.found_text_region = true;
+      nregion.from = estart;
+      nregion.to = eend;
+      nregion.total_hugepages = size / hps;
+      break;
+    }
+    start += cursz;
+  }
+#elif defined(__APPLE__)
+  struct text_region nregion;
+  nregion.found_text_region = false;
+  struct vm_region_submap_info_64 map;
+  mach_msg_type_number_t count = VM_REGION_SUBMAP_INFO_COUNT_64;
+  vm_address_t addr = 0UL;
+  vm_size_t size = 0;
+  natural_t depth = 1;
+
+  while (true) {
+    if (vm_region_recurse_64(mach_task_self(), &addr, &size, &depth,
+                             reinterpret_cast<vm_region_info_64_t>(&map),
+                             &count) != KERN_SUCCESS) {
+      break;
+    }
+
+    if (map.is_submap) {
+      depth++;
+    } else {
+      char* start = reinterpret_cast<char*>(hugepage_align_up(addr));
+      char* end = reinterpret_cast<char*>(hugepage_align_down(addr+size));
+      size_t esize = end - start;
+
+      if (end > start && (map.protection & VM_PROT_READ) != 0 &&
+          (map.protection & VM_PROT_EXECUTE) != 0) {
+        nregion.found_text_region = true;
+        nregion.from = start;
+        nregion.to = end;
+        nregion.total_hugepages = esize / hps;
+        break;
+      }
+
+      addr += size;
+      size = 0;
+    }
+  }
+#endif
   return nregion;
 }
 
+#if defined(__linux__)
 static bool IsTransparentHugePagesEnabled() {
   std::ifstream ifs;
 
@@ -168,6 +282,19 @@ static bool IsTransparentHugePagesEnabled() {
   ifs.close();
   return ret_status;
 }
+#elif defined(__FreeBSD__)
+static bool IsSuperPagesEnabled() {
+  // It is enabled by default on amd64
+  unsigned int super_pages = 0;
+  size_t super_pages_length = sizeof(super_pages);
+  if (sysctlbyname("vm.pmap.pg_ps_enabled", &super_pages,
+      &super_pages_length, nullptr, 0) == -1 ||
+      super_pages < 1) {
+    return false;
+  }
+  return true;
+}
+#endif
 
 // Moving the text region to large pages. We need to be very careful.
 // 1: This function itself should not be moved.
@@ -178,11 +305,15 @@ static bool IsTransparentHugePagesEnabled() {
 // 2: This function should not call any function(s) that might be moved.
 // a. map a new area and copy the original code there
 // b. mmap using the start address with MAP_FIXED so we get exactly
-//    the same virtual address
+//    the same virtual address (except on macOS).
 // c. madvise with MADV_HUGE_PAGE
 // d. If successful copy the code there and unmap the original region
 int
+#if !defined(__APPLE__)
 __attribute__((__section__(".lpstub")))
+#else
+__attribute__((__section__("__TEXT,__lpstub")))
+#endif
 __attribute__((__aligned__(hps)))
 __attribute__((__noinline__))
 MoveTextRegionToLargePages(const text_region& r) {
@@ -200,9 +331,13 @@ MoveTextRegionToLargePages(const text_region& r) {
     PrintSystemError(errno);
     return -1;
   }
+  OnScopeLeave munmap_on_return([nmem, size]() {
+    if (-1 == munmap(nmem, size)) PrintSystemError(errno);
+  });
 
   memcpy(nmem, r.from, size);
 
+#if defined(__linux__)
 // We already know the original page is r-xp
 // (PROT_READ, PROT_EXEC, MAP_PRIVATE)
 // We want PROT_WRITE because we are writing into it.
@@ -212,7 +347,6 @@ MoveTextRegionToLargePages(const text_region& r) {
               MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1 , 0);
   if (tmem == MAP_FAILED) {
     PrintSystemError(errno);
-    munmap(nmem, size);
     return -1;
   }
 
@@ -223,15 +357,46 @@ MoveTextRegionToLargePages(const text_region& r) {
     if (ret == -1) {
       PrintSystemError(errno);
     }
-    ret = munmap(nmem, size);
+    return -1;
+  }
+#elif defined(__FreeBSD__)
+  tmem = mmap(start, size,
+              PROT_READ | PROT_WRITE | PROT_EXEC,
+              MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED |
+              MAP_ALIGNED_SUPER, -1 , 0);
+  if (tmem == MAP_FAILED) {
+    PrintSystemError(errno);
+    return -1;
+  }
+#elif defined(__APPLE__)
+  // There is not enough room to reserve the mapping close
+  // to the region address so we content to give a hint
+  // without forcing the new address being closed to.
+  // We explicitally gives all permission since we plan
+  // to write into it.
+  tmem = mmap(start, size,
+              PROT_READ | PROT_WRITE | PROT_EXEC,
+              MAP_PRIVATE | MAP_ANONYMOUS,
+              VM_FLAGS_SUPERPAGE_SIZE_2MB, 0);
+  if (tmem == MAP_FAILED) {
+    PrintSystemError(errno);
+    return -1;
+  }
+  memcpy(tmem, nmem, size);
+  ret = mprotect(start, size, PROT_READ | PROT_WRITE | PROT_EXEC);
+  if (ret == -1) {
+    PrintSystemError(errno);
+    ret = munmap(tmem, size);
     if (ret == -1) {
       PrintSystemError(errno);
     }
-
     return -1;
   }
-
+  memcpy(start, tmem, size);
+#else
   memcpy(start, nmem, size);
+#endif
+
   ret = mprotect(start, size, PROT_READ | PROT_EXEC);
   if (ret == -1) {
     PrintSystemError(errno);
@@ -239,19 +404,8 @@ MoveTextRegionToLargePages(const text_region& r) {
     if (ret == -1) {
       PrintSystemError(errno);
     }
-    ret = munmap(nmem, size);
-    if (ret == -1) {
-      PrintSystemError(errno);
-    }
     return -1;
   }
-
-  // Release the old/temporary mapped region
-  ret = munmap(nmem, size);
-  if (ret == -1) {
-    PrintSystemError(errno);
-  }
-
   return ret;
 }
 
@@ -263,14 +417,25 @@ int MapStaticCodeToLargePages() {
     return -1;
   }
 
+#if defined(__linux__)
   if (r.from > reinterpret_cast<void*>(&MoveTextRegionToLargePages))
     return MoveTextRegionToLargePages(r);
 
   return -1;
+#elif defined(__FreeBSD__) || defined(__APPLE__)
+  return MoveTextRegionToLargePages(r);
+#endif
 }
 
 bool IsLargePagesEnabled() {
+#if defined(__linux__)
   return IsTransparentHugePagesEnabled();
+#elif defined(__FreeBSD__)
+  return IsSuperPagesEnabled();
+#elif defined(__APPLE__)
+  // pse-36 flag is present in recent mac x64 products.
+  return true;
+#endif
 }
 
 }  // namespace node

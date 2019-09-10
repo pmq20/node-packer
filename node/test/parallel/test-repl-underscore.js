@@ -15,7 +15,7 @@ testError();
 function testSloppyMode() {
   const r = initRepl(repl.REPL_MODE_SLOPPY);
 
-  // cannot use `let` in sloppy mode
+  // Cannot use `let` in sloppy mode
   r.write(`_;          // initial value undefined
           var x = 10;  // evaluates to undefined
           _;           // still undefined
@@ -149,7 +149,7 @@ function testResetContextGlobal() {
     '10',
   ]);
 
-  // delete globals leaked by REPL when `useGlobal` is `true`
+  // Delete globals leaked by REPL when `useGlobal` is `true`
   delete global.module;
   delete global.require;
 }
@@ -173,16 +173,19 @@ function testError() {
       'undefined',
 
       // The error, both from the original throw and the `_error` echo.
+      'Thrown:',
       'Error: foo',
       '[Error: foo]',
 
       // The sync error, with individual property echoes
-      /^{ Error: ENOENT: no such file or directory, scandir '.*nonexistent.*'/,
+      'Thrown:',
+      /^Error: ENOENT: no such file or directory, scandir '.*nonexistent\?'/,
       /Object\.readdirSync/,
       /^  errno: -(2|4058),$/,
       "  syscall: 'scandir',",
       "  code: 'ENOENT',",
-      "  path: '/nonexistent?' }",
+      "  path: '/nonexistent?'",
+      '}',
       "'ENOENT'",
       "'scandir'",
 
@@ -191,12 +194,8 @@ function testError() {
       'undefined',
 
       // The message from the original throw
+      'Thrown:',
       'Error: baz',
-      /setImmediate/,
-      /^    at/,
-      /^    at/,
-      /^    at/,
-      /^    at/,
     ];
     for (const line of lines) {
       const expected = expectedLines.shift();
@@ -219,6 +218,7 @@ function testError() {
       "'baz'",
       'Expression assignment to _error now disabled.',
       '0',
+      'Thrown:',
       'Error: quux',
       '0'
     ]);

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Child Process | Node.js v10.15.3 Documentation</title>
+  <title>Child Process | Node.js v12.10.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -52,11 +52,13 @@
 <li><a href="os.html" class="nav-os">OS</a></li>
 <li><a href="path.html" class="nav-path">Path</a></li>
 <li><a href="perf_hooks.html" class="nav-perf_hooks">Performance Hooks</a></li>
+<li><a href="policy.html" class="nav-policy">Policies</a></li>
 <li><a href="process.html" class="nav-process">Process</a></li>
 <li><a href="punycode.html" class="nav-punycode">Punycode</a></li>
 <li><a href="querystring.html" class="nav-querystring">Query Strings</a></li>
 <li><a href="readline.html" class="nav-readline">Readline</a></li>
 <li><a href="repl.html" class="nav-repl">REPL</a></li>
+<li><a href="report.html" class="nav-report">Report</a></li>
 <li><a href="stream.html" class="nav-stream">Stream</a></li>
 <li><a href="string_decoder.html" class="nav-string_decoder">String Decoder</a></li>
 <li><a href="timers.html" class="nav-timers">Timers</a></li>
@@ -69,7 +71,7 @@
 <li><a href="v8.html" class="nav-v8">V8</a></li>
 <li><a href="vm.html" class="nav-vm">VM</a></li>
 <li><a href="worker_threads.html" class="nav-worker_threads">Worker Threads</a></li>
-<li><a href="zlib.html" class="nav-zlib">ZLIB</a></li>
+<li><a href="zlib.html" class="nav-zlib">Zlib</a></li>
 </ul>
 <div class="line"></div>
 <ul>
@@ -79,7 +81,7 @@
 
     <div id="column1" data-id="child_process" class="interior">
       <header>
-        <h1>Node.js v10.15.3 Documentation</h1>
+        <h1>Node.js v12.10.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -94,12 +96,13 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v11.x/api/child_process.html">11.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v12.x/api/child_process.html">12.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v11.x/api/child_process.html">11.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v10.x/api/child_process.html">10.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v9.x/api/child_process.html">9.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v8.x/api/child_process.html">8.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v7.x/api/child_process.html">7.x</a></li>
-<li><a href="https://nodejs.org/docs/latest-v6.x/api/child_process.html">6.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v6.x/api/child_process.html">6.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v5.x/api/child_process.html">5.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v4.x/api/child_process.html">4.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v0.12.x/api/child_process.html">0.12.x</a></li>
@@ -182,7 +185,6 @@
       <div id="apicontent">
         <h1>Child Process<span><a class="mark" href="#child_process_child_process" id="child_process_child_process">#</a></span></h1>
 
-<!--lint disable maximum-line-length-->
 <p></p><div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><p></p>
 <p>The <code>child_process</code> module provides the ability to spawn child processes in
 a manner that is similar, but not identical, to <a href="http://man7.org/linux/man-pages/man3/popen.3.html"><code>popen(3)</code></a>. This capability
@@ -195,7 +197,7 @@ ls.stdout.on('data', (data) => {
 });
 
 ls.stderr.on('data', (data) => {
-  console.log(`stderr: ${data}`);
+  console.error(`stderr: ${data}`);
 });
 
 ls.on('close', (code) => {
@@ -215,20 +217,22 @@ function provides equivalent functionality in a synchronous manner that blocks
 the event loop until the spawned process either exits or is terminated.</p>
 <p>For convenience, the <code>child_process</code> module provides a handful of synchronous
 and asynchronous alternatives to <a href="#child_process_child_process_spawn_command_args_options"><code>child_process.spawn()</code></a> and
-<a href="#child_process_child_process_spawnsync_command_args_options"><code>child_process.spawnSync()</code></a>. <em>Note that each of these alternatives are
-implemented on top of <a href="#child_process_child_process_spawn_command_args_options"><code>child_process.spawn()</code></a> or <a href="#child_process_child_process_spawnsync_command_args_options"><code>child_process.spawnSync()</code></a>.</em></p>
+<a href="#child_process_child_process_spawnsync_command_args_options"><code>child_process.spawnSync()</code></a>. Each of these alternatives are implemented on
+top of <a href="#child_process_child_process_spawn_command_args_options"><code>child_process.spawn()</code></a> or <a href="#child_process_child_process_spawnsync_command_args_options"><code>child_process.spawnSync()</code></a>.</p>
 <ul>
-<li><a href="#child_process_child_process_exec_command_options_callback"><code>child_process.exec()</code></a>: spawns a shell and runs a command within that shell,
-passing the <code>stdout</code> and <code>stderr</code> to a callback function when complete.</li>
-<li><a href="#child_process_child_process_execfile_file_args_options_callback"><code>child_process.execFile()</code></a>: similar to <a href="#child_process_child_process_exec_command_options_callback"><code>child_process.exec()</code></a> except that
-it spawns the command directly without first spawning a shell by default.</li>
+<li><a href="#child_process_child_process_exec_command_options_callback"><code>child_process.exec()</code></a>: spawns a shell and runs a command within that
+shell, passing the <code>stdout</code> and <code>stderr</code> to a callback function when
+complete.</li>
+<li><a href="#child_process_child_process_execfile_file_args_options_callback"><code>child_process.execFile()</code></a>: similar to <a href="#child_process_child_process_exec_command_options_callback"><code>child_process.exec()</code></a> except
+that it spawns the command directly without first spawning a shell by
+default.</li>
 <li><a href="#child_process_child_process_fork_modulepath_args_options"><code>child_process.fork()</code></a>: spawns a new Node.js process and invokes a
 specified module with an IPC communication channel established that allows
 sending messages between parent and child.</li>
 <li><a href="#child_process_child_process_execsync_command_options"><code>child_process.execSync()</code></a>: a synchronous version of
-<a href="#child_process_child_process_exec_command_options_callback"><code>child_process.exec()</code></a> that <em>will</em> block the Node.js event loop.</li>
+<a href="#child_process_child_process_exec_command_options_callback"><code>child_process.exec()</code></a> that will block the Node.js event loop.</li>
 <li><a href="#child_process_child_process_execfilesync_file_args_options"><code>child_process.execFileSync()</code></a>: a synchronous version of
-<a href="#child_process_child_process_execfile_file_args_options_callback"><code>child_process.execFile()</code></a> that <em>will</em> block the Node.js event loop.</li>
+<a href="#child_process_child_process_execfile_file_args_options_callback"><code>child_process.execFile()</code></a> that will block the Node.js event loop.</li>
 </ul>
 <p>For certain use cases, such as automating shell scripts, the
 <a href="#child_process_synchronous_process_creation">synchronous counterparts</a> may be more convenient. In many cases, however,
@@ -242,22 +246,23 @@ programming pattern typical of other Node.js APIs.</p>
 implement the Node.js <a href="events.html#events_class_eventemitter"><code>EventEmitter</code></a> API, allowing the parent process to
 register listener functions that are called when certain events occur during
 the life cycle of the child process.</p>
-<p>The <a href="#child_process_child_process_exec_command_options_callback"><code>child_process.exec()</code></a> and <a href="#child_process_child_process_execfile_file_args_options_callback"><code>child_process.execFile()</code></a> methods additionally
-allow for an optional <code>callback</code> function to be specified that is invoked
-when the child process terminates.</p>
-<h3>Spawning `.bat` and `.cmd` files on Windows<span><a class="mark" href="#child_process_spawning_bat_and_cmd_files_on_windows" id="child_process_spawning_bat_and_cmd_files_on_windows">#</a></span></h3>
+<p>The <a href="#child_process_child_process_exec_command_options_callback"><code>child_process.exec()</code></a> and <a href="#child_process_child_process_execfile_file_args_options_callback"><code>child_process.execFile()</code></a> methods
+additionally allow for an optional <code>callback</code> function to be specified that is
+invoked when the child process terminates.</p>
+<h3>Spawning <code>.bat</code> and <code>.cmd</code> files on Windows<span><a class="mark" href="#child_process_spawning_bat_and_cmd_files_on_windows" id="child_process_spawning_bat_and_cmd_files_on_windows">#</a></span></h3>
 <p>The importance of the distinction between <a href="#child_process_child_process_exec_command_options_callback"><code>child_process.exec()</code></a> and
-<a href="#child_process_child_process_execfile_file_args_options_callback"><code>child_process.execFile()</code></a> can vary based on platform. On Unix-type operating
-systems (Unix, Linux, macOS) <a href="#child_process_child_process_execfile_file_args_options_callback"><code>child_process.execFile()</code></a> can be more efficient
-because it does not spawn a shell by default. On Windows, however, <code>.bat</code> and <code>.cmd</code>
-files are not executable on their own without a terminal, and therefore cannot
-be launched using <a href="#child_process_child_process_execfile_file_args_options_callback"><code>child_process.execFile()</code></a>. When running on Windows, <code>.bat</code>
-and <code>.cmd</code> files can be invoked using <a href="#child_process_child_process_spawn_command_args_options"><code>child_process.spawn()</code></a> with the <code>shell</code>
-option set, with <a href="#child_process_child_process_exec_command_options_callback"><code>child_process.exec()</code></a>, or by spawning <code>cmd.exe</code> and passing
-the <code>.bat</code> or <code>.cmd</code> file as an argument (which is what the <code>shell</code> option and
+<a href="#child_process_child_process_execfile_file_args_options_callback"><code>child_process.execFile()</code></a> can vary based on platform. On Unix-type
+operating systems (Unix, Linux, macOS) <a href="#child_process_child_process_execfile_file_args_options_callback"><code>child_process.execFile()</code></a> can be
+more efficient because it does not spawn a shell by default. On Windows,
+however, <code>.bat</code> and <code>.cmd</code> files are not executable on their own without a
+terminal, and therefore cannot be launched using <a href="#child_process_child_process_execfile_file_args_options_callback"><code>child_process.execFile()</code></a>.
+When running on Windows, <code>.bat</code> and <code>.cmd</code> files can be invoked using
+<a href="#child_process_child_process_spawn_command_args_options"><code>child_process.spawn()</code></a> with the <code>shell</code> option set, with
+<a href="#child_process_child_process_exec_command_options_callback"><code>child_process.exec()</code></a>, or by spawning <code>cmd.exe</code> and passing the <code>.bat</code> or
+<code>.cmd</code> file as an argument (which is what the <code>shell</code> option and
 <a href="#child_process_child_process_exec_command_options_callback"><code>child_process.exec()</code></a> do). In any case, if the script filename contains
 spaces it needs to be quoted.</p>
-<pre><code class="language-js">// On Windows Only ...
+<pre><code class="language-js">// On Windows Only...
 const { spawn } = require('child_process');
 const bat = spawn('cmd.exe', ['/c', 'my.bat']);
 
@@ -266,7 +271,7 @@ bat.stdout.on('data', (data) => {
 });
 
 bat.stderr.on('data', (data) => {
-  console.log(data.toString());
+  console.error(data.toString());
 });
 
 bat.on('exit', (code) => {
@@ -290,7 +295,7 @@ exec('"my script.cmd" a b', (err, stdout, stderr) => {
   // ...
 });
 </code></pre>
-<h3>child_process.exec(command[, options][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/child_process.js#L150">[src]</a><span><a class="mark" href="#child_process_child_process_exec_command_options_callback" id="child_process_child_process_exec_command_options_callback">#</a></span></h3>
+<h3>child_process.exec(command[, options][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/child_process.js#L143">[src]</a><span><a class="mark" href="#child_process_child_process_exec_command_options_callback" id="child_process_child_process_exec_command_options_callback">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -309,15 +314,16 @@ exec('"my script.cmd" a b', (err, stdout, stderr) => {
 <ul>
 <li><code>cwd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Current working directory of the child process.
 <strong>Default:</strong> <code>null</code>.</li>
-<li><code>env</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> Environment key-value pairs. <strong>Default:</strong> <code>null</code>.</li>
+<li><code>env</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> Environment key-value pairs. <strong>Default:</strong> <code>process.env</code>.</li>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> <strong>Default:</strong> <code>'utf8'</code></li>
 <li><code>shell</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Shell to execute the command with. See
 <a href="#child_process_shell_requirements">Shell Requirements</a> and <a href="#child_process_default_windows_shell">Default Windows Shell</a>. <strong>Default:</strong>
-<code>'/bin/sh'</code> on UNIX, <code>process.env.ComSpec</code> on Windows.</li>
+<code>'/bin/sh'</code> on Unix, <code>process.env.ComSpec</code> on Windows.</li>
 <li><code>timeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> <strong>Default:</strong> <code>0</code></li>
 <li><code>maxBuffer</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Largest amount of data in bytes allowed on stdout or
-stderr. If exceeded, the child process is terminated. See caveat at
-<a href="#child_process_maxbuffer_and_unicode"><code>maxBuffer</code> and Unicode</a>. <strong>Default:</strong> <code>200 * 1024</code>.</li>
+stderr. If exceeded, the child process is terminated and any output is
+truncated. See caveat at <a href="#child_process_maxbuffer_and_unicode"><code>maxBuffer</code> and Unicode</a>.
+<strong>Default:</strong> <code>1024 * 1024</code>.</li>
 <li><code>killSignal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> <strong>Default:</strong> <code>'SIGTERM'</code></li>
 <li><code>uid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Sets the user identity of the process (see <a href="http://man7.org/linux/man-pages/man2/setuid.2.html"><code>setuid(2)</code></a>).</li>
 <li><code>gid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Sets the group identity of the process (see <a href="http://man7.org/linux/man-pages/man2/setgid.2.html"><code>setgid(2)</code></a>).</li>
@@ -342,10 +348,10 @@ directly by the shell and special characters (vary based on
 need to be dealt with accordingly:</p>
 <pre><code class="language-js">exec('"/path/to/test file/test.sh" arg1 arg2');
 // Double quotes are used so that the space in the path is not interpreted as
-// multiple arguments
+// a delimiter of multiple arguments.
 
 exec('echo "The \\$HOME variable is $HOME"');
-// The $HOME variable is escaped in the first instance, but not in the second
+// The $HOME variable is escaped in the first instance, but not in the second.
 </code></pre>
 <p><strong>Never pass unsanitized user input to this function. Any input containing shell
 metacharacters may be used to trigger arbitrary command execution.</strong></p>
@@ -368,7 +374,7 @@ exec('cat *.js missing_file | wc -l', (error, stdout, stderr) => {
     return;
   }
   console.log(`stdout: ${stdout}`);
-  console.log(`stderr: ${stderr}`);
+  console.error(`stderr: ${stderr}`);
 });
 </code></pre>
 <p>If <code>timeout</code> is greater than <code>0</code>, the parent will send the signal
@@ -377,21 +383,22 @@ child runs longer than <code>timeout</code> milliseconds.</p>
 <p>Unlike the <a href="http://man7.org/linux/man-pages/man3/exec.3.html"><code>exec(3)</code></a> POSIX system call, <code>child_process.exec()</code> does not replace
 the existing process and uses a shell to execute the command.</p>
 <p>If this method is invoked as its <a href="util.html#util_util_promisify_original"><code>util.promisify()</code></a>ed version, it returns
-a <code>Promise</code> for an <code>Object</code> with <code>stdout</code> and <code>stderr</code> properties. In case of an
-error (including any error resulting in an exit code other than 0), a rejected
-promise is returned, with the same <code>error</code> object given in the callback, but
-with an additional two properties <code>stdout</code> and <code>stderr</code>.</p>
+a <code>Promise</code> for an <code>Object</code> with <code>stdout</code> and <code>stderr</code> properties. The returned
+<code>ChildProcess</code> instance is attached to the <code>Promise</code> as a <code>child</code> property. In
+case of an error (including any error resulting in an exit code other than 0), a
+rejected promise is returned, with the same <code>error</code> object given in the
+callback, but with two additional properties <code>stdout</code> and <code>stderr</code>.</p>
 <pre><code class="language-js">const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 
 async function lsExample() {
   const { stdout, stderr } = await exec('ls');
   console.log('stdout:', stdout);
-  console.log('stderr:', stderr);
+  console.error('stderr:', stderr);
 }
 lsExample();
 </code></pre>
-<h3>child_process.execFile(file[, args][, options][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/child_process.js#L178">[src]</a><span><a class="mark" href="#child_process_child_process_execfile_file_args_options_callback" id="child_process_child_process_execfile_file_args_options_callback">#</a></span></h3>
+<h3>child_process.execFile(file[, args][, options][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/child_process.js#L178">[src]</a><span><a class="mark" href="#child_process_child_process_execfile_file_args_options_callback" id="child_process_child_process_execfile_file_args_options_callback">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -410,12 +417,13 @@ lsExample();
 <p><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></p>
 <ul>
 <li><code>cwd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Current working directory of the child process.</li>
-<li><code>env</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> Environment key-value pairs.</li>
+<li><code>env</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> Environment key-value pairs. <strong>Default:</strong> <code>process.env</code>.</li>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> <strong>Default:</strong> <code>'utf8'</code></li>
 <li><code>timeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> <strong>Default:</strong> <code>0</code></li>
 <li><code>maxBuffer</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Largest amount of data in bytes allowed on stdout or
-stderr. If exceeded, the child process is terminated. See caveat at
-<a href="#child_process_maxbuffer_and_unicode"><code>maxBuffer</code> and Unicode</a>. <strong>Default:</strong> <code>200 * 1024</code>.</li>
+stderr. If exceeded, the child process is terminated and any output is
+truncated. See caveat at <a href="#child_process_maxbuffer_and_unicode"><code>maxBuffer</code> and Unicode</a>.
+<strong>Default:</strong> <code>1024 * 1024</code>.</li>
 <li><code>killSignal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> <strong>Default:</strong> <code>'SIGTERM'</code></li>
 <li><code>uid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Sets the user identity of the process (see <a href="http://man7.org/linux/man-pages/man2/setuid.2.html"><code>setuid(2)</code></a>).</li>
 <li><code>gid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Sets the group identity of the process (see <a href="http://man7.org/linux/man-pages/man2/setgid.2.html"><code>setgid(2)</code></a>).</li>
@@ -424,7 +432,7 @@ normally be created on Windows systems. <strong>Default:</strong> <code>false</c
 <li><code>windowsVerbatimArguments</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> No quoting or escaping of arguments is
 done on Windows. Ignored on Unix. <strong>Default:</strong> <code>false</code>.</li>
 <li><code>shell</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> If <code>true</code>, runs <code>command</code> inside of a shell. Uses
-<code>'/bin/sh'</code> on UNIX, and <code>process.env.ComSpec</code> on Windows. A different
+<code>'/bin/sh'</code> on Unix, and <code>process.env.ComSpec</code> on Windows. A different
 shell can be specified as a string. See <a href="#child_process_shell_requirements">Shell Requirements</a> and
 <a href="#child_process_default_windows_shell">Default Windows Shell</a>. <strong>Default:</strong> <code>false</code> (no shell).</li>
 </ul>
@@ -440,11 +448,12 @@ shell can be specified as a string. See <a href="#child_process_shell_requiremen
 <li>Returns: <a href="child_process.html#child_process_class_childprocess" class="type">&#x3C;ChildProcess></a></li>
 </ul>
 <p>The <code>child_process.execFile()</code> function is similar to <a href="#child_process_child_process_exec_command_options_callback"><code>child_process.exec()</code></a>
-except that it does not spawn a shell by default. Rather, the specified executable <code>file</code>
-is spawned directly as a new process making it slightly more efficient than
-<a href="#child_process_child_process_exec_command_options_callback"><code>child_process.exec()</code></a>.</p>
-<p>The same options as <a href="#child_process_child_process_exec_command_options_callback"><code>child_process.exec()</code></a> are supported. Since a shell is not
-spawned, behaviors such as I/O redirection and file globbing are not supported.</p>
+except that it does not spawn a shell by default. Rather, the specified
+executable <code>file</code> is spawned directly as a new process making it slightly more
+efficient than <a href="#child_process_child_process_exec_command_options_callback"><code>child_process.exec()</code></a>.</p>
+<p>The same options as <a href="#child_process_child_process_exec_command_options_callback"><code>child_process.exec()</code></a> are supported. Since a shell is
+not spawned, behaviors such as I/O redirection and file globbing are not
+supported.</p>
 <pre><code class="language-js">const { execFile } = require('child_process');
 const child = execFile('node', ['--version'], (error, stdout, stderr) => {
   if (error) {
@@ -460,10 +469,11 @@ can be used to specify the character encoding used to decode the stdout and
 stderr output. If <code>encoding</code> is <code>'buffer'</code>, or an unrecognized character
 encoding, <code>Buffer</code> objects will be passed to the callback instead.</p>
 <p>If this method is invoked as its <a href="util.html#util_util_promisify_original"><code>util.promisify()</code></a>ed version, it returns
-a <code>Promise</code> for an <code>Object</code> with <code>stdout</code> and <code>stderr</code> properties. In case of an
-error (including any error resulting in an exit code other than 0), a rejected
-promise is returned, with the same <code>error</code> object given in the
-callback, but with an additional two properties <code>stdout</code> and <code>stderr</code>.</p>
+a <code>Promise</code> for an <code>Object</code> with <code>stdout</code> and <code>stderr</code> properties. The returned
+<code>ChildProcess</code> instance is attached to the <code>Promise</code> as a <code>child</code> property. In
+case of an error (including any error resulting in an exit code other than 0), a
+rejected promise is returned, with the same <code>error</code> object given in the
+callback, but with two additional properties <code>stdout</code> and <code>stderr</code>.</p>
 <pre><code class="language-js">const util = require('util');
 const execFile = util.promisify(require('child_process').execFile);
 async function getVersion() {
@@ -475,7 +485,7 @@ getVersion();
 <p><strong>If the <code>shell</code> option is enabled, do not pass unsanitized user input to this
 function. Any input containing shell metacharacters may be used to trigger
 arbitrary command execution.</strong></p>
-<h3>child_process.fork(modulePath[, args][, options])<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/child_process.js#L61">[src]</a><span><a class="mark" href="#child_process_child_process_fork_modulepath_args_options" id="child_process_child_process_fork_modulepath_args_options">#</a></span></h3>
+<h3>child_process.fork(modulePath[, args][, options])<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/child_process.js#L54">[src]</a><span><a class="mark" href="#child_process_child_process_fork_modulepath_args_options" id="child_process_child_process_fork_modulepath_args_options">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -499,7 +509,7 @@ arbitrary command execution.</strong></p>
 <li><code>detached</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> Prepare child to run independently of its parent
 process. Specific behavior depends on the platform, see
 <a href="#child_process_options_detached"><code>options.detached</code></a>).</li>
-<li><code>env</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> Environment key-value pairs.</li>
+<li><code>env</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> Environment key-value pairs.  <strong>Default:</strong> <code>process.env</code>.</li>
 <li><code>execPath</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Executable used to create the child process.</li>
 <li><code>execArgv</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string[]></a> List of string arguments passed to the executable.
 <strong>Default:</strong> <code>process.execArgv</code>.</li>
@@ -521,10 +531,10 @@ done on Windows. Ignored on Unix. <strong>Default:</strong> <code>false</code>.<
 </ul>
 <p>The <code>child_process.fork()</code> method is a special case of
 <a href="#child_process_child_process_spawn_command_args_options"><code>child_process.spawn()</code></a> used specifically to spawn new Node.js processes.
-Like <a href="#child_process_child_process_spawn_command_args_options"><code>child_process.spawn()</code></a>, a <a href="#child_process_child_process"><code>ChildProcess</code></a> object is returned. The returned
-<a href="#child_process_child_process"><code>ChildProcess</code></a> will have an additional communication channel built-in that
-allows messages to be passed back and forth between the parent and child. See
-<a href="#child_process_subprocess_send_message_sendhandle_options_callback"><code>subprocess.send()</code></a> for details.</p>
+Like <a href="#child_process_child_process_spawn_command_args_options"><code>child_process.spawn()</code></a>, a <a href="#child_process_child_process"><code>ChildProcess</code></a> object is returned. The
+returned <a href="#child_process_child_process"><code>ChildProcess</code></a> will have an additional communication channel
+built-in that allows messages to be passed back and forth between the parent and
+child. See <a href="#child_process_subprocess_send_message_sendhandle_options_callback"><code>subprocess.send()</code></a> for details.</p>
 <p>It is important to keep in mind that spawned Node.js child processes are
 independent of the parent with exception of the IPC communication channel
 that is established between the two. Each process has its own memory, with
@@ -541,7 +551,7 @@ environment variable <code>NODE_CHANNEL_FD</code> on the child process.</p>
 current process.</p>
 <p>The <code>shell</code> option available in <a href="#child_process_child_process_spawn_command_args_options"><code>child_process.spawn()</code></a> is not supported by
 <code>child_process.fork()</code> and will be ignored if set.</p>
-<h3>child_process.spawn(command[, args][, options])<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/child_process.js#L531">[src]</a><span><a class="mark" href="#child_process_child_process_spawn_command_args_options" id="child_process_child_process_spawn_command_args_options">#</a></span></h3>
+<h3>child_process.spawn(command[, args][, options])<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/child_process.js#L533">[src]</a><span><a class="mark" href="#child_process_child_process_spawn_command_args_options" id="child_process_child_process_spawn_command_args_options">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -564,7 +574,7 @@ current process.</p>
 <p><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></p>
 <ul>
 <li><code>cwd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Current working directory of the child process.</li>
-<li><code>env</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> Environment key-value pairs.</li>
+<li><code>env</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> Environment key-value pairs. <strong>Default:</strong> <code>process.env</code>.</li>
 <li><code>argv0</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Explicitly set the value of <code>argv[0]</code> sent to the child
 process. This will be set to <code>command</code> if not specified.</li>
 <li><code>stdio</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&#x3C;Array></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Child's stdio configuration (see
@@ -575,12 +585,12 @@ process. Specific behavior depends on the platform, see
 <li><code>uid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Sets the user identity of the process (see <a href="http://man7.org/linux/man-pages/man2/setuid.2.html"><code>setuid(2)</code></a>).</li>
 <li><code>gid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Sets the group identity of the process (see <a href="http://man7.org/linux/man-pages/man2/setgid.2.html"><code>setgid(2)</code></a>).</li>
 <li><code>shell</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> If <code>true</code>, runs <code>command</code> inside of a shell. Uses
-<code>'/bin/sh'</code> on UNIX, and <code>process.env.ComSpec</code> on Windows. A different
+<code>'/bin/sh'</code> on Unix, and <code>process.env.ComSpec</code> on Windows. A different
 shell can be specified as a string. See <a href="#child_process_shell_requirements">Shell Requirements</a> and
 <a href="#child_process_default_windows_shell">Default Windows Shell</a>. <strong>Default:</strong> <code>false</code> (no shell).</li>
 <li><code>windowsVerbatimArguments</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> No quoting or escaping of arguments is
 done on Windows. Ignored on Unix. This is set to <code>true</code> automatically
-when <code>shell</code> is specified. <strong>Default:</strong> <code>false</code>.</li>
+when <code>shell</code> is specified and is CMD. <strong>Default:</strong> <code>false</code>.</li>
 <li><code>windowsHide</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> Hide the subprocess console window that would
 normally be created on Windows systems. <strong>Default:</strong> <code>false</code>.</li>
 </ul>
@@ -614,7 +624,7 @@ ls.stdout.on('data', (data) => {
 });
 
 ls.stderr.on('data', (data) => {
-  console.log(`stderr: ${data}`);
+  console.error(`stderr: ${data}`);
 });
 
 ls.on('close', (code) => {
@@ -631,7 +641,7 @@ ps.stdout.on('data', (data) => {
 });
 
 ps.stderr.on('data', (data) => {
-  console.log(`ps stderr: ${data}`);
+  console.error(`ps stderr: ${data}`);
 });
 
 ps.on('close', (code) => {
@@ -646,7 +656,7 @@ grep.stdout.on('data', (data) => {
 });
 
 grep.stderr.on('data', (data) => {
-  console.log(`grep stderr: ${data}`);
+  console.error(`grep stderr: ${data}`);
 });
 
 grep.on('close', (code) => {
@@ -660,7 +670,7 @@ grep.on('close', (code) => {
 const subprocess = spawn('bad_command');
 
 subprocess.on('error', (err) => {
-  console.log('Failed to start subprocess.');
+  console.error('Failed to start subprocess.');
 });
 </code></pre>
 <p>Certain platforms (macOS, Linux) will use the value of <code>argv[0]</code> for the process
@@ -675,12 +685,12 @@ parameter passed to <code>spawn</code> from the parent, retrieve it with the
 </div>
 <p>On Windows, setting <code>options.detached</code> to <code>true</code> makes it possible for the
 child process to continue running after the parent exits. The child will have
-its own console window. <em>Once enabled for a child process, it cannot be
-disabled</em>.</p>
+its own console window. Once enabled for a child process, it cannot be
+disabled.</p>
 <p>On non-Windows platforms, if <code>options.detached</code> is set to <code>true</code>, the child
-process will be made the leader of a new process group and session. Note that
-child processes may continue running after the parent exits regardless of
-whether they are detached or not. See <a href="http://man7.org/linux/man-pages/man2/setsid.2.html"><code>setsid(2)</code></a> for more information.</p>
+process will be made the leader of a new process group and session. Child
+processes may continue running after the parent exits regardless of whether
+they are detached or not. See <a href="http://man7.org/linux/man-pages/man2/setsid.2.html"><code>setsid(2)</code></a> for more information.</p>
 <p>By default, the parent will wait for the detached child to exit. To prevent the
 parent from waiting for a given <code>subprocess</code> to exit, use the
 <code>subprocess.unref()</code> method. Doing so will cause the parent's event loop to not
@@ -748,17 +758,18 @@ pipes between the parent and child. The value is one of the following:</p>
 <li>
 <p><code>'pipe'</code> - Create a pipe between the child process and the parent process.
 The parent end of the pipe is exposed to the parent as a property on the
-<code>child_process</code> object as <a href="#child_process_options_stdio"><code>subprocess.stdio[fd]</code></a>. Pipes created
-for fds 0 - 2 are also available as <a href="#child_process_subprocess_stdin"><code>subprocess.stdin</code></a>,
+<code>child_process</code> object as <a href="#child_process_subprocess_stdio"><code>subprocess.stdio[fd]</code></a>. Pipes
+created for fds 0 - 2 are also available as <a href="#child_process_subprocess_stdin"><code>subprocess.stdin</code></a>,
 <a href="#child_process_subprocess_stdout"><code>subprocess.stdout</code></a> and <a href="#child_process_subprocess_stderr"><code>subprocess.stderr</code></a>, respectively.</p>
 </li>
 <li>
 <p><code>'ipc'</code> - Create an IPC channel for passing messages/file descriptors
-between parent and child. A <a href="#child_process_child_process"><code>ChildProcess</code></a> may have at most <em>one</em> IPC stdio
-file descriptor. Setting this option enables the <a href="#child_process_subprocess_send_message_sendhandle_options_callback"><code>subprocess.send()</code></a>
-method. If the child is a Node.js process, the presence of an IPC channel
-will enable <a href="process.html#process_process_send_message_sendhandle_options_callback"><code>process.send()</code></a> and <a href="process.html#process_process_disconnect"><code>process.disconnect()</code></a> methods,
-as well as <a href="process.html#process_event_disconnect"><code>'disconnect'</code></a> and <a href="process.html#process_event_message"><code>'message'</code></a> events within the child.</p>
+between parent and child. A <a href="#child_process_child_process"><code>ChildProcess</code></a> may have at most one IPC
+stdio file descriptor. Setting this option enables the
+<a href="#child_process_subprocess_send_message_sendhandle_options_callback"><code>subprocess.send()</code></a> method. If the child is a Node.js process, the
+presence of an IPC channel will enable <a href="process.html#process_process_send_message_sendhandle_options_callback"><code>process.send()</code></a> and
+<a href="process.html#process_process_disconnect"><code>process.disconnect()</code></a> methods, as well as <a href="process.html#process_event_disconnect"><code>'disconnect'</code></a> and
+<a href="process.html#process_event_message"><code>'message'</code></a> events within the child.</p>
 <p>Accessing the IPC channel fd in any way other than <a href="process.html#process_process_send_message_sendhandle_options_callback"><code>process.send()</code></a>
 or using the IPC channel with a child process that is not a Node.js instance
 is not supported.</p>
@@ -771,22 +782,23 @@ child's fd.</p>
 </li>
 <li>
 <p><code>'inherit'</code> - Pass through the corresponding stdio stream to/from the
-parent process.  In the first three positions, this is equivalent to
-<code>process.stdin</code>, <code>process.stdout</code>, and <code>process.stderr</code>, respectively.  In
+parent process. In the first three positions, this is equivalent to
+<code>process.stdin</code>, <code>process.stdout</code>, and <code>process.stderr</code>, respectively. In
 any other position, equivalent to <code>'ignore'</code>.</p>
 </li>
 <li>
 <p><a href="stream.html#stream_stream" class="type">&#x3C;Stream></a> object - Share a readable or writable stream that refers to a tty,
 file, socket, or a pipe with the child process. The stream's underlying
 file descriptor is duplicated in the child process to the fd that
-corresponds to the index in the <code>stdio</code> array. Note that the stream must
-have an underlying descriptor (file streams do not until the <code>'open'</code>
-event has occurred).</p>
+corresponds to the index in the <code>stdio</code> array. The stream must have an
+underlying descriptor (file streams do not until the <code>'open'</code> event has
+occurred).</p>
 </li>
 <li>
 <p>Positive integer - The integer value is interpreted as a file descriptor
 that is currently open in the parent process. It is shared with the child
-process, similar to how <a href="stream.html#stream_stream" class="type">&#x3C;Stream></a> objects can be shared.</p>
+process, similar to how <a href="stream.html#stream_stream" class="type">&#x3C;Stream></a> objects can be shared. Passing sockets
+is not supported on Windows.</p>
 </li>
 <li>
 <p><code>null</code>, <code>undefined</code> - Use default value. For stdio fds 0, 1, and 2 (in other
@@ -796,10 +808,10 @@ default is <code>'ignore'</code>.</p>
 </ol>
 <pre><code class="language-js">const { spawn } = require('child_process');
 
-// Child will use parent's stdios
+// Child will use parent's stdios.
 spawn('prg', [], { stdio: 'inherit' });
 
-// Spawn child sharing only stderr
+// Spawn child sharing only stderr.
 spawn('prg', [], { stdio: ['pipe', 'pipe', process.stderr] });
 
 // Open an extra fd=4, to interact with programs presenting a
@@ -812,7 +824,7 @@ is launched with the IPC channel unreferenced (using <code>unref()</code>) until
 child registers an event handler for the <a href="process.html#process_event_disconnect"><code>'disconnect'</code></a> event
 or the <a href="process.html#process_event_message"><code>'message'</code></a> event. This allows the child to exit
 normally without the process being held open by the open IPC channel.</em></p>
-<p>On UNIX-like operating systems, the <a href="#child_process_child_process_spawn_command_args_options"><code>child_process.spawn()</code></a> method
+<p>On Unix-like operating systems, the <a href="#child_process_child_process_spawn_command_args_options"><code>child_process.spawn()</code></a> method
 performs memory operations synchronously before decoupling the event loop
 from the child. Applications with a large memory footprint may find frequent
 <a href="#child_process_child_process_spawn_command_args_options"><code>child_process.spawn()</code></a> calls to be a bottleneck. For more information,
@@ -820,13 +832,13 @@ see <a href="https://bugs.chromium.org/p/v8/issues/detail?id=7381">V8 issue 7381
 <p>See also: <a href="#child_process_child_process_exec_command_options_callback"><code>child_process.exec()</code></a> and <a href="#child_process_child_process_fork_modulepath_args_options"><code>child_process.fork()</code></a>.</p>
 <h2>Synchronous Process Creation<span><a class="mark" href="#child_process_synchronous_process_creation" id="child_process_synchronous_process_creation">#</a></span></h2>
 <p>The <a href="#child_process_child_process_spawnsync_command_args_options"><code>child_process.spawnSync()</code></a>, <a href="#child_process_child_process_execsync_command_options"><code>child_process.execSync()</code></a>, and
-<a href="#child_process_child_process_execfilesync_file_args_options"><code>child_process.execFileSync()</code></a> methods are <strong>synchronous</strong> and <strong>WILL</strong> block
-the Node.js event loop, pausing execution of any additional code until the
-spawned process exits.</p>
+<a href="#child_process_child_process_execfilesync_file_args_options"><code>child_process.execFileSync()</code></a> methods are synchronous and will block the
+Node.js event loop, pausing execution of any additional code until the spawned
+process exits.</p>
 <p>Blocking calls like these are mostly useful for simplifying general-purpose
 scripting tasks and for simplifying the loading/processing of application
 configuration at startup.</p>
-<h3>child_process.execFileSync(file[, args][, options])<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/child_process.js#L625">[src]</a><span><a class="mark" href="#child_process_child_process_execfilesync_file_args_options" id="child_process_child_process_execfilesync_file_args_options">#</a></span></h3>
+<h3>child_process.execFileSync(file[, args][, options])<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/child_process.js#L630">[src]</a><span><a class="mark" href="#child_process_child_process_execfilesync_file_args_options" id="child_process_child_process_execfilesync_file_args_options">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -857,7 +869,7 @@ as stdin to the spawned process. Supplying this value will override
 <li><code>stdio</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&#x3C;Array></a> Child's stdio configuration. <code>stderr</code> by default will
 be output to the parent process' stderr unless <code>stdio</code> is specified.
 <strong>Default:</strong> <code>'pipe'</code>.</li>
-<li><code>env</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> Environment key-value pairs.</li>
+<li><code>env</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> Environment key-value pairs.  <strong>Default:</strong> <code>process.env</code>.</li>
 <li><code>uid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Sets the user identity of the process (see <a href="http://man7.org/linux/man-pages/man2/setuid.2.html"><code>setuid(2)</code></a>).</li>
 <li><code>gid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Sets the group identity of the process (see <a href="http://man7.org/linux/man-pages/man2/setgid.2.html"><code>setgid(2)</code></a>).</li>
 <li><code>timeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> In milliseconds the maximum amount of time the process
@@ -866,13 +878,13 @@ is allowed to run. <strong>Default:</strong> <code>undefined</code>.</li>
 process will be killed. <strong>Default:</strong> <code>'SIGTERM'</code>.</li>
 <li><code>maxBuffer</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Largest amount of data in bytes allowed on stdout or
 stderr. If exceeded, the child process is terminated. See caveat at
-<a href="#child_process_maxbuffer_and_unicode"><code>maxBuffer</code> and Unicode</a>. <strong>Default:</strong> <code>200 * 1024</code>.</li>
+<a href="#child_process_maxbuffer_and_unicode"><code>maxBuffer</code> and Unicode</a>. <strong>Default:</strong> <code>1024 * 1024</code>.</li>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The encoding used for all stdio inputs and outputs.
 <strong>Default:</strong> <code>'buffer'</code>.</li>
 <li><code>windowsHide</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> Hide the subprocess console window that would
 normally be created on Windows systems. <strong>Default:</strong> <code>false</code>.</li>
 <li><code>shell</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> If <code>true</code>, runs <code>command</code> inside of a shell. Uses
-<code>'/bin/sh'</code> on UNIX, and <code>process.env.ComSpec</code> on Windows. A different
+<code>'/bin/sh'</code> on Unix, and <code>process.env.ComSpec</code> on Windows. A different
 shell can be specified as a string. See <a href="#child_process_shell_requirements">Shell Requirements</a> and
 <a href="#child_process_default_windows_shell">Default Windows Shell</a>. <strong>Default:</strong> <code>false</code> (no shell).</li>
 </ul>
@@ -880,20 +892,20 @@ shell can be specified as a string. See <a href="#child_process_shell_requiremen
 <li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The stdout from the command.</li>
 </ul>
 <p>The <code>child_process.execFileSync()</code> method is generally identical to
-<a href="#child_process_child_process_execfile_file_args_options_callback"><code>child_process.execFile()</code></a> with the exception that the method will not return
-until the child process has fully closed. When a timeout has been encountered
-and <code>killSignal</code> is sent, the method won't return until the process has
-completely exited.</p>
+<a href="#child_process_child_process_execfile_file_args_options_callback"><code>child_process.execFile()</code></a> with the exception that the method will not
+return until the child process has fully closed. When a timeout has been
+encountered and <code>killSignal</code> is sent, the method won't return until the process
+has completely exited.</p>
 <p>If the child process intercepts and handles the <code>SIGTERM</code> signal and
 does not exit, the parent process will still wait until the child process has
 exited.</p>
-<p>If the process times out or has a non-zero exit code, this method <strong><em>will</em></strong>
-throw an <a href="errors.html#errors_class_error"><code>Error</code></a> that will include the full result of the underlying
+<p>If the process times out or has a non-zero exit code, this method will throw an
+<a href="errors.html#errors_class_error"><code>Error</code></a> that will include the full result of the underlying
 <a href="#child_process_child_process_spawnsync_command_args_options"><code>child_process.spawnSync()</code></a>.</p>
 <p><strong>If the <code>shell</code> option is enabled, do not pass unsanitized user input to this
 function. Any input containing shell metacharacters may be used to trigger
 arbitrary command execution.</strong></p>
-<h3>child_process.execSync(command[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/child_process.js#L644">[src]</a><span><a class="mark" href="#child_process_child_process_execsync_command_options" id="child_process_child_process_execsync_command_options">#</a></span></h3>
+<h3>child_process.execSync(command[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/child_process.js#L648">[src]</a><span><a class="mark" href="#child_process_child_process_execsync_command_options" id="child_process_child_process_execsync_command_options">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -921,10 +933,10 @@ as stdin to the spawned process. Supplying this value will override
 <li><code>stdio</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&#x3C;Array></a> Child's stdio configuration. <code>stderr</code> by default will
 be output to the parent process' stderr unless <code>stdio</code> is specified.
 <strong>Default:</strong> <code>'pipe'</code>.</li>
-<li><code>env</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> Environment key-value pairs.</li>
+<li><code>env</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> Environment key-value pairs. <strong>Default:</strong> <code>process.env</code>.</li>
 <li><code>shell</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Shell to execute the command with. See
 <a href="#child_process_shell_requirements">Shell Requirements</a> and <a href="#child_process_default_windows_shell">Default Windows Shell</a>. <strong>Default:</strong>
-<code>'/bin/sh'</code> on UNIX, <code>process.env.ComSpec</code> on Windows.</li>
+<code>'/bin/sh'</code> on Unix, <code>process.env.ComSpec</code> on Windows.</li>
 <li><code>uid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Sets the user identity of the process. (See <a href="http://man7.org/linux/man-pages/man2/setuid.2.html"><code>setuid(2)</code></a>).</li>
 <li><code>gid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Sets the group identity of the process. (See <a href="http://man7.org/linux/man-pages/man2/setgid.2.html"><code>setgid(2)</code></a>).</li>
 <li><code>timeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> In milliseconds the maximum amount of time the process
@@ -932,8 +944,9 @@ is allowed to run. <strong>Default:</strong> <code>undefined</code>.</li>
 <li><code>killSignal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> The signal value to be used when the spawned
 process will be killed. <strong>Default:</strong> <code>'SIGTERM'</code>.</li>
 <li><code>maxBuffer</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Largest amount of data in bytes allowed on stdout or
-stderr. If exceeded, the child process is terminated. See caveat at
-<a href="#child_process_maxbuffer_and_unicode"><code>maxBuffer</code> and Unicode</a>. <strong>Default:</strong> <code>200 * 1024</code>.</li>
+stderr. If exceeded, the child process is terminated and any output is
+truncated. See caveat at <a href="#child_process_maxbuffer_and_unicode"><code>maxBuffer</code> and Unicode</a>.
+<strong>Default:</strong> <code>1024 * 1024</code>.</li>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The encoding used for all stdio inputs and outputs.
 <strong>Default:</strong> <code>'buffer'</code>.</li>
 <li><code>windowsHide</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> Hide the subprocess console window that would
@@ -943,18 +956,18 @@ normally be created on Windows systems. <strong>Default:</strong> <code>false</c
 <li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The stdout from the command.</li>
 </ul>
 <p>The <code>child_process.execSync()</code> method is generally identical to
-<a href="#child_process_child_process_exec_command_options_callback"><code>child_process.exec()</code></a> with the exception that the method will not return until
-the child process has fully closed. When a timeout has been encountered and
-<code>killSignal</code> is sent, the method won't return until the process has completely
-exited. <em>Note that if the child process intercepts and handles the <code>SIGTERM</code>
-signal and doesn't exit, the parent process will wait until the child
-process has exited.</em></p>
-<p>If the process times out or has a non-zero exit code, this method <strong><em>will</em></strong>
-throw. The <a href="errors.html#errors_class_error"><code>Error</code></a> object will contain the entire result from
+<a href="#child_process_child_process_exec_command_options_callback"><code>child_process.exec()</code></a> with the exception that the method will not return
+until the child process has fully closed. When a timeout has been encountered
+and <code>killSignal</code> is sent, the method won't return until the process has
+completely exited. If the child process intercepts and handles the <code>SIGTERM</code>
+signal and doesn't exit, the parent process will wait until the child process
+has exited.</p>
+<p>If the process times out or has a non-zero exit code, this method will throw.
+The <a href="errors.html#errors_class_error"><code>Error</code></a> object will contain the entire result from
 <a href="#child_process_child_process_spawnsync_command_args_options"><code>child_process.spawnSync()</code></a>.</p>
 <p><strong>Never pass unsanitized user input to this function. Any input containing shell
 metacharacters may be used to trigger arbitrary command execution.</strong></p>
-<h3>child_process.spawnSync(command[, args][, options])<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/child_process.js#L554">[src]</a><span><a class="mark" href="#child_process_child_process_spawnsync_command_args_options" id="child_process_child_process_spawnsync_command_args_options">#</a></span></h3>
+<h3>child_process.spawnSync(command[, args][, options])<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/child_process.js#L556">[src]</a><span><a class="mark" href="#child_process_child_process_spawnsync_command_args_options" id="child_process_child_process_spawnsync_command_args_options">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -987,7 +1000,7 @@ as stdin to the spawned process. Supplying this value will override
 <li><code>argv0</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Explicitly set the value of <code>argv[0]</code> sent to the child
 process. This will be set to <code>command</code> if not specified.</li>
 <li><code>stdio</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&#x3C;Array></a> Child's stdio configuration.</li>
-<li><code>env</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> Environment key-value pairs.</li>
+<li><code>env</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> Environment key-value pairs.  <strong>Default:</strong> <code>process.env</code>.</li>
 <li><code>uid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Sets the user identity of the process (see <a href="http://man7.org/linux/man-pages/man2/setuid.2.html"><code>setuid(2)</code></a>).</li>
 <li><code>gid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Sets the group identity of the process (see <a href="http://man7.org/linux/man-pages/man2/setgid.2.html"><code>setgid(2)</code></a>).</li>
 <li><code>timeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> In milliseconds the maximum amount of time the process
@@ -995,17 +1008,18 @@ is allowed to run. <strong>Default:</strong> <code>undefined</code>.</li>
 <li><code>killSignal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> The signal value to be used when the spawned
 process will be killed. <strong>Default:</strong> <code>'SIGTERM'</code>.</li>
 <li><code>maxBuffer</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Largest amount of data in bytes allowed on stdout or
-stderr. If exceeded, the child process is terminated. See caveat at
-<a href="#child_process_maxbuffer_and_unicode"><code>maxBuffer</code> and Unicode</a>. <strong>Default:</strong> <code>200 * 1024</code>.</li>
+stderr. If exceeded, the child process is terminated and any output is
+truncated. See caveat at <a href="#child_process_maxbuffer_and_unicode"><code>maxBuffer</code> and Unicode</a>.
+<strong>Default:</strong> <code>1024 * 1024</code>.</li>
 <li><code>encoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The encoding used for all stdio inputs and outputs.
 <strong>Default:</strong> <code>'buffer'</code>.</li>
 <li><code>shell</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> If <code>true</code>, runs <code>command</code> inside of a shell. Uses
-<code>'/bin/sh'</code> on UNIX, and <code>process.env.ComSpec</code> on Windows. A different
+<code>'/bin/sh'</code> on Unix, and <code>process.env.ComSpec</code> on Windows. A different
 shell can be specified as a string. See <a href="#child_process_shell_requirements">Shell Requirements</a> and
 <a href="#child_process_default_windows_shell">Default Windows Shell</a>. <strong>Default:</strong> <code>false</code> (no shell).</li>
 <li><code>windowsVerbatimArguments</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> No quoting or escaping of arguments is
 done on Windows. Ignored on Unix. This is set to <code>true</code> automatically
-when <code>shell</code> is specified. <strong>Default:</strong> <code>false</code>.</li>
+when <code>shell</code> is specified and is CMD. <strong>Default:</strong> <code>false</code>.</li>
 <li><code>windowsHide</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> Hide the subprocess console window that would
 normally be created on Windows systems. <strong>Default:</strong> <code>false</code>.</li>
 </ul>
@@ -1017,8 +1031,10 @@ normally be created on Windows systems. <strong>Default:</strong> <code>false</c
 <li><code>output</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&#x3C;Array></a> Array of results from stdio output.</li>
 <li><code>stdout</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The contents of <code>output[1]</code>.</li>
 <li><code>stderr</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The contents of <code>output[2]</code>.</li>
-<li><code>status</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> The exit code of the child process.</li>
-<li><code>signal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The signal used to kill the child process.</li>
+<li><code>status</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Null_type" class="type">&#x3C;null></a> The exit code of the subprocess, or <code>null</code> if the
+subprocess terminated due to a signal.</li>
+<li><code>signal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Null_type" class="type">&#x3C;null></a> The signal used to kill the subprocess, or <code>null</code> if
+the subprocess did not terminate due to a signal.</li>
 <li><code>error</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&#x3C;Error></a> The error object if the child process failed or timed out.</li>
 </ul>
 </li>
@@ -1027,9 +1043,9 @@ normally be created on Windows systems. <strong>Default:</strong> <code>false</c
 <a href="#child_process_child_process_spawn_command_args_options"><code>child_process.spawn()</code></a> with the exception that the function will not return
 until the child process has fully closed. When a timeout has been encountered
 and <code>killSignal</code> is sent, the method won't return until the process has
-completely exited. Note that if the process intercepts and handles the
-<code>SIGTERM</code> signal and doesn't exit, the parent process will wait until the child
-process has exited.</p>
+completely exited. If the process intercepts and handles the <code>SIGTERM</code> signal
+and doesn't exit, the parent process will wait until the child process has
+exited.</p>
 <p><strong>If the <code>shell</code> option is enabled, do not pass unsanitized user input to this
 function. Any input containing shell metacharacters may be used to trigger
 arbitrary command execution.</strong></p>
@@ -1037,8 +1053,10 @@ arbitrary command execution.</strong></p>
 <div class="api_metadata">
 <span>Added in: v2.2.0</span>
 </div>
-<p>Instances of the <code>ChildProcess</code> class are <a href="events.html#events_class_eventemitter"><code>EventEmitters</code></a> that represent
-spawned child processes.</p>
+<ul>
+<li>Extends: <a href="events.html#events_class_eventemitter" class="type">&#x3C;EventEmitter></a></li>
+</ul>
+<p>Instances of the <code>ChildProcess</code> represent spawned child processes.</p>
 <p>Instances of <code>ChildProcess</code> are not intended to be created directly. Rather,
 use the <a href="#child_process_child_process_spawn_command_args_options"><code>child_process.spawn()</code></a>, <a href="#child_process_child_process_exec_command_options_callback"><code>child_process.exec()</code></a>,
 <a href="#child_process_child_process_execfile_file_args_options_callback"><code>child_process.execFile()</code></a>, or <a href="#child_process_child_process_fork_modulepath_args_options"><code>child_process.fork()</code></a> methods to create
@@ -1054,6 +1072,21 @@ instances of <code>ChildProcess</code>.</p>
 <p>The <code>'close'</code> event is emitted when the stdio streams of a child process have
 been closed. This is distinct from the <a href="#child_process_event_exit"><code>'exit'</code></a> event, since multiple
 processes might share the same stdio streams.</p>
+<pre><code class="language-js">const { spawn } = require('child_process');
+const ls = spawn('ls', ['-lh', '/usr']);
+
+ls.stdout.on('data', (data) => {
+  console.log(`stdout: ${data}`);
+});
+
+ls.on('close', (code) => {
+  console.log(`child process close all stdio with code ${code}`);
+});
+
+ls.on('exit', (code) => {
+  console.log(`child process exited with code ${code}`);
+});
+</code></pre>
 <h3>Event: 'disconnect'<span><a class="mark" href="#child_process_event_disconnect" id="child_process_event_disconnect">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.7.2</span>
@@ -1089,12 +1122,12 @@ against accidentally invoking handler functions multiple times.</p>
 exited, <code>code</code> is the final exit code of the process, otherwise <code>null</code>. If the
 process terminated due to receipt of a signal, <code>signal</code> is the string name of
 the signal, otherwise <code>null</code>. One of the two will always be non-null.</p>
-<p>Note that when the <code>'exit'</code> event is triggered, child process stdio streams
-might still be open.</p>
-<p>Also, note that Node.js establishes signal handlers for <code>SIGINT</code> and
-<code>SIGTERM</code> and Node.js processes will not terminate immediately due to receipt
-of those signals. Rather, Node.js will perform a sequence of cleanup actions
-and then will re-raise the handled signal.</p>
+<p>When the <code>'exit'</code> event is triggered, child process stdio streams might still be
+open.</p>
+<p>Node.js establishes signal handlers for <code>SIGINT</code> and <code>SIGTERM</code> and Node.js
+processes will not terminate immediately due to receipt of those signals.
+Rather, Node.js will perform a sequence of cleanup actions and then will
+re-raise the handled signal.</p>
 <p>See <a href="http://man7.org/linux/man-pages/man2/waitpid.2.html"><code>waitpid(2)</code></a>.</p>
 <h3>Event: 'message'<span><a class="mark" href="#child_process_event_message" id="child_process_event_message">#</a></span></h3>
 <div class="api_metadata">
@@ -1105,8 +1138,8 @@ and then will re-raise the handled signal.</p>
 <li><code>sendHandle</code> <a href="net.html#net_server_listen_handle_backlog_callback" class="type">&#x3C;Handle></a> A <a href="net.html#net_class_net_socket"><code>net.Socket</code></a> or <a href="net.html#net_class_net_server"><code>net.Server</code></a> object, or
 undefined.</li>
 </ul>
-<p>The <code>'message'</code> event is triggered when a child process uses <a href="process.html#process_process_send_message_sendhandle_options_callback"><code>process.send()</code></a>
-to send messages.</p>
+<p>The <code>'message'</code> event is triggered when a child process uses
+<a href="process.html#process_process_send_message_sendhandle_options_callback"><code>process.send()</code></a> to send messages.</p>
 <p>The message goes through serialization and parsing. The resulting
 message might not be the same as what is originally sent.</p>
 <h3>subprocess.channel<span><a class="mark" href="#child_process_subprocess_channel" id="child_process_subprocess_channel">#</a></span></h3>
@@ -1140,7 +1173,7 @@ no longer possible to pass messages between the processes.</p>
 <p>The <code>'disconnect'</code> event will be emitted when there are no messages in the
 process of being received. This will most often be triggered immediately after
 calling <code>subprocess.disconnect()</code>.</p>
-<p>Note that when the child process is a Node.js instance (e.g. spawned using
+<p>When the child process is a Node.js instance (e.g. spawned using
 <a href="#child_process_child_process_fork_modulepath_args_options"><code>child_process.fork()</code></a>), the <code>process.disconnect()</code> method can be invoked
 within the child process to close the IPC channel as well.</p>
 <h3>subprocess.kill([signal])<span><a class="mark" href="#child_process_subprocess_kill_signal" id="child_process_subprocess_kill_signal">#</a></span></h3>
@@ -1148,7 +1181,7 @@ within the child process to close the IPC channel as well.</p>
 <span>Added in: v0.1.90</span>
 </div>
 <ul>
-<li><code>signal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li><code>signal</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
 <p>The <code>subprocess.kill()</code> method sends a signal to the child process. If no
 argument is given, the process will be sent the <code>'SIGTERM'</code> signal. See
@@ -1161,16 +1194,16 @@ grep.on('close', (code, signal) => {
     `child process terminated due to receipt of signal ${signal}`);
 });
 
-// Send SIGHUP to process
+// Send SIGHUP to process.
 grep.kill('SIGHUP');
 </code></pre>
-<p>The <a href="#child_process_child_process"><code>ChildProcess</code></a> object may emit an <a href="#child_process_event_error"><code>'error'</code></a> event if the signal cannot be
-delivered. Sending a signal to a child process that has already exited is not
-an error but may have unforeseen consequences. Specifically, if the process
-identifier (PID) has been reassigned to another process, the signal will be
-delivered to that process instead which can have unexpected results.</p>
-<p>Note that while the function is called <code>kill</code>, the signal delivered to the
-child process may not actually terminate the process.</p>
+<p>The <a href="#child_process_child_process"><code>ChildProcess</code></a> object may emit an <a href="#child_process_event_error"><code>'error'</code></a> event if the signal
+cannot be delivered. Sending a signal to a child process that has already exited
+is not an error but may have unforeseen consequences. Specifically, if the
+process identifier (PID) has been reassigned to another process, the signal will
+be delivered to that process instead which can have unexpected results.</p>
+<p>While the function is called <code>kill</code>, the signal delivered to the child process
+may not actually terminate the process.</p>
 <p>See <a href="http://man7.org/linux/man-pages/man2/kill.2.html"><code>kill(2)</code></a> for reference.</p>
 <p>On Linux, child processes of child processes will not be terminated
 when attempting to kill their parent. This is likely to happen when running a
@@ -1191,7 +1224,7 @@ const subprocess = spawn(
 );
 
 setTimeout(() => {
-  subprocess.kill(); // does not terminate the node process in the shell
+  subprocess.kill(); // Does not terminate the Node.js process in the shell.
 }, 2000);
 </code></pre>
 <h3>subprocess.killed<span><a class="mark" href="#child_process_subprocess_killed" id="child_process_subprocess_killed">#</a></span></h3>
@@ -1293,8 +1326,8 @@ n.send({ hello: 'world' });
 // Causes the parent to print: PARENT got message: { foo: 'bar', baz: null }
 process.send({ foo: 'bar', baz: NaN });
 </code></pre>
-<p>Child Node.js processes will have a <a href="process.html#process_process_send_message_sendhandle_options_callback"><code>process.send()</code></a> method of their own that
-allows the child to send messages back to the parent.</p>
+<p>Child Node.js processes will have a <a href="process.html#process_process_send_message_sendhandle_options_callback"><code>process.send()</code></a> method of their own
+that allows the child to send messages back to the parent.</p>
 <p>There is a special case when sending a <code>{cmd: 'NODE_foo'}</code> message. Messages
 containing a <code>NODE_</code> prefix in the <code>cmd</code> property are reserved for use within
 Node.js core and will not be emitted in the child's <a href="process.html#process_event_message"><code>'message'</code></a>
@@ -1311,8 +1344,8 @@ and buffered in the socket will not be sent to the child.</p>
 sent but before the child may have received it. The function is called with a
 single argument: <code>null</code> on success, or an <a href="errors.html#errors_class_error"><code>Error</code></a> object on failure.</p>
 <p>If no <code>callback</code> function is provided and the message cannot be sent, an
-<code>'error'</code> event will be emitted by the <a href="#child_process_child_process"><code>ChildProcess</code></a> object. This can happen,
-for instance, when the child process has already exited.</p>
+<code>'error'</code> event will be emitted by the <a href="#child_process_child_process"><code>ChildProcess</code></a> object. This can
+happen, for instance, when the child process has already exited.</p>
 <p><code>subprocess.send()</code> will return <code>false</code> if the channel has closed or when the
 backlog of unsent messages exceeds a threshold that makes it unwise to send
 more. Otherwise, the method returns <code>true</code>. The <code>callback</code> function can be
@@ -1344,8 +1377,9 @@ server.listen(1337, () => {
 can be handled by the parent and some by the child.</p>
 <p>While the example above uses a server created using the <code>net</code> module, <code>dgram</code>
 module servers use exactly the same workflow with the exceptions of listening on
-a <code>'message'</code> event instead of <code>'connection'</code> and using <code>server.bind()</code> instead of
-<code>server.listen()</code>. This is, however, currently only supported on UNIX platforms.</p>
+a <code>'message'</code> event instead of <code>'connection'</code> and using <code>server.bind()</code> instead
+of <code>server.listen()</code>. This is, however, currently only supported on Unix
+platforms.</p>
 <h4>Example: sending a socket object<span><a class="mark" href="#child_process_example_sending_a_socket_object" id="child_process_example_sending_a_socket_object">#</a></span></h4>
 <p>Similarly, the <code>sendHandler</code> argument can be used to pass the handle of a
 socket to the child process. The example below spawns two children that each
@@ -1359,12 +1393,12 @@ const special = fork('subprocess.js', ['special']);
 const server = require('net').createServer({ pauseOnConnect: true });
 server.on('connection', (socket) => {
 
-  // If this is special priority
+  // If this is special priority...
   if (socket.remoteAddress === '74.125.127.100') {
     special.send('socket', socket);
     return;
   }
-  // This is normal priority
+  // This is normal priority.
   normal.send('socket', socket);
 });
 server.listen(1337);
@@ -1409,8 +1443,8 @@ refer to the same value.</p>
 <li><a href="stream.html#stream_class_stream_writable" class="type">&#x3C;stream.Writable></a></li>
 </ul>
 <p>A <code>Writable Stream</code> that represents the child process's <code>stdin</code>.</p>
-<p><em>Note that if a child process waits to read all of its input, the child will not
-continue until this stream has been closed via <code>end()</code>.</em></p>
+<p>If a child process waits to read all of its input, the child will not continue
+until this stream has been closed via <code>end()</code>.</p>
 <p>If the child was spawned with <code>stdio[0]</code> set to anything other than <code>'pipe'</code>,
 then this will be <code>null</code>.</p>
 <p><code>subprocess.stdin</code> is an alias for <code>subprocess.stdio[0]</code>. Both properties will
@@ -1424,8 +1458,8 @@ refer to the same value.</p>
 </ul>
 <p>A sparse array of pipes to the child process, corresponding with positions in
 the <a href="#child_process_options_stdio"><code>stdio</code></a> option passed to <a href="#child_process_child_process_spawn_command_args_options"><code>child_process.spawn()</code></a> that have been set
-to the value <code>'pipe'</code>. Note that <code>subprocess.stdio[0]</code>, <code>subprocess.stdio[1]</code>,
-and <code>subprocess.stdio[2]</code> are also available as <code>subprocess.stdin</code>,
+to the value <code>'pipe'</code>. <code>subprocess.stdio[0]</code>, <code>subprocess.stdio[1]</code>, and
+<code>subprocess.stdio[2]</code> are also available as <code>subprocess.stdin</code>,
 <code>subprocess.stdout</code>, and <code>subprocess.stderr</code>, respectively.</p>
 <p>In the following example, only the child's fd <code>1</code> (stdout) is configured as a
 pipe, so only the parent's <code>subprocess.stdio[1]</code> is a stream, all other values
@@ -1436,9 +1470,9 @@ const child_process = require('child_process');
 
 const subprocess = child_process.spawn('ls', {
   stdio: [
-    0, // Use parent's stdin for child
-    'pipe', // Pipe child's stdout to parent
-    fs.openSync('err.out', 'w') // Direct child's stderr to a file
+    0, // Use parent's stdin for child.
+    'pipe', // Pipe child's stdout to parent.
+    fs.openSync('err.out', 'w') // Direct child's stderr to a file.
   ]
 });
 
@@ -1463,6 +1497,14 @@ assert.strictEqual(subprocess.stdio[2], subprocess.stderr);
 then this will be <code>null</code>.</p>
 <p><code>subprocess.stdout</code> is an alias for <code>subprocess.stdio[1]</code>. Both properties will
 refer to the same value.</p>
+<pre><code class="language-js">const { spawn } = require('child_process');
+
+const subprocess = spawn('ls');
+
+subprocess.stdout.on('data', (data) => {
+  console.log(`Received chunk ${data}`);
+});
+</code></pre>
 <h3>subprocess.unref()<span><a class="mark" href="#child_process_subprocess_unref" id="child_process_subprocess_unref">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.7.10</span>
@@ -1482,15 +1524,16 @@ const subprocess = spawn(process.argv[0], ['child_program.js'], {
 
 subprocess.unref();
 </code></pre>
-<h2>`maxBuffer` and Unicode<span><a class="mark" href="#child_process_maxbuffer_and_unicode" id="child_process_maxbuffer_and_unicode">#</a></span></h2>
+<h2><code>maxBuffer</code> and Unicode<span><a class="mark" href="#child_process_maxbuffer_and_unicode" id="child_process_maxbuffer_and_unicode">#</a></span></h2>
 <p>The <code>maxBuffer</code> option specifies the largest number of bytes allowed on <code>stdout</code>
 or <code>stderr</code>. If this value is exceeded, then the child process is terminated.
 This impacts output that includes multibyte character encodings such as UTF-8 or
 UTF-16. For instance, <code>console.log('中文测试')</code> will send 13 UTF-8 encoded bytes
 to <code>stdout</code> although there are only 4 characters.</p>
 <h2>Shell Requirements<span><a class="mark" href="#child_process_shell_requirements" id="child_process_shell_requirements">#</a></span></h2>
-<p>The shell should understand the <code>-c</code> switch on UNIX or <code>/d /s /c</code> on Windows.
-On Windows, command line parsing should be compatible with <code>'cmd.exe'</code>.</p>
+<p>The shell should understand the <code>-c</code> switch. If the shell is <code>'cmd.exe'</code>, it
+should understand the <code>/d /s /c</code> switches and command line parsing should be
+compatible.</p>
 <h2>Default Windows Shell<span><a class="mark" href="#child_process_default_windows_shell" id="child_process_default_windows_shell">#</a></span></h2>
 <p>Although Microsoft specifies <code>%COMSPEC%</code> must contain the path to
 <code>'cmd.exe'</code> in the root environment, child processes are not always subject to

@@ -21,12 +21,15 @@
 
 'use strict';
 
-const util = require('util');
+const { Object, ObjectPrototype } = primordials;
+
 const {
-  deprecate, convertToValidSignal, getSystemErrorName
+  promisify,
+  convertToValidSignal,
+  getSystemErrorName
 } = require('internal/util');
 const { isArrayBufferView } = require('internal/util/types');
-const debug = util.debuglog('child_process');
+const debug = require('internal/util/debuglog').debuglog('child_process');
 const { Buffer } = require('buffer');
 const { Pipe, constants: PipeConstants } = internalBinding('pipe_wrap');
 const {
@@ -34,31 +37,22 @@ const {
   ERR_CHILD_PROCESS_IPC_REQUIRED,
   ERR_CHILD_PROCESS_STDIO_MAXBUFFER,
   ERR_INVALID_ARG_TYPE,
-  ERR_INVALID_OPT_VALUE,
   ERR_OUT_OF_RANGE
 } = require('internal/errors').codes;
+const { clearTimeout, setTimeout } = require('timers');
 const { validateString, isInt32 } = require('internal/validators');
 const child_process = require('internal/child_process');
 const {
-  _validateStdio,
+  getValidStdio,
   setupChannel,
-  ChildProcess
+  ChildProcess,
+  stdioStringToArray
 } = child_process;
 
-exports.ChildProcess = ChildProcess;
+const MAX_BUFFER = 1024 * 1024;
 
-function stdioStringToArray(option) {
-  switch (option) {
-    case 'ignore':
-    case 'pipe':
-    case 'inherit':
-      return [option, option, option, 'ipc'];
-    default:
-      throw new ERR_INVALID_OPT_VALUE('stdio', option);
-  }
-}
-
-exports.fork = function fork(modulePath /* , args, options */) {
+function fork(modulePath /* , args, options */) {
+  validateString(modulePath, 'modulePath');
 
   // Get options and args arguments.
   var execArgv;
@@ -79,7 +73,7 @@ exports.fork = function fork(modulePath /* , args, options */) {
       throw new ERR_INVALID_ARG_VALUE(`arguments[${pos}]`, arguments[pos]);
     }
 
-    options = util._extend({}, arguments[pos++]);
+    options = { ...arguments[pos++] };
   }
 
   // Prepare arguments for fork:
@@ -97,13 +91,14 @@ exports.fork = function fork(modulePath /* , args, options */) {
   args = execArgv.concat([modulePath], args);
 
   if (typeof options.stdio === 'string') {
-    options.stdio = stdioStringToArray(options.stdio);
+    options.stdio = stdioStringToArray(options.stdio, 'ipc');
   } else if (!Array.isArray(options.stdio)) {
     // Use a separate fd=3 for the IPC channel. Inherit stdin, stdout,
     // and stderr from the parent if silent isn't set.
-    options.stdio = options.silent ? stdioStringToArray('pipe') :
-      stdioStringToArray('inherit');
-  } else if (options.stdio.indexOf('ipc') === -1) {
+    options.stdio = stdioStringToArray(
+      options.silent ? 'pipe' : 'inherit',
+      'ipc');
+  } else if (!options.stdio.includes('ipc')) {
     throw new ERR_CHILD_PROCESS_IPC_REQUIRED('options.stdio');
   }
 
@@ -111,12 +106,11 @@ exports.fork = function fork(modulePath /* , args, options */) {
   options.shell = false;
 
   return spawn(options.execPath, args, options);
-};
+}
 
-
-exports._forkChild = function _forkChild(fd) {
+function _forkChild(fd) {
   // set process.send()
-  var p = new Pipe(PipeConstants.IPC);
+  const p = new Pipe(PipeConstants.IPC);
   p.open(fd);
   p.unref();
   const control = setupChannel(process, p);
@@ -126,8 +120,7 @@ exports._forkChild = function _forkChild(fd) {
   process.on('removeListener', function onRemoveListener(name) {
     if (name === 'message' || name === 'disconnect') control.unref();
   });
-};
-
+}
 
 function normalizeExecArgs(command, options, callback) {
   if (typeof options === 'function') {
@@ -136,7 +129,7 @@ function normalizeExecArgs(command, options, callback) {
   }
 
   // Make a shallow copy so we don't clobber the user's options object.
-  options = Object.assign({}, options);
+  options = { ...options };
   options.shell = typeof options.shell === 'string' ? options.shell : true;
 
   return {
@@ -147,49 +140,48 @@ function normalizeExecArgs(command, options, callback) {
 }
 
 
-exports.exec = function exec(/* command , options, callback */) {
-  const opts = normalizeExecArgs.apply(null, arguments);
-  return exports.execFile(opts.file,
-                          opts.options,
-                          opts.callback);
-};
+function exec(command, options, callback) {
+  const opts = normalizeExecArgs(command, options, callback);
+  return module.exports.execFile(opts.file,
+                                 opts.options,
+                                 opts.callback);
+}
 
 const customPromiseExecFunction = (orig) => {
   return (...args) => {
-    return new Promise((resolve, reject) => {
-      orig(...args, (err, stdout, stderr) => {
-        if (err !== null) {
-          err.stdout = stdout;
-          err.stderr = stderr;
-          reject(err);
-        } else {
-          resolve({ stdout, stderr });
-        }
-      });
+    let resolve;
+    let reject;
+    const promise = new Promise((res, rej) => {
+      resolve = res;
+      reject = rej;
     });
+
+    promise.child = orig(...args, (err, stdout, stderr) => {
+      if (err !== null) {
+        err.stdout = stdout;
+        err.stderr = stderr;
+        reject(err);
+      } else {
+        resolve({ stdout, stderr });
+      }
+    });
+
+    return promise;
   };
 };
 
-Object.defineProperty(exports.exec, util.promisify.custom, {
+Object.defineProperty(exec, promisify.custom, {
   enumerable: false,
-  value: customPromiseExecFunction(exports.exec)
+  value: customPromiseExecFunction(exec)
 });
 
-exports.execFile = function execFile(file /* , args, options, callback */) {
-  var args = [];
-  var callback;
-  var options = {
-    encoding: 'utf8',
-    timeout: 0,
-    maxBuffer: 200 * 1024,
-    killSignal: 'SIGTERM',
-    cwd: null,
-    env: null,
-    shell: false
-  };
+function execFile(file /* , args, options, callback */) {
+  let args = [];
+  let callback;
+  let options;
 
   // Parse the optional positional parameters.
-  var pos = 1;
+  let pos = 1;
   if (pos < arguments.length && Array.isArray(arguments[pos])) {
     args = arguments[pos++];
   } else if (pos < arguments.length && arguments[pos] == null) {
@@ -197,7 +189,7 @@ exports.execFile = function execFile(file /* , args, options, callback */) {
   }
 
   if (pos < arguments.length && typeof arguments[pos] === 'object') {
-    util._extend(options, arguments[pos++]);
+    options = arguments[pos++];
   } else if (pos < arguments.length && arguments[pos] == null) {
     pos++;
   }
@@ -210,6 +202,17 @@ exports.execFile = function execFile(file /* , args, options, callback */) {
     throw new ERR_INVALID_ARG_VALUE('args', arguments[pos]);
   }
 
+  options = {
+    encoding: 'utf8',
+    timeout: 0,
+    maxBuffer: MAX_BUFFER,
+    killSignal: 'SIGTERM',
+    cwd: null,
+    env: null,
+    shell: false,
+    ...options
+  };
+
   // Validate the timeout, if present.
   validateTimeout(options.timeout);
 
@@ -218,7 +221,7 @@ exports.execFile = function execFile(file /* , args, options, callback */) {
 
   options.killSignal = sanitizeKillSignal(options.killSignal);
 
-  var child = spawn(file, args, {
+  const child = spawn(file, args, {
     cwd: options.cwd,
     env: options.env,
     gid: options.gid,
@@ -229,8 +232,8 @@ exports.execFile = function execFile(file /* , args, options, callback */) {
   });
 
   var encoding;
-  var _stdout = [];
-  var _stderr = [];
+  const _stdout = [];
+  const _stderr = [];
   if (options.encoding !== 'buffer' && Buffer.isEncoding(options.encoding)) {
     encoding = options.encoding;
   } else {
@@ -263,8 +266,7 @@ exports.execFile = function execFile(file /* , args, options, callback */) {
     if (encoding ||
       (
         child.stdout &&
-        child.stdout._readableState &&
-        child.stdout._readableState.encoding
+        child.stdout.readableEncoding
       )) {
       stdout = _stdout.join('');
     } else {
@@ -273,8 +275,7 @@ exports.execFile = function execFile(file /* , args, options, callback */) {
     if (encoding ||
       (
         child.stderr &&
-        child.stderr._readableState &&
-        child.stderr._readableState.encoding
+        child.stderr.readableEncoding
       )) {
       stderr = _stderr.join('');
     } else {
@@ -341,10 +342,16 @@ exports.execFile = function execFile(file /* , args, options, callback */) {
       child.stdout.setEncoding(encoding);
 
     child.stdout.on('data', function onChildStdout(chunk) {
-      var encoding = child.stdout._readableState.encoding;
-      stdoutLen += encoding ? Buffer.byteLength(chunk, encoding) : chunk.length;
+      const encoding = child.stdout.readableEncoding;
+      const length = encoding ?
+        Buffer.byteLength(chunk, encoding) :
+        chunk.length;
+      stdoutLen += length;
 
       if (stdoutLen > options.maxBuffer) {
+        const truncatedLen = options.maxBuffer - (stdoutLen - length);
+        _stdout.push(chunk.slice(0, truncatedLen));
+
         ex = new ERR_CHILD_PROCESS_STDIO_MAXBUFFER('stdout');
         kill();
       } else {
@@ -358,10 +365,16 @@ exports.execFile = function execFile(file /* , args, options, callback */) {
       child.stderr.setEncoding(encoding);
 
     child.stderr.on('data', function onChildStderr(chunk) {
-      var encoding = child.stderr._readableState.encoding;
-      stderrLen += encoding ? Buffer.byteLength(chunk, encoding) : chunk.length;
+      const encoding = child.stderr.readableEncoding;
+      const length = encoding ?
+        Buffer.byteLength(chunk, encoding) :
+        chunk.length;
+      stderrLen += length;
 
       if (stderrLen > options.maxBuffer) {
+        const truncatedLen = options.maxBuffer - (stderrLen - length);
+        _stderr.push(chunk.slice(0, truncatedLen));
+
         ex = new ERR_CHILD_PROCESS_STDIO_MAXBUFFER('stderr');
         kill();
       } else {
@@ -374,11 +387,11 @@ exports.execFile = function execFile(file /* , args, options, callback */) {
   child.addListener('error', errorhandler);
 
   return child;
-};
+}
 
-Object.defineProperty(exports.execFile, util.promisify.custom, {
+Object.defineProperty(execFile, promisify.custom, {
   enumerable: false,
-  value: customPromiseExecFunction(exports.execFile)
+  value: customPromiseExecFunction(execFile)
 });
 
 const _deprecatedCustomFds = deprecate(
@@ -440,8 +453,9 @@ function normalizeSpawnArguments(file, args, options) {
 
   if (Array.isArray(args)) {
     args = args.slice(0);
-  } else if (args !== undefined &&
-             (args === null || typeof args !== 'object')) {
+  } else if (args == null) {
+    args = [];
+  } else if (typeof args !== 'object') {
     throw new ERR_INVALID_ARG_TYPE('args', 'object', args);
   } else {
     options = args;
@@ -506,7 +520,7 @@ function normalizeSpawnArguments(file, args, options) {
   }
 
   // Make a shallow copy so we don't clobber the user's options object.
-  options = Object.assign({}, options);
+  options = { ...options };
 
   // --------- [Enclose.IO Hack start] ---------
   // allow executing files within the enclosed package
@@ -622,14 +636,19 @@ function normalizeSpawnArguments(file, args, options) {
 
   if (options.shell) {
     const command = [file].concat(args).join(' ');
-
+    // Set the shell, switches, and commands.
     if (process.platform === 'win32') {
       if (typeof options.shell === 'string')
         file = options.shell;
       else
         file = process.env.comspec || 'cmd.exe';
-      args = ['/d', '/s', '/c', `"${command}"`];
-      options.windowsVerbatimArguments = true;
+      // '/d /s /c' is used only for cmd.exe.
+      if (/^(?:.*\\)?cmd(?:\.exe)?$/i.test(file)) {
+        args = ['/d', '/s', '/c', `"${command}"`];
+        options.windowsVerbatimArguments = true;
+      } else {
+        args = ['-c', command];
+      }
     } else {
       if (typeof options.shell === 'string')
         file = options.shell;
@@ -647,19 +666,18 @@ function normalizeSpawnArguments(file, args, options) {
     args.unshift(file);
   }
 
-  var env = options.env || process.env;
-  var envPairs = [];
+  const env = options.env || process.env;
+  const envPairs = [];
 
   // process.env.NODE_V8_COVERAGE always propagates, making it possible to
   // collect coverage for programs that spawn with white-listed environment.
   if (process.env.NODE_V8_COVERAGE &&
-      !Object.prototype.hasOwnProperty.call(options.env || {},
-                                            'NODE_V8_COVERAGE')) {
+      !ObjectPrototype.hasOwnProperty(options.env || {}, 'NODE_V8_COVERAGE')) {
     env.NODE_V8_COVERAGE = process.env.NODE_V8_COVERAGE;
   }
 
   // Prototype values are intentionally included.
-  for (var key in env) {
+  for (const key in env) {
     const value = env[key];
     if (value !== undefined) {
       envPairs.push(`${key}=${value}`);
@@ -692,11 +710,11 @@ function normalizeSpawnArguments(file, args, options) {
 }
 
 
-var spawn = exports.spawn = function spawn(/* file, args, options */) {
-  var opts = normalizeSpawnArguments.apply(null, arguments);
-  var options = opts.options;
-  var child = new ChildProcess();
+function spawn(file, args, options) {
+  const opts = normalizeSpawnArguments(file, args, options);
+  const child = new ChildProcess();
 
+  options = opts.options;
   debug('spawn', opts.args, options);
 
   child.spawn({
@@ -713,12 +731,16 @@ var spawn = exports.spawn = function spawn(/* file, args, options */) {
   });
 
   return child;
-};
+}
 
-function spawnSync(/* file, args, options */) {
-  var opts = normalizeSpawnArguments.apply(null, arguments);
+function spawnSync(file, args, options) {
+  const opts = normalizeSpawnArguments(file, args, options);
 
-  var options = opts.options;
+  const defaults = {
+    maxBuffer: MAX_BUFFER,
+    ...opts.options
+  };
+  options = opts.options = defaults;
 
   debug('spawnSync', opts.args, options);
 
@@ -735,10 +757,10 @@ function spawnSync(/* file, args, options */) {
   // Validate and translate the kill signal, if present.
   options.killSignal = sanitizeKillSignal(options.killSignal);
 
-  options.stdio = _validateStdio(options.stdio || 'pipe', true).stdio;
+  options.stdio = getValidStdio(options.stdio || 'pipe', true).stdio;
 
   if (options.input) {
-    var stdin = options.stdio[0] = util._extend({}, options.stdio[0]);
+    var stdin = options.stdio[0] = { ...options.stdio[0] };
     stdin.input = options.input;
   }
 
@@ -746,7 +768,7 @@ function spawnSync(/* file, args, options */) {
   for (var i = 0; i < options.stdio.length; i++) {
     var input = options.stdio[i] && options.stdio[i].input;
     if (input != null) {
-      var pipe = options.stdio[i] = util._extend({}, options.stdio[i]);
+      var pipe = options.stdio[i] = { ...options.stdio[i] };
       if (isArrayBufferView(input)) {
         pipe.input = input;
       } else if (typeof input === 'string') {
@@ -764,7 +786,6 @@ function spawnSync(/* file, args, options */) {
 
   return child_process.spawnSync(opts);
 }
-exports.spawnSync = spawnSync;
 
 
 function checkExecSyncError(ret, args, cmd) {
@@ -786,42 +807,40 @@ function checkExecSyncError(ret, args, cmd) {
 }
 
 
-function execFileSync(/* command, args, options */) {
-  var opts = normalizeSpawnArguments.apply(null, arguments);
-  var inheritStderr = !opts.options.stdio;
+function execFileSync(command, args, options) {
+  const opts = normalizeSpawnArguments(command, args, options);
+  const inheritStderr = !opts.options.stdio;
 
-  var ret = spawnSync(opts.file, opts.args.slice(1), opts.options);
+  const ret = spawnSync(opts.file, opts.args.slice(1), opts.options);
 
   if (inheritStderr && ret.stderr)
     process.stderr.write(ret.stderr);
 
-  var err = checkExecSyncError(ret, opts.args, undefined);
+  const err = checkExecSyncError(ret, opts.args, undefined);
 
   if (err)
     throw err;
 
   return ret.stdout;
 }
-exports.execFileSync = execFileSync;
 
 
-function execSync(command /* , options */) {
-  var opts = normalizeExecArgs.apply(null, arguments);
-  var inheritStderr = !opts.options.stdio;
+function execSync(command, options) {
+  const opts = normalizeExecArgs(command, options, null);
+  const inheritStderr = !opts.options.stdio;
 
-  var ret = spawnSync(opts.file, opts.options);
+  const ret = spawnSync(opts.file, opts.options);
 
   if (inheritStderr && ret.stderr)
     process.stderr.write(ret.stderr);
 
-  var err = checkExecSyncError(ret, opts.args, command);
+  const err = checkExecSyncError(ret, opts.args, command);
 
   if (err)
     throw err;
 
   return ret.stdout;
 }
-exports.execSync = execSync;
 
 
 function validateTimeout(timeout) {
@@ -849,3 +868,15 @@ function sanitizeKillSignal(killSignal) {
                                    killSignal);
   }
 }
+
+module.exports = {
+  _forkChild,
+  ChildProcess,
+  exec,
+  execFile,
+  execFileSync,
+  execSync,
+  fork,
+  spawn,
+  spawnSync
+};

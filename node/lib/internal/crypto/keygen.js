@@ -1,28 +1,44 @@
 'use strict';
 
+const { Object } = primordials;
+
 const { AsyncWrap, Providers } = internalBinding('async_wrap');
 const {
   generateKeyPairRSA,
+  generateKeyPairRSAPSS,
   generateKeyPairDSA,
   generateKeyPairEC,
+  generateKeyPairNid,
+  EVP_PKEY_ED25519,
+  EVP_PKEY_ED448,
+  EVP_PKEY_X25519,
+  EVP_PKEY_X448,
   OPENSSL_EC_NAMED_CURVE,
-  OPENSSL_EC_EXPLICIT_CURVE,
-  PK_ENCODING_PKCS1,
-  PK_ENCODING_PKCS8,
-  PK_ENCODING_SPKI,
-  PK_ENCODING_SEC1,
-  PK_FORMAT_DER,
-  PK_FORMAT_PEM
-} = process.binding('crypto');
-const { customPromisifyArgs } = require('internal/util');
-const { isUint32 } = require('internal/validators');
+  OPENSSL_EC_EXPLICIT_CURVE
+} = internalBinding('crypto');
 const {
-  ERR_CRYPTO_INCOMPATIBLE_KEY_OPTIONS,
+  parsePublicKeyEncoding,
+  parsePrivateKeyEncoding,
+
+  PublicKeyObject,
+  PrivateKeyObject
+} = require('internal/crypto/keys');
+const { customPromisifyArgs } = require('internal/util');
+const { isUint32, validateString } = require('internal/validators');
+const {
   ERR_INVALID_ARG_TYPE,
   ERR_INVALID_ARG_VALUE,
   ERR_INVALID_CALLBACK,
   ERR_INVALID_OPT_VALUE
 } = require('internal/errors').codes;
+
+const { isArrayBufferView } = require('internal/util/types');
+
+function wrapKey(key, ctor) {
+  if (typeof key === 'string' || isArrayBufferView(key))
+    return key;
+  return new ctor(key);
+}
 
 function generateKeyPair(type, options, callback) {
   if (typeof options === 'function') {
@@ -33,15 +49,18 @@ function generateKeyPair(type, options, callback) {
   const impl = check(type, options);
 
   if (typeof callback !== 'function')
-    throw new ERR_INVALID_CALLBACK();
+    throw new ERR_INVALID_CALLBACK(callback);
 
   const wrap = new AsyncWrap(Providers.KEYPAIRGENREQUEST);
   wrap.ondone = (ex, pubkey, privkey) => {
     if (ex) return callback.call(wrap, ex);
+    // If no encoding was chosen, return key objects instead.
+    pubkey = wrapKey(pubkey, PublicKeyObject);
+    privkey = wrapKey(privkey, PrivateKeyObject);
     callback.call(wrap, null, pubkey, privkey);
   };
 
-  handleError(impl, wrap);
+  handleError(impl(wrap));
 }
 
 Object.defineProperty(generateKeyPair, customPromisifyArgs, {
@@ -51,11 +70,10 @@ Object.defineProperty(generateKeyPair, customPromisifyArgs, {
 
 function generateKeyPairSync(type, options) {
   const impl = check(type, options);
-  return handleError(impl);
+  return handleError(impl());
 }
 
-function handleError(impl, wrap) {
-  const ret = impl(wrap);
+function handleError(ret) {
   if (ret === undefined)
     return; // async
 
@@ -63,92 +81,42 @@ function handleError(impl, wrap) {
   if (err !== undefined)
     throw err;
 
-  return { publicKey, privateKey };
+  // If no encoding was chosen, return key objects instead.
+  return {
+    publicKey: wrapKey(publicKey, PublicKeyObject),
+    privateKey: wrapKey(privateKey, PrivateKeyObject)
+  };
 }
 
 function parseKeyEncoding(keyType, options) {
   const { publicKeyEncoding, privateKeyEncoding } = options;
 
-  if (publicKeyEncoding == null || typeof publicKeyEncoding !== 'object')
+  let publicFormat, publicType;
+  if (publicKeyEncoding == null) {
+    publicFormat = publicType = undefined;
+  } else if (typeof publicKeyEncoding === 'object') {
+    ({
+      format: publicFormat,
+      type: publicType
+    } = parsePublicKeyEncoding(publicKeyEncoding, keyType,
+                               'publicKeyEncoding'));
+  } else {
     throw new ERR_INVALID_OPT_VALUE('publicKeyEncoding', publicKeyEncoding);
-
-  const { format: strPublicFormat, type: strPublicType } = publicKeyEncoding;
-
-  let publicType;
-  if (strPublicType === 'pkcs1') {
-    if (keyType !== 'rsa') {
-      throw new ERR_CRYPTO_INCOMPATIBLE_KEY_OPTIONS(
-        strPublicType, 'can only be used for RSA keys');
-    }
-    publicType = PK_ENCODING_PKCS1;
-  } else if (strPublicType === 'spki') {
-    publicType = PK_ENCODING_SPKI;
-  } else {
-    throw new ERR_INVALID_OPT_VALUE('publicKeyEncoding.type', strPublicType);
   }
 
-  let publicFormat;
-  if (strPublicFormat === 'der') {
-    publicFormat = PK_FORMAT_DER;
-  } else if (strPublicFormat === 'pem') {
-    publicFormat = PK_FORMAT_PEM;
+  let privateFormat, privateType, cipher, passphrase;
+  if (privateKeyEncoding == null) {
+    privateFormat = privateType = undefined;
+  } else if (typeof privateKeyEncoding === 'object') {
+    ({
+      format: privateFormat,
+      type: privateType,
+      cipher,
+      passphrase
+    } = parsePrivateKeyEncoding(privateKeyEncoding, keyType,
+                                'privateKeyEncoding'));
   } else {
-    throw new ERR_INVALID_OPT_VALUE('publicKeyEncoding.format',
-                                    strPublicFormat);
-  }
-
-  if (privateKeyEncoding == null || typeof privateKeyEncoding !== 'object')
     throw new ERR_INVALID_OPT_VALUE('privateKeyEncoding', privateKeyEncoding);
-
-  const {
-    cipher,
-    passphrase,
-    format: strPrivateFormat,
-    type: strPrivateType
-  } = privateKeyEncoding;
-
-  let privateType;
-  if (strPrivateType === 'pkcs1') {
-    if (keyType !== 'rsa') {
-      throw new ERR_CRYPTO_INCOMPATIBLE_KEY_OPTIONS(
-        strPrivateType, 'can only be used for RSA keys');
-    }
-    privateType = PK_ENCODING_PKCS1;
-  } else if (strPrivateType === 'pkcs8') {
-    privateType = PK_ENCODING_PKCS8;
-  } else if (strPrivateType === 'sec1') {
-    if (keyType !== 'ec') {
-      throw new ERR_CRYPTO_INCOMPATIBLE_KEY_OPTIONS(
-        strPrivateType, 'can only be used for EC keys');
-    }
-    privateType = PK_ENCODING_SEC1;
-  } else {
-    throw new ERR_INVALID_OPT_VALUE('privateKeyEncoding.type', strPrivateType);
-  }
-
-  let privateFormat;
-  if (strPrivateFormat === 'der') {
-    privateFormat = PK_FORMAT_DER;
-  } else if (strPrivateFormat === 'pem') {
-    privateFormat = PK_FORMAT_PEM;
-  } else {
-    throw new ERR_INVALID_OPT_VALUE('privateKeyEncoding.format',
-                                    strPrivateFormat);
-  }
-
-  if (cipher != null) {
-    if (typeof cipher !== 'string')
-      throw new ERR_INVALID_OPT_VALUE('privateKeyEncoding.cipher', cipher);
-    if (privateFormat === PK_FORMAT_DER &&
-        (privateType === PK_ENCODING_PKCS1 ||
-         privateType === PK_ENCODING_SEC1)) {
-      throw new ERR_CRYPTO_INCOMPATIBLE_KEY_OPTIONS(
-        strPrivateType, 'does not support encryption');
-    }
-    if (typeof passphrase !== 'string') {
-      throw new ERR_INVALID_OPT_VALUE('privateKeyEncoding.passphrase',
-                                      passphrase);
-    }
   }
 
   return {
@@ -157,20 +125,27 @@ function parseKeyEncoding(keyType, options) {
 }
 
 function check(type, options, callback) {
-  if (typeof type !== 'string')
-    throw new ERR_INVALID_ARG_TYPE('type', 'string', type);
-  if (options == null || typeof options !== 'object')
-    throw new ERR_INVALID_ARG_TYPE('options', 'object', options);
+  validateString(type, 'type');
 
   // These will be set after parsing the type and type-specific options to make
   // the order a bit more intuitive.
   let cipher, passphrase, publicType, publicFormat, privateType, privateFormat;
 
+  if (options !== undefined && typeof options !== 'object')
+    throw new ERR_INVALID_ARG_TYPE('options', 'object', options);
+
+  function needOptions() {
+    if (options == null)
+      throw new ERR_INVALID_ARG_TYPE('options', 'object', options);
+    return options;
+  }
+
   let impl;
   switch (type) {
     case 'rsa':
+    case 'rsa-pss':
       {
-        const { modulusLength } = options;
+        const { modulusLength } = needOptions();
         if (!isUint32(modulusLength))
           throw new ERR_INVALID_OPT_VALUE('modulusLength', modulusLength);
 
@@ -181,15 +156,32 @@ function check(type, options, callback) {
           throw new ERR_INVALID_OPT_VALUE('publicExponent', publicExponent);
         }
 
-        impl = (wrap) => generateKeyPairRSA(modulusLength, publicExponent,
-                                            publicType, publicFormat,
-                                            privateType, privateFormat,
-                                            cipher, passphrase, wrap);
+        if (type === 'rsa') {
+          impl = (wrap) => generateKeyPairRSA(modulusLength, publicExponent,
+                                              publicFormat, publicType,
+                                              privateFormat, privateType,
+                                              cipher, passphrase, wrap);
+          break;
+        }
+
+        const { hash, mgf1Hash, saltLength } = options;
+        if (hash !== undefined && typeof hash !== 'string')
+          throw new ERR_INVALID_OPT_VALUE('hash', hash);
+        if (mgf1Hash !== undefined && typeof mgf1Hash !== 'string')
+          throw new ERR_INVALID_OPT_VALUE('mgf1Hash', mgf1Hash);
+        if (saltLength !== undefined && !isUint32(saltLength))
+          throw new ERR_INVALID_OPT_VALUE('saltLength', saltLength);
+
+        impl = (wrap) => generateKeyPairRSAPSS(modulusLength, publicExponent,
+                                               hash, mgf1Hash, saltLength,
+                                               publicFormat, publicType,
+                                               privateFormat, privateType,
+                                               cipher, passphrase, wrap);
       }
       break;
     case 'dsa':
       {
-        const { modulusLength } = options;
+        const { modulusLength } = needOptions();
         if (!isUint32(modulusLength))
           throw new ERR_INVALID_OPT_VALUE('modulusLength', modulusLength);
 
@@ -201,14 +193,14 @@ function check(type, options, callback) {
         }
 
         impl = (wrap) => generateKeyPairDSA(modulusLength, divisorLength,
-                                            publicType, publicFormat,
-                                            privateType, privateFormat,
+                                            publicFormat, publicType,
+                                            privateFormat, privateType,
                                             cipher, passphrase, wrap);
       }
       break;
     case 'ec':
       {
-        const { namedCurve } = options;
+        const { namedCurve } = needOptions();
         if (typeof namedCurve !== 'string')
           throw new ERR_INVALID_OPT_VALUE('namedCurve', namedCurve);
         let { paramEncoding } = options;
@@ -220,24 +212,52 @@ function check(type, options, callback) {
           throw new ERR_INVALID_OPT_VALUE('paramEncoding', paramEncoding);
 
         impl = (wrap) => generateKeyPairEC(namedCurve, paramEncoding,
-                                           publicType, publicFormat,
-                                           privateType, privateFormat,
+                                           publicFormat, publicType,
+                                           privateFormat, privateType,
                                            cipher, passphrase, wrap);
+      }
+      break;
+    case 'ed25519':
+    case 'ed448':
+    case 'x25519':
+    case 'x448':
+      {
+        let id;
+        switch (type) {
+          case 'ed25519':
+            id = EVP_PKEY_ED25519;
+            break;
+          case 'ed448':
+            id = EVP_PKEY_ED448;
+            break;
+          case 'x25519':
+            id = EVP_PKEY_X25519;
+            break;
+          case 'x448':
+            id = EVP_PKEY_X448;
+            break;
+        }
+        impl = (wrap) => generateKeyPairNid(id,
+                                            publicFormat, publicType,
+                                            privateFormat, privateType,
+                                            cipher, passphrase, wrap);
       }
       break;
     default:
       throw new ERR_INVALID_ARG_VALUE('type', type,
-                                      "must be one of 'rsa', 'dsa', 'ec'");
+                                      'must be a supported key type');
   }
 
-  ({
-    cipher,
-    passphrase,
-    publicType,
-    publicFormat,
-    privateType,
-    privateFormat
-  } = parseKeyEncoding(type, options));
+  if (options) {
+    ({
+      cipher,
+      passphrase,
+      publicType,
+      publicFormat,
+      privateType,
+      privateFormat
+    } = parseKeyEncoding(type, options));
+  }
 
   return impl;
 }

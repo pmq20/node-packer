@@ -21,13 +21,15 @@
 
 'use strict';
 
-// This test requires the program 'wrk'
+// This test requires the program 'wrk'.
 const common = require('../common');
-if (common.isWindows)
-  common.skip('no `wrk` on windows');
+
+const child_process = require('child_process');
+const result = child_process.spawnSync('wrk', ['-h']);
+if (result.error && result.error.code === 'ENOENT')
+  common.skip('test requires `wrk` to be installed first');
 
 const assert = require('assert');
-const spawn = require('child_process').spawn;
 const http = require('http');
 const url = require('url');
 
@@ -47,9 +49,9 @@ let normalReqSec = 0;
 
 const runAb = (opts, callback) => {
   const args = [
-    '-c', opts.concurrent || 100,
+    '-c', opts.concurrent || 50,
     '-t', opts.threads || 2,
-    '-d', opts.duration || '10s',
+    '-d', opts.duration || '5s',
   ];
 
   if (!opts.keepalive) {
@@ -58,9 +60,9 @@ const runAb = (opts, callback) => {
   }
 
   args.push(url.format({ hostname: '127.0.0.1',
-                         port: common.PORT, protocol: 'http' }));
+                         port: opts.port, protocol: 'http' }));
 
-  const child = spawn('wrk', args);
+  const child = child_process.spawn('wrk', args);
   child.stderr.pipe(process.stderr);
   child.stdout.setEncoding('utf8');
 
@@ -90,11 +92,12 @@ const runAb = (opts, callback) => {
   });
 };
 
-server.listen(common.PORT, () => {
-  runAb({ keepalive: true }, (reqSec) => {
+server.listen(0, () => {
+  const port = server.address().port;
+  runAb({ keepalive: true, port: port }, (reqSec) => {
     keepAliveReqSec = reqSec;
 
-    runAb({ keepalive: false }, (reqSec) => {
+    runAb({ keepalive: false, port: port }, (reqSec) => {
       normalReqSec = reqSec;
       server.close();
     });

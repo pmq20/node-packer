@@ -1,18 +1,22 @@
 'use strict';
 
+const { Object, Reflect } = primordials;
 const {
-  ERR_INVALID_ARG_TYPE,
-  ERR_NO_CRYPTO,
-  ERR_UNKNOWN_SIGNAL
-} = require('internal/errors').codes;
-const { signals } = process.binding('constants').os;
+  codes: {
+    ERR_INVALID_ARG_TYPE,
+    ERR_NO_CRYPTO,
+    ERR_UNKNOWN_SIGNAL
+  },
+  uvErrmapGet
+} = require('internal/errors');
+const { signals } = internalBinding('constants').os;
 const {
   getHiddenValue,
   setHiddenValue,
   arrow_message_private_symbol: kArrowMessagePrivateSymbolIndex,
   decorated_private_symbol: kDecoratedPrivateSymbolIndex
-} = process.binding('util');
-const { errmap } = process.binding('uv');
+} = internalBinding('util');
+const { isNativeError } = internalBinding('types');
 
 const noCrypto = !process.versions.openssl;
 
@@ -25,16 +29,15 @@ function removeColors(str) {
 }
 
 function isError(e) {
-  return objectToString(e) === '[object Error]' || e instanceof Error;
-}
-
-function objectToString(o) {
-  return Object.prototype.toString.call(o);
+  // An error could be an instance of Error while not being a native error
+  // or could be from a different realm and not be instance of Error but still
+  // be a native error.
+  return isNativeError(e) || e instanceof Error;
 }
 
 // Keep a list of deprecation codes that have been warned on so we only warn on
 // each one once.
-const codesWarned = {};
+const codesWarned = new Set();
 
 // Mark that a method should not be used.
 // Returns a modified function which warns once by default.
@@ -52,9 +55,9 @@ function deprecate(fn, msg, code) {
     if (!warned) {
       warned = true;
       if (code !== undefined) {
-        if (!codesWarned[code]) {
+        if (!codesWarned.has(code)) {
           process.emitWarning(msg, 'DeprecationWarning', code, deprecated);
-          codesWarned[code] = true;
+          codesWarned.add(code);
         }
       } else {
         process.emitWarning(msg, 'DeprecationWarning', deprecated);
@@ -209,7 +212,7 @@ function getSignalsToNamesMapping() {
     return signalsToNamesMapping;
 
   signalsToNamesMapping = Object.create(null);
-  for (var key in signals) {
+  for (const key in signals) {
     signalsToNamesMapping[signals[key]] = key;
   }
 
@@ -244,7 +247,7 @@ function getConstructorOf(obj) {
 }
 
 function getSystemErrorName(err) {
-  const entry = errmap.get(err);
+  const entry = uvErrmapGet(err);
   return entry ? entry[0] : `Unknown system error ${err}`;
 }
 
@@ -260,14 +263,13 @@ function promisify(original) {
     if (typeof fn !== 'function') {
       throw new ERR_INVALID_ARG_TYPE('util.promisify.custom', 'Function', fn);
     }
-    Object.defineProperty(fn, kCustomPromisifiedSymbol, {
+    return Object.defineProperty(fn, kCustomPromisifiedSymbol, {
       value: fn, enumerable: false, writable: false, configurable: true
     });
-    return fn;
   }
 
   // Names to create an object from in case the callback receives multiple
-  // arguments, e.g. ['stdout', 'stderr'] for child_process.exec.
+  // arguments, e.g. ['bytesRead', 'buffer'] for fs.read.
   const argumentNames = original[kCustomPromisifyArgsSymbol];
 
   function fn(...args) {
@@ -305,12 +307,13 @@ promisify.custom = kCustomPromisifiedSymbol;
 function join(output, separator) {
   let str = '';
   if (output.length !== 0) {
-    for (var i = 0; i < output.length - 1; i++) {
+    const lastIndex = output.length - 1;
+    for (let i = 0; i < lastIndex; i++) {
       // It is faster not to use a template string here
       str += output[i];
       str += separator;
     }
-    str += output[i];
+    str += output[lastIndex];
   }
   return str;
 }
@@ -336,7 +339,7 @@ function isInsideNodeModules() {
     // the perf implications should be okay.
     getStructuredStack = runInNewContext(`(function() {
       Error.prepareStackTrace = function(err, trace) {
-        err.stack = trace;
+        return trace;
       };
       Error.stackTraceLimit = Infinity;
 
@@ -387,7 +390,6 @@ module.exports = {
   isInsideNodeModules,
   join,
   normalizeEncoding,
-  objectToString,
   once,
   promisify,
   spliceOne,
@@ -403,5 +405,5 @@ module.exports = {
   // Used by the buffer module to capture an internal reference to the
   // default isEncoding implementation, just in case userland overrides it.
   kIsEncodingSymbol: Symbol('kIsEncodingSymbol'),
-  kExpandStackSymbol: Symbol('kExpandStackSymbol')
+  kVmBreakFirstLineSymbol: Symbol('kVmBreakFirstLineSymbol')
 };

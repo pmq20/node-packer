@@ -29,7 +29,7 @@ proc.once('exit', common.mustCall(() => {
         trace.args.name === 'JavaScriptMainThread'));
     assert(traces.some((trace) =>
       trace.name === 'thread_name' &&
-        trace.args.name === 'BackgroundTaskRunner'));
+        trace.args.name === 'PlatformWorkerThread'));
     assert(traces.some((trace) =>
       trace.name === 'version' &&
         trace.args.node === process.versions.node));
@@ -38,6 +38,8 @@ proc.once('exit', common.mustCall(() => {
       trace.name === 'node' &&
         trace.args.process.versions.http_parser ===
           process.versions.http_parser &&
+        trace.args.process.versions.llhttp ===
+          process.versions.llhttp &&
         trace.args.process.versions.node ===
           process.versions.node &&
         trace.args.process.versions.v8 ===

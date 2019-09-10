@@ -1,11 +1,7 @@
 'use strict';
 
 const { Buffer } = require('buffer');
-const { inspect } = require('util');
-
-function copyBuffer(src, target, offset) {
-  Buffer.prototype.copy.call(src, target, offset);
-}
+const { inspect } = require('internal/util/inspect');
 
 module.exports = class BufferList {
   constructor() {
@@ -66,7 +62,7 @@ module.exports = class BufferList {
     var p = this.head;
     var i = 0;
     while (p) {
-      copyBuffer(p.data, ret, i);
+      ret.set(p.data, i);
       i += p.data.length;
       p = p.next;
     }
@@ -75,54 +71,58 @@ module.exports = class BufferList {
 
   // Consumes a specified amount of bytes or characters from the buffered data.
   consume(n, hasStrings) {
-    var ret;
-    if (n < this.head.data.length) {
+    const data = this.head.data;
+    if (n < data.length) {
       // `slice` is the same for buffers and strings.
-      ret = this.head.data.slice(0, n);
-      this.head.data = this.head.data.slice(n);
-    } else if (n === this.head.data.length) {
-      // First chunk is a perfect match.
-      ret = this.shift();
-    } else {
-      // Result spans more than one buffer.
-      ret = hasStrings ? this._getString(n) : this._getBuffer(n);
+      const slice = data.slice(0, n);
+      this.head.data = data.slice(n);
+      return slice;
     }
-    return ret;
+    if (n === data.length) {
+      // First chunk is a perfect match.
+      return this.shift();
+    }
+    // Result spans more than one buffer.
+    return hasStrings ? this._getString(n) : this._getBuffer(n);
   }
 
   first() {
     return this.head.data;
   }
 
+  *[Symbol.iterator]() {
+    for (let p = this.head; p; p = p.next) {
+      yield p.data;
+    }
+  }
+
   // Consumes a specified amount of characters from the buffered data.
   _getString(n) {
-    var p = this.head;
-    var c = 1;
-    var ret = p.data;
-    n -= ret.length;
-    while (p = p.next) {
+    let ret = '';
+    let p = this.head;
+    let c = 0;
+    do {
       const str = p.data;
-      const nb = (n > str.length ? str.length : n);
-      if (nb === str.length)
+      if (n > str.length) {
         ret += str;
-      else
-        ret += str.slice(0, n);
-      n -= nb;
-      if (n === 0) {
-        if (nb === str.length) {
+        n -= str.length;
+      } else {
+        if (n === str.length) {
+          ret += str;
           ++c;
           if (p.next)
             this.head = p.next;
           else
             this.head = this.tail = null;
         } else {
+          ret += str.slice(0, n);
           this.head = p;
-          p.data = str.slice(nb);
+          p.data = str.slice(n);
         }
         break;
       }
       ++c;
-    }
+    } while (p = p.next);
     this.length -= c;
     return ret;
   }
@@ -130,30 +130,31 @@ module.exports = class BufferList {
   // Consumes a specified amount of bytes from the buffered data.
   _getBuffer(n) {
     const ret = Buffer.allocUnsafe(n);
-    var p = this.head;
-    var c = 1;
-    p.data.copy(ret);
-    n -= p.data.length;
-    while (p = p.next) {
+    const retLen = n;
+    let p = this.head;
+    let c = 0;
+    do {
       const buf = p.data;
-      const nb = (n > buf.length ? buf.length : n);
-      buf.copy(ret, ret.length - n, 0, nb);
-      n -= nb;
-      if (n === 0) {
-        if (nb === buf.length) {
+      if (n > buf.length) {
+        ret.set(buf, retLen - n);
+        n -= buf.length;
+      } else {
+        if (n === buf.length) {
+          ret.set(buf, retLen - n);
           ++c;
           if (p.next)
             this.head = p.next;
           else
             this.head = this.tail = null;
         } else {
+          ret.set(new Uint8Array(buf.buffer, buf.byteOffset, n), retLen - n);
           this.head = p;
-          p.data = buf.slice(nb);
+          p.data = buf.slice(n);
         }
         break;
       }
       ++c;
-    }
+    } while (p = p.next);
     this.length -= c;
     return ret;
   }

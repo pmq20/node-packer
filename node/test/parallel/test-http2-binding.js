@@ -1,11 +1,13 @@
+// Flags: --expose-internals
 'use strict';
 
 const common = require('../common');
 if (!common.hasCrypto)
   common.skip('missing crypto');
 const assert = require('assert');
+const { internalBinding } = require('internal/test/binding');
 
-const binding = process.binding('http2');
+const binding = internalBinding('http2');
 const http2 = require('http2');
 
 assert(binding.Http2Session);
@@ -20,7 +22,7 @@ assert.strictEqual(settings.maxFrameSize, 16384);
 assert.strictEqual(binding.nghttp2ErrorString(-517),
                    'GOAWAY has already been sent');
 
-// assert constants are present
+// Assert constants are present
 assert(binding.constants);
 assert.strictEqual(typeof binding.constants, 'object');
 const constants = binding.constants;

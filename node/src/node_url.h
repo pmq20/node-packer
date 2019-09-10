@@ -4,16 +4,12 @@
 #if defined(NODE_WANT_INTERNALS) && NODE_WANT_INTERNALS
 
 #include "node.h"
-#include "env-inl.h"
+#include "env.h"
 
 #include <string>
 
 namespace node {
 namespace url {
-
-using v8::Local;
-using v8::Value;
-
 
 #define PARSESTATES(XX)                                                       \
   XX(kSchemeStart)                                                            \
@@ -113,16 +109,16 @@ class URL {
     }
   }
 
-  explicit URL(std::string input) :
+  explicit URL(const std::string& input) :
       URL(input.c_str(), input.length()) {}
 
-  URL(std::string input, const URL* base) :
+  URL(const std::string& input, const URL* base) :
       URL(input.c_str(), input.length(), base) {}
 
-  URL(std::string input, const URL& base) :
+  URL(const std::string& input, const URL& base) :
       URL(input.c_str(), input.length(), &base) {}
 
-  URL(std::string input, std::string base) :
+  URL(const std::string& input, const std::string& base) :
       URL(input.c_str(), input.length(), base.c_str(), base.length()) {}
 
   int32_t flags() {
@@ -171,7 +167,7 @@ class URL {
   // Get the file URL from native file system path.
   static URL FromFilePath(const std::string& file_path);
 
-  const Local<Value> ToObject(Environment* env) const;
+  v8::MaybeLocal<v8::Value> ToObject(Environment* env) const;
 
   URL(const URL&) = default;
   URL& operator=(const URL&) = default;

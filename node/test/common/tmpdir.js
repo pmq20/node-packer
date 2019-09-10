@@ -1,31 +1,65 @@
-/* eslint-disable node-core/required-modules */
+/* eslint-disable node-core/require-common-first, node-core/required-modules */
 'use strict';
 
+const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+const { debuglog } = require('util');
 
-function rimrafSync(p) {
-  let st;
-  try {
-    st = fs.lstatSync(p);
-  } catch (e) {
-    if (e.code === 'ENOENT')
-      return;
+const debug = debuglog('test/tmpdir');
+
+function rimrafSync(pathname, { spawn = true } = {}) {
+  const st = (() => {
+    try {
+      return fs.lstatSync(pathname);
+    } catch (e) {
+      if (fs.existsSync(pathname))
+        throw new Error(`Something wonky happened rimrafing ${pathname}`);
+      debug(e);
+    }
+  })();
+
+  // If (!st) then nothing to do.
+  if (!st) {
+    return;
+  }
+
+  // On Windows first try to delegate rmdir to a shell.
+  if (spawn && process.platform === 'win32' && st.isDirectory()) {
+    try {
+      // Try `rmdir` first.
+      execSync(`rmdir /q /s ${pathname}`, { timeout: 1000 });
+    } catch (e) {
+      // Attempt failed. Log and carry on.
+      debug(e);
+    }
   }
 
   try {
-    if (st && st.isDirectory())
-      rmdirSync(p, null);
+    if (st.isDirectory())
+      rmdirSync(pathname, null);
     else
-      fs.unlinkSync(p);
+      fs.unlinkSync(pathname);
   } catch (e) {
-    if (e.code === 'ENOENT')
-      return;
-    if (e.code === 'EPERM')
-      return rmdirSync(p, e);
-    if (e.code !== 'EISDIR')
-      throw e;
-    rmdirSync(p, e);
+    debug(e);
+    switch (e.code) {
+      case 'ENOENT':
+        // It's not there anymore. Work is done. Exiting.
+        return;
+
+      case 'EPERM':
+        // This can happen, try again with `rmdirSync`.
+        break;
+
+      case 'EISDIR':
+        // Got 'EISDIR' even after testing `st.isDirectory()`...
+        // Try again with `rmdirSync`.
+        break;
+
+      default:
+        throw e;
+    }
+    rmdirSync(pathname, e);
   }
 }
 
@@ -55,15 +89,11 @@ const testRoot = process.env.NODE_TEST_DIR ?
 
 // Using a `.` prefixed name, which is the convention for "hidden" on POSIX,
 // gets tools to ignore it by default or by simple rules, especially eslint.
-let tmpdirName = '.tmp';
-if (process.env.TEST_THREAD_ID) {
-  tmpdirName += `.${process.env.TEST_THREAD_ID}`;
-}
-
+const tmpdirName = '.tmp.' + (process.env.TEST_THREAD_ID || '0');
 const tmpPath = path.join(testRoot, tmpdirName);
 
-function refresh() {
-  rimrafSync(this.path);
+function refresh(opts = {}) {
+  rimrafSync(this.path, opts);
   fs.mkdirSync(this.path);
 }
 

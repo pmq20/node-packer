@@ -7,14 +7,10 @@ let eos;
 
 const { once } = require('internal/util');
 const {
+  ERR_INVALID_CALLBACK,
   ERR_MISSING_ARGS,
   ERR_STREAM_DESTROYED
 } = require('internal/errors').codes;
-
-function noop(err) {
-  // Rethrow the error if it exists to avoid swallowing it
-  if (err) throw err;
-}
 
 function isRequest(stream) {
   return stream.setHeader && typeof stream.abort === 'function';
@@ -58,8 +54,11 @@ function pipe(from, to) {
 }
 
 function popCallback(streams) {
-  if (!streams.length) return noop;
-  if (typeof streams[streams.length - 1] !== 'function') return noop;
+  // Streams should never be an empty array. It should always contain at least
+  // a single stream. Therefore optimize for the average case instead of
+  // checking for length === 0 as well.
+  if (typeof streams[streams.length - 1] !== 'function')
+    throw new ERR_INVALID_CALLBACK(streams[streams.length - 1]);
   return streams.pop();
 }
 

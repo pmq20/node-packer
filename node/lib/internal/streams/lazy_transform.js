@@ -3,8 +3,9 @@
 // for the stream, one conventional and one non-conventional.
 'use strict';
 
+const { Object } = primordials;
+
 const stream = require('stream');
-const util = require('util');
 
 const {
   getDefaultEncoding
@@ -17,7 +18,8 @@ function LazyTransform(options) {
   this.writable = true;
   this.readable = true;
 }
-util.inherits(LazyTransform, stream.Transform);
+Object.setPrototypeOf(LazyTransform.prototype, stream.Transform.prototype);
+Object.setPrototypeOf(LazyTransform, stream.Transform);
 
 function makeGetter(name) {
   return function() {

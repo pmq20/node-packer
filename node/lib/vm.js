@@ -21,24 +21,29 @@
 
 'use strict';
 
+const { Array, ArrayPrototype } = primordials;
+
 const {
   ContextifyScript,
   makeContext,
   isContext: _isContext,
   compileFunction: _compileFunction
-} = process.binding('contextify');
-const { callbackMap } = internalBinding('module_wrap');
+} = internalBinding('contextify');
 const {
   ERR_INVALID_ARG_TYPE,
-  ERR_OUT_OF_RANGE,
   ERR_VM_MODULE_NOT_MODULE,
 } = require('internal/errors').codes;
-const { isModuleNamespaceObject, isUint8Array } = require('util').types;
-const { validateUint32 } = require('internal/validators');
+const {
+  isModuleNamespaceObject,
+  isArrayBufferView,
+} = require('internal/util/types');
+const {
+  validateInt32,
+  validateUint32,
+  validateString
+} = require('internal/validators');
+const { kVmBreakFirstLineSymbol } = require('internal/util');
 const kParsingContext = Symbol('script parsing context');
-
-const ArrayForEach = Function.call.bind(Array.prototype.forEach);
-const ArrayIsArray = Array.isArray;
 
 class Script extends ContextifyScript {
   constructor(code, options = {}) {
@@ -59,14 +64,15 @@ class Script extends ContextifyScript {
       [kParsingContext]: parsingContext,
     } = options;
 
-    if (typeof filename !== 'string') {
-      throw new ERR_INVALID_ARG_TYPE('options.filename', 'string', filename);
-    }
-    validateInteger(lineOffset, 'options.lineOffset');
-    validateInteger(columnOffset, 'options.columnOffset');
-    if (cachedData !== undefined && !isUint8Array(cachedData)) {
-      throw new ERR_INVALID_ARG_TYPE('options.cachedData',
-                                     ['Buffer', 'Uint8Array'], cachedData);
+    validateString(filename, 'options.filename');
+    validateInt32(lineOffset, 'options.lineOffset');
+    validateInt32(columnOffset, 'options.columnOffset');
+    if (cachedData !== undefined && !isArrayBufferView(cachedData)) {
+      throw new ERR_INVALID_ARG_TYPE(
+        'options.cachedData',
+        ['Buffer', 'TypedArray', 'DataView'],
+        cachedData
+      );
     }
     if (typeof produceCachedData !== 'boolean') {
       throw new ERR_INVALID_ARG_TYPE('options.produceCachedData', 'boolean',
@@ -76,7 +82,7 @@ class Script extends ContextifyScript {
     // Calling `ReThrow()` on a native TryCatch does not generate a new
     // abort-on-uncaught-exception check. A dummy try/catch in JS land
     // protects against that.
-    try {
+    try { // eslint-disable-line no-useless-catch
       super(code,
             filename,
             lineOffset,
@@ -96,6 +102,7 @@ class Script extends ContextifyScript {
       }
       const { wrapMap, linkingStatusMap } =
         require('internal/vm/source_text_module');
+      const { callbackMap } = internalBinding('module_wrap');
       callbackMap.set(this, { importModuleDynamically: async (...args) => {
         const m = await importModuleDynamically(...args);
         if (isModuleNamespaceObject(m)) {
@@ -147,20 +154,6 @@ function validateContext(sandbox) {
   }
 }
 
-function validateInteger(prop, propName) {
-  if (!Number.isInteger(prop)) {
-    throw new ERR_INVALID_ARG_TYPE(propName, 'integer', prop);
-  }
-  if ((prop >> 0) !== prop) {
-    throw new ERR_OUT_OF_RANGE(propName, '32-bit integer', prop);
-  }
-}
-
-function validateString(prop, propName) {
-  if (prop !== undefined && typeof prop !== 'string')
-    throw new ERR_INVALID_ARG_TYPE(propName, 'string', prop);
-}
-
 function validateBool(prop, propName) {
   if (prop !== undefined && typeof prop !== 'boolean')
     throw new ERR_INVALID_ARG_TYPE(propName, 'boolean', prop);
@@ -179,14 +172,14 @@ function getRunInContextArgs(options = {}) {
   let timeout = options.timeout;
   if (timeout === undefined) {
     timeout = -1;
-  } else if (!Number.isInteger(timeout) || timeout <= 0) {
-    throw new ERR_INVALID_ARG_TYPE('options.timeout', 'a positive integer',
-                                   timeout);
+  } else {
+    validateUint32(timeout, 'options.timeout', true);
   }
 
   const {
     displayErrors = true,
-    breakOnSigint = false
+    breakOnSigint = false,
+    [kVmBreakFirstLineSymbol]: breakFirstLine = false,
   } = options;
 
   if (typeof displayErrors !== 'boolean') {
@@ -200,7 +193,7 @@ function getRunInContextArgs(options = {}) {
 
   return {
     breakOnSigint,
-    args: [timeout, displayErrors, breakOnSigint]
+    args: [timeout, displayErrors, breakOnSigint, breakFirstLine]
   };
 }
 
@@ -216,8 +209,10 @@ function getContextOptions(options) {
         wasm: options.contextCodeGeneration.wasm,
       } : undefined,
     };
-    validateString(contextOptions.name, 'options.contextName');
-    validateString(contextOptions.origin, 'options.contextOrigin');
+    if (contextOptions.name !== undefined)
+      validateString(contextOptions.name, 'options.contextName');
+    if (contextOptions.origin !== undefined)
+      validateString(contextOptions.origin, 'options.contextOrigin');
     if (contextOptions.codeGeneration) {
       validateBool(contextOptions.codeGeneration.strings,
                    'options.contextCodeGeneration.strings');
@@ -252,10 +247,9 @@ function createContext(sandbox = {}, options = {}) {
     codeGeneration
   } = options;
 
-  if (typeof name !== 'string') {
-    throw new ERR_INVALID_ARG_TYPE('options.name', 'string', options.name);
-  }
-  validateString(origin, 'options.origin');
+  validateString(name, 'options.name');
+  if (origin !== undefined)
+    validateString(origin, 'options.origin');
   validateObject(codeGeneration, 'options.codeGeneration');
 
   let strings = true;
@@ -300,9 +294,7 @@ function runInContext(code, contextifiedSandbox, options) {
       [kParsingContext]: contextifiedSandbox
     };
   } else {
-    options = Object.assign({}, options, {
-      [kParsingContext]: contextifiedSandbox
-    });
+    options = { ...options, [kParsingContext]: contextifiedSandbox };
   }
   return createScript(code, options)
     .runInContext(contextifiedSandbox, options);
@@ -313,9 +305,7 @@ function runInNewContext(code, sandbox, options) {
     options = { filename: options };
   }
   sandbox = createContext(sandbox, getContextOptions(options));
-  options = Object.assign({}, options, {
-    [kParsingContext]: sandbox
-  });
+  options = { ...options, [kParsingContext]: sandbox };
   return createScript(code, options).runInNewContext(sandbox, options);
 }
 
@@ -327,18 +317,13 @@ function runInThisContext(code, options) {
 }
 
 function compileFunction(code, params, options = {}) {
-  if (typeof code !== 'string') {
-    throw new ERR_INVALID_ARG_TYPE('code', 'string', code);
-  }
+  validateString(code, 'code');
   if (params !== undefined) {
-    if (!ArrayIsArray(params)) {
+    if (!Array.isArray(params)) {
       throw new ERR_INVALID_ARG_TYPE('params', 'Array', params);
     }
-    ArrayForEach(params, (param, i) => {
-      if (typeof param !== 'string') {
-        throw new ERR_INVALID_ARG_TYPE(`params[${i}]`, 'string', param);
-      }
-    });
+    ArrayPrototype.forEach(params,
+                           (param, i) => validateString(param, `params[${i}]`));
   }
 
   const {
@@ -351,15 +336,13 @@ function compileFunction(code, params, options = {}) {
     contextExtensions = [],
   } = options;
 
-  if (typeof filename !== 'string') {
-    throw new ERR_INVALID_ARG_TYPE('options.filename', 'string', filename);
-  }
+  validateString(filename, 'options.filename');
   validateUint32(columnOffset, 'options.columnOffset');
   validateUint32(lineOffset, 'options.lineOffset');
-  if (cachedData !== undefined && !isUint8Array(cachedData)) {
+  if (cachedData !== undefined && !isArrayBufferView(cachedData)) {
     throw new ERR_INVALID_ARG_TYPE(
       'options.cachedData',
-      'Uint8Array',
+      ['Buffer', 'TypedArray', 'DataView'],
       cachedData
     );
   }
@@ -383,14 +366,14 @@ function compileFunction(code, params, options = {}) {
       );
     }
   }
-  if (!ArrayIsArray(contextExtensions)) {
+  if (!Array.isArray(contextExtensions)) {
     throw new ERR_INVALID_ARG_TYPE(
       'options.contextExtensions',
       'Array',
       contextExtensions
     );
   }
-  ArrayForEach(contextExtensions, (extension, i) => {
+  ArrayPrototype.forEach(contextExtensions, (extension, i) => {
     if (typeof extension !== 'object') {
       throw new ERR_INVALID_ARG_TYPE(
         `options.contextExtensions[${i}]`,
@@ -400,7 +383,7 @@ function compileFunction(code, params, options = {}) {
     }
   });
 
-  return _compileFunction(
+  const result = _compileFunction(
     code,
     filename,
     lineOffset,
@@ -411,6 +394,16 @@ function compileFunction(code, params, options = {}) {
     contextExtensions,
     params
   );
+
+  if (produceCachedData) {
+    result.function.cachedDataProduced = result.cachedDataProduced;
+  }
+
+  if (result.cachedData) {
+    result.function.cachedData = result.cachedData;
+  }
+
+  return result.function;
 }
 
 

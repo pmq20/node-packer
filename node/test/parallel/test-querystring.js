@@ -34,7 +34,7 @@ function createWithNoPrototype(properties) {
   });
   return noProto;
 }
-// folding block, commented to pass gjslint
+// Folding block, commented to pass gjslint
 // {{{
 // [ wonkyQS, canonicalQS, obj ]
 const qsTestCases = [
@@ -204,17 +204,17 @@ function check(actual, expected, input) {
   });
 }
 
-// test that the canonical qs is parsed properly.
+// Test that the canonical qs is parsed properly.
 qsTestCases.forEach((testCase) => {
   check(qs.parse(testCase[0]), testCase[2], testCase[0]);
 });
 
-// test that the colon test cases can do the same
+// Test that the colon test cases can do the same
 qsColonTestCases.forEach((testCase) => {
   check(qs.parse(testCase[0], ';', ':'), testCase[2], testCase[0]);
 });
 
-// test the weird objects, that they get parsed properly
+// Test the weird objects, that they get parsed properly
 qsWeirdObjects.forEach((testCase) => {
   check(qs.parse(testCase[1]), testCase[2], testCase[1]);
 });
@@ -223,7 +223,7 @@ qsNoMungeTestCases.forEach((testCase) => {
   assert.deepStrictEqual(qs.stringify(testCase[1], '&', '='), testCase[0]);
 });
 
-// test the nested qs-in-qs case
+// Test the nested qs-in-qs case
 {
   const f = qs.parse('a=b&q=x%3Dy%26y%3Dz');
   check(f, createWithNoPrototype([
@@ -254,7 +254,7 @@ qsNoMungeTestCases.forEach((testCase) => {
   check(f.q, expectedInternal);
 }
 
-// now test stringifying
+// Now test stringifying
 
 // basic
 qsTestCases.forEach((testCase) => {
@@ -269,7 +269,7 @@ qsWeirdObjects.forEach((testCase) => {
   assert.strictEqual(qs.stringify(testCase[0]), testCase[1]);
 });
 
-// invalid surrogate pair throws URIError
+// Invalid surrogate pair throws URIError
 common.expectsError(
   () => qs.stringify({ foo: '\udc00' }),
   {
@@ -279,7 +279,7 @@ common.expectsError(
   }
 );
 
-// coerce numbers to string
+// Coerce numbers to string
 assert.strictEqual(qs.stringify({ foo: 0 }), 'foo=0');
 assert.strictEqual(qs.stringify({ foo: -0 }), 'foo=0');
 assert.strictEqual(qs.stringify({ foo: 3 }), 'foo=3');
@@ -434,7 +434,7 @@ qsUnescapeTestCases.forEach((testCase) => {
   assert.strictEqual(qs.unescapeBuffer(testCase[0]).toString(), testCase[1]);
 });
 
-// test overriding .unescape
+// Test overriding .unescape
 {
   const prevUnescape = qs.unescape;
   qs.unescape = (str) => {
@@ -445,5 +445,5 @@ qsUnescapeTestCases.forEach((testCase) => {
     createWithNoPrototype([{ key: 'f__', value: 'b_r' }]));
   qs.unescape = prevUnescape;
 }
-// test separator and "equals" parsing order
+// Test separator and "equals" parsing order
 check(qs.parse('foo&bar', '&', '&'), { foo: '', bar: '' });

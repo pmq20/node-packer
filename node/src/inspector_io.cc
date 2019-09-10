@@ -3,17 +3,18 @@
 #include "inspector_socket_server.h"
 #include "inspector/main_thread_interface.h"
 #include "inspector/node_string.h"
-#include "env-inl.h"
+#include "base_object-inl.h"
 #include "debug_utils.h"
 #include "node.h"
 #include "node_crypto.h"
+#include "node_internals.h"
 #include "node_mutex.h"
 #include "v8-inspector.h"
-#include "util.h"
+#include "util-inl.h"
 #include "zlib.h"
 
 #include <deque>
-#include <string.h>
+#include <cstring>
 #include <vector>
 
 namespace node {
@@ -21,6 +22,9 @@ namespace inspector {
 namespace {
 using v8_inspector::StringBuffer;
 using v8_inspector::StringView;
+
+// kKill closes connections and stops the server, kStop only stops the server
+enum class TransportAction { kKill, kSendMessage, kStop };
 
 std::string ScriptPath(uv_loop_t* loop, const std::string& script_name) {
   std::string script_path;
@@ -176,12 +180,6 @@ class RequestQueue {
       data_->Post(session_id, action, std::move(message));
   }
 
-  void SetServer(InspectorSocketServer* server) {
-    Mutex::ScopedLock scoped_lock(lock_);
-    if (data_ != nullptr)
-      data_->SetServer(server);
-  }
-
   bool Expired() {
     Mutex::ScopedLock scoped_lock(lock_);
     return data_ == nullptr;
@@ -215,8 +213,7 @@ class InspectorIoDelegate: public node::inspector::SocketServerDelegate {
                       const std::string& target_id,
                       const std::string& script_path,
                       const std::string& script_name);
-  ~InspectorIoDelegate() {
-  }
+  ~InspectorIoDelegate() override = default;
 
   void StartSession(int session_id, const std::string& target_id) override;
   void MessageReceived(int session_id, const std::string& message) override;
@@ -242,9 +239,13 @@ class InspectorIoDelegate: public node::inspector::SocketServerDelegate {
 std::unique_ptr<InspectorIo> InspectorIo::Start(
     std::shared_ptr<MainThreadHandle> main_thread,
     const std::string& path,
-    std::shared_ptr<DebugOptions> options) {
+    std::shared_ptr<HostPort> host_port,
+    const InspectPublishUid& inspect_publish_uid) {
   auto io = std::unique_ptr<InspectorIo>(
-      new InspectorIo(main_thread, path, options));
+      new InspectorIo(main_thread,
+                      path,
+                      host_port,
+                      inspect_publish_uid));
   if (io->request_queue_->Expired()) {  // Thread is not running
     return nullptr;
   }
@@ -253,9 +254,14 @@ std::unique_ptr<InspectorIo> InspectorIo::Start(
 
 InspectorIo::InspectorIo(std::shared_ptr<MainThreadHandle> main_thread,
                          const std::string& path,
-                         std::shared_ptr<DebugOptions> options)
-                         : main_thread_(main_thread), options_(options),
-                           thread_(), script_name_(path), id_(GenerateID()) {
+                         std::shared_ptr<HostPort> host_port,
+                         const InspectPublishUid& inspect_publish_uid)
+    : main_thread_(main_thread),
+      host_port_(host_port),
+      inspect_publish_uid_(inspect_publish_uid),
+      thread_(),
+      script_name_(path),
+      id_(GenerateID()) {
   Mutex::ScopedLock scoped_lock(thread_start_lock_);
   CHECK_EQ(uv_thread_create(&thread_, InspectorIo::ThreadMain, this), 0);
   thread_start_condition_.Wait(scoped_lock);
@@ -287,16 +293,18 @@ void InspectorIo::ThreadMain() {
   std::unique_ptr<InspectorIoDelegate> delegate(
       new InspectorIoDelegate(queue, main_thread_, id_,
                               script_path, script_name_));
-  InspectorSocketServer server(std::move(delegate), &loop,
-                               options_->host().c_str(),
-                               options_->port());
+  InspectorSocketServer server(std::move(delegate),
+                               &loop,
+                               host_port_->host(),
+                               host_port_->port(),
+                               inspect_publish_uid_);
   request_queue_ = queue->handle();
   // Its lifetime is now that of the server delegate
   queue.reset();
   {
     Mutex::ScopedLock scoped_lock(thread_start_lock_);
     if (server.Start()) {
-      port_ = server.Port();
+      host_port_->set_port(server.Port());
     }
     thread_start_condition_.Broadcast(scoped_lock);
   }
@@ -304,8 +312,8 @@ void InspectorIo::ThreadMain() {
   CheckedUvLoopClose(&loop);
 }
 
-std::vector<std::string> InspectorIo::GetTargetIds() const {
-  return { id_ };
+std::string InspectorIo::GetWsUrl() const {
+  return FormatWsAddress(host_port_->host(), host_port_->port(), id_, true);
 }
 
 InspectorIoDelegate::InspectorIoDelegate(

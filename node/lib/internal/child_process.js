@@ -1,5 +1,7 @@
 'use strict';
 
+const { JSON, Object } = primordials;
+
 const {
   errnoException,
   codes: {
@@ -18,11 +20,17 @@ const { validateString } = require('internal/validators');
 const EventEmitter = require('events');
 const net = require('net');
 const dgram = require('dgram');
-const util = require('util');
-const assert = require('assert');
+const inspect = require('internal/util/inspect').inspect;
+const assert = require('internal/assert');
 
 const { Process } = internalBinding('process_wrap');
-const { WriteWrap } = internalBinding('stream_wrap');
+const {
+  WriteWrap,
+  kReadBytesOrError,
+  kArrayBufferOffset,
+  kLastWriteWasAsync,
+  streamBaseState
+} = internalBinding('stream_wrap');
 const { Pipe, constants: PipeConstants } = internalBinding('pipe_wrap');
 const { TCP } = internalBinding('tcp_wrap');
 const { TTY } = internalBinding('tty_wrap');
@@ -43,7 +51,7 @@ const {
   UV_ENOENT,
   UV_ENOSYS,
   UV_ESRCH
-} = process.binding('uv');
+} = internalBinding('uv');
 
 const { SocketListSend, SocketListReceive } = SocketList;
 
@@ -55,8 +63,9 @@ let freeParser;
 let HTTPParser;
 
 const MAX_HANDLE_RETRANSMISSIONS = 3;
+const kIsUsedAsStdio = Symbol('kIsUsedAsStdio');
 
-// this object contain function to convert TCP objects to native handle objects
+// This object contain function to convert TCP objects to native handle objects
 // and back again.
 const handleConversion = {
   'net.Native': {
@@ -79,7 +88,7 @@ const handleConversion = {
     },
 
     got(message, handle, emit) {
-      var server = new net.Server();
+      const server = new net.Server();
       server.listen(handle, () => {
         emit(server);
       });
@@ -91,15 +100,15 @@ const handleConversion = {
       if (!socket._handle)
         return;
 
-      // if the socket was created by net.Server
+      // If the socket was created by net.Server
       if (socket.server) {
-        // the worker should keep track of the socket
+        // The worker should keep track of the socket
         message.key = socket.server._connectionKey;
 
         var firstTime = !this.channel.sockets.send[message.key];
         var socketList = getSocketList('send', this, message.key);
 
-        // the server should no longer expose a .connection property
+        // The server should no longer expose a .connection property
         // and when asked to close it should query the socket status from
         // the workers
         if (firstTime) socket.server._setupWorker(socketList);
@@ -109,9 +118,9 @@ const handleConversion = {
           socket.server._connections--;
       }
 
-      var handle = socket._handle;
+      const handle = socket._handle;
 
-      // remove handle from socket object, it will be closed when the socket
+      // Remove handle from socket object, it will be closed when the socket
       // will be sent
       if (!options.keepOpen) {
         handle.onread = nop;
@@ -121,7 +130,7 @@ const handleConversion = {
         if (freeParser === undefined)
           freeParser = require('_http_common').freeParser;
         if (HTTPParser === undefined)
-          HTTPParser = internalBinding('http_parser').HTTPParser;
+          HTTPParser = require('_http_common').HTTPParser;
 
         // In case of an HTTP connection socket, release the associated
         // resources
@@ -154,16 +163,16 @@ const handleConversion = {
     },
 
     got(message, handle, emit) {
-      var socket = new net.Socket({
+      const socket = new net.Socket({
         handle: handle,
         readable: true,
         writable: true
       });
 
-      // if the socket was created by net.Server we will track the socket
+      // If the socket was created by net.Server we will track the socket
       if (message.key) {
 
-        // add socket to connections list
+        // Add socket to connections list
         var socketList = getSocketList('got', this, message.key);
         socketList.add({
           socket: socket
@@ -196,7 +205,7 @@ const handleConversion = {
     },
 
     got(message, handle, emit) {
-      var socket = new dgram.Socket(message.dgramType);
+      const socket = new dgram.Socket(message.dgramType);
 
       socket.bind(handle, () => {
         emit(socket);
@@ -205,6 +214,21 @@ const handleConversion = {
   }
 };
 
+function stdioStringToArray(stdio, channel) {
+  const options = [];
+
+  switch (stdio) {
+    case 'ignore':
+    case 'pipe': options.push(stdio, stdio, stdio); break;
+    case 'inherit': options.push(0, 1, 2); break;
+    default:
+      throw new ERR_INVALID_OPT_VALUE('stdio', stdio);
+  }
+
+  if (channel) options.push(channel);
+
+  return options;
+}
 
 function ChildProcess() {
   EventEmitter.call(this);
@@ -248,7 +272,7 @@ function ChildProcess() {
       this.emit('exit', this.exitCode, this.signalCode);
     }
 
-    // if any of the stdio streams have not been touched,
+    // If any of the stdio streams have not been touched,
     // then pull all the data through so that it can get the
     // eof and emit a 'close' event.
     // Do it on nextTick so that the user has one last chance
@@ -259,7 +283,8 @@ function ChildProcess() {
     maybeClose(this);
   };
 }
-util.inherits(ChildProcess, EventEmitter);
+Object.setPrototypeOf(ChildProcess.prototype, EventEmitter.prototype);
+Object.setPrototypeOf(ChildProcess, EventEmitter);
 
 
 function flushStdio(subprocess) {
@@ -269,8 +294,14 @@ function flushStdio(subprocess) {
 
   for (var i = 0; i < stdio.length; i++) {
     const stream = stdio[i];
-    if (!stream || !stream.readable || stream._readableState.readableListening)
+    // TODO(addaleax): This doesn't necessarily account for all the ways in
+    // which data can be read from a stream, e.g. being consumed on the
+    // native layer directly as a StreamBase.
+    if (!stream || !stream.readable ||
+        stream._readableState.readableListening ||
+        stream[kIsUsedAsStdio]) {
       continue;
+    }
     stream.resume();
   }
 }
@@ -297,21 +328,19 @@ function closePendingHandle(target) {
 
 
 ChildProcess.prototype.spawn = function(options) {
-  var ipc;
-  var ipcFd;
-  var i;
+  let i = 0;
 
   if (options === null || typeof options !== 'object') {
     throw new ERR_INVALID_ARG_TYPE('options', 'Object', options);
   }
 
   // If no `stdio` option was given - use default
-  var stdio = options.stdio || 'pipe';
+  let stdio = options.stdio || 'pipe';
 
-  stdio = _validateStdio(stdio, false);
+  stdio = getValidStdio(stdio, false);
 
-  ipc = stdio.ipc;
-  ipcFd = stdio.ipcFd;
+  const ipc = stdio.ipc;
+  const ipcFd = stdio.ipcFd;
   stdio = options.stdio = stdio.stdio;
 
   if (ipc !== undefined) {
@@ -337,7 +366,7 @@ ChildProcess.prototype.spawn = function(options) {
   else
     throw new ERR_INVALID_ARG_TYPE('options.args', 'Array', options.args);
 
-  var err = this._handle.spawn(options);
+  const err = this._handle.spawn(options);
 
   // Run-time errors should emit an error, not throw an exception.
   if (err === UV_EACCES ||
@@ -346,12 +375,11 @@ ChildProcess.prototype.spawn = function(options) {
       err === UV_ENFILE ||
       err === UV_ENOENT) {
     process.nextTick(onErrorNT, this, err);
+
     // There is no point in continuing when we've hit EMFILE or ENFILE
     // because we won't be able to set up the stdio file descriptors.
-    // It's kind of silly that the de facto spec for ENOENT (the test suite)
-    // mandates that stdio _is_ set up, even if there is no process on the
-    // receiving end, but it is what it is.
-    if (err !== UV_ENOENT) return err;
+    if (err === UV_EMFILE || err === UV_ENFILE)
+      return err;
   } else if (err) {
     // Close all opened fds on error
     for (i = 0; i < stdio.length; i++) {
@@ -377,9 +405,22 @@ ChildProcess.prototype.spawn = function(options) {
       continue;
     }
 
+    // The stream is already cloned and piped, thus stop its readable side,
+    // otherwise we might attempt to read from the stream when at the same time
+    // the child process does.
+    if (stream.type === 'wrap') {
+      stream.handle.reading = false;
+      stream.handle.readStop();
+      stream._stdio.pause();
+      stream._stdio.readableFlowing = false;
+      stream._stdio._readableState.reading = false;
+      stream._stdio[kIsUsedAsStdio] = true;
+      continue;
+    }
+
     if (stream.handle) {
-      // when i === 0 - we're dealing with stdin
-      // (which is the only one writable pipe)
+      // When i === 0 - we're dealing with stdin
+      // (which is the only one writable pipe).
       stream.socket = createSocket(this.pid !== 0 ?
         stream.handle : null, i > 0);
 
@@ -489,16 +530,18 @@ function setupChannel(target, channel) {
 
   if (StringDecoder === undefined)
     StringDecoder = require('string_decoder').StringDecoder;
-  var decoder = new StringDecoder('utf8');
+  const decoder = new StringDecoder('utf8');
   var jsonBuffer = '';
   var pendingHandle = null;
   channel.buffering = false;
   channel.pendingHandle = null;
-  channel.onread = function(nread, pool) {
+  channel.onread = function(arrayBuffer) {
     const recvHandle = channel.pendingHandle;
     channel.pendingHandle = null;
-    // TODO(bnoordhuis) Check that nread > 0.
-    if (pool) {
+    if (arrayBuffer) {
+      const nread = streamBaseState[kReadBytesOrError];
+      const offset = streamBaseState[kArrayBufferOffset];
+      const pool = new Uint8Array(arrayBuffer, offset, nread);
       if (recvHandle)
         pendingHandle = recvHandle;
 
@@ -544,10 +587,10 @@ function setupChannel(target, channel) {
     }
   };
 
-  // object where socket lists will live
+  // Object where socket lists will live
   channel.sockets = { got: {}, send: {} };
 
-  // handlers will go through this
+  // Handlers will go through this
   target.on('internalMessage', function(message, handle) {
     // Once acknowledged - continue sending handles.
     if (message.cmd === 'NODE_HANDLE_ACK' ||
@@ -601,12 +644,11 @@ function setupChannel(target, channel) {
     // a message.
     target._send({ cmd: 'NODE_HANDLE_ACK' }, null, true);
 
-    var obj = handleConversion[message.type];
+    const obj = handleConversion[message.type];
 
     // Update simultaneous accepts on Windows
     if (process.platform === 'win32') {
-      handle._simultaneousAccepts = false;
-      net._setSimultaneousAccepts(handle);
+      handle.setSimultaneousAccepts(false);
     }
 
     // Convert handle object
@@ -628,7 +670,7 @@ function setupChannel(target, channel) {
       throw new ERR_INVALID_ARG_TYPE('options', 'Object', options);
     }
 
-    options = Object.assign({ swallowErrors: false }, options);
+    options = { swallowErrors: false, ...options };
 
     if (this.connected) {
       return this._send(message, handle, options, callback);
@@ -648,14 +690,28 @@ function setupChannel(target, channel) {
     if (message === undefined)
       throw new ERR_MISSING_ARGS('message');
 
+    // Non-serializable messages should not reach the remote
+    // end point; as any failure in the stringification there
+    // will result in error message that is weakly consumable.
+    // So perform a sanity check on message prior to sending.
+    if (typeof message !== 'string' &&
+        typeof message !== 'object' &&
+        typeof message !== 'number' &&
+        typeof message !== 'boolean') {
+      throw new ERR_INVALID_ARG_TYPE(
+        'message', ['string', 'object', 'number', 'boolean'], message);
+    }
+
     // Support legacy function signature
     if (typeof options === 'boolean') {
       options = { swallowErrors: options };
     }
 
-    // package messages with a handle object
+    let obj;
+
+    // Package messages with a handle object
     if (handle) {
-      // this message will be handled by an internalMessage event handler
+      // This message will be handled by an internalMessage event handler
       message = {
         cmd: 'NODE_HANDLE',
         type: null,
@@ -687,7 +743,7 @@ function setupChannel(target, channel) {
         return this._handleQueue.length === 1;
       }
 
-      var obj = handleConversion[message.type];
+      obj = handleConversion[message.type];
 
       // convert TCP object to native handle object
       handle = handleConversion[message.type].send.call(target,
@@ -701,8 +757,8 @@ function setupChannel(target, channel) {
         message = message.msg;
 
       // Update simultaneous accepts on Windows
-      if (obj.simultaneousAccepts) {
-        net._setSimultaneousAccepts(handle);
+      if (obj.simultaneousAccepts && process.platform === 'win32') {
+        handle.setSimultaneousAccepts(true);
       }
     } else if (this._handleQueue &&
                !(message && (message.cmd === 'NODE_HANDLE_ACK' ||
@@ -717,11 +773,11 @@ function setupChannel(target, channel) {
       return this._handleQueue.length === 1;
     }
 
-    var req = new WriteWrap();
-    req.async = false;
+    const req = new WriteWrap();
 
-    var string = JSON.stringify(message) + '\n';
-    var err = channel.writeUtf8String(req, string, handle);
+    const string = JSON.stringify(message) + '\n';
+    const err = channel.writeUtf8String(req, string, handle);
+    const wasAsyncWrite = streamBaseState[kLastWriteWasAsync];
 
     if (err === 0) {
       if (handle) {
@@ -731,7 +787,7 @@ function setupChannel(target, channel) {
           obj.postSend(message, handle, options, callback, target);
       }
 
-      if (req.async) {
+      if (wasAsyncWrite) {
         req.oncomplete = () => {
           control.unref();
           if (typeof callback === 'function')
@@ -760,7 +816,7 @@ function setupChannel(target, channel) {
     return channel.writeQueueSize < (65536 * 2);
   };
 
-  // connected will be set to false immediately when a disconnect() is
+  // Connected will be set to false immediately when a disconnect() is
   // requested, even though the channel might still be alive internally to
   // process queued messages. The three states are distinguished as follows:
   // - disconnect() never requested: channel is not null and connected
@@ -824,7 +880,7 @@ function setupChannel(target, channel) {
     if (!target.channel)
       return;
 
-    var eventName = (internal ? 'internalMessage' : 'message');
+    const eventName = (internal ? 'internalMessage' : 'message');
 
     process.nextTick(emit, eventName, message, handle);
   }
@@ -844,21 +900,15 @@ function isInternal(message) {
 
 function nop() { }
 
-function _validateStdio(stdio, sync) {
+function getValidStdio(stdio, sync) {
   var ipc;
   var ipcFd;
 
   // Replace shortcut with an array
   if (typeof stdio === 'string') {
-    switch (stdio) {
-      case 'ignore': stdio = ['ignore', 'ignore', 'ignore']; break;
-      case 'pipe': stdio = ['pipe', 'pipe', 'pipe']; break;
-      case 'inherit': stdio = [0, 1, 2]; break;
-      default:
-        throw new ERR_INVALID_OPT_VALUE('stdio', stdio);
-    }
+    stdio = stdioStringToArray(stdio);
   } else if (!Array.isArray(stdio)) {
-    throw new ERR_INVALID_OPT_VALUE('stdio', util.inspect(stdio));
+    throw new ERR_INVALID_OPT_VALUE('stdio', inspect(stdio));
   }
 
   // At least 3 stdio will be created
@@ -932,17 +982,18 @@ function _validateStdio(stdio, sync) {
       acc.push({
         type: 'wrap',
         wrapType: getHandleWrapType(handle),
-        handle: handle
+        handle: handle,
+        _stdio: stdio
       });
     } else if (isArrayBufferView(stdio) || typeof stdio === 'string') {
       if (!sync) {
         cleanup();
-        throw new ERR_INVALID_SYNC_FORK_INPUT(util.inspect(stdio));
+        throw new ERR_INVALID_SYNC_FORK_INPUT(inspect(stdio));
       }
     } else {
       // Cleanup
       cleanup();
-      throw new ERR_INVALID_OPT_VALUE('stdio', util.inspect(stdio));
+      throw new ERR_INVALID_OPT_VALUE('stdio', inspect(stdio));
     }
 
     return acc;
@@ -953,7 +1004,7 @@ function _validateStdio(stdio, sync) {
 
 
 function getSocketList(type, worker, key) {
-  var sockets = worker.channel.sockets[type];
+  const sockets = worker.channel.sockets[type];
   var socketList = sockets[key];
   if (!socketList) {
     var Construct = type === 'send' ? SocketListSend : SocketListReceive;
@@ -972,8 +1023,8 @@ function maybeClose(subprocess) {
 }
 
 function spawnSync(opts) {
-  var options = opts.options;
-  var result = spawn_sync.spawn(options);
+  const options = opts.options;
+  const result = spawn_sync.spawn(options);
 
   if (result.output && options.encoding && options.encoding !== 'buffer') {
     for (var i = 0; i < result.output.length; i++) {
@@ -998,6 +1049,7 @@ function spawnSync(opts) {
 module.exports = {
   ChildProcess,
   setupChannel,
-  _validateStdio,
+  getValidStdio,
+  stdioStringToArray,
   spawnSync
 };

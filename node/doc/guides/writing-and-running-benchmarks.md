@@ -125,28 +125,28 @@ run `node benchmark/run.js`. Again this does not provide the statistical
 information to make any conclusions.
 
 ```console
-$ node benchmark/run.js arrays
+$ node benchmark/run.js assert
 
-arrays/var-int.js
-arrays/var-int.js n=25 type=Array: 71.90148040747789
-arrays/var-int.js n=25 type=Buffer: 92.89648382795582
+assert/deepequal-buffer.js
+assert/deepequal-buffer.js method="deepEqual" strict=0 len=100 n=20000: 773,200.4995493788
+assert/deepequal-buffer.js method="notDeepEqual" strict=0 len=100 n=20000: 964,411.712953848
 ...
 
-arrays/zero-float.js
-arrays/zero-float.js n=25 type=Array: 75.46208316171496
-arrays/zero-float.js n=25 type=Buffer: 101.62785630273159
+assert/deepequal-map.js
+assert/deepequal-map.js method="deepEqual_primitiveOnly" strict=0 len=500 n=500: 20,445.06368453332
+assert/deepequal-map.js method="deepEqual_objectOnly" strict=0 len=500 n=500: 1,393.3481642240833
 ...
 
-arrays/zero-int.js
-arrays/zero-int.js n=25 type=Array: 72.31023859816062
-arrays/zero-int.js n=25 type=Buffer: 90.49906662339653
+assert/deepequal-object.js
+assert/deepequal-object.js method="deepEqual" strict=0 size=100 n=5000: 1,053.1950937538475
+assert/deepequal-object.js method="notDeepEqual" strict=0 size=100 n=5000: 9,734.193251965213
 ...
 ```
 
 It is possible to execute more groups by adding extra process arguments.
 
 ```console
-$ node benchmark/run.js arrays buffers
+$ node benchmark/run.js assert async_hooks
 ```
 
 ### Comparing Node.js versions
@@ -352,7 +352,7 @@ The arguments of `createBenchmark` are:
 * `configs` {Object} The benchmark parameters. `createBenchmark` will run all
   possible combinations of these parameters, unless specified otherwise.
   Each configuration is a property with an array of possible values.
-  Note that the configuration values can only be strings or numbers.
+  The configuration values can only be strings or numbers.
 * `options` {Object} The benchmark options. At the moment only the `flags`
   option for specifying command line flags is supported.
 
@@ -397,10 +397,10 @@ const options = {
   flags: ['--zero-fill-buffers']
 };
 
-// main and configs are required, options is optional.
+// `main` and `configs` are required, `options` is optional.
 const bench = common.createBenchmark(main, configs, options);
 
-// Note that any code outside main will be run twice,
+// Any code outside main will be run twice,
 // in different processes, with different command line arguments.
 
 function main(conf) {
@@ -470,6 +470,6 @@ Supported options keys are:
 [autocannon]: https://github.com/mcollina/autocannon
 [wrk]: https://github.com/wg/wrk
 [t-test]: https://en.wikipedia.org/wiki/Student%27s_t-test#Equal_or_unequal_sample_sizes.2C_unequal_variances
-[git-for-windows]: http://git-scm.com/download/win
-[nghttp2.org]: http://nghttp2.org
+[git-for-windows]: https://git-scm.com/download/win
+[nghttp2.org]: https://nghttp2.org
 [benchmark-ci]: https://github.com/nodejs/benchmarking/blob/master/docs/core_benchmarks.md

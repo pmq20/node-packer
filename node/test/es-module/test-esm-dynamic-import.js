@@ -1,4 +1,5 @@
 // Flags: --experimental-modules
+
 'use strict';
 const common = require('../common');
 const assert = require('assert');
@@ -17,15 +18,18 @@ function expectErrorProperty(result, propertyKey, value) {
 }
 
 function expectMissingModuleError(result) {
-  expectErrorProperty(result, 'code', 'MODULE_NOT_FOUND');
+  expectErrorProperty(result, 'code', 'ERR_MODULE_NOT_FOUND');
 }
 
 function expectOkNamespace(result) {
   Promise.resolve(result)
     .then(common.mustCall((ns) => {
-      // Can't deepStrictEqual because ns isn't a normal object
-      // eslint-disable-next-line no-restricted-properties
-      assert.deepEqual(ns, { default: true });
+      const expected = { default: true };
+      Object.defineProperty(expected, Symbol.toStringTag, {
+        value: 'Module'
+      });
+      Object.setPrototypeOf(expected, Object.getPrototypeOf(ns));
+      assert.deepStrictEqual(ns, expected);
     }));
 }
 

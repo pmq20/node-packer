@@ -22,12 +22,13 @@
 #include "string_bytes.h"
 
 #include "base64.h"
-#include "node_internals.h"
-#include "node_errors.h"
+#include "env-inl.h"
 #include "node_buffer.h"
+#include "node_errors.h"
+#include "util.h"
 
-#include <limits.h>
-#include <string.h>  // memcpy
+#include <climits>
+#include <cstring>  // memcpy
 
 #include <algorithm>
 #include <vector>
@@ -286,18 +287,19 @@ size_t StringBytes::WriteUCS2(Isolate* isolate,
   CHECK_EQ(reinterpret_cast<uintptr_t>(aligned_dst) % sizeof(*dst), 0);
 
   // Write all but the last char
+  max_chars = std::min(max_chars, static_cast<size_t>(str->Length()));
+  if (max_chars == 0) return 0;
   nchars = str->Write(isolate, aligned_dst, 0, max_chars - 1, flags);
+  CHECK_EQ(nchars, max_chars - 1);
 
   // Shift everything to unaligned-left
   memmove(dst, aligned_dst, nchars * sizeof(*dst));
 
   // One more char to be written
   uint16_t last;
-  if (nchars == max_chars - 1 &&
-      str->Write(isolate, &last, nchars, 1, flags) != 0) {
-    memcpy(buf + nchars * sizeof(*dst), &last, sizeof(last));
-    nchars++;
-  }
+  CHECK_EQ(str->Write(isolate, &last, nchars, 1, flags), 1);
+  memcpy(buf + nchars * sizeof(*dst), &last, sizeof(last));
+  nchars++;
 
   *chars_written = nchars;
   return nchars * sizeof(*dst);

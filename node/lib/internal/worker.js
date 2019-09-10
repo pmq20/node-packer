@@ -1,38 +1,47 @@
 'use strict';
 
+/* global SharedArrayBuffer */
+
+const { Object } = primordials;
+
 const EventEmitter = require('events');
-const assert = require('assert');
+const assert = require('internal/assert');
 const path = require('path');
-const util = require('util');
-const { Readable, Writable } = require('stream');
+
 const {
-  ERR_INVALID_ARG_TYPE,
   ERR_WORKER_PATH,
   ERR_WORKER_UNSERIALIZABLE_ERROR,
   ERR_WORKER_UNSUPPORTED_EXTENSION,
+  ERR_WORKER_INVALID_EXEC_ARGV,
+  ERR_INVALID_ARG_TYPE,
 } = require('internal/errors').codes;
+const { validateString } = require('internal/validators');
+const { getOptionValue } = require('internal/options');
 
-const { MessagePort, MessageChannel } = internalBinding('messaging');
+const workerIo = require('internal/worker/io');
 const {
-  handle_onclose: handleOnCloseSymbol,
-  oninit: onInitSymbol
-} = internalBinding('symbols');
-const { clearAsyncIdStack } = require('internal/async_hooks');
-const { serializeError, deserializeError } = require('internal/error-serdes');
+  drainMessagePort,
+  MessageChannel,
+  messageTypes,
+  kPort,
+  kIncrementsPortRef,
+  kWaitingStreams,
+  kStdioWantsMoreDataCallback,
+  setupPortReferencing,
+  ReadableWorkerStdio,
+  WritableWorkerStdio
+} = workerIo;
+const { deserializeError } = require('internal/error-serdes');
 const { pathToFileURL } = require('url');
 
 const {
+  ownsProcessState,
+  isMainThread,
+  threadId,
   Worker: WorkerImpl,
-  getEnvMessagePort,
-  threadId
 } = internalBinding('worker');
 
-const isMainThread = threadId === 0;
-
-const kOnMessageListener = Symbol('kOnMessageListener');
 const kHandle = Symbol('kHandle');
-const kName = Symbol('kName');
-const kPort = Symbol('kPort');
 const kPublicPort = Symbol('kPublicPort');
 const kDispose = Symbol('kDispose');
 const kOnExit = Symbol('kOnExit');
@@ -40,227 +49,33 @@ const kOnMessage = Symbol('kOnMessage');
 const kOnCouldNotSerializeErr = Symbol('kOnCouldNotSerializeErr');
 const kOnErrorMessage = Symbol('kOnErrorMessage');
 const kParentSideStdio = Symbol('kParentSideStdio');
-const kWritableCallbacks = Symbol('kWritableCallbacks');
-const kStdioWantsMoreDataCallback = Symbol('kStdioWantsMoreDataCallback');
-const kStartedReading = Symbol('kStartedReading');
-const kWaitingStreams = Symbol('kWaitingStreams');
-const kIncrementsPortRef = Symbol('kIncrementsPortRef');
 
-const debug = util.debuglog('worker');
+const SHARE_ENV = Symbol.for('nodejs.worker_threads.SHARE_ENV');
+const debug = require('internal/util/debuglog').debuglog('worker');
 
-const messageTypes = {
-  UP_AND_RUNNING: 'upAndRunning',
-  COULD_NOT_SERIALIZE_ERROR: 'couldNotSerializeError',
-  ERROR_MESSAGE: 'errorMessage',
-  STDIO_PAYLOAD: 'stdioPayload',
-  STDIO_WANTS_MORE_DATA: 'stdioWantsMoreData',
-  LOAD_SCRIPT: 'loadScript'
-};
+let cwdCounter;
 
-// We have to mess with the MessagePort prototype a bit, so that a) we can make
-// it inherit from EventEmitter, even though it is a C++ class, and b) we do
-// not provide methods that are not present in the Browser and not documented
-// on our side (e.g. hasRef).
-// Save a copy of the original set of methods as a shallow clone.
-const MessagePortPrototype = Object.create(
-  Object.getPrototypeOf(MessagePort.prototype),
-  Object.getOwnPropertyDescriptors(MessagePort.prototype));
-// Set up the new inheritance chain.
-Object.setPrototypeOf(MessagePort, EventEmitter);
-Object.setPrototypeOf(MessagePort.prototype, EventEmitter.prototype);
-// Finally, purge methods we don't want to be public.
-delete MessagePort.prototype.stop;
-delete MessagePort.prototype.drain;
-MessagePort.prototype.ref = MessagePortPrototype.ref;
-MessagePort.prototype.unref = MessagePortPrototype.unref;
-
-// A communication channel consisting of a handle (that wraps around an
-// uv_async_t) which can receive information from other threads and emits
-// .onmessage events, and a function used for sending data to a MessagePort
-// in some other thread.
-MessagePort.prototype[kOnMessageListener] = function onmessage(payload) {
-  debug(`[${threadId}] received message`, payload);
-  // Emit the deserialized object to userland.
-  this.emit('message', payload);
-};
-
-// This is for compatibility with the Web's MessagePort API. It makes sense to
-// provide it as an `EventEmitter` in Node.js, but if somebody overrides
-// `onmessage`, we'll switch over to the Web API model.
-Object.defineProperty(MessagePort.prototype, 'onmessage', {
-  enumerable: true,
-  configurable: true,
-  get() {
-    return this[kOnMessageListener];
-  },
-  set(value) {
-    this[kOnMessageListener] = value;
-    if (typeof value === 'function') {
-      this.ref();
-      MessagePortPrototype.start.call(this);
-    } else {
-      this.unref();
-      MessagePortPrototype.stop.call(this);
-    }
-  }
-});
-
-// This is called from inside the `MessagePort` constructor.
-function oninit() {
-  setupPortReferencing(this, this, 'message');
-}
-
-Object.defineProperty(MessagePort.prototype, onInitSymbol, {
-  enumerable: true,
-  writable: false,
-  value: oninit
-});
-
-// This is called after the underlying `uv_async_t` has been closed.
-function onclose() {
-  if (typeof this.onclose === 'function') {
-    // Not part of the Web standard yet, but there aren't many reasonable
-    // alternatives in a non-EventEmitter usage setting.
-    // Refs: https://github.com/whatwg/html/issues/1766
-    this.onclose();
-  }
-  this.emit('close');
-}
-
-Object.defineProperty(MessagePort.prototype, handleOnCloseSymbol, {
-  enumerable: false,
-  writable: false,
-  value: onclose
-});
-
-MessagePort.prototype.close = function(cb) {
-  if (typeof cb === 'function')
-    this.once('close', cb);
-  MessagePortPrototype.close.call(this);
-};
-
-Object.defineProperty(MessagePort.prototype, util.inspect.custom, {
-  enumerable: false,
-  writable: false,
-  value: function inspect() {  // eslint-disable-line func-name-matching
-    let ref;
-    try {
-      // This may throw when `this` does not refer to a native object,
-      // e.g. when accessing the prototype directly.
-      ref = MessagePortPrototype.hasRef.call(this);
-    } catch { return this; }
-    return Object.assign(Object.create(MessagePort.prototype),
-                         ref === undefined ? {
-                           active: false,
-                         } : {
-                           active: true,
-                           refed: ref
-                         },
-                         this);
-  }
-});
-
-function setupPortReferencing(port, eventEmitter, eventName) {
-  // Keep track of whether there are any workerMessage listeners:
-  // If there are some, ref() the channel so it keeps the event loop alive.
-  // If there are none or all are removed, unref() the channel so the worker
-  // can shutdown gracefully.
-  port.unref();
-  eventEmitter.on('newListener', (name) => {
-    if (name === eventName && eventEmitter.listenerCount(eventName) === 0) {
-      port.ref();
-      MessagePortPrototype.start.call(port);
-    }
-  });
-  eventEmitter.on('removeListener', (name) => {
-    if (name === eventName && eventEmitter.listenerCount(eventName) === 0) {
-      MessagePortPrototype.stop.call(port);
-      port.unref();
-    }
-  });
-}
-
-
-class ReadableWorkerStdio extends Readable {
-  constructor(port, name) {
-    super();
-    this[kPort] = port;
-    this[kName] = name;
-    this[kIncrementsPortRef] = true;
-    this[kStartedReading] = false;
-    this.on('end', () => {
-      if (this[kIncrementsPortRef] && --this[kPort][kWaitingStreams] === 0)
-        this[kPort].unref();
-    });
-  }
-
-  _read() {
-    if (!this[kStartedReading] && this[kIncrementsPortRef]) {
-      this[kStartedReading] = true;
-      if (this[kPort][kWaitingStreams]++ === 0)
-        this[kPort].ref();
-    }
-
-    this[kPort].postMessage({
-      type: messageTypes.STDIO_WANTS_MORE_DATA,
-      stream: this[kName]
-    });
-  }
-}
-
-class WritableWorkerStdio extends Writable {
-  constructor(port, name) {
-    super({ decodeStrings: false });
-    this[kPort] = port;
-    this[kName] = name;
-    this[kWritableCallbacks] = [];
-  }
-
-  _write(chunk, encoding, cb) {
-    this[kPort].postMessage({
-      type: messageTypes.STDIO_PAYLOAD,
-      stream: this[kName],
-      chunk,
-      encoding
-    });
-    this[kWritableCallbacks].push(cb);
-    if (this[kPort][kWaitingStreams]++ === 0)
-      this[kPort].ref();
-  }
-
-  _final(cb) {
-    this[kPort].postMessage({
-      type: messageTypes.STDIO_PAYLOAD,
-      stream: this[kName],
-      chunk: null
-    });
-    cb();
-  }
-
-  [kStdioWantsMoreDataCallback]() {
-    const cbs = this[kWritableCallbacks];
-    this[kWritableCallbacks] = [];
-    for (const cb of cbs)
-      cb();
-    if ((this[kPort][kWaitingStreams] -= cbs.length) === 0)
-      this[kPort].unref();
-  }
+if (isMainThread) {
+  cwdCounter = new Uint32Array(new SharedArrayBuffer(4));
+  const originalChdir = process.chdir;
+  process.chdir = function(path) {
+    Atomics.add(cwdCounter, 0, 1);
+    originalChdir(path);
+  };
 }
 
 class Worker extends EventEmitter {
   constructor(filename, options = {}) {
     super();
     debug(`[${threadId}] create new worker`, filename, options);
-    if (typeof filename !== 'string') {
-      throw new ERR_INVALID_ARG_TYPE('filename', 'string', filename);
+    validateString(filename, 'filename');
+    if (options.execArgv && !Array.isArray(options.execArgv)) {
+      throw new ERR_INVALID_ARG_TYPE('options.execArgv',
+                                     'array',
+                                     options.execArgv);
     }
-
     if (!options.eval) {
-      if (!path.isAbsolute(filename) &&
-          !filename.startsWith('./') &&
-          !filename.startsWith('../') &&
-          !filename.startsWith('.' + path.sep) &&
-          !filename.startsWith('..' + path.sep)) {
+      if (!path.isAbsolute(filename) && !/^\.\.?[\\/]/.test(filename)) {
         throw new ERR_WORKER_PATH(filename);
       }
       filename = path.resolve(filename);
@@ -271,9 +86,33 @@ class Worker extends EventEmitter {
       }
     }
 
+    let env;
+    if (typeof options.env === 'object' && options.env !== null) {
+      env = Object.create(null);
+      for (const [ key, value ] of Object.entries(options.env))
+        env[key] = `${value}`;
+    } else if (options.env == null) {
+      env = process.env;
+    } else if (options.env !== SHARE_ENV) {
+      throw new ERR_INVALID_ARG_TYPE(
+        'options.env',
+        ['object', 'undefined', 'null', 'worker_threads.SHARE_ENV'],
+        options.env);
+    }
+
     const url = options.eval ? null : pathToFileURL(filename);
     // Set up the C++ handle for the worker, as well as some internal wiring.
-    this[kHandle] = new WorkerImpl(url);
+    this[kHandle] = new WorkerImpl(url, options.execArgv);
+    if (this[kHandle].invalidExecArgv) {
+      throw new ERR_WORKER_INVALID_EXEC_ARGV(this[kHandle].invalidExecArgv);
+    }
+    if (env === process.env) {
+      // This may be faster than manually cloning the object in C++, especially
+      // when recursively spawning Workers.
+      this[kHandle].cloneParentEnvVars();
+    } else if (env !== undefined) {
+      this[kHandle].setEnvVars(env);
+    }
     this[kHandle].onexit = (code) => this[kOnExit](code);
     this[kPort] = this[kHandle].messagePort;
     this[kPort].on('message', (data) => this[kOnMessage](data));
@@ -306,8 +145,12 @@ class Worker extends EventEmitter {
       type: messageTypes.LOAD_SCRIPT,
       filename,
       doEval: !!options.eval,
+      cwdCounter: cwdCounter || workerIo.sharedCwdCounter,
       workerData: options.workerData,
       publicPort: port2,
+      manifestSrc: getOptionValue('--experimental-policy') ?
+        require('internal/process/policy').src :
+        null,
       hasStdin: !!options.stdin
     }, [port2]);
     // Actually start the new thread now that everything is in place.
@@ -316,8 +159,8 @@ class Worker extends EventEmitter {
 
   [kOnExit](code) {
     debug(`[${threadId}] hears end event for Worker ${this.threadId}`);
-    MessagePortPrototype.drain.call(this[kPublicPort]);
-    MessagePortPrototype.drain.call(this[kPort]);
+    drainMessagePort(this[kPublicPort]);
+    drainMessagePort(this[kPort]);
     this[kDispose]();
     this.emit('exit', code);
     this.removeAllListeners();
@@ -363,7 +206,6 @@ class Worker extends EventEmitter {
     this[kPublicPort] = null;
 
     const { stdout, stderr } = this[kParentSideStdio];
-    this[kParentSideStdio] = null;
 
     if (!stdout._readableState.ended) {
       debug(`[${threadId}] explicitly closes stdout for ${this.threadId}`);
@@ -376,18 +218,33 @@ class Worker extends EventEmitter {
   }
 
   postMessage(...args) {
+    if (this[kPublicPort] === null) return;
+
     this[kPublicPort].postMessage(...args);
   }
 
   terminate(callback) {
-    if (this[kHandle] === null) return;
-
     debug(`[${threadId}] terminates Worker with ID ${this.threadId}`);
 
-    if (typeof callback !== 'undefined')
+    if (typeof callback === 'function') {
+      process.emitWarning(
+        'Passing a callback to worker.terminate() is deprecated. ' +
+        'It returns a Promise instead.',
+        'DeprecationWarning', 'DEP0132');
+      if (this[kHandle] === null) return Promise.resolve();
       this.once('exit', (exitCode) => callback(null, exitCode));
+    }
+
+    if (this[kHandle] === null) return Promise.resolve();
 
     this[kHandle].stopThread();
+
+    // Do not use events.once() here, because the 'exit' event will always be
+    // emitted regardless of any errors, and the point is to only resolve
+    // once the thread has actually stopped.
+    return new Promise((resolve) => {
+      this.once('exit', resolve);
+    });
   }
 
   ref() {
@@ -423,92 +280,6 @@ class Worker extends EventEmitter {
   }
 }
 
-const workerStdio = {};
-if (!isMainThread) {
-  const port = getEnvMessagePort();
-  port[kWaitingStreams] = 0;
-  workerStdio.stdin = new ReadableWorkerStdio(port, 'stdin');
-  workerStdio.stdout = new WritableWorkerStdio(port, 'stdout');
-  workerStdio.stderr = new WritableWorkerStdio(port, 'stderr');
-}
-
-let originalFatalException;
-
-function setupChild(evalScript) {
-  // Called during bootstrap to set up worker script execution.
-  debug(`[${threadId}] is setting up worker child environment`);
-  const port = getEnvMessagePort();
-
-  const publicWorker = require('worker_threads');
-
-  port.on('message', (message) => {
-    if (message.type === messageTypes.LOAD_SCRIPT) {
-      const { filename, doEval, workerData, publicPort, hasStdin } = message;
-      publicWorker.parentPort = publicPort;
-      publicWorker.workerData = workerData;
-
-      if (!hasStdin)
-        workerStdio.stdin.push(null);
-
-      debug(`[${threadId}] starts worker script ${filename} ` +
-            `(eval = ${eval}) at cwd = ${process.cwd()}`);
-      port.unref();
-      port.postMessage({ type: messageTypes.UP_AND_RUNNING });
-      if (doEval) {
-        evalScript('[worker eval]', filename);
-      } else {
-        process.argv[1] = filename; // script filename
-        require('module').runMain();
-      }
-      return;
-    } else if (message.type === messageTypes.STDIO_PAYLOAD) {
-      const { stream, chunk, encoding } = message;
-      workerStdio[stream].push(chunk, encoding);
-      return;
-    } else if (message.type === messageTypes.STDIO_WANTS_MORE_DATA) {
-      const { stream } = message;
-      workerStdio[stream][kStdioWantsMoreDataCallback]();
-      return;
-    }
-
-    assert.fail(`Unknown worker message type ${message.type}`);
-  });
-
-  port.start();
-
-  originalFatalException = process._fatalException;
-  process._fatalException = fatalException;
-
-  function fatalException(error) {
-    debug(`[${threadId}] gets fatal exception`);
-    let caught = false;
-    try {
-      caught = originalFatalException.call(this, error);
-    } catch (e) {
-      error = e;
-    }
-    debug(`[${threadId}] fatal exception caught = ${caught}`);
-
-    if (!caught) {
-      let serialized;
-      try {
-        serialized = serializeError(error);
-      } catch {}
-      debug(`[${threadId}] fatal exception serialized = ${!!serialized}`);
-      if (serialized)
-        port.postMessage({
-          type: messageTypes.ERROR_MESSAGE,
-          error: serialized
-        });
-      else
-        port.postMessage({ type: messageTypes.COULD_NOT_SERIALIZE_ERROR });
-      clearAsyncIdStack();
-
-      process.exit();
-    }
-  }
-}
-
 function pipeWithoutWarning(source, dest) {
   const sourceMaxListeners = source._maxListeners;
   const destMaxListeners = dest._maxListeners;
@@ -522,11 +293,9 @@ function pipeWithoutWarning(source, dest) {
 }
 
 module.exports = {
-  MessagePort,
-  MessageChannel,
+  ownsProcessState,
+  isMainThread,
+  SHARE_ENV,
   threadId,
   Worker,
-  setupChild,
-  isMainThread,
-  workerStdio
 };

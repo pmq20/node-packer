@@ -8,8 +8,10 @@
 #include <sstream>
 #include <string>
 
-#include "src/code-stubs.h"
+#include "src/codegen/optimized-compilation-info.h"
+#include "src/codegen/source-position.h"
 #include "src/compiler/all-nodes.h"
+#include "src/compiler/backend/register-allocator.h"
 #include "src/compiler/compiler-source-position-table.h"
 #include "src/compiler/graph.h"
 #include "src/compiler/node-origin-table.h"
@@ -18,26 +20,37 @@
 #include "src/compiler/opcodes.h"
 #include "src/compiler/operator-properties.h"
 #include "src/compiler/operator.h"
-#include "src/compiler/register-allocator.h"
 #include "src/compiler/schedule.h"
 #include "src/compiler/scheduler.h"
 #include "src/interpreter/bytecodes.h"
 #include "src/objects/script-inl.h"
 #include "src/objects/shared-function-info.h"
-#include "src/optimized-compilation-info.h"
-#include "src/ostreams.h"
-#include "src/source-position.h"
+#include "src/utils/ostreams.h"
+#include "src/utils/vector.h"
 
 namespace v8 {
 namespace internal {
 namespace compiler {
 
+const char* get_cached_trace_turbo_filename(OptimizedCompilationInfo* info) {
+  if (!info->trace_turbo_filename()) {
+    info->set_trace_turbo_filename(
+        GetVisualizerLogFileName(info, FLAG_trace_turbo_path, nullptr, "json"));
+  }
+  return info->trace_turbo_filename();
+}
+
 TurboJsonFile::TurboJsonFile(OptimizedCompilationInfo* info,
                              std::ios_base::openmode mode)
-    : std::ofstream(
-          GetVisualizerLogFileName(info, FLAG_trace_turbo_path, nullptr, "json")
-              .get(),
-          mode) {}
+    : std::ofstream(get_cached_trace_turbo_filename(info), mode) {}
+
+TurboJsonFile::~TurboJsonFile() { flush(); }
+
+TurboCfgFile::TurboCfgFile(Isolate* isolate)
+    : std::ofstream(Isolate::GetTurboCfgFileName(isolate).c_str(),
+                    std::ios_base::app) {}
+
+TurboCfgFile::~TurboCfgFile() { flush(); }
 
 std::ostream& operator<<(std::ostream& out,
                          const SourcePositionAsJSON& asJSON) {
@@ -49,6 +62,30 @@ std::ostream& operator<<(std::ostream& out, const NodeOriginAsJSON& asJSON) {
   asJSON.no.PrintJson(out);
   return out;
 }
+
+class JSONEscaped {
+ public:
+  explicit JSONEscaped(const std::ostringstream& os) : str_(os.str()) {}
+
+  friend std::ostream& operator<<(std::ostream& os, const JSONEscaped& e) {
+    for (char c : e.str_) PipeCharacter(os, c);
+    return os;
+  }
+
+ private:
+  static std::ostream& PipeCharacter(std::ostream& os, char c) {
+    if (c == '"') return os << "\\\"";
+    if (c == '\\') return os << "\\\\";
+    if (c == '\b') return os << "\\b";
+    if (c == '\f') return os << "\\f";
+    if (c == '\n') return os << "\\n";
+    if (c == '\r') return os << "\\r";
+    if (c == '\t') return os << "\\t";
+    return os << c;
+  }
+
+  const std::string str_;
+};
 
 void JsonPrintFunctionSource(std::ostream& os, int source_id,
                              std::unique_ptr<char[]> function_name,
@@ -63,10 +100,12 @@ void JsonPrintFunctionSource(std::ostream& os, int source_id,
   int start = 0;
   int end = 0;
   if (!script.is_null() && !script->IsUndefined(isolate) && !shared.is_null()) {
-    Object* source_name = script->name();
+    Object source_name = script->name();
     os << ", \"sourceName\": \"";
-    if (source_name->IsString()) {
-      os << String::cast(source_name)->ToCString().get();
+    if (source_name.IsString()) {
+      std::ostringstream escaped_name;
+      escaped_name << String::cast(source_name).ToCString().get();
+      os << JSONEscaped(escaped_name);
     }
     os << "\"";
     {
@@ -75,7 +114,8 @@ void JsonPrintFunctionSource(std::ostream& os, int source_id,
       end = shared->EndPosition();
       os << ", \"sourceText\": \"";
       int len = shared->EndPosition() - start;
-      String::SubStringRange source(String::cast(script->source()), start, len);
+      SubStringRange source(String::cast(script->source()), no_allocation,
+                            start, len);
       for (const auto& c : source) {
         os << AsEscapedUC16ForJSON(c);
       }
@@ -126,13 +166,14 @@ void JsonPrintAllSourceWithPositions(std::ostream& os,
   AllowDeferredHandleDereference allow_deference_for_print_code;
   os << "\"sources\" : {";
   Handle<Script> script =
-      (info->shared_info().is_null() || !info->shared_info()->script())
+      (info->shared_info().is_null() ||
+       info->shared_info()->script() == Object())
           ? Handle<Script>()
-          : handle(Script::cast(info->shared_info()->script()));
+          : handle(Script::cast(info->shared_info()->script()), isolate);
   JsonPrintFunctionSource(os, -1,
                           info->shared_info().is_null()
                               ? std::unique_ptr<char[]>(new char[1]{0})
-                              : info->shared_info()->DebugName()->ToCString(),
+                              : info->shared_info()->DebugName().ToCString(),
                           script, isolate, info->shared_info(), true);
   const auto& inlined = info->inlined_functions();
   SourceIdAssigner id_assigner(info->inlined_functions().size());
@@ -140,9 +181,9 @@ void JsonPrintAllSourceWithPositions(std::ostream& os,
     os << ", ";
     Handle<SharedFunctionInfo> shared = inlined[id].shared_info;
     const int source_id = id_assigner.GetIdFor(shared);
-    JsonPrintFunctionSource(os, source_id, shared->DebugName()->ToCString(),
-                            handle(Script::cast(shared->script())), isolate,
-                            shared, true);
+    JsonPrintFunctionSource(os, source_id, shared->DebugName().ToCString(),
+                            handle(Script::cast(shared->script()), isolate),
+                            isolate, shared, true);
   }
   os << "}, ";
   os << "\"inlinings\" : {";
@@ -175,19 +216,19 @@ std::unique_ptr<char[]> GetVisualizerLogFileName(OptimizedCompilationInfo* info,
   EmbeddedVector<char, 256> source_file(0);
   bool source_available = false;
   if (FLAG_trace_file_names && info->has_shared_info() &&
-      info->shared_info()->script()->IsScript()) {
-    Object* source_name = Script::cast(info->shared_info()->script())->name();
-    if (source_name->IsString()) {
-      String* str = String::cast(source_name);
-      if (str->length() > 0) {
-        SNPrintF(source_file, "%s", str->ToCString().get());
-        std::replace(source_file.start(),
-                     source_file.start() + source_file.length(), '/', '_');
+      info->shared_info()->script().IsScript()) {
+    Object source_name = Script::cast(info->shared_info()->script()).name();
+    if (source_name.IsString()) {
+      String str = String::cast(source_name);
+      if (str.length() > 0) {
+        SNPrintF(source_file, "%s", str.ToCString().get());
+        std::replace(source_file.begin(),
+                     source_file.begin() + source_file.length(), '/', '_');
         source_available = true;
       }
     }
   }
-  std::replace(filename.start(), filename.start() + filename.length(), ' ',
+  std::replace(filename.begin(), filename.begin() + filename.length(), ' ',
                '_');
 
   EmbeddedVector<char, 256> base_dir;
@@ -200,21 +241,21 @@ std::unique_ptr<char[]> GetVisualizerLogFileName(OptimizedCompilationInfo* info,
 
   EmbeddedVector<char, 256> full_filename;
   if (phase == nullptr && !source_available) {
-    SNPrintF(full_filename, "%s%s.%s", base_dir.start(), filename.start(),
+    SNPrintF(full_filename, "%s%s.%s", base_dir.begin(), filename.begin(),
              suffix);
   } else if (phase != nullptr && !source_available) {
-    SNPrintF(full_filename, "%s%s-%s.%s", base_dir.start(), filename.start(),
+    SNPrintF(full_filename, "%s%s-%s.%s", base_dir.begin(), filename.begin(),
              phase, suffix);
   } else if (phase == nullptr && source_available) {
-    SNPrintF(full_filename, "%s%s_%s.%s", base_dir.start(), filename.start(),
-             source_file.start(), suffix);
+    SNPrintF(full_filename, "%s%s_%s.%s", base_dir.begin(), filename.begin(),
+             source_file.begin(), suffix);
   } else {
-    SNPrintF(full_filename, "%s%s_%s-%s.%s", base_dir.start(), filename.start(),
-             source_file.start(), phase, suffix);
+    SNPrintF(full_filename, "%s%s_%s-%s.%s", base_dir.begin(), filename.begin(),
+             source_file.begin(), phase, suffix);
   }
 
   char* buffer = new char[full_filename.length() + 1];
-  memcpy(buffer, full_filename.start(), full_filename.length());
+  memcpy(buffer, full_filename.begin(), full_filename.length());
   buffer[full_filename.length()] = '\0';
   return std::unique_ptr<char[]>(buffer);
 }
@@ -224,30 +265,6 @@ static int SafeId(Node* node) { return node == nullptr ? -1 : node->id(); }
 static const char* SafeMnemonic(Node* node) {
   return node == nullptr ? "null" : node->op()->mnemonic();
 }
-
-class JSONEscaped {
- public:
-  explicit JSONEscaped(const std::ostringstream& os) : str_(os.str()) {}
-
-  friend std::ostream& operator<<(std::ostream& os, const JSONEscaped& e) {
-    for (char c : e.str_) PipeCharacter(os, c);
-    return os;
-  }
-
- private:
-  static std::ostream& PipeCharacter(std::ostream& os, char c) {
-    if (c == '"') return os << "\\\"";
-    if (c == '\\') return os << "\\\\";
-    if (c == '\b') return os << "\\b";
-    if (c == '\f') return os << "\\f";
-    if (c == '\n') return os << "\\n";
-    if (c == '\r') return os << "\\r";
-    if (c == '\t') return os << "\\t";
-    return os << c;
-  }
-
-  const std::string str_;
-};
 
 class JSONGraphNodeWriter {
  public:
@@ -295,9 +312,11 @@ class JSONGraphNodeWriter {
     if (opcode == IrOpcode::kBranch) {
       os_ << ",\"rankInputs\":[0]";
     }
-    SourcePosition position = positions_->GetSourcePosition(node);
-    if (position.IsKnown()) {
-      os_ << ", \"sourcePosition\" : " << AsJSON(position);
+    if (positions_ != nullptr) {
+      SourcePosition position = positions_->GetSourcePosition(node);
+      if (position.IsKnown()) {
+        os_ << ", \"sourcePosition\" : " << AsJSON(position);
+      }
     }
     if (origins_) {
       NodeOrigin origin = origins_->GetNodeOrigin(node);
@@ -425,7 +444,7 @@ class GraphC1Visualizer {
   void PrintLiveRange(const LiveRange* range, const char* type, int vreg);
   void PrintLiveRangeChain(const TopLevelLiveRange* range, const char* type);
 
-  class Tag final BASE_EMBEDDED {
+  class Tag final {
    public:
     Tag(GraphC1Visualizer* visualizer, const char* name) {
       name_ = name;
@@ -684,9 +703,7 @@ void GraphC1Visualizer::PrintSchedule(const char* phase,
       for (int j = instruction_block->first_instruction_index();
            j <= instruction_block->last_instruction_index(); j++) {
         PrintIndent();
-        PrintableInstruction printable = {RegisterConfiguration::Default(),
-                                          instructions->InstructionAt(j)};
-        os_ << j << " " << printable << " <|@\n";
+        os_ << j << " " << *instructions->InstructionAt(j) << " <|@\n";
       }
     }
   }
@@ -728,17 +745,13 @@ void GraphC1Visualizer::PrintLiveRange(const LiveRange* range, const char* type,
     os_ << vreg << ":" << range->relative_id() << " " << type;
     if (range->HasRegisterAssigned()) {
       AllocatedOperand op = AllocatedOperand::cast(range->GetAssignedOperand());
-      const auto config = RegisterConfiguration::Default();
       if (op.IsRegister()) {
-        os_ << " \"" << config->GetGeneralRegisterName(op.register_code())
-            << "\"";
+        os_ << " \"" << Register::from_code(op.register_code()) << "\"";
       } else if (op.IsDoubleRegister()) {
-        os_ << " \"" << config->GetDoubleRegisterName(op.register_code())
-            << "\"";
+        os_ << " \"" << DoubleRegister::from_code(op.register_code()) << "\"";
       } else {
         DCHECK(op.IsFloatRegister());
-        os_ << " \"" << config->GetFloatRegisterName(op.register_code())
-            << "\"";
+        os_ << " \"" << FloatRegister::from_code(op.register_code()) << "\"";
       }
     } else if (range->spilled()) {
       const TopLevelLiveRange* top = range->TopLevel();
@@ -759,7 +772,19 @@ void GraphC1Visualizer::PrintLiveRange(const LiveRange* range, const char* type,
       }
     }
 
-    os_ << " " << vreg;
+    // The toplevel range might be a splinter. Pre-resolve those here so that
+    // they have a proper parent.
+    const TopLevelLiveRange* parent = range->TopLevel();
+    if (parent->IsSplinter()) parent = parent->splintered_from();
+    os_ << " " << parent->vreg() << ":" << parent->relative_id();
+
+    // TODO(herhut) Find something useful to print for the hint field
+    if (range->get_bundle() != nullptr) {
+      os_ << " B" << range->get_bundle()->id();
+    } else {
+      os_ << " unknown";
+    }
+
     for (const UseInterval* interval = range->first_interval();
          interval != nullptr; interval = interval->next()) {
       os_ << " [" << interval->start().value() << ", "
@@ -940,6 +965,285 @@ void PrintScheduledGraph(std::ostream& os, const Schedule* schedule) {
 
 std::ostream& operator<<(std::ostream& os, const AsScheduledGraph& scheduled) {
   PrintScheduledGraph(os, scheduled.schedule);
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const InstructionOperandAsJSON& o) {
+  const InstructionOperand* op = o.op_;
+  const InstructionSequence* code = o.code_;
+  os << "{";
+  switch (op->kind()) {
+    case InstructionOperand::UNALLOCATED: {
+      const UnallocatedOperand* unalloc = UnallocatedOperand::cast(op);
+      os << "\"type\": \"unallocated\", ";
+      os << "\"text\": \"v" << unalloc->virtual_register() << "\"";
+      if (unalloc->basic_policy() == UnallocatedOperand::FIXED_SLOT) {
+        os << ",\"tooltip\": \"FIXED_SLOT: " << unalloc->fixed_slot_index()
+           << "\"";
+        break;
+      }
+      switch (unalloc->extended_policy()) {
+        case UnallocatedOperand::NONE:
+          break;
+        case UnallocatedOperand::FIXED_REGISTER: {
+          os << ",\"tooltip\": \"FIXED_REGISTER: "
+             << Register::from_code(unalloc->fixed_register_index()) << "\"";
+          break;
+        }
+        case UnallocatedOperand::FIXED_FP_REGISTER: {
+          os << ",\"tooltip\": \"FIXED_FP_REGISTER: "
+             << DoubleRegister::from_code(unalloc->fixed_register_index())
+             << "\"";
+          break;
+        }
+        case UnallocatedOperand::MUST_HAVE_REGISTER: {
+          os << ",\"tooltip\": \"MUST_HAVE_REGISTER\"";
+          break;
+        }
+        case UnallocatedOperand::MUST_HAVE_SLOT: {
+          os << ",\"tooltip\": \"MUST_HAVE_SLOT\"";
+          break;
+        }
+        case UnallocatedOperand::SAME_AS_FIRST_INPUT: {
+          os << ",\"tooltip\": \"SAME_AS_FIRST_INPUT\"";
+          break;
+        }
+        case UnallocatedOperand::REGISTER_OR_SLOT: {
+          os << ",\"tooltip\": \"REGISTER_OR_SLOT\"";
+          break;
+        }
+        case UnallocatedOperand::REGISTER_OR_SLOT_OR_CONSTANT: {
+          os << ",\"tooltip\": \"REGISTER_OR_SLOT_OR_CONSTANT\"";
+          break;
+        }
+      }
+      break;
+    }
+    case InstructionOperand::CONSTANT: {
+      int vreg = ConstantOperand::cast(op)->virtual_register();
+      os << "\"type\": \"constant\", ";
+      os << "\"text\": \"v" << vreg << "\",";
+      os << "\"tooltip\": \"";
+      std::stringstream tooltip;
+      tooltip << code->GetConstant(vreg);
+      for (const auto& c : tooltip.str()) {
+        os << AsEscapedUC16ForJSON(c);
+      }
+      os << "\"";
+      break;
+    }
+    case InstructionOperand::IMMEDIATE: {
+      os << "\"type\": \"immediate\", ";
+      const ImmediateOperand* imm = ImmediateOperand::cast(op);
+      switch (imm->type()) {
+        case ImmediateOperand::INLINE: {
+          os << "\"text\": \"#" << imm->inline_value() << "\"";
+          break;
+        }
+        case ImmediateOperand::INDEXED: {
+          int index = imm->indexed_value();
+          os << "\"text\": \"imm:" << index << "\",";
+          os << "\"tooltip\": \"";
+          std::stringstream tooltip;
+          tooltip << code->GetImmediate(imm);
+          for (const auto& c : tooltip.str()) {
+            os << AsEscapedUC16ForJSON(c);
+          }
+          os << "\"";
+          break;
+        }
+      }
+      break;
+    }
+    case InstructionOperand::EXPLICIT:
+    case InstructionOperand::ALLOCATED: {
+      const LocationOperand* allocated = LocationOperand::cast(op);
+      os << "\"type\": ";
+      if (allocated->IsExplicit()) {
+        os << "\"explicit\", ";
+      } else {
+        os << "\"allocated\", ";
+      }
+      os << "\"text\": \"";
+      if (op->IsStackSlot()) {
+        os << "stack:" << allocated->index();
+      } else if (op->IsFPStackSlot()) {
+        os << "fp_stack:" << allocated->index();
+      } else if (op->IsRegister()) {
+        if (allocated->register_code() < Register::kNumRegisters) {
+          os << Register::from_code(allocated->register_code());
+        } else {
+          os << Register::GetSpecialRegisterName(allocated->register_code());
+        }
+      } else if (op->IsDoubleRegister()) {
+        os << DoubleRegister::from_code(allocated->register_code());
+      } else if (op->IsFloatRegister()) {
+        os << FloatRegister::from_code(allocated->register_code());
+      } else {
+        DCHECK(op->IsSimd128Register());
+        os << Simd128Register::from_code(allocated->register_code());
+      }
+      os << "\",";
+      os << "\"tooltip\": \""
+         << MachineReprToString(allocated->representation()) << "\"";
+      break;
+    }
+    case InstructionOperand::INVALID:
+      UNREACHABLE();
+  }
+  os << "}";
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const InstructionAsJSON& i_json) {
+  const Instruction* instr = i_json.instr_;
+
+  os << "{";
+  os << "\"id\": " << i_json.index_ << ",";
+  os << "\"opcode\": \"" << ArchOpcodeField::decode(instr->opcode()) << "\",";
+  os << "\"flags\": \"";
+  FlagsMode fm = FlagsModeField::decode(instr->opcode());
+  AddressingMode am = AddressingModeField::decode(instr->opcode());
+  if (am != kMode_None) {
+    os << " : " << AddressingModeField::decode(instr->opcode());
+  }
+  if (fm != kFlags_none) {
+    os << " && " << fm << " if "
+       << FlagsConditionField::decode(instr->opcode());
+  }
+  os << "\",";
+
+  os << "\"gaps\": [";
+  for (int i = Instruction::FIRST_GAP_POSITION;
+       i <= Instruction::LAST_GAP_POSITION; i++) {
+    if (i != Instruction::FIRST_GAP_POSITION) os << ",";
+    os << "[";
+    const ParallelMove* pm = instr->parallel_moves()[i];
+    if (pm == nullptr) {
+      os << "]";
+      continue;
+    }
+    bool first = true;
+    for (MoveOperands* move : *pm) {
+      if (move->IsEliminated()) continue;
+      if (!first) os << ",";
+      first = false;
+      os << "[" << InstructionOperandAsJSON{&move->destination(), i_json.code_}
+         << "," << InstructionOperandAsJSON{&move->source(), i_json.code_}
+         << "]";
+    }
+    os << "]";
+  }
+  os << "],";
+
+  os << "\"outputs\": [";
+  bool need_comma = false;
+  for (size_t i = 0; i < instr->OutputCount(); i++) {
+    if (need_comma) os << ",";
+    need_comma = true;
+    os << InstructionOperandAsJSON{instr->OutputAt(i), i_json.code_};
+  }
+  os << "],";
+
+  os << "\"inputs\": [";
+  need_comma = false;
+  for (size_t i = 0; i < instr->InputCount(); i++) {
+    if (need_comma) os << ",";
+    need_comma = true;
+    os << InstructionOperandAsJSON{instr->InputAt(i), i_json.code_};
+  }
+  os << "],";
+
+  os << "\"temps\": [";
+  need_comma = false;
+  for (size_t i = 0; i < instr->TempCount(); i++) {
+    if (need_comma) os << ",";
+    need_comma = true;
+    os << InstructionOperandAsJSON{instr->TempAt(i), i_json.code_};
+  }
+  os << "]";
+  os << "}";
+
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const InstructionBlockAsJSON& b) {
+  const InstructionBlock* block = b.block_;
+  const InstructionSequence* code = b.code_;
+  os << "{";
+  os << "\"id\": " << block->rpo_number() << ",";
+  os << "\"deferred\": " << (block->IsDeferred() ? "true" : "false");
+  os << ",";
+  os << "\"loop_header\": " << block->IsLoopHeader() << ",";
+  if (block->IsLoopHeader()) {
+    os << "\"loop_end\": " << block->loop_end() << ",";
+  }
+  os << "\"predecessors\": [";
+  bool need_comma = false;
+  for (RpoNumber pred : block->predecessors()) {
+    if (need_comma) os << ",";
+    need_comma = true;
+    os << pred.ToInt();
+  }
+  os << "],";
+  os << "\"successors\": [";
+  need_comma = false;
+  for (RpoNumber succ : block->successors()) {
+    if (need_comma) os << ",";
+    need_comma = true;
+    os << succ.ToInt();
+  }
+  os << "],";
+  os << "\"phis\": [";
+  bool needs_comma = false;
+  InstructionOperandAsJSON json_op = {nullptr, code};
+  for (const PhiInstruction* phi : block->phis()) {
+    if (needs_comma) os << ",";
+    needs_comma = true;
+    json_op.op_ = &phi->output();
+    os << "{\"output\" : " << json_op << ",";
+    os << "\"operands\": [";
+    bool op_needs_comma = false;
+    for (int input : phi->operands()) {
+      if (op_needs_comma) os << ",";
+      op_needs_comma = true;
+      os << "\"v" << input << "\"";
+    }
+    os << "]}";
+  }
+  os << "],";
+
+  os << "\"instructions\": [";
+  InstructionAsJSON json_instr = {-1, nullptr, code};
+  need_comma = false;
+  for (int j = block->first_instruction_index();
+       j <= block->last_instruction_index(); j++) {
+    if (need_comma) os << ",";
+    need_comma = true;
+    json_instr.index_ = j;
+    json_instr.instr_ = code->InstructionAt(j);
+    os << json_instr;
+  }
+  os << "]";
+  os << "}";
+
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const InstructionSequenceAsJSON& s) {
+  const InstructionSequence* code = s.sequence_;
+
+  os << "\"blocks\": [";
+
+  bool need_comma = false;
+  for (int i = 0; i < code->InstructionBlockCount(); i++) {
+    if (need_comma) os << ",";
+    need_comma = true;
+    os << InstructionBlockAsJSON{
+        code->InstructionBlockAt(RpoNumber::FromInt(i)), code};
+  }
+  os << "]";
+
   return os;
 }
 

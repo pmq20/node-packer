@@ -188,6 +188,11 @@ InspectedContext* V8InspectorImpl::getContext(int contextId) const {
   return getContext(contextGroupId(contextId), contextId);
 }
 
+v8::MaybeLocal<v8::Context> V8InspectorImpl::contextById(int contextId) {
+  InspectedContext* context = getContext(contextId);
+  return context ? context->context() : v8::MaybeLocal<v8::Context>();
+}
+
 void V8InspectorImpl::contextCreated(const V8ContextInfo& info) {
   int contextId = ++m_lastContextId;
   InspectedContext* context = new InspectedContext(this, info, contextId);
@@ -206,6 +211,7 @@ void V8InspectorImpl::contextCreated(const V8ContextInfo& info) {
   (*contextById)[contextId].reset(context);
   forEachSession(
       info.contextGroupId, [&context](V8InspectorSessionImpl* session) {
+        session->runtimeAgent()->addBindings(context);
         session->runtimeAgent()->reportExecutionContextCreated(context);
       });
 }
@@ -235,10 +241,15 @@ void V8InspectorImpl::contextCollected(int groupId, int contextId) {
 void V8InspectorImpl::resetContextGroup(int contextGroupId) {
   m_consoleStorageMap.erase(contextGroupId);
   m_muteExceptionsMap.erase(contextGroupId);
+  std::vector<int> contextIdsToClear;
+  forEachContext(contextGroupId,
+                 [&contextIdsToClear](InspectedContext* context) {
+                   contextIdsToClear.push_back(context->contextId());
+                 });
+  m_debugger->wasmTranslation()->Clear(m_isolate, contextIdsToClear);
   forEachSession(contextGroupId,
                  [](V8InspectorSessionImpl* session) { session->reset(); });
   m_contexts.erase(contextGroupId);
-  m_debugger->wasmTranslation()->Clear();
 }
 
 void V8InspectorImpl::idleStarted() { m_isolate->SetIdle(true); }
@@ -347,7 +358,8 @@ V8Console* V8InspectorImpl::console() {
 }
 
 void V8InspectorImpl::forEachContext(
-    int contextGroupId, std::function<void(InspectedContext*)> callback) {
+    int contextGroupId,
+    const std::function<void(InspectedContext*)>& callback) {
   auto it = m_contexts.find(contextGroupId);
   if (it == m_contexts.end()) return;
   std::vector<int> ids;
@@ -364,7 +376,8 @@ void V8InspectorImpl::forEachContext(
 }
 
 void V8InspectorImpl::forEachSession(
-    int contextGroupId, std::function<void(V8InspectorSessionImpl*)> callback) {
+    int contextGroupId,
+    const std::function<void(V8InspectorSessionImpl*)>& callback) {
   auto it = m_sessions.find(contextGroupId);
   if (it == m_sessions.end()) return;
   std::vector<int> ids;
@@ -380,8 +393,11 @@ void V8InspectorImpl::forEachSession(
   }
 }
 
-V8InspectorImpl::EvaluateScope::EvaluateScope(v8::Isolate* isolate)
-    : m_isolate(isolate), m_safeForTerminationScope(isolate) {}
+V8InspectorImpl::EvaluateScope::EvaluateScope(
+    const InjectedScript::Scope& scope)
+    : m_scope(scope),
+      m_isolate(scope.inspector()->isolate()),
+      m_safeForTerminationScope(m_isolate) {}
 
 struct V8InspectorImpl::EvaluateScope::CancelToken {
   v8::base::Mutex m_mutex;
@@ -389,8 +405,11 @@ struct V8InspectorImpl::EvaluateScope::CancelToken {
 };
 
 V8InspectorImpl::EvaluateScope::~EvaluateScope() {
+  if (m_scope.tryCatch().HasTerminated()) {
+    m_scope.inspector()->debugger()->reportTermination();
+  }
   if (m_cancelToken) {
-    v8::base::LockGuard<v8::base::Mutex> lock(&m_cancelToken->m_mutex);
+    v8::base::MutexGuard lock(&m_cancelToken->m_mutex);
     m_cancelToken->m_canceled = true;
     m_isolate->CancelTerminateExecution();
   }
@@ -399,12 +418,12 @@ V8InspectorImpl::EvaluateScope::~EvaluateScope() {
 class V8InspectorImpl::EvaluateScope::TerminateTask : public v8::Task {
  public:
   TerminateTask(v8::Isolate* isolate, std::shared_ptr<CancelToken> token)
-      : m_isolate(isolate), m_token(token) {}
+      : m_isolate(isolate), m_token(std::move(token)) {}
 
-  void Run() {
+  void Run() override {
     // CancelToken contains m_canceled bool which may be changed from main
     // thread, so lock mutex first.
-    v8::base::LockGuard<v8::base::Mutex> lock(&m_token->m_mutex);
+    v8::base::MutexGuard lock(&m_token->m_mutex);
     if (m_token->m_canceled) return;
     m_isolate->TerminateExecution();
   }
@@ -418,13 +437,8 @@ protocol::Response V8InspectorImpl::EvaluateScope::setTimeout(double timeout) {
   if (m_isolate->IsExecutionTerminating()) {
     return protocol::Response::Error("Execution was terminated");
   }
-  std::shared_ptr<v8::TaskRunner> taskRunner =
-      v8::debug::GetCurrentPlatform()->GetWorkerThreadsTaskRunner(m_isolate);
-  if (!taskRunner) {
-    return protocol::Response::Error("Timeout is not supported by embedder");
-  }
   m_cancelToken.reset(new CancelToken());
-  taskRunner->PostDelayedTask(
+  v8::debug::GetCurrentPlatform()->CallDelayedOnWorkerThread(
       v8::base::make_unique<TerminateTask>(m_isolate, m_cancelToken), timeout);
   return protocol::Response::OK();
 }

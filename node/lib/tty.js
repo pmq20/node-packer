@@ -21,12 +21,16 @@
 
 'use strict';
 
-const { inherits, _extend } = require('util');
+const { Object } = primordials;
+
 const net = require('net');
 const { TTY, isTTY } = internalBinding('tty_wrap');
 const errors = require('internal/errors');
 const { ERR_INVALID_FD, ERR_TTY_INIT_FAILED } = errors.codes;
-const { getColorDepth } = require('internal/tty');
+const {
+  getColorDepth,
+  hasColors
+} = require('internal/tty');
 
 // Lazy loaded for startup performance.
 let readline;
@@ -47,19 +51,20 @@ function ReadStream(fd, options) {
     throw new ERR_TTY_INIT_FAILED(ctx);
   }
 
-  options = _extend({
+  net.Socket.call(this, {
     highWaterMark: 0,
     readable: true,
     writable: false,
-    handle: tty
-  }, options);
-
-  net.Socket.call(this, options);
+    handle: tty,
+    ...options
+  });
 
   this.isRaw = false;
   this.isTTY = true;
 }
-inherits(ReadStream, net.Socket);
+
+Object.setPrototypeOf(ReadStream.prototype, net.Socket.prototype);
+Object.setPrototypeOf(ReadStream, net.Socket);
 
 ReadStream.prototype.setRawMode = function(flag) {
   flag = !!flag;
@@ -104,11 +109,15 @@ function WriteStream(fd) {
     this.rows = winSize[1];
   }
 }
-inherits(WriteStream, net.Socket);
+
+Object.setPrototypeOf(WriteStream.prototype, net.Socket.prototype);
+Object.setPrototypeOf(WriteStream, net.Socket);
 
 WriteStream.prototype.isTTY = true;
 
 WriteStream.prototype.getColorDepth = getColorDepth;
+
+WriteStream.prototype.hasColors = hasColors;
 
 WriteStream.prototype._refreshSize = function() {
   const oldCols = this.columns;
@@ -128,21 +137,21 @@ WriteStream.prototype._refreshSize = function() {
 };
 
 // Backwards-compat
-WriteStream.prototype.cursorTo = function(x, y) {
+WriteStream.prototype.cursorTo = function(x, y, callback) {
   if (readline === undefined) readline = require('readline');
-  readline.cursorTo(this, x, y);
+  return readline.cursorTo(this, x, y, callback);
 };
-WriteStream.prototype.moveCursor = function(dx, dy) {
+WriteStream.prototype.moveCursor = function(dx, dy, callback) {
   if (readline === undefined) readline = require('readline');
-  readline.moveCursor(this, dx, dy);
+  return readline.moveCursor(this, dx, dy, callback);
 };
-WriteStream.prototype.clearLine = function(dir) {
+WriteStream.prototype.clearLine = function(dir, callback) {
   if (readline === undefined) readline = require('readline');
-  readline.clearLine(this, dir);
+  return readline.clearLine(this, dir, callback);
 };
-WriteStream.prototype.clearScreenDown = function() {
+WriteStream.prototype.clearScreenDown = function(callback) {
   if (readline === undefined) readline = require('readline');
-  readline.clearScreenDown(this);
+  return readline.clearScreenDown(this, callback);
 };
 WriteStream.prototype.getWindowSize = function() {
   return [this.columns, this.rows];

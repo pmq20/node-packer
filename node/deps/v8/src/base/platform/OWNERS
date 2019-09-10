@@ -2,5 +2,8 @@ set noparent
 
 hpayer@chromium.org
 mlippautz@chromium.org
+ulan@chromium.org
+
+per-file platform-fuchsia.cc=wez@chromium.org
 
 # COMPONENT: Blink>JavaScript

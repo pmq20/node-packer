@@ -1,3 +1,4 @@
+// Flags: --expose-internals
 'use strict';
 const common = require('../common');
 if (!common.hasCrypto)
@@ -6,7 +7,8 @@ if (!common.hasCrypto)
 const assert = require('assert');
 const crypto = require('crypto');
 
-if (typeof process.binding('crypto').scrypt !== 'function')
+const { internalBinding } = require('internal/test/binding');
+if (typeof internalBinding('crypto').scrypt !== 'function')
   common.skip('no scrypt support');
 
 const good = [
@@ -95,9 +97,9 @@ const good = [
 const bad = [
   { N: 1, p: 1, r: 1 },         // N < 2
   { N: 3, p: 1, r: 1 },         // Not power of 2.
-  { N: 1, cost: 1 },            // both N and cost
-  { p: 1, parallelization: 1 }, // both p and parallelization
-  { r: 1, blockSize: 1 }        // both r and blocksize
+  { N: 1, cost: 1 },            // Both N and cost
+  { p: 1, parallelization: 1 }, // Both p and parallelization
+  { r: 1, blockSize: 1 }        // Both r and blocksize
 ];
 
 // Test vectors where 128*N*r exceeds maxmem.
@@ -167,7 +169,8 @@ for (const options of bad) {
 
 for (const options of toobig) {
   const expected = {
-    message: /error:[^:]+:digital envelope routines:EVP_PBE_scrypt:memory limit exceeded/,
+    message: new RegExp('error:[^:]+:digital envelope routines:' +
+                        '(?:EVP_PBE_scrypt|scrypt_alg):memory limit exceeded'),
     type: Error,
   };
   common.expectsError(() => crypto.scrypt('pass', 'salt', 1, options, () => {}),
@@ -216,4 +219,54 @@ for (const { args, expected } of badargs) {
   common.expectsError(() => crypto.scrypt('', '', 42, {}, null), expected);
   common.expectsError(() => crypto.scrypt('', '', 42, {}), expected);
   common.expectsError(() => crypto.scrypt('', '', 42, {}, {}), expected);
+}
+
+{
+  // Values for maxmem that do not fit in 32 bits but that are still safe
+  // integers should be allowed.
+  crypto.scrypt('', '', 4, { maxmem: 2 ** 52 },
+                common.mustCall((err, actual) => {
+                  assert.ifError(err);
+                  assert.strictEqual(actual.toString('hex'), 'd72c87d0');
+                }));
+
+  // Values that exceed Number.isSafeInteger should not be allowed.
+  common.expectsError(() => crypto.scryptSync('', '', 0, { maxmem: 2 ** 53 }), {
+    code: 'ERR_OUT_OF_RANGE'
+  });
+}
+
+{
+  // Regression test for https://github.com/nodejs/node/issues/28836.
+
+  function testParameter(name, value) {
+    let accessCount = 0;
+
+    // Find out how often the value is accessed.
+    crypto.scryptSync('', '', 1, {
+      get [name]() {
+        accessCount++;
+        return value;
+      }
+    });
+
+    // Try to crash the process on the last access.
+    common.expectsError(() => {
+      crypto.scryptSync('', '', 1, {
+        get [name]() {
+          if (--accessCount === 0)
+            return '';
+          return value;
+        }
+      });
+    }, {
+      code: 'ERR_INVALID_ARG_TYPE'
+    });
+  }
+
+  [
+    ['N', 16384], ['cost', 16384],
+    ['r', 8], ['blockSize', 8],
+    ['p', 1], ['parallelization', 1]
+  ].forEach((arg) => testParameter(...arg));
 }

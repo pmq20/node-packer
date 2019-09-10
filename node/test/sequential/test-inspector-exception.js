@@ -30,7 +30,7 @@ async function testBreakpointOnStart(session) {
   ];
 
   await session.send(commands);
-  await session.waitForBreakOnLine(0, pathToFileURL(script).toString());
+  await session.waitForBreakOnLine(21, pathToFileURL(script).toString());
 }
 
 

@@ -79,9 +79,9 @@ ${files[name].replace(
       targets: [
         {
           target_name: 'addon',
-          defines: [ 'V8_DEPRECATION_WARNINGS=1' ],
-          sources: files.map(({ name }) => name)
-        }
+          sources: files.map(({ name }) => name),
+          includes: ['../common.gypi'],
+        },
       ]
     })
   });

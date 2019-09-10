@@ -5,12 +5,13 @@
 #include "src/heap/scavenge-job.h"
 
 #include "src/base/platform/time.h"
+#include "src/execution/isolate.h"
+#include "src/execution/vm-state-inl.h"
 #include "src/heap/gc-tracer.h"
 #include "src/heap/heap-inl.h"
 #include "src/heap/heap.h"
-#include "src/isolate.h"
-#include "src/v8.h"
-#include "src/vm-state-inl.h"
+#include "src/heap/spaces.h"
+#include "src/init/v8.h"
 
 namespace v8 {
 namespace internal {
@@ -107,8 +108,9 @@ void ScavengeJob::ScheduleIdleTask(Heap* heap) {
     v8::Isolate* isolate = reinterpret_cast<v8::Isolate*>(heap->isolate());
     if (V8::GetCurrentPlatform()->IdleTasksEnabled(isolate)) {
       idle_task_pending_ = true;
-      auto task = new IdleTask(heap->isolate(), this);
-      V8::GetCurrentPlatform()->CallIdleOnForegroundThread(isolate, task);
+      auto task = base::make_unique<IdleTask>(heap->isolate(), this);
+      V8::GetCurrentPlatform()->GetForegroundTaskRunner(isolate)->PostIdleTask(
+          std::move(task));
     }
   }
 }

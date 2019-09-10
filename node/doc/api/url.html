@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>URL | Node.js v10.15.3 Documentation</title>
+  <title>URL | Node.js v12.10.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -52,11 +52,13 @@
 <li><a href="os.html" class="nav-os">OS</a></li>
 <li><a href="path.html" class="nav-path">Path</a></li>
 <li><a href="perf_hooks.html" class="nav-perf_hooks">Performance Hooks</a></li>
+<li><a href="policy.html" class="nav-policy">Policies</a></li>
 <li><a href="process.html" class="nav-process">Process</a></li>
 <li><a href="punycode.html" class="nav-punycode">Punycode</a></li>
 <li><a href="querystring.html" class="nav-querystring">Query Strings</a></li>
 <li><a href="readline.html" class="nav-readline">Readline</a></li>
 <li><a href="repl.html" class="nav-repl">REPL</a></li>
+<li><a href="report.html" class="nav-report">Report</a></li>
 <li><a href="stream.html" class="nav-stream">Stream</a></li>
 <li><a href="string_decoder.html" class="nav-string_decoder">String Decoder</a></li>
 <li><a href="timers.html" class="nav-timers">Timers</a></li>
@@ -69,7 +71,7 @@
 <li><a href="v8.html" class="nav-v8">V8</a></li>
 <li><a href="vm.html" class="nav-vm">VM</a></li>
 <li><a href="worker_threads.html" class="nav-worker_threads">Worker Threads</a></li>
-<li><a href="zlib.html" class="nav-zlib">ZLIB</a></li>
+<li><a href="zlib.html" class="nav-zlib">Zlib</a></li>
 </ul>
 <div class="line"></div>
 <ul>
@@ -79,7 +81,7 @@
 
     <div id="column1" data-id="url" class="interior">
       <header>
-        <h1>Node.js v10.15.3 Documentation</h1>
+        <h1>Node.js v12.10.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -94,12 +96,13 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v11.x/api/url.html">11.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v12.x/api/url.html">12.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v11.x/api/url.html">11.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v10.x/api/url.html">10.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v9.x/api/url.html">9.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v8.x/api/url.html">8.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v7.x/api/url.html">7.x</a></li>
-<li><a href="https://nodejs.org/docs/latest-v6.x/api/url.html">6.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v6.x/api/url.html">6.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v5.x/api/url.html">5.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v4.x/api/url.html">4.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v0.12.x/api/url.html">0.12.x</a></li>
@@ -347,7 +350,7 @@ console.log(myURL.href);
 // Prints https://example.org/foo#baz
 </code></pre>
 <p>Invalid URL characters included in the value assigned to the <code>hash</code> property
-are <a href="#whatwg-percent-encoding">percent-encoded</a>. Note that the selection of which characters to
+are <a href="#whatwg-percent-encoding">percent-encoded</a>. The selection of which characters to
 percent-encode may vary somewhat from what the <a href="#url_url_parse_urlstring_parsequerystring_slashesdenotehost"><code>url.parse()</code></a> and
 <a href="#url_url_format_urlobject"><code>url.format()</code></a> methods would produce.</p>
 <h4>url.host<span><a class="mark" href="#url_url_host" id="url_url_host">#</a></span></h4>
@@ -430,7 +433,7 @@ console.log(myURL.href);
 // Prints https://abc:123@example.com
 </code></pre>
 <p>Invalid URL characters included in the value assigned to the <code>password</code> property
-are <a href="#whatwg-percent-encoding">percent-encoded</a>. Note that the selection of which characters to
+are <a href="#whatwg-percent-encoding">percent-encoded</a>. The selection of which characters to
 percent-encode may vary somewhat from what the <a href="#url_url_parse_urlstring_parsequerystring_slashesdenotehost"><code>url.parse()</code></a> and
 <a href="#url_url_format_urlobject"><code>url.format()</code></a> methods would produce.</p>
 <h4>url.pathname<span><a class="mark" href="#url_url_pathname" id="url_url_pathname">#</a></span></h4>
@@ -447,7 +450,7 @@ console.log(myURL.href);
 // Prints https://example.org/abcdef?123
 </code></pre>
 <p>Invalid URL characters included in the value assigned to the <code>pathname</code>
-property are <a href="#whatwg-percent-encoding">percent-encoded</a>. Note that the selection of which characters
+property are <a href="#whatwg-percent-encoding">percent-encoded</a>. The selection of which characters
 to percent-encode may vary somewhat from what the <a href="#url_url_parse_urlstring_parsequerystring_slashesdenotehost"><code>url.parse()</code></a> and
 <a href="#url_url_format_urlobject"><code>url.format()</code></a> methods would produce.</p>
 <h4>url.port<span><a class="mark" href="#url_url_port" id="url_url_port">#</a></span></h4>
@@ -543,7 +546,7 @@ myURL.port = 1e10; // 10000000000, will be range-checked as described below
 console.log(myURL.port);
 // Prints 1234
 </code></pre>
-<p>Note that numbers which contain a decimal point,
+<p>Numbers which contain a decimal point,
 such as floating-point numbers or numbers in scientific notation,
 are not an exception to this rule.
 Leading numbers up to the decimal point will be set as the URL's port,
@@ -592,8 +595,8 @@ u.protocol = 'http';
 console.log(u.href);
 // fish://example.org
 </code></pre>
-<p>The protocol schemes considered to be special by the WHATWG URL Standard
-include: <code>ftp</code>, <code>file</code>, <code>gopher</code>, <code>http</code>, <code>https</code>, <code>ws</code>, and <code>wss</code>.</p>
+<p>According to the WHATWG URL Standard, special protocol schemes are <code>ftp</code>,
+<code>file</code>, <code>gopher</code>, <code>http</code>, <code>https</code>, <code>ws</code>, and <code>wss</code>.</p>
 <h4>url.search<span><a class="mark" href="#url_url_search" id="url_url_search">#</a></span></h4>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
@@ -608,7 +611,7 @@ console.log(myURL.href);
 // Prints https://example.org/abc?abc=xyz
 </code></pre>
 <p>Any invalid URL characters appearing in the value assigned the <code>search</code>
-property will be <a href="#whatwg-percent-encoding">percent-encoded</a>. Note that the selection of which
+property will be <a href="#whatwg-percent-encoding">percent-encoded</a>. The selection of which
 characters to percent-encode may vary somewhat from what the <a href="#url_url_parse_urlstring_parsequerystring_slashesdenotehost"><code>url.parse()</code></a>
 and <a href="#url_url_format_urlobject"><code>url.format()</code></a> methods would produce.</p>
 <h4>url.searchParams<span><a class="mark" href="#url_url_searchparams" id="url_url_searchparams">#</a></span></h4>
@@ -633,7 +636,7 @@ console.log(myURL.href);
 // Prints https://123:xyz@example.com/
 </code></pre>
 <p>Any invalid URL characters appearing in the value assigned the <code>username</code>
-property will be <a href="#whatwg-percent-encoding">percent-encoded</a>. Note that the selection of which
+property will be <a href="#whatwg-percent-encoding">percent-encoded</a>. The selection of which
 characters to percent-encode may vary somewhat from what the <a href="#url_url_parse_urlstring_parsequerystring_slashesdenotehost"><code>url.parse()</code></a>
 and <a href="#url_url_format_urlobject"><code>url.format()</code></a> methods would produce.</p>
 <h4>url.toString()<span><a class="mark" href="#url_url_tostring" id="url_url_tostring">#</a></span></h4>
@@ -991,7 +994,7 @@ fileURLToPath('file:///你好.txt');       // Correct:   /你好.txt (POSIX)
 new URL('file:///hello world').pathname; // Incorrect: /hello%20world
 fileURLToPath('file:///hello world');    // Correct:   /hello world (POSIX)
 </code></pre>
-<h3>url.format(URL[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/url.js#L571">[src]</a><span><a class="mark" href="#url_url_format_url_options" id="url_url_format_url_options">#</a></span></h3>
+<h3>url.format(URL[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/url.js#L572">[src]</a><span><a class="mark" href="#url_url_format_url_options" id="url_url_format_url_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v7.6.0</span>
 </div>
@@ -1052,7 +1055,17 @@ new URL('/some/path%.js', 'file:'); // Incorrect: file:///some/path%
 pathToFileURL('/some/path%.js');    // Correct:   file:///some/path%25 (POSIX)
 </code></pre>
 <h2>Legacy URL API<span><a class="mark" href="#url_legacy_url_api" id="url_legacy_url_api">#</a></span></h2>
-<h3>Legacy `urlObject`<span><a class="mark" href="#url_legacy_urlobject" id="url_legacy_urlobject">#</a></span></h3>
+<p></p><div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use the WHATWG URL API instead.</div><p></p>
+<h3>Legacy <code>urlObject</code><span><a class="mark" href="#url_legacy_urlobject" id="url_legacy_urlobject">#</a></span></h3>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v11.0.0</td>
+<td><p>The Legacy URL API is deprecated. Use the WHATWG URL API.</p></td></tr>
+</tbody></table>
+</details>
+</div>
 <p>The legacy <code>urlObject</code> (<code>require('url').Url</code>) is created and returned by the
 <code>url.parse()</code> function.</p>
 <h4>urlObject.auth<span><a class="mark" href="#url_urlobject_auth" id="url_urlobject_auth">#</a></span></h4>
@@ -1113,11 +1126,13 @@ URL, including the leading ASCII question mark (<code>?</code>) character.</p>
 <p>The <code>slashes</code> property is a <code>boolean</code> with a value of <code>true</code> if two ASCII
 forward-slash characters (<code>/</code>) are required following the colon in the
 <code>protocol</code>.</p>
-<h3>url.format(urlObject)<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/url.js#L571">[src]</a><span><a class="mark" href="#url_url_format_urlobject" id="url_url_format_urlobject">#</a></span></h3>
+<h3>url.format(urlObject)<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/url.js#L572">[src]</a><span><a class="mark" href="#url_url_format_urlobject" id="url_url_format_urlobject">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v11.0.0</td>
+<td><p>The Legacy URL API is deprecated. Use the WHATWG URL API.</p></td></tr>
 <tr><td>v7.0.0</td>
 <td><p>URLs with a <code>file:</code> scheme will now always use the correct number of slashes regardless of <code>slashes</code> option. A false-y <code>slashes</code> option with no protocol is now also respected at all times.</p></td></tr>
 <tr><td>v0.1.25</td>
@@ -1222,11 +1237,13 @@ character, the literal string <code>#</code> is appended to <code>result</code>.
 string, an <a href="errors.html#errors_class_error"><code>Error</code></a> is thrown.</li>
 <li><code>result</code> is returned.</li>
 </ul>
-<h3>url.parse(urlString[, parseQueryString[, slashesDenoteHost]])<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/url.js#L152">[src]</a><span><a class="mark" href="#url_url_parse_urlstring_parsequerystring_slashesdenotehost" id="url_url_parse_urlstring_parsequerystring_slashesdenotehost">#</a></span></h3>
+<h3>url.parse(urlString[, parseQueryString[, slashesDenoteHost]])<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/url.js#L154">[src]</a><span><a class="mark" href="#url_url_parse_urlstring_parsequerystring_slashesdenotehost" id="url_url_parse_urlstring_parsequerystring_slashesdenotehost">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v11.0.0</td>
+<td><p>The Legacy URL API is deprecated. Use the WHATWG URL API.</p></td></tr>
 <tr><td>v9.0.0</td>
 <td><p>The <code>search</code> property on the returned URL object is now <code>null</code> when no query string is present.</p></td></tr>
 <tr><td>v0.1.25</td>
@@ -1250,11 +1267,13 @@ For instance, given <code>//foo/bar</code>, the result would be
 object.</p>
 <p>A <code>TypeError</code> is thrown if <code>urlString</code> is not a string.</p>
 <p>A <code>URIError</code> is thrown if the <code>auth</code> property is present but cannot be decoded.</p>
-<h3>url.resolve(from, to)<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/url.js#L662">[src]</a><span><a class="mark" href="#url_url_resolve_from_to" id="url_url_resolve_from_to">#</a></span></h3>
+<h3>url.resolve(from, to)<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/url.js#L663">[src]</a><span><a class="mark" href="#url_url_resolve_from_to" id="url_url_resolve_from_to">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v11.0.0</td>
+<td><p>The Legacy URL API is deprecated. Use the WHATWG URL API.</p></td></tr>
 <tr><td>v6.6.0</td>
 <td><p>The <code>auth</code> fields are now kept intact when <code>from</code> and <code>to</code> refer to the same host.</p></td></tr>
 <tr><td>v6.5.0, v4.6.2</td>

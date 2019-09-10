@@ -1,12 +1,13 @@
 'use strict';
-const assert = require('assert');
+const assert = require('internal/assert');
 const net = require('net');
 const { sendHelper } = require('internal/cluster/utils');
 const uv = internalBinding('uv');
+const { constants } = internalBinding('tcp_wrap');
 
 module.exports = RoundRobinHandle;
 
-function RoundRobinHandle(key, address, port, addressType, fd) {
+function RoundRobinHandle(key, address, port, addressType, fd, flags) {
   this.key = key;
   this.all = new Map();
   this.free = [];
@@ -16,9 +17,14 @@ function RoundRobinHandle(key, address, port, addressType, fd) {
 
   if (fd >= 0)
     this.server.listen({ fd });
-  else if (port >= 0)
-    this.server.listen(port, address);
-  else
+  else if (port >= 0) {
+    this.server.listen({
+      port,
+      host: address,
+      // Currently, net module only supports `ipv6Only` option in `flags`.
+      ipv6Only: Boolean(flags & constants.UV_TCP_IPV6ONLY),
+    });
+  } else
     this.server.listen(address);  // UNIX socket path.
 
   this.server.once('listening', () => {
@@ -73,8 +79,10 @@ RoundRobinHandle.prototype.remove = function(worker) {
   if (this.all.size !== 0)
     return false;
 
-  for (var handle; handle = this.handles.shift(); handle.close())
-    ;
+  for (const handle of this.handles) {
+    handle.close();
+  }
+  this.handles = [];
 
   this.handle.close();
   this.handle = null;

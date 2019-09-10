@@ -6,9 +6,10 @@
 #ifndef V8_REGEXP_JSREGEXP_INL_H_
 #define V8_REGEXP_JSREGEXP_INL_H_
 
-#include "src/allocation.h"
-#include "src/objects.h"
+#include "src/objects/js-regexp-inl.h"
+#include "src/objects/objects.h"
 #include "src/regexp/jsregexp.h"
+#include "src/utils/allocation.h"
 
 namespace v8 {
 namespace internal {
@@ -38,11 +39,9 @@ int32_t* RegExpImpl::GlobalCache::FetchNext() {
     int last_end_index = last_match[1];
 
     if (regexp_->TypeTag() == JSRegExp::ATOM) {
-      num_matches_ = RegExpImpl::AtomExecRaw(regexp_,
-                                             subject_,
-                                             last_end_index,
-                                             register_array_,
-                                             register_array_size_);
+      num_matches_ =
+          RegExpImpl::AtomExecRaw(isolate_, regexp_, subject_, last_end_index,
+                                  register_array_, register_array_size_);
     } else {
       int last_start_index = last_match[0];
       if (last_start_index == last_end_index) {
@@ -53,11 +52,9 @@ int32_t* RegExpImpl::GlobalCache::FetchNext() {
         num_matches_ = 0;  // Signal failed match.
         return nullptr;
       }
-      num_matches_ = RegExpImpl::IrregexpExecRaw(regexp_,
-                                                 subject_,
-                                                 last_end_index,
-                                                 register_array_,
-                                                 register_array_size_);
+      num_matches_ = RegExpImpl::IrregexpExecRaw(
+          isolate_, regexp_, subject_, last_end_index, register_array_,
+          register_array_size_);
     }
 
     if (num_matches_ <= 0) return nullptr;
@@ -78,6 +75,10 @@ int32_t* RegExpImpl::GlobalCache::LastSuccessfulMatch() {
   return &register_array_[index];
 }
 
+RegExpEngine::CompilationResult::CompilationResult(Isolate* isolate,
+                                                   const char* error_message)
+    : error_message(error_message),
+      code(ReadOnlyRoots(isolate).the_hole_value()) {}
 
 }  // namespace internal
 }  // namespace v8

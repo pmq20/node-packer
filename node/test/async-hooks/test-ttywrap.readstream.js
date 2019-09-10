@@ -5,8 +5,8 @@ if ('osx' === process.env.TRAVIS_OS_NAME) { return; }
 const common = require('../common');
 const assert = require('assert');
 
-// general hook test setup
-const tick = require('./tick');
+// General hook test setup
+const tick = require('../common/tick');
 const initHooks = require('./init-hooks');
 const { checkInvocations } = require('./hook-checks');
 

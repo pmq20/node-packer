@@ -34,7 +34,7 @@ class TestWriter extends W {
   }
 
   _write(chunk, encoding, cb) {
-    // simulate a small unpredictable latency
+    // Simulate a small unpredictable latency
     setTimeout(() => {
       this.buffer.push(chunk.toString());
       this.written += chunk.length;
@@ -55,7 +55,7 @@ for (let i = 0; i < chunks.length; i++) {
   });
 
   tw.on('finish', common.mustCall(function() {
-    // got chunks in the right order
+    // Got chunks in the right order
     assert.deepStrictEqual(tw.buffer, chunks);
   }));
 
@@ -73,7 +73,7 @@ for (let i = 0; i < chunks.length; i++) {
   });
 
   tw.on('finish', common.mustCall(function() {
-    //  got chunks in the right order
+    //  Got chunks in the right order
     assert.deepStrictEqual(tw.buffer, chunks);
   }));
 
@@ -96,7 +96,7 @@ for (let i = 0; i < chunks.length; i++) {
   let drains = 0;
 
   tw.on('finish', common.mustCall(function() {
-    // got chunks in the right order
+    // Got chunks in the right order
     assert.deepStrictEqual(tw.buffer, chunks);
     assert.strictEqual(drains, 17);
   }));
@@ -142,7 +142,7 @@ for (let i = 0; i < chunks.length; i++) {
       undefined ];
 
   tw.on('finish', function() {
-    // got the expected chunks
+    // Got the expected chunks
     assert.deepStrictEqual(tw.buffer, chunks);
   });
 
@@ -181,7 +181,7 @@ for (let i = 0; i < chunks.length; i++) {
       undefined ];
 
   tw.on('finish', function() {
-    // got the expected chunks
+    // Got the expected chunks
     assert.deepStrictEqual(tw.buffer, chunks);
   });
 
@@ -210,9 +210,9 @@ for (let i = 0; i < chunks.length; i++) {
 
   tw.on('finish', common.mustCall(function() {
     process.nextTick(common.mustCall(function() {
-      // got chunks in the right order
+      // Got chunks in the right order
       assert.deepStrictEqual(tw.buffer, chunks);
-      // called all callbacks
+      // Called all callbacks
       assert.deepStrictEqual(callbacks._called, chunks);
     }));
   }));
@@ -229,10 +229,12 @@ for (let i = 0; i < chunks.length; i++) {
   tw.end(common.mustCall());
 }
 
+const helloWorldBuffer = Buffer.from('hello world');
+
 {
   // Verify end() callback with chunk
   const tw = new TestWriter();
-  tw.end(Buffer.from('hello world'), common.mustCall());
+  tw.end(helloWorldBuffer, common.mustCall());
 }
 
 {
@@ -244,7 +246,7 @@ for (let i = 0; i < chunks.length; i++) {
 {
   // Verify end() callback after write() call
   const tw = new TestWriter();
-  tw.write(Buffer.from('hello world'));
+  tw.write(helloWorldBuffer);
   tw.end(common.mustCall());
 }
 
@@ -252,7 +254,7 @@ for (let i = 0; i < chunks.length; i++) {
   // Verify end() callback after write() callback
   const tw = new TestWriter();
   let writeCalledback = false;
-  tw.write(Buffer.from('hello world'), function() {
+  tw.write(helloWorldBuffer, function() {
     writeCalledback = true;
   });
   tw.end(common.mustCall(function() {
@@ -322,13 +324,14 @@ for (let i = 0; i < chunks.length; i++) {
     assert.strictEqual(this.writing, undefined);
     wrote = true;
     this.writing = true;
-    setTimeout(function() {
+    setTimeout(() => {
       this.writing = false;
       cb();
     }, 1);
   };
   w.on('finish', common.mustCall(function() {
     assert.strictEqual(wrote, true);
+    assert.strictEqual(this.writing, false);
   }));
   w.write(Buffer.alloc(0));
   w.end();

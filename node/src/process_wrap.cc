@@ -20,13 +20,12 @@
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "env-inl.h"
-#include "node_internals.h"
 #include "stream_base-inl.h"
 #include "stream_wrap.h"
 #include "util-inl.h"
 
-#include <string.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdlib>
 
 namespace node {
 
@@ -49,7 +48,8 @@ class ProcessWrap : public HandleWrap {
  public:
   static void Initialize(Local<Object> target,
                          Local<Value> unused,
-                         Local<Context> context) {
+                         Local<Context> context,
+                         void* priv) {
     Environment* env = Environment::GetCurrent(context);
     Local<FunctionTemplate> constructor = env->NewFunctionTemplate(New);
     constructor->InstanceTemplate()->SetInternalFieldCount(1);
@@ -62,8 +62,9 @@ class ProcessWrap : public HandleWrap {
     env->SetProtoMethod(constructor, "spawn", Spawn);
     env->SetProtoMethod(constructor, "kill", Kill);
 
-    target->Set(processString,
-                constructor->GetFunction(context).ToLocalChecked());
+    target->Set(env->context(),
+                processString,
+                constructor->GetFunction(context).ToLocalChecked()).Check();
   }
 
   SET_NO_MEMORY_INFO()
@@ -260,7 +261,7 @@ class ProcessWrap : public HandleWrap {
       CHECK_EQ(wrap->process_.data, wrap);
       wrap->object()->Set(context, env->pid_string(),
                           Integer::New(env->isolate(),
-                                       wrap->process_.pid)).FromJust();
+                                       wrap->process_.pid)).Check();
     }
 
     if (options.args) {
@@ -313,4 +314,4 @@ class ProcessWrap : public HandleWrap {
 }  // anonymous namespace
 }  // namespace node
 
-NODE_BUILTIN_MODULE_CONTEXT_AWARE(process_wrap, node::ProcessWrap::Initialize)
+NODE_MODULE_CONTEXT_AWARE_INTERNAL(process_wrap, node::ProcessWrap::Initialize)

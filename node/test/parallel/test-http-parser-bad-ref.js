@@ -6,7 +6,7 @@
 
 require('../common');
 const assert = require('assert');
-const HTTPParser = process.binding('http_parser').HTTPParser;
+const { HTTPParser } = require('_http_common');
 
 const kOnHeaders = HTTPParser.kOnHeaders | 0;
 const kOnHeadersComplete = HTTPParser.kOnHeadersComplete | 0;
@@ -24,7 +24,8 @@ function flushPool() {
 function demoBug(part1, part2) {
   flushPool();
 
-  const parser = new HTTPParser(0);
+  const parser = new HTTPParser();
+  parser.initialize(HTTPParser.REQUEST, {});
 
   parser.headers = [];
   parser.url = '';

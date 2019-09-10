@@ -107,6 +107,45 @@ added: v0.1.7
 
 The process object. See the [`process` object][] section.
 
+## queueMicrotask(callback)
+<!-- YAML
+added: v11.0.0
+-->
+
+<!-- type=global -->
+
+* `callback` {Function} Function to be queued.
+
+The `queueMicrotask()` method queues a microtask to invoke `callback`. If
+`callback` throws an exception, the [`process` object][] `'uncaughtException'`
+event will be emitted.
+
+The microtask queue is managed by V8 and may be used in a similar manner to
+the [`process.nextTick()`][] queue, which is managed by Node.js. The
+`process.nextTick()` queue is always processed before the microtask queue
+within each turn of the Node.js event loop.
+
+```js
+// Here, `queueMicrotask()` is used to ensure the 'load' event is always
+// emitted asynchronously, and therefore consistently. Using
+// `process.nextTick()` here would result in the 'load' event always emitting
+// before any other promise jobs.
+
+DataHandler.prototype.load = async function load(key) {
+  const hit = this._cache.get(url);
+  if (hit !== undefined) {
+    queueMicrotask(() => {
+      this.emit('load', hit);
+    });
+    return;
+  }
+
+  const data = await fetchData(key);
+  this._cache.set(url, data);
+  this.emit('load', data);
+};
+```
+
 ## require()
 
 This variable may appear to be global but is not. See [`require()`].
@@ -137,6 +176,24 @@ added: v0.0.1
 <!-- type=global -->
 
 [`setTimeout`] is described in the [timers][] section.
+
+## TextDecoder
+<!-- YAML
+added: v11.0.0
+-->
+
+<!-- type=global -->
+
+The WHATWG `TextDecoder` class. See the [`TextDecoder`][] section.
+
+## TextEncoder
+<!-- YAML
+added: v11.0.0
+-->
+
+<!-- type=global -->
+
+The WHATWG `TextEncoder` class. See the [`TextEncoder`][] section.
 
 ## URL
 <!-- YAML
@@ -169,6 +226,8 @@ The object that acts as the namespace for all W3C
 [WebAssembly][webassembly-org] related functionality. See the
 [Mozilla Developer Network][webassembly-mdn] for usage and compatibility.
 
+[`TextDecoder`]: util.html#util_class_util_textdecoder
+[`TextEncoder`]: util.html#util_class_util_textencoder
 [`URLSearchParams`]: url.html#url_class_urlsearchparams
 [`URL`]: url.html#url_class_url
 [`__dirname`]: modules.html#modules_dirname
@@ -179,8 +238,9 @@ The object that acts as the namespace for all W3C
 [`console`]: console.html
 [`exports`]: modules.html#modules_exports
 [`module`]: modules.html#modules_module
+[`process.nextTick()`]: process.html#process_process_nexttick_callback_args
 [`process` object]: process.html#process_process
-[`require()`]: modules.html#modules_require
+[`require()`]: modules.html#modules_require_id
 [`setImmediate`]: timers.html#timers_setimmediate_callback_args
 [`setInterval`]: timers.html#timers_setinterval_callback_delay_args
 [`setTimeout`]: timers.html#timers_settimeout_callback_delay_args

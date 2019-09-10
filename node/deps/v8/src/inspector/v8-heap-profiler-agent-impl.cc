@@ -153,7 +153,7 @@ V8HeapProfilerAgentImpl::V8HeapProfilerAgentImpl(
       m_state(state),
       m_hasTimer(false) {}
 
-V8HeapProfilerAgentImpl::~V8HeapProfilerAgentImpl() {}
+V8HeapProfilerAgentImpl::~V8HeapProfilerAgentImpl() = default;
 
 void V8HeapProfilerAgentImpl::restore() {
   if (m_state->booleanProperty(HeapProfilerAgentState::heapProfilerEnabled,
@@ -335,19 +335,20 @@ Response V8HeapProfilerAgentImpl::startSampling(
 
 namespace {
 std::unique_ptr<protocol::HeapProfiler::SamplingHeapProfileNode>
-buildSampingHeapProfileNode(const v8::AllocationProfile::Node* node) {
+buildSampingHeapProfileNode(v8::Isolate* isolate,
+                            const v8::AllocationProfile::Node* node) {
   auto children = protocol::Array<
       protocol::HeapProfiler::SamplingHeapProfileNode>::create();
   for (const auto* child : node->children)
-    children->addItem(buildSampingHeapProfileNode(child));
+    children->addItem(buildSampingHeapProfileNode(isolate, child));
   size_t selfSize = 0;
   for (const auto& allocation : node->allocations)
     selfSize += allocation.size * allocation.count;
   std::unique_ptr<protocol::Runtime::CallFrame> callFrame =
       protocol::Runtime::CallFrame::create()
-          .setFunctionName(toProtocolString(node->name))
+          .setFunctionName(toProtocolString(isolate, node->name))
           .setScriptId(String16::fromInteger(node->script_id))
-          .setUrl(toProtocolString(node->script_name))
+          .setUrl(toProtocolString(isolate, node->script_name))
           .setLineNumber(node->line_number - 1)
           .setColumnNumber(node->column_number - 1)
           .build();
@@ -356,6 +357,7 @@ buildSampingHeapProfileNode(const v8::AllocationProfile::Node* node) {
           .setCallFrame(std::move(callFrame))
           .setSelfSize(selfSize)
           .setChildren(std::move(children))
+          .setId(node->node_id)
           .build();
   return result;
 }
@@ -375,15 +377,25 @@ Response V8HeapProfilerAgentImpl::stopSampling(
 Response V8HeapProfilerAgentImpl::getSamplingProfile(
     std::unique_ptr<protocol::HeapProfiler::SamplingHeapProfile>* profile) {
   v8::HeapProfiler* profiler = m_isolate->GetHeapProfiler();
-  v8::HandleScope scope(
-      m_isolate);  // v8::AllocationProfile contains Local handles.
+  // Need a scope as v8::AllocationProfile contains Local handles.
+  v8::HandleScope scope(m_isolate);
   std::unique_ptr<v8::AllocationProfile> v8Profile(
       profiler->GetAllocationProfile());
   if (!v8Profile)
     return Response::Error("V8 sampling heap profiler was not started.");
   v8::AllocationProfile::Node* root = v8Profile->GetRootNode();
+  auto samples = protocol::Array<
+      protocol::HeapProfiler::SamplingHeapProfileSample>::create();
+  for (const auto& sample : v8Profile->GetSamples()) {
+    samples->addItem(protocol::HeapProfiler::SamplingHeapProfileSample::create()
+                         .setSize(sample.size * sample.count)
+                         .setNodeId(sample.node_id)
+                         .setOrdinal(static_cast<double>(sample.sample_id))
+                         .build());
+  }
   *profile = protocol::HeapProfiler::SamplingHeapProfile::create()
-                 .setHead(buildSampingHeapProfileNode(root))
+                 .setHead(buildSampingHeapProfileNode(m_isolate, root))
+                 .setSamples(std::move(samples))
                  .build();
   return Response::OK();
 }

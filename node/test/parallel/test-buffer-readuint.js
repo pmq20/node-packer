@@ -18,7 +18,7 @@ const assert = require('assert');
         () => buffer[`read${fn}`](o),
         {
           code: 'ERR_INVALID_ARG_TYPE',
-          name: 'TypeError [ERR_INVALID_ARG_TYPE]'
+          name: 'TypeError'
         });
     });
 
@@ -27,7 +27,7 @@ const assert = require('assert');
         () => buffer[`read${fn}`](offset),
         {
           code: 'ERR_OUT_OF_RANGE',
-          name: 'RangeError [ERR_OUT_OF_RANGE]'
+          name: 'RangeError'
         });
     });
 
@@ -36,7 +36,7 @@ const assert = require('assert');
         () => buffer[`read${fn}`](offset),
         {
           code: 'ERR_OUT_OF_RANGE',
-          name: 'RangeError [ERR_OUT_OF_RANGE]',
+          name: 'RangeError',
           message: 'The value of "offset" is out of range. ' +
                    `It must be an integer. Received ${offset}`
         });
@@ -84,9 +84,7 @@ const assert = require('assert');
 {
   const buffer = Buffer.from([0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08]);
 
-  assert.strictEqual(buffer.readUIntLE(0), 0x01);
   assert.strictEqual(buffer.readUIntLE(0, 1), 0x01);
-  assert.strictEqual(buffer.readUIntBE(0), 0x01);
   assert.strictEqual(buffer.readUIntBE(0, 1), 0x01);
   assert.strictEqual(buffer.readUIntLE(0, 3), 0x030201);
   assert.strictEqual(buffer.readUIntBE(0, 3), 0x010203);
@@ -101,7 +99,7 @@ const assert = require('assert');
 
   // Check byteLength.
   ['readUIntBE', 'readUIntLE'].forEach((fn) => {
-    ['', '0', null, {}, [], () => {}, true, false].forEach((len) => {
+    ['', '0', null, {}, [], () => {}, true, false, undefined].forEach((len) => {
       assert.throws(
         () => buffer[fn](0, len),
         { code: 'ERR_INVALID_ARG_TYPE' });
@@ -122,7 +120,7 @@ const assert = require('assert');
         () => buffer[fn](0, byteLength),
         {
           code: 'ERR_OUT_OF_RANGE',
-          name: 'RangeError [ERR_OUT_OF_RANGE]',
+          name: 'RangeError',
           message: 'The value of "byteLength" is out of range. ' +
                    `It must be an integer. Received ${byteLength}`
         });
@@ -132,12 +130,12 @@ const assert = require('assert');
   // Test 1 to 6 bytes.
   for (let i = 1; i <= 6; i++) {
     ['readUIntBE', 'readUIntLE'].forEach((fn) => {
-      ['', '0', null, {}, [], () => {}, true, false].forEach((o) => {
+      ['', '0', null, {}, [], () => {}, true, false, undefined].forEach((o) => {
         assert.throws(
           () => buffer[fn](o, i),
           {
             code: 'ERR_INVALID_ARG_TYPE',
-            name: 'TypeError [ERR_INVALID_ARG_TYPE]'
+            name: 'TypeError'
           });
       });
 
@@ -146,7 +144,7 @@ const assert = require('assert');
           () => buffer[fn](offset, i),
           {
             code: 'ERR_OUT_OF_RANGE',
-            name: 'RangeError [ERR_OUT_OF_RANGE]',
+            name: 'RangeError',
             message: 'The value of "offset" is out of range. ' +
                      `It must be >= 0 and <= ${8 - i}. Received ${offset}`
           });
@@ -157,7 +155,7 @@ const assert = require('assert');
           () => buffer[fn](offset, i),
           {
             code: 'ERR_OUT_OF_RANGE',
-            name: 'RangeError [ERR_OUT_OF_RANGE]',
+            name: 'RangeError',
             message: 'The value of "offset" is out of range. ' +
                      `It must be an integer. Received ${offset}`
           });

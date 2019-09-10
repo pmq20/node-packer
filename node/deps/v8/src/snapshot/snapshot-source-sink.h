@@ -6,7 +6,7 @@
 #define V8_SNAPSHOT_SNAPSHOT_SOURCE_SINK_H_
 
 #include "src/base/logging.h"
-#include "src/utils.h"
+#include "src/utils/utils.h"
 
 namespace v8 {
 namespace internal {
@@ -25,9 +25,9 @@ class SnapshotByteSource final {
         position_(0) {}
 
   explicit SnapshotByteSource(Vector<const byte> payload)
-      : data_(payload.start()), length_(payload.length()), position_(0) {}
+      : data_(payload.begin()), length_(payload.length()), position_(0) {}
 
-  ~SnapshotByteSource() {}
+  ~SnapshotByteSource() = default;
 
   bool HasMore() { return position_ < length_; }
 
@@ -38,7 +38,7 @@ class SnapshotByteSource final {
 
   void Advance(int by) { position_ += by; }
 
-  void CopyRaw(byte* to, int number_of_bytes) {
+  void CopyRaw(void* to, int number_of_bytes) {
     memcpy(to, data_ + position_, number_of_bytes);
     position_ += number_of_bytes;
   }
@@ -82,10 +82,10 @@ class SnapshotByteSource final {
  */
 class SnapshotByteSink {
  public:
-  SnapshotByteSink() {}
+  SnapshotByteSink() = default;
   explicit SnapshotByteSink(int initial_size) : data_(initial_size) {}
 
-  ~SnapshotByteSink() {}
+  ~SnapshotByteSink() = default;
 
   void Put(byte b, const char* description) { data_.push_back(b); }
 
@@ -96,6 +96,8 @@ class SnapshotByteSink {
 
   void PutInt(uintptr_t integer, const char* description);
   void PutRaw(const byte* data, int number_of_bytes, const char* description);
+
+  void Append(const SnapshotByteSink& other);
   int Position() const { return static_cast<int>(data_.size()); }
 
   const std::vector<byte>* data() const { return &data_; }

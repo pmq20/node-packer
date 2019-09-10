@@ -8,7 +8,6 @@
 
 #include "src/base/atomicops.h"
 #include "src/debug/debug-interface.h"
-#include "src/flags.h"  // TODO(jgruber): Remove include and DEPS entry.
 #include "src/inspector/protocol/Protocol.h"
 #include "src/inspector/string-util.h"
 #include "src/inspector/v8-debugger.h"
@@ -34,7 +33,7 @@ namespace {
 
 String16 resourceNameToUrl(V8InspectorImpl* inspector,
                            v8::Local<v8::String> v8Name) {
-  String16 name = toProtocolString(v8Name);
+  String16 name = toProtocolString(inspector->isolate(), v8Name);
   if (!inspector) return name;
   std::unique_ptr<StringBuffer> url =
       inspector->client()->resourceNameToUrl(toStringView(name));
@@ -66,7 +65,7 @@ std::unique_ptr<protocol::Profiler::ProfileNode> buildInspectorObjectFor(
   v8::HandleScope handleScope(isolate);
   auto callFrame =
       protocol::Runtime::CallFrame::create()
-          .setFunctionName(toProtocolString(node->GetFunctionName()))
+          .setFunctionName(toProtocolString(isolate, node->GetFunctionName()))
           .setScriptId(String16::fromInteger(node->GetScriptId()))
           .setUrl(resourceNameToUrl(inspector, node->GetScriptResourceName()))
           .setLineNumber(node->GetLineNumber() - 1)
@@ -304,10 +303,11 @@ Response V8ProfilerAgentImpl::startPreciseCoverage(Maybe<bool> callCount,
   // coverage data if it exists (at the time of writing, that's the case for
   // each function recompiled after the BlockCount mode has been set); and
   // function-granularity coverage data otherwise.
-  typedef v8::debug::Coverage C;
-  C::Mode mode = callCountValue
-                     ? (detailedValue ? C::kBlockCount : C::kPreciseCount)
-                     : (detailedValue ? C::kBlockBinary : C::kPreciseBinary);
+  using C = v8::debug::Coverage;
+  using Mode = v8::debug::CoverageMode;
+  Mode mode = callCountValue
+                  ? (detailedValue ? Mode::kBlockCount : Mode::kPreciseCount)
+                  : (detailedValue ? Mode::kBlockBinary : Mode::kPreciseBinary);
   C::SelectMode(m_isolate, mode);
   return Response::OK();
 }
@@ -317,7 +317,8 @@ Response V8ProfilerAgentImpl::stopPreciseCoverage() {
   m_state->setBoolean(ProfilerAgentState::preciseCoverageStarted, false);
   m_state->setBoolean(ProfilerAgentState::preciseCoverageCallCount, false);
   m_state->setBoolean(ProfilerAgentState::preciseCoverageDetailed, false);
-  v8::debug::Coverage::SelectMode(m_isolate, v8::debug::Coverage::kBestEffort);
+  v8::debug::Coverage::SelectMode(m_isolate,
+                                  v8::debug::CoverageMode::kBestEffort);
   return Response::OK();
 }
 
@@ -337,6 +338,7 @@ Response coverageToProtocol(
         out_result) {
   std::unique_ptr<protocol::Array<protocol::Profiler::ScriptCoverage>> result =
       protocol::Array<protocol::Profiler::ScriptCoverage>::create();
+  v8::Isolate* isolate = inspector->isolate();
   for (size_t i = 0; i < coverage.ScriptCount(); i++) {
     v8::debug::Coverage::ScriptData script_data = coverage.GetScriptData(i);
     v8::Local<v8::debug::Script> script = script_data.GetScript();
@@ -366,6 +368,7 @@ Response coverageToProtocol(
       functions->addItem(
           protocol::Profiler::FunctionCoverage::create()
               .setFunctionName(toProtocolString(
+                  isolate,
                   function_data.Name().FromMaybe(v8::Local<v8::String>())))
               .setRanges(std::move(ranges))
               .setIsBlockCoverage(function_data.HasBlockCoverage())
@@ -374,7 +377,7 @@ Response coverageToProtocol(
     String16 url;
     v8::Local<v8::String> name;
     if (script->SourceURL().ToLocal(&name) && name->Length()) {
-      url = toProtocolString(name);
+      url = toProtocolString(isolate, name);
     } else if (script->Name().ToLocal(&name) && name->Length()) {
       url = resourceNameToUrl(inspector, name);
     }
@@ -416,6 +419,7 @@ typeProfileToProtocol(V8InspectorImpl* inspector,
                       const v8::debug::TypeProfile& type_profile) {
   std::unique_ptr<protocol::Array<protocol::Profiler::ScriptTypeProfile>>
       result = protocol::Array<protocol::Profiler::ScriptTypeProfile>::create();
+  v8::Isolate* isolate = inspector->isolate();
   for (size_t i = 0; i < type_profile.ScriptCount(); i++) {
     v8::debug::TypeProfile::ScriptData script_data =
         type_profile.GetScriptData(i);
@@ -428,10 +432,11 @@ typeProfileToProtocol(V8InspectorImpl* inspector,
       std::unique_ptr<protocol::Array<protocol::Profiler::TypeObject>> types =
           protocol::Array<protocol::Profiler::TypeObject>::create();
       for (const auto& type : entry.Types()) {
-        types->addItem(protocol::Profiler::TypeObject::create()
-                           .setName(toProtocolString(
-                               type.FromMaybe(v8::Local<v8::String>())))
-                           .build());
+        types->addItem(
+            protocol::Profiler::TypeObject::create()
+                .setName(toProtocolString(
+                    isolate, type.FromMaybe(v8::Local<v8::String>())))
+                .build());
       }
       entries->addItem(protocol::Profiler::TypeProfileEntry::create()
                            .setOffset(entry.SourcePosition())
@@ -441,7 +446,7 @@ typeProfileToProtocol(V8InspectorImpl* inspector,
     String16 url;
     v8::Local<v8::String> name;
     if (script->SourceURL().ToLocal(&name) && name->Length()) {
-      url = toProtocolString(name);
+      url = toProtocolString(isolate, name);
     } else if (script->Name().ToLocal(&name) && name->Length()) {
       url = resourceNameToUrl(inspector, name);
     }
@@ -458,13 +463,14 @@ typeProfileToProtocol(V8InspectorImpl* inspector,
 Response V8ProfilerAgentImpl::startTypeProfile() {
   m_state->setBoolean(ProfilerAgentState::typeProfileStarted, true);
   v8::debug::TypeProfile::SelectMode(m_isolate,
-                                     v8::debug::TypeProfile::kCollect);
+                                     v8::debug::TypeProfileMode::kCollect);
   return Response::OK();
 }
 
 Response V8ProfilerAgentImpl::stopTypeProfile() {
   m_state->setBoolean(ProfilerAgentState::typeProfileStarted, false);
-  v8::debug::TypeProfile::SelectMode(m_isolate, v8::debug::TypeProfile::kNone);
+  v8::debug::TypeProfile::SelectMode(m_isolate,
+                                     v8::debug::TypeProfileMode::kNone);
   return Response::OK();
 }
 

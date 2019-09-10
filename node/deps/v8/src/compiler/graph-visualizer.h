@@ -10,7 +10,8 @@
 #include <iosfwd>
 #include <memory>
 
-#include "src/globals.h"
+#include "src/common/globals.h"
+#include "src/handles/handles.h"
 
 namespace v8 {
 namespace internal {
@@ -21,6 +22,9 @@ class SourcePosition;
 namespace compiler {
 
 class Graph;
+class Instruction;
+class InstructionBlock;
+class InstructionOperand;
 class InstructionSequence;
 class NodeOrigin;
 class NodeOriginTable;
@@ -30,6 +34,12 @@ class SourcePositionTable;
 
 struct TurboJsonFile : public std::ofstream {
   TurboJsonFile(OptimizedCompilationInfo* info, std::ios_base::openmode mode);
+  ~TurboJsonFile() override;
+};
+
+struct TurboCfgFile : public std::ofstream {
+  explicit TurboCfgFile(Isolate* isolate = nullptr);
+  ~TurboCfgFile() override;
 };
 
 struct SourcePositionAsJSON {
@@ -54,7 +64,7 @@ V8_INLINE V8_EXPORT_PRIVATE NodeOriginAsJSON AsJSON(const NodeOrigin& no) {
 std::ostream& operator<<(std::ostream& out, const SourcePositionAsJSON& pos);
 
 // Small helper that deduplicates SharedFunctionInfos.
-class SourceIdAssigner {
+class V8_EXPORT_PRIVATE SourceIdAssigner {
  public:
   explicit SourceIdAssigner(size_t size) {
     printed_.reserve(size);
@@ -144,6 +154,32 @@ std::ostream& operator<<(std::ostream& os, const AsC1VCompilation& ac);
 std::ostream& operator<<(std::ostream& os, const AsC1V& ac);
 std::ostream& operator<<(std::ostream& os,
                          const AsC1VRegisterAllocationData& ac);
+
+struct InstructionOperandAsJSON {
+  const InstructionOperand* op_;
+  const InstructionSequence* code_;
+};
+
+std::ostream& operator<<(std::ostream& os, const InstructionOperandAsJSON& o);
+
+struct InstructionAsJSON {
+  int index_;
+  const Instruction* instr_;
+  const InstructionSequence* code_;
+};
+std::ostream& operator<<(std::ostream& os, const InstructionAsJSON& i);
+
+struct InstructionBlockAsJSON {
+  const InstructionBlock* block_;
+  const InstructionSequence* code_;
+};
+
+std::ostream& operator<<(std::ostream& os, const InstructionBlockAsJSON& b);
+
+struct InstructionSequenceAsJSON {
+  const InstructionSequence* sequence_;
+};
+std::ostream& operator<<(std::ostream& os, const InstructionSequenceAsJSON& s);
 
 }  // namespace compiler
 }  // namespace internal

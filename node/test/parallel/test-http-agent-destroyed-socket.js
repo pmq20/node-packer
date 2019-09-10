@@ -41,7 +41,7 @@ const server = http.createServer(common.mustCall((req, res) => {
   };
 
   const request1 = http.get(requestOptions, common.mustCall((response) => {
-    // assert request2 is queued in the agent
+    // Assert request2 is queued in the agent
     const key = agent.getName(requestOptions);
     assert.strictEqual(agent.requests[key].length, 1);
     response.resume();
@@ -49,10 +49,10 @@ const server = http.createServer(common.mustCall((req, res) => {
       request1.socket.destroy();
 
       response.socket.once('close', common.mustCall(() => {
-        // assert request2 was removed from the queue
+        // Assert request2 was removed from the queue
         assert(!agent.requests[key]);
         process.nextTick(() => {
-          // assert that the same socket was not assigned to request2,
+          // Assert that the same socket was not assigned to request2,
           // since it was destroyed.
           assert.notStrictEqual(request1.socket, request2.socket);
           assert(!request2.socket.destroyed, 'the socket is destroyed');
@@ -64,7 +64,7 @@ const server = http.createServer(common.mustCall((req, res) => {
   const request2 = http.get(requestOptions, common.mustCall((response) => {
     assert(!request2.socket.destroyed);
     assert(request1.socket.destroyed);
-    // assert not reusing the same socket, since it was destroyed.
+    // Assert not reusing the same socket, since it was destroyed.
     assert.notStrictEqual(request1.socket, request2.socket);
     const countdown = new Countdown(2, () => server.close());
     request2.socket.on('close', common.mustCall(() => countdown.dec()));

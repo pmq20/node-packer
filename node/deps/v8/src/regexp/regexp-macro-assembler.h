@@ -5,7 +5,7 @@
 #ifndef V8_REGEXP_REGEXP_MACRO_ASSEMBLER_H_
 #define V8_REGEXP_REGEXP_MACRO_ASSEMBLER_H_
 
-#include "src/assembler.h"
+#include "src/codegen/label.h"
 #include "src/regexp/regexp-ast.h"
 
 namespace v8 {
@@ -192,9 +192,6 @@ class RegExpMacroAssembler {
   Zone* zone_;
 };
 
-
-#ifndef V8_INTERPRETED_REGEXP  // Avoid compiling unused code.
-
 class NativeRegExpMacroAssembler: public RegExpMacroAssembler {
  public:
   // Type of input string to generate code for.
@@ -212,15 +209,13 @@ class NativeRegExpMacroAssembler: public RegExpMacroAssembler {
   enum Result { RETRY = -2, EXCEPTION = -1, FAILURE = 0, SUCCESS = 1 };
 
   NativeRegExpMacroAssembler(Isolate* isolate, Zone* zone);
-  virtual ~NativeRegExpMacroAssembler();
-  virtual bool CanReadUnaligned();
+  ~NativeRegExpMacroAssembler() override;
+  bool CanReadUnaligned() override;
 
-  static Result Match(Handle<Code> regexp,
-                      Handle<String> subject,
-                      int* offsets_vector,
-                      int offsets_vector_length,
-                      int previous_index,
-                      Isolate* isolate);
+  // Returns a {Result} sentinel, or the number of successful matches.
+  static int Match(Handle<Code> regexp, Handle<String> subject,
+                   int* offsets_vector, int offsets_vector_length,
+                   int previous_index, Isolate* isolate);
 
   // Called from RegExp if the backtrack stack limit is hit.
   // Tries to expand the stack. Returns the new stack-pointer if
@@ -230,11 +225,12 @@ class NativeRegExpMacroAssembler: public RegExpMacroAssembler {
   static Address GrowStack(Address stack_pointer, Address* stack_top,
                            Isolate* isolate);
 
-  static const byte* StringCharacterPosition(String* subject, int start_index);
+  static const byte* StringCharacterPosition(
+      String subject, int start_index, const DisallowHeapAllocation& no_gc);
 
   static int CheckStackGuardState(Isolate* isolate, int start_index,
                                   bool is_direct_call, Address* return_address,
-                                  Code* re_code, String** subject,
+                                  Code re_code, Address* subject,
                                   const byte** input_start,
                                   const byte** input_end);
 
@@ -247,17 +243,13 @@ class NativeRegExpMacroAssembler: public RegExpMacroAssembler {
     return reinterpret_cast<Address>(&word_character_map[0]);
   }
 
-  static Result Execute(Code* code,
-                        String* input,
-                        int start_offset,
-                        const byte* input_start,
-                        const byte* input_end,
-                        int* output,
-                        int output_size,
-                        Isolate* isolate);
+  // Returns a {Result} sentinel, or the number of successful matches.
+  V8_EXPORT_PRIVATE static int Execute(Code code, String input,
+                                       int start_offset,
+                                       const byte* input_start,
+                                       const byte* input_end, int* output,
+                                       int output_size, Isolate* isolate);
 };
-
-#endif  // V8_INTERPRETED_REGEXP
 
 }  // namespace internal
 }  // namespace v8

@@ -221,7 +221,7 @@ notUtilIsDeepStrict(
   new Map([['1', 5], [0, 5], ['0', 5]])
 );
 
-// undefined value in Map
+// Undefined value in Map
 utilIsDeepStrict(
   new Map([[1, undefined]]),
   new Map([[1, undefined]])
@@ -350,7 +350,7 @@ notUtilIsDeepStrict(
 
   m2.set(2, 'hi'); // different order
   m2.set(1, obj);
-  m2.set(3, [1, 2, 3]); // deep equal, but not reference equal.
+  m2.set(3, [1, 2, 3]); // Deep equal, but not reference equal.
 
   utilIsDeepStrict(m1, m2);
 }
@@ -447,6 +447,33 @@ assert.strictEqual(
   notUtilIsDeepStrict(boxedString, Object('test'));
   boxedSymbol.slow = true;
   notUtilIsDeepStrict(boxedSymbol, {});
+  utilIsDeepStrict(Object(BigInt(1)), Object(BigInt(1)));
+  notUtilIsDeepStrict(Object(BigInt(1)), Object(BigInt(2)));
+
+  const booleanish = new Boolean(true);
+  Object.defineProperty(booleanish, Symbol.toStringTag, { value: 'String' });
+  Object.setPrototypeOf(booleanish, String.prototype);
+  notUtilIsDeepStrict(booleanish, new String('true'));
+
+  const numberish = new Number(42);
+  Object.defineProperty(numberish, Symbol.toStringTag, { value: 'String' });
+  Object.setPrototypeOf(numberish, String.prototype);
+  notUtilIsDeepStrict(numberish, new String('42'));
+
+  const stringish = new String('0');
+  Object.defineProperty(stringish, Symbol.toStringTag, { value: 'Number' });
+  Object.setPrototypeOf(stringish, Number.prototype);
+  notUtilIsDeepStrict(stringish, new Number(0));
+
+  const bigintish = new Object(BigInt(42));
+  Object.defineProperty(bigintish, Symbol.toStringTag, { value: 'String' });
+  Object.setPrototypeOf(bigintish, String.prototype);
+  notUtilIsDeepStrict(bigintish, new String('42'));
+
+  const symbolish = new Object(Symbol('fhqwhgads'));
+  Object.defineProperty(symbolish, Symbol.toStringTag, { value: 'String' });
+  Object.setPrototypeOf(symbolish, String.prototype);
+  notUtilIsDeepStrict(symbolish, new String('fhqwhgads'));
 }
 
 // Minus zero

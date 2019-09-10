@@ -43,14 +43,14 @@ the following tiers.
       organization or website;
     * The tool must be open source.
 
- * Tier 3 - If possible its test suite
-   will be run at least nightly in the Node.js CI and issues opened for
-   failures.  Does not block shipping a release.
+* Tier 3 - If possible its test suite
+  will be run at least nightly in the Node.js CI and issues opened for
+  failures.  Does not block shipping a release.
 
- * Tier 4 - Does not block shipping a release.
+* Tier 4 - Does not block shipping a release.
 
- * Unclassified - tool/API is new or does not have the required testing in the
-   Node.js CI in order to qualify for a higher tier.
+* Unclassified - tool/API is new or does not have the required testing in the
+  Node.js CI in order to qualify for a higher tier.
 
 The choice of which tier a particular tool will be assigned to, will be a
 collaborative decision between Diagnostics WG and Release WG. Some of the
@@ -102,7 +102,6 @@ The tools are currently assigned to Tiers as follows:
  | Tool Type | Tool/API Name             | Regular Testing in Node.js CI | Integrated with Node.js | Target Tier |
  |-----------|---------------------------|-------------------------------|-------------------------|-------------|
  |           |                           |                               |                         |             |
-
 
 ## Tier 3
 

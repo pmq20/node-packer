@@ -128,14 +128,14 @@ if (cluster.isMaster) {
       // Anything can happen now! Be very careful!
 
       try {
-        // make sure we close down within 30 seconds
+        // Make sure we close down within 30 seconds
         const killtimer = setTimeout(() => {
           process.exit(1);
         }, 30000);
         // But don't keep the process open just for that!
         killtimer.unref();
 
-        // stop taking new requests.
+        // Stop taking new requests.
         server.close();
 
         // Let the master know we're dead. This will trigger a
@@ -143,12 +143,12 @@ if (cluster.isMaster) {
         // a new worker.
         cluster.worker.disconnect();
 
-        // try to send an error to the request that triggered the problem
+        // Try to send an error to the request that triggered the problem
         res.statusCode = 500;
         res.setHeader('content-type', 'text/plain');
         res.end('Oops, there was a problem!\n');
       } catch (er2) {
-        // oh well, not much we can do at this point.
+        // Oh well, not much we can do at this point.
         console.error(`Error sending 500! ${er2.stack}`);
       }
     });
@@ -240,15 +240,15 @@ perhaps we would like to have a separate domain to use for each request.
 That is possible via explicit binding.
 
 ```js
-// create a top-level domain for the server
+// Create a top-level domain for the server
 const domain = require('domain');
 const http = require('http');
 const serverDomain = domain.create();
 
 serverDomain.run(() => {
-  // server is created in the scope of serverDomain
+  // Server is created in the scope of serverDomain
   http.createServer((req, res) => {
-    // req and res are also created in the scope of serverDomain
+    // Req and res are also created in the scope of serverDomain
     // however, we'd prefer to have a separate domain for each request.
     // create it first thing, and add req and res to it.
     const reqd = domain.create();
@@ -273,11 +273,12 @@ serverDomain.run(() => {
 
 ## Class: Domain
 
+* Extends: {EventEmitter}
+
 The `Domain` class encapsulates the functionality of routing errors and
 uncaught exceptions to the active `Domain` object.
 
-`Domain` is a child class of [`EventEmitter`][]. To handle the errors that it
-catches, listen to its `'error'` event.
+To handle the errors that it catches, listen to its `'error'` event.
 
 ### domain.members
 
@@ -316,14 +317,13 @@ const d = domain.create();
 
 function readSomeFile(filename, cb) {
   fs.readFile(filename, 'utf8', d.bind((er, data) => {
-    // if this throws, it will also be passed to the domain
+    // If this throws, it will also be passed to the domain.
     return cb(er, data ? JSON.parse(data) : null);
   }));
 }
 
 d.on('error', (er) => {
-  // an error occurred somewhere.
-  // if we throw it now, it will crash the program
+  // An error occurred somewhere. If we throw it now, it will crash the program
   // with the normal line number and stack message.
 });
 ```
@@ -373,11 +373,11 @@ const d = domain.create();
 
 function readSomeFile(filename, cb) {
   fs.readFile(filename, 'utf8', d.intercept((data) => {
-    // note, the first argument is never passed to the
+    // Note, the first argument is never passed to the
     // callback since it is assumed to be the 'Error' argument
     // and thus intercepted by the domain.
 
-    // if this throws, it will also be passed to the domain
+    // If this throws, it will also be passed to the domain
     // so the error-handling logic can be moved to the 'error'
     // event on the domain instead of being repeated throughout
     // the program.
@@ -386,8 +386,7 @@ function readSomeFile(filename, cb) {
 }
 
 d.on('error', (er) => {
-  // an error occurred somewhere.
-  // if we throw it now, it will crash the program
+  // An error occurred somewhere. If we throw it now, it will crash the program
   // with the normal line number and stack message.
 });
 ```
@@ -420,7 +419,7 @@ d.on('error', (er) => {
 });
 d.run(() => {
   process.nextTick(() => {
-    setTimeout(() => { // simulating some various async stuff
+    setTimeout(() => { // Simulating some various async stuff
       fs.open('non-existent file', 'r', (er, fd) => {
         if (er) throw er;
         // proceed...
@@ -472,12 +471,11 @@ d2.run(() => {
 });
 ```
 
-Note that domains will not interfere with the error handling mechanisms for
-Promises, i.e. no `'error'` event will be emitted for unhandled `Promise`
-rejections.
+Domains will not interfere with the error handling mechanisms for
+Promises. In other words, no `'error'` event will be emitted for unhandled
+`Promise` rejections.
 
 [`Error`]: errors.html#errors_class_error
-[`EventEmitter`]: events.html#events_class_eventemitter
 [`domain.add(emitter)`]: #domain_domain_add_emitter
 [`domain.bind(callback)`]: #domain_domain_bind_callback
 [`domain.exit()`]: #domain_domain_exit

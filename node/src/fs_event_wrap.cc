@@ -23,7 +23,6 @@
 #include "env-inl.h"
 #include "util-inl.h"
 #include "node.h"
-#include "node_internals.h"
 #include "handle_wrap.h"
 #include "string_bytes.h"
 
@@ -52,7 +51,8 @@ class FSEventWrap: public HandleWrap {
  public:
   static void Initialize(Local<Object> target,
                          Local<Value> unused,
-                         Local<Context> context);
+                         Local<Context> context,
+                         void* priv);
   static void New(const FunctionCallbackInfo<Value>& args);
   static void Start(const FunctionCallbackInfo<Value>& args);
   static void GetInitialized(const FunctionCallbackInfo<Value>& args);
@@ -65,7 +65,7 @@ class FSEventWrap: public HandleWrap {
   static const encoding kDefaultEncoding = UTF8;
 
   FSEventWrap(Environment* env, Local<Object> object);
-  ~FSEventWrap() override;
+  ~FSEventWrap() = default;
 
   static void OnEvent(uv_fs_event_t* handle, const char* filename, int events,
     int status);
@@ -84,9 +84,6 @@ FSEventWrap::FSEventWrap(Environment* env, Local<Object> object)
 }
 
 
-FSEventWrap::~FSEventWrap() {
-}
-
 void FSEventWrap::GetInitialized(const FunctionCallbackInfo<Value>& args) {
   FSEventWrap* wrap = Unwrap<FSEventWrap>(args.This());
   CHECK_NOT_NULL(wrap);
@@ -95,7 +92,8 @@ void FSEventWrap::GetInitialized(const FunctionCallbackInfo<Value>& args) {
 
 void FSEventWrap::Initialize(Local<Object> target,
                              Local<Value> unused,
-                             Local<Context> context) {
+                             Local<Context> context,
+                             void* priv) {
   Environment* env = Environment::GetCurrent(context);
 
   auto fsevent_string = FIXED_ONE_BYTE_STRING(env->isolate(), "FSEvent");
@@ -110,16 +108,18 @@ void FSEventWrap::Initialize(Local<Object> target,
   Local<FunctionTemplate> get_initialized_templ =
       FunctionTemplate::New(env->isolate(),
                             GetInitialized,
-                            env->as_external(),
+                            env->as_callback_data(),
                             Signature::New(env->isolate(), t));
 
   t->PrototypeTemplate()->SetAccessorProperty(
       FIXED_ONE_BYTE_STRING(env->isolate(), "initialized"),
       get_initialized_templ,
       Local<FunctionTemplate>(),
-      static_cast<PropertyAttribute>(ReadOnly | DontDelete | v8::DontEnum));
+      static_cast<PropertyAttribute>(ReadOnly | DontDelete | DontEnum));
 
-  target->Set(fsevent_string, t->GetFunction(context).ToLocalChecked());
+  target->Set(env->context(),
+              fsevent_string,
+              t->GetFunction(context).ToLocalChecked()).Check();
 }
 
 
@@ -233,4 +233,4 @@ void FSEventWrap::OnEvent(uv_fs_event_t* handle, const char* filename,
 }  // anonymous namespace
 }  // namespace node
 
-NODE_BUILTIN_MODULE_CONTEXT_AWARE(fs_event_wrap, node::FSEventWrap::Initialize)
+NODE_MODULE_CONTEXT_AWARE_INTERNAL(fs_event_wrap, node::FSEventWrap::Initialize)

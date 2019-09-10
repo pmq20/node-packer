@@ -12,7 +12,9 @@ const URL = require('url').URL;
 const assert = require('assert');
 const fixtures = require('../common/fixtures');
 
-const tests = require(fixtures.path('url-tests'));
+const tests = require(
+  fixtures.path('wpt', 'url', 'resources', 'urltestdata.json')
+);
 
 const originalFailures = tests.filter((test) => test.failure);
 
@@ -54,15 +56,13 @@ for (const test of failureTests) {
   assert.throws(
     () => new URL(test.input, test.base),
     (error) => {
-      if (!expectedError(error))
-        return false;
+      expectedError(error);
 
       // The input could be processed, so we don't do strict matching here
-      const match = (`${error}`).match(/Invalid URL: (.*)$/);
-      if (!match) {
-        return false;
-      }
-      return error.input === match[1];
+      let match;
+      assert(match = (`${error}`).match(/Invalid URL: (.*)$/));
+      assert.strictEqual(error.input, match[1]);
+      return true;
     });
 }
 

@@ -20,7 +20,7 @@
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 'use strict';
-// test uncompressing invalid input
+// Test uncompressing invalid input
 
 const common = require('../common');
 const assert = require('assert');
@@ -38,7 +38,8 @@ const unzips = [
   zlib.Unzip(),
   zlib.Gunzip(),
   zlib.Inflate(),
-  zlib.InflateRaw()
+  zlib.InflateRaw(),
+  zlib.BrotliDecompress()
 ];
 
 nonStringInputs.forEach(common.mustCall((input) => {
@@ -53,6 +54,6 @@ unzips.forEach(common.mustCall((uz, i) => {
   uz.on('error', common.mustCall());
   uz.on('end', common.mustNotCall);
 
-  // this will trigger error event
+  // This will trigger error event
   uz.write('this is not valid compressed data.');
 }, unzips.length));

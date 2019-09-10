@@ -170,7 +170,7 @@ console.log(myURL.href);
 ```
 
 Invalid URL characters included in the value assigned to the `hash` property
-are [percent-encoded][]. Note that the selection of which characters to
+are [percent-encoded][]. The selection of which characters to
 percent-encode may vary somewhat from what the [`url.parse()`][] and
 [`url.format()`][] methods would produce.
 
@@ -276,7 +276,7 @@ console.log(myURL.href);
 ```
 
 Invalid URL characters included in the value assigned to the `password` property
-are [percent-encoded][]. Note that the selection of which characters to
+are [percent-encoded][]. The selection of which characters to
 percent-encode may vary somewhat from what the [`url.parse()`][] and
 [`url.format()`][] methods would produce.
 
@@ -297,7 +297,7 @@ console.log(myURL.href);
 ```
 
 Invalid URL characters included in the value assigned to the `pathname`
-property are [percent-encoded][]. Note that the selection of which characters
+property are [percent-encoded][]. The selection of which characters
 to percent-encode may vary somewhat from what the [`url.parse()`][] and
 [`url.format()`][] methods would produce.
 
@@ -373,7 +373,7 @@ console.log(myURL.port);
 // Prints 1234
 ```
 
-Note that numbers which contain a decimal point,
+Numbers which contain a decimal point,
 such as floating-point numbers or numbers in scientific notation,
 are not an exception to this rule.
 Leading numbers up to the decimal point will be set as the URL's port,
@@ -440,8 +440,8 @@ console.log(u.href);
 // fish://example.org
 ```
 
-The protocol schemes considered to be special by the WHATWG URL Standard
-include: `ftp`, `file`, `gopher`, `http`, `https`, `ws`, and `wss`.
+According to the WHATWG URL Standard, special protocol schemes are `ftp`,
+`file`, `gopher`, `http`, `https`, `ws`, and `wss`.
 
 #### url.search
 
@@ -460,7 +460,7 @@ console.log(myURL.href);
 ```
 
 Any invalid URL characters appearing in the value assigned the `search`
-property will be [percent-encoded][]. Note that the selection of which
+property will be [percent-encoded][]. The selection of which
 characters to percent-encode may vary somewhat from what the [`url.parse()`][]
 and [`url.format()`][] methods would produce.
 
@@ -490,7 +490,7 @@ console.log(myURL.href);
 ```
 
 Any invalid URL characters appearing in the value assigned the `username`
-property will be [percent-encoded][]. Note that the selection of which
+property will be [percent-encoded][]. The selection of which
 characters to percent-encode may vary somewhat from what the [`url.parse()`][]
 and [`url.format()`][] methods would produce.
 
@@ -984,7 +984,15 @@ pathToFileURL('/some/path%.js');    // Correct:   file:///some/path%25 (POSIX)
 
 ## Legacy URL API
 
+> Stability: 0 - Deprecated: Use the WHATWG URL API instead.
+
 ### Legacy `urlObject`
+<!-- YAML
+changes:
+  - version: v11.0.0
+    pr-url: https://github.com/nodejs/node/pull/22715
+    description: The Legacy URL API is deprecated. Use the WHATWG URL API.
+-->
 
 The legacy `urlObject` (`require('url').Url`) is created and returned by the
 `url.parse()` function.
@@ -1090,6 +1098,9 @@ forward-slash characters (`/`) are required following the colon in the
 <!-- YAML
 added: v0.1.25
 changes:
+  - version: v11.0.0
+    pr-url: https://github.com/nodejs/node/pull/22715
+    description: The Legacy URL API is deprecated. Use the WHATWG URL API.
   - version: v7.0.0
     pr-url: https://github.com/nodejs/node/pull/7234
     description: URLs with a `file:` scheme will now always use the correct
@@ -1178,6 +1189,9 @@ The formatting process operates as follows:
 <!-- YAML
 added: v0.1.25
 changes:
+  - version: v11.0.0
+    pr-url: https://github.com/nodejs/node/pull/22715
+    description: The Legacy URL API is deprecated. Use the WHATWG URL API.
   - version: v9.0.0
     pr-url: https://github.com/nodejs/node/pull/13606
     description: The `search` property on the returned URL object is now `null`
@@ -1206,6 +1220,9 @@ A `URIError` is thrown if the `auth` property is present but cannot be decoded.
 <!-- YAML
 added: v0.1.25
 changes:
+  - version: v11.0.0
+    pr-url: https://github.com/nodejs/node/pull/22715
+    description: The Legacy URL API is deprecated. Use the WHATWG URL API.
   - version: v6.6.0
     pr-url: https://github.com/nodejs/node/pull/8215
     description: The `auth` fields are now kept intact when `from` and `to`

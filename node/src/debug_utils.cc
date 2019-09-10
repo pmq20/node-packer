@@ -1,5 +1,6 @@
 #include "debug_utils.h"
-#include "node_internals.h"
+#include "env-inl.h"
+#include "util-inl.h"
 
 #ifdef __POSIX__
 #if defined(__linux__)
@@ -20,19 +21,16 @@
 #include <execinfo.h>
 #include <unistd.h>
 #include <sys/mman.h>
-#include <stdio.h>
+#include <cstdio>
 #endif
-
-#else  // __POSIX__
-
-#include <windows.h>
-#include <dbghelp.h>
 
 #endif  // __POSIX__
 
-#if defined(__linux__) || defined(__sun)
+#if defined(__linux__) || defined(__sun) || \
+    defined(__FreeBSD__) || defined(__OpenBSD__)
 #include <link.h>
-#endif  // (__linux__) || defined(__sun)
+#endif  // (__linux__) || defined(__sun) ||
+        // (__FreeBSD__) || defined(__OpenBSD__)
 
 #ifdef __APPLE__
 #include <mach-o/dyld.h>  // _dyld_get_image_name()
@@ -67,7 +65,8 @@ class PosixSymbolDebuggingContext final : public NativeSymbolDebuggingContext {
       return ret;
 
     if (info.dli_sname != nullptr) {
-      if (char* demangled = abi::__cxa_demangle(info.dli_sname, 0, 0, 0)) {
+      if (char* demangled =
+              abi::__cxa_demangle(info.dli_sname, nullptr, nullptr, nullptr)) {
         ret.name = demangled;
         free(demangled);
       } else {
@@ -283,20 +282,36 @@ void DumpBacktrace(FILE* fp) {
 void CheckedUvLoopClose(uv_loop_t* loop) {
   if (uv_loop_close(loop) == 0) return;
 
-  auto sym_ctx = NativeSymbolDebuggingContext::New();
+  PrintLibuvHandleInformation(loop, stderr);
 
-  fprintf(stderr, "uv loop at [%p] has active handles\n", loop);
+  fflush(stderr);
+  // Finally, abort.
+  CHECK(0 && "uv_loop_close() while having open handles");
+}
+
+void PrintLibuvHandleInformation(uv_loop_t* loop, FILE* stream) {
+  struct Info {
+    std::unique_ptr<NativeSymbolDebuggingContext> ctx;
+    FILE* stream;
+  };
+
+  Info info { NativeSymbolDebuggingContext::New(), stream };
+
+  fprintf(stream, "uv loop at [%p] has %d active handles\n",
+          loop, loop->active_handles);
 
   uv_walk(loop, [](uv_handle_t* handle, void* arg) {
-    auto sym_ctx = static_cast<NativeSymbolDebuggingContext*>(arg);
+    Info* info = static_cast<Info*>(arg);
+    NativeSymbolDebuggingContext* sym_ctx = info->ctx.get();
+    FILE* stream = info->stream;
 
-    fprintf(stderr, "[%p] %s\n", handle, uv_handle_type_name(handle->type));
+    fprintf(stream, "[%p] %s\n", handle, uv_handle_type_name(handle->type));
 
     void* close_cb = reinterpret_cast<void*>(handle->close_cb);
-    fprintf(stderr, "\tClose callback: %p %s\n",
+    fprintf(stream, "\tClose callback: %p %s\n",
         close_cb, sym_ctx->LookupSymbol(close_cb).Display().c_str());
 
-    fprintf(stderr, "\tData: %p %s\n",
+    fprintf(stream, "\tData: %p %s\n",
         handle->data, sym_ctx->LookupSymbol(handle->data).Display().c_str());
 
     // We are also interested in the first field of what `handle->data`
@@ -310,19 +325,15 @@ void CheckedUvLoopClose(uv_loop_t* loop) {
       first_field = *reinterpret_cast<void**>(handle->data);
 
     if (first_field != nullptr) {
-      fprintf(stderr, "\t(First field): %p %s\n",
+      fprintf(stream, "\t(First field): %p %s\n",
           first_field, sym_ctx->LookupSymbol(first_field).Display().c_str());
     }
-  }, sym_ctx.get());
-
-  fflush(stderr);
-  // Finally, abort.
-  CHECK(0 && "uv_loop_close() while having open handles");
+  }, &info);
 }
 
 std::vector<std::string> NativeSymbolDebuggingContext::GetLoadedLibraries() {
   std::vector<std::string> list;
-#ifdef __linux__
+#if defined(__linux__) || defined(__FreeBSD__) || defined(__OpenBSD__)
   dl_iterate_phdr(
       [](struct dl_phdr_info* info, size_t size, void* data) {
         auto list = static_cast<std::vector<std::string>*>(data);

@@ -1,5 +1,7 @@
 'use strict';
 
+const { Object } = primordials;
+
 const finished = require('internal/streams/end-of-stream');
 
 const kLastResolve = Symbol('lastResolve');
@@ -18,9 +20,7 @@ function readAndResolve(iter) {
   const resolve = iter[kLastResolve];
   if (resolve !== null) {
     const data = iter[kStream].read();
-    // we defer if data is null
-    // we can be expecting either 'end' or
-    // 'error'
+    // We defer if data is null. We can be expecting either 'end' or 'error'.
     if (data !== null) {
       iter[kLastPromise] = null;
       iter[kLastResolve] = null;
@@ -31,8 +31,8 @@ function readAndResolve(iter) {
 }
 
 function onReadable(iter) {
-  // we wait for the next tick, because it might
-  // emit an error with process.nextTick
+  // We wait for the next tick, because it might
+  // emit an error with `process.nextTick()`.
   process.nextTick(readAndResolve, iter);
 }
 
@@ -58,8 +58,8 @@ const ReadableStreamAsyncIteratorPrototype = Object.setPrototypeOf({
   },
 
   next() {
-    // if we have detected an error in the meanwhile
-    // reject straight away
+    // If we have detected an error in the meanwhile
+    // reject straight away.
     const error = this[kError];
     if (error !== null) {
       return Promise.reject(error);
@@ -85,18 +85,17 @@ const ReadableStreamAsyncIteratorPrototype = Object.setPrototypeOf({
       });
     }
 
-    // if we have multiple next() calls
-    // we will wait for the previous Promise to finish
-    // this logic is optimized to support for await loops,
-    // where next() is only called once at a time
+    // If we have multiple next() calls we will wait for the previous Promise to
+    // finish. This logic is optimized to support for await loops, where next()
+    // is only called once at a time.
     const lastPromise = this[kLastPromise];
     let promise;
 
     if (lastPromise) {
       promise = new Promise(wrapForNext(lastPromise, this));
     } else {
-      // fast path needed to support multiple this.push()
-      // without triggering the next() queue
+      // Fast path needed to support multiple this.push()
+      // without triggering the next() queue.
       const data = this[kStream].read();
       if (data !== null) {
         return Promise.resolve(createIterResult(data, false));
@@ -111,17 +110,26 @@ const ReadableStreamAsyncIteratorPrototype = Object.setPrototypeOf({
   },
 
   return() {
-    // destroy(err, cb) is a private API
-    // we can guarantee we have that here, because we control the
-    // Readable class this is attached to
     return new Promise((resolve, reject) => {
-      this[kStream].destroy(null, (err) => {
-        if (err) {
-          reject(err);
-          return;
-        }
+      const stream = this[kStream];
+
+      // TODO(ronag): Remove this check once finished() handles
+      // already ended and/or destroyed streams.
+      const ended = stream.destroyed || stream.readableEnded ||
+        (stream._readableState && stream._readableState.endEmitted);
+      if (ended) {
         resolve(createIterResult(undefined, true));
+        return;
+      }
+
+      finished(stream, (err) => {
+        if (err && err.code !== 'ERR_STREAM_PREMATURE_CLOSE') {
+          reject(err);
+        } else {
+          resolve(createIterResult(undefined, true));
+        }
       });
+      stream.destroy();
     });
   },
 }, AsyncIteratorPrototype);
@@ -133,12 +141,11 @@ const createReadableStreamAsyncIterator = (stream) => {
     [kLastReject]: { value: null, writable: true },
     [kError]: { value: null, writable: true },
     [kEnded]: {
-      value: stream._readableState.endEmitted,
+      value: stream.readableEnded || stream._readableState.endEmitted,
       writable: true
     },
-    // the function passed to new Promise
-    // is cached so we avoid allocating a new
-    // closure at every run
+    // The function passed to new Promise is cached so we avoid allocating a new
+    // closure at every run.
     [kHandlePromise]: {
       value: (resolve, reject) => {
         const data = iterator[kStream].read();
@@ -157,11 +164,11 @@ const createReadableStreamAsyncIterator = (stream) => {
   });
   iterator[kLastPromise] = null;
 
-  finished(stream, (err) => {
+  finished(stream, { writable: false }, (err) => {
     if (err && err.code !== 'ERR_STREAM_PREMATURE_CLOSE') {
       const reject = iterator[kLastReject];
-      // reject if we are waiting for data in the Promise
-      // returned by next() and store the error
+      // Reject if we are waiting for data in the Promise returned by next() and
+      // store the error.
       if (reject !== null) {
         iterator[kLastPromise] = null;
         iterator[kLastResolve] = null;

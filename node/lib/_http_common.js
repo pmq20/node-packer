@@ -21,10 +21,16 @@
 
 'use strict';
 
-const { methods, HTTPParser } = internalBinding('http_parser');
+const { Math } = primordials;
+const { setImmediate } = require('timers');
 
-const { FreeList } = require('internal/freelist');
-const { ondrain } = require('internal/http');
+const { getOptionValue } = require('internal/options');
+
+const { methods, HTTPParser } =
+  getOptionValue('--http-parser') === 'legacy' ?
+    internalBinding('http_parser') : internalBinding('http_parser_llhttp');
+
+const FreeList = require('internal/freelist');
 const incoming = require('_http_incoming');
 const {
   IncomingMessage,
@@ -32,7 +38,7 @@ const {
   readStop
 } = incoming;
 
-const debug = require('util').debuglog('http');
+const debug = require('internal/util/debuglog').debuglog('http');
 
 const kIncomingMessage = Symbol('IncomingMessage');
 const kOnHeaders = HTTPParser.kOnHeaders | 0;
@@ -112,11 +118,11 @@ function parserOnHeadersComplete(versionMajor, versionMinor, headers, method,
 function parserOnBody(b, start, len) {
   const stream = this.incoming;
 
-  // if the stream has already been removed, then drop it.
+  // If the stream has already been removed, then drop it.
   if (stream === null)
     return;
 
-  // pretend this was the result of a stream._read call.
+  // Pretend this was the result of a stream._read call.
   if (len > 0 && !stream._dumped) {
     var slice = b.slice(start, start + len);
     var ret = stream.push(slice);
@@ -143,13 +149,13 @@ function parserOnMessageComplete() {
     stream.push(null);
   }
 
-  // force to read the next incoming message
+  // Force to read the next incoming message
   readStart(parser.socket);
 }
 
 
 const parsers = new FreeList('parsers', 1000, function parsersCb() {
-  const parser = new HTTPParser(HTTPParser.REQUEST);
+  const parser = new HTTPParser();
 
   cleanParser(parser);
 
@@ -194,12 +200,6 @@ function freeParser(parser, req, socket) {
   }
 }
 
-
-function httpSocketSetup(socket) {
-  socket.removeListener('drain', ondrain);
-  socket.on('drain', ondrain);
-}
-
 const tokenRegExp = /^[\^_`a-zA-Z\-0-9!#$%&'*+.|~]+$/;
 /**
  * Verifies that the given val is a valid HTTP token
@@ -232,6 +232,12 @@ function cleanParser(parser) {
   parser._consumed = false;
 }
 
+function prepareError(err, parser, rawPacket) {
+  err.rawPacket = rawPacket || parser.getCurrentBuffer();
+  if (typeof err.reason === 'string')
+    err.message = `Parse Error: ${err.reason}`;
+}
+
 module.exports = {
   _checkInvalidHeaderChar: checkInvalidHeaderChar,
   _checkIsHttpToken: checkIsHttpToken,
@@ -240,8 +246,9 @@ module.exports = {
   CRLF: '\r\n',
   debug,
   freeParser,
-  httpSocketSetup,
   methods,
   parsers,
-  kIncomingMessage
+  kIncomingMessage,
+  HTTPParser,
+  prepareError,
 };

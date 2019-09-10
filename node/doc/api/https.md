@@ -10,18 +10,48 @@ separate module.
 ## Class: https.Agent
 <!-- YAML
 added: v0.4.5
+changes:
+  - version: v2.5.0
+    pr-url: https://github.com/nodejs/node/pull/2228
+    description: parameter `maxCachedSessions` added to `options` for TLS
+                 sessions reuse.
+  - version: v5.3.0
+    pr-url: https://github.com/nodejs/node/pull/4252
+    description: support `0` `maxCachedSessions` to disable TLS session caching.
 -->
 
 An [`Agent`][] object for HTTPS similar to [`http.Agent`][]. See
 [`https.request()`][] for more information.
+
+### new Agent([options])
+<!-- YAML
+changes:
+  - version: v12.5.0
+    pr-url: https://github.com/nodejs/node/pull/28209
+    description: do not automatically set servername if the target host was
+                 specified using an IP address.
+-->
+* `options` {Object} Set of configurable options to set on the agent.
+  Can have the same fields as for [`http.Agent(options)`][], and
+  * `maxCachedSessions` {number} maximum number of TLS cached sessions.
+    Use `0` to disable TLS session caching. **Default:** `100`.
+  * `servername` {string} the value of
+    [Server Name Indication extension][sni wiki] to be sent to the server. Use
+    empty string `''` to disable sending the extension.
+    **Default:** hostname of the target server, unless the target server
+    is specified using an IP address, in which case the default is `''` (no
+    extension).
+
+    See [`Session Resumption`][] for information about TLS session reuse.
 
 ## Class: https.Server
 <!-- YAML
 added: v0.3.4
 -->
 
-This class is a subclass of `tls.Server` and emits events same as
-[`http.Server`][]. See [`http.Server`][] for more information.
+* Extends: {tls.Server}
+
+See [`http.Server`][] for more information.
 
 ### server.close([callback])
 <!-- YAML
@@ -32,23 +62,24 @@ added: v0.1.90
 
 See [`server.close()`][`http.close()`] from the HTTP module for details.
 
+### server.headersTimeout
+<!-- YAML
+added: v11.3.0
+-->
+- {number} **Default:** `40000`
+
+See [`http.Server#headersTimeout`][].
+
 ### server.listen()
 
 Starts the HTTPS server listening for encrypted connections.
 This method is identical to [`server.listen()`][] from [`net.Server`][].
-
 
 ### server.maxHeadersCount
 
 - {number} **Default:** `2000`
 
 See [`http.Server#maxHeadersCount`][].
-
-### server.headersTimeout
-
-- {number} **Default:** `40000`
-
-See [`http.Server#headersTimeout`][].
 
 ### server.setTimeout([msecs][, callback])
 <!-- YAML
@@ -139,7 +170,7 @@ changes:
 Like [`http.get()`][] but for HTTPS.
 
 `options` can be an object, a string, or a [`URL`][] object. If `options` is a
-string, it is automatically parsed with [`url.parse()`][]. If it is a [`URL`][]
+string, it is automatically parsed with [`new URL()`][]. If it is a [`URL`][]
 object, it will be automatically converted to an ordinary `options` object.
 
 ```js
@@ -197,7 +228,7 @@ The following additional `options` from [`tls.connect()`][] are also accepted:
 `secureOptions`, `secureProtocol`, `servername`, `sessionIdContext`.
 
 `options` can be an object, a string, or a [`URL`][] object. If `options` is a
-string, it is automatically parsed with [`url.parse()`][]. If it is a [`URL`][]
+string, it is automatically parsed with [`new URL()`][]. If it is a [`URL`][]
 object, it will be automatically converted to an ordinary `options` object.
 
 ```js
@@ -224,6 +255,7 @@ req.on('error', (e) => {
 });
 req.end();
 ```
+
 Example using options from [`tls.connect()`][]:
 
 ```js
@@ -367,9 +399,10 @@ headers: max-age=0; pin-sha256="WoiWRyIOVNa9ihaBciRSC7XHjliYS9VwUGOIud4PB18="; p
 [`Agent`]: #https_class_https_agent
 [`URL`]: url.html#url_the_whatwg_url_api
 [`http.Agent`]: http.html#http_class_http_agent
+[`http.Agent(options)`]: http.html#http_new_agent_options
+[`http.Server#headersTimeout`]: http.html#http_server_headerstimeout
 [`http.Server#keepAliveTimeout`]: http.html#http_server_keepalivetimeout
 [`http.Server#maxHeadersCount`]: http.html#http_server_maxheaderscount
-[`http.Server#headersTimeout`]: http.html#http_server_headerstimeout
 [`http.Server#setTimeout()`]: http.html#http_server_settimeout_msecs_callback
 [`http.Server#timeout`]: http.html#http_server_timeout
 [`http.Server`]: http.html#http_class_http_server
@@ -380,8 +413,10 @@ headers: max-age=0; pin-sha256="WoiWRyIOVNa9ihaBciRSC7XHjliYS9VwUGOIud4PB18="; p
 [`https.Agent`]: #https_class_https_agent
 [`https.request()`]: #https_https_request_options_callback
 [`net.Server`]: net.html#net_class_net_server
+[`new URL()`]: url.html#url_constructor_new_url_input_base
 [`server.listen()`]: net.html#net_server_listen
 [`tls.connect()`]: tls.html#tls_tls_connect_options_callback
 [`tls.createSecureContext()`]: tls.html#tls_tls_createsecurecontext_options
 [`tls.createServer()`]: tls.html#tls_tls_createserver_options_secureconnectionlistener
-[`url.parse()`]: url.html#url_url_parse_urlstring_parsequerystring_slashesdenotehost
+[`Session Resumption`]: tls.html#tls_session_resumption
+[sni wiki]: https://en.wikipedia.org/wiki/Server_Name_Indication

@@ -33,9 +33,11 @@
 
 #include <functional>
 #include <map>
+#include <unordered_map>
 
 #include "src/base/macros.h"
 #include "src/base/platform/mutex.h"
+#include "src/inspector/injected-script.h"
 #include "src/inspector/protocol/Protocol.h"
 
 #include "include/v8-inspector.h"
@@ -77,6 +79,7 @@ class V8InspectorImpl : public V8Inspector {
                                               const StringView& state) override;
   void contextCreated(const V8ContextInfo&) override;
   void contextDestroyed(v8::Local<v8::Context>) override;
+  v8::MaybeLocal<v8::Context> contextById(int contextId) override;
   void contextCollected(int contextGroupId, int contextId);
   void resetContextGroup(int contextGroupId) override;
   void idleStarted() override;
@@ -117,21 +120,24 @@ class V8InspectorImpl : public V8Inspector {
   InspectedContext* getContext(int contextId) const;
   V8Console* console();
   void forEachContext(int contextGroupId,
-                      std::function<void(InspectedContext*)> callback);
-  void forEachSession(int contextGroupId,
-                      std::function<void(V8InspectorSessionImpl*)> callback);
+                      const std::function<void(InspectedContext*)>& callback);
+  void forEachSession(
+      int contextGroupId,
+      const std::function<void(V8InspectorSessionImpl*)>& callback);
 
   class EvaluateScope {
    public:
-    explicit EvaluateScope(v8::Isolate* isolate);
+    explicit EvaluateScope(const InjectedScript::Scope& scope);
     ~EvaluateScope();
 
     protocol::Response setTimeout(double timeout);
 
    private:
-    v8::Isolate* m_isolate;
     class TerminateTask;
     struct CancelToken;
+
+    const InjectedScript::Scope& m_scope;
+    v8::Isolate* m_isolate;
     std::shared_ptr<CancelToken> m_cancelToken;
     v8::Isolate::SafeForTerminationScope m_safeForTerminationScope;
   };
@@ -147,23 +153,23 @@ class V8InspectorImpl : public V8Inspector {
   int m_lastSessionId = 0;
   uint64_t m_isolateId;
 
-  using MuteExceptionsMap = protocol::HashMap<int, int>;
+  using MuteExceptionsMap = std::unordered_map<int, int>;
   MuteExceptionsMap m_muteExceptionsMap;
 
   using ContextByIdMap =
-      protocol::HashMap<int, std::unique_ptr<InspectedContext>>;
+      std::unordered_map<int, std::unique_ptr<InspectedContext>>;
   using ContextsByGroupMap =
-      protocol::HashMap<int, std::unique_ptr<ContextByIdMap>>;
+      std::unordered_map<int, std::unique_ptr<ContextByIdMap>>;
   ContextsByGroupMap m_contexts;
 
   // contextGroupId -> sessionId -> session
-  protocol::HashMap<int, std::map<int, V8InspectorSessionImpl*>> m_sessions;
+  std::unordered_map<int, std::map<int, V8InspectorSessionImpl*>> m_sessions;
 
   using ConsoleStorageMap =
-      protocol::HashMap<int, std::unique_ptr<V8ConsoleMessageStorage>>;
+      std::unordered_map<int, std::unique_ptr<V8ConsoleMessageStorage>>;
   ConsoleStorageMap m_consoleStorageMap;
 
-  protocol::HashMap<int, int> m_contextIdToGroupIdMap;
+  std::unordered_map<int, int> m_contextIdToGroupIdMap;
 
   std::unique_ptr<V8Console> m_console;
 

@@ -13,7 +13,7 @@
   * [CamelCase for methods, functions, and classes](#camelcase-for-methods-functions-and-classes)
   * [snake\_case for local variables and parameters](#snake_case-for-local-variables-and-parameters)
   * [snake\_case\_ for private class fields](#snake_case_-for-private-class-fields)
-  * [snake\_case\_ for C-like structs](#snake_case_-for-c-like-structs)
+  * [snake\_case for C-like structs](#snake_case-for-c-like-structs)
   * [Space after `template`](#space-after-template)
 * [Memory Management](#memory-management)
   * [Memory allocation](#memory-allocation)
@@ -28,7 +28,6 @@
   * [Do not include `*.h` if `*-inl.h` has already been included](#do-not-include-h-if--inlh-has-already-been-included)
   * [Avoid throwing JavaScript errors in C++ methods](#avoid-throwing-javascript-errors-in-c)
     * [Avoid throwing JavaScript errors in nested C++ methods](#avoid-throwing-javascript-errors-in-nested-c-methods)
-
 
 ## Guides and References
 
@@ -169,7 +168,7 @@ class Foo {
 };
 ```
 
-### snake\_case\_ for C-like structs
+### snake\_case for C-like structs
 For plain C-like structs snake_case can be used.
 
 ```c++
@@ -186,6 +185,7 @@ class FancyContainer {
  ...
 }
 ```
+
 ## Memory Management
 
 ### Memory allocation
@@ -326,7 +326,7 @@ When there is a need to throw errors from a C++ binding method, try to
 return the data necessary for constructing the errors to JavaScript,
 then construct and throw the errors [using `lib/internal/errors.js`][errors].
 
-Note that in general, type-checks on arguments should be done in JavaScript
+In general, type-checks on arguments should be done in JavaScript
 before the arguments are passed into C++. Then in the C++ binding, simply using
 `CHECK` assertions to guard against invalid arguments should be enough.
 
@@ -384,7 +384,6 @@ side effects.
 
 Node.js is built [without C++ exception handling][], so code using `throw` or
 even `try` and `catch` **will** break.
-
 
 [C++ Core Guidelines]: http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines
 [Google C++ Style Guide]: https://google.github.io/styleguide/cppguide.html

@@ -2,13 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include "src/builtins/builtins-utils-inl.h"
 #include "src/builtins/builtins.h"
-#include "src/builtins/builtins-utils.h"
-
-#include "src/counters.h"
-#include "src/objects-inl.h"
+#include "src/heap/heap-inl.h"  // For ToBoolean.
+#include "src/logging/counters.h"
 #include "src/objects/frame-array-inl.h"
-#include "src/string-builder.h"
+#include "src/objects/objects-inl.h"
 
 namespace v8 {
 namespace internal {
@@ -26,9 +25,9 @@ namespace internal {
 
 namespace {
 
-Object* PositiveNumberOrNull(int value, Isolate* isolate) {
+Object PositiveNumberOrNull(int value, Isolate* isolate) {
   if (value >= 0) return *isolate->factory()->NewNumberFromInt(value);
-  return isolate->heap()->null_value();
+  return ReadOnlyRoots(isolate).null_value();
 }
 
 Handle<FrameArray> GetFrameArray(Isolate* isolate, Handle<JSObject> object) {
@@ -76,7 +75,7 @@ BUILTIN(CallSitePrototypeGetFunction) {
                         GetFrameIndex(isolate, recv));
 
   StackFrameBase* frame = it.Frame();
-  if (frame->IsStrict()) return isolate->heap()->undefined_value();
+  if (frame->IsStrict()) return ReadOnlyRoots(isolate).undefined_value();
   return *frame->GetFunction();
 }
 
@@ -112,6 +111,14 @@ BUILTIN(CallSitePrototypeGetPosition) {
   return Smi::FromInt(it.Frame()->GetPosition());
 }
 
+BUILTIN(CallSitePrototypeGetPromiseIndex) {
+  HandleScope scope(isolate);
+  CHECK_CALLSITE(recv, "getPromiseIndex");
+  FrameArrayIterator it(isolate, GetFrameArray(isolate, recv),
+                        GetFrameIndex(isolate, recv));
+  return PositiveNumberOrNull(it.Frame()->GetPromiseIndex(), isolate);
+}
+
 BUILTIN(CallSitePrototypeGetScriptNameOrSourceURL) {
   HandleScope scope(isolate);
   CHECK_CALLSITE(recv, "getScriptNameOrSourceUrl");
@@ -127,7 +134,7 @@ BUILTIN(CallSitePrototypeGetThis) {
                         GetFrameIndex(isolate, recv));
 
   StackFrameBase* frame = it.Frame();
-  if (frame->IsStrict()) return isolate->heap()->undefined_value();
+  if (frame->IsStrict()) return ReadOnlyRoots(isolate).undefined_value();
   return *frame->GetReceiver();
 }
 
@@ -137,6 +144,14 @@ BUILTIN(CallSitePrototypeGetTypeName) {
   FrameArrayIterator it(isolate, GetFrameArray(isolate, recv),
                         GetFrameIndex(isolate, recv));
   return *it.Frame()->GetTypeName();
+}
+
+BUILTIN(CallSitePrototypeIsAsync) {
+  HandleScope scope(isolate);
+  CHECK_CALLSITE(recv, "isAsync");
+  FrameArrayIterator it(isolate, GetFrameArray(isolate, recv),
+                        GetFrameIndex(isolate, recv));
+  return isolate->heap()->ToBoolean(it.Frame()->IsAsync());
 }
 
 BUILTIN(CallSitePrototypeIsConstructor) {
@@ -161,6 +176,14 @@ BUILTIN(CallSitePrototypeIsNative) {
   FrameArrayIterator it(isolate, GetFrameArray(isolate, recv),
                         GetFrameIndex(isolate, recv));
   return isolate->heap()->ToBoolean(it.Frame()->IsNative());
+}
+
+BUILTIN(CallSitePrototypeIsPromiseAll) {
+  HandleScope scope(isolate);
+  CHECK_CALLSITE(recv, "isPromiseAll");
+  FrameArrayIterator it(isolate, GetFrameArray(isolate, recv),
+                        GetFrameIndex(isolate, recv));
+  return isolate->heap()->ToBoolean(it.Frame()->IsPromiseAll());
 }
 
 BUILTIN(CallSitePrototypeIsToplevel) {

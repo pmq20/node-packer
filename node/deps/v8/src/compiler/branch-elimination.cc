@@ -21,7 +21,7 @@ BranchElimination::BranchElimination(Editor* editor, JSGraph* js_graph,
       zone_(zone),
       dead_(js_graph->Dead()) {}
 
-BranchElimination::~BranchElimination() {}
+BranchElimination::~BranchElimination() = default;
 
 
 Reduction BranchElimination::Reduce(Node* node) {
@@ -63,7 +63,7 @@ Reduction BranchElimination::ReduceBranch(Node* node) {
   if (from_input.LookupCondition(condition, &branch, &condition_value)) {
     // Mark the branch as a safety check if necessary.
     // Check if {branch} is dead because we might have a stale side-table entry.
-    if (!branch->IsDead()) {
+    if (!branch->IsDead() && branch->opcode() != IrOpcode::kDead) {
       IsSafetyCheck branch_safety = IsSafetyCheckOf(branch->op());
       IsSafetyCheck combined_safety =
           CombineSafetyChecks(branch_safety, IsSafetyCheckOf(node->op()));
@@ -247,13 +247,15 @@ bool BranchElimination::ControlPathConditions::LookupCondition(
     }
   }
   return false;
-  }
+}
 
-  Graph* BranchElimination::graph() const { return jsgraph()->graph(); }
+Graph* BranchElimination::graph() const { return jsgraph()->graph(); }
 
-  CommonOperatorBuilder* BranchElimination::common() const {
-    return jsgraph()->common();
-  }
+Isolate* BranchElimination::isolate() const { return jsgraph()->isolate(); }
+
+CommonOperatorBuilder* BranchElimination::common() const {
+  return jsgraph()->common();
+}
 
 }  // namespace compiler
 }  // namespace internal

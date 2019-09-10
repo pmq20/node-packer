@@ -21,7 +21,9 @@
 
 'use strict';
 
-const { Agent, globalAgent } = require('_http_agent');
+const { Object } = primordials;
+
+const httpAgent = require('_http_agent');
 const { ClientRequest } = require('_http_client');
 const { methods } = require('_http_common');
 const { IncomingMessage } = require('_http_incoming');
@@ -43,7 +45,7 @@ function request(url, options, cb) {
 }
 
 function get(url, options, cb) {
-  var req = request(url, options, cb);
+  const req = request(url, options, cb);
   req.end();
   return req;
 }
@@ -52,9 +54,8 @@ module.exports = {
   _connectionListener,
   METHODS: methods.slice().sort(),
   STATUS_CODES,
-  Agent,
+  Agent: httpAgent.Agent,
   ClientRequest,
-  globalAgent,
   IncomingMessage,
   OutgoingMessage,
   Server,
@@ -74,5 +75,16 @@ Object.defineProperty(module.exports, 'maxHeaderSize', {
     }
 
     return maxHeaderSize;
+  }
+});
+
+Object.defineProperty(module.exports, 'globalAgent', {
+  configurable: true,
+  enumerable: true,
+  get() {
+    return httpAgent.globalAgent;
+  },
+  set(value) {
+    httpAgent.globalAgent = value;
   }
 });

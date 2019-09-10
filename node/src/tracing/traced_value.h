@@ -5,10 +5,11 @@
 #ifndef SRC_TRACING_TRACED_VALUE_H_
 #define SRC_TRACING_TRACED_VALUE_H_
 
-#include "node_internals.h"
+#include "node.h"
+#include "util.h"
 #include "v8.h"
 
-#include <stddef.h>
+#include <cstddef>
 #include <memory>
 #include <string>
 
@@ -17,7 +18,7 @@ namespace tracing {
 
 class TracedValue : public v8::ConvertableToTraceFormat {
  public:
-  ~TracedValue() override;
+  ~TracedValue() = default;
 
   static std::unique_ptr<TracedValue> Create();
   static std::unique_ptr<TracedValue> CreateArray();
@@ -49,6 +50,9 @@ class TracedValue : public v8::ConvertableToTraceFormat {
   // ConvertableToTraceFormat implementation.
   void AppendAsTraceFormat(std::string* out) const override;
 
+  TracedValue(const TracedValue&) = delete;
+  TracedValue& operator=(const TracedValue&) = delete;
+
  private:
   explicit TracedValue(bool root_is_array = false);
 
@@ -58,8 +62,6 @@ class TracedValue : public v8::ConvertableToTraceFormat {
   std::string data_;
   bool first_item_;
   bool root_is_array_;
-
-  DISALLOW_COPY_AND_ASSIGN(TracedValue);
 };
 
 }  // namespace tracing

@@ -1,6 +1,6 @@
 # Query String
 
-<!--introduced_in=v0.10.0-->
+<!--introduced_in=v0.1.25-->
 
 > Stability: 2 - Stable
 
@@ -12,6 +12,20 @@ query strings. It can be accessed using:
 ```js
 const querystring = require('querystring');
 ```
+
+## querystring.decode()
+<!-- YAML
+added: v0.1.99
+-->
+
+The `querystring.decode()` function is an alias for `querystring.parse()`.
+
+## querystring.encode()
+<!-- YAML
+added: v0.1.99
+-->
+
+The `querystring.encode()` function is an alias for `querystring.stringify()`.
 
 ## querystring.escape(str)
 <!-- YAML
@@ -109,10 +123,10 @@ Any other input values will be coerced to empty strings.
 
 ```js
 querystring.stringify({ foo: 'bar', baz: ['qux', 'quux'], corge: '' });
-// returns 'foo=bar&baz=qux&baz=quux&corge='
+// Returns 'foo=bar&baz=qux&baz=quux&corge='
 
 querystring.stringify({ foo: 'bar', baz: 'qux' }, ';', ':');
-// returns 'foo:bar;baz:qux'
+// Returns 'foo:bar;baz:qux'
 ```
 
 By default, characters requiring percent-encoding within the query string will

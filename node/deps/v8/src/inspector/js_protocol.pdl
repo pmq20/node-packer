@@ -165,6 +165,10 @@ domain Debugger
   # Enables debugger for the given page. Clients should not assume that the debugging has been
   # enabled until the result for this command is received.
   command enable
+    parameters
+      # The maximum size in bytes of collected scripts (not referenced by other heap objects)
+      # the debugger can hold. Puts no limit if paramter is omitted.
+      experimental optional number maxScriptsCacheSize
     returns
       # Unique identifier of the debugger.
       experimental Runtime.UniqueDebuggerId debuggerId
@@ -259,12 +263,6 @@ domain Debugger
   # Resumes JavaScript execution.
   command resume
 
-  # This method is deprecated - use Debugger.stepInto with breakOnAsyncCall and
-  # Debugger.pauseOnAsyncTask instead. Steps into next scheduled async task if any is scheduled
-  # before next pause. Returns success when async task is actually scheduled, returns error if no
-  # task were scheduled or another scheduleStepIntoAsync was called.
-  experimental command scheduleStepIntoAsync
-
   # Searches for given string in script content.
   command searchInContent
     parameters
@@ -318,6 +316,17 @@ domain Debugger
       BreakpointId breakpointId
       # Location this breakpoint resolved into.
       Location actualLocation
+
+  # Sets instrumentation breakpoint.
+  command setInstrumentationBreakpoint
+    parameters
+      # Instrumentation name.
+      enum instrumentation
+        beforeScriptExecution
+        beforeScriptWithSourceMapExecution
+    returns
+      # Id of the created breakpoint for further reference.
+      BreakpointId breakpointId
 
   # Sets JavaScript breakpoint at given location specified either by URL or URL regex. Once this
   # command is issued, all existing parsed scripts will have breakpoints resolved and returned in
@@ -451,16 +460,17 @@ domain Debugger
       array of CallFrame callFrames
       # Pause reason.
       enum reason
-        XHR
+        ambiguous
+        assert
+        debugCommand
         DOM
         EventListener
         exception
-        assert
-        debugCommand
-        promiseRejection
+        instrumentation
         OOM
         other
-        ambiguous
+        promiseRejection
+        XHR
       # Object containing break-specific auxiliary properties.
       optional object data
       # Hit breakpoints IDs
@@ -556,13 +566,27 @@ experimental domain HeapProfiler
       Runtime.CallFrame callFrame
       # Allocations size in bytes for the node excluding children.
       number selfSize
+      # Node id. Ids are unique across all profiles collected between startSampling and stopSampling.
+      integer id
       # Child nodes.
       array of SamplingHeapProfileNode children
 
-  # Profile.
+  # A single sample from a sampling profile.
+  type SamplingHeapProfileSample extends object
+    properties
+      # Allocation size in bytes attributed to the sample.
+      number size
+      # Id of the corresponding profile tree node.
+      integer nodeId
+      # Time-ordered sample ordinal number. It is unique across all profiles retrieved
+      # between startSampling and stopSampling.
+      number ordinal
+
+  # Sampling profile.
   type SamplingHeapProfile extends object
     properties
       SamplingHeapProfileNode head
+      array of SamplingHeapProfileSample samples
 
   # Enables console to refer to the node with given id via $x (see Command Line API for more details
   # $x functions).
@@ -873,6 +897,8 @@ domain Runtime
         proxy
         promise
         typedarray
+        arraybuffer
+        dataview
       # Object class (constructor) name. Specified for `object` type values only.
       optional string className
       # Remote object value in case of primitive values or JSON values (if it was requested).
@@ -890,11 +916,13 @@ domain Runtime
 
   experimental type CustomPreview extends object
     properties
+      # The JSON-stringified result of formatter.header(object, config) call.
+      # It contains json ML array that represents RemoteObject.
       string header
-      boolean hasBody
-      RemoteObjectId formatterObjectId
-      RemoteObjectId bindRemoteObjectFunctionId
-      optional RemoteObjectId configObjectId
+      # If formatter returns true as a result of formatter.hasBody call then bodyGetterId will
+      # contain RemoteObjectId for the function that returns result of formatter.body(object, config) call.
+      # The result value is json ML array.
+      optional RemoteObjectId bodyGetterId
 
   # Object containing abbreviated remote object value.
   experimental type ObjectPreview extends object
@@ -1008,6 +1036,14 @@ domain Runtime
       string name
       # The value associated with the property.
       optional RemoteObject value
+
+  # Object private field descriptor.
+  experimental type PrivatePropertyDescriptor extends object
+    properties
+      # Private property name.
+      string name
+      # The value associated with the private property.
+      RemoteObject value
 
   # Represents function call argument. Either remote object id `objectId`, primitive `value`,
   # unserializable primitive value or neither of (for undefined) them should be specified.
@@ -1250,6 +1286,8 @@ domain Runtime
       array of PropertyDescriptor result
       # Internal object properties (only of the element itself).
       optional array of InternalPropertyDescriptor internalProperties
+      # Object private properties.
+      experimental optional array of PrivatePropertyDescriptor privateProperties
       # Exception details.
       optional ExceptionDetails exceptionDetails
 
@@ -1314,13 +1352,52 @@ domain Runtime
       # Exception details.
       optional ExceptionDetails exceptionDetails
 
+  # Enables or disables async call stacks tracking.
+  command setAsyncCallStackDepth
+    redirect Debugger
+    parameters
+      # Maximum depth of async call stacks. Setting to `0` will effectively disable collecting async
+      # call stacks (default).
+      integer maxDepth
+
   experimental command setCustomObjectFormatterEnabled
     parameters
       boolean enabled
 
+  experimental command setMaxCallStackSizeToCapture
+    parameters
+      integer size
+
   # Terminate current or next JavaScript execution.
   # Will cancel the termination when the outer-most script execution ends.
   experimental command terminateExecution
+
+  # If executionContextId is empty, adds binding with the given name on the
+  # global objects of all inspected contexts, including those created later,
+  # bindings survive reloads.
+  # If executionContextId is specified, adds binding only on global object of
+  # given execution context.
+  # Binding function takes exactly one argument, this argument should be string,
+  # in case of any other input, function throws an exception.
+  # Each binding function call produces Runtime.bindingCalled notification.
+  experimental command addBinding
+    parameters
+      string name
+      optional ExecutionContextId executionContextId
+
+  # This method does not remove binding function from global object but
+  # unsubscribes current runtime agent from Runtime.bindingCalled notifications.
+  experimental command removeBinding
+    parameters
+      string name
+
+  # Notification is issued every time when binding is called.
+  experimental event bindingCalled
+    parameters
+      string name
+      string payload
+      # Identifier of the context where the call was made.
+      ExecutionContextId executionContextId
 
   # Issued when console API was called.
   event consoleAPICalled
@@ -1351,7 +1428,9 @@ domain Runtime
       ExecutionContextId executionContextId
       # Call timestamp.
       Timestamp timestamp
-      # Stack trace captured when the call was made.
+      # Stack trace captured when the call was made. The async stack chain is automatically reported for
+      # the following call types: `assert`, `error`, `trace`, `warning`. For other types the async call
+      # chain can be retrieved using `Debugger.getStackTrace` and `stackTrace.parentId` field.
       optional StackTrace stackTrace
       # Console context descriptor for calls on non-default console context (not console.*):
       # 'anonymous#unique-logger-id' for call on unnamed context, 'name#unique-logger-id' for call

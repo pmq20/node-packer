@@ -4,150 +4,204 @@
 
 #include "src/wasm/function-compiler.h"
 
-#include "src/code-factory.h"
-#include "src/code-stubs.h"
+#include "src/codegen/macro-assembler-inl.h"
 #include "src/compiler/wasm-compiler.h"
-#include "src/counters.h"
-#include "src/macro-assembler-inl.h"
+#include "src/logging/counters.h"
 #include "src/wasm/baseline/liftoff-compiler.h"
+#include "src/wasm/wasm-code-manager.h"
 
 namespace v8 {
 namespace internal {
 namespace wasm {
 
 namespace {
-const char* GetCompilationModeAsString(
-    WasmCompilationUnit::CompilationMode mode) {
-  switch (mode) {
-    case WasmCompilationUnit::CompilationMode::kLiftoff:
-      return "liftoff";
-    case WasmCompilationUnit::CompilationMode::kTurbofan:
-      return "turbofan";
+
+class WasmInstructionBufferImpl {
+ public:
+  class View : public AssemblerBuffer {
+   public:
+    View(Vector<uint8_t> buffer, WasmInstructionBufferImpl* holder)
+        : buffer_(buffer), holder_(holder) {}
+
+    ~View() override {
+      if (buffer_.begin() == holder_->old_buffer_.start()) {
+        DCHECK_EQ(buffer_.size(), holder_->old_buffer_.size());
+        holder_->old_buffer_ = {};
+      }
+    }
+
+    byte* start() const override { return buffer_.begin(); }
+
+    int size() const override { return static_cast<int>(buffer_.size()); }
+
+    std::unique_ptr<AssemblerBuffer> Grow(int new_size) override {
+      // If we grow, we must be the current buffer of {holder_}.
+      DCHECK_EQ(buffer_.begin(), holder_->buffer_.start());
+      DCHECK_EQ(buffer_.size(), holder_->buffer_.size());
+      DCHECK_NULL(holder_->old_buffer_);
+
+      DCHECK_LT(size(), new_size);
+
+      holder_->old_buffer_ = std::move(holder_->buffer_);
+      holder_->buffer_ = OwnedVector<uint8_t>::New(new_size);
+      return base::make_unique<View>(holder_->buffer_.as_vector(), holder_);
+    }
+
+   private:
+    const Vector<uint8_t> buffer_;
+    WasmInstructionBufferImpl* const holder_;
+  };
+
+  std::unique_ptr<AssemblerBuffer> CreateView() {
+    DCHECK_NOT_NULL(buffer_);
+    return base::make_unique<View>(buffer_.as_vector(), this);
   }
-  UNREACHABLE();
+
+  std::unique_ptr<uint8_t[]> ReleaseBuffer() {
+    DCHECK_NULL(old_buffer_);
+    DCHECK_NOT_NULL(buffer_);
+    return buffer_.ReleaseData();
+  }
+
+  bool released() const { return buffer_ == nullptr; }
+
+ private:
+  // The current buffer used to emit code.
+  OwnedVector<uint8_t> buffer_ =
+      OwnedVector<uint8_t>::New(AssemblerBase::kMinimalBufferSize);
+
+  // While the buffer is grown, we need to temporarily also keep the old buffer
+  // alive.
+  OwnedVector<uint8_t> old_buffer_;
+};
+
+WasmInstructionBufferImpl* Impl(WasmInstructionBuffer* buf) {
+  return reinterpret_cast<WasmInstructionBufferImpl*>(buf);
 }
+
 }  // namespace
 
+// PIMPL interface WasmInstructionBuffer for WasmInstBufferImpl
+WasmInstructionBuffer::~WasmInstructionBuffer() {
+  Impl(this)->~WasmInstructionBufferImpl();
+}
+
+std::unique_ptr<AssemblerBuffer> WasmInstructionBuffer::CreateView() {
+  return Impl(this)->CreateView();
+}
+
+std::unique_ptr<uint8_t[]> WasmInstructionBuffer::ReleaseBuffer() {
+  return Impl(this)->ReleaseBuffer();
+}
+
 // static
-WasmCompilationUnit::CompilationMode
-WasmCompilationUnit::GetDefaultCompilationMode() {
-  return FLAG_liftoff ? CompilationMode::kLiftoff : CompilationMode::kTurbofan;
+std::unique_ptr<WasmInstructionBuffer> WasmInstructionBuffer::New() {
+  return std::unique_ptr<WasmInstructionBuffer>{
+      reinterpret_cast<WasmInstructionBuffer*>(
+          new WasmInstructionBufferImpl())};
+}
+// End of PIMPL interface WasmInstructionBuffer for WasmInstBufferImpl
+
+// static
+ExecutionTier WasmCompilationUnit::GetDefaultExecutionTier(
+    const WasmModule* module) {
+  // Liftoff does not support the special asm.js opcodes, thus always compile
+  // asm.js modules with TurboFan.
+  if (module->origin == kAsmJsOrigin) return ExecutionTier::kTurbofan;
+  if (FLAG_wasm_interpret_all) return ExecutionTier::kInterpreter;
+  return FLAG_liftoff ? ExecutionTier::kLiftoff : ExecutionTier::kTurbofan;
 }
 
-WasmCompilationUnit::WasmCompilationUnit(Isolate* isolate, ModuleEnv* env,
-                                         wasm::NativeModule* native_module,
-                                         wasm::FunctionBody body,
-                                         wasm::WasmName name, int index,
-                                         Handle<Code> centry_stub,
-                                         CompilationMode mode,
-                                         Counters* counters, bool lower_simd)
-    : isolate_(isolate),
-      env_(env),
-      func_body_(body),
-      func_name_(name),
-      counters_(counters ? counters : isolate->counters()),
-      centry_stub_(centry_stub),
-      func_index_(index),
-      native_module_(native_module),
-      lower_simd_(lower_simd),
-      mode_(mode) {
-  DCHECK_GE(index, env->module->num_imported_functions);
-  DCHECK_LT(index, env->module->functions.size());
-  // Always disable Liftoff for asm.js, for two reasons:
-  //    1) asm-specific opcodes are not implemented, and
-  //    2) tier-up does not work with lazy compilation.
-  if (env->module->is_asm_js()) mode = CompilationMode::kTurbofan;
-  SwitchMode(mode);
-}
+WasmCompilationResult WasmCompilationUnit::ExecuteCompilation(
+    WasmEngine* wasm_engine, CompilationEnv* env,
+    const std::shared_ptr<WireBytesStorage>& wire_bytes_storage,
+    Counters* counters, WasmFeatures* detected) {
+  auto* func = &env->module->functions[func_index_];
+  Vector<const uint8_t> code = wire_bytes_storage->GetCode(func->code);
+  wasm::FunctionBody func_body{func->sig, func->code.offset(), code.begin(),
+                               code.end()};
 
-// Declared here such that {LiftoffCompilationUnit} and
-// {TurbofanWasmCompilationUnit} can be opaque in the header file.
-WasmCompilationUnit::~WasmCompilationUnit() {}
-
-void WasmCompilationUnit::ExecuteCompilation() {
-  auto size_histogram = env_->module->is_wasm()
-                            ? counters_->wasm_wasm_function_size_bytes()
-                            : counters_->wasm_asm_function_size_bytes();
-  size_histogram->AddSample(
-      static_cast<int>(func_body_.end - func_body_.start));
-  auto timed_histogram = env_->module->is_wasm()
-                             ? counters_->wasm_compile_wasm_function_time()
-                             : counters_->wasm_compile_asm_function_time();
+  auto size_histogram = SELECT_WASM_COUNTER(counters, env->module->origin, wasm,
+                                            function_size_bytes);
+  size_histogram->AddSample(static_cast<int>(func_body.end - func_body.start));
+  auto timed_histogram = SELECT_WASM_COUNTER(counters, env->module->origin,
+                                             wasm_compile, function_time);
   TimedHistogramScope wasm_compile_function_time_scope(timed_histogram);
 
   if (FLAG_trace_wasm_compiler) {
     PrintF("Compiling wasm function %d with %s\n\n", func_index_,
-           GetCompilationModeAsString(mode_));
+           ExecutionTierToString(tier_));
   }
 
-  switch (mode_) {
-    case WasmCompilationUnit::CompilationMode::kLiftoff:
-      if (liftoff_unit_->ExecuteCompilation()) break;
-      // Otherwise, fall back to turbofan.
-      SwitchMode(CompilationMode::kTurbofan);
-      V8_FALLTHROUGH;
-    case WasmCompilationUnit::CompilationMode::kTurbofan:
-      turbofan_unit_->ExecuteCompilation();
-      break;
-  }
-}
+  WasmCompilationResult result;
 
-wasm::WasmCode* WasmCompilationUnit::FinishCompilation(
-    wasm::ErrorThrower* thrower) {
-  wasm::WasmCode* ret;
-  switch (mode_) {
-    case CompilationMode::kLiftoff:
-      ret = liftoff_unit_->FinishCompilation(thrower);
-      break;
-    case CompilationMode::kTurbofan:
-      ret = turbofan_unit_->FinishCompilation(thrower);
-      break;
-    default:
+  switch (tier_) {
+    case ExecutionTier::kNone:
       UNREACHABLE();
-  }
-  if (ret == nullptr) {
-    thrower->RuntimeError("Error finalizing code.");
-  }
-  return ret;
-}
 
-void WasmCompilationUnit::SwitchMode(CompilationMode new_mode) {
-  // This method is being called in the constructor, where neither
-  // {liftoff_unit_} nor {turbofan_unit_} are set, or to switch mode from
-  // kLiftoff to kTurbofan, in which case {liftoff_unit_} is already set.
-  mode_ = new_mode;
-  switch (new_mode) {
-    case CompilationMode::kLiftoff:
-      DCHECK(!turbofan_unit_);
-      DCHECK(!liftoff_unit_);
-      liftoff_unit_.reset(new LiftoffCompilationUnit(this));
-      return;
-    case CompilationMode::kTurbofan:
-      DCHECK(!turbofan_unit_);
-      if (liftoff_unit_ != nullptr) liftoff_unit_->AbortCompilation();
-      liftoff_unit_.reset();
-      turbofan_unit_.reset(new compiler::TurbofanWasmCompilationUnit(this));
-      return;
+    case ExecutionTier::kLiftoff:
+      // The --wasm-tier-mask-for-testing flag can force functions to be
+      // compiled with TurboFan, see documentation.
+      if (V8_LIKELY(FLAG_wasm_tier_mask_for_testing == 0) ||
+          func_index_ >= 32 ||
+          ((FLAG_wasm_tier_mask_for_testing & (1 << func_index_)) == 0)) {
+        result =
+            ExecuteLiftoffCompilation(wasm_engine->allocator(), env, func_body,
+                                      func_index_, counters, detected);
+        if (result.succeeded()) break;
+      }
+
+      // If Liftoff failed, fall back to turbofan.
+      // TODO(wasm): We could actually stop or remove the tiering unit for this
+      // function to avoid compiling it twice with TurboFan.
+      V8_FALLTHROUGH;
+
+    case ExecutionTier::kTurbofan:
+      result = compiler::ExecuteTurbofanWasmCompilation(
+          wasm_engine, env, func_body, func_index_, counters, detected);
+      break;
+
+    case ExecutionTier::kInterpreter:
+      result = compiler::ExecuteInterpreterEntryCompilation(
+          wasm_engine, env, func_body, func_index_, counters, detected);
+      break;
   }
-  UNREACHABLE();
+
+  result.func_index = func_index_;
+  result.requested_tier = tier_;
+
+  if (result.succeeded()) {
+    counters->wasm_generated_code_size()->Increment(
+        result.code_desc.instr_size);
+    counters->wasm_reloc_size()->Increment(result.code_desc.reloc_size);
+  }
+
+  return result;
 }
 
 // static
-wasm::WasmCode* WasmCompilationUnit::CompileWasmFunction(
-    wasm::NativeModule* native_module, wasm::ErrorThrower* thrower,
-    Isolate* isolate, const wasm::ModuleWireBytes& wire_bytes, ModuleEnv* env,
-    const wasm::WasmFunction* function, CompilationMode mode) {
-  wasm::FunctionBody function_body{
-      function->sig, function->code.offset(),
-      wire_bytes.start() + function->code.offset(),
-      wire_bytes.start() + function->code.end_offset()};
+void WasmCompilationUnit::CompileWasmFunction(Isolate* isolate,
+                                              NativeModule* native_module,
+                                              WasmFeatures* detected,
+                                              const WasmFunction* function,
+                                              ExecutionTier tier) {
+  ModuleWireBytes wire_bytes(native_module->wire_bytes());
+  FunctionBody function_body{function->sig, function->code.offset(),
+                             wire_bytes.start() + function->code.offset(),
+                             wire_bytes.start() + function->code.end_offset()};
 
-  WasmCompilationUnit unit(isolate, env, native_module, function_body,
-                           wire_bytes.GetNameOrNull(function, env->module),
-                           function->func_index,
-                           CodeFactory::CEntry(isolate, 1), mode);
-  unit.ExecuteCompilation();
-  return unit.FinishCompilation(thrower);
+  WasmCompilationUnit unit(function->func_index, tier);
+  CompilationEnv env = native_module->CreateCompilationEnv();
+  WasmCompilationResult result = unit.ExecuteCompilation(
+      isolate->wasm_engine(), &env,
+      native_module->compilation_state()->GetWireBytesStorage(),
+      isolate->counters(), detected);
+  if (result.succeeded()) {
+    WasmCodeRefScope code_ref_scope;
+    native_module->AddCompiledCode(std::move(result));
+  } else {
+    native_module->compilation_state()->SetError();
+  }
 }
 
 }  // namespace wasm

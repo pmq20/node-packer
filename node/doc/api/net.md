@@ -17,7 +17,7 @@ const net = require('net');
 
 ## IPC Support
 
-The `net` module supports IPC with named pipes on Windows, and UNIX domain
+The `net` module supports IPC with named pipes on Windows, and Unix domain
 sockets on other operating systems.
 
 ### Identifying paths for IPC connections
@@ -25,18 +25,18 @@ sockets on other operating systems.
 [`net.connect()`][], [`net.createConnection()`][], [`server.listen()`][] and
 [`socket.connect()`][] take a `path` parameter to identify IPC endpoints.
 
-On UNIX, the local domain is also known as the UNIX domain. The path is a
+On Unix, the local domain is also known as the Unix domain. The path is a
 filesystem pathname. It gets truncated to `sizeof(sockaddr_un.sun_path) - 1`,
 which varies on different operating system between 91 and 107 bytes.
 The typical values are 107 on Linux and 103 on macOS. The path is
 subject to the same naming conventions and permissions checks as would be done
-on file creation. If the UNIX domain socket (that is visible as a file system
+on file creation. If the Unix domain socket (that is visible as a file system
 path) is created and used in conjunction with one of Node.js' API abstractions
 such as [`net.createServer()`][], it will be unlinked as part of
 [`server.close()`][]. On the other hand, if it is created and used outside of
 these abstractions, the user will need to manually remove it. The same applies
 when the path was created by a Node.js API but the program crashes abruptly.
-In short, a UNIX domain socket once successfully created will be visible in the
+In short, a Unix domain socket once successfully created will be visible in the
 filesystem, and will persist until unlinked.
 
 On Windows, the local domain is implemented using a named pipe. The path *must*
@@ -44,7 +44,7 @@ refer to an entry in `\\?\pipe\` or `\\.\pipe\`. Any characters are permitted,
 but the latter may do some processing of pipe names, such as resolving `..`
 sequences. Despite how it might look, the pipe namespace is flat. Pipes will
 *not persist*. They are removed when the last reference to them is closed.
-Unlike UNIX domain sockets, Windows will close and remove the pipe when the
+Unlike Unix domain sockets, Windows will close and remove the pipe when the
 owning process exits.
 
 JavaScript string escaping requires paths to be specified with extra backslash
@@ -59,6 +59,8 @@ net.createServer().listen(
 <!-- YAML
 added: v0.1.90
 -->
+
+* Extends: {EventEmitter}
 
 This class is used to create a TCP or [IPC][] server.
 
@@ -77,7 +79,7 @@ This class is used to create a TCP or [IPC][] server.
 added: v0.5.0
 -->
 
-Emitted when the server closes. Note that if connections exist, this
+Emitted when the server closes. If connections exist, this
 event is not emitted until all connections are ended.
 
 ### Event: 'connection'
@@ -121,7 +123,7 @@ as reported by the operating system if listening on an IP socket
 (useful to find which port was assigned when getting an OS-assigned address):
 `{ port: 12346, family: 'IPv4', address: '127.0.0.1' }`.
 
-For a server listening on a pipe or UNIX domain socket, the name is returned
+For a server listening on a pipe or Unix domain socket, the name is returned
 as a string.
 
 ```js
@@ -132,7 +134,7 @@ const server = net.createServer((socket) => {
   throw err;
 });
 
-// grab an arbitrary unused port.
+// Grab an arbitrary unused port.
 server.listen(() => {
   console.log('opened server on', server.address());
 });
@@ -241,7 +243,7 @@ added: v0.5.10
 * Returns: {net.Server}
 
 Start a server listening for connections on a given `handle` that has
-already been bound to a port, a UNIX domain socket, or a Windows named pipe.
+already been bound to a port, a Unix domain socket, or a Windows named pipe.
 
 The `handle` object can be either a server, a socket (anything with an
 underlying `_handle` member), or an object with an `fd` member that is a
@@ -252,6 +254,10 @@ Listening on a file descriptor is not supported on Windows.
 #### server.listen(options[, callback])
 <!-- YAML
 added: v0.11.14
+changes:
+  - version: v11.4.0
+    pr-url: https://github.com/nodejs/node/pull/23798
+    description: The `ipv6Only` option is supported.
 -->
 
 * `options` {Object} Required. Supports the following properties:
@@ -266,6 +272,9 @@ added: v0.11.14
     for all users. **Default:** `false`
   * `writableAll` {boolean} For IPC servers makes the pipe writable
     for all users. **Default:** `false`
+  * `ipv6Only` {boolean} For TCP servers, setting `ipv6Only` to `true` will
+    disable dual-stack support, i.e., binding to host `::` won't make
+    `0.0.0.0` be bound. **Default:** `false`.
 * `callback` {Function} Common parameter of [`server.listen()`][]
   functions.
 * Returns: {net.Server}
@@ -377,10 +386,11 @@ active server in the event system. If the server is already `unref`ed calling
 added: v0.3.4
 -->
 
+* Extends: {stream.Duplex}
+
 This class is an abstraction of a TCP socket or a streaming [IPC][] endpoint
-(uses named pipes on Windows, and UNIX domain sockets otherwise). A
-`net.Socket` is also a [duplex stream][], so it can be both readable and
-writable, and it is also an [`EventEmitter`][].
+(uses named pipes on Windows, and Unix domain sockets otherwise). It is also
+an [`EventEmitter`][].
 
 A `net.Socket` can be created by the user and used directly to interact with
 a server. For example, it is returned by [`net.createConnection()`][],
@@ -441,7 +451,7 @@ added: v0.1.90
 Emitted when data is received. The argument `data` will be a `Buffer` or
 `String`. Encoding of data is set by [`socket.setEncoding()`][].
 
-Note that the **data will be lost** if there is no listener when a `Socket`
+The data will be lost if there is no listener when a `Socket`
 emits a `'data'` event.
 
 ### Event: 'drain'
@@ -489,7 +499,7 @@ changes:
 -->
 
 Emitted after resolving the hostname but before connecting.
-Not applicable to UNIX sockets.
+Not applicable to Unix sockets.
 
 * `err` {Error|null} The error object. See [`dns.lookup()`][].
 * `address` {string} The IP address.
@@ -586,6 +596,9 @@ for the [`'connect'`][] event **once**.
 <!-- YAML
 added: v0.1.90
 changes:
+  - version: v12.10.0
+    pr-url: https://github.com/nodejs/node/pull/25436
+    description: Added `onread` option.
   - version: v6.0.0
     pr-url: https://github.com/nodejs/node/pull/6021
     description: The `hints` option defaults to `0` in all cases now.
@@ -611,8 +624,8 @@ For TCP connections, available `options` are:
 * `host` {string} Host the socket should connect to. **Default:** `'localhost'`.
 * `localAddress` {string} Local address the socket should connect from.
 * `localPort` {number} Local port the socket should connect from.
-* `family` {number}: Version of IP stack, can be either `4` or `6`.
-  **Default:** `4`.
+* `family` {number}: Version of IP stack. Must be `4`, `6`, or `0`. The value
+  `0` indicates that both IPv4 and IPv6 addresses are allowed. **Default:** `0`.
 * `hints` {number} Optional [`dns.lookup()` hints][].
 * `lookup` {Function} Custom lookup function. **Default:** [`dns.lookup()`][].
 
@@ -621,6 +634,39 @@ For [IPC][] connections, available `options` are:
 * `path` {string} Required. Path the client should connect to.
   See [Identifying paths for IPC connections][]. If provided, the TCP-specific
   options above are ignored.
+
+For both types, available `options` include:
+
+* `onread` {Object} - If specified, incoming data is stored in a single `buffer`
+  and passed to the supplied `callback` when data arrives on the socket.
+  Note: this will cause the streaming functionality to not provide any data,
+  however events like `'error'`, `'end'`, and `'close'` will still be emitted
+  as normal and methods like `pause()` and `resume()` will also behave as
+  expected.
+  * `buffer` {Buffer|Uint8Array|Function} - Either a reusable chunk of memory to
+    use for storing incoming data or a function that returns such.
+  * `callback` {Function} This function is called for every chunk of incoming
+    data. Two arguments are passed to it: the number of bytes written to
+    `buffer` and a reference to `buffer`. Return `false` from this function to
+    implicitly `pause()` the socket. This function will be executed in the
+    global context.
+
+Following is an example of a client using the `onread` option:
+
+```js
+const net = require('net');
+net.connect({
+  port: 80,
+  onread: {
+    // Reuses a 4KiB Buffer for every read from the socket
+    buffer: Buffer.alloc(4 * 1024),
+    callback: function(nread, buf) {
+      // Received data is available in `buf` from 0 to `nread`
+      console.log(buf.toString('utf8', 0, nread));
+    }
+  }
+});
+```
 
 #### socket.connect(path[, connectListener])
 
@@ -659,11 +705,12 @@ added: v6.1.0
 -->
 
 If `true`,
+[`socket.connect(options[, connectListener])`][`socket.connect(options)`] was
+called and has not yet finished. It will stay `true` until the socket becomes
+connected, then it is set to `false` and the `'connect'` event is emitted.  Note
+that the
 [`socket.connect(options[, connectListener])`][`socket.connect(options)`]
-was called and has not yet finished. Will be set to `true` before emitting
-`'connect'` event and/or calling
-[`socket.connect(options[, connectListener])`][`socket.connect(options)`]'s
-callback.
+callback is a listener for the `'connect'` event.
 
 ### socket.destroy([exception])
 <!-- YAML
@@ -723,6 +770,17 @@ The numeric representation of the local port. For example, `80` or `21`.
 
 Pauses the reading of data. That is, [`'data'`][] events will not be emitted.
 Useful to throttle back an upload.
+
+### socket.pending
+<!-- YAML
+added: v11.2.0
+-->
+
+* {boolean}
+
+This is `true` if the socket is not connected yet, either because `.connect()`
+has not yet been called or because it is still in the process of connecting
+(see [`socket.connecting`][]).
 
 ### socket.ref()
 <!-- YAML
@@ -1093,7 +1151,7 @@ server.listen('/tmp/echo.sock', () => {
 });
 ```
 
-Use `nc` to connect to a UNIX domain socket server:
+Use `nc` to connect to a Unix domain socket server:
 
 ```console
 $ nc -U /tmp/echo.sock
@@ -1168,6 +1226,7 @@ Returns `true` if input is a version 6 IP address, otherwise returns `false`.
 [`socket.connect(options)`]: #net_socket_connect_options_connectlistener
 [`socket.connect(path)`]: #net_socket_connect_path_connectlistener
 [`socket.connect(port, host)`]: #net_socket_connect_port_host_connectlistener
+[`socket.connecting`]: #net_socket_connecting
 [`socket.destroy()`]: #net_socket_destroy_exception
 [`socket.end()`]: #net_socket_end_data_encoding_callback
 [`socket.pause()`]: #net_socket_pause
@@ -1178,7 +1237,6 @@ Returns `true` if input is a version 6 IP address, otherwise returns `false`.
 [IPC]: #net_ipc_support
 [Identifying paths for IPC connections]: #net_identifying_paths_for_ipc_connections
 [Readable Stream]: stream.html#stream_class_stream_readable
-[duplex stream]: stream.html#stream_class_stream_duplex
 [half-closed]: https://tools.ietf.org/html/rfc1122
 [stream_writable_write]: stream.html#stream_writable_write_chunk_encoding_callback
 [unspecified IPv4 address]: https://en.wikipedia.org/wiki/0.0.0.0

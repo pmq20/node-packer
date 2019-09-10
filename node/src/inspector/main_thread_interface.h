@@ -26,12 +26,12 @@ class MainThreadInterface;
 class Request {
  public:
   virtual void Call(MainThreadInterface*) = 0;
-  virtual ~Request() {}
+  virtual ~Request() = default;
 };
 
 class Deletable {
  public:
-  virtual ~Deletable() {}
+  virtual ~Deletable() = default;
 };
 
 std::unique_ptr<v8_inspector::StringBuffer> Utf8ToStringView(
@@ -45,6 +45,7 @@ class MainThreadHandle : public std::enable_shared_from_this<MainThreadHandle> {
                             : main_thread_(main_thread) {
   }
   ~MainThreadHandle() {
+    Mutex::ScopedLock scoped_lock(block_lock_);
     CHECK_NULL(main_thread_);  // main_thread_ should have called Reset
   }
   std::unique_ptr<InspectorSession> Connect(
@@ -84,14 +85,10 @@ class MainThreadInterface {
   }
   void AddObject(int handle, std::unique_ptr<Deletable> object);
   Deletable* GetObject(int id);
+  Deletable* GetObjectIfExists(int id);
   void RemoveObject(int handle);
 
  private:
-  using AsyncAndInterface = std::pair<uv_async_t, MainThreadInterface*>;
-
-  static void DispatchMessagesAsyncCallback(uv_async_t* async);
-  static void CloseAsync(AsyncAndInterface*);
-
   MessageQueue requests_;
   Mutex requests_lock_;   // requests_ live across threads
   // This queue is to maintain the order of the messages for the cases
@@ -103,7 +100,6 @@ class MainThreadInterface {
   Agent* const agent_;
   v8::Isolate* const isolate_;
   v8::Platform* const platform_;
-  DeleteFnPtr<AsyncAndInterface, CloseAsync> main_thread_request_;
   std::shared_ptr<MainThreadHandle> handle_;
   std::unordered_map<int, std::unique_ptr<Deletable>> managed_objects_;
 };

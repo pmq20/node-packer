@@ -32,3 +32,24 @@ const args = [
   assert.ifError(ret.error);
   assert.deepStrictEqual(ret.stdout, msgOutBuf);
 }
+
+// Default maxBuffer size is 1024 * 1024.
+{
+  const args = ['-e', "console.log('a'.repeat(1024 * 1024))"];
+  const ret = spawnSync(process.execPath, args);
+
+  assert.ok(ret.error, 'maxBuffer should error');
+  assert.strictEqual(ret.error.errno, 'ENOBUFS');
+}
+
+// Default maxBuffer size is 1024 * 1024.
+{
+  const args = ['-e', "console.log('a'.repeat(1024 * 1024 - 1))"];
+  const ret = spawnSync(process.execPath, args);
+
+  assert.ifError(ret.error);
+  assert.deepStrictEqual(
+    ret.stdout.toString().trim(),
+    'a'.repeat(1024 * 1024 - 1)
+  );
+}

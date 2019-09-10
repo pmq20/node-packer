@@ -24,6 +24,8 @@
 
 'use strict';
 
+const { Object } = primordials;
+
 const {
   assertCrypto,
   deprecate
@@ -35,14 +37,11 @@ const {
   ERR_CRYPTO_FIPS_UNAVAILABLE
 } = require('internal/errors').codes;
 const constants = internalBinding('constants').crypto;
-const {
-  fipsMode,
-  fipsForced
-} = process.binding('config');
-const {
-  getFipsCrypto,
-  setFipsCrypto,
-} = process.binding('crypto');
+const { getOptionValue } = require('internal/options');
+const pendingDeprecation = getOptionValue('--pending-deprecation');
+const { fipsMode } = internalBinding('config');
+const fipsForced = getOptionValue('--force-fips');
+const { getFipsCrypto, setFipsCrypto } = internalBinding('crypto');
 const {
   randomBytes,
   randomFill,
@@ -61,6 +60,12 @@ const {
   generateKeyPairSync
 } = require('internal/crypto/keygen');
 const {
+  createSecretKey,
+  createPublicKey,
+  createPrivateKey,
+  KeyObject,
+} = require('internal/crypto/keys');
+const {
   DiffieHellman,
   DiffieHellmanGroup,
   ECDH
@@ -77,7 +82,9 @@ const {
 } = require('internal/crypto/cipher');
 const {
   Sign,
-  Verify
+  signOneShot,
+  Verify,
+  verifyOneShot
 } = require('internal/crypto/sig');
 const {
   Hash,
@@ -90,8 +97,7 @@ const {
   getHashes,
   setDefaultEncoding,
   setEngine,
-  timingSafeEqual,
-  toBuf
+  timingSafeEqual
 } = require('internal/crypto/util');
 const Certificate = require('internal/crypto/certificate');
 
@@ -141,18 +147,18 @@ function createVerify(algorithm, options) {
   return new Verify(algorithm, options);
 }
 
-module.exports = exports = {
+module.exports = {
   // Methods
-  _toBuf: toBuf,
-  createCipher,
   createCipheriv,
-  createDecipher,
   createDecipheriv,
   createDiffieHellman,
   createDiffieHellmanGroup,
   createECDH,
   createHash,
   createHmac,
+  createPrivateKey,
+  createPublicKey,
+  createSecretKey,
   createSign,
   createVerify,
   getCiphers,
@@ -165,22 +171,21 @@ module.exports = exports = {
   generateKeyPairSync,
   privateDecrypt,
   privateEncrypt,
-  prng: randomBytes,
-  pseudoRandomBytes: randomBytes,
   publicDecrypt,
   publicEncrypt,
   randomBytes,
   randomFill,
   randomFillSync,
-  rng: randomBytes,
   scrypt,
   scryptSync,
+  sign: signOneShot,
   setEngine,
   timingSafeEqual,
   getFips: !fipsMode ? getFipsDisabled :
     fipsForced ? getFipsForced : getFipsCrypto,
   setFips: !fipsMode ? setFipsDisabled :
     fipsForced ? setFipsForced : setFipsCrypto,
+  verify: verifyOneShot,
 
   // Classes
   Certificate,
@@ -193,6 +198,7 @@ module.exports = exports = {
   ECDH,
   Hash,
   Hmac,
+  KeyObject,
   Sign,
   Verify
 };
@@ -214,7 +220,17 @@ function getFipsForced() {
   return 1;
 }
 
-Object.defineProperties(exports, {
+Object.defineProperties(module.exports, {
+  createCipher: {
+    enumerable: false,
+    value: deprecate(createCipher,
+                     'crypto.createCipher is deprecated.', 'DEP0106')
+  },
+  createDecipher: {
+    enumerable: false,
+    value: deprecate(createDecipher,
+                     'crypto.createDecipher is deprecated.', 'DEP0106')
+  },
   // crypto.fips is deprecated. DEP0093. Use crypto.getFips()/crypto.setFips()
   fips: {
     get: !fipsMode ? getFipsDisabled :
@@ -223,7 +239,7 @@ Object.defineProperties(exports, {
       fipsForced ? setFipsForced : setFipsCrypto
   },
   DEFAULT_ENCODING: {
-    enumerable: true,
+    enumerable: false,
     configurable: true,
     get: deprecate(getDefaultEncoding,
                    'crypto.DEFAULT_ENCODING is deprecated.', 'DEP0091'),
@@ -236,21 +252,31 @@ Object.defineProperties(exports, {
     value: constants
   },
 
-  // Legacy API
-  createCredentials: {
+  // Aliases for randomBytes are deprecated.
+  // The ecosystem needs those to exist for backwards compatibility.
+  prng: {
+    enumerable: false,
     configurable: true,
-    enumerable: true,
-    get: deprecate(() => {
-      return require('tls').createSecureContext;
-    }, 'crypto.createCredentials is deprecated. ' +
-      'Use tls.createSecureContext instead.', 'DEP0010')
+    writable: true,
+    value: pendingDeprecation ?
+      deprecate(randomBytes, 'crypto.prng is deprecated.', 'DEP0115') :
+      randomBytes
   },
-  Credentials: {
+  pseudoRandomBytes: {
+    enumerable: false,
     configurable: true,
-    enumerable: true,
-    get: deprecate(function() {
-      return require('tls').SecureContext;
-    }, 'crypto.Credentials is deprecated. ' +
-       'Use tls.SecureContext instead.', 'DEP0011')
+    writable: true,
+    value: pendingDeprecation ?
+      deprecate(randomBytes,
+                'crypto.pseudoRandomBytes is deprecated.', 'DEP0115') :
+      randomBytes
+  },
+  rng: {
+    enumerable: false,
+    configurable: true,
+    writable: true,
+    value: pendingDeprecation ?
+      deprecate(randomBytes, 'crypto.rng is deprecated.', 'DEP0115') :
+      randomBytes
   }
 });

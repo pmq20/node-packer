@@ -72,6 +72,23 @@
             }
           ],
           "desc": "<p>Return the URL of the active inspector, or <code>undefined</code> if there is none.</p>"
+        },
+        {
+          "textRaw": "inspector.waitForDebugger()",
+          "type": "method",
+          "name": "waitForDebugger",
+          "meta": {
+            "added": [
+              "v12.7.0"
+            ],
+            "changes": []
+          },
+          "signatures": [
+            {
+              "params": []
+            }
+          ],
+          "desc": "<p>Blocks until a client (existing or connected later) has sent\n<code>Runtime.runIfWaitingForDebugger</code> command.</p>\n<p>An exception will be thrown if there is no active inspector.</p>"
         }
       ],
       "properties": [
@@ -88,7 +105,7 @@
           "textRaw": "Class: inspector.Session",
           "type": "class",
           "name": "inspector.Session",
-          "desc": "<p>The <code>inspector.Session</code> is used for dispatching messages to the V8 inspector\nback-end and receiving message responses and notifications.</p>",
+          "desc": "<ul>\n<li>Extends: <a href=\"events.html#events_class_eventemitter\" class=\"type\">&lt;EventEmitter&gt;</a></li>\n</ul>\n<p>The <code>inspector.Session</code> is used for dispatching messages to the V8 inspector\nback-end and receiving message responses and notifications.</p>",
           "events": [
             {
               "textRaw": "Event: 'inspectorNotification'",
@@ -197,22 +214,29 @@
                   ]
                 }
               ],
-              "desc": "<p>Posts a message to the inspector back-end. <code>callback</code> will be notified when\na response is received. <code>callback</code> is a function that accepts two optional\narguments - error and message-specific result.</p>\n<pre><code class=\"language-js\">session.post('Runtime.evaluate', { expression: '2 + 2' },\n             (error, { result }) => console.log(result));\n// Output: { type: 'number', value: 4, description: '4' }\n</code></pre>\n<p>The latest version of the V8 inspector protocol is published on the\n<a href=\"https://chromedevtools.github.io/devtools-protocol/v8/\">Chrome DevTools Protocol Viewer</a>.</p>\n<p>Node.js inspector supports all the Chrome DevTools Protocol domains declared\nby V8. Chrome DevTools Protocol domain provides an interface for interacting\nwith one of the runtime agents used to inspect the application state and listen\nto the run-time events.</p>\n<h2>Example usage</h2>"
+              "desc": "<p>Posts a message to the inspector back-end. <code>callback</code> will be notified when\na response is received. <code>callback</code> is a function that accepts two optional\narguments - error and message-specific result.</p>\n<pre><code class=\"language-js\">session.post('Runtime.evaluate', { expression: '2 + 2' },\n             (error, { result }) => console.log(result));\n// Output: { type: 'number', value: 4, description: '4' }\n</code></pre>\n<p>The latest version of the V8 inspector protocol is published on the\n<a href=\"https://chromedevtools.github.io/devtools-protocol/v8/\">Chrome DevTools Protocol Viewer</a>.</p>\n<p>Node.js inspector supports all the Chrome DevTools Protocol domains declared\nby V8. Chrome DevTools Protocol domain provides an interface for interacting\nwith one of the runtime agents used to inspect the application state and listen\nto the run-time events.</p>\n<h2>Example usage</h2>\n<p>Apart from the debugger, various V8 Profilers are available through the DevTools\nprotocol.</p>"
             }
           ],
           "modules": [
             {
               "textRaw": "CPU Profiler",
               "name": "cpu_profiler",
-              "desc": "<p>Apart from the debugger, various V8 Profilers are available through the DevTools\nprotocol. Here's a simple example showing how to use the <a href=\"https://chromedevtools.github.io/devtools-protocol/v8/Profiler\">CPU profiler</a>:</p>\n<pre><code class=\"language-js\">const inspector = require('inspector');\nconst fs = require('fs');\nconst session = new inspector.Session();\nsession.connect();\n\nsession.post('Profiler.enable', () => {\n  session.post('Profiler.start', () => {\n    // invoke business logic under measurement here...\n\n    // some time later...\n    session.post('Profiler.stop', (err, { profile }) => {\n      // write profile to disk, upload, etc.\n      if (!err) {\n        fs.writeFileSync('./profile.cpuprofile', JSON.stringify(profile));\n      }\n    });\n  });\n});\n</code></pre>",
+              "desc": "<p>Here's an example showing how to use the <a href=\"https://chromedevtools.github.io/devtools-protocol/v8/Profiler\">CPU Profiler</a>:</p>\n<pre><code class=\"language-js\">const inspector = require('inspector');\nconst fs = require('fs');\nconst session = new inspector.Session();\nsession.connect();\n\nsession.post('Profiler.enable', () => {\n  session.post('Profiler.start', () => {\n    // Invoke business logic under measurement here...\n\n    // some time later...\n    session.post('Profiler.stop', (err, { profile }) => {\n      // Write profile to disk, upload, etc.\n      if (!err) {\n        fs.writeFileSync('./profile.cpuprofile', JSON.stringify(profile));\n      }\n    });\n  });\n});\n</code></pre>",
               "type": "module",
               "displayName": "CPU Profiler"
+            },
+            {
+              "textRaw": "Heap Profiler",
+              "name": "heap_profiler",
+              "desc": "<p>Here's an example showing how to use the <a href=\"https://chromedevtools.github.io/devtools-protocol/v8/HeapProfiler\">Heap Profiler</a>:</p>\n<pre><code class=\"language-js\">const inspector = require('inspector');\nconst fs = require('fs');\nconst session = new inspector.Session();\n\nconst fd = fs.openSync('profile.heapsnapshot', 'w');\n\nsession.connect();\n\nsession.on('HeapProfiler.addHeapSnapshotChunk', (m) => {\n  fs.writeSync(fd, m.params.chunk);\n});\n\nsession.post('HeapProfiler.takeHeapSnapshot', null, (err, r) => {\n  console.log('Runtime.takeHeapSnapshot done:', err, r);\n  session.disconnect();\n  fs.closeSync(fd);\n});\n</code></pre>",
+              "type": "module",
+              "displayName": "Heap Profiler"
             }
           ],
           "signatures": [
             {
               "params": [],
-              "desc": "<p>Create a new instance of the <code>inspector.Session</code> class. The inspector session\nneeds to be connected through <a href=\"#inspector_session_connect\"><code>session.connect()</code></a> before the messages\ncan be dispatched to the inspector backend.</p>\n<p><code>inspector.Session</code> is an <a href=\"events.html#events_class_eventemitter\"><code>EventEmitter</code></a> with the following events:</p>"
+              "desc": "<p>Create a new instance of the <code>inspector.Session</code> class. The inspector session\nneeds to be connected through <a href=\"#inspector_session_connect\"><code>session.connect()</code></a> before the messages\ncan be dispatched to the inspector backend.</p>"
             }
           ]
         }

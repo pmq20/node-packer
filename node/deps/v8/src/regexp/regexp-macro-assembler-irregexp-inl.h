@@ -5,7 +5,7 @@
 #ifndef V8_REGEXP_REGEXP_MACRO_ASSEMBLER_IRREGEXP_INL_H_
 #define V8_REGEXP_REGEXP_MACRO_ASSEMBLER_IRREGEXP_INL_H_
 
-#ifdef V8_INTERPRETED_REGEXP
+#include "src/regexp/regexp-macro-assembler-irregexp.h"
 
 #include "src/ast/ast.h"
 #include "src/regexp/bytecodes-irregexp.h"
@@ -20,7 +20,7 @@ void RegExpMacroAssemblerIrregexp::Emit(uint32_t byte,
   if (pc_  + 3 >= buffer_.length()) {
     Expand();
   }
-  *reinterpret_cast<uint32_t*>(buffer_.start() + pc_) = word;
+  *reinterpret_cast<uint32_t*>(buffer_.begin() + pc_) = word;
   pc_ += 4;
 }
 
@@ -30,7 +30,7 @@ void RegExpMacroAssemblerIrregexp::Emit16(uint32_t word) {
   if (pc_ + 1 >= buffer_.length()) {
     Expand();
   }
-  *reinterpret_cast<uint16_t*>(buffer_.start() + pc_) = word;
+  *reinterpret_cast<uint16_t*>(buffer_.begin() + pc_) = word;
   pc_ += 2;
 }
 
@@ -40,7 +40,7 @@ void RegExpMacroAssemblerIrregexp::Emit8(uint32_t word) {
   if (pc_ == buffer_.length()) {
     Expand();
   }
-  *reinterpret_cast<unsigned char*>(buffer_.start() + pc_) = word;
+  *reinterpret_cast<unsigned char*>(buffer_.begin() + pc_) = word;
   pc_ += 1;
 }
 
@@ -50,13 +50,11 @@ void RegExpMacroAssemblerIrregexp::Emit32(uint32_t word) {
   if (pc_ + 3 >= buffer_.length()) {
     Expand();
   }
-  *reinterpret_cast<uint32_t*>(buffer_.start() + pc_) = word;
+  *reinterpret_cast<uint32_t*>(buffer_.begin() + pc_) = word;
   pc_ += 4;
 }
 
 }  // namespace internal
 }  // namespace v8
-
-#endif  // V8_INTERPRETED_REGEXP
 
 #endif  // V8_REGEXP_REGEXP_MACRO_ASSEMBLER_IRREGEXP_INL_H_

@@ -1,9 +1,9 @@
 #include "tracing/node_trace_writer.h"
 
-#include <string.h>
-#include <fcntl.h>
-
 #include "util-inl.h"
+
+#include <fcntl.h>
+#include <cstring>
 
 namespace node {
 namespace tracing {
@@ -138,8 +138,13 @@ void NodeTraceWriter::FlushPrivate() {
 
 void NodeTraceWriter::Flush(bool blocking) {
   Mutex::ScopedLock scoped_lock(request_mutex_);
-  if (!json_trace_writer_) {
-    return;
+  {
+    // We need to lock the mutexes here in a nested fashion; stream_mutex_
+    // protects json_trace_writer_, and without request_mutex_ there might be
+    // a time window in which the stream state changes?
+    Mutex::ScopedLock stream_mutex_lock(stream_mutex_);
+    if (!json_trace_writer_)
+      return;
   }
   int request_id = ++num_write_requests_;
   int err = uv_async_send(&flush_signal_);
@@ -213,18 +218,23 @@ void NodeTraceWriter::AfterWrite() {
 void NodeTraceWriter::ExitSignalCb(uv_async_t* signal) {
   NodeTraceWriter* trace_writer =
       ContainerOf(&NodeTraceWriter::exit_signal_, signal);
+  // Close both flush_signal_ and exit_signal_.
   uv_close(reinterpret_cast<uv_handle_t*>(&trace_writer->flush_signal_),
-           nullptr);
-  uv_close(reinterpret_cast<uv_handle_t*>(&trace_writer->exit_signal_),
            [](uv_handle_t* signal) {
-      NodeTraceWriter* trace_writer =
-          ContainerOf(&NodeTraceWriter::exit_signal_,
-                      reinterpret_cast<uv_async_t*>(signal));
-      Mutex::ScopedLock scoped_lock(trace_writer->request_mutex_);
-      trace_writer->exited_ = true;
-      trace_writer->exit_cond_.Signal(scoped_lock);
-  });
+             NodeTraceWriter* trace_writer =
+                 ContainerOf(&NodeTraceWriter::flush_signal_,
+                             reinterpret_cast<uv_async_t*>(signal));
+             uv_close(
+                 reinterpret_cast<uv_handle_t*>(&trace_writer->exit_signal_),
+                 [](uv_handle_t* signal) {
+                   NodeTraceWriter* trace_writer =
+                       ContainerOf(&NodeTraceWriter::exit_signal_,
+                                   reinterpret_cast<uv_async_t*>(signal));
+                   Mutex::ScopedLock scoped_lock(trace_writer->request_mutex_);
+                   trace_writer->exited_ = true;
+                   trace_writer->exit_cond_.Signal(scoped_lock);
+                 });
+           });
 }
-
 }  // namespace tracing
 }  // namespace node

@@ -8,9 +8,9 @@
 #include <limits>
 
 #include "src/base/compiler-specific.h"
+#include "src/codegen/source-position.h"
+#include "src/common/globals.h"
 #include "src/compiler/node-aux-data.h"
-#include "src/globals.h"
-#include "src/source-position.h"
 
 namespace v8 {
 namespace internal {
@@ -18,18 +18,30 @@ namespace compiler {
 
 class NodeOrigin {
  public:
+  enum OriginKind { kWasmBytecode, kGraphNode };
   NodeOrigin(const char* phase_name, const char* reducer_name,
              NodeId created_from)
       : phase_name_(phase_name),
         reducer_name_(reducer_name),
+        origin_kind_(kGraphNode),
         created_from_(created_from) {}
-  NodeOrigin(const NodeOrigin& other) = default;
+
+  NodeOrigin(const char* phase_name, const char* reducer_name,
+             OriginKind origin_kind, uint64_t created_from)
+      : phase_name_(phase_name),
+        reducer_name_(reducer_name),
+        origin_kind_(origin_kind),
+        created_from_(created_from) {}
+
+  NodeOrigin(const NodeOrigin& other) V8_NOEXCEPT = default;
   static NodeOrigin Unknown() { return NodeOrigin(); }
 
   bool IsKnown() { return created_from_ >= 0; }
   int64_t created_from() const { return created_from_; }
   const char* reducer_name() const { return reducer_name_; }
   const char* phase_name() const { return phase_name_; }
+
+  OriginKind origin_kind() const { return origin_kind_; }
 
   bool operator==(const NodeOrigin& o) const {
     return reducer_name_ == o.reducer_name_ && created_from_ == o.created_from_;
@@ -44,6 +56,7 @@ class NodeOrigin {
         created_from_(std::numeric_limits<int64_t>::min()) {}
   const char* phase_name_;
   const char* reducer_name_;
+  OriginKind origin_kind_;
   int64_t created_from_;
 };
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Inspector | Node.js v10.15.3 Documentation</title>
+  <title>Inspector | Node.js v12.10.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -52,11 +52,13 @@
 <li><a href="os.html" class="nav-os">OS</a></li>
 <li><a href="path.html" class="nav-path">Path</a></li>
 <li><a href="perf_hooks.html" class="nav-perf_hooks">Performance Hooks</a></li>
+<li><a href="policy.html" class="nav-policy">Policies</a></li>
 <li><a href="process.html" class="nav-process">Process</a></li>
 <li><a href="punycode.html" class="nav-punycode">Punycode</a></li>
 <li><a href="querystring.html" class="nav-querystring">Query Strings</a></li>
 <li><a href="readline.html" class="nav-readline">Readline</a></li>
 <li><a href="repl.html" class="nav-repl">REPL</a></li>
+<li><a href="report.html" class="nav-report">Report</a></li>
 <li><a href="stream.html" class="nav-stream">Stream</a></li>
 <li><a href="string_decoder.html" class="nav-string_decoder">String Decoder</a></li>
 <li><a href="timers.html" class="nav-timers">Timers</a></li>
@@ -69,7 +71,7 @@
 <li><a href="v8.html" class="nav-v8">V8</a></li>
 <li><a href="vm.html" class="nav-vm">VM</a></li>
 <li><a href="worker_threads.html" class="nav-worker_threads">Worker Threads</a></li>
-<li><a href="zlib.html" class="nav-zlib">ZLIB</a></li>
+<li><a href="zlib.html" class="nav-zlib">Zlib</a></li>
 </ul>
 <div class="line"></div>
 <ul>
@@ -79,7 +81,7 @@
 
     <div id="column1" data-id="inspector" class="interior">
       <header>
-        <h1>Node.js v10.15.3 Documentation</h1>
+        <h1>Node.js v12.10.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -94,7 +96,8 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v11.x/api/inspector.html">11.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v12.x/api/inspector.html">12.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v11.x/api/inspector.html">11.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v10.x/api/inspector.html">10.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v9.x/api/inspector.html">9.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v8.x/api/inspector.html">8.x <b>LTS</b></a></li></ol>
@@ -116,6 +119,7 @@
 <li><a href="#inspector_inspector_console">inspector.console</a></li>
 <li><a href="#inspector_inspector_open_port_host_wait">inspector.open([port[, host[, wait]]])</a></li>
 <li><a href="#inspector_inspector_url">inspector.url()</a></li>
+<li><a href="#inspector_inspector_waitfordebugger">inspector.waitForDebugger()</a></li>
 <li>
 <p><a href="#inspector_class_inspector_session">Class: inspector.Session</a></p>
 <ul>
@@ -131,6 +135,7 @@
 <p><a href="#inspector_example_usage">Example usage</a></p>
 <ul>
 <li><a href="#inspector_cpu_profiler">CPU Profiler</a></li>
+<li><a href="#inspector_heap_profiler">Heap Profiler</a></li>
 </ul>
 </li>
 </ul>
@@ -176,7 +181,17 @@ parameter usage.</p>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Undefined_type" class="type">&#x3C;undefined></a></li>
 </ul>
 <p>Return the URL of the active inspector, or <code>undefined</code> if there is none.</p>
+<h2>inspector.waitForDebugger()<span><a class="mark" href="#inspector_inspector_waitfordebugger" id="inspector_inspector_waitfordebugger">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v12.7.0</span>
+</div>
+<p>Blocks until a client (existing or connected later) has sent
+<code>Runtime.runIfWaitingForDebugger</code> command.</p>
+<p>An exception will be thrown if there is no active inspector.</p>
 <h2>Class: inspector.Session<span><a class="mark" href="#inspector_class_inspector_session" id="inspector_class_inspector_session">#</a></span></h2>
+<ul>
+<li>Extends: <a href="events.html#events_class_eventemitter" class="type">&#x3C;EventEmitter></a></li>
+</ul>
 <p>The <code>inspector.Session</code> is used for dispatching messages to the V8 inspector
 back-end and receiving message responses and notifications.</p>
 <h3>Constructor: new inspector.Session()<span><a class="mark" href="#inspector_constructor_new_inspector_session" id="inspector_constructor_new_inspector_session">#</a></span></h3>
@@ -186,7 +201,6 @@ back-end and receiving message responses and notifications.</p>
 <p>Create a new instance of the <code>inspector.Session</code> class. The inspector session
 needs to be connected through <a href="#inspector_session_connect"><code>session.connect()</code></a> before the messages
 can be dispatched to the inspector backend.</p>
-<p><code>inspector.Session</code> is an <a href="events.html#events_class_eventemitter"><code>EventEmitter</code></a> with the following events:</p>
 <h3>Event: 'inspectorNotification'<span><a class="mark" href="#inspector_event_inspectornotification" id="inspector_event_inspectornotification">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
@@ -217,14 +231,14 @@ execution is suspended (through breakpoints, for example):</p>
 });
 // [ '/the/file/that/has/the/breakpoint.js:11:0' ]
 </code></pre>
-<h3>session.connect()<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/inspector.js#L33">[src]</a><span><a class="mark" href="#inspector_session_connect" id="inspector_session_connect">#</a></span></h3>
+<h3>session.connect()<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/inspector.js#L43">[src]</a><span><a class="mark" href="#inspector_session_connect" id="inspector_session_connect">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
 </div>
 <p>Connects a session to the inspector back-end. An exception will be thrown
 if there is already a connected session established either through the API or by
 a front-end connected to the Inspector WebSocket port.</p>
-<h3>session.disconnect()<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/inspector.js#L88">[src]</a><span><a class="mark" href="#inspector_session_disconnect" id="inspector_session_disconnect">#</a></span></h3>
+<h3>session.disconnect()<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/inspector.js#L100">[src]</a><span><a class="mark" href="#inspector_session_disconnect" id="inspector_session_disconnect">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
 </div>
@@ -232,7 +246,7 @@ a front-end connected to the Inspector WebSocket port.</p>
 with an error. <a href="#inspector_session_connect"><code>session.connect()</code></a> will need to be called to be able to send
 messages again. Reconnected session will lose all inspector state, such as
 enabled agents or configured breakpoints.</p>
-<h3>session.post(method[, params][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/1a96d83a223ff9f05f7d942fb84440d323f7b596/lib/inspector.js#L61">[src]</a><span><a class="mark" href="#inspector_session_post_method_params_callback" id="inspector_session_post_method_params_callback">#</a></span></h3>
+<h3>session.post(method[, params][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/inspector.js#L73">[src]</a><span><a class="mark" href="#inspector_session_post_method_params_callback" id="inspector_session_post_method_params_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
 </div>
@@ -255,9 +269,10 @@ by V8. Chrome DevTools Protocol domain provides an interface for interacting
 with one of the runtime agents used to inspect the application state and listen
 to the run-time events.</p>
 <h2>Example usage<span><a class="mark" href="#inspector_example_usage" id="inspector_example_usage">#</a></span></h2>
-<h3>CPU Profiler<span><a class="mark" href="#inspector_cpu_profiler" id="inspector_cpu_profiler">#</a></span></h3>
 <p>Apart from the debugger, various V8 Profilers are available through the DevTools
-protocol. Here's a simple example showing how to use the <a href="https://chromedevtools.github.io/devtools-protocol/v8/Profiler">CPU profiler</a>:</p>
+protocol.</p>
+<h3>CPU Profiler<span><a class="mark" href="#inspector_cpu_profiler" id="inspector_cpu_profiler">#</a></span></h3>
+<p>Here's an example showing how to use the <a href="https://chromedevtools.github.io/devtools-protocol/v8/Profiler">CPU Profiler</a>:</p>
 <pre><code class="language-js">const inspector = require('inspector');
 const fs = require('fs');
 const session = new inspector.Session();
@@ -265,16 +280,36 @@ session.connect();
 
 session.post('Profiler.enable', () => {
   session.post('Profiler.start', () => {
-    // invoke business logic under measurement here...
+    // Invoke business logic under measurement here...
 
     // some time later...
     session.post('Profiler.stop', (err, { profile }) => {
-      // write profile to disk, upload, etc.
+      // Write profile to disk, upload, etc.
       if (!err) {
         fs.writeFileSync('./profile.cpuprofile', JSON.stringify(profile));
       }
     });
   });
+});
+</code></pre>
+<h3>Heap Profiler<span><a class="mark" href="#inspector_heap_profiler" id="inspector_heap_profiler">#</a></span></h3>
+<p>Here's an example showing how to use the <a href="https://chromedevtools.github.io/devtools-protocol/v8/HeapProfiler">Heap Profiler</a>:</p>
+<pre><code class="language-js">const inspector = require('inspector');
+const fs = require('fs');
+const session = new inspector.Session();
+
+const fd = fs.openSync('profile.heapsnapshot', 'w');
+
+session.connect();
+
+session.on('HeapProfiler.addHeapSnapshotChunk', (m) => {
+  fs.writeSync(fd, m.params.chunk);
+});
+
+session.post('HeapProfiler.takeHeapSnapshot', null, (err, r) => {
+  console.log('Runtime.takeHeapSnapshot done:', err, r);
+  session.disconnect();
+  fs.closeSync(fd);
 });
 </code></pre>
       </div>

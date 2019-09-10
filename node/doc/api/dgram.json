@@ -8,7 +8,7 @@
       "introduced_in": "v0.10.0",
       "stability": 2,
       "stabilityText": "Stable",
-      "desc": "<p>The <code>dgram</code> module provides an implementation of UDP Datagram sockets.</p>\n<pre><code class=\"language-js\">const dgram = require('dgram');\nconst server = dgram.createSocket('udp4');\n\nserver.on('error', (err) => {\n  console.log(`server error:\\n${err.stack}`);\n  server.close();\n});\n\nserver.on('message', (msg, rinfo) => {\n  console.log(`server got: ${msg} from ${rinfo.address}:${rinfo.port}`);\n});\n\nserver.on('listening', () => {\n  const address = server.address();\n  console.log(`server listening ${address.address}:${address.port}`);\n});\n\nserver.bind(41234);\n// server listening 0.0.0.0:41234\n</code></pre>",
+      "desc": "<p>The <code>dgram</code> module provides an implementation of UDP Datagram sockets.</p>\n<pre><code class=\"language-js\">const dgram = require('dgram');\nconst server = dgram.createSocket('udp4');\n\nserver.on('error', (err) => {\n  console.log(`server error:\\n${err.stack}`);\n  server.close();\n});\n\nserver.on('message', (msg, rinfo) => {\n  console.log(`server got: ${msg} from ${rinfo.address}:${rinfo.port}`);\n});\n\nserver.on('listening', () => {\n  const address = server.address();\n  console.log(`server listening ${address.address}:${address.port}`);\n});\n\nserver.bind(41234);\n// Prints: server listening 0.0.0.0:41234\n</code></pre>",
       "classes": [
         {
           "textRaw": "Class: dgram.Socket",
@@ -20,7 +20,7 @@
             ],
             "changes": []
           },
-          "desc": "<p>The <code>dgram.Socket</code> object is an <a href=\"events.html\"><code>EventEmitter</code></a> that encapsulates the\ndatagram functionality.</p>\n<p>New instances of <code>dgram.Socket</code> are created using <a href=\"#dgram_dgram_createsocket_options_callback\"><code>dgram.createSocket()</code></a>.\nThe <code>new</code> keyword is not to be used to create <code>dgram.Socket</code> instances.</p>",
+          "desc": "<ul>\n<li>Extends: <a href=\"events.html#events_class_eventemitter\" class=\"type\">&lt;EventEmitter&gt;</a></li>\n</ul>\n<p>Encapsulates the datagram functionality.</p>\n<p>New instances of <code>dgram.Socket</code> are created using <a href=\"#dgram_dgram_createsocket_options_callback\"><code>dgram.createSocket()</code></a>.\nThe <code>new</code> keyword is not to be used to create <code>dgram.Socket</code> instances.</p>",
           "events": [
             {
               "textRaw": "Event: 'close'",
@@ -34,6 +34,19 @@
               },
               "params": [],
               "desc": "<p>The <code>'close'</code> event is emitted after a socket is closed with <a href=\"#dgram_socket_close_callback\"><code>close()</code></a>.\nOnce triggered, no new <code>'message'</code> events will be emitted on this socket.</p>"
+            },
+            {
+              "textRaw": "Event: 'connect'",
+              "type": "event",
+              "name": "connect",
+              "meta": {
+                "added": [
+                  "v12.0.0"
+                ],
+                "changes": []
+              },
+              "params": [],
+              "desc": "<p>The <code>'connect'</code> event is emitted after a socket is associated to a remote\naddress as a result of a successful <a href=\"#dgram_socket_connect_port_address_callback\"><code>connect()</code></a> call.</p>"
             },
             {
               "textRaw": "Event: 'error'",
@@ -168,7 +181,7 @@
                   ]
                 }
               ],
-              "desc": "<p>For UDP sockets, causes the <code>dgram.Socket</code> to listen for datagram\nmessages on a named <code>port</code> and optional <code>address</code>. If <code>port</code> is not\nspecified or is <code>0</code>, the operating system will attempt to bind to a\nrandom port. If <code>address</code> is not specified, the operating system will\nattempt to listen on all addresses. Once binding is complete, a\n<code>'listening'</code> event is emitted and the optional <code>callback</code> function is\ncalled.</p>\n<p>Note that specifying both a <code>'listening'</code> event listener and passing a\n<code>callback</code> to the <code>socket.bind()</code> method is not harmful but not very\nuseful.</p>\n<p>A bound datagram socket keeps the Node.js process running to receive\ndatagram messages.</p>\n<p>If binding fails, an <code>'error'</code> event is generated. In rare case (e.g.\nattempting to bind with a closed socket), an <a href=\"errors.html#errors_class_error\"><code>Error</code></a> may be thrown.</p>\n<p>Example of a UDP server listening on port 41234:</p>\n<pre><code class=\"language-js\">const dgram = require('dgram');\nconst server = dgram.createSocket('udp4');\n\nserver.on('error', (err) => {\n  console.log(`server error:\\n${err.stack}`);\n  server.close();\n});\n\nserver.on('message', (msg, rinfo) => {\n  console.log(`server got: ${msg} from ${rinfo.address}:${rinfo.port}`);\n});\n\nserver.on('listening', () => {\n  const address = server.address();\n  console.log(`server listening ${address.address}:${address.port}`);\n});\n\nserver.bind(41234);\n// server listening 0.0.0.0:41234\n</code></pre>"
+              "desc": "<p>For UDP sockets, causes the <code>dgram.Socket</code> to listen for datagram\nmessages on a named <code>port</code> and optional <code>address</code>. If <code>port</code> is not\nspecified or is <code>0</code>, the operating system will attempt to bind to a\nrandom port. If <code>address</code> is not specified, the operating system will\nattempt to listen on all addresses. Once binding is complete, a\n<code>'listening'</code> event is emitted and the optional <code>callback</code> function is\ncalled.</p>\n<p>Specifying both a <code>'listening'</code> event listener and passing a\n<code>callback</code> to the <code>socket.bind()</code> method is not harmful but not very\nuseful.</p>\n<p>A bound datagram socket keeps the Node.js process running to receive\ndatagram messages.</p>\n<p>If binding fails, an <code>'error'</code> event is generated. In rare case (e.g.\nattempting to bind with a closed socket), an <a href=\"errors.html#errors_class_error\"><code>Error</code></a> may be thrown.</p>\n<p>Example of a UDP server listening on port 41234:</p>\n<pre><code class=\"language-js\">const dgram = require('dgram');\nconst server = dgram.createSocket('udp4');\n\nserver.on('error', (err) => {\n  console.log(`server error:\\n${err.stack}`);\n  server.close();\n});\n\nserver.on('message', (msg, rinfo) => {\n  console.log(`server got: ${msg} from ${rinfo.address}:${rinfo.port}`);\n});\n\nserver.on('listening', () => {\n  const address = server.address();\n  console.log(`server listening ${address.address}:${address.port}`);\n});\n\nserver.bind(41234);\n// Prints: server listening 0.0.0.0:41234\n</code></pre>"
             },
             {
               "textRaw": "socket.bind(options[, callback])",
@@ -203,6 +216,11 @@
                           "textRaw": "`exclusive` {boolean}",
                           "name": "exclusive",
                           "type": "boolean"
+                        },
+                        {
+                          "textRaw": "`fd` {integer}",
+                          "name": "fd",
+                          "type": "integer"
                         }
                       ]
                     },
@@ -215,7 +233,7 @@
                   ]
                 }
               ],
-              "desc": "<p>For UDP sockets, causes the <code>dgram.Socket</code> to listen for datagram\nmessages on a named <code>port</code> and optional <code>address</code> that are passed as\nproperties of an <code>options</code> object passed as the first argument. If\n<code>port</code> is not specified or is <code>0</code>, the operating system will attempt\nto bind to a random port. If <code>address</code> is not specified, the operating\nsystem will attempt to listen on all addresses. Once binding is\ncomplete, a <code>'listening'</code> event is emitted and the optional <code>callback</code>\nfunction is called.</p>\n<p>Note that specifying both a <code>'listening'</code> event listener and passing a\n<code>callback</code> to the <code>socket.bind()</code> method is not harmful but not very\nuseful.</p>\n<p>The <code>options</code> object may contain an additional <code>exclusive</code> property that is\nuse when using <code>dgram.Socket</code> objects with the <a href=\"cluster.html\"><code>cluster</code></a> module. When\n<code>exclusive</code> is set to <code>false</code> (the default), cluster workers will use the same\nunderlying socket handle allowing connection handling duties to be shared.\nWhen <code>exclusive</code> is <code>true</code>, however, the handle is not shared and attempted\nport sharing results in an error.</p>\n<p>A bound datagram socket keeps the Node.js process running to receive\ndatagram messages.</p>\n<p>If binding fails, an <code>'error'</code> event is generated. In rare case (e.g.\nattempting to bind with a closed socket), an <a href=\"errors.html#errors_class_error\"><code>Error</code></a> may be thrown.</p>\n<p>An example socket listening on an exclusive port is shown below.</p>\n<pre><code class=\"language-js\">socket.bind({\n  address: 'localhost',\n  port: 8000,\n  exclusive: true\n});\n</code></pre>"
+              "desc": "<p>For UDP sockets, causes the <code>dgram.Socket</code> to listen for datagram\nmessages on a named <code>port</code> and optional <code>address</code> that are passed as\nproperties of an <code>options</code> object passed as the first argument. If\n<code>port</code> is not specified or is <code>0</code>, the operating system will attempt\nto bind to a random port. If <code>address</code> is not specified, the operating\nsystem will attempt to listen on all addresses. Once binding is\ncomplete, a <code>'listening'</code> event is emitted and the optional <code>callback</code>\nfunction is called.</p>\n<p>The <code>options</code> object may contain a <code>fd</code> property. When a <code>fd</code> greater\nthan <code>0</code> is set, it will wrap around an existing socket with the given\nfile descriptor. In this case, the properties of <code>port</code> and <code>address</code>\nwill be ignored.</p>\n<p>Specifying both a <code>'listening'</code> event listener and passing a\n<code>callback</code> to the <code>socket.bind()</code> method is not harmful but not very\nuseful.</p>\n<p>The <code>options</code> object may contain an additional <code>exclusive</code> property that is\nused when using <code>dgram.Socket</code> objects with the <a href=\"cluster.html\"><code>cluster</code></a> module. When\n<code>exclusive</code> is set to <code>false</code> (the default), cluster workers will use the same\nunderlying socket handle allowing connection handling duties to be shared.\nWhen <code>exclusive</code> is <code>true</code>, however, the handle is not shared and attempted\nport sharing results in an error.</p>\n<p>A bound datagram socket keeps the Node.js process running to receive\ndatagram messages.</p>\n<p>If binding fails, an <code>'error'</code> event is generated. In rare case (e.g.\nattempting to bind with a closed socket), an <a href=\"errors.html#errors_class_error\"><code>Error</code></a> may be thrown.</p>\n<p>An example socket listening on an exclusive port is shown below.</p>\n<pre><code class=\"language-js\">socket.bind({\n  address: 'localhost',\n  port: 8000,\n  exclusive: true\n});\n</code></pre>"
             },
             {
               "textRaw": "socket.close([callback])",
@@ -241,6 +259,59 @@
                 }
               ],
               "desc": "<p>Close the underlying socket and stop listening for data on it. If a callback is\nprovided, it is added as a listener for the <a href=\"#dgram_event_close\"><code>'close'</code></a> event.</p>"
+            },
+            {
+              "textRaw": "socket.connect(port[, address][, callback])",
+              "type": "method",
+              "name": "connect",
+              "meta": {
+                "added": [
+                  "v12.0.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`port` {integer}",
+                      "name": "port",
+                      "type": "integer"
+                    },
+                    {
+                      "textRaw": "`address` {string}",
+                      "name": "address",
+                      "type": "string",
+                      "optional": true
+                    },
+                    {
+                      "textRaw": "`callback` {Function} Called when the connection is completed or on error.",
+                      "name": "callback",
+                      "type": "Function",
+                      "desc": "Called when the connection is completed or on error.",
+                      "optional": true
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Associates the <code>dgram.Socket</code> to a remote address and port. Every\nmessage sent by this handle is automatically sent to that destination. Also,\nthe socket will only receive messages from that remote peer.\nTrying to call <code>connect()</code> on an already connected socket will result\nin an <a href=\"errors.html#errors_err_socket_dgram_is_connected\"><code>ERR_SOCKET_DGRAM_IS_CONNECTED</code></a> exception. If <code>address</code> is not\nprovided, <code>'127.0.0.1'</code> (for <code>udp4</code> sockets) or <code>'::1'</code> (for <code>udp6</code> sockets)\nwill be used by default. Once the connection is complete, a <code>'connect'</code> event\nis emitted and the optional <code>callback</code> function is called. In case of failure,\nthe <code>callback</code> is called or, failing this, an <code>'error'</code> event is emitted.</p>"
+            },
+            {
+              "textRaw": "socket.disconnect()",
+              "type": "method",
+              "name": "disconnect",
+              "meta": {
+                "added": [
+                  "v12.0.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": []
+                }
+              ],
+              "desc": "<p>A synchronous function that disassociates a connected <code>dgram.Socket</code> from\nits remote address. Trying to call <code>disconnect()</code> on an already disconnected\nsocket will result in an <a href=\"errors.html#errors_err_socket_dgram_not_connected\"><code>ERR_SOCKET_DGRAM_NOT_CONNECTED</code></a> exception.</p>"
             },
             {
               "textRaw": "socket.dropMembership(multicastAddress[, multicastInterface])",
@@ -333,7 +404,29 @@
               "desc": "<p>By default, binding a socket will cause it to block the Node.js process from\nexiting as long as the socket is open. The <code>socket.unref()</code> method can be used\nto exclude the socket from the reference counting that keeps the Node.js\nprocess active. The <code>socket.ref()</code> method adds the socket back to the reference\ncounting and restores the default behavior.</p>\n<p>Calling <code>socket.ref()</code> multiples times will have no additional effect.</p>\n<p>The <code>socket.ref()</code> method returns a reference to the socket so calls can be\nchained.</p>"
             },
             {
-              "textRaw": "socket.send(msg[, offset, length], port[, address][, callback])",
+              "textRaw": "socket.remoteAddress()",
+              "type": "method",
+              "name": "remoteAddress",
+              "meta": {
+                "added": [
+                  "v12.0.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {Object}",
+                    "name": "return",
+                    "type": "Object"
+                  },
+                  "params": []
+                }
+              ],
+              "desc": "<p>Returns an object containing the <code>address</code>, <code>family</code>, and <code>port</code> of the remote\nendpoint. It throws an <a href=\"errors.html#errors_err_socket_dgram_not_connected\"><code>ERR_SOCKET_DGRAM_NOT_CONNECTED</code></a> exception if the\nsocket is not connected.</p>"
+            },
+            {
+              "textRaw": "socket.send(msg[, offset, length][, port][, address][, callback])",
               "type": "method",
               "name": "send",
               "meta": {
@@ -360,6 +453,11 @@
                     "version": "v5.7.0",
                     "pr-url": "https://github.com/nodejs/node/pull/4374",
                     "description": "The `msg` parameter can be an array now. Also, the `offset` and `length` parameters are optional now."
+                  },
+                  {
+                    "version": "v12.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/26871",
+                    "description": "Added support for sending data on connected sockets."
                   }
                 ]
               },
@@ -390,7 +488,8 @@
                       "textRaw": "`port` {integer} Destination port.",
                       "name": "port",
                       "type": "integer",
-                      "desc": "Destination port."
+                      "desc": "Destination port.",
+                      "optional": true
                     },
                     {
                       "textRaw": "`address` {string} Destination hostname or IP address.",
@@ -409,7 +508,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Broadcasts a datagram on the socket. The destination <code>port</code> and <code>address</code> must\nbe specified.</p>\n<p>The <code>msg</code> argument contains the message to be sent.\nDepending on its type, different behavior can apply. If <code>msg</code> is a <code>Buffer</code>\nor <code>Uint8Array</code>,\nthe <code>offset</code> and <code>length</code> specify the offset within the <code>Buffer</code> where the\nmessage begins and the number of bytes in the message, respectively.\nIf <code>msg</code> is a <code>String</code>, then it is automatically converted to a <code>Buffer</code>\nwith <code>'utf8'</code> encoding. With messages that\ncontain multi-byte characters, <code>offset</code> and <code>length</code> will be calculated with\nrespect to <a href=\"buffer.html#buffer_class_method_buffer_bytelength_string_encoding\">byte length</a> and not the character position.\nIf <code>msg</code> is an array, <code>offset</code> and <code>length</code> must not be specified.</p>\n<p>The <code>address</code> argument is a string. If the value of <code>address</code> is a host name,\nDNS will be used to resolve the address of the host. If <code>address</code> is not\nprovided or otherwise falsy, <code>'127.0.0.1'</code> (for <code>udp4</code> sockets) or <code>'::1'</code>\n(for <code>udp6</code> sockets) will be used by default.</p>\n<p>If the socket has not been previously bound with a call to <code>bind</code>, the socket\nis assigned a random port number and is bound to the \"all interfaces\" address\n(<code>'0.0.0.0'</code> for <code>udp4</code> sockets, <code>'::0'</code> for <code>udp6</code> sockets.)</p>\n<p>An optional <code>callback</code> function may be specified to as a way of reporting\nDNS errors or for determining when it is safe to reuse the <code>buf</code> object.\nNote that DNS lookups delay the time to send for at least one tick of the\nNode.js event loop.</p>\n<p>The only way to know for sure that the datagram has been sent is by using a\n<code>callback</code>. If an error occurs and a <code>callback</code> is given, the error will be\npassed as the first argument to the <code>callback</code>. If a <code>callback</code> is not given,\nthe error is emitted as an <code>'error'</code> event on the <code>socket</code> object.</p>\n<p>Offset and length are optional but both <em>must</em> be set if either are used.\nThey are supported only when the first argument is a <code>Buffer</code> or <code>Uint8Array</code>.</p>\n<p>Example of sending a UDP packet to a port on <code>localhost</code>;</p>\n<pre><code class=\"language-js\">const dgram = require('dgram');\nconst message = Buffer.from('Some bytes');\nconst client = dgram.createSocket('udp4');\nclient.send(message, 41234, 'localhost', (err) => {\n  client.close();\n});\n</code></pre>\n<p>Example of sending a UDP packet composed of multiple buffers to a port on\n<code>127.0.0.1</code>;</p>\n<pre><code class=\"language-js\">const dgram = require('dgram');\nconst buf1 = Buffer.from('Some ');\nconst buf2 = Buffer.from('bytes');\nconst client = dgram.createSocket('udp4');\nclient.send([buf1, buf2], 41234, (err) => {\n  client.close();\n});\n</code></pre>\n<p>Sending multiple buffers might be faster or slower depending on the\napplication and operating system. It is important to run benchmarks to\ndetermine the optimal strategy on a case-by-case basis. Generally speaking,\nhowever, sending multiple buffers is faster.</p>\n<p><strong>A Note about UDP datagram size</strong></p>\n<p>The maximum size of an <code>IPv4/v6</code> datagram depends on the <code>MTU</code>\n(<em>Maximum Transmission Unit</em>) and on the <code>Payload Length</code> field size.</p>\n<ul>\n<li>\n<p>The <code>Payload Length</code> field is <code>16 bits</code> wide, which means that a normal\npayload exceed 64K octets <em>including</em> the internet header and data\n(65,507 bytes = 65,535 − 8 bytes UDP header − 20 bytes IP header);\nthis is generally true for loopback interfaces, but such long datagram\nmessages are impractical for most hosts and networks.</p>\n</li>\n<li>\n<p>The <code>MTU</code> is the largest size a given link layer technology can support for\ndatagram messages. For any link, <code>IPv4</code> mandates a minimum <code>MTU</code> of <code>68</code>\noctets, while the recommended <code>MTU</code> for IPv4 is <code>576</code> (typically recommended\nas the <code>MTU</code> for dial-up type applications), whether they arrive whole or in\nfragments.</p>\n<p>For <code>IPv6</code>, the minimum <code>MTU</code> is <code>1280</code> octets, however, the mandatory minimum\nfragment reassembly buffer size is <code>1500</code> octets. The value of <code>68</code> octets is\nvery small, since most current link layer technologies, like Ethernet, have a\nminimum <code>MTU</code> of <code>1500</code>.</p>\n</li>\n</ul>\n<p>It is impossible to know in advance the MTU of each link through which\na packet might travel. Sending a datagram greater than the receiver <code>MTU</code> will\nnot work because the packet will get silently dropped without informing the\nsource that the data did not reach its intended recipient.</p>"
+              "desc": "<p>Broadcasts a datagram on the socket.\nFor connectionless sockets, the destination <code>port</code> and <code>address</code> must be\nspecified. Connected sockets, on the other hand, will use their associated\nremote endpoint, so the <code>port</code> and <code>address</code> arguments must not be set.</p>\n<p>The <code>msg</code> argument contains the message to be sent.\nDepending on its type, different behavior can apply. If <code>msg</code> is a <code>Buffer</code>\nor <code>Uint8Array</code>,\nthe <code>offset</code> and <code>length</code> specify the offset within the <code>Buffer</code> where the\nmessage begins and the number of bytes in the message, respectively.\nIf <code>msg</code> is a <code>String</code>, then it is automatically converted to a <code>Buffer</code>\nwith <code>'utf8'</code> encoding. With messages that\ncontain multi-byte characters, <code>offset</code> and <code>length</code> will be calculated with\nrespect to <a href=\"buffer.html#buffer_class_method_buffer_bytelength_string_encoding\">byte length</a> and not the character position.\nIf <code>msg</code> is an array, <code>offset</code> and <code>length</code> must not be specified.</p>\n<p>The <code>address</code> argument is a string. If the value of <code>address</code> is a host name,\nDNS will be used to resolve the address of the host. If <code>address</code> is not\nprovided or otherwise falsy, <code>'127.0.0.1'</code> (for <code>udp4</code> sockets) or <code>'::1'</code>\n(for <code>udp6</code> sockets) will be used by default.</p>\n<p>If the socket has not been previously bound with a call to <code>bind</code>, the socket\nis assigned a random port number and is bound to the \"all interfaces\" address\n(<code>'0.0.0.0'</code> for <code>udp4</code> sockets, <code>'::0'</code> for <code>udp6</code> sockets.)</p>\n<p>An optional <code>callback</code> function may be specified to as a way of reporting\nDNS errors or for determining when it is safe to reuse the <code>buf</code> object.\nDNS lookups delay the time to send for at least one tick of the\nNode.js event loop.</p>\n<p>The only way to know for sure that the datagram has been sent is by using a\n<code>callback</code>. If an error occurs and a <code>callback</code> is given, the error will be\npassed as the first argument to the <code>callback</code>. If a <code>callback</code> is not given,\nthe error is emitted as an <code>'error'</code> event on the <code>socket</code> object.</p>\n<p>Offset and length are optional but both <em>must</em> be set if either are used.\nThey are supported only when the first argument is a <code>Buffer</code> or <code>Uint8Array</code>.</p>\n<p>Example of sending a UDP packet to a port on <code>localhost</code>;</p>\n<pre><code class=\"language-js\">const dgram = require('dgram');\nconst message = Buffer.from('Some bytes');\nconst client = dgram.createSocket('udp4');\nclient.send(message, 41234, 'localhost', (err) => {\n  client.close();\n});\n</code></pre>\n<p>Example of sending a UDP packet composed of multiple buffers to a port on\n<code>127.0.0.1</code>;</p>\n<pre><code class=\"language-js\">const dgram = require('dgram');\nconst buf1 = Buffer.from('Some ');\nconst buf2 = Buffer.from('bytes');\nconst client = dgram.createSocket('udp4');\nclient.send([buf1, buf2], 41234, (err) => {\n  client.close();\n});\n</code></pre>\n<p>Sending multiple buffers might be faster or slower depending on the\napplication and operating system. It is important to run benchmarks to\ndetermine the optimal strategy on a case-by-case basis. Generally speaking,\nhowever, sending multiple buffers is faster.</p>\n<p>Example of sending a UDP packet using a socket connected to a port on\n<code>localhost</code>:</p>\n<pre><code class=\"language-js\">const dgram = require('dgram');\nconst message = Buffer.from('Some bytes');\nconst client = dgram.createSocket('udp4');\nclient.connect(41234, 'localhost', (err) => {\n  client.send(message, (err) => {\n    client.close();\n  });\n});\n</code></pre>\n<p><strong>A Note about UDP datagram size</strong></p>\n<p>The maximum size of an <code>IPv4/v6</code> datagram depends on the <code>MTU</code>\n(<em>Maximum Transmission Unit</em>) and on the <code>Payload Length</code> field size.</p>\n<ul>\n<li>\n<p>The <code>Payload Length</code> field is <code>16 bits</code> wide, which means that a normal\npayload exceed 64K octets <em>including</em> the internet header and data\n(65,507 bytes = 65,535 − 8 bytes UDP header − 20 bytes IP header);\nthis is generally true for loopback interfaces, but such long datagram\nmessages are impractical for most hosts and networks.</p>\n</li>\n<li>\n<p>The <code>MTU</code> is the largest size a given link layer technology can support for\ndatagram messages. For any link, <code>IPv4</code> mandates a minimum <code>MTU</code> of <code>68</code>\noctets, while the recommended <code>MTU</code> for IPv4 is <code>576</code> (typically recommended\nas the <code>MTU</code> for dial-up type applications), whether they arrive whole or in\nfragments.</p>\n<p>For <code>IPv6</code>, the minimum <code>MTU</code> is <code>1280</code> octets, however, the mandatory minimum\nfragment reassembly buffer size is <code>1500</code> octets. The value of <code>68</code> octets is\nvery small, since most current link layer technologies, like Ethernet, have a\nminimum <code>MTU</code> of <code>1500</code>.</p>\n</li>\n</ul>\n<p>It is impossible to know in advance the MTU of each link through which\na packet might travel. Sending a datagram greater than the receiver <code>MTU</code> will\nnot work because the packet will get silently dropped without informing the\nsource that the data did not reach its intended recipient.</p>"
             },
             {
               "textRaw": "socket.setBroadcast(flag)",
@@ -633,6 +732,11 @@
                     "version": "v8.7.0",
                     "pr-url": "https://github.com/nodejs/node/pull/13623",
                     "description": "The `recvBufferSize` and `sendBufferSize` options are supported now."
+                  },
+                  {
+                    "version": "v11.4.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/23798",
+                    "description": "The `ipv6Only` option is supported."
                   }
                 ]
               },
@@ -662,6 +766,13 @@
                           "type": "boolean",
                           "default": "`false`",
                           "desc": "When `true` [`socket.bind()`][] will reuse the address, even if another process has already bound a socket on it."
+                        },
+                        {
+                          "textRaw": "`ipv6Only` {boolean} Setting `ipv6Only` to `true` will disable dual-stack support, i.e., binding to address `::` won't make `0.0.0.0` be bound. **Default:** `false`.",
+                          "name": "ipv6Only",
+                          "type": "boolean",
+                          "default": "`false`",
+                          "desc": "Setting `ipv6Only` to `true` will disable dual-stack support, i.e., binding to address `::` won't make `0.0.0.0` be bound."
                         },
                         {
                           "textRaw": "`recvBufferSize` {number} - Sets the `SO_RCVBUF` socket value.",

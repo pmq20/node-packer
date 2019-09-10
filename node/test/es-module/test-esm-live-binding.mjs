@@ -1,6 +1,5 @@
 // Flags: --experimental-modules
-
-import '../common';
+import '../common/index.mjs';
 import assert from 'assert';
 
 import fs, { readFile, readFileSync } from 'fs';

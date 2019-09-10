@@ -2,13 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "src/builtins/builtins-utils.h"
+#include "src/builtins/builtins-utils-inl.h"
 #include "src/builtins/builtins.h"
-#include "src/code-factory.h"
-#include "src/compiler.h"
-#include "src/counters.h"
-#include "src/objects-inl.h"
-#include "src/uri.h"
+#include "src/codegen/code-factory.h"
+#include "src/codegen/compiler.h"
+#include "src/logging/counters.h"
+#include "src/objects/objects-inl.h"
+#include "src/strings/uri.h"
 
 namespace v8 {
 namespace internal {
@@ -89,7 +89,7 @@ BUILTIN(GlobalEval) {
   if (!x->IsString()) return *x;
   if (!Builtins::AllowDynamicFunction(isolate, target, target_global_proxy)) {
     isolate->CountUsage(v8::Isolate::kFunctionConstructorReturnedUndefined);
-    return isolate->heap()->undefined_value();
+    return ReadOnlyRoots(isolate).undefined_value();
   }
   Handle<JSFunction> function;
   ASSIGN_RETURN_FAILURE_ON_EXCEPTION(

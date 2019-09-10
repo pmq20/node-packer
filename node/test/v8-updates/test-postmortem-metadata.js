@@ -21,7 +21,7 @@ if (common.isAIX)
 if (common.isOpenBSD)
   common.skip('no v8 debug symbols on OpenBSD');
 
-const nm = spawnSync('nm', args);
+const nm = spawnSync('nm', args, { maxBuffer: Infinity });
 
 if (nm.error && nm.error.errno === 'ENOENT')
   common.skip('nm not found on system');
@@ -41,6 +41,9 @@ const symbols = nm.stdout.toString().split('\n').reduce((filtered, line) => {
 
   return filtered;
 }, []);
+
+assert.notStrictEqual(symbols.length, 0, 'No postmortem metadata detected');
+
 const missing = getExpectedSymbols().filter((symbol) => {
   return !symbols.includes(symbol);
 });
@@ -63,16 +66,16 @@ function getExpectedSymbols() {
     'v8dbg_class_ConsString__second__String',
     'v8dbg_class_FixedArray__data__uintptr_t',
     'v8dbg_class_FixedArrayBase__length__SMI',
-    'v8dbg_class_FixedTypedArrayBase__base_pointer__Object',
-    'v8dbg_class_FixedTypedArrayBase__external_pointer__Object',
+    'v8dbg_class_JSTypedArray__base_pointer__Object',
+    'v8dbg_class_JSTypedArray__external_pointer__uintptr_t',
     'v8dbg_class_HeapNumber__value__double',
     'v8dbg_class_HeapObject__map__Map',
     'v8dbg_class_JSArray__length__Object',
-    'v8dbg_class_JSArrayBuffer__backing_store__Object',
-    'v8dbg_class_JSArrayBuffer__byte_length__Object',
+    'v8dbg_class_JSArrayBuffer__backing_store__uintptr_t',
+    'v8dbg_class_JSArrayBuffer__byte_length__size_t',
     'v8dbg_class_JSArrayBufferView__buffer__Object',
-    'v8dbg_class_JSArrayBufferView__raw_byte_length__Object',
-    'v8dbg_class_JSArrayBufferView__raw_byte_offset__Object',
+    'v8dbg_class_JSArrayBufferView__byte_length__size_t',
+    'v8dbg_class_JSArrayBufferView__byte_offset__size_t',
     'v8dbg_class_JSDate__value__Object',
     'v8dbg_class_JSFunction__context__Context',
     'v8dbg_class_JSFunction__shared__SharedFunctionInfo',
@@ -84,7 +87,7 @@ function getExpectedSymbols() {
     'v8dbg_class_Map__constructor_or_backpointer__Object',
     'v8dbg_class_Map__inobject_properties_start_or_constructor_function_index__char',
     'v8dbg_class_Map__instance_type__uint16_t',
-    'v8dbg_class_Map__instance_descriptors__DescriptorArray',
+    'v8dbg_class_Map__instance_descriptors_offset',
     'v8dbg_class_Map__instance_size_in_words__char',
     'v8dbg_class_Oddball__kind_offset__int',
     'v8dbg_class_Script__line_ends__Object',
@@ -95,15 +98,15 @@ function getExpectedSymbols() {
     'v8dbg_class_SeqTwoByteString__chars__char',
     'v8dbg_class_SharedFunctionInfo__function_data__Object',
     'v8dbg_class_SharedFunctionInfo__flags__int',
-    'v8dbg_class_SharedFunctionInfo__end_position__int',
-    'v8dbg_class_SharedFunctionInfo__function_identifier__Object',
-    'v8dbg_class_SharedFunctionInfo__internal_formal_parameter_count__int',
+    'v8dbg_class_UncompiledData__end_position__int32_t',
+    'v8dbg_class_UncompiledData__inferred_name__String',
+    'v8dbg_class_SharedFunctionInfo__internal_formal_parameter_count__uint16_t',
     'v8dbg_class_SharedFunctionInfo__name_or_scope_info__Object',
-    'v8dbg_class_SharedFunctionInfo__script__Object',
-    'v8dbg_class_SharedFunctionInfo__start_position_and_type__int',
+    'v8dbg_class_SharedFunctionInfo__script_or_debug_info__Object',
+    'v8dbg_class_UncompiledData__start_position__int32_t',
     'v8dbg_class_SlicedString__offset__SMI',
     'v8dbg_class_SlicedString__parent__String',
-    'v8dbg_class_String__length__SMI',
+    'v8dbg_class_String__length__int32_t',
     'v8dbg_class_ThinString__actual__String',
     'v8dbg_context_idx_scope_info',
     'v8dbg_context_idx_prev',
@@ -116,8 +119,8 @@ function getExpectedSymbols() {
     'v8dbg_frametype_InternalFrame',
     'v8dbg_frametype_OptimizedFrame',
     'v8dbg_frametype_StubFrame',
-    'v8dbg_jsarray_buffer_was_neutered_mask',
-    'v8dbg_jsarray_buffer_was_neutered_shift',
+    'v8dbg_jsarray_buffer_was_detached_mask',
+    'v8dbg_jsarray_buffer_was_detached_shift',
     'v8dbg_namedictionary_prefix_start_index',
     'v8dbg_namedictionaryshape_entry_size',
     'v8dbg_namedictionaryshape_prefix_size',
@@ -134,7 +137,6 @@ function getExpectedSymbols() {
     'v8dbg_prop_desc_key',
     'v8dbg_prop_desc_size',
     'v8dbg_prop_desc_value',
-    'v8dbg_prop_idx_first',
     'v8dbg_prop_index_mask',
     'v8dbg_prop_index_shift',
     'v8dbg_prop_kind_mask',
@@ -150,9 +152,6 @@ function getExpectedSymbols() {
     'v8dbg_scopeinfo_idx_first_vars',
     'v8dbg_scopeinfo_idx_ncontextlocals',
     'v8dbg_scopeinfo_idx_nparams',
-    'v8dbg_scopeinfo_idx_nstacklocals',
-    'v8dbg_sharedfunctioninfo_start_position_mask',
-    'v8dbg_sharedfunctioninfo_start_position_shift',
     'v8dbg_type_Code__CODE_TYPE',
     'v8dbg_type_FixedArray__FIXED_ARRAY_TYPE',
     'v8dbg_type_HeapNumber__HEAP_NUMBER_TYPE',
@@ -183,7 +182,10 @@ function getExpectedSymbols() {
     'v8dbg_OddballUndefined',
     'v8dbg_OddballUninitialized',
     'v8dbg_OneByteStringTag',
-    'v8dbg_PointerSizeLog2',
+    'v8dbg_SystemPointerSize',
+    'v8dbg_SystemPointerSizeLog2',
+    'v8dbg_TaggedSize',
+    'v8dbg_TaggedSizeLog2',
     'v8dbg_SeqStringTag',
     'v8dbg_SlicedStringTag',
     'v8dbg_SmiShiftSize',

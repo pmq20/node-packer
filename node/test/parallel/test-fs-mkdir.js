@@ -33,7 +33,7 @@ function nextdir() {
   return `test${++dirc}`;
 }
 
-// mkdir creates directory using assigned path
+// fs.mkdir creates directory using assigned path
 {
   const pathname = path.join(tmpdir.path, nextdir());
 
@@ -43,7 +43,7 @@ function nextdir() {
   }));
 }
 
-// mkdir creates directory with assigned mode value
+// fs.mkdir creates directory with assigned mode value
 {
   const pathname = path.join(tmpdir.path, nextdir());
 
@@ -98,7 +98,7 @@ function nextdir() {
   const pathname = path.join(tmpdir.path, nextdir(), nextdir());
 
   fs.mkdirSync(pathname, { recursive: true });
-  // should not cause an error.
+  // Should not cause an error.
   fs.mkdirSync(pathname, { recursive: true });
 
   const exists = fs.existsSync(pathname);
@@ -122,17 +122,37 @@ function nextdir() {
   fs.mkdirSync(path.dirname(pathname));
   fs.writeFileSync(pathname, '', 'utf8');
 
-  try {
-    fs.mkdirSync(pathname, { recursive: true });
-    throw new Error('unreachable');
-  } catch (err) {
-    assert.notStrictEqual(err.message, 'unreachable');
-    assert.strictEqual(err.code, 'EEXIST');
-    assert.strictEqual(err.syscall, 'mkdir');
-  }
+  assert.throws(
+    () => { fs.mkdirSync(pathname, { recursive: true }); },
+    {
+      code: 'EEXIST',
+      message: /EEXIST: .*mkdir/,
+      name: 'Error',
+      syscall: 'mkdir',
+    }
+  );
 }
 
-// mkdirp when folder does not yet exist.
+// mkdirpSync when part of the path is a file.
+{
+  const filename = path.join(tmpdir.path, nextdir(), nextdir());
+  const pathname = path.join(filename, nextdir(), nextdir());
+
+  fs.mkdirSync(path.dirname(filename));
+  fs.writeFileSync(filename, '', 'utf8');
+
+  assert.throws(
+    () => { fs.mkdirSync(pathname, { recursive: true }); },
+    {
+      code: 'ENOTDIR',
+      message: /ENOTDIR: .*mkdir/,
+      name: 'Error',
+      syscall: 'mkdir',
+    }
+  );
+}
+
+// `mkdirp` when folder does not yet exist.
 {
   const pathname = path.join(tmpdir.path, nextdir(), nextdir());
 
@@ -143,17 +163,31 @@ function nextdir() {
   }));
 }
 
-// mkdirp when path is a file.
+// `mkdirp` when path is a file.
 {
   const pathname = path.join(tmpdir.path, nextdir(), nextdir());
 
   fs.mkdirSync(path.dirname(pathname));
   fs.writeFileSync(pathname, '', 'utf8');
-  fs.mkdir(pathname, { recursive: true }, (err) => {
+  fs.mkdir(pathname, { recursive: true }, common.mustCall((err) => {
     assert.strictEqual(err.code, 'EEXIST');
     assert.strictEqual(err.syscall, 'mkdir');
     assert.strictEqual(fs.statSync(pathname).isDirectory(), false);
-  });
+  }));
+}
+
+// `mkdirp` when part of the path is a file.
+{
+  const filename = path.join(tmpdir.path, nextdir(), nextdir());
+  const pathname = path.join(filename, nextdir(), nextdir());
+
+  fs.mkdirSync(path.dirname(filename));
+  fs.writeFileSync(filename, '', 'utf8');
+  fs.mkdir(pathname, { recursive: true }, common.mustCall((err) => {
+    assert.strictEqual(err.code, 'ENOTDIR');
+    assert.strictEqual(err.syscall, 'mkdir');
+    assert.strictEqual(fs.existsSync(pathname), false);
+  }));
 }
 
 // mkdirpSync dirname loop
@@ -163,14 +197,15 @@ if (common.isMainThread && (common.isLinux || common.isOSX)) {
   fs.mkdirSync(pathname);
   process.chdir(pathname);
   fs.rmdirSync(pathname);
-  try {
-    fs.mkdirSync('X', { recursive: true });
-    throw new Error('unreachable');
-  } catch (err) {
-    assert.notStrictEqual(err.message, 'unreachable');
-    assert.strictEqual(err.code, 'ENOENT');
-    assert.strictEqual(err.syscall, 'mkdir');
-  }
+  assert.throws(
+    () => { fs.mkdirSync('X', { recursive: true }); },
+    {
+      code: 'ENOENT',
+      message: /ENOENT: .*mkdir/,
+      name: 'Error',
+      syscall: 'mkdir',
+    }
+  );
   fs.mkdir('X', { recursive: true }, (err) => {
     assert.strictEqual(err.code, 'ENOENT');
     assert.strictEqual(err.syscall, 'mkdir');

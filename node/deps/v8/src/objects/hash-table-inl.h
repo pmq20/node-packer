@@ -5,11 +5,70 @@
 #ifndef V8_OBJECTS_HASH_TABLE_INL_H_
 #define V8_OBJECTS_HASH_TABLE_INL_H_
 
-#include "src/heap/heap.h"
 #include "src/objects/hash-table.h"
+
+#include "src/heap/heap.h"
+#include "src/objects/fixed-array-inl.h"
+#include "src/objects/heap-object-inl.h"
+#include "src/objects/objects-inl.h"
+#include "src/roots/roots-inl.h"
+
+// Has to be the last include (doesn't have include guards):
+#include "src/objects/object-macros.h"
 
 namespace v8 {
 namespace internal {
+
+OBJECT_CONSTRUCTORS_IMPL(HashTableBase, FixedArray)
+
+template <typename Derived, typename Shape>
+HashTable<Derived, Shape>::HashTable(Address ptr) : HashTableBase(ptr) {
+  SLOW_DCHECK(IsHashTable());
+}
+
+template <typename Derived, typename Shape>
+ObjectHashTableBase<Derived, Shape>::ObjectHashTableBase(Address ptr)
+    : HashTable<Derived, Shape>(ptr) {}
+
+ObjectHashTable::ObjectHashTable(Address ptr)
+    : ObjectHashTableBase<ObjectHashTable, ObjectHashTableShape>(ptr) {
+  SLOW_DCHECK(IsObjectHashTable());
+}
+
+EphemeronHashTable::EphemeronHashTable(Address ptr)
+    : ObjectHashTableBase<EphemeronHashTable, EphemeronHashTableShape>(ptr) {
+  SLOW_DCHECK(IsEphemeronHashTable());
+}
+
+ObjectHashSet::ObjectHashSet(Address ptr)
+    : HashTable<ObjectHashSet, ObjectHashSetShape>(ptr) {
+  SLOW_DCHECK(IsObjectHashSet());
+}
+
+CAST_ACCESSOR(ObjectHashTable)
+CAST_ACCESSOR(EphemeronHashTable)
+CAST_ACCESSOR(ObjectHashSet)
+
+void EphemeronHashTable::set_key(int index, Object value) {
+  DCHECK_NE(GetReadOnlyRoots().fixed_cow_array_map(), map());
+  DCHECK(IsEphemeronHashTable());
+  DCHECK_GE(index, 0);
+  DCHECK_LT(index, this->length());
+  int offset = kHeaderSize + index * kTaggedSize;
+  RELAXED_WRITE_FIELD(*this, offset, value);
+  EPHEMERON_KEY_WRITE_BARRIER(*this, offset, value);
+}
+
+void EphemeronHashTable::set_key(int index, Object value,
+                                 WriteBarrierMode mode) {
+  DCHECK_NE(GetReadOnlyRoots().fixed_cow_array_map(), map());
+  DCHECK(IsEphemeronHashTable());
+  DCHECK_GE(index, 0);
+  DCHECK_LT(index, this->length());
+  int offset = kHeaderSize + index * kTaggedSize;
+  RELAXED_WRITE_FIELD(*this, offset, value);
+  CONDITIONAL_EPHEMERON_KEY_WRITE_BARRIER(*this, offset, value, mode);
+}
 
 int HashTableBase::NumberOfElements() const {
   return Smi::ToInt(get(kNumberOfElementsIndex));
@@ -54,33 +113,32 @@ void HashTableBase::SetNumberOfDeletedElements(int nod) {
 }
 
 template <typename Key>
-int BaseShape<Key>::GetMapRootIndex() {
-  return Heap::kHashTableMapRootIndex;
+RootIndex BaseShape<Key>::GetMapRootIndex() {
+  return RootIndex::kHashTableMap;
 }
 
-template <typename Derived, typename Shape>
-int HashTable<Derived, Shape>::FindEntry(Key key) {
-  return FindEntry(GetIsolate(), key);
+RootIndex EphemeronHashTableShape::GetMapRootIndex() {
+  return RootIndex::kEphemeronHashTableMap;
 }
 
 template <typename Derived, typename Shape>
 int HashTable<Derived, Shape>::FindEntry(Isolate* isolate, Key key) {
-  return FindEntry(isolate, key, Shape::Hash(isolate, key));
+  return FindEntry(ReadOnlyRoots(isolate), key, Shape::Hash(isolate, key));
 }
 
 // Find entry for key otherwise return kNotFound.
 template <typename Derived, typename Shape>
-int HashTable<Derived, Shape>::FindEntry(Isolate* isolate, Key key,
+int HashTable<Derived, Shape>::FindEntry(ReadOnlyRoots roots, Key key,
                                          int32_t hash) {
   uint32_t capacity = Capacity();
   uint32_t entry = FirstProbe(hash, capacity);
   uint32_t count = 1;
   // EnsureCapacity will guarantee the hash table is never full.
-  Object* undefined = isolate->heap()->undefined_value();
-  Object* the_hole = isolate->heap()->the_hole_value();
+  Object undefined = roots.undefined_value();
+  Object the_hole = roots.the_hole_value();
   USE(the_hole);
   while (true) {
-    Object* element = KeyAt(entry);
+    Object element = KeyAt(entry);
     // Empty entry. Uses raw unchecked accessors because it is called by the
     // string table during bootstrapping.
     if (element == undefined) break;
@@ -93,54 +151,68 @@ int HashTable<Derived, Shape>::FindEntry(Isolate* isolate, Key key,
 }
 
 template <typename Derived, typename Shape>
-bool HashTable<Derived, Shape>::IsKey(Isolate* isolate, Object* k) {
-  return Shape::IsKey(isolate, k);
+bool HashTable<Derived, Shape>::IsKey(ReadOnlyRoots roots, Object k) {
+  return Shape::IsKey(roots, k);
 }
 
 template <typename Derived, typename Shape>
-bool HashTable<Derived, Shape>::ToKey(Isolate* isolate, int entry,
-                                      Object** out_k) {
-  Object* k = KeyAt(entry);
-  if (!IsKey(isolate, k)) return false;
+bool HashTable<Derived, Shape>::ToKey(ReadOnlyRoots roots, int entry,
+                                      Object* out_k) {
+  Object k = KeyAt(entry);
+  if (!IsKey(roots, k)) return false;
   *out_k = Shape::Unwrap(k);
   return true;
 }
 
-template <typename KeyT>
-bool BaseShape<KeyT>::IsKey(Isolate* isolate, Object* key) {
-  return IsLive(isolate, key);
-}
-
-template <typename KeyT>
-bool BaseShape<KeyT>::IsLive(Isolate* isolate, Object* k) {
-  Heap* heap = isolate->heap();
-  return k != heap->the_hole_value() && k != heap->undefined_value();
+template <typename Derived, typename Shape>
+void HashTable<Derived, Shape>::set_key(int index, Object value) {
+  DCHECK(!IsEphemeronHashTable());
+  FixedArray::set(index, value);
 }
 
 template <typename Derived, typename Shape>
-HashTable<Derived, Shape>* HashTable<Derived, Shape>::cast(Object* obj) {
-  SLOW_DCHECK(obj->IsHashTable());
-  return reinterpret_cast<HashTable*>(obj);
+void HashTable<Derived, Shape>::set_key(int index, Object value,
+                                        WriteBarrierMode mode) {
+  DCHECK(!IsEphemeronHashTable());
+  FixedArray::set(index, value, mode);
 }
 
-template <typename Derived, typename Shape>
-const HashTable<Derived, Shape>* HashTable<Derived, Shape>::cast(
-    const Object* obj) {
-  SLOW_DCHECK(obj->IsHashTable());
-  return reinterpret_cast<const HashTable*>(obj);
+template <typename KeyT>
+bool BaseShape<KeyT>::IsKey(ReadOnlyRoots roots, Object key) {
+  return IsLive(roots, key);
+}
+
+template <typename KeyT>
+bool BaseShape<KeyT>::IsLive(ReadOnlyRoots roots, Object k) {
+  return k != roots.the_hole_value() && k != roots.undefined_value();
 }
 
 bool ObjectHashSet::Has(Isolate* isolate, Handle<Object> key, int32_t hash) {
-  return FindEntry(isolate, key, hash) != kNotFound;
+  return FindEntry(ReadOnlyRoots(isolate), key, hash) != kNotFound;
 }
 
 bool ObjectHashSet::Has(Isolate* isolate, Handle<Object> key) {
-  Object* hash = key->GetHash();
-  if (!hash->IsSmi()) return false;
-  return FindEntry(isolate, key, Smi::ToInt(hash)) != kNotFound;
+  Object hash = key->GetHash();
+  if (!hash.IsSmi()) return false;
+  return FindEntry(ReadOnlyRoots(isolate), key, Smi::ToInt(hash)) != kNotFound;
+}
+
+bool ObjectHashTableShape::IsMatch(Handle<Object> key, Object other) {
+  return key->SameValue(other);
+}
+
+uint32_t ObjectHashTableShape::Hash(Isolate* isolate, Handle<Object> key) {
+  return Smi::ToInt(key->GetHash());
+}
+
+uint32_t ObjectHashTableShape::HashForObject(ReadOnlyRoots roots,
+                                             Object other) {
+  return Smi::ToInt(other.GetHash());
 }
 
 }  // namespace internal
 }  // namespace v8
+
+#include "src/objects/object-macros-undef.h"
 
 #endif  // V8_OBJECTS_HASH_TABLE_INL_H_

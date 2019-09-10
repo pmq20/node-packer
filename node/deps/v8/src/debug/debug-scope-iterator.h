@@ -8,7 +8,7 @@
 #include "src/debug/debug-frames.h"
 #include "src/debug/debug-interface.h"
 #include "src/debug/debug-scopes.h"
-#include "src/frames.h"
+#include "src/execution/frames.h"
 
 namespace v8 {
 namespace internal {
@@ -23,7 +23,6 @@ class DebugScopeIterator final : public debug::ScopeIterator {
   void Advance() override;
   ScopeType GetType() override;
   v8::Local<v8::Object> GetObject() override;
-  v8::Local<v8::Function> GetFunction() override;
   v8::Local<v8::Value> GetFunctionDebugName() override;
   int GetScriptId() override;
   bool HasLocationInfo() override;
@@ -48,7 +47,6 @@ class DebugWasmScopeIterator final : public debug::ScopeIterator {
   void Advance() override;
   ScopeType GetType() override;
   v8::Local<v8::Object> GetObject() override;
-  v8::Local<v8::Function> GetFunction() override;
   v8::Local<v8::Value> GetFunctionDebugName() override;
   int GetScriptId() override;
   bool HasLocationInfo() override;

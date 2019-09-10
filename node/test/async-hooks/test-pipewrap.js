@@ -5,7 +5,7 @@
 
 const common = require('../common');
 const assert = require('assert');
-const tick = require('./tick');
+const tick = require('../common/tick');
 const initHooks = require('./init-hooks');
 const { checkInvocations } = require('./hook-checks');
 const { spawn } = require('child_process');
@@ -22,7 +22,7 @@ nodeVersionSpawn
   .on('exit', common.mustCall(onsleepExit))
   .on('close', common.mustCall(onsleepClose));
 
-// a process wrap and 3 pipe wraps for std{in,out,err} are initialized
+// A process wrap and 3 pipe wraps for std{in,out,err} are initialized
 // synchronously
 const processes = hooks.activitiesOfTypes('PROCESSWRAP');
 const pipes = hooks.activitiesOfTypes('PIPEWRAP');

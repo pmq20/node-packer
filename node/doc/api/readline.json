@@ -20,7 +20,7 @@
             ],
             "changes": []
           },
-          "desc": "<p>Instances of the <code>readline.Interface</code> class are constructed using the\n<code>readline.createInterface()</code> method. Every instance is associated with a\nsingle <code>input</code> <a href=\"stream.html#stream_readable_streams\">Readable</a> stream and a single <code>output</code> <a href=\"stream.html#stream_writable_streams\">Writable</a> stream.\nThe <code>output</code> stream is used to print prompts for user input that arrives on,\nand is read from, the <code>input</code> stream.</p>",
+          "desc": "<ul>\n<li>Extends: <a href=\"events.html#events_class_eventemitter\" class=\"type\">&lt;EventEmitter&gt;</a></li>\n</ul>\n<p>Instances of the <code>readline.Interface</code> class are constructed using the\n<code>readline.createInterface()</code> method. Every instance is associated with a\nsingle <code>input</code> <a href=\"stream.html#stream_readable_streams\">Readable</a> stream and a single <code>output</code> <a href=\"stream.html#stream_writable_streams\">Writable</a> stream.\nThe <code>output</code> stream is used to print prompts for user input that arrives on,\nand is read from, the <code>input</code> stream.</p>",
           "events": [
             {
               "textRaw": "Event: 'close'",
@@ -298,23 +298,63 @@
                 }
               ],
               "desc": "<p>The <code>rl.write()</code> method will write either <code>data</code> or a key sequence identified\nby <code>key</code> to the <code>output</code>. The <code>key</code> argument is supported only if <code>output</code> is\na <a href=\"tty.html\">TTY</a> text terminal.</p>\n<p>If <code>key</code> is specified, <code>data</code> is ignored.</p>\n<p>When called, <code>rl.write()</code> will resume the <code>input</code> stream if it has been\npaused.</p>\n<p>If the <code>readline.Interface</code> was created with <code>output</code> set to <code>null</code> or\n<code>undefined</code> the <code>data</code> and <code>key</code> are not written.</p>\n<pre><code class=\"language-js\">rl.write('Delete this!');\n// Simulate Ctrl+u to delete the line written previously\nrl.write(null, { ctrl: true, name: 'u' });\n</code></pre>\n<p>The <code>rl.write()</code> method will write the data to the <code>readline</code> <code>Interface</code>'s\n<code>input</code> <em>as if it were provided by the user</em>.</p>"
+            },
+            {
+              "textRaw": "rl[Symbol.asyncIterator]()",
+              "type": "method",
+              "name": "[Symbol.asyncIterator]",
+              "meta": {
+                "added": [
+                  "v11.4.0"
+                ],
+                "changes": [
+                  {
+                    "version": "v11.14.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/26989",
+                    "description": "Symbol.asyncIterator support is no longer experimental."
+                  }
+                ]
+              },
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {AsyncIterator}",
+                    "name": "return",
+                    "type": "AsyncIterator"
+                  },
+                  "params": []
+                }
+              ],
+              "desc": "<p>Create an <code>AsyncIterator</code> object that iterates through each line in the input\nstream as a string. This method allows asynchronous iteration of\n<code>readline.Interface</code> objects through <code>for await...of</code> loops.</p>\n<p>Errors in the input stream are not forwarded.</p>\n<p>If the loop is terminated with <code>break</code>, <code>throw</code>, or <code>return</code>,\n<a href=\"#readline_rl_close\"><code>rl.close()</code></a> will be called. In other words, iterating over a\n<code>readline.Interface</code> will always consume the input stream fully.</p>\n<p>Performance is not on par with the traditional <code>'line'</code> event API. Use <code>'line'</code>\ninstead for performance-sensitive applications.</p>\n<pre><code class=\"language-js\">async function processLineByLine() {\n  const rl = readline.createInterface({\n    // ...\n  });\n\n  for await (const line of rl) {\n    // Each line in the readline input will be successively available here as\n    // `line`.\n  }\n}\n</code></pre>"
             }
           ]
         }
       ],
       "methods": [
         {
-          "textRaw": "readline.clearLine(stream, dir)",
+          "textRaw": "readline.clearLine(stream, dir[, callback])",
           "type": "method",
           "name": "clearLine",
           "meta": {
             "added": [
               "v0.7.7"
             ],
-            "changes": []
+            "changes": [
+              {
+                "version": "v12.7.0",
+                "pr-url": "https://github.com/nodejs/node/pull/28674",
+                "description": "The stream's write() callback and return value are exposed."
+              }
+            ]
           },
           "signatures": [
             {
+              "return": {
+                "textRaw": "Returns: {boolean} `false` if `stream` wishes for the calling code to wait for the `'drain'` event to be emitted before continuing to write additional data; otherwise `true`.",
+                "name": "return",
+                "type": "boolean",
+                "desc": "`false` if `stream` wishes for the calling code to wait for the `'drain'` event to be emitted before continuing to write additional data; otherwise `true`."
+              },
               "params": [
                 {
                   "textRaw": "`stream` {stream.Writable}",
@@ -342,6 +382,13 @@
                       "desc": "the entire line"
                     }
                   ]
+                },
+                {
+                  "textRaw": "`callback` {Function} Invoked once the operation completes.",
+                  "name": "callback",
+                  "type": "Function",
+                  "desc": "Invoked once the operation completes.",
+                  "optional": true
                 }
               ]
             }
@@ -349,22 +396,41 @@
           "desc": "<p>The <code>readline.clearLine()</code> method clears current line of given <a href=\"tty.html\">TTY</a> stream\nin a specified direction identified by <code>dir</code>.</p>"
         },
         {
-          "textRaw": "readline.clearScreenDown(stream)",
+          "textRaw": "readline.clearScreenDown(stream[, callback])",
           "type": "method",
           "name": "clearScreenDown",
           "meta": {
             "added": [
               "v0.7.7"
             ],
-            "changes": []
+            "changes": [
+              {
+                "version": "v12.7.0",
+                "pr-url": "https://github.com/nodejs/node/pull/28641",
+                "description": "The stream's write() callback and return value are exposed."
+              }
+            ]
           },
           "signatures": [
             {
+              "return": {
+                "textRaw": "Returns: {boolean} `false` if `stream` wishes for the calling code to wait for the `'drain'` event to be emitted before continuing to write additional data; otherwise `true`.",
+                "name": "return",
+                "type": "boolean",
+                "desc": "`false` if `stream` wishes for the calling code to wait for the `'drain'` event to be emitted before continuing to write additional data; otherwise `true`."
+              },
               "params": [
                 {
                   "textRaw": "`stream` {stream.Writable}",
                   "name": "stream",
                   "type": "stream.Writable"
+                },
+                {
+                  "textRaw": "`callback` {Function} Invoked once the operation completes.",
+                  "name": "callback",
+                  "type": "Function",
+                  "desc": "Invoked once the operation completes.",
+                  "optional": true
                 }
               ]
             }
@@ -462,6 +528,13 @@
                       "type": "boolean",
                       "default": "`false`",
                       "desc": "If `true`, when a new input line added to the history list duplicates an older one, this removes the older line from the list."
+                    },
+                    {
+                      "textRaw": "`escapeCodeTimeout` {number} The duration `readline` will wait for a character (when reading an ambiguous key sequence in milliseconds one that can both form a complete key sequence using the input read so far and can take additional input to complete a longer key sequence). **Default:** `500`.",
+                      "name": "escapeCodeTimeout",
+                      "type": "number",
+                      "default": "`500`",
+                      "desc": "The duration `readline` will wait for a character (when reading an ambiguous key sequence in milliseconds one that can both form a complete key sequence using the input read so far and can take additional input to complete a longer key sequence)."
                     }
                   ]
                 }
@@ -473,24 +546,36 @@
             {
               "textRaw": "Use of the `completer` Function",
               "name": "use_of_the_`completer`_function",
-              "desc": "<p>The <code>completer</code> function takes the current line entered by the user\nas an argument, and returns an <code>Array</code> with 2 entries:</p>\n<ul>\n<li>An <code>Array</code> with matching entries for the completion.</li>\n<li>The substring that was used for the matching.</li>\n</ul>\n<p>For instance: <code>[[substr1, substr2, ...], originalsubstring]</code>.</p>\n<pre><code class=\"language-js\">function completer(line) {\n  const completions = '.help .error .exit .quit .q'.split(' ');\n  const hits = completions.filter((c) => c.startsWith(line));\n  // show all completions if none found\n  return [hits.length ? hits : completions, line];\n}\n</code></pre>\n<p>The <code>completer</code> function can be called asynchronously if it accepts two\narguments:</p>\n<pre><code class=\"language-js\">function completer(linePartial, callback) {\n  callback(null, [['123'], linePartial]);\n}\n</code></pre>",
+              "desc": "<p>The <code>completer</code> function takes the current line entered by the user\nas an argument, and returns an <code>Array</code> with 2 entries:</p>\n<ul>\n<li>An <code>Array</code> with matching entries for the completion.</li>\n<li>The substring that was used for the matching.</li>\n</ul>\n<p>For instance: <code>[[substr1, substr2, ...], originalsubstring]</code>.</p>\n<pre><code class=\"language-js\">function completer(line) {\n  const completions = '.help .error .exit .quit .q'.split(' ');\n  const hits = completions.filter((c) => c.startsWith(line));\n  // Show all completions if none found\n  return [hits.length ? hits : completions, line];\n}\n</code></pre>\n<p>The <code>completer</code> function can be called asynchronously if it accepts two\narguments:</p>\n<pre><code class=\"language-js\">function completer(linePartial, callback) {\n  callback(null, [['123'], linePartial]);\n}\n</code></pre>",
               "type": "module",
               "displayName": "Use of the `completer` Function"
             }
           ]
         },
         {
-          "textRaw": "readline.cursorTo(stream, x, y)",
+          "textRaw": "readline.cursorTo(stream, x[, y][, callback])",
           "type": "method",
           "name": "cursorTo",
           "meta": {
             "added": [
               "v0.7.7"
             ],
-            "changes": []
+            "changes": [
+              {
+                "version": "v12.7.0",
+                "pr-url": "https://github.com/nodejs/node/pull/28674",
+                "description": "The stream's write() callback and return value are exposed."
+              }
+            ]
           },
           "signatures": [
             {
+              "return": {
+                "textRaw": "Returns: {boolean} `false` if `stream` wishes for the calling code to wait for the `'drain'` event to be emitted before continuing to write additional data; otherwise `true`.",
+                "name": "return",
+                "type": "boolean",
+                "desc": "`false` if `stream` wishes for the calling code to wait for the `'drain'` event to be emitted before continuing to write additional data; otherwise `true`."
+              },
               "params": [
                 {
                   "textRaw": "`stream` {stream.Writable}",
@@ -505,7 +590,15 @@
                 {
                   "textRaw": "`y` {number}",
                   "name": "y",
-                  "type": "number"
+                  "type": "number",
+                  "optional": true
+                },
+                {
+                  "textRaw": "`callback` {Function} Invoked once the operation completes.",
+                  "name": "callback",
+                  "type": "Function",
+                  "desc": "Invoked once the operation completes.",
+                  "optional": true
                 }
               ]
             }
@@ -542,17 +635,29 @@
           "desc": "<p>The <code>readline.emitKeypressEvents()</code> method causes the given <a href=\"stream.html#stream_readable_streams\">Readable</a>\nstream to begin emitting <code>'keypress'</code> events corresponding to received input.</p>\n<p>Optionally, <code>interface</code> specifies a <code>readline.Interface</code> instance for which\nautocompletion is disabled when copy-pasted input is detected.</p>\n<p>If the <code>stream</code> is a <a href=\"tty.html\">TTY</a>, then it must be in raw mode.</p>\n<p>This is automatically called by any readline instance on its <code>input</code> if the\n<code>input</code> is a terminal. Closing the <code>readline</code> instance does not stop\nthe <code>input</code> from emitting <code>'keypress'</code> events.</p>\n<pre><code class=\"language-js\">readline.emitKeypressEvents(process.stdin);\nif (process.stdin.isTTY)\n  process.stdin.setRawMode(true);\n</code></pre>"
         },
         {
-          "textRaw": "readline.moveCursor(stream, dx, dy)",
+          "textRaw": "readline.moveCursor(stream, dx, dy[, callback])",
           "type": "method",
           "name": "moveCursor",
           "meta": {
             "added": [
               "v0.7.7"
             ],
-            "changes": []
+            "changes": [
+              {
+                "version": "v12.7.0",
+                "pr-url": "https://github.com/nodejs/node/pull/28674",
+                "description": "The stream's write() callback and return value are exposed."
+              }
+            ]
           },
           "signatures": [
             {
+              "return": {
+                "textRaw": "Returns: {boolean} `false` if `stream` wishes for the calling code to wait for the `'drain'` event to be emitted before continuing to write additional data; otherwise `true`.",
+                "name": "return",
+                "type": "boolean",
+                "desc": "`false` if `stream` wishes for the calling code to wait for the `'drain'` event to be emitted before continuing to write additional data; otherwise `true`."
+              },
               "params": [
                 {
                   "textRaw": "`stream` {stream.Writable}",
@@ -568,11 +673,18 @@
                   "textRaw": "`dy` {number}",
                   "name": "dy",
                   "type": "number"
+                },
+                {
+                  "textRaw": "`callback` {Function} Invoked once the operation completes.",
+                  "name": "callback",
+                  "type": "Function",
+                  "desc": "Invoked once the operation completes.",
+                  "optional": true
                 }
               ]
             }
           ],
-          "desc": "<p>The <code>readline.moveCursor()</code> method moves the cursor <em>relative</em> to its current\nposition in a given <a href=\"tty.html\">TTY</a> <code>stream</code>.</p>\n<h2>Example: Tiny CLI</h2>\n<p>The following example illustrates the use of <code>readline.Interface</code> class to\nimplement a small command-line interface:</p>\n<pre><code class=\"language-js\">const readline = require('readline');\nconst rl = readline.createInterface({\n  input: process.stdin,\n  output: process.stdout,\n  prompt: 'OHAI> '\n});\n\nrl.prompt();\n\nrl.on('line', (line) => {\n  switch (line.trim()) {\n    case 'hello':\n      console.log('world!');\n      break;\n    default:\n      console.log(`Say what? I might have heard '${line.trim()}'`);\n      break;\n  }\n  rl.prompt();\n}).on('close', () => {\n  console.log('Have a great day!');\n  process.exit(0);\n});\n</code></pre>\n<h2>Example: Read File Stream Line-by-Line</h2>\n<p>A common use case for <code>readline</code> is to consume input from a filesystem\n<a href=\"stream.html#stream_readable_streams\">Readable</a> stream one line at a time:</p>\n<pre><code class=\"language-js\">const readline = require('readline');\nconst fs = require('fs');\n\nconst rl = readline.createInterface({\n  input: fs.createReadStream('sample.txt'),\n  crlfDelay: Infinity\n});\n\nrl.on('line', (line) => {\n  console.log(`Line from file: ${line}`);\n});\n</code></pre>"
+          "desc": "<p>The <code>readline.moveCursor()</code> method moves the cursor <em>relative</em> to its current\nposition in a given <a href=\"tty.html\">TTY</a> <code>stream</code>.</p>\n<h2>Example: Tiny CLI</h2>\n<p>The following example illustrates the use of <code>readline.Interface</code> class to\nimplement a small command-line interface:</p>\n<pre><code class=\"language-js\">const readline = require('readline');\nconst rl = readline.createInterface({\n  input: process.stdin,\n  output: process.stdout,\n  prompt: 'OHAI> '\n});\n\nrl.prompt();\n\nrl.on('line', (line) => {\n  switch (line.trim()) {\n    case 'hello':\n      console.log('world!');\n      break;\n    default:\n      console.log(`Say what? I might have heard '${line.trim()}'`);\n      break;\n  }\n  rl.prompt();\n}).on('close', () => {\n  console.log('Have a great day!');\n  process.exit(0);\n});\n</code></pre>\n<h2>Example: Read File Stream Line-by-Line</h2>\n<p>A common use case for <code>readline</code> is to consume an input file one line at a\ntime. The easiest way to do so is leveraging the <a href=\"fs.html#fs_class_fs_readstream\"><code>fs.ReadStream</code></a> API as\nwell as a <code>for await...of</code> loop:</p>\n<pre><code class=\"language-js\">const fs = require('fs');\nconst readline = require('readline');\n\nasync function processLineByLine() {\n  const fileStream = fs.createReadStream('input.txt');\n\n  const rl = readline.createInterface({\n    input: fileStream,\n    crlfDelay: Infinity\n  });\n  // Note: we use the crlfDelay option to recognize all instances of CR LF\n  // ('\\r\\n') in input.txt as a single line break.\n\n  for await (const line of rl) {\n    // Each line in input.txt will be successively available here as `line`.\n    console.log(`Line from file: ${line}`);\n  }\n}\n\nprocessLineByLine();\n</code></pre>\n<p>Alternatively, one could use the <a href=\"#readline_event_line\"><code>'line'</code></a> event:</p>\n<pre><code class=\"language-js\">const fs = require('fs');\nconst readline = require('readline');\n\nconst rl = readline.createInterface({\n  input: fs.createReadStream('sample.txt'),\n  crlfDelay: Infinity\n});\n\nrl.on('line', (line) => {\n  console.log(`Line from file: ${line}`);\n});\n</code></pre>\n<p>Currently, <code>for await...of</code> loop can be a bit slower. If <code>async</code> / <code>await</code>\nflow and speed are both essential, a mixed approach can be applied:</p>\n<pre><code class=\"language-js\">const { once } = require('events');\nconst { createReadStream } = require('fs');\nconst { createInterface } = require('readline');\n\n(async function processLineByLine() {\n  try {\n    const rl = createInterface({\n      input: createReadStream('big-file.txt'),\n      crlfDelay: Infinity\n    });\n\n    rl.on('line', (line) => {\n      // Process the line.\n    });\n\n    await once(rl, 'close');\n\n    console.log('File processed.');\n  } catch (err) {\n    console.error(err);\n  }\n})();\n</code></pre>"
         }
       ],
       "type": "module",

@@ -1,13 +1,13 @@
 'use strict';
 
-const {
-  FSReqWrap,
-  writeBuffers
-} = process.binding('fs');
+const { Math, Object } = primordials;
+
 const {
   ERR_INVALID_ARG_TYPE,
   ERR_OUT_OF_RANGE
 } = require('internal/errors').codes;
+const { validateNumber } = require('internal/validators');
+const fs = require('fs');
 const { Buffer } = require('buffer');
 const {
   copyObject,
@@ -15,14 +15,6 @@ const {
 } = require('internal/fs/utils');
 const { Readable, Writable } = require('stream');
 const { toPathIfFileURL } = require('internal/url');
-const util = require('util');
-
-let fs;
-function lazyFs() {
-  if (fs === undefined)
-    fs = require('fs');
-  return fs;
-}
 
 const kMinPoolSpace = 128;
 
@@ -42,21 +34,40 @@ function allocNewPool(poolSize) {
   pool.used = 0;
 }
 
+// Check the `this.start` and `this.end` of stream.
+function checkPosition(pos, name) {
+  if (!Number.isSafeInteger(pos)) {
+    validateNumber(pos, name);
+    if (!Number.isInteger(pos))
+      throw new ERR_OUT_OF_RANGE(name, 'an integer', pos);
+    throw new ERR_OUT_OF_RANGE(name, '>= 0 and <= 2 ** 53 - 1', pos);
+  }
+  if (pos < 0) {
+    throw new ERR_OUT_OF_RANGE(name, '>= 0 and <= 2 ** 53 - 1', pos);
+  }
+}
+
+function roundUpToMultipleOf8(n) {
+  return (n + 7) & ~7;  // Align to 8 byte boundary.
+}
+
 function ReadStream(path, options) {
   if (!(this instanceof ReadStream))
     return new ReadStream(path, options);
 
-  // a little bit bigger buffer and water marks by default
+  // A little bit bigger buffer and water marks by default
   options = copyObject(getOptions(options, {}));
   if (options.highWaterMark === undefined)
     options.highWaterMark = 64 * 1024;
 
-  // for backwards compat do not emit close on destroy.
-  options.emitClose = false;
+  // For backwards compat do not emit close on destroy.
+  if (options.emitClose === undefined) {
+    options.emitClose = false;
+  }
 
   Readable.call(this, options);
 
-  // path will be ignored when fd is specified, so it can be falsy
+  // Path will be ignored when fd is specified, so it can be falsy
   this.path = toPathIfFileURL(path);
   this.fd = options.fd === undefined ? null : options.fd;
   this.flags = options.flags === undefined ? 'r' : options.flags;
@@ -70,30 +81,24 @@ function ReadStream(path, options) {
   this.closed = false;
 
   if (this.start !== undefined) {
-    if (typeof this.start !== 'number' || Number.isNaN(this.start)) {
-      throw new ERR_INVALID_ARG_TYPE('start', 'number', this.start);
-    }
-    if (this.end === undefined) {
-      this.end = Infinity;
-    } else if (typeof this.end !== 'number' || Number.isNaN(this.end)) {
-      throw new ERR_INVALID_ARG_TYPE('end', 'number', this.end);
-    }
-
-    if (this.start > this.end) {
-      const errVal = `{start: ${this.start}, end: ${this.end}}`;
-      throw new ERR_OUT_OF_RANGE('start', '<= "end"', errVal);
-    }
+    checkPosition(this.start, 'start');
 
     this.pos = this.start;
   }
 
-  // Backwards compatibility: Make sure `end` is a number regardless of `start`.
-  // TODO(addaleax): Make the above typecheck not depend on `start` instead.
-  // (That is a semver-major change).
-  if (typeof this.end !== 'number')
+  if (this.end === undefined) {
     this.end = Infinity;
-  else if (Number.isNaN(this.end))
-    throw new ERR_INVALID_ARG_TYPE('end', 'number', this.end);
+  } else if (this.end !== Infinity) {
+    checkPosition(this.end, 'end');
+
+    if (this.start !== undefined && this.start > this.end) {
+      throw new ERR_OUT_OF_RANGE(
+        'start',
+        `<= "end" (here: ${this.end})`,
+        this.start
+      );
+    }
+  }
 
   if (typeof this.fd !== 'number')
     this.open();
@@ -104,10 +109,11 @@ function ReadStream(path, options) {
     }
   });
 }
-util.inherits(ReadStream, Readable);
+Object.setPrototypeOf(ReadStream.prototype, Readable.prototype);
+Object.setPrototypeOf(ReadStream, Readable);
 
 ReadStream.prototype.open = function() {
-  lazyFs().open(this.path, this.flags, this.mode, (er, fd) => {
+  fs.open(this.path, this.flags, this.mode, (er, fd) => {
     if (er) {
       if (this.autoClose) {
         this.destroy();
@@ -119,7 +125,7 @@ ReadStream.prototype.open = function() {
     this.fd = fd;
     this.emit('open', fd);
     this.emit('ready');
-    // start the flow of data.
+    // Start the flow of data.
     this.read();
   });
 };
@@ -135,7 +141,7 @@ ReadStream.prototype._read = function(n) {
     return;
 
   if (!pool || pool.length - pool.used < kMinPoolSpace) {
-    // discard the old pool.
+    // Discard the old pool.
     allocNewPool(this.readableHighWaterMark);
   }
 
@@ -151,13 +157,13 @@ ReadStream.prototype._read = function(n) {
   else
     toRead = Math.min(this.end - this.bytesRead + 1, toRead);
 
-  // already read everything we were supposed to read!
+  // Already read everything we were supposed to read!
   // treat as EOF.
   if (toRead <= 0)
     return this.push(null);
 
   // the actual read.
-  lazyFs().read(this.fd, pool, pool.used, toRead, this.pos, (er, bytesRead) => {
+  fs.read(this.fd, pool, pool.used, toRead, this.pos, (er, bytesRead) => {
     if (er) {
       if (this.autoClose) {
         this.destroy();
@@ -168,10 +174,18 @@ ReadStream.prototype._read = function(n) {
       // Now that we know how much data we have actually read, re-wind the
       // 'used' field if we can, and otherwise allow the remainder of our
       // reservation to be used as a new pool later.
-      if (start + toRead === thisPool.used && thisPool === pool)
-        thisPool.used += bytesRead - toRead;
-      else if (toRead - bytesRead > kMinPoolSpace)
-        poolFragments.push(thisPool.slice(start + bytesRead, start + toRead));
+      if (start + toRead === thisPool.used && thisPool === pool) {
+        const newUsed = thisPool.used + bytesRead - toRead;
+        thisPool.used = roundUpToMultipleOf8(newUsed);
+      } else {
+        // Round down to the next lowest multiple of 8 to ensure the new pool
+        // fragment start and end positions are aligned to an 8 byte boundary.
+        const alignedEnd = (start + toRead) & ~7;
+        const alignedStart = roundUpToMultipleOf8(start + bytesRead);
+        if (alignedEnd - alignedStart >= kMinPoolSpace) {
+          poolFragments.push(thisPool.slice(alignedStart, alignedEnd));
+        }
+      }
 
       if (bytesRead > 0) {
         this.bytesRead += bytesRead;
@@ -182,10 +196,11 @@ ReadStream.prototype._read = function(n) {
     }
   });
 
-  // move the pool positions, and internal position for reading.
+  // Move the pool positions, and internal position for reading.
   if (this.pos !== undefined)
     this.pos += toRead;
-  pool.used += toRead;
+
+  pool.used = roundUpToMultipleOf8(pool.used + toRead);
 };
 
 ReadStream.prototype._destroy = function(err, cb) {
@@ -199,7 +214,7 @@ ReadStream.prototype._destroy = function(err, cb) {
 };
 
 function closeFsStream(stream, cb, err) {
-  lazyFs().close(stream.fd, (er) => {
+  fs.close(stream.fd, (er) => {
     er = er || err;
     cb(er);
     stream.closed = true;
@@ -212,18 +227,25 @@ ReadStream.prototype.close = function(cb) {
   this.destroy(null, cb);
 };
 
+Object.defineProperty(ReadStream.prototype, 'pending', {
+  get() { return this.fd === null; },
+  configurable: true
+});
+
 function WriteStream(path, options) {
   if (!(this instanceof WriteStream))
     return new WriteStream(path, options);
 
   options = copyObject(getOptions(options, {}));
 
-  // for backwards compat do not emit close on destroy.
-  options.emitClose = false;
+  // For backwards compat do not emit close on destroy.
+  if (options.emitClose === undefined) {
+    options.emitClose = false;
+  }
 
   Writable.call(this, options);
 
-  // path will be ignored when fd is specified, so it can be falsy
+  // Path will be ignored when fd is specified, so it can be falsy
   this.path = toPathIfFileURL(path);
   this.fd = options.fd === undefined ? null : options.fd;
   this.flags = options.flags === undefined ? 'w' : options.flags;
@@ -236,13 +258,7 @@ function WriteStream(path, options) {
   this.closed = false;
 
   if (this.start !== undefined) {
-    if (typeof this.start !== 'number') {
-      throw new ERR_INVALID_ARG_TYPE('start', 'number', this.start);
-    }
-    if (this.start < 0) {
-      const errVal = `{start: ${this.start}}`;
-      throw new ERR_OUT_OF_RANGE('start', '>= 0', errVal);
-    }
+    checkPosition(this.start, 'start');
 
     this.pos = this.start;
   }
@@ -253,7 +269,8 @@ function WriteStream(path, options) {
   if (typeof this.fd !== 'number')
     this.open();
 }
-util.inherits(WriteStream, Writable);
+Object.setPrototypeOf(WriteStream.prototype, Writable.prototype);
+Object.setPrototypeOf(WriteStream, Writable);
 
 WriteStream.prototype._final = function(callback) {
   if (this.autoClose) {
@@ -264,7 +281,7 @@ WriteStream.prototype._final = function(callback) {
 };
 
 WriteStream.prototype.open = function() {
-  lazyFs().open(this.path, this.flags, this.mode, (er, fd) => {
+  fs.open(this.path, this.flags, this.mode, (er, fd) => {
     if (er) {
       if (this.autoClose) {
         this.destroy();
@@ -292,7 +309,7 @@ WriteStream.prototype._write = function(data, encoding, cb) {
     });
   }
 
-  lazyFs().write(this.fd, data, 0, data.length, this.pos, (er, bytes) => {
+  fs.write(this.fd, data, 0, data.length, this.pos, (er, bytes) => {
     if (er) {
       if (this.autoClose) {
         this.destroy();
@@ -306,18 +323,6 @@ WriteStream.prototype._write = function(data, encoding, cb) {
   if (this.pos !== undefined)
     this.pos += data.length;
 };
-
-
-function writev(fd, chunks, position, callback) {
-  function wrapper(err, written) {
-    // Retain a reference to chunks so that they can't be GC'ed too soon.
-    callback(err, written || 0, chunks);
-  }
-
-  const req = new FSReqWrap();
-  req.oncomplete = wrapper;
-  writeBuffers(fd, chunks, position, req);
-}
 
 
 WriteStream.prototype._writev = function(data, cb) {
@@ -339,7 +344,7 @@ WriteStream.prototype._writev = function(data, cb) {
     size += chunk.length;
   }
 
-  writev(this.fd, chunks, this.pos, function(er, bytes) {
+  fs.writev(this.fd, chunks, this.pos, function(er, bytes) {
     if (er) {
       self.destroy();
       return cb(er);
@@ -370,13 +375,18 @@ WriteStream.prototype.close = function(cb) {
     this.on('finish', this.destroy.bind(this));
   }
 
-  // we use end() instead of destroy() because of
+  // We use end() instead of destroy() because of
   // https://github.com/nodejs/node/issues/2006
   this.end();
 };
 
 // There is no shutdown() for files.
 WriteStream.prototype.destroySoon = WriteStream.prototype.end;
+
+Object.defineProperty(WriteStream.prototype, 'pending', {
+  get() { return this.fd === null; },
+  configurable: true
+});
 
 module.exports = {
   ReadStream,

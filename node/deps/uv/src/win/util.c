@@ -66,13 +66,6 @@
 # define UNLEN 256
 #endif
 
-/*
-  Max hostname length. The Windows gethostname() documentation states that 256
-  bytes will always be large enough to hold the null-terminated hostname.
-*/
-#ifndef MAXHOSTNAMELEN
-# define MAXHOSTNAMELEN 256
-#endif
 
 /* Maximum environment variable size, including the terminating null */
 #define MAX_ENV_VAR_LENGTH 32767
@@ -331,6 +324,11 @@ uint64_t uv_get_total_memory(void) {
   }
 
   return (uint64_t)memory_status.ullTotalPhys;
+}
+
+
+uint64_t uv_get_constrained_memory(void) {
+  return 0;  /* Memory constraints are unknown. */
 }
 
 
@@ -691,12 +689,9 @@ int uv_cpu_info(uv_cpu_info_t** cpu_infos_ptr, int* cpu_count_ptr) {
                            NULL,
                            (BYTE*)&cpu_brand,
                            &cpu_brand_size);
-    if (err != ERROR_SUCCESS) {
-      RegCloseKey(processor_key);
-      goto error;
-    }
-
     RegCloseKey(processor_key);
+    if (err != ERROR_SUCCESS)
+      goto error;
 
     cpu_info = &cpu_infos[i];
     cpu_info->speed = cpu_speed;
@@ -720,9 +715,11 @@ int uv_cpu_info(uv_cpu_info_t** cpu_infos_ptr, int* cpu_count_ptr) {
   return 0;
 
  error:
-  /* This is safe because the cpu_infos array is zeroed on allocation. */
-  for (i = 0; i < cpu_count; i++)
-    uv__free(cpu_infos[i].model);
+  if (cpu_infos != NULL) {
+    /* This is safe because the cpu_infos array is zeroed on allocation. */
+    for (i = 0; i < cpu_count; i++)
+      uv__free(cpu_infos[i].model);
+  }
 
   uv__free(cpu_infos);
   uv__free(sppi);
@@ -822,6 +819,9 @@ int uv_interface_addresses(uv_interface_address_t** addresses_ptr,
 
   int is_vista_or_greater;
   ULONG flags;
+
+  *addresses_ptr = NULL;
+  *count_ptr = 0;
 
   is_vista_or_greater = is_windows_version_or_greater(6, 0, 0, 0);
   if (is_vista_or_greater) {
@@ -1178,18 +1178,18 @@ int uv_os_homedir(char* buffer, size_t* size) {
 
 
 int uv_os_tmpdir(char* buffer, size_t* size) {
-  wchar_t path[MAX_PATH + 1];
+  wchar_t path[MAX_PATH + 2];
   DWORD bufsize;
   size_t len;
 
   if (buffer == NULL || size == NULL || *size == 0)
     return UV_EINVAL;
 
-  len = GetTempPathW(MAX_PATH + 1, path);
+  len = GetTempPathW(ARRAY_SIZE(path), path);
 
   if (len == 0) {
     return uv_translate_sys_error(GetLastError());
-  } else if (len > MAX_PATH + 1) {
+  } else if (len > ARRAY_SIZE(path)) {
     /* This should not be possible */
     return UV_EIO;
   }
@@ -1404,6 +1404,75 @@ int uv_os_get_passwd(uv_passwd_t* pwd) {
 }
 
 
+int uv_os_environ(uv_env_item_t** envitems, int* count) {
+  wchar_t* env;
+  wchar_t* penv;
+  int i, cnt;
+  uv_env_item_t* envitem;
+
+  *envitems = NULL;
+  *count = 0;
+
+  env = GetEnvironmentStringsW();
+  if (env == NULL)
+    return 0;
+
+  for (penv = env, i = 0; *penv != L'\0'; penv += wcslen(penv) + 1, i++);
+
+  *envitems = uv__calloc(i, sizeof(**envitems));
+  if (envitems == NULL) {
+    FreeEnvironmentStringsW(env);
+    return UV_ENOMEM;
+  }
+
+  penv = env;
+  cnt = 0;
+
+  while (*penv != L'\0' && cnt < i) {
+    char* buf;
+    char* ptr;
+
+    if (uv__convert_utf16_to_utf8(penv, -1, &buf) != 0)
+      goto fail;
+
+    ptr = strchr(buf, '=');
+    if (ptr == NULL) {
+      uv__free(buf);
+      goto do_continue;
+    }
+
+    *ptr = '\0';
+
+    envitem = &(*envitems)[cnt];
+    envitem->name = buf;
+    envitem->value = ptr + 1;
+
+    cnt++;
+
+  do_continue:
+    penv += wcslen(penv) + 1;
+  }
+
+  FreeEnvironmentStringsW(env);
+
+  *count = cnt;
+  return 0;
+
+fail:
+  FreeEnvironmentStringsW(env);
+
+  for (i = 0; i < cnt; i++) {
+    envitem = &(*envitems)[cnt];
+    uv__free(envitem->name);
+  }
+  uv__free(*envitems);
+
+  *envitems = NULL;
+  *count = 0;
+  return UV_ENOMEM;
+}
+
+
 int uv_os_getenv(const char* name, char* buffer, size_t* size) {
   wchar_t var[MAX_ENV_VAR_LENGTH];
   wchar_t* name_w;
@@ -1514,7 +1583,7 @@ int uv_os_unsetenv(const char* name) {
 
 
 int uv_os_gethostname(char* buffer, size_t* size) {
-  char buf[MAXHOSTNAMELEN + 1];
+  char buf[UV_MAXHOSTNAMESIZE];
   size_t len;
 
   if (buffer == NULL || size == NULL || *size == 0)
@@ -1630,4 +1699,182 @@ int uv_os_setpriority(uv_pid_t pid, int priority) {
 
   CloseHandle(handle);
   return r;
+}
+
+
+int uv_os_uname(uv_utsname_t* buffer) {
+  /* Implementation loosely based on
+     https://github.com/gagern/gnulib/blob/master/lib/uname.c */
+  OSVERSIONINFOW os_info;
+  SYSTEM_INFO system_info;
+  HKEY registry_key;
+  WCHAR product_name_w[256];
+  DWORD product_name_w_size;
+  int version_size;
+  int processor_level;
+  int r;
+
+  if (buffer == NULL)
+    return UV_EINVAL;
+
+  uv__once_init();
+  os_info.dwOSVersionInfoSize = sizeof(os_info);
+  os_info.szCSDVersion[0] = L'\0';
+
+  /* Try calling RtlGetVersion(), and fall back to the deprecated GetVersionEx()
+     if RtlGetVersion() is not available. */
+  if (pRtlGetVersion) {
+    pRtlGetVersion(&os_info);
+  } else {
+    /* Silence GetVersionEx() deprecation warning. */
+    #pragma warning(suppress : 4996)
+    if (GetVersionExW(&os_info) == 0) {
+      r = uv_translate_sys_error(GetLastError());
+      goto error;
+    }
+  }
+
+  /* Populate the version field. */
+  version_size = 0;
+  r = RegOpenKeyExW(HKEY_LOCAL_MACHINE,
+                    L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion",
+                    0,
+                    KEY_QUERY_VALUE,
+                    &registry_key);
+
+  if (r == ERROR_SUCCESS) {
+    product_name_w_size = sizeof(product_name_w);
+    r = RegGetValueW(registry_key,
+                     NULL,
+                     L"ProductName",
+                     RRF_RT_REG_SZ,
+                     NULL,
+                     (PVOID) product_name_w,
+                     &product_name_w_size);
+    RegCloseKey(registry_key);
+
+    if (r == ERROR_SUCCESS) {
+      version_size = WideCharToMultiByte(CP_UTF8,
+                                         0,
+                                         product_name_w,
+                                         -1,
+                                         buffer->version,
+                                         sizeof(buffer->version),
+                                         NULL,
+                                         NULL);
+      if (version_size == 0) {
+        r = uv_translate_sys_error(GetLastError());
+        goto error;
+      }
+    }
+  }
+
+  /* Append service pack information to the version if present. */
+  if (os_info.szCSDVersion[0] != L'\0') {
+    if (version_size > 0)
+      buffer->version[version_size - 1] = ' ';
+
+    if (WideCharToMultiByte(CP_UTF8,
+                            0,
+                            os_info.szCSDVersion,
+                            -1,
+                            buffer->version + version_size,
+                            sizeof(buffer->version) - version_size,
+                            NULL,
+                            NULL) == 0) {
+      r = uv_translate_sys_error(GetLastError());
+      goto error;
+    }
+  }
+
+  /* Populate the sysname field. */
+#ifdef __MINGW32__
+  r = snprintf(buffer->sysname,
+               sizeof(buffer->sysname),
+               "MINGW32_NT-%u.%u",
+               (unsigned int) os_info.dwMajorVersion,
+               (unsigned int) os_info.dwMinorVersion);
+  assert(r < sizeof(buffer->sysname));
+#else
+  uv__strscpy(buffer->sysname, "Windows_NT", sizeof(buffer->sysname));
+#endif
+
+  /* Populate the release field. */
+  r = snprintf(buffer->release,
+               sizeof(buffer->release),
+               "%d.%d.%d",
+               (unsigned int) os_info.dwMajorVersion,
+               (unsigned int) os_info.dwMinorVersion,
+               (unsigned int) os_info.dwBuildNumber);
+  assert(r < sizeof(buffer->release));
+
+  /* Populate the machine field. */
+  GetSystemInfo(&system_info);
+
+  switch (system_info.wProcessorArchitecture) {
+    case PROCESSOR_ARCHITECTURE_AMD64:
+      uv__strscpy(buffer->machine, "x86_64", sizeof(buffer->machine));
+      break;
+    case PROCESSOR_ARCHITECTURE_IA64:
+      uv__strscpy(buffer->machine, "ia64", sizeof(buffer->machine));
+      break;
+    case PROCESSOR_ARCHITECTURE_INTEL:
+      uv__strscpy(buffer->machine, "i386", sizeof(buffer->machine));
+
+      if (system_info.wProcessorLevel > 3) {
+        processor_level = system_info.wProcessorLevel < 6 ?
+                          system_info.wProcessorLevel : 6;
+        buffer->machine[1] = '0' + processor_level;
+      }
+
+      break;
+    case PROCESSOR_ARCHITECTURE_IA32_ON_WIN64:
+      uv__strscpy(buffer->machine, "i686", sizeof(buffer->machine));
+      break;
+    case PROCESSOR_ARCHITECTURE_MIPS:
+      uv__strscpy(buffer->machine, "mips", sizeof(buffer->machine));
+      break;
+    case PROCESSOR_ARCHITECTURE_ALPHA:
+    case PROCESSOR_ARCHITECTURE_ALPHA64:
+      uv__strscpy(buffer->machine, "alpha", sizeof(buffer->machine));
+      break;
+    case PROCESSOR_ARCHITECTURE_PPC:
+      uv__strscpy(buffer->machine, "powerpc", sizeof(buffer->machine));
+      break;
+    case PROCESSOR_ARCHITECTURE_SHX:
+      uv__strscpy(buffer->machine, "sh", sizeof(buffer->machine));
+      break;
+    case PROCESSOR_ARCHITECTURE_ARM:
+      uv__strscpy(buffer->machine, "arm", sizeof(buffer->machine));
+      break;
+    default:
+      uv__strscpy(buffer->machine, "unknown", sizeof(buffer->machine));
+      break;
+  }
+
+  return 0;
+
+error:
+  buffer->sysname[0] = '\0';
+  buffer->release[0] = '\0';
+  buffer->version[0] = '\0';
+  buffer->machine[0] = '\0';
+  return r;
+}
+
+int uv_gettimeofday(uv_timeval64_t* tv) {
+  /* Based on https://doxygen.postgresql.org/gettimeofday_8c_source.html */
+  const uint64_t epoch = (uint64_t) 116444736000000000ULL;
+  FILETIME file_time;
+  ULARGE_INTEGER ularge;
+
+  if (tv == NULL)
+    return UV_EINVAL;
+
+  GetSystemTimeAsFileTime(&file_time);
+  ularge.LowPart = file_time.dwLowDateTime;
+  ularge.HighPart = file_time.dwHighDateTime;
+  tv->tv_sec = (int64_t) ((ularge.QuadPart - epoch) / 10000000L);
+  tv->tv_usec = (int32_t) (((ularge.QuadPart - epoch) % 10000000L) / 10);
+  return 0;
 }

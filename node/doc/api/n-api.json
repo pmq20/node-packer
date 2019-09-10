@@ -1,18 +1,18 @@
 {
   "type": "module",
   "source": "doc/api/n-api.md",
-  "introduced_in": "v7.10.0",
+  "introduced_in": "v8.0.0",
   "stability": 2,
   "stabilityText": "Stable",
   "miscs": [
     {
       "textRaw": "N-API",
       "name": "N-API",
-      "introduced_in": "v7.10.0",
+      "introduced_in": "v8.0.0",
       "type": "misc",
       "stability": 2,
       "stabilityText": "Stable",
-      "desc": "<p>N-API (pronounced N as in the letter, followed by API)\nis an API for building native Addons. It is independent from\nthe underlying JavaScript runtime (ex V8) and is maintained as part of\nNode.js itself. This API will be Application Binary Interface (ABI) stable\nacross versions of Node.js. It is intended to insulate Addons from\nchanges in the underlying JavaScript engine and allow modules\ncompiled for one major version to run on later major versions of Node.js without\nrecompilation. The <a href=\"https://nodejs.org/en/docs/guides/abi-stability/\">ABI Stability</a> guide provides a more in-depth explanation.</p>\n<p>Addons are built/packaged with the same approach/tools\noutlined in the section titled <a href=\"addons.html\">C++ Addons</a>.\nThe only difference is the set of APIs that are used by the native code.\nInstead of using the V8 or <a href=\"https://github.com/nodejs/nan\">Native Abstractions for Node.js</a> APIs,\nthe functions available in the N-API are used.</p>\n<p>APIs exposed by N-API are generally used to create and manipulate\nJavaScript values. Concepts and operations generally map to ideas specified\nin the ECMA262 Language Specification. The APIs have the following\nproperties:</p>\n<ul>\n<li>All N-API calls return a status code of type <code>napi_status</code>. This\nstatus indicates whether the API call succeeded or failed.</li>\n<li>The API's return value is passed via an out parameter.</li>\n<li>All JavaScript values are abstracted behind an opaque type named\n<code>napi_value</code>.</li>\n<li>In case of an error status code, additional information can be obtained\nusing <code>napi_get_last_error_info</code>. More information can be found in the error\nhandling section <a href=\"#n_api_error_handling\">Error Handling</a>.</li>\n</ul>\n<p>The N-API is a C API that ensures ABI stability across Node.js versions\nand different compiler levels. A C++ API can be easier to use.\nTo support using C++, the project maintains a\nC++ wrapper module called\n<a href=\"https://github.com/nodejs/node-addon-api\">node-addon-api</a>.\nThis wrapper provides an inlineable C++ API. Binaries built\nwith <code>node-addon-api</code> will depend on the symbols for the N-API C-based\nfunctions exported by Node.js. <code>node-addon-api</code> is a more\nefficient way to write code that calls N-API. Take, for example, the\nfollowing <code>node-addon-api</code> code. The first section shows the\n<code>node-addon-api</code> code and the second section shows what actually gets\nused in the addon.</p>\n<pre><code class=\"language-C++\">Object obj = Object::New(env);\nobj[\"foo\"] = String::New(env, \"bar\");\n</code></pre>\n<pre><code class=\"language-C++\">napi_status status;\nnapi_value object, string;\nstatus = napi_create_object(env, &#x26;object);\nif (status != napi_ok) {\n  napi_throw_error(env, ...);\n  return;\n}\n\nstatus = napi_crate_string_utf8(env, \"bar\", NAPI_AUTO_LENGTH, &#x26;string);\nif (status != napi_ok) {\n  napi_throw_error(env, ...);\n  return;\n}\n\nstatus = napi_set_named_property(env, object, \"foo\", string);\nif (status != napi_ok) {\n  napi_throw_error(env, ...);\n  return;\n}\n</code></pre>\n<p>The end result is that the addon only uses the exported C APIs. As a result,\nit still gets the benefits of the ABI stability provided by the C API.</p>\n<p>When using <code>node-addon-api</code> instead of the C APIs, start with the API\n<a href=\"https://github.com/nodejs/node-addon-api#api-documentation\">docs</a>\nfor <code>node-addon-api</code>.</p>",
+      "desc": "<p>N-API (pronounced N as in the letter, followed by API)\nis an API for building native Addons. It is independent from\nthe underlying JavaScript runtime (for example, V8) and is maintained as part of\nNode.js itself. This API will be Application Binary Interface (ABI) stable\nacross versions of Node.js. It is intended to insulate Addons from\nchanges in the underlying JavaScript engine and allow modules\ncompiled for one major version to run on later major versions of Node.js without\nrecompilation. The <a href=\"https://nodejs.org/en/docs/guides/abi-stability/\">ABI Stability</a> guide provides a more in-depth explanation.</p>\n<p>Addons are built/packaged with the same approach/tools\noutlined in the section titled <a href=\"addons.html\">C++ Addons</a>.\nThe only difference is the set of APIs that are used by the native code.\nInstead of using the V8 or <a href=\"https://github.com/nodejs/nan\">Native Abstractions for Node.js</a> APIs,\nthe functions available in the N-API are used.</p>\n<p>APIs exposed by N-API are generally used to create and manipulate\nJavaScript values. Concepts and operations generally map to ideas specified\nin the ECMA-262 Language Specification. The APIs have the following\nproperties:</p>\n<ul>\n<li>All N-API calls return a status code of type <code>napi_status</code>. This\nstatus indicates whether the API call succeeded or failed.</li>\n<li>The API's return value is passed via an out parameter.</li>\n<li>All JavaScript values are abstracted behind an opaque type named\n<code>napi_value</code>.</li>\n<li>In case of an error status code, additional information can be obtained\nusing <code>napi_get_last_error_info</code>. More information can be found in the error\nhandling section <a href=\"#n_api_error_handling\">Error Handling</a>.</li>\n</ul>\n<p>The N-API is a C API that ensures ABI stability across Node.js versions\nand different compiler levels. A C++ API can be easier to use.\nTo support using C++, the project maintains a\nC++ wrapper module called\n<a href=\"https://github.com/nodejs/node-addon-api\">node-addon-api</a>.\nThis wrapper provides an inlineable C++ API. Binaries built\nwith <code>node-addon-api</code> will depend on the symbols for the N-API C-based\nfunctions exported by Node.js. <code>node-addon-api</code> is a more\nefficient way to write code that calls N-API. Take, for example, the\nfollowing <code>node-addon-api</code> code. The first section shows the\n<code>node-addon-api</code> code and the second section shows what actually gets\nused in the addon.</p>\n<pre><code class=\"language-C++\">Object obj = Object::New(env);\nobj[\"foo\"] = String::New(env, \"bar\");\n</code></pre>\n<pre><code class=\"language-C++\">napi_status status;\nnapi_value object, string;\nstatus = napi_create_object(env, &#x26;object);\nif (status != napi_ok) {\n  napi_throw_error(env, ...);\n  return;\n}\n\nstatus = napi_create_string_utf8(env, \"bar\", NAPI_AUTO_LENGTH, &#x26;string);\nif (status != napi_ok) {\n  napi_throw_error(env, ...);\n  return;\n}\n\nstatus = napi_set_named_property(env, object, \"foo\", string);\nif (status != napi_ok) {\n  napi_throw_error(env, ...);\n  return;\n}\n</code></pre>\n<p>The end result is that the addon only uses the exported C APIs. As a result,\nit still gets the benefits of the ABI stability provided by the C API.</p>\n<p>When using <code>node-addon-api</code> instead of the C APIs, start with the API\n<a href=\"https://github.com/nodejs/node-addon-api#api-documentation\">docs</a>\nfor <code>node-addon-api</code>.</p>",
       "miscs": [
         {
           "textRaw": "Implications of ABI Stability",
@@ -31,9 +31,46 @@
         {
           "textRaw": "N-API Version Matrix",
           "name": "n-api_version_matrix",
-          "desc": "<table>\n<thead>\n<tr>\n<th align=\"center\"></th>\n<th align=\"center\">1</th>\n<th align=\"center\">2</th>\n<th align=\"center\">3</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td align=\"center\">v4.x</td>\n<td align=\"center\"></td>\n<td align=\"center\"></td>\n<td align=\"center\"></td>\n</tr>\n<tr>\n<td align=\"center\">v6.x</td>\n<td align=\"center\"></td>\n<td align=\"center\"></td>\n<td align=\"center\">v6.14.2*</td>\n</tr>\n<tr>\n<td align=\"center\">v8.x</td>\n<td align=\"center\">v8.0.0*</td>\n<td align=\"center\">v8.10.0*</td>\n<td align=\"center\"></td>\n</tr>\n<tr>\n<td align=\"center\">v9.x</td>\n<td align=\"center\">v9.0.0*</td>\n<td align=\"center\">v9.3.0*</td>\n<td align=\"center\">v9.11.0*</td>\n</tr>\n<tr>\n<td align=\"center\">v10.x</td>\n<td align=\"center\"></td>\n<td align=\"center\"></td>\n<td align=\"center\">v10.0.0</td>\n</tr>\n</tbody>\n</table>\n<p>* Indicates that the N-API version was released as experimental</p>",
+          "desc": "<p>N-API versions are additive and versioned independently from Node.js.\nVersion 4 is an extension to version 3 in that it has all of the APIs\nfrom version 3 with some additions. This means that it is not necessary\nto recompile for new versions of Node.js which are\nlisted as supporting a later version.</p>\n<table>\n<thead>\n<tr>\n<th align=\"center\"></th>\n<th align=\"center\">1</th>\n<th align=\"center\">2</th>\n<th align=\"center\">3</th>\n<th align=\"center\">4</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td align=\"center\">v6.x</td>\n<td align=\"center\"></td>\n<td align=\"center\"></td>\n<td align=\"center\">v6.14.2*</td>\n<td align=\"center\"></td>\n</tr>\n<tr>\n<td align=\"center\">v8.x</td>\n<td align=\"center\">v8.0.0*</td>\n<td align=\"center\">v8.10.0*</td>\n<td align=\"center\">v8.11.2</td>\n<td align=\"center\">v8.16.0</td>\n</tr>\n<tr>\n<td align=\"center\">v9.x</td>\n<td align=\"center\">v9.0.0*</td>\n<td align=\"center\">v9.3.0*</td>\n<td align=\"center\">v9.11.0*</td>\n<td align=\"center\"></td>\n</tr>\n<tr>\n<td align=\"center\">v10.x</td>\n<td align=\"center\"></td>\n<td align=\"center\"></td>\n<td align=\"center\">v10.0.0</td>\n<td align=\"center\"></td>\n</tr>\n<tr>\n<td align=\"center\">v11.x</td>\n<td align=\"center\"></td>\n<td align=\"center\"></td>\n<td align=\"center\">v11.0.0</td>\n<td align=\"center\">v11.8.0</td>\n</tr>\n<tr>\n<td align=\"center\">v12.x</td>\n<td align=\"center\"></td>\n<td align=\"center\"></td>\n<td align=\"center\"></td>\n<td align=\"center\">v12.0.0</td>\n</tr>\n</tbody>\n</table>\n<p>* Indicates that the N-API version was released as experimental</p>\n<p>The N-APIs associated strictly with accessing ECMAScript features from native\ncode can be found separately in <code>js_native_api.h</code> and <code>js_native_api_types.h</code>.\nThe APIs defined in these headers are included in <code>node_api.h</code> and\n<code>node_api_types.h</code>. The headers are structured in this way in order to allow\nimplementations of N-API outside of Node.js. For those implementations the\nNode.js specific APIs may not be applicable.</p>\n<p>The Node.js-specific parts of an addon can be separated from the code that\nexposes the actual functionality to the JavaScript environment so that the\nlatter may be used with multiple implementations of N-API. In the example below,\n<code>addon.c</code> and <code>addon.h</code> refer only to <code>js_native_api.h</code>. This ensures that\n<code>addon.c</code> can be reused to compile against either the Node.js implementation of\nN-API or any implementation of N-API outside of Node.js.</p>\n<p><code>addon_node.c</code> is a separate file that contains the Node.js specific entry point\nto the addon and which instantiates the addon by calling into <code>addon.c</code> when the\naddon is loaded into a Node.js environment.</p>\n<pre><code class=\"language-C\">// addon.h\n#ifndef _ADDON_H_\n#define _ADDON_H_\n#include &#x3C;js_native_api.h>\nnapi_value create_addon(napi_env env);\n#endif  // _ADDON_H_\n</code></pre>\n<pre><code class=\"language-C\">// addon.c\n#include \"addon.h\"\n\n#define NAPI_CALL(env, call)                                      \\\n  do {                                                            \\\n    napi_status status = (call);                                  \\\n    if (status != napi_ok) {                                      \\\n      const napi_extended_error_info* error_info = NULL;          \\\n      napi_get_last_error_info((env), &#x26;error_info);               \\\n      bool is_pending;                                            \\\n      napi_is_exception_pending((env), &#x26;is_pending);              \\\n      if (!is_pending) {                                          \\\n        const char* message = (error_info->error_message == NULL) \\\n            ? \"empty error message\"                               \\\n            : error_info->error_message;                          \\\n        napi_throw_error((env), NULL, message);                   \\\n        return NULL;                                              \\\n      }                                                           \\\n    }                                                             \\\n  } while(0)\n\nstatic napi_value\nDoSomethingUseful(napi_env env, napi_callback_info info) {\n  // Do something useful.\n  return NULL;\n}\n\nnapi_value create_addon(napi_env env) {\n  napi_value result;\n  NAPI_CALL(env, napi_create_object(env, &#x26;result));\n\n  napi_value exported_function;\n  NAPI_CALL(env, napi_create_function(env,\n                                      \"doSomethingUseful\",\n                                      NAPI_AUTO_LENGTH,\n                                      DoSomethingUseful,\n                                      NULL,\n                                      &#x26;exported_function));\n\n  NAPI_CALL(env, napi_set_named_property(env,\n                                         result,\n                                         \"doSomethingUseful\",\n                                         exported_function));\n\n  return result;\n}\n</code></pre>\n<pre><code class=\"language-C\">// addon_node.c\n#include &#x3C;node_api.h>\n#include \"addon.h\"\n\nNAPI_MODULE_INIT() {\n  // This function body is expected to return a `napi_value`.\n  // The variables `napi_env env` and `napi_value exports` may be used within\n  // the body, as they are provided by the definition of `NAPI_MODULE_INIT()`.\n  return create_addon(env);\n}\n</code></pre>",
           "type": "misc",
           "displayName": "N-API Version Matrix"
+        },
+        {
+          "textRaw": "Environment Life Cycle APIs",
+          "name": "environment_life_cycle_apis",
+          "stability": 1,
+          "stabilityText": "Experimental",
+          "desc": "<p><a href=\"https://tc39.es/ecma262/#sec-agents\">Section 8.7</a> of the <a href=\"https://tc39.github.io/ecma262/\">ECMAScript Language Specification</a> defines the concept\nof an \"Agent\" as a self-contained environment in which JavaScript code runs.\nMultiple such Agents may be started and terminated either concurrently or in\nsequence by the process.</p>\n<p>A Node.js environment corresponds to an ECMAScript Agent. In the main process,\nan environment is created at startup, and additional environments can be created\non separate threads to serve as <a href=\"https://nodejs.org/api/worker_threads.html\">worker threads</a>. When Node.js is embedded in\nanother application, the main thread of the application may also construct and\ndestroy a Node.js environment multiple times during the life cycle of the\napplication process such that each Node.js environment created by the\napplication may, in turn, during its life cycle create and destroy additional\nenvironments as worker threads.</p>\n<p>From the perspective of a native addon this means that the bindings it provides\nmay be called multiple times, from multiple contexts, and even concurrently from\nmultiple threads.</p>\n<p>Native addons may need to allocate global state of which they make use during\ntheir entire life cycle such that the state must be unique to each instance of\nthe addon.</p>\n<p>To this env, N-API provides a way to allocate data such that its life cycle is\ntied to the life cycle of the Agent.</p>",
+          "modules": [
+            {
+              "textRaw": "napi_set_instance_data",
+              "name": "napi_set_instance_data",
+              "meta": {
+                "added": [
+                  "v12.8.0"
+                ],
+                "changes": []
+              },
+              "desc": "<pre><code class=\"language-C\">napi_status napi_set_instance_data(napi_env env,\n                                   void* data,\n                                   napi_finalize finalize_cb,\n                                   void* finalize_hint);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the N-API call is invoked under.</li>\n<li><code>[in] data</code>: The data item to make available to bindings of this instance.</li>\n<li><code>[in] finalize_cb</code>: The function to call when the environment is being torn\ndown. The function receives <code>data</code> so that it might free it.</li>\n<li><code>[in] finalize_hint</code>: Optional hint to pass to the finalize callback\nduring collection.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API associates <code>data</code> with the currently running Agent. <code>data</code> can later\nbe retrieved using <code>napi_get_instance_data()</code>. Any existing data associated with\nthe currently running Agent which was set by means of a previous call to\n<code>napi_set_instance_data()</code> will be overwritten. If a <code>finalize_cb</code> was provided\nby the previous call, it will not be called.</p>",
+              "type": "module",
+              "displayName": "napi_set_instance_data"
+            },
+            {
+              "textRaw": "napi_get_instance_data",
+              "name": "napi_get_instance_data",
+              "meta": {
+                "added": [
+                  "v12.8.0"
+                ],
+                "changes": []
+              },
+              "desc": "<pre><code class=\"language-C\">napi_status napi_get_instance_data(napi_env env,\n                                   void** data);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the N-API call is invoked under.</li>\n<li><code>[out] data</code>: The data item that was previously associated with the currently\nrunning Agent by a call to <code>napi_set_instance_data()</code>.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API retrieves data that was previously associated with the currently\nrunning Agent via <code>napi_set_instance_data()</code>. If no data is set, the call will\nsucceed and <code>data</code> will be set to <code>NULL</code>.</p>",
+              "type": "module",
+              "displayName": "napi_get_instance_data"
+            }
+          ],
+          "type": "misc",
+          "displayName": "Environment Life Cycle APIs"
         },
         {
           "textRaw": "Basic N-API Data Types",
@@ -43,13 +80,31 @@
             {
               "textRaw": "napi_status",
               "name": "napi_status",
-              "desc": "<p>Integral status code indicating the success or failure of a N-API call.\nCurrently, the following status codes are supported.</p>\n<pre><code class=\"language-C\">typedef enum {\n  napi_ok,\n  napi_invalid_arg,\n  napi_object_expected,\n  napi_string_expected,\n  napi_name_expected,\n  napi_function_expected,\n  napi_number_expected,\n  napi_boolean_expected,\n  napi_array_expected,\n  napi_generic_failure,\n  napi_pending_exception,\n  napi_cancelled,\n  napi_escape_called_twice,\n  napi_handle_scope_mismatch,\n  napi_callback_scope_mismatch,\n  napi_queue_full,\n  napi_closing,\n  napi_bigint_expected,\n} napi_status;\n</code></pre>\n<p>If additional information is required upon an API returning a failed status,\nit can be obtained by calling <code>napi_get_last_error_info</code>.</p>",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "napiVersion": [
+                  1
+                ],
+                "changes": []
+              },
+              "desc": "<p>Integral status code indicating the success or failure of a N-API call.\nCurrently, the following status codes are supported.</p>\n<pre><code class=\"language-C\">typedef enum {\n  napi_ok,\n  napi_invalid_arg,\n  napi_object_expected,\n  napi_string_expected,\n  napi_name_expected,\n  napi_function_expected,\n  napi_number_expected,\n  napi_boolean_expected,\n  napi_array_expected,\n  napi_generic_failure,\n  napi_pending_exception,\n  napi_cancelled,\n  napi_escape_called_twice,\n  napi_handle_scope_mismatch,\n  napi_callback_scope_mismatch,\n  napi_queue_full,\n  napi_closing,\n  napi_bigint_expected,\n  napi_date_expected,\n} napi_status;\n</code></pre>\n<p>If additional information is required upon an API returning a failed status,\nit can be obtained by calling <code>napi_get_last_error_info</code>.</p>",
               "type": "module",
               "displayName": "napi_status"
             },
             {
               "textRaw": "napi_extended_error_info",
               "name": "napi_extended_error_info",
+              "meta": {
+                "added": [
+                  "v8.0.0"
+                ],
+                "napiVersion": [
+                  1
+                ],
+                "changes": []
+              },
               "desc": "<pre><code class=\"language-C\">typedef struct {\n  const char* error_message;\n  void* engine_reserved;\n  uint32_t engine_error_code;\n  napi_status error_code;\n} napi_extended_error_info;\n</code></pre>\n<ul>\n<li><code>error_message</code>: UTF8-encoded string containing a VM-neutral description of\nthe error.</li>\n<li><code>engine_reserved</code>: Reserved for VM-specific error details. This is currently\nnot implemented for any VM.</li>\n<li><code>engine_error_code</code>: VM-specific error code. This is currently\nnot implemented for any VM.</li>\n<li><code>error_code</code>: The N-API status code that originated with the last error.</li>\n</ul>\n<p>See the <a href=\"#n_api_error_handling\">Error Handling</a> section for additional information.</p>",
               "type": "module",
               "displayName": "napi_extended_error_info"
@@ -71,8 +126,15 @@
             {
               "textRaw": "napi_threadsafe_function",
               "name": "napi_threadsafe_function",
-              "stability": 1,
-              "stabilityText": "Experimental",
+              "meta": {
+                "added": [
+                  "v10.6.0"
+                ],
+                "napiVersion": [
+                  4
+                ],
+                "changes": []
+              },
               "desc": "<p>This is an opaque pointer that represents a JavaScript function which can be\ncalled asynchronously from multiple threads via\n<code>napi_call_threadsafe_function()</code>.</p>",
               "type": "module",
               "displayName": "napi_threadsafe_function"
@@ -80,8 +142,15 @@
             {
               "textRaw": "napi_threadsafe_function_release_mode",
               "name": "napi_threadsafe_function_release_mode",
-              "stability": 1,
-              "stabilityText": "Experimental",
+              "meta": {
+                "added": [
+                  "v10.6.0"
+                ],
+                "napiVersion": [
+                  4
+                ],
+                "changes": []
+              },
               "desc": "<p>A value to be given to <code>napi_release_threadsafe_function()</code> to indicate whether\nthe thread-safe function is to be closed immediately (<code>napi_tsfn_abort</code>) or\nmerely released (<code>napi_tsfn_release</code>) and thus available for subsequent use via\n<code>napi_acquire_threadsafe_function()</code> and <code>napi_call_threadsafe_function()</code>.</p>\n<pre><code class=\"language-C\">typedef enum {\n  napi_tsfn_release,\n  napi_tsfn_abort\n} napi_threadsafe_function_release_mode;\n</code></pre>",
               "type": "module",
               "displayName": "napi_threadsafe_function_release_mode"
@@ -89,8 +158,15 @@
             {
               "textRaw": "napi_threadsafe_function_call_mode",
               "name": "napi_threadsafe_function_call_mode",
-              "stability": 1,
-              "stabilityText": "Experimental",
+              "meta": {
+                "added": [
+                  "v10.6.0"
+                ],
+                "napiVersion": [
+                  4
+                ],
+                "changes": []
+              },
               "desc": "<p>A value to be given to <code>napi_call_threadsafe_function()</code> to indicate whether\nthe call should block whenever the queue associated with the thread-safe\nfunction is full.</p>\n<pre><code class=\"language-C\">typedef enum {\n  napi_tsfn_nonblocking,\n  napi_tsfn_blocking\n} napi_threadsafe_function_call_mode;\n</code></pre>",
               "type": "module",
               "displayName": "napi_threadsafe_function_call_mode"
@@ -109,6 +185,15 @@
                 {
                   "textRaw": "napi_escapable_handle_scope",
                   "name": "napi_escapable_handle_scope",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "napiVersion": [
+                      1
+                    ],
+                    "changes": []
+                  },
                   "desc": "<p>Escapable handle scopes are a special type of handle scope to return values\ncreated within a particular handle scope to a parent scope.</p>",
                   "type": "module",
                   "displayName": "napi_escapable_handle_scope"
@@ -116,6 +201,15 @@
                 {
                   "textRaw": "napi_ref",
                   "name": "napi_ref",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "napiVersion": [
+                      1
+                    ],
+                    "changes": []
+                  },
                   "desc": "<p>This is the abstraction to use to reference a <code>napi_value</code>. This allows for\nusers to manage the lifetimes of JavaScript values, including defining their\nminimum lifetimes explicitly.</p>\n<p>For more details, review the <a href=\"#n_api_object_lifetime_management\">Object Lifetime Management</a>.</p>",
                   "type": "module",
                   "displayName": "napi_ref"
@@ -131,6 +225,15 @@
                 {
                   "textRaw": "napi_callback_info",
                   "name": "napi_callback_info",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "napiVersion": [
+                      1
+                    ],
+                    "changes": []
+                  },
                   "desc": "<p>Opaque datatype that is passed to a callback function. It can be used for\ngetting additional information about the context in which the callback was\ninvoked.</p>",
                   "type": "module",
                   "displayName": "napi_callback_info"
@@ -138,6 +241,15 @@
                 {
                   "textRaw": "napi_callback",
                   "name": "napi_callback",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "napiVersion": [
+                      1
+                    ],
+                    "changes": []
+                  },
                   "desc": "<p>Function pointer type for user-provided native functions which are to be\nexposed to JavaScript via N-API. Callback functions should satisfy the\nfollowing signature:</p>\n<pre><code class=\"language-C\">typedef napi_value (*napi_callback)(napi_env, napi_callback_info);\n</code></pre>",
                   "type": "module",
                   "displayName": "napi_callback"
@@ -145,6 +257,15 @@
                 {
                   "textRaw": "napi_finalize",
                   "name": "napi_finalize",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "napiVersion": [
+                      1
+                    ],
+                    "changes": []
+                  },
                   "desc": "<p>Function pointer type for add-on provided functions that allow the user to be\nnotified when externally-owned data is ready to be cleaned up because the\nobject with which it was associated with, has been garbage-collected. The user\nmust provide a function satisfying the following signature which would get\ncalled upon the object's collection. Currently, <code>napi_finalize</code> can be used for\nfinding out when objects that have external data are collected.</p>\n<pre><code class=\"language-C\">typedef void (*napi_finalize)(napi_env env,\n                              void* finalize_data,\n                              void* finalize_hint);\n</code></pre>",
                   "type": "module",
                   "displayName": "napi_finalize"
@@ -152,23 +273,48 @@
                 {
                   "textRaw": "napi_async_execute_callback",
                   "name": "napi_async_execute_callback",
-                  "desc": "<p>Function pointer used with functions that support asynchronous\noperations. Callback functions must statisfy the following signature:</p>\n<pre><code class=\"language-C\">typedef void (*napi_async_execute_callback)(napi_env env, void* data);\n</code></pre>\n<p>Implementations of this type of function should avoid making any N-API calls\nthat could result in the execution of JavaScript or interaction with\nJavaScript objects. Most often, any code that needs to make N-API\ncalls should be made in <code>napi_async_complete_callback</code> instead.</p>",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "napiVersion": [
+                      1
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<p>Function pointer used with functions that support asynchronous\noperations. Callback functions must satisfy the following signature:</p>\n<pre><code class=\"language-C\">typedef void (*napi_async_execute_callback)(napi_env env, void* data);\n</code></pre>\n<p>Implementations of this type of function should avoid making any N-API calls\nthat could result in the execution of JavaScript or interaction with\nJavaScript objects. Most often, any code that needs to make N-API\ncalls should be made in <code>napi_async_complete_callback</code> instead.\nAvoid using the <code>napi_env</code> parameter in the execute callback as\nit will likely execute JavaScript.</p>",
                   "type": "module",
                   "displayName": "napi_async_execute_callback"
                 },
                 {
                   "textRaw": "napi_async_complete_callback",
                   "name": "napi_async_complete_callback",
-                  "desc": "<p>Function pointer used with functions that support asynchronous\noperations. Callback functions must statisfy the following signature:</p>\n<pre><code class=\"language-C\">typedef void (*napi_async_complete_callback)(napi_env env,\n                                             napi_status status,\n                                             void* data);\n</code></pre>",
+                  "meta": {
+                    "added": [
+                      "v8.0.0"
+                    ],
+                    "napiVersion": [
+                      1
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<p>Function pointer used with functions that support asynchronous\noperations. Callback functions must satisfy the following signature:</p>\n<pre><code class=\"language-C\">typedef void (*napi_async_complete_callback)(napi_env env,\n                                             napi_status status,\n                                             void* data);\n</code></pre>",
                   "type": "module",
                   "displayName": "napi_async_complete_callback"
                 },
                 {
                   "textRaw": "napi_threadsafe_function_call_js",
                   "name": "napi_threadsafe_function_call_js",
-                  "stability": 1,
-                  "stabilityText": "Experimental",
-                  "desc": "<p>Function pointer used with asynchronous thread-safe function calls. The callback\nwill be called on the main thread. Its purpose is to use a data item arriving\nvia the queue from one of the secondary threads to construct the parameters\nnecessary for a call into JavaScript, usually via <code>napi_call_function</code>, and then\nmake the call into JavaScript.</p>\n<p>The data arriving from the secondary thread via the queue is given in the <code>data</code>\nparameter and the JavaScript function to call is given in the <code>js_callback</code>\nparameter.</p>\n<p>N-API sets up the environment prior to calling this callback, so it is\nsufficient to call the JavaScript function via <code>napi_call_function</code> rather than\nvia <code>napi_make_callback</code>.</p>\n<p>Callback functions must satisfy the following signature:</p>\n<pre><code class=\"language-C\">typedef void (*napi_threadsafe_function_call_js)(napi_env env,\n                                                 napi_value js_callback,\n                                                 void* context,\n                                                 void* data);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment to use for API calls, or <code>NULL</code> if the thread-safe\nfunction is being torn down and <code>data</code> may need to be freed.</li>\n<li><code>[in] js_callback</code>: The JavaScript function to call, or <code>NULL</code> if the\nthread-safe function is being torn down and <code>data</code> may need to be freed.</li>\n<li><code>[in] context</code>: The optional data with which the thread-safe function was\ncreated.</li>\n<li><code>[in] data</code>: Data created by the secondary thread. It is the responsibility of\nthe callback to convert this native data to JavaScript values (with N-API\nfunctions) that can be passed as parameters when <code>js_callback</code> is invoked. This\npointer is managed entirely by the threads and this callback. Thus this callback\nshould free the data.</li>\n</ul>",
+                  "meta": {
+                    "added": [
+                      "v10.6.0"
+                    ],
+                    "napiVersion": [
+                      4
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<p>Function pointer used with asynchronous thread-safe function calls. The callback\nwill be called on the main thread. Its purpose is to use a data item arriving\nvia the queue from one of the secondary threads to construct the parameters\nnecessary for a call into JavaScript, usually via <code>napi_call_function</code>, and then\nmake the call into JavaScript.</p>\n<p>The data arriving from the secondary thread via the queue is given in the <code>data</code>\nparameter and the JavaScript function to call is given in the <code>js_callback</code>\nparameter.</p>\n<p>N-API sets up the environment prior to calling this callback, so it is\nsufficient to call the JavaScript function via <code>napi_call_function</code> rather than\nvia <code>napi_make_callback</code>.</p>\n<p>Callback functions must satisfy the following signature:</p>\n<pre><code class=\"language-C\">typedef void (*napi_threadsafe_function_call_js)(napi_env env,\n                                                 napi_value js_callback,\n                                                 void* context,\n                                                 void* data);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment to use for API calls, or <code>NULL</code> if the thread-safe\nfunction is being torn down and <code>data</code> may need to be freed.</li>\n<li><code>[in] js_callback</code>: The JavaScript function to call, or <code>NULL</code> if the\nthread-safe function is being torn down and <code>data</code> may need to be freed. It may\nalso be <code>NULL</code> if the thread-safe function was created without <code>js_callback</code>.</li>\n<li><code>[in] context</code>: The optional data with which the thread-safe function was\ncreated.</li>\n<li><code>[in] data</code>: Data created by the secondary thread. It is the responsibility of\nthe callback to convert this native data to JavaScript values (with N-API\nfunctions) that can be passed as parameters when <code>js_callback</code> is invoked. This\npointer is managed entirely by the threads and this callback. Thus this callback\nshould free the data.</li>\n</ul>",
                   "type": "module",
                   "displayName": "napi_threadsafe_function_call_js"
                 }
@@ -188,6 +334,15 @@
             {
               "textRaw": "Return values",
               "name": "return_values",
+              "meta": {
+                "added": [
+                  "v10.6.0"
+                ],
+                "napiVersion": [
+                  4
+                ],
+                "changes": []
+              },
               "desc": "<p>All of the N-API functions share the same error handling pattern. The\nreturn type of all API functions is <code>napi_status</code>.</p>\n<p>The return value will be <code>napi_ok</code> if the request was successful and\nno uncaught JavaScript exception was thrown. If an error occurred AND\nan exception was thrown, the <code>napi_status</code> value for the error\nwill be returned. If an exception was thrown, and no error occurred,\n<code>napi_pending_exception</code> will be returned.</p>\n<p>In cases where a return value other than <code>napi_ok</code> or\n<code>napi_pending_exception</code> is returned, <a href=\"#n_api_napi_is_exception_pending\"><code>napi_is_exception_pending</code></a>\nmust be called to check if an exception is pending.\nSee the section on exceptions for more details.</p>\n<p>The full set of possible <code>napi_status</code> values is defined\nin <code>napi_api_types.h</code>.</p>\n<p>The <code>napi_status</code> return value provides a VM-independent representation of\nthe error which occurred. In some cases it is useful to be able to get\nmore detailed information, including a string representing the error as well as\nVM (engine)-specific information.</p>\n<p>In order to retrieve this information <a href=\"#n_api_napi_get_last_error_info\"><code>napi_get_last_error_info</code></a>\nis provided which returns a <code>napi_extended_error_info</code> structure.\nThe format of the <code>napi_extended_error_info</code> structure is as follows:</p>\n<pre><code class=\"language-C\">typedef struct napi_extended_error_info {\n  const char* error_message;\n  void* engine_reserved;\n  uint32_t engine_error_code;\n  napi_status error_code;\n};\n</code></pre>\n<ul>\n<li><code>error_message</code>: Textual representation of the error that occurred.</li>\n<li><code>engine_reserved</code>: Opaque handle reserved for engine use only.</li>\n<li><code>engine_error_code</code>: VM specific error code.</li>\n<li><code>error_code</code>: n-api status code for the last error.</li>\n</ul>\n<p><a href=\"#n_api_napi_get_last_error_info\"><code>napi_get_last_error_info</code></a> returns the information for the last\nN-API call that was made.</p>\n<p>Do not rely on the content or format of any of the extended information as it\nis not subject to SemVer and may change at any time. It is intended only for\nlogging purposes.</p>",
               "modules": [
                 {
@@ -213,7 +368,7 @@
             {
               "textRaw": "Exceptions",
               "name": "exceptions",
-              "desc": "<p>Any N-API function call may result in a pending JavaScript exception. This is\nobviously the case for any function that may cause the execution of\nJavaScript, but N-API specifies that an exception may be pending\non return from any of the API functions.</p>\n<p>If the <code>napi_status</code> returned by a function is <code>napi_ok</code> then no\nexception is pending and no additional action is required. If the\n<code>napi_status</code> returned is anything other than <code>napi_ok</code> or\n<code>napi_pending_exception</code>, in order to try to recover and continue\ninstead of simply returning immediately, <a href=\"#n_api_napi_is_exception_pending\"><code>napi_is_exception_pending</code></a>\nmust be called in order to determine if an exception is pending or not.</p>\n<p>When an exception is pending one of two approaches can be employed.</p>\n<p>The first approach is to do any appropriate cleanup and then return so that\nexecution will return to JavaScript. As part of the transition back to\nJavaScript the exception will be thrown at the point in the JavaScript\ncode where the native method was invoked. The behavior of most N-API calls\nis unspecified while an exception is pending, and many will simply return\n<code>napi_pending_exception</code>, so it is important to do as little as possible\nand then return to JavaScript where the exception can be handled.</p>\n<p>The second approach is to try to handle the exception. There will be cases\nwhere the native code can catch the exception, take the appropriate action,\nand then continue. This is only recommended in specific cases\nwhere it is known that the exception can be safely handled. In these\ncases <a href=\"#n_api_napi_get_and_clear_last_exception\"><code>napi_get_and_clear_last_exception</code></a> can be used to get and\nclear the exception. On success, result will contain the handle to\nthe last JavaScript <code>Object</code> thrown. If it is determined, after\nretrieving the exception, the exception cannot be handled after all\nit can be re-thrown it with <a href=\"#n_api_napi_throw\"><code>napi_throw</code></a> where error is the\nJavaScript <code>Error</code> object to be thrown.</p>\n<p>The following utility functions are also available in case native code\nneeds to throw an exception or determine if a <code>napi_value</code> is an instance\nof a JavaScript <code>Error</code> object: <a href=\"#n_api_napi_throw_error\"><code>napi_throw_error</code></a>,\n<a href=\"#n_api_napi_throw_type_error\"><code>napi_throw_type_error</code></a>, <a href=\"#n_api_napi_throw_range_error\"><code>napi_throw_range_error</code></a> and\n<a href=\"#n_api_napi_is_error\"><code>napi_is_error</code></a>.</p>\n<p>The following utility functions are also available in case native\ncode needs to create an <code>Error</code> object: <a href=\"#n_api_napi_create_error\"><code>napi_create_error</code></a>,\n<a href=\"#n_api_napi_create_type_error\"><code>napi_create_type_error</code></a>, and <a href=\"#n_api_napi_create_range_error\"><code>napi_create_range_error</code></a>,\nwhere result is the <code>napi_value</code> that refers to the newly created\nJavaScript <code>Error</code> object.</p>\n<p>The Node.js project is adding error codes to all of the errors\ngenerated internally. The goal is for applications to use these\nerror codes for all error checking. The associated error messages\nwill remain, but will only be meant to be used for logging and\ndisplay with the expectation that the message can change without\nSemVer applying. In order to support this model with N-API, both\nin internal functionality and for module specific functionality\n(as its good practice), the <code>throw_</code> and <code>create_</code> functions\ntake an optional code parameter which is the string for the code\nto be added to the error object. If the optional parameter is NULL\nthen no code will be associated with the error. If a code is provided,\nthe name associated with the error is also updated to be:</p>\n<pre><code class=\"language-text\">originalName [code]\n</code></pre>\n<p>where <code>originalName</code> is the original name associated with the error\nand <code>code</code> is the code that was provided. For example, if the code\nis <code>'ERR_ERROR_1'</code> and a <code>TypeError</code> is being created the name will be:</p>\n<pre><code class=\"language-text\">TypeError [ERR_ERROR_1]\n</code></pre>",
+              "desc": "<p>Any N-API function call may result in a pending JavaScript exception. This is\nobviously the case for any function that may cause the execution of\nJavaScript, but N-API specifies that an exception may be pending\non return from any of the API functions.</p>\n<p>If the <code>napi_status</code> returned by a function is <code>napi_ok</code> then no\nexception is pending and no additional action is required. If the\n<code>napi_status</code> returned is anything other than <code>napi_ok</code> or\n<code>napi_pending_exception</code>, in order to try to recover and continue\ninstead of simply returning immediately, <a href=\"#n_api_napi_is_exception_pending\"><code>napi_is_exception_pending</code></a>\nmust be called in order to determine if an exception is pending or not.</p>\n<p>In many cases when an N-API function is called and an exception is\nalready pending, the function will return immediately with a\n<code>napi_status</code> of <code>napi_pending_exception</code>. However, this is not the case\nfor all functions. N-API allows a subset of the functions to be\ncalled to allow for some minimal cleanup before returning to JavaScript.\nIn that case, <code>napi_status</code> will reflect the status for the function. It\nwill not reflect previous pending exceptions. To avoid confusion, check\nthe error status after every function call.</p>\n<p>When an exception is pending one of two approaches can be employed.</p>\n<p>The first approach is to do any appropriate cleanup and then return so that\nexecution will return to JavaScript. As part of the transition back to\nJavaScript the exception will be thrown at the point in the JavaScript\ncode where the native method was invoked. The behavior of most N-API calls\nis unspecified while an exception is pending, and many will simply return\n<code>napi_pending_exception</code>, so it is important to do as little as possible\nand then return to JavaScript where the exception can be handled.</p>\n<p>The second approach is to try to handle the exception. There will be cases\nwhere the native code can catch the exception, take the appropriate action,\nand then continue. This is only recommended in specific cases\nwhere it is known that the exception can be safely handled. In these\ncases <a href=\"#n_api_napi_get_and_clear_last_exception\"><code>napi_get_and_clear_last_exception</code></a> can be used to get and\nclear the exception. On success, result will contain the handle to\nthe last JavaScript <code>Object</code> thrown. If it is determined, after\nretrieving the exception, the exception cannot be handled after all\nit can be re-thrown it with <a href=\"#n_api_napi_throw\"><code>napi_throw</code></a> where error is the\nJavaScript <code>Error</code> object to be thrown.</p>\n<p>The following utility functions are also available in case native code\nneeds to throw an exception or determine if a <code>napi_value</code> is an instance\nof a JavaScript <code>Error</code> object: <a href=\"#n_api_napi_throw_error\"><code>napi_throw_error</code></a>,\n<a href=\"#n_api_napi_throw_type_error\"><code>napi_throw_type_error</code></a>, <a href=\"#n_api_napi_throw_range_error\"><code>napi_throw_range_error</code></a> and\n<a href=\"#n_api_napi_is_error\"><code>napi_is_error</code></a>.</p>\n<p>The following utility functions are also available in case native\ncode needs to create an <code>Error</code> object: <a href=\"#n_api_napi_create_error\"><code>napi_create_error</code></a>,\n<a href=\"#n_api_napi_create_type_error\"><code>napi_create_type_error</code></a>, and <a href=\"#n_api_napi_create_range_error\"><code>napi_create_range_error</code></a>,\nwhere result is the <code>napi_value</code> that refers to the newly created\nJavaScript <code>Error</code> object.</p>\n<p>The Node.js project is adding error codes to all of the errors\ngenerated internally. The goal is for applications to use these\nerror codes for all error checking. The associated error messages\nwill remain, but will only be meant to be used for logging and\ndisplay with the expectation that the message can change without\nSemVer applying. In order to support this model with N-API, both\nin internal functionality and for module specific functionality\n(as its good practice), the <code>throw_</code> and <code>create_</code> functions\ntake an optional code parameter which is the string for the code\nto be added to the error object. If the optional parameter is NULL\nthen no code will be associated with the error. If a code is provided,\nthe name associated with the error is also updated to be:</p>\n<pre><code class=\"language-text\">originalName [code]\n</code></pre>\n<p>where <code>originalName</code> is the original name associated with the error\nand <code>code</code> is the code that was provided. For example, if the code\nis <code>'ERR_ERROR_1'</code> and a <code>TypeError</code> is being created the name will be:</p>\n<pre><code class=\"language-text\">TypeError [ERR_ERROR_1]\n</code></pre>",
               "modules": [
                 {
                   "textRaw": "napi_throw",
@@ -771,6 +926,21 @@
                   "displayName": "napi_create_buffer_copy"
                 },
                 {
+                  "textRaw": "napi_create_date",
+                  "name": "napi_create_date",
+                  "meta": {
+                    "added": [
+                      "v11.11.0"
+                    ],
+                    "changes": []
+                  },
+                  "stability": 1,
+                  "stabilityText": "Experimental",
+                  "desc": "<pre><code class=\"language-C\">napi_status napi_create_date(napi_env env,\n                             double time,\n                             napi_value* result);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] time</code>: ECMAScript time value in milliseconds since 01 January, 1970 UTC.</li>\n<li><code>[out] result</code>: A <code>napi_value</code> representing a JavaScript <code>Date</code>.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API allocates a JavaScript <code>Date</code> object.</p>\n<p>JavaScript <code>Date</code> objects are described in\n<a href=\"https://tc39.github.io/ecma262/#sec-date-objects\">Section 20.3</a> of the ECMAScript Language Specification.</p>",
+                  "type": "module",
+                  "displayName": "napi_create_date"
+                },
+                {
                   "textRaw": "napi_create_external",
                   "name": "napi_create_external",
                   "meta": {
@@ -1152,6 +1322,21 @@
                   "displayName": "napi_get_dataview_info"
                 },
                 {
+                  "textRaw": "napi_get_date_value",
+                  "name": "napi_get_date_value",
+                  "meta": {
+                    "added": [
+                      "v11.11.0"
+                    ],
+                    "changes": []
+                  },
+                  "stability": 1,
+                  "stabilityText": "Experimental",
+                  "desc": "<pre><code class=\"language-C\">napi_status napi_get_date_value(napi_env env,\n                                napi_value value,\n                                double* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] value</code>: <code>napi_value</code> representing a JavaScript <code>Date</code>.</li>\n<li><code>[out] result</code>: Time value as a <code>double</code> represented as milliseconds\nsince midnight at the beginning of 01 January, 1970 UTC.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded. If a non-date <code>napi_value</code> is passed\nin it returns <code>napi_date_expected</code>.</p>\n<p>This API returns the C double primitive of time value for the given JavaScript\n<code>Date</code>.</p>",
+                  "type": "module",
+                  "displayName": "napi_get_date_value"
+                },
+                {
                   "textRaw": "napi_get_value_bool",
                   "name": "napi_get_value_bool",
                   "meta": {
@@ -1224,7 +1409,7 @@
                   },
                   "stability": 1,
                   "stabilityText": "Experimental",
-                  "desc": "<pre><code class=\"language-C\">napi_status napi_get_value_bigint_words(napi_env env,\n                                        napi_value value,\n                                        size_t* word_count,\n                                        int* sign_bit,\n                                        uint64_t* words);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] value</code>: <code>napi_value</code> representing JavaScript <code>BigInt</code>.</li>\n<li><code>[out] sign_bit</code>: Integer representing if the JavaScript <code>BigInt</code> is positive\nor negative.</li>\n<li><code>[in/out] word_count</code>: Must be initialized to the length of the <code>words</code>\narray. Upon return, it will be set to the actual number of words that\nwould be needed to store this <code>BigInt</code>.</li>\n<li><code>[out] words</code>: Pointer to a pre-allocated 64-bit word array.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API converts a single <code>BigInt</code> value into a sign bit, 64-bit little-endian\narray, and the number of elements in the array. <code>sign_bit</code> and <code>words</code> may be\nboth set to <code>NULL</code>, in order to get only <code>word_count</code>.</p>",
+                  "desc": "<pre><code class=\"language-C\">napi_status napi_get_value_bigint_words(napi_env env,\n                                        napi_value value,\n                                        int* sign_bit,\n                                        size_t* word_count,\n                                        uint64_t* words);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] value</code>: <code>napi_value</code> representing JavaScript <code>BigInt</code>.</li>\n<li><code>[out] sign_bit</code>: Integer representing if the JavaScript <code>BigInt</code> is positive\nor negative.</li>\n<li><code>[in/out] word_count</code>: Must be initialized to the length of the <code>words</code>\narray. Upon return, it will be set to the actual number of words that\nwould be needed to store this <code>BigInt</code>.</li>\n<li><code>[out] words</code>: Pointer to a pre-allocated 64-bit word array.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API converts a single <code>BigInt</code> value into a sign bit, 64-bit little-endian\narray, and the number of elements in the array. <code>sign_bit</code> and <code>words</code> may be\nboth set to <code>NULL</code>, in order to get only <code>word_count</code>.</p>",
                   "type": "module",
                   "displayName": "napi_get_value_bigint_words"
                 },
@@ -1570,6 +1755,21 @@
               "displayName": "napi_is_buffer"
             },
             {
+              "textRaw": "napi_is_date",
+              "name": "napi_is_date",
+              "meta": {
+                "added": [
+                  "v11.11.0"
+                ],
+                "changes": []
+              },
+              "stability": 1,
+              "stabilityText": "Experimental",
+              "desc": "<pre><code class=\"language-C\">napi_status napi_is_date(napi_env env, napi_value value, bool* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] value</code>: The JavaScript value to check.</li>\n<li><code>[out] result</code>: Whether the given <code>napi_value</code> represents a JavaScript <code>Date</code>\nobject.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API checks if the <code>Object</code> passed in is a date.</p>",
+              "type": "module",
+              "displayName": "napi_is_date"
+            },
+            {
               "textRaw": "napi_is_error",
               "name": "napi_is_error",
               "meta": {
@@ -1888,7 +2088,7 @@
                     ],
                     "changes": []
                   },
-                  "desc": "<pre><code class=\"language-C\">napi_status napi_define_properties(napi_env env,\n                                   napi_value object,\n                                   size_t property_count,\n                                   const napi_property_descriptor* properties);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the N-API call is invoked under.</li>\n<li><code>[in] object</code>: The object from which to retrieve the properties.</li>\n<li><code>[in] property_count</code>: The number of elements in the <code>properties</code> array.</li>\n<li><code>[in] properties</code>: The array of property descriptors.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This method allows the efficient definition of multiple properties on a given\nobject. The properties are defined using property descriptors (see\n<a href=\"#n_api_napi_property_descriptor\"><code>napi_property_descriptor</code></a>). Given an array of such property descriptors,\nthis API will set the properties on the object one at a time, as defined by\n<code>DefineOwnProperty()</code> (described in <a href=\"https://tc39.github.io/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-defineownproperty-p-desc\">Section 9.1.6</a> of the ECMA262\nspecification).</p>",
+                  "desc": "<pre><code class=\"language-C\">napi_status napi_define_properties(napi_env env,\n                                   napi_value object,\n                                   size_t property_count,\n                                   const napi_property_descriptor* properties);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the N-API call is invoked under.</li>\n<li><code>[in] object</code>: The object from which to retrieve the properties.</li>\n<li><code>[in] property_count</code>: The number of elements in the <code>properties</code> array.</li>\n<li><code>[in] properties</code>: The array of property descriptors.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This method allows the efficient definition of multiple properties on a given\nobject. The properties are defined using property descriptors (see\n<a href=\"#n_api_napi_property_descriptor\"><code>napi_property_descriptor</code></a>). Given an array of such property descriptors,\nthis API will set the properties on the object one at a time, as defined by\n<code>DefineOwnProperty()</code> (described in <a href=\"https://tc39.github.io/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-defineownproperty-p-desc\">Section 9.1.6</a> of the ECMA-262\nspecification).</p>",
                   "type": "module",
                   "displayName": "napi_define_properties"
                 }
@@ -2067,9 +2267,6 @@
                 "added": [
                   "v8.0.0"
                 ],
-                "napiVersion": [
-                  1
-                ],
                 "changes": []
               },
               "desc": "<pre><code class=\"language-C\">napi_status napi_add_finalizer(napi_env env,\n                               napi_value js_object,\n                               void* native_object,\n                               napi_finalize finalize_cb,\n                               void* finalize_hint,\n                               napi_ref* result);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] js_object</code>: The JavaScript object to which the native data will be\nattached.</li>\n<li><code>[in] native_object</code>: The native data that will be attached to the JavaScript\nobject.</li>\n<li><code>[in] finalize_cb</code>: Native callback that will be used to free the\nnative data when the JavaScript object is ready for garbage-collection.</li>\n<li><code>[in] finalize_hint</code>: Optional contextual hint that is passed to the\nfinalize callback.</li>\n<li><code>[out] result</code>: Optional reference to the JavaScript object.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>Adds a <code>napi_finalize</code> callback which will be called when the JavaScript object\nin <code>js_object</code> is ready for garbage collection. This API is similar to\n<code>napi_wrap()</code> except that</p>\n<ul>\n<li>the native data cannot be retrieved later using <code>napi_unwrap()</code>,</li>\n<li>nor can it be removed later using <code>napi_remove_wrap()</code>, and</li>\n<li>the API can be called multiple times with different data items in order to\nattach each of them to the JavaScript object.</li>\n</ul>\n<p><em>Caution</em>: The optional returned reference (if obtained) should be deleted via\n<a href=\"#n_api_napi_delete_reference\"><code>napi_delete_reference</code></a> ONLY in response to the finalize callback\ninvocation. If it is deleted before then, then the finalize callback may never\nbe invoked. Therefore, when obtaining a reference a finalize callback is also\nrequired in order to enable correct disposal of the reference.</p>",
@@ -2083,7 +2280,7 @@
         {
           "textRaw": "Simple Asynchronous Operations",
           "name": "simple_asynchronous_operations",
-          "desc": "<p>Addon modules often need to leverage async helpers from libuv as part of their\nimplementation. This allows them to schedule work to be executed asynchronously\nso that their methods can return in advance of the work being completed. This\nis important in order to allow them to avoid blocking overall execution\nof the Node.js application.</p>\n<p>N-API provides an ABI-stable interface for these\nsupporting functions which covers the most common asynchronous use cases.</p>\n<p>N-API defines the <code>napi_work</code> structure which is used to manage\nasynchronous workers. Instances are created/deleted with\n<a href=\"#n_api_napi_create_async_work\"><code>napi_create_async_work</code></a> and <a href=\"#n_api_napi_delete_async_work\"><code>napi_delete_async_work</code></a>.</p>\n<p>The <code>execute</code> and <code>complete</code> callbacks are functions that will be\ninvoked when the executor is ready to execute and when it completes its\ntask respectively.</p>\n<p>The <code>execute</code> function should avoid making any N-API calls\nthat could result in the execution of JavaScript or interaction with\nJavaScript objects. Most often, any code that needs to make N-API\ncalls should be made in <code>complete</code> callback instead.</p>\n<p>These functions implement the following interfaces:</p>\n<pre><code class=\"language-C\">typedef void (*napi_async_execute_callback)(napi_env env,\n                                            void* data);\ntypedef void (*napi_async_complete_callback)(napi_env env,\n                                             napi_status status,\n                                             void* data);\n</code></pre>\n<p>When these methods are invoked, the <code>data</code> parameter passed will be the\naddon-provided <code>void*</code> data that was passed into the\n<code>napi_create_async_work</code> call.</p>\n<p>Once created the async worker can be queued\nfor execution using the <a href=\"#n_api_napi_queue_async_work\"><code>napi_queue_async_work</code></a> function:</p>\n<pre><code class=\"language-C\">napi_status napi_queue_async_work(napi_env env,\n                                  napi_async_work work);\n</code></pre>\n<p><a href=\"#n_api_napi_cancel_async_work\"><code>napi_cancel_async_work</code></a> can be used if the work needs\nto be cancelled before the work has started execution.</p>\n<p>After calling <a href=\"#n_api_napi_cancel_async_work\"><code>napi_cancel_async_work</code></a>, the <code>complete</code> callback\nwill be invoked with a status value of <code>napi_cancelled</code>.\nThe work should not be deleted before the <code>complete</code>\ncallback invocation, even when it was cancelled.</p>",
+          "desc": "<p>Addon modules often need to leverage async helpers from libuv as part of their\nimplementation. This allows them to schedule work to be executed asynchronously\nso that their methods can return in advance of the work being completed. This\nis important in order to allow them to avoid blocking overall execution\nof the Node.js application.</p>\n<p>N-API provides an ABI-stable interface for these\nsupporting functions which covers the most common asynchronous use cases.</p>\n<p>N-API defines the <code>napi_work</code> structure which is used to manage\nasynchronous workers. Instances are created/deleted with\n<a href=\"#n_api_napi_create_async_work\"><code>napi_create_async_work</code></a> and <a href=\"#n_api_napi_delete_async_work\"><code>napi_delete_async_work</code></a>.</p>\n<p>The <code>execute</code> and <code>complete</code> callbacks are functions that will be\ninvoked when the executor is ready to execute and when it completes its\ntask respectively.</p>\n<p>The <code>execute</code> function should avoid making any N-API calls\nthat could result in the execution of JavaScript or interaction with\nJavaScript objects. Most often, any code that needs to make N-API\ncalls should be made in <code>complete</code> callback instead.\nAvoid using the <code>napi_env</code> parameter in the execute callback as\nit will likely execute JavaScript.</p>\n<p>These functions implement the following interfaces:</p>\n<pre><code class=\"language-C\">typedef void (*napi_async_execute_callback)(napi_env env,\n                                            void* data);\ntypedef void (*napi_async_complete_callback)(napi_env env,\n                                             napi_status status,\n                                             void* data);\n</code></pre>\n<p>When these methods are invoked, the <code>data</code> parameter passed will be the\naddon-provided <code>void*</code> data that was passed into the\n<code>napi_create_async_work</code> call.</p>\n<p>Once created the async worker can be queued\nfor execution using the <a href=\"#n_api_napi_queue_async_work\"><code>napi_queue_async_work</code></a> function:</p>\n<pre><code class=\"language-C\">napi_status napi_queue_async_work(napi_env env,\n                                  napi_async_work work);\n</code></pre>\n<p><a href=\"#n_api_napi_cancel_async_work\"><code>napi_cancel_async_work</code></a> can be used if the work needs\nto be cancelled before the work has started execution.</p>\n<p>After calling <a href=\"#n_api_napi_cancel_async_work\"><code>napi_cancel_async_work</code></a>, the <code>complete</code> callback\nwill be invoked with a status value of <code>napi_cancelled</code>.\nThe work should not be deleted before the <code>complete</code>\ncallback invocation, even when it was cancelled.</p>",
           "modules": [
             {
               "textRaw": "napi_create_async_work",
@@ -2135,7 +2332,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<pre><code class=\"language-C\">napi_status napi_queue_async_work(napi_env env,\n                                  napi_async_work work);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] work</code>: The handle returned by the call to <code>napi_create_async_work</code>.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API requests that the previously allocated work be scheduled\nfor execution.</p>",
+              "desc": "<pre><code class=\"language-C\">napi_status napi_queue_async_work(napi_env env,\n                                  napi_async_work work);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] work</code>: The handle returned by the call to <code>napi_create_async_work</code>.</li>\n</ul>\n<p>Returns <code>napi_ok</code> if the API succeeded.</p>\n<p>This API requests that the previously allocated work be scheduled\nfor execution. Once it returns successfully, this API must not be called again\nwith the same <code>napi_async_work</code> item or the result will be undefined.</p>",
               "type": "module",
               "displayName": "napi_queue_async_work"
             },
@@ -2229,7 +2426,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<pre><code class=\"language-C\">NAPI_EXTERN napi_status napi_open_callback_scope(napi_env env,\n                                                 napi_value resource_object,\n                                                 napi_async_context context,\n                                                 napi_callback_scope* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] resource_object</code>: An optional object associated with the async work\nthat will be passed to possible <code>async_hooks</code> <a href=\"async_hooks.html#async_hooks_init_asyncid_type_triggerasyncid_resource\"><code>init</code> hooks</a>.</li>\n<li><code>[in] context</code>: Context for the async operation that is\ninvoking the callback. This should be a value previously obtained\nfrom <a href=\"#n_api_napi_async_init\"><code>napi_async_init</code></a>.</li>\n<li><code>[out] result</code>: The newly created scope.</li>\n</ul>\n<p>There are cases (for example, resolving promises) where it is\nnecessary to have the equivalent of the scope associated with a callback\nin place when making certain N-API calls. If there is no other script on\nthe stack the <a href=\"#n_api_napi_open_callback_scope\"><code>napi_open_callback_scope</code></a> and\n<a href=\"#n_api_napi_close_callback_scope\"><code>napi_close_callback_scope</code></a> functions can be used to open/close\nthe required scope.</p>",
+              "desc": "<pre><code class=\"language-C\">NAPI_EXTERN napi_status napi_open_callback_scope(napi_env env,\n                                                 napi_value resource_object,\n                                                 napi_async_context context,\n                                                 napi_callback_scope* result)\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] resource_object</code>: An object associated with the async work\nthat will be passed to possible <code>async_hooks</code> <a href=\"async_hooks.html#async_hooks_init_asyncid_type_triggerasyncid_resource\"><code>init</code> hooks</a>.</li>\n<li><code>[in] context</code>: Context for the async operation that is\ninvoking the callback. This should be a value previously obtained\nfrom <a href=\"#n_api_napi_async_init\"><code>napi_async_init</code></a>.</li>\n<li><code>[out] result</code>: The newly created scope.</li>\n</ul>\n<p>There are cases (for example, resolving promises) where it is\nnecessary to have the equivalent of the scope associated with a callback\nin place when making certain N-API calls. If there is no other script on\nthe stack the <a href=\"#n_api_napi_open_callback_scope\"><code>napi_open_callback_scope</code></a> and\n<a href=\"#n_api_napi_close_callback_scope\"><code>napi_close_callback_scope</code></a> functions can be used to open/close\nthe required scope.</p>",
               "type": "module",
               "displayName": "napi_open_callback_scope"
             },
@@ -2444,33 +2641,39 @@
         {
           "textRaw": "Asynchronous Thread-safe Function Calls",
           "name": "asynchronous_thread-safe_function_calls",
-          "stability": 1,
-          "stabilityText": "Experimental",
           "desc": "<p>JavaScript functions can normally only be called from a native addon's main\nthread. If an addon creates additional threads, then N-API functions that\nrequire a <code>napi_env</code>, <code>napi_value</code>, or <code>napi_ref</code> must not be called from those\nthreads.</p>\n<p>When an addon has additional threads and JavaScript functions need to be invoked\nbased on the processing completed by those threads, those threads must\ncommunicate with the addon's main thread so that the main thread can invoke the\nJavaScript function on their behalf. The thread-safe function APIs provide an\neasy way to do this.</p>\n<p>These APIs provide the type <code>napi_threadsafe_function</code> as well as APIs to\ncreate, destroy, and call objects of this type.\n<code>napi_create_threadsafe_function()</code> creates a persistent reference to a\n<code>napi_value</code> that holds a JavaScript function which can be called from multiple\nthreads. The calls happen asynchronously. This means that values with which the\nJavaScript callback is to be called will be placed in a queue, and, for each\nvalue in the queue, a call will eventually be made to the JavaScript function.</p>\n<p>Upon creation of a <code>napi_threadsafe_function</code> a <code>napi_finalize</code> callback can be\nprovided. This callback will be invoked on the main thread when the thread-safe\nfunction is about to be destroyed. It receives the context and the finalize data\ngiven during construction, and provides an opportunity for cleaning up after the\nthreads e.g. by calling <code>uv_thread_join()</code>. <strong>It is important that, aside from\nthe main loop thread, there be no threads left using the thread-safe function\nafter the finalize callback completes.</strong></p>\n<p>The <code>context</code> given during the call to <code>napi_create_threadsafe_function()</code> can\nbe retrieved from any thread with a call to\n<code>napi_get_threadsafe_function_context()</code>.</p>\n<p><code>napi_call_threadsafe_function()</code> can then be used for initiating a call into\nJavaScript. <code>napi_call_threadsafe_function()</code> accepts a parameter which controls\nwhether the API behaves blockingly. If set to <code>napi_tsfn_nonblocking</code>, the API\nbehaves non-blockingly, returning <code>napi_queue_full</code> if the queue was full,\npreventing data from being successfully added to the queue. If set to\n<code>napi_tsfn_blocking</code>, the API blocks until space becomes available in the queue.\n<code>napi_call_threadsafe_function()</code> never blocks if the thread-safe function was\ncreated with a maximum queue size of 0.</p>\n<p>The actual call into JavaScript is controlled by the callback given via the\n<code>call_js_cb</code> parameter. <code>call_js_cb</code> is invoked on the main thread once for each\nvalue that was placed into the queue by a successful call to\n<code>napi_call_threadsafe_function()</code>. If such a callback is not given, a default\ncallback will be used, and the resulting JavaScript call will have no arguments.\nThe <code>call_js_cb</code> callback receives the JavaScript function to call as a\n<code>napi_value</code> in its parameters, as well as the <code>void*</code> context pointer used when\ncreating the <code>napi_threadsafe_function</code>, and the next data pointer that was\ncreated by one of the secondary threads. The callback can then use an API such\nas <code>napi_call_function()</code> to call into JavaScript.</p>\n<p>The callback may also be invoked with <code>env</code> and <code>call_js_cb</code> both set to <code>NULL</code>\nto indicate that calls into JavaScript are no longer possible, while items\nremain in the queue that may need to be freed. This normally occurs when the\nNode.js process exits while there is a thread-safe function still active.</p>\n<p>It is not necessary to call into JavaScript via <code>napi_make_callback()</code> because\nN-API runs <code>call_js_cb</code> in a context appropriate for callbacks.</p>\n<p>Threads can be added to and removed from a <code>napi_threadsafe_function</code> object\nduring its existence. Thus, in addition to specifying an initial number of\nthreads upon creation, <code>napi_acquire_threadsafe_function</code> can be called to\nindicate that a new thread will start making use of the thread-safe function.\nSimilarly, <code>napi_release_threadsafe_function</code> can be called to indicate that an\nexisting thread will stop making use of the thread-safe function.</p>\n<p><code>napi_threadsafe_function</code> objects are destroyed when every thread which uses\nthe object has called <code>napi_release_threadsafe_function()</code> or has received a\nreturn status of <code>napi_closing</code> in response to a call to\n<code>napi_call_threadsafe_function</code>. The queue is emptied before the\n<code>napi_threadsafe_function</code> is destroyed. It is important that\n<code>napi_release_threadsafe_function()</code> be the last API call made in conjunction\nwith a given <code>napi_threadsafe_function</code>, because after the call completes, there\nis no guarantee that the <code>napi_threadsafe_function</code> is still allocated. For the\nsame reason it is also important that no more use be made of a thread-safe\nfunction after receiving a return value of <code>napi_closing</code> in response to a call\nto <code>napi_call_threadsafe_function</code>. Data associated with the\n<code>napi_threadsafe_function</code> can be freed in its <code>napi_finalize</code> callback which\nwas passed to <code>napi_create_threadsafe_function()</code>.</p>\n<p>Once the number of threads making use of a <code>napi_threadsafe_function</code> reaches\nzero, no further threads can start making use of it by calling\n<code>napi_acquire_threadsafe_function()</code>. In fact, all subsequent API calls\nassociated with it, except <code>napi_release_threadsafe_function()</code>, will return an\nerror value of <code>napi_closing</code>.</p>\n<p>The thread-safe function can be \"aborted\" by giving a value of <code>napi_tsfn_abort</code>\nto <code>napi_release_threadsafe_function()</code>. This will cause all subsequent APIs\nassociated with the thread-safe function except\n<code>napi_release_threadsafe_function()</code> to return <code>napi_closing</code> even before its\nreference count reaches zero. In particular, <code>napi_call_threadsafe_function()</code>\nwill return <code>napi_closing</code>, thus informing the threads that it is no longer\npossible to make asynchronous calls to the thread-safe function. This can be\nused as a criterion for terminating the thread. <strong>Upon receiving a return value\nof <code>napi_closing</code> from <code>napi_call_threadsafe_function()</code> a thread must make no\nfurther use of the thread-safe function because it is no longer guaranteed to\nbe allocated.</strong></p>\n<p>Similarly to libuv handles, thread-safe functions can be \"referenced\" and\n\"unreferenced\". A \"referenced\" thread-safe function will cause the event loop on\nthe thread on which it is created to remain alive until the thread-safe function\nis destroyed. In contrast, an \"unreferenced\" thread-safe function will not\nprevent the event loop from exiting. The APIs <code>napi_ref_threadsafe_function</code> and\n<code>napi_unref_threadsafe_function</code> exist for this purpose.</p>",
           "modules": [
             {
               "textRaw": "napi_create_threadsafe_function",
               "name": "napi_create_threadsafe_function",
-              "stability": 1,
-              "stabilityText": "Experimental",
               "meta": {
                 "added": [
                   "v10.6.0"
                 ],
-                "changes": []
+                "napiVersion": [
+                  4
+                ],
+                "changes": [
+                  {
+                    "version": "v12.6.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/27791",
+                    "description": "Made `func` parameter optional with custom `call_js_cb`."
+                  }
+                ]
               },
-              "desc": "<pre><code class=\"language-C\">NAPI_EXTERN napi_status\nnapi_create_threadsafe_function(napi_env env,\n                                napi_value func,\n                                napi_value async_resource,\n                                napi_value async_resource_name,\n                                size_t max_queue_size,\n                                size_t initial_thread_count,\n                                void* thread_finalize_data,\n                                napi_finalize thread_finalize_cb,\n                                void* context,\n                                napi_threadsafe_function_call_js call_js_cb,\n                                napi_threadsafe_function* result);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] func</code>: The JavaScript function to call from another thread.</li>\n<li><code>[in] async_resource</code>: An optional object associated with the async work that\nwill be passed to possible <code>async_hooks</code> <a href=\"async_hooks.html#async_hooks_init_asyncid_type_triggerasyncid_resource\"><code>init</code> hooks</a>.</li>\n<li><code>[in] async_resource_name</code>: A JavaScript string to provide an identifier for\nthe kind of resource that is being provided for diagnostic information exposed\nby the <code>async_hooks</code> API.</li>\n<li><code>[in] max_queue_size</code>: Maximum size of the queue. <code>0</code> for no limit.</li>\n<li><code>[in] initial_thread_count</code>: The initial number of threads, including the main\nthread, which will be making use of this function.</li>\n<li><code>[in] thread_finalize_data</code>: Optional data to be passed to <code>thread_finalize_cb</code>.</li>\n<li><code>[in] thread_finalize_cb</code>: Optional function to call when the\n<code>napi_threadsafe_function</code> is being destroyed.</li>\n<li><code>[in] context</code>: Optional data to attach to the resulting\n<code>napi_threadsafe_function</code>.</li>\n<li><code>[in] call_js_cb</code>: Optional callback which calls the JavaScript function in\nresponse to a call on a different thread. This callback will be called on the\nmain thread. If not given, the JavaScript function will be called with no\nparameters and with <code>undefined</code> as its <code>this</code> value.</li>\n<li><code>[out] result</code>: The asynchronous thread-safe JavaScript function.</li>\n</ul>",
+              "desc": "<pre><code class=\"language-C\">NAPI_EXTERN napi_status\nnapi_create_threadsafe_function(napi_env env,\n                                napi_value func,\n                                napi_value async_resource,\n                                napi_value async_resource_name,\n                                size_t max_queue_size,\n                                size_t initial_thread_count,\n                                void* thread_finalize_data,\n                                napi_finalize thread_finalize_cb,\n                                void* context,\n                                napi_threadsafe_function_call_js call_js_cb,\n                                napi_threadsafe_function* result);\n</code></pre>\n<ul>\n<li><code>[in] env</code>: The environment that the API is invoked under.</li>\n<li><code>[in] func</code>: An optional JavaScript function to call from another thread.\nIt must be provided if <code>NULL</code> is passed to <code>call_js_cb</code>.</li>\n<li><code>[in] async_resource</code>: An optional object associated with the async work that\nwill be passed to possible <code>async_hooks</code> <a href=\"async_hooks.html#async_hooks_init_asyncid_type_triggerasyncid_resource\"><code>init</code> hooks</a>.</li>\n<li><code>[in] async_resource_name</code>: A JavaScript string to provide an identifier for\nthe kind of resource that is being provided for diagnostic information exposed\nby the <code>async_hooks</code> API.</li>\n<li><code>[in] max_queue_size</code>: Maximum size of the queue. <code>0</code> for no limit.</li>\n<li><code>[in] initial_thread_count</code>: The initial number of threads, including the main\nthread, which will be making use of this function.</li>\n<li><code>[in] thread_finalize_data</code>: Optional data to be passed to <code>thread_finalize_cb</code>.</li>\n<li><code>[in] thread_finalize_cb</code>: Optional function to call when the\n<code>napi_threadsafe_function</code> is being destroyed.</li>\n<li><code>[in] context</code>: Optional data to attach to the resulting\n<code>napi_threadsafe_function</code>.</li>\n<li><code>[in] call_js_cb</code>: Optional callback which calls the JavaScript function in\nresponse to a call on a different thread. This callback will be called on the\nmain thread. If not given, the JavaScript function will be called with no\nparameters and with <code>undefined</code> as its <code>this</code> value.</li>\n<li><code>[out] result</code>: The asynchronous thread-safe JavaScript function.</li>\n</ul>",
               "type": "module",
               "displayName": "napi_create_threadsafe_function"
             },
             {
               "textRaw": "napi_get_threadsafe_function_context",
               "name": "napi_get_threadsafe_function_context",
-              "stability": 1,
-              "stabilityText": "Experimental",
               "meta": {
                 "added": [
                   "v10.6.0"
+                ],
+                "napiVersion": [
+                  4
                 ],
                 "changes": []
               },
@@ -2481,11 +2684,12 @@
             {
               "textRaw": "napi_call_threadsafe_function",
               "name": "napi_call_threadsafe_function",
-              "stability": 1,
-              "stabilityText": "Experimental",
               "meta": {
                 "added": [
                   "v10.6.0"
+                ],
+                "napiVersion": [
+                  4
                 ],
                 "changes": []
               },
@@ -2496,11 +2700,12 @@
             {
               "textRaw": "napi_acquire_threadsafe_function",
               "name": "napi_acquire_threadsafe_function",
-              "stability": 1,
-              "stabilityText": "Experimental",
               "meta": {
                 "added": [
                   "v10.6.0"
+                ],
+                "napiVersion": [
+                  4
                 ],
                 "changes": []
               },
@@ -2511,11 +2716,12 @@
             {
               "textRaw": "napi_release_threadsafe_function",
               "name": "napi_release_threadsafe_function",
-              "stability": 1,
-              "stabilityText": "Experimental",
               "meta": {
                 "added": [
                   "v10.6.0"
+                ],
+                "napiVersion": [
+                  4
                 ],
                 "changes": []
               },
@@ -2526,11 +2732,12 @@
             {
               "textRaw": "napi_ref_threadsafe_function",
               "name": "napi_ref_threadsafe_function",
-              "stability": 1,
-              "stabilityText": "Experimental",
               "meta": {
                 "added": [
                   "v10.6.0"
+                ],
+                "napiVersion": [
+                  4
                 ],
                 "changes": []
               },
@@ -2541,11 +2748,12 @@
             {
               "textRaw": "napi_unref_threadsafe_function",
               "name": "napi_unref_threadsafe_function",
-              "stability": 1,
-              "stabilityText": "Experimental",
               "meta": {
                 "added": [
                   "v10.6.0"
+                ],
+                "napiVersion": [
+                  4
                 ],
                 "changes": []
               },

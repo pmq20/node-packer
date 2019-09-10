@@ -7,13 +7,13 @@
 #include <iomanip>
 
 #include "src/base/adapters.h"
-#include "src/bit-vector.h"
 #include "src/compiler/common-operator.h"
 #include "src/compiler/control-equivalence.h"
 #include "src/compiler/graph.h"
 #include "src/compiler/node-marker.h"
 #include "src/compiler/node-properties.h"
 #include "src/compiler/node.h"
+#include "src/utils/bit-vector.h"
 #include "src/zone/zone-containers.h"
 
 namespace v8 {
@@ -134,7 +134,6 @@ void Scheduler::UpdatePlacement(Node* node, Placement placement) {
     case IrOpcode::kParameter:
       // Parameters are fixed once and for all.
       UNREACHABLE();
-      break;
     case IrOpcode::kPhi:
     case IrOpcode::kEffectPhi: {
       // Phis and effect phis are coupled to their respective blocks.
@@ -517,6 +516,12 @@ class CFGBuilder : public ZoneObject {
       }
       schedule_->AddSwitch(switch_block, sw, successor_blocks, successor_count);
     }
+    for (size_t index = 0; index < successor_count; ++index) {
+      if (BranchHintOf(successor_blocks[index]->front()->op()) ==
+          BranchHint::kFalse) {
+        successor_blocks[index]->set_deferred(true);
+      }
+    }
   }
 
   void ConnectMerge(Node* merge) {
@@ -692,7 +697,7 @@ class SpecialRPONumberer : public ZoneObject {
   }
 
  private:
-  typedef std::pair<BasicBlock*, size_t> Backedge;
+  using Backedge = std::pair<BasicBlock*, size_t>;
 
   // Numbering for BasicBlock::rpo_number for this block traversal:
   static const int kBlockOnStack = -2;
@@ -1005,7 +1010,7 @@ class SpecialRPONumberer : public ZoneObject {
 
 #if DEBUG
   void PrintRPO() {
-    OFStream os(stdout);
+    StdoutStream os;
     os << "RPO with " << loops_.size() << " loops";
     if (loops_.size() > 0) {
       os << " (";
@@ -1443,13 +1448,19 @@ class ScheduleLateNodeVisitor {
     }
   }
 
+  bool IsMarked(BasicBlock* block) const {
+    DCHECK_LT(block->id().ToSize(), marked_.size());
+    return marked_[block->id().ToSize()];
+  }
+
+  void Mark(BasicBlock* block) { marked_[block->id().ToSize()] = true; }
+
   // Mark {block} and push its non-marked predecessor on the marking queue.
   void MarkBlock(BasicBlock* block) {
     DCHECK_LT(block->id().ToSize(), marked_.size());
-    marked_[block->id().ToSize()] = true;
+    Mark(block);
     for (BasicBlock* pred_block : block->predecessors()) {
-      DCHECK_LT(pred_block->id().ToSize(), marked_.size());
-      if (marked_[pred_block->id().ToSize()]) continue;
+      if (IsMarked(pred_block)) continue;
       marking_queue_.push_back(pred_block);
     }
   }
@@ -1474,7 +1485,7 @@ class ScheduleLateNodeVisitor {
     for (Edge edge : node->use_edges()) {
       if (!scheduler_->IsLive(edge.from())) continue;
       BasicBlock* use_block = GetBlockForUse(edge);
-      if (use_block == nullptr || marked_[use_block->id().ToSize()]) continue;
+      if (use_block == nullptr || IsMarked(use_block)) continue;
       if (use_block == block) {
         TRACE("  not splitting #%d:%s, it is used in id:%d\n", node->id(),
               node->op()->mnemonic(), block->id().ToInt());
@@ -1489,10 +1500,10 @@ class ScheduleLateNodeVisitor {
     do {
       BasicBlock* top_block = marking_queue_.front();
       marking_queue_.pop_front();
-      if (marked_[top_block->id().ToSize()]) continue;
+      if (IsMarked(top_block)) continue;
       bool marked = true;
       for (BasicBlock* successor : top_block->successors()) {
-        if (!marked_[successor->id().ToSize()]) {
+        if (!IsMarked(successor)) {
           marked = false;
           break;
         }
@@ -1503,7 +1514,7 @@ class ScheduleLateNodeVisitor {
     // If the (common dominator) {block} is marked, we know that all paths from
     // {block} to the end contain at least one use of {node}, and hence there's
     // no point in splitting the {node} in this case.
-    if (marked_[block->id().ToSize()]) {
+    if (IsMarked(block)) {
       TRACE("  not splitting #%d:%s, its common dominator id:%d is perfect\n",
             node->id(), node->op()->mnemonic(), block->id().ToInt());
       return block;
@@ -1518,7 +1529,7 @@ class ScheduleLateNodeVisitor {
       if (!scheduler_->IsLive(edge.from())) continue;
       BasicBlock* use_block = GetBlockForUse(edge);
       if (use_block == nullptr) continue;
-      while (marked_[use_block->dominator()->id().ToSize()]) {
+      while (IsMarked(use_block->dominator())) {
         use_block = use_block->dominator();
       }
       auto& use_node = dominators[use_block];
@@ -1732,8 +1743,7 @@ void Scheduler::SealFinalSchedule() {
 void Scheduler::FuseFloatingControl(BasicBlock* block, Node* node) {
   TRACE("--- FUSE FLOATING CONTROL ----------------------------------\n");
   if (FLAG_trace_turbo_scheduler) {
-    OFStream os(stdout);
-    os << "Schedule before control flow fusion:\n" << *schedule_;
+    StdoutStream{} << "Schedule before control flow fusion:\n" << *schedule_;
   }
 
   // Iterate on phase 1: Build control-flow graph.
@@ -1776,8 +1786,7 @@ void Scheduler::FuseFloatingControl(BasicBlock* block, Node* node) {
   MovePlannedNodes(block, schedule_->block(node));
 
   if (FLAG_trace_turbo_scheduler) {
-    OFStream os(stdout);
-    os << "Schedule after control flow fusion:\n" << *schedule_;
+    StdoutStream{} << "Schedule after control flow fusion:\n" << *schedule_;
   }
 }
 

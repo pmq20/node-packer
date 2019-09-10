@@ -6,8 +6,8 @@
 #define V8_COMPILER_GRAPH_REDUCER_H_
 
 #include "src/base/compiler-specific.h"
+#include "src/common/globals.h"
 #include "src/compiler/node-marker.h"
-#include "src/globals.h"
 #include "src/zone/zone-containers.h"
 
 namespace v8 {
@@ -21,7 +21,7 @@ class Node;
 
 // NodeIds are identifying numbers for nodes that can be used to index auxiliary
 // out-of-line data associated with each node.
-typedef uint32_t NodeId;
+using NodeId = uint32_t;
 
 // Possible outcomes for decisions.
 enum class Decision : uint8_t { kUnknown, kTrue, kFalse };
@@ -46,7 +46,7 @@ class Reduction final {
 // phase.
 class V8_EXPORT_PRIVATE Reducer {
  public:
-  virtual ~Reducer() {}
+  virtual ~Reducer() = default;
 
   // Only used for tracing, when using the --trace_turbo_reduction flag.
   virtual const char* reducer_name() const = 0;
@@ -73,7 +73,7 @@ class AdvancedReducer : public Reducer {
   // Observe the actions of this reducer.
   class Editor {
    public:
-    virtual ~Editor() {}
+    virtual ~Editor() = default;
 
     // Replace {node} with {replacement}.
     virtual void Replace(Node* node, Node* replacement) = 0;
@@ -130,7 +130,7 @@ class V8_EXPORT_PRIVATE GraphReducer
     : public NON_EXPORTED_BASE(AdvancedReducer::Editor) {
  public:
   GraphReducer(Zone* zone, Graph* graph, Node* dead = nullptr);
-  ~GraphReducer();
+  ~GraphReducer() override;
 
   Graph* graph() const { return graph_; }
 

@@ -12,7 +12,8 @@ common.expectsError(
   {
     code: 'ERR_INVALID_ARG_TYPE',
     type: TypeError,
-    message: 'Ciphers must be a string'
+    message: 'The "options.ciphers" property must be of type string.' +
+      ' Received type number'
   });
 
 common.expectsError(
@@ -20,7 +21,8 @@ common.expectsError(
   {
     code: 'ERR_INVALID_ARG_TYPE',
     type: TypeError,
-    message: 'Ciphers must be a string'
+    message: 'The "options.ciphers" property must be of type string.' +
+      ' Received type number'
   });
 
 common.expectsError(
@@ -76,12 +78,9 @@ common.expectsError(
 assert.throws(() => tls.createServer({ ticketKeys: Buffer.alloc(0) }),
               /TypeError: Ticket keys length must be 48 bytes/);
 
-common.expectsError(
+common.expectsInternalAssertion(
   () => tls.createSecurePair({}),
-  {
-    code: 'ERR_ASSERTION',
-    message: 'context.context must be a NativeSecureContext'
-  }
+  'context.context must be a NativeSecureContext'
 );
 
 {
@@ -94,26 +93,13 @@ common.expectsError(
 }
 
 {
-  const buffer = Buffer.from('abcd');
-  const out = {};
-  tls.convertNPNProtocols(buffer, out);
-  out.NPNProtocols.write('efgh');
-  assert(buffer.equals(Buffer.from('abcd')));
-  assert(out.NPNProtocols.equals(Buffer.from('efgh')));
-}
-
-{
-  const buffer = new Uint8Array(Buffer.from('abcd'));
-  const out = {};
-  tls.convertALPNProtocols(buffer, out);
-  assert(out.ALPNProtocols.equals(Buffer.from('abcd')));
-}
-
-{
-  const buffer = new Uint8Array(Buffer.from('abcd'));
-  const out = {};
-  tls.convertNPNProtocols(buffer, out);
-  assert(out.NPNProtocols.equals(Buffer.from('abcd')));
+  const arrayBufferViewStr = 'abcd';
+  const inputBuffer = Buffer.from(arrayBufferViewStr.repeat(8), 'utf8');
+  for (const expectView of common.getArrayBufferViews(inputBuffer)) {
+    const out = {};
+    tls.convertALPNProtocols(expectView, out);
+    assert(out.ALPNProtocols.equals(Buffer.from(expectView)));
+  }
 }
 
 {

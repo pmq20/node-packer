@@ -21,10 +21,11 @@
 
 'use strict';
 
+const { Object } = primordials;
+
 const net = require('net');
-const util = require('util');
 const EventEmitter = require('events');
-const debug = util.debuglog('http');
+const debug = require('internal/util/debuglog').debuglog('http');
 const { async_id_symbol } = require('internal/async_hooks').symbols;
 
 // New Agent code.
@@ -39,6 +40,13 @@ const { async_id_symbol } = require('internal/async_hooks').symbols;
 // ClientRequest.onSocket(). The Agent is now *strictly*
 // concerned with managing a connection pool.
 
+class ReusedHandle {
+  constructor(type, handle) {
+    this.type = type;
+    this.handle = handle;
+  }
+}
+
 function Agent(options) {
   if (!(this instanceof Agent))
     return new Agent(options);
@@ -48,9 +56,9 @@ function Agent(options) {
   this.defaultPort = 80;
   this.protocol = 'http:';
 
-  this.options = util._extend({}, options);
+  this.options = { ...options };
 
-  // don't confuse net and make it think that we're connecting to a pipe
+  // Don't confuse net and make it think that we're connecting to a pipe
   this.options.path = null;
   this.requests = {};
   this.sockets = {};
@@ -61,7 +69,7 @@ function Agent(options) {
   this.maxFreeSockets = this.options.maxFreeSockets || 256;
 
   this.on('free', (socket, options) => {
-    var name = this.getName(options);
+    const name = this.getName(options);
     debug('agent.on(free)', name);
 
     if (socket.writable &&
@@ -105,8 +113,8 @@ function Agent(options) {
     }
   });
 }
-
-util.inherits(Agent, EventEmitter);
+Object.setPrototypeOf(Agent.prototype, EventEmitter.prototype);
+Object.setPrototypeOf(Agent, EventEmitter);
 
 Agent.defaultMaxSockets = Infinity;
 
@@ -146,30 +154,30 @@ Agent.prototype.addRequest = function addRequest(req, options, port/* legacy */,
     };
   }
 
-  options = util._extend({}, options);
-  util._extend(options, this.options);
+  options = { ...options, ...this.options };
   if (options.socketPath)
     options.path = options.socketPath;
 
-  if (!options.servername)
+  if (!options.servername && options.servername !== '')
     options.servername = calculateServerName(options, req);
 
-  var name = this.getName(options);
+  const name = this.getName(options);
   if (!this.sockets[name]) {
     this.sockets[name] = [];
   }
 
-  var freeLen = this.freeSockets[name] ? this.freeSockets[name].length : 0;
-  var sockLen = freeLen + this.sockets[name].length;
+  const freeLen = this.freeSockets[name] ? this.freeSockets[name].length : 0;
+  const sockLen = freeLen + this.sockets[name].length;
 
   if (freeLen) {
-    // we have a free socket, so use that.
+    // We have a free socket, so use that.
     var socket = this.freeSockets[name].shift();
     // Guard against an uninitialized or user supplied Socket.
-    if (socket._handle && typeof socket._handle.asyncReset === 'function') {
+    const handle = socket._handle;
+    if (handle && typeof handle.asyncReset === 'function') {
       // Assign the handle a new asyncId and run any destroy()/init() hooks.
-      socket._handle.asyncReset();
-      socket[async_id_symbol] = socket._handle.getAsyncId();
+      handle.asyncReset(new ReusedHandle(handle.getProviderType(), handle));
+      socket[async_id_symbol] = handle.getAsyncId();
     }
 
     // don't leak
@@ -194,15 +202,14 @@ Agent.prototype.addRequest = function addRequest(req, options, port/* legacy */,
 };
 
 Agent.prototype.createSocket = function createSocket(req, options, cb) {
-  options = util._extend({}, options);
-  util._extend(options, this.options);
+  options = { ...options, ...this.options };
   if (options.socketPath)
     options.path = options.socketPath;
 
-  if (!options.servername)
+  if (!options.servername && options.servername !== '')
     options.servername = calculateServerName(options, req);
 
-  var name = this.getName(options);
+  const name = this.getName(options);
   options._agentKey = name;
 
   debug('createConnection', name, options);
@@ -249,6 +256,9 @@ function calculateServerName(options, req) {
       servername = hostHeader.split(':', 1)[0];
     }
   }
+  // Don't implicitly set invalid (IP) servernames.
+  if (net.isIP(servername))
+    servername = '';
   return servername;
 }
 
@@ -282,9 +292,9 @@ function installListeners(agent, s, options) {
 }
 
 Agent.prototype.removeSocket = function removeSocket(s, options) {
-  var name = this.getName(options);
+  const name = this.getName(options);
   debug('removeSocket', name, 'writable:', s.writable);
-  var sets = [this.sockets];
+  const sets = [this.sockets];
 
   // If the socket was destroyed, remove it from the free buffers too.
   if (!s.writable)
@@ -326,7 +336,7 @@ Agent.prototype.reuseSocket = function reuseSocket(socket, req) {
 };
 
 Agent.prototype.destroy = function destroy() {
-  var sets = [this.freeSockets, this.sockets];
+  const sets = [this.freeSockets, this.sockets];
   for (var s = 0; s < sets.length; s++) {
     var set = sets[s];
     var keys = Object.keys(set);
@@ -359,7 +369,7 @@ function setRequestSocket(agent, req, socket) {
     return;
   }
   socket.setTimeout(req.timeout);
-  // reset timeout after response end
+  // Reset timeout after response end
   req.once('response', (res) => {
     res.once('end', () => {
       if (socket.timeout !== agentTimeout) {

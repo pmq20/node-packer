@@ -4,21 +4,51 @@
 // run in the worker thread.
 
 const {
-  setupProcessStdio
-} = require('internal/process/stdio');
+  createWorkerStdio
+} = require('internal/worker/io');
 
 const {
-  workerStdio
-} = require('internal/worker');
+  codes: { ERR_WORKER_UNSUPPORTED_OPERATION }
+} = require('internal/errors');
 
-function setupStdio() {
-  setupProcessStdio({
-    getStdout: () => workerStdio.stdout,
-    getStderr: () => workerStdio.stderr,
-    getStdin: () => workerStdio.stdin
-  });
+let workerStdio;
+function lazyWorkerStdio() {
+  if (!workerStdio) workerStdio = createWorkerStdio();
+  return workerStdio;
+}
+function createStdioGetters() {
+  return {
+    getStdout() { return lazyWorkerStdio().stdout; },
+    getStderr() { return lazyWorkerStdio().stderr; },
+    getStdin() { return lazyWorkerStdio().stdin; }
+  };
+}
+
+// The execution of this function itself should not cause any side effects.
+function wrapProcessMethods(binding) {
+  function umask(mask) {
+    // process.umask() is a read-only operation in workers.
+    if (mask !== undefined) {
+      throw new ERR_WORKER_UNSUPPORTED_OPERATION('Setting process.umask()');
+    }
+
+    return binding.umask(mask);
+  }
+
+  return { umask };
+}
+
+function unavailable(name) {
+  function unavailableInWorker() {
+    throw new ERR_WORKER_UNSUPPORTED_OPERATION(name);
+  }
+
+  unavailableInWorker.disabled = true;
+  return unavailableInWorker;
 }
 
 module.exports = {
-  setupStdio
+  createStdioGetters,
+  unavailable,
+  wrapProcessMethods
 };

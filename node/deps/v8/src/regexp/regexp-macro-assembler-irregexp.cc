@@ -2,12 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifdef V8_INTERPRETED_REGEXP
-
 #include "src/regexp/regexp-macro-assembler-irregexp.h"
 
 #include "src/ast/ast.h"
-#include "src/objects-inl.h"
+#include "src/objects/objects-inl.h"
 #include "src/regexp/bytecodes-irregexp.h"
 #include "src/regexp/regexp-macro-assembler-irregexp-inl.h"
 #include "src/regexp/regexp-macro-assembler.h"
@@ -16,15 +14,13 @@ namespace v8 {
 namespace internal {
 
 RegExpMacroAssemblerIrregexp::RegExpMacroAssemblerIrregexp(Isolate* isolate,
-                                                           Vector<byte> buffer,
                                                            Zone* zone)
     : RegExpMacroAssembler(isolate, zone),
-      buffer_(buffer),
+      buffer_(Vector<byte>::New(1024)),
       pc_(0),
-      own_buffer_(false),
+      own_buffer_(true),
       advance_current_end_(kInvalidPC),
       isolate_(isolate) {}
-
 
 RegExpMacroAssemblerIrregexp::~RegExpMacroAssemblerIrregexp() {
   if (backtrack_.is_linked()) backtrack_.Unuse();
@@ -45,8 +41,8 @@ void RegExpMacroAssemblerIrregexp::Bind(Label* l) {
     int pos = l->pos();
     while (pos != 0) {
       int fixup = pos;
-      pos = *reinterpret_cast<int32_t*>(buffer_.start() + fixup);
-      *reinterpret_cast<uint32_t*>(buffer_.start() + fixup) = pc_;
+      pos = *reinterpret_cast<int32_t*>(buffer_.begin() + fixup);
+      *reinterpret_cast<uint32_t*>(buffer_.begin() + fixup) = pc_;
     }
   }
   l->bind_to(pc_);
@@ -440,7 +436,7 @@ int RegExpMacroAssemblerIrregexp::length() {
 }
 
 void RegExpMacroAssemblerIrregexp::Copy(byte* a) {
-  MemCopy(a, buffer_.start(), length());
+  MemCopy(a, buffer_.begin(), length());
 }
 
 
@@ -449,7 +445,7 @@ void RegExpMacroAssemblerIrregexp::Expand() {
   Vector<byte> old_buffer = buffer_;
   buffer_ = Vector<byte>::New(old_buffer.length() * 2);
   own_buffer_ = true;
-  MemCopy(buffer_.start(), old_buffer.start(), old_buffer.length());
+  MemCopy(buffer_.begin(), old_buffer.begin(), old_buffer.length());
   if (old_buffer_was_our_own) {
     old_buffer.Dispose();
   }
@@ -457,5 +453,3 @@ void RegExpMacroAssemblerIrregexp::Expand() {
 
 }  // namespace internal
 }  // namespace v8
-
-#endif  // V8_INTERPRETED_REGEXP

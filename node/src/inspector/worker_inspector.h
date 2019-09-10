@@ -21,7 +21,7 @@ class WorkerDelegate {
                              const std::string& url,
                              bool waiting,
                              std::shared_ptr<MainThreadHandle> worker) = 0;
-  virtual ~WorkerDelegate() {}
+  virtual ~WorkerDelegate() = default;
 };
 
 class WorkerManagerEventHandle {
@@ -55,11 +55,19 @@ class ParentInspectorHandle {
                         std::shared_ptr<MainThreadHandle> parent_thread,
                         bool wait_for_connect);
   ~ParentInspectorHandle();
+  std::unique_ptr<ParentInspectorHandle> NewParentInspectorHandle(
+      int thread_id, const std::string& url) {
+    return std::make_unique<ParentInspectorHandle>(thread_id,
+                                                   url,
+                                                   parent_thread_,
+                                                   wait_);
+  }
   void WorkerStarted(std::shared_ptr<MainThreadHandle> worker_thread,
                      bool waiting);
   bool WaitForConnect() {
     return wait_;
   }
+  const std::string& url() const { return url_; }
 
  private:
   int id_;

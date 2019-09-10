@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Domain | Node.js v10.15.3 Documentation</title>
+  <title>Domain | Node.js v12.10.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -52,11 +52,13 @@
 <li><a href="os.html" class="nav-os">OS</a></li>
 <li><a href="path.html" class="nav-path">Path</a></li>
 <li><a href="perf_hooks.html" class="nav-perf_hooks">Performance Hooks</a></li>
+<li><a href="policy.html" class="nav-policy">Policies</a></li>
 <li><a href="process.html" class="nav-process">Process</a></li>
 <li><a href="punycode.html" class="nav-punycode">Punycode</a></li>
 <li><a href="querystring.html" class="nav-querystring">Query Strings</a></li>
 <li><a href="readline.html" class="nav-readline">Readline</a></li>
 <li><a href="repl.html" class="nav-repl">REPL</a></li>
+<li><a href="report.html" class="nav-report">Report</a></li>
 <li><a href="stream.html" class="nav-stream">Stream</a></li>
 <li><a href="string_decoder.html" class="nav-string_decoder">String Decoder</a></li>
 <li><a href="timers.html" class="nav-timers">Timers</a></li>
@@ -69,7 +71,7 @@
 <li><a href="v8.html" class="nav-v8">V8</a></li>
 <li><a href="vm.html" class="nav-vm">VM</a></li>
 <li><a href="worker_threads.html" class="nav-worker_threads">Worker Threads</a></li>
-<li><a href="zlib.html" class="nav-zlib">ZLIB</a></li>
+<li><a href="zlib.html" class="nav-zlib">Zlib</a></li>
 </ul>
 <div class="line"></div>
 <ul>
@@ -79,7 +81,7 @@
 
     <div id="column1" data-id="domain" class="interior">
       <header>
-        <h1>Node.js v10.15.3 Documentation</h1>
+        <h1>Node.js v12.10.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -94,12 +96,13 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v11.x/api/domain.html">11.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v12.x/api/domain.html">12.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v11.x/api/domain.html">11.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v10.x/api/domain.html">10.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v9.x/api/domain.html">9.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v8.x/api/domain.html">8.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v7.x/api/domain.html">7.x</a></li>
-<li><a href="https://nodejs.org/docs/latest-v6.x/api/domain.html">6.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v6.x/api/domain.html">6.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v5.x/api/domain.html">5.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v4.x/api/domain.html">4.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v0.12.x/api/domain.html">0.12.x</a></li>
@@ -255,14 +258,14 @@ if (cluster.isMaster) {
       // Anything can happen now! Be very careful!
 
       try {
-        // make sure we close down within 30 seconds
+        // Make sure we close down within 30 seconds
         const killtimer = setTimeout(() => {
           process.exit(1);
         }, 30000);
         // But don't keep the process open just for that!
         killtimer.unref();
 
-        // stop taking new requests.
+        // Stop taking new requests.
         server.close();
 
         // Let the master know we're dead. This will trigger a
@@ -270,12 +273,12 @@ if (cluster.isMaster) {
         // a new worker.
         cluster.worker.disconnect();
 
-        // try to send an error to the request that triggered the problem
+        // Try to send an error to the request that triggered the problem
         res.statusCode = 500;
         res.setHeader('content-type', 'text/plain');
         res.end('Oops, there was a problem!\n');
       } catch (er2) {
-        // oh well, not much we can do at this point.
+        // Oh well, not much we can do at this point.
         console.error(`Error sending 500! ${er2.stack}`);
       }
     });
@@ -351,15 +354,15 @@ other domain.</p>
 <p>For example, there could be one domain in use for an HTTP server, but
 perhaps we would like to have a separate domain to use for each request.</p>
 <p>That is possible via explicit binding.</p>
-<pre><code class="language-js">// create a top-level domain for the server
+<pre><code class="language-js">// Create a top-level domain for the server
 const domain = require('domain');
 const http = require('http');
 const serverDomain = domain.create();
 
 serverDomain.run(() => {
-  // server is created in the scope of serverDomain
+  // Server is created in the scope of serverDomain
   http.createServer((req, res) => {
-    // req and res are also created in the scope of serverDomain
+    // Req and res are also created in the scope of serverDomain
     // however, we'd prefer to have a separate domain for each request.
     // create it first thing, and add req and res to it.
     const reqd = domain.create();
@@ -382,10 +385,12 @@ serverDomain.run(() => {
 <li>Returns: <a href="domain.html#domain_class_domain" class="type">&#x3C;Domain></a></li>
 </ul>
 <h2>Class: Domain<span><a class="mark" href="#domain_class_domain" id="domain_class_domain">#</a></span></h2>
+<ul>
+<li>Extends: <a href="events.html#events_class_eventemitter" class="type">&#x3C;EventEmitter></a></li>
+</ul>
 <p>The <code>Domain</code> class encapsulates the functionality of routing errors and
 uncaught exceptions to the active <code>Domain</code> object.</p>
-<p><code>Domain</code> is a child class of <a href="events.html#events_class_eventemitter"><code>EventEmitter</code></a>. To handle the errors that it
-catches, listen to its <code>'error'</code> event.</p>
+<p>To handle the errors that it catches, listen to its <code>'error'</code> event.</p>
 <h3>domain.members<span><a class="mark" href="#domain_domain_members" id="domain_domain_members">#</a></span></h3>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&#x3C;Array></a></li>
@@ -417,14 +422,13 @@ thrown will be routed to the domain's <code>'error'</code> event.</p>
 
 function readSomeFile(filename, cb) {
   fs.readFile(filename, 'utf8', d.bind((er, data) => {
-    // if this throws, it will also be passed to the domain
+    // If this throws, it will also be passed to the domain.
     return cb(er, data ? JSON.parse(data) : null);
   }));
 }
 
 d.on('error', (er) => {
-  // an error occurred somewhere.
-  // if we throw it now, it will crash the program
+  // An error occurred somewhere. If we throw it now, it will crash the program
   // with the normal line number and stack message.
 });
 </code></pre>
@@ -463,11 +467,11 @@ with a single error handler in a single place.</p>
 
 function readSomeFile(filename, cb) {
   fs.readFile(filename, 'utf8', d.intercept((data) => {
-    // note, the first argument is never passed to the
+    // Note, the first argument is never passed to the
     // callback since it is assumed to be the 'Error' argument
     // and thus intercepted by the domain.
 
-    // if this throws, it will also be passed to the domain
+    // If this throws, it will also be passed to the domain
     // so the error-handling logic can be moved to the 'error'
     // event on the domain instead of being repeated throughout
     // the program.
@@ -476,8 +480,7 @@ function readSomeFile(filename, cb) {
 }
 
 d.on('error', (er) => {
-  // an error occurred somewhere.
-  // if we throw it now, it will crash the program
+  // An error occurred somewhere. If we throw it now, it will crash the program
   // with the normal line number and stack message.
 });
 </code></pre>
@@ -505,7 +508,7 @@ d.on('error', (er) => {
 });
 d.run(() => {
   process.nextTick(() => {
-    setTimeout(() => { // simulating some various async stuff
+    setTimeout(() => { // Simulating some various async stuff
       fs.open('non-existent file', 'r', (er, fd) => {
         if (er) throw er;
         // proceed...
@@ -548,9 +551,9 @@ d2.run(() => {
   }));
 });
 </code></pre>
-<p>Note that domains will not interfere with the error handling mechanisms for
-Promises, i.e. no <code>'error'</code> event will be emitted for unhandled <code>Promise</code>
-rejections.</p>
+<p>Domains will not interfere with the error handling mechanisms for
+Promises. In other words, no <code>'error'</code> event will be emitted for unhandled
+<code>Promise</code> rejections.</p>
       </div>
     </div>
   </div>

@@ -1,15 +1,23 @@
 'use strict';
 
+const { Math, Object } = primordials;
+
 const binding = internalBinding('http2');
 const {
-  ERR_HTTP2_HEADER_SINGLE_VALUE,
-  ERR_HTTP2_INVALID_CONNECTION_HEADERS,
-  ERR_HTTP2_INVALID_PSEUDOHEADER,
-  ERR_HTTP2_INVALID_SETTING_VALUE,
-  ERR_INVALID_ARG_TYPE
-} = require('internal/errors').codes;
+  codes: {
+    ERR_HTTP2_HEADER_SINGLE_VALUE,
+    ERR_HTTP2_INVALID_CONNECTION_HEADERS,
+    ERR_HTTP2_INVALID_PSEUDOHEADER,
+    ERR_HTTP2_INVALID_SETTING_VALUE,
+    ERR_INVALID_ARG_TYPE
+  },
+  addCodeToName,
+  hideStackFrames
+} = require('internal/errors');
 
 const kSocket = Symbol('socket');
+const kProxySocket = Symbol('proxySocket');
+const kRequest = Symbol('request');
 
 const {
   NGHTTP2_SESSION_CLIENT,
@@ -290,7 +298,7 @@ function getDefaultSettings() {
   return holder;
 }
 
-// remote is a boolean. true to fetch remote settings, false to fetch local.
+// Remote is a boolean. true to fetch remote settings, false to fetch local.
 // this is only called internally
 function getSettings(session, remote) {
   if (remote)
@@ -402,27 +410,21 @@ function isIllegalConnectionSpecificHeader(name, value) {
   }
 }
 
-function assertValidPseudoHeader(key) {
+const assertValidPseudoHeader = hideStackFrames((key) => {
   if (!kValidPseudoHeaders.has(key)) {
-    const err = new ERR_HTTP2_INVALID_PSEUDOHEADER(key);
-    Error.captureStackTrace(err, assertValidPseudoHeader);
-    return err;
+    throw new ERR_HTTP2_INVALID_PSEUDOHEADER(key);
   }
-}
+});
 
-function assertValidPseudoHeaderResponse(key) {
+const assertValidPseudoHeaderResponse = hideStackFrames((key) => {
   if (key !== ':status') {
-    const err = new ERR_HTTP2_INVALID_PSEUDOHEADER(key);
-    Error.captureStackTrace(err, assertValidPseudoHeaderResponse);
-    return err;
+    throw new ERR_HTTP2_INVALID_PSEUDOHEADER(key);
   }
-}
+});
 
-function assertValidPseudoHeaderTrailer(key) {
-  const err = new ERR_HTTP2_INVALID_PSEUDOHEADER(key);
-  Error.captureStackTrace(err, assertValidPseudoHeaderTrailer);
-  return err;
-}
+const assertValidPseudoHeaderTrailer = hideStackFrames((key) => {
+  throw new ERR_HTTP2_INVALID_PSEUDOHEADER(key);
+});
 
 function mapToHeaders(map,
                       assertValuePseudoHeader = assertValidPseudoHeader) {
@@ -430,14 +432,20 @@ function mapToHeaders(map,
   let count = 0;
   const keys = Object.keys(map);
   const singles = new Set();
-  for (var i = 0; i < keys.length; i++) {
-    let key = keys[i];
-    let value = map[key];
+  let i;
+  let isArray;
+  let key;
+  let value;
+  let isSingleValueHeader;
+  let err;
+  for (i = 0; i < keys.length; i++) {
+    key = keys[i];
+    value = map[key];
     if (value === undefined || key === '')
       continue;
     key = key.toLowerCase();
-    const isSingleValueHeader = kSingleValueHeaders.has(key);
-    let isArray = Array.isArray(value);
+    isSingleValueHeader = kSingleValueHeaders.has(key);
+    isArray = Array.isArray(value);
     if (isArray) {
       switch (value.length) {
         case 0:
@@ -448,37 +456,37 @@ function mapToHeaders(map,
           break;
         default:
           if (isSingleValueHeader)
-            return new ERR_HTTP2_HEADER_SINGLE_VALUE(key);
+            throw new ERR_HTTP2_HEADER_SINGLE_VALUE(key);
       }
     } else {
       value = String(value);
     }
     if (isSingleValueHeader) {
       if (singles.has(key))
-        return new ERR_HTTP2_HEADER_SINGLE_VALUE(key);
+        throw new ERR_HTTP2_HEADER_SINGLE_VALUE(key);
       singles.add(key);
     }
     if (key[0] === ':') {
-      const err = assertValuePseudoHeader(key);
+      err = assertValuePseudoHeader(key);
       if (err !== undefined)
-        return err;
+        throw err;
       ret = `${key}\0${value}\0${ret}`;
       count++;
-    } else {
-      if (isIllegalConnectionSpecificHeader(key, value)) {
-        return new ERR_HTTP2_INVALID_CONNECTION_HEADERS(key);
-      }
-      if (isArray) {
-        for (var k = 0; k < value.length; k++) {
-          const val = String(value[k]);
-          ret += `${key}\0${val}\0`;
-        }
-        count += value.length;
-      } else {
-        ret += `${key}\0${value}\0`;
-        count++;
-      }
+      continue;
     }
+    if (isIllegalConnectionSpecificHeader(key, value)) {
+      throw new ERR_HTTP2_INVALID_CONNECTION_HEADERS(key);
+    }
+    if (isArray) {
+      for (var k = 0; k < value.length; k++) {
+        const val = String(value[k]);
+        ret += `${key}\0${val}\0`;
+      }
+      count += value.length;
+      continue;
+    }
+    ret += `${key}\0${value}\0`;
+    count++;
   }
 
   return [ret, count];
@@ -488,33 +496,33 @@ class NghttpError extends Error {
   constructor(ret) {
     super(binding.nghttp2ErrorString(ret));
     this.code = 'ERR_HTTP2_ERROR';
-    this.name = 'Error [ERR_HTTP2_ERROR]';
     this.errno = ret;
+    addCodeToName(this, super.name, 'ERR_HTTP2_ERROR');
+  }
+
+  toString() {
+    return `${this.name} [${this.code}]: ${this.message}`;
   }
 }
 
-function assertIsObject(value, name, types = 'Object') {
+const assertIsObject = hideStackFrames((value, name, types) => {
   if (value !== undefined &&
       (value === null ||
        typeof value !== 'object' ||
        Array.isArray(value))) {
-    const err = new ERR_INVALID_ARG_TYPE(name, types, value);
-    Error.captureStackTrace(err, assertIsObject);
-    throw err;
+    throw new ERR_INVALID_ARG_TYPE(name, types || 'Object', value);
   }
-}
+});
 
-function assertWithinRange(name, value, min = 0, max = Infinity) {
-  if (value !== undefined &&
+const assertWithinRange = hideStackFrames(
+  (name, value, min = 0, max = Infinity) => {
+    if (value !== undefined &&
       (typeof value !== 'number' || value < min || value > max)) {
-    const err = new ERR_HTTP2_INVALID_SETTING_VALUE.RangeError(name, value);
-    err.min = min;
-    err.max = max;
-    err.actual = value;
-    Error.captureStackTrace(err, assertWithinRange);
-    throw err;
+      throw new ERR_HTTP2_INVALID_SETTING_VALUE.RangeError(
+        name, value, min, max);
+    }
   }
-}
+);
 
 function toHeaderObject(headers) {
   const obj = Object.create(null);
@@ -586,6 +594,8 @@ module.exports = {
   getStreamState,
   isPayloadMeaningless,
   kSocket,
+  kProxySocket,
+  kRequest,
   mapToHeaders,
   NghttpError,
   sessionName,

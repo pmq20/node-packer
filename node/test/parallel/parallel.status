@@ -5,27 +5,30 @@ prefix parallel
 # sample-test                        : PASS,FLAKY
 
 [true] # This section applies to all platforms
-# https://github.com/nodejs/node/issues/25029
-test-child-process-execfile: PASS,FLAKY
+# https://github.com/nodejs/node/issues/24593
+test-fs-stat-bigint: PASS,FLAKY
 # https://github.com/nodejs/node/issues/23207
 test-net-connect-options-port: PASS,FLAKY
-# https://github.com/nodejs/node/issues/25033
-test-child-process-exit-code: PASS,FLAKY
+# https://github.com/nodejs/node/issues/26401
+test-worker-prof: SKIP
 
 [$system==win32]
+# https://github.com/nodejs/node/issues/20750
 test-http2-pipe: PASS,FLAKY
-test-worker-syntax-error: PASS,FLAKY
-test-worker-syntax-error-file: PASS,FLAKY
 # https://github.com/nodejs/node/issues/23277
 test-worker-memory: PASS,FLAKY
+# https://github.com/nodejs/node/issues/20750
+test-http2-client-upload: PASS,FLAKY
+# https://github.com/nodejs/node/issues/20750
+test-http2-client-upload-reject: PASS,FLAKY
 
 [$system==linux]
 
 [$system==macos]
 
 [$arch==arm || $arch==arm64]
-# https://github.com/nodejs/node/issues/25028
-test-cli-node-options: PASS,FLAKY
+# https://github.com/nodejs/node/issues/26610
+test-async-hooks-http-parser-destroy: PASS,FLAKY
 
 [$system==solaris] # Also applies to SmartOS
 

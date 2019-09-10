@@ -5,8 +5,9 @@
 #ifndef V8_WASM_WASM_VALUE_H_
 #define V8_WASM_WASM_VALUE_H_
 
-#include "src/boxed-float.h"
-#include "src/utils.h"
+#include "src/common/v8memory.h"
+#include "src/handles/handles.h"
+#include "src/utils/boxed-float.h"
 #include "src/wasm/wasm-opcodes.h"
 #include "src/zone/zone-containers.h"
 
@@ -14,14 +15,11 @@ namespace v8 {
 namespace internal {
 namespace wasm {
 
-#define FOREACH_SIMD_TYPE(V)    \
-  V(float, float4, f32x4, 4)    \
-  V(int32_t, int4, i32x4, 4)    \
-  V(uint32_t, uint4, ui32x4, 4) \
-  V(int16_t, int8, i16x8, 8)    \
-  V(uint16_t, uint8, ui16x8, 8) \
-  V(int8_t, int16, i8x16, 16)   \
-  V(uint8_t, uint16, ui8x16, 16)
+#define FOREACH_SIMD_TYPE(V) \
+  V(float, float4, f32x4, 4) \
+  V(int32_t, int4, i32x4, 4) \
+  V(int16_t, int8, i16x8, 8) \
+  V(int8_t, int16, i8x16, 16)
 
 #define DEFINE_SIMD_TYPE(cType, sType, name, kSize) \
   struct sType {                                    \
@@ -65,7 +63,10 @@ class Simd128 {
   V(f32_boxed, kWasmF32, Float32) \
   V(f64, kWasmF64, double)        \
   V(f64_boxed, kWasmF64, Float64) \
-  V(s128, kWasmS128, Simd128)
+  V(s128, kWasmS128, Simd128)     \
+  V(anyref, kWasmAnyRef, Handle<Object>)
+
+ASSERT_TRIVIALLY_COPYABLE(Handle<Object>);
 
 // A wasm value with type information.
 class WasmValue {

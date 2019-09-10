@@ -1,11 +1,12 @@
 'use strict';
 
-const { isModuleNamespaceObject } = require('util').types;
+const { Object, SafePromise } = primordials;
+
+const { isModuleNamespaceObject } = require('internal/util/types');
 const { URL } = require('internal/url');
-const { isContext } = process.binding('contextify');
+const { isContext } = internalBinding('contextify');
 const {
   ERR_INVALID_ARG_TYPE,
-  ERR_OUT_OF_RANGE,
   ERR_VM_MODULE_ALREADY_LINKED,
   ERR_VM_MODULE_DIFFERENT_CONTEXT,
   ERR_VM_MODULE_LINKING_ERRORED,
@@ -18,18 +19,22 @@ const {
   customInspectSymbol,
   emitExperimentalWarning
 } = require('internal/util');
-const { SafePromise } = require('internal/safe_globals');
+const {
+  validateInt32,
+  validateUint32,
+  validateString
+} = require('internal/validators');
 
+const binding = internalBinding('module_wrap');
 const {
   ModuleWrap,
-  callbackMap,
   kUninstantiated,
   kInstantiating,
   kInstantiated,
   kEvaluating,
   kEvaluated,
   kErrored,
-} = internalBinding('module_wrap');
+} = binding;
 
 const STATUS_MAP = {
   [kUninstantiated]: 'uninstantiated',
@@ -54,8 +59,7 @@ class SourceTextModule {
   constructor(src, options = {}) {
     emitExperimentalWarning('vm.SourceTextModule');
 
-    if (typeof src !== 'string')
-      throw new ERR_INVALID_ARG_TYPE('src', 'string', src);
+    validateString(src, 'src');
     if (typeof options !== 'object' || options === null)
       throw new ERR_INVALID_ARG_TYPE('options', 'Object', options);
 
@@ -79,9 +83,7 @@ class SourceTextModule {
 
     let { url } = options;
     if (url !== undefined) {
-      if (typeof url !== 'string') {
-        throw new ERR_INVALID_ARG_TYPE('options.url', 'string', url);
-      }
+      validateString(url, 'options.url');
       url = new URL(url).href;
     } else if (context === undefined) {
       url = `${defaultModuleName}(${globalModuleId++})`;
@@ -94,8 +96,8 @@ class SourceTextModule {
       perContextModuleId.set(context, 1);
     }
 
-    validateInteger(lineOffset, 'options.lineOffset');
-    validateInteger(columnOffset, 'options.columnOffset');
+    validateInt32(lineOffset, 'options.lineOffset');
+    validateInt32(columnOffset, 'options.columnOffset');
 
     if (initializeImportMeta !== undefined &&
         typeof initializeImportMeta !== 'function') {
@@ -114,7 +116,7 @@ class SourceTextModule {
     linkingStatusMap.set(this, 'unlinked');
     wrapToModuleMap.set(wrap, this);
 
-    callbackMap.set(wrap, {
+    binding.callbackMap.set(wrap, {
       initializeImportMeta,
       importModuleDynamically: importModuleDynamically ? async (...args) => {
         const m = await importModuleDynamically(...args);
@@ -224,9 +226,8 @@ class SourceTextModule {
     let timeout = options.timeout;
     if (timeout === undefined) {
       timeout = -1;
-    } else if (!Number.isInteger(timeout) || timeout <= 0) {
-      throw new ERR_INVALID_ARG_TYPE('options.timeout', 'a positive integer',
-                                     timeout);
+    } else {
+      validateUint32(timeout, 'options.timeout', true);
     }
 
     const { breakOnSigint = false } = options;
@@ -260,16 +261,7 @@ class SourceTextModule {
     o.linkingStatus = this.linkingStatus;
     o.url = this.url;
     o.context = this.context;
-    return require('util').inspect(o, options);
-  }
-}
-
-function validateInteger(prop, propName) {
-  if (!Number.isInteger(prop)) {
-    throw new ERR_INVALID_ARG_TYPE(propName, 'integer', prop);
-  }
-  if ((prop >> 0) !== prop) {
-    throw new ERR_OUT_OF_RANGE(propName, '32-bit integer', prop);
+    return require('internal/util/inspect').inspect(o, options);
   }
 }
 

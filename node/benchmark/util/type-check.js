@@ -38,14 +38,14 @@ function main({ type, argument, version, n }) {
   // For testing, if supplied with an empty type, default to ArrayBufferView.
   type = type || 'ArrayBufferView';
 
-  const util = process.binding('util');
+  const util = common.binding('util');
   const types = require('internal/util/types');
 
   const func = { native: util, js: types }[version][`is${type}`];
   const arg = args[type][argument];
 
   bench.start();
-  for (var i = 0; i < n; i++) {
+  for (let i = 0; i < n; i++) {
     func(arg);
   }
   bench.end(n);

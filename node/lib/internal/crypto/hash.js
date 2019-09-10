@@ -1,14 +1,21 @@
 'use strict';
 
+const { Object } = primordials;
+
 const {
   Hash: _Hash,
   Hmac: _Hmac
-} = process.binding('crypto');
+} = internalBinding('crypto');
 
 const {
   getDefaultEncoding,
+  kHandle,
   toBuf
 } = require('internal/crypto/util');
+
+const {
+  prepareSecretKey
+} = require('internal/crypto/keys');
 
 const { Buffer } = require('buffer');
 
@@ -18,8 +25,7 @@ const {
   ERR_CRYPTO_HASH_UPDATE_FAILED,
   ERR_INVALID_ARG_TYPE
 } = require('internal/errors').codes;
-const { validateString } = require('internal/validators');
-const { inherits } = require('util');
+const { validateString, validateUint32 } = require('internal/validators');
 const { normalizeEncoding } = require('internal/util');
 const { isArrayBufferView } = require('internal/util/types');
 const LazyTransform = require('internal/streams/lazy_transform');
@@ -30,22 +36,27 @@ function Hash(algorithm, options) {
   if (!(this instanceof Hash))
     return new Hash(algorithm, options);
   validateString(algorithm, 'algorithm');
-  this._handle = new _Hash(algorithm);
+  const xofLen = typeof options === 'object' && options !== null ?
+    options.outputLength : undefined;
+  if (xofLen !== undefined)
+    validateUint32(xofLen, 'options.outputLength');
+  this[kHandle] = new _Hash(algorithm, xofLen);
   this[kState] = {
     [kFinalized]: false
   };
   LazyTransform.call(this, options);
 }
 
-inherits(Hash, LazyTransform);
+Object.setPrototypeOf(Hash.prototype, LazyTransform.prototype);
+Object.setPrototypeOf(Hash, LazyTransform);
 
 Hash.prototype._transform = function _transform(chunk, encoding, callback) {
-  this._handle.update(chunk, encoding);
+  this[kHandle].update(chunk, encoding);
   callback();
 };
 
 Hash.prototype._flush = function _flush(callback) {
-  this.push(this._handle.digest());
+  this.push(this[kHandle].digest());
   callback();
 };
 
@@ -56,10 +67,14 @@ Hash.prototype.update = function update(data, encoding) {
 
   if (typeof data !== 'string' && !isArrayBufferView(data)) {
     throw new ERR_INVALID_ARG_TYPE('data',
-                                   ['string', 'TypedArray', 'DataView'], data);
+                                   ['string',
+                                    'Buffer',
+                                    'TypedArray',
+                                    'DataView'],
+                                   data);
   }
 
-  if (!this._handle.update(data, encoding || getDefaultEncoding()))
+  if (!this[kHandle].update(data, encoding || getDefaultEncoding()))
     throw new ERR_CRYPTO_HASH_UPDATE_FAILED();
   return this;
 };
@@ -74,7 +89,7 @@ Hash.prototype.digest = function digest(outputEncoding) {
     throw new ERR_CRYPTO_HASH_DIGEST_NO_UTF16();
 
   // Explicit conversion for backward compatibility.
-  const ret = this._handle.digest(`${outputEncoding}`);
+  const ret = this[kHandle].digest(`${outputEncoding}`);
   state[kFinalized] = true;
   return ret;
 };
@@ -84,19 +99,17 @@ function Hmac(hmac, key, options) {
   if (!(this instanceof Hmac))
     return new Hmac(hmac, key, options);
   validateString(hmac, 'hmac');
-  if (typeof key !== 'string' && !isArrayBufferView(key)) {
-    throw new ERR_INVALID_ARG_TYPE('key',
-                                   ['string', 'TypedArray', 'DataView'], key);
-  }
-  this._handle = new _Hmac();
-  this._handle.init(hmac, toBuf(key));
+  key = prepareSecretKey(key);
+  this[kHandle] = new _Hmac();
+  this[kHandle].init(hmac, toBuf(key));
   this[kState] = {
     [kFinalized]: false
   };
   LazyTransform.call(this, options);
 }
 
-inherits(Hmac, LazyTransform);
+Object.setPrototypeOf(Hmac.prototype, LazyTransform.prototype);
+Object.setPrototypeOf(Hmac, LazyTransform);
 
 Hmac.prototype.update = Hash.prototype.update;
 
@@ -112,7 +125,7 @@ Hmac.prototype.digest = function digest(outputEncoding) {
   }
 
   // Explicit conversion for backward compatibility.
-  const ret = this._handle.digest(`${outputEncoding}`);
+  const ret = this[kHandle].digest(`${outputEncoding}`);
   state[kFinalized] = true;
   return ret;
 };

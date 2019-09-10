@@ -4,7 +4,8 @@
 
 #include "src/builtins/builtins-utils-gen.h"
 #include "src/builtins/builtins.h"
-#include "src/code-stub-assembler.h"
+#include "src/codegen/code-stub-assembler.h"
+#include "src/objects/oddball.h"
 
 namespace v8 {
 namespace internal {

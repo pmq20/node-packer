@@ -1,16 +1,17 @@
-#ifndef SRC_MEMORY_TRACKER_H_
-#define SRC_MEMORY_TRACKER_H_
+#pragma once
 
 #if defined(NODE_WANT_INTERNALS) && NODE_WANT_INTERNALS
 
-#include <unordered_map>
+#include "aliased_buffer.h"
+#include "v8-profiler.h"
+
+#include <uv.h>
+
+#include <limits>
 #include <queue>
 #include <stack>
 #include <string>
-#include <limits>
-#include <uv.h>
-#include "aliased_buffer.h"
-#include "v8-profiler.h"
+#include <unordered_map>
 
 namespace node {
 
@@ -34,6 +35,8 @@ namespace crypto {
 class NodeBIO;
 }
 
+class CleanupHookCallback;
+
 /* Example:
  *
  * class ExampleRetainer : public MemoryRetainer {
@@ -44,6 +47,13 @@ class NodeBIO;
  *       // Node name and size comes from the MemoryInfoName and SelfSize of
  *       // AnotherRetainerClass
  *       tracker->TrackField("another_retainer", another_retainer_);
+ *
+ *       // Add non_pointer_retainer as a separate node into the graph
+ *       // and track its memory information recursively.
+ *       // Note that we need to make sure its size is not accounted in
+ *       // ExampleRetainer::SelfSize().
+ *       tracker->TrackField("non_pointer_retainer", &non_pointer_retainer_);
+ *
  *       // Specify node name and size explicitly
  *       tracker->TrackFieldWithSize("internal_member",
  *                                   internal_member_.size(),
@@ -60,24 +70,29 @@ class NodeBIO;
  *       return "ExampleRetainer";
  *     }
  *
- *     // Or use SET_SELF_SIZE(ExampleRetainer)
+ *     // Classes that only want to return its sizeof() value can use the
+ *     // SET_SELF_SIZE(Class) macro instead.
  *     size_t SelfSize() const override {
- *       return sizeof(ExampleRetainer);
+ *       // We need to exclude the size of non_pointer_retainer so that
+ *       // we can track it separately in ExampleRetainer::MemoryInfo().
+ *       return sizeof(ExampleRetainer) - sizeof(NonPointerRetainerClass);
  *     }
  *
  *     // Note: no need to implement these two methods when implementing
  *     // a BaseObject or an AsyncWrap class
  *     bool IsRootNode() const override { return !wrapped_.IsWeak(); }
  *     v8::Local<v8::Object> WrappedObject() const override {
- *       return node::PersistentToLocal(wrapped_);
+ *       return node::PersistentToLocal::Default(wrapped_);
  *     }
+ *
  *   private:
- *     AnotherRetainerClass another_retainer_;
+ *     AnotherRetainerClass* another_retainer_;
+ *     NonPointerRetainerClass non_pointer_retainer;
  *     InternalClass internal_member_;
  *     std::vector<uv_async_t> vector_;
- *     node::Persistent<Object> target_;
+ *     v8::Global<Object> target_;
  *
- *     node::Persistent<Object> wrapped_;
+ *     v8::Global<Object> wrapped_;
  * }
  *
  * This creates the following graph:
@@ -94,7 +109,7 @@ class NodeBIO;
  */
 class MemoryRetainer {
  public:
-  virtual ~MemoryRetainer() {}
+  virtual ~MemoryRetainer() = default;
 
   // Subclasses should implement these methods to provide information
   // for the V8 heap snapshot generator.
@@ -166,9 +181,13 @@ class MemoryTracker {
   inline void TrackField(const char* edge_name,
                          const T& value,
                          const char* node_name = nullptr);
-  template <typename T, typename Traits>
+  template <typename T>
+  void TrackField(const char* edge_name,
+                  const v8::Eternal<T>& value,
+                  const char* node_name);
+  template <typename T>
   inline void TrackField(const char* edge_name,
-                         const v8::Persistent<T, Traits>& value,
+                         const v8::PersistentBase<T>& value,
                          const char* node_name = nullptr);
   template <typename T>
   inline void TrackField(const char* edge_name,
@@ -178,6 +197,13 @@ class MemoryTracker {
   inline void TrackField(const char* edge_name,
                          const MallocedBuffer<T>& value,
                          const char* node_name = nullptr);
+  // We do not implement CleanupHookCallback as MemoryRetainer
+  // but instead specialize the method here to avoid the cost of
+  // virtual pointers.
+  // TODO(joyeecheung): do this for BaseObject and remove WrappedObject()
+  void TrackField(const char* edge_name,
+                  const CleanupHookCallback& value,
+                  const char* node_name = nullptr);
   inline void TrackField(const char* edge_name,
                          const uv_buf_t& value,
                          const char* node_name = nullptr);
@@ -189,13 +215,24 @@ class MemoryTracker {
                          const char* node_name = nullptr);
   template <class NativeT, class V8T>
   inline void TrackField(const char* edge_name,
-                         const AliasedBuffer<NativeT, V8T>& value,
+                         const AliasedBufferBase<NativeT, V8T>& value,
                          const char* node_name = nullptr);
 
   // Put a memory container into the graph, create an edge from
   // the current node if there is one on the stack.
   inline void Track(const MemoryRetainer* retainer,
                     const char* edge_name = nullptr);
+
+  // Useful for parents that do not wish to perform manual
+  // adjustments to its `SelfSize()` when embedding retainer
+  // objects inline.
+  // Put a memory container into the graph, create an edge from
+  // the current node if there is one on the stack - there should
+  // be one, of the container object which the current field is part of.
+  // Reduce the size of memory from the container so as to avoid
+  // duplication in accounting.
+  inline void TrackInlineField(const MemoryRetainer* retainer,
+                               const char* edge_name = nullptr);
 
   inline v8::EmbedderGraph* graph() { return graph_; }
   inline v8::Isolate* isolate() { return isolate_; }
@@ -230,5 +267,3 @@ class MemoryTracker {
 }  // namespace node
 
 #endif  // defined(NODE_WANT_INTERNALS) && NODE_WANT_INTERNALS
-
-#endif  // SRC_MEMORY_TRACKER_H_

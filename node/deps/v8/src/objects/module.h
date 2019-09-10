@@ -5,8 +5,10 @@
 #ifndef V8_OBJECTS_MODULE_H_
 #define V8_OBJECTS_MODULE_H_
 
-#include "src/objects.h"
 #include "src/objects/fixed-array.h"
+#include "src/objects/js-objects.h"
+#include "src/objects/objects.h"
+#include "src/objects/struct.h"
 
 // Has to be the last include (doesn't have include guards):
 #include "src/objects/object-macros.h"
@@ -27,6 +29,7 @@ class Zone;
 // The runtime representation of an ECMAScript module.
 class Module : public Struct {
  public:
+  NEVER_READ_ONLY_SPACE
   DECL_CAST(Module)
   DECL_VERIFIER(Module)
   DECL_PRINTER(Module)
@@ -65,11 +68,11 @@ class Module : public Struct {
   };
 
   // The exception in the case {status} is kErrored.
-  Object* GetException();
+  Object GetException();
 
   // The shared function info in case {status} is not kEvaluating, kEvaluated or
   // kErrored.
-  SharedFunctionInfo* GetSharedFunctionInfo() const;
+  SharedFunctionInfo GetSharedFunctionInfo() const;
 
   // The namespace object (or undefined).
   DECL_ACCESSORS(module_namespace, HeapObject)
@@ -88,49 +91,60 @@ class Module : public Struct {
   DECL_ACCESSORS(import_meta, Object)
 
   // Get the ModuleInfo associated with the code.
-  inline ModuleInfo* info() const;
+  inline ModuleInfo info() const;
 
   // Implementation of spec operation ModuleDeclarationInstantiation.
   // Returns false if an exception occurred during instantiation, true
   // otherwise. (In the case where the callback throws an exception, that
   // exception is propagated.)
   static V8_WARN_UNUSED_RESULT bool Instantiate(
-      Handle<Module> module, v8::Local<v8::Context> context,
+      Isolate* isolate, Handle<Module> module, v8::Local<v8::Context> context,
       v8::Module::ResolveCallback callback);
 
   // Implementation of spec operation ModuleEvaluation.
   static V8_WARN_UNUSED_RESULT MaybeHandle<Object> Evaluate(
-      Handle<Module> module);
+      Isolate* isolate, Handle<Module> module);
 
-  Cell* GetCell(int cell_index);
-  static Handle<Object> LoadVariable(Handle<Module> module, int cell_index);
+  Cell GetCell(int cell_index);
+  static Handle<Object> LoadVariable(Isolate* isolate, Handle<Module> module,
+                                     int cell_index);
   static void StoreVariable(Handle<Module> module, int cell_index,
                             Handle<Object> value);
 
+  static int ImportIndex(int cell_index);
+  static int ExportIndex(int cell_index);
+
   // Get the namespace object for [module_request] of [module].  If it doesn't
   // exist yet, it is created.
-  static Handle<JSModuleNamespace> GetModuleNamespace(Handle<Module> module,
+  static Handle<JSModuleNamespace> GetModuleNamespace(Isolate* isolate,
+                                                      Handle<Module> module,
                                                       int module_request);
 
   // Get the namespace object for [module].  If it doesn't exist yet, it is
   // created.
-  static Handle<JSModuleNamespace> GetModuleNamespace(Handle<Module> module);
+  static Handle<JSModuleNamespace> GetModuleNamespace(Isolate* isolate,
+                                                      Handle<Module> module);
 
-  static const int kCodeOffset = HeapObject::kHeaderSize;
-  static const int kExportsOffset = kCodeOffset + kPointerSize;
-  static const int kRegularExportsOffset = kExportsOffset + kPointerSize;
-  static const int kRegularImportsOffset = kRegularExportsOffset + kPointerSize;
-  static const int kHashOffset = kRegularImportsOffset + kPointerSize;
-  static const int kModuleNamespaceOffset = kHashOffset + kPointerSize;
-  static const int kRequestedModulesOffset =
-      kModuleNamespaceOffset + kPointerSize;
-  static const int kStatusOffset = kRequestedModulesOffset + kPointerSize;
-  static const int kDfsIndexOffset = kStatusOffset + kPointerSize;
-  static const int kDfsAncestorIndexOffset = kDfsIndexOffset + kPointerSize;
-  static const int kExceptionOffset = kDfsAncestorIndexOffset + kPointerSize;
-  static const int kScriptOffset = kExceptionOffset + kPointerSize;
-  static const int kImportMetaOffset = kScriptOffset + kPointerSize;
-  static const int kSize = kImportMetaOffset + kPointerSize;
+// Layout description.
+#define MODULE_FIELDS(V)                  \
+  V(kCodeOffset, kTaggedSize)             \
+  V(kExportsOffset, kTaggedSize)          \
+  V(kRegularExportsOffset, kTaggedSize)   \
+  V(kRegularImportsOffset, kTaggedSize)   \
+  V(kHashOffset, kTaggedSize)             \
+  V(kModuleNamespaceOffset, kTaggedSize)  \
+  V(kRequestedModulesOffset, kTaggedSize) \
+  V(kStatusOffset, kTaggedSize)           \
+  V(kDfsIndexOffset, kTaggedSize)         \
+  V(kDfsAncestorIndexOffset, kTaggedSize) \
+  V(kExceptionOffset, kTaggedSize)        \
+  V(kScriptOffset, kTaggedSize)           \
+  V(kImportMetaOffset, kTaggedSize)       \
+  /* Total size. */                       \
+  V(kSize, 0)
+
+  DEFINE_FIELD_OFFSET_CONSTANTS(Struct::kHeaderSize, MODULE_FIELDS)
+#undef MODULE_FIELDS
 
  private:
   friend class Factory;
@@ -143,9 +157,10 @@ class Module : public Struct {
 
   // Helpers for Instantiate and Evaluate.
 
-  static void CreateExport(Handle<Module> module, int cell_index,
-                           Handle<FixedArray> names);
-  static void CreateIndirectExport(Handle<Module> module, Handle<String> name,
+  static void CreateExport(Isolate* isolate, Handle<Module> module,
+                           int cell_index, Handle<FixedArray> names);
+  static void CreateIndirectExport(Isolate* isolate, Handle<Module> module,
+                                   Handle<String> name,
                                    Handle<ModuleInfoEntry> entry);
 
   // The [must_resolve] argument indicates whether or not an exception should be
@@ -158,50 +173,51 @@ class Module : public Struct {
   // exception (so check manually!).
   class ResolveSet;
   static V8_WARN_UNUSED_RESULT MaybeHandle<Cell> ResolveExport(
-      Handle<Module> module, Handle<String> module_specifier,
+      Isolate* isolate, Handle<Module> module, Handle<String> module_specifier,
       Handle<String> export_name, MessageLocation loc, bool must_resolve,
       ResolveSet* resolve_set);
   static V8_WARN_UNUSED_RESULT MaybeHandle<Cell> ResolveImport(
-      Handle<Module> module, Handle<String> name, int module_request,
-      MessageLocation loc, bool must_resolve, ResolveSet* resolve_set);
+      Isolate* isolate, Handle<Module> module, Handle<String> name,
+      int module_request, MessageLocation loc, bool must_resolve,
+      ResolveSet* resolve_set);
 
   static V8_WARN_UNUSED_RESULT MaybeHandle<Cell> ResolveExportUsingStarExports(
-      Handle<Module> module, Handle<String> module_specifier,
+      Isolate* isolate, Handle<Module> module, Handle<String> module_specifier,
       Handle<String> export_name, MessageLocation loc, bool must_resolve,
       ResolveSet* resolve_set);
 
   static V8_WARN_UNUSED_RESULT bool PrepareInstantiate(
-      Handle<Module> module, v8::Local<v8::Context> context,
+      Isolate* isolate, Handle<Module> module, v8::Local<v8::Context> context,
       v8::Module::ResolveCallback callback);
   static V8_WARN_UNUSED_RESULT bool FinishInstantiate(
-      Handle<Module> module, ZoneForwardList<Handle<Module>>* stack,
-      unsigned* dfs_index, Zone* zone);
+      Isolate* isolate, Handle<Module> module,
+      ZoneForwardList<Handle<Module>>* stack, unsigned* dfs_index, Zone* zone);
   static V8_WARN_UNUSED_RESULT bool RunInitializationCode(
-      Handle<Module> module);
+      Isolate* isolate, Handle<Module> module);
 
   static V8_WARN_UNUSED_RESULT MaybeHandle<Object> Evaluate(
-      Handle<Module> module, ZoneForwardList<Handle<Module>>* stack,
-      unsigned* dfs_index);
+      Isolate* isolate, Handle<Module> module,
+      ZoneForwardList<Handle<Module>>* stack, unsigned* dfs_index);
 
   static V8_WARN_UNUSED_RESULT bool MaybeTransitionComponent(
-      Handle<Module> module, ZoneForwardList<Handle<Module>>* stack,
-      Status new_status);
+      Isolate* isolate, Handle<Module> module,
+      ZoneForwardList<Handle<Module>>* stack, Status new_status);
 
   // Set module's status back to kUninstantiated and reset other internal state.
   // This is used when instantiation fails.
-  static void Reset(Handle<Module> module);
-  static void ResetGraph(Handle<Module> module);
+  static void Reset(Isolate* isolate, Handle<Module> module);
+  static void ResetGraph(Isolate* isolate, Handle<Module> module);
 
   // To set status to kErrored, RecordError should be used.
   void SetStatus(Status status);
-  void RecordError();
+  void RecordError(Isolate* isolate);
 
 #ifdef DEBUG
   // For --trace-module-status.
   void PrintStatusTransition(Status new_status);
 #endif  // DEBUG
 
-  DISALLOW_IMPLICIT_CONSTRUCTORS(Module);
+  OBJECT_CONSTRUCTORS(Module, Struct);
 };
 
 // When importing a module namespace (import * as foo from "bar"), a
@@ -219,7 +235,8 @@ class JSModuleNamespace : public JSObject {
   // Retrieve the value exported by [module] under the given [name]. If there is
   // no such export, return Just(undefined). If the export is uninitialized,
   // schedule an exception and return Nothing.
-  V8_WARN_UNUSED_RESULT MaybeHandle<Object> GetExport(Handle<String> name);
+  V8_WARN_UNUSED_RESULT MaybeHandle<Object> GetExport(Isolate* isolate,
+                                                      Handle<String> name);
 
   // Return the (constant) property attributes for the referenced property,
   // which is assumed to correspond to an export. If the export is
@@ -233,13 +250,20 @@ class JSModuleNamespace : public JSObject {
     kInObjectFieldCount,
   };
 
-  static const int kModuleOffset = JSObject::kHeaderSize;
-  static const int kHeaderSize = kModuleOffset + kPointerSize;
+// Layout description.
+#define JS_MODULE_NAMESPACE_FIELDS(V)                        \
+  V(kModuleOffset, kTaggedSize)                              \
+  /* Header size. */                                         \
+  V(kHeaderSize, 0)                                          \
+  V(kInObjectFieldsOffset, kTaggedSize* kInObjectFieldCount) \
+  /* Total size. */                                          \
+  V(kSize, 0)
 
-  static const int kSize = kHeaderSize + kPointerSize * kInObjectFieldCount;
+  DEFINE_FIELD_OFFSET_CONSTANTS(JSObject::kHeaderSize,
+                                JS_MODULE_NAMESPACE_FIELDS)
+#undef JS_MODULE_NAMESPACE_FIELDS
 
- private:
-  DISALLOW_IMPLICIT_CONSTRUCTORS(JSModuleNamespace);
+  OBJECT_CONSTRUCTORS(JSModuleNamespace, JSObject);
 };
 
 // ModuleInfo is to ModuleDescriptor what ScopeInfo is to Scope.
@@ -250,45 +274,21 @@ class ModuleInfo : public FixedArray {
   static Handle<ModuleInfo> New(Isolate* isolate, Zone* zone,
                                 ModuleDescriptor* descr);
 
-  inline FixedArray* module_requests() const {
-    return FixedArray::cast(get(kModuleRequestsIndex));
-  }
-
-  inline FixedArray* special_exports() const {
-    return FixedArray::cast(get(kSpecialExportsIndex));
-  }
-
-  inline FixedArray* regular_exports() const {
-    return FixedArray::cast(get(kRegularExportsIndex));
-  }
-
-  inline FixedArray* regular_imports() const {
-    return FixedArray::cast(get(kRegularImportsIndex));
-  }
-
-  inline FixedArray* namespace_imports() const {
-    return FixedArray::cast(get(kNamespaceImportsIndex));
-  }
-
-  inline FixedArray* module_request_positions() const {
-    return FixedArray::cast(get(kModuleRequestPositionsIndex));
-  }
+  inline FixedArray module_requests() const;
+  inline FixedArray special_exports() const;
+  inline FixedArray regular_exports() const;
+  inline FixedArray regular_imports() const;
+  inline FixedArray namespace_imports() const;
+  inline FixedArray module_request_positions() const;
 
   // Accessors for [regular_exports].
   int RegularExportCount() const;
-  String* RegularExportLocalName(int i) const;
+  String RegularExportLocalName(int i) const;
   int RegularExportCellIndex(int i) const;
-  FixedArray* RegularExportExportNames(int i) const;
+  FixedArray RegularExportExportNames(int i) const;
 
 #ifdef DEBUG
-  inline bool Equals(ModuleInfo* other) const {
-    return regular_exports() == other->regular_exports() &&
-           regular_imports() == other->regular_imports() &&
-           special_exports() == other->special_exports() &&
-           namespace_imports() == other->namespace_imports() &&
-           module_requests() == other->module_requests() &&
-           module_request_positions() == other->module_request_positions();
-  }
+  inline bool Equals(ModuleInfo other) const;
 #endif
 
  private:
@@ -309,7 +309,7 @@ class ModuleInfo : public FixedArray {
     kRegularExportExportNamesOffset,
     kRegularExportLength
   };
-  DISALLOW_IMPLICIT_CONSTRUCTORS(ModuleInfo);
+  OBJECT_CONSTRUCTORS(ModuleInfo, FixedArray);
 };
 
 class ModuleInfoEntry : public Struct {
@@ -333,17 +333,10 @@ class ModuleInfoEntry : public Struct {
                                      int module_request, int cell_index,
                                      int beg_pos, int end_pos);
 
-  static const int kExportNameOffset = HeapObject::kHeaderSize;
-  static const int kLocalNameOffset = kExportNameOffset + kPointerSize;
-  static const int kImportNameOffset = kLocalNameOffset + kPointerSize;
-  static const int kModuleRequestOffset = kImportNameOffset + kPointerSize;
-  static const int kCellIndexOffset = kModuleRequestOffset + kPointerSize;
-  static const int kBegPosOffset = kCellIndexOffset + kPointerSize;
-  static const int kEndPosOffset = kBegPosOffset + kPointerSize;
-  static const int kSize = kEndPosOffset + kPointerSize;
+  DEFINE_FIELD_OFFSET_CONSTANTS(Struct::kHeaderSize,
+                                TORQUE_GENERATED_MODULE_INFO_ENTRY_FIELDS)
 
- private:
-  DISALLOW_IMPLICIT_CONSTRUCTORS(ModuleInfoEntry);
+  OBJECT_CONSTRUCTORS(ModuleInfoEntry, Struct);
 };
 
 }  // namespace internal

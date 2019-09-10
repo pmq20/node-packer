@@ -7,8 +7,9 @@
 
 #include <vector>
 
-#include "src/frames.h"
-#include "src/objects.h"
+#include "src/debug/debug-frames.h"
+#include "src/debug/debug-scopes.h"
+#include "src/objects/objects.h"
 #include "src/objects/shared-function-info.h"
 #include "src/objects/string-table.h"
 
@@ -38,10 +39,13 @@ class DebugEvaluate : public AllStatic {
   static MaybeHandle<Object> WithTopmostArguments(Isolate* isolate,
                                                   Handle<String> source);
 
-  static SharedFunctionInfo::SideEffectState FunctionGetSideEffectState(
-      Handle<SharedFunctionInfo> info);
-  static bool CallbackHasNoSideEffect(Object* callback_info);
+  static DebugInfo::SideEffectState FunctionGetSideEffectState(
+      Isolate* isolate, Handle<SharedFunctionInfo> info);
   static void ApplySideEffectChecks(Handle<BytecodeArray> bytecode_array);
+
+#ifdef DEBUG
+  static void VerifyTransitiveBuiltins(Isolate* isolate);
+#endif  // DEBUG
 
  private:
   // This class builds a context chain for evaluation of expressions
@@ -70,31 +74,20 @@ class DebugEvaluate : public AllStatic {
     void UpdateValues();
 
     Handle<Context> evaluation_context() const { return evaluation_context_; }
-    Handle<SharedFunctionInfo> outer_info() const { return outer_info_; }
+    Handle<SharedFunctionInfo> outer_info() const;
 
    private:
     struct ContextChainElement {
-      Handle<ScopeInfo> scope_info;
       Handle<Context> wrapped_context;
       Handle<JSObject> materialized_object;
       Handle<StringSet> whitelist;
     };
 
-    void MaterializeReceiver(Handle<JSObject> target,
-                             Handle<Context> local_context,
-                             Handle<JSFunction> local_function,
-                             Handle<StringSet> non_locals);
-
-    void MaterializeStackLocals(Handle<JSObject> target,
-                                Handle<JSFunction> function,
-                                FrameInspector* frame_inspector);
-
-    Handle<SharedFunctionInfo> outer_info_;
     Handle<Context> evaluation_context_;
     std::vector<ContextChainElement> context_chain_;
     Isolate* isolate_;
-    JavaScriptFrame* frame_;
-    int inlined_jsframe_index_;
+    FrameInspector frame_inspector_;
+    ScopeIterator scope_iterator_;
   };
 
   static MaybeHandle<Object> Evaluate(Isolate* isolate,

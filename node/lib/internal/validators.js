@@ -1,10 +1,19 @@
 'use strict';
 
 const {
-  ERR_INVALID_ARG_TYPE,
-  ERR_INVALID_ARG_VALUE,
-  ERR_OUT_OF_RANGE
-} = require('internal/errors').codes;
+  hideStackFrames,
+  codes: {
+    ERR_INVALID_ARG_TYPE,
+    ERR_INVALID_ARG_VALUE,
+    ERR_OUT_OF_RANGE,
+    ERR_UNKNOWN_SIGNAL
+  }
+} = require('internal/errors');
+const {
+  isArrayBufferView
+} = require('internal/util/types');
+const { signals } = internalBinding('constants').os;
+const { MAX_SAFE_INTEGER, MIN_SAFE_INTEGER } = Number;
 
 function isInt32(value) {
   return value === (value | 0);
@@ -18,10 +27,10 @@ const octalReg = /^[0-7]+$/;
 const modeDesc = 'must be a 32-bit unsigned integer or an octal string';
 
 /**
- * Validate values that will be converted into mode_t (the S_* constants).
- * Only valid numbers and octal strings are allowed. They could be converted
- * to 32-bit unsigned integers or non-negative signed integers in the C++
- * land, but any value higher than 0o777 will result in platform-specific
+ * Parse and validate values that will be converted into mode_t (the S_*
+ * constants). Only valid numbers and octal strings are allowed. They could be
+ * converted to 32-bit unsigned integers or non-negative signed integers in the
+ * C++ land, but any value higher than 0o777 will result in platform-specific
  * behaviors.
  *
  * @param {*} value Values to be validated
@@ -29,96 +38,74 @@ const modeDesc = 'must be a 32-bit unsigned integer or an octal string';
  * @param {number} def If specified, will be returned for invalid values
  * @returns {number}
  */
-function validateMode(value, name, def) {
+function parseMode(value, name, def) {
   if (isUint32(value)) {
     return value;
   }
 
   if (typeof value === 'number') {
-    if (!Number.isInteger(value)) {
-      throw new ERR_OUT_OF_RANGE(name, 'an integer', value);
-    } else {
-      // 2 ** 32 === 4294967296
-      throw new ERR_OUT_OF_RANGE(name, '>= 0 && < 4294967296', value);
-    }
+    validateInt32(value, name, 0, 2 ** 32 - 1);
   }
 
   if (typeof value === 'string') {
     if (!octalReg.test(value)) {
       throw new ERR_INVALID_ARG_VALUE(name, value, modeDesc);
     }
-    const parsed = parseInt(value, 8);
-    return parsed;
+    return parseInt(value, 8);
   }
 
-  // TODO(BridgeAR): Only return `def` in case `value == null`
-  if (def !== undefined) {
+  if (def !== undefined && value == null) {
     return def;
   }
 
   throw new ERR_INVALID_ARG_VALUE(name, value, modeDesc);
 }
 
-function validateInteger(value, name) {
-  let err;
-
-  if (typeof value !== 'number')
-    err = new ERR_INVALID_ARG_TYPE(name, 'number', value);
-  else if (!Number.isSafeInteger(value))
-    err = new ERR_OUT_OF_RANGE(name, 'an integer', value);
-
-  if (err) {
-    Error.captureStackTrace(err, validateInteger);
-    throw err;
+const validateInteger = hideStackFrames(
+  (value, name, min = MIN_SAFE_INTEGER, max = MAX_SAFE_INTEGER) => {
+    if (typeof value !== 'number')
+      throw new ERR_INVALID_ARG_TYPE(name, 'number', value);
+    if (!Number.isInteger(value))
+      throw new ERR_OUT_OF_RANGE(name, 'an integer', value);
+    if (value < min || value > max)
+      throw new ERR_OUT_OF_RANGE(name, `>= ${min} && <= ${max}`, value);
   }
+);
 
-  return value;
-}
-
-function validateInt32(value, name, min = -2147483648, max = 2147483647) {
-  // The defaults for min and max correspond to the limits of 32-bit integers.
-  if (!isInt32(value)) {
-    let err;
-    if (typeof value !== 'number') {
-      err = new ERR_INVALID_ARG_TYPE(name, 'number', value);
-    } else if (!Number.isInteger(value)) {
-      err = new ERR_OUT_OF_RANGE(name, 'an integer', value);
-    } else {
-      err = new ERR_OUT_OF_RANGE(name, `>= ${min} && <= ${max}`, value);
+const validateInt32 = hideStackFrames(
+  (value, name, min = -2147483648, max = 2147483647) => {
+    // The defaults for min and max correspond to the limits of 32-bit integers.
+    if (!isInt32(value)) {
+      if (typeof value !== 'number') {
+        throw new ERR_INVALID_ARG_TYPE(name, 'number', value);
+      }
+      if (!Number.isInteger(value)) {
+        throw new ERR_OUT_OF_RANGE(name, 'an integer', value);
+      }
+      throw new ERR_OUT_OF_RANGE(name, `>= ${min} && <= ${max}`, value);
     }
-    Error.captureStackTrace(err, validateInt32);
-    throw err;
-  } else if (value < min || value > max) {
-    const err = new ERR_OUT_OF_RANGE(name, `>= ${min} && <= ${max}`, value);
-    Error.captureStackTrace(err, validateInt32);
-    throw err;
+    if (value < min || value > max) {
+      throw new ERR_OUT_OF_RANGE(name, `>= ${min} && <= ${max}`, value);
+    }
   }
+);
 
-  return value;
-}
-
-function validateUint32(value, name, positive) {
+const validateUint32 = hideStackFrames((value, name, positive) => {
   if (!isUint32(value)) {
-    let err;
     if (typeof value !== 'number') {
-      err = new ERR_INVALID_ARG_TYPE(name, 'number', value);
-    } else if (!Number.isInteger(value)) {
-      err = new ERR_OUT_OF_RANGE(name, 'an integer', value);
-    } else {
-      const min = positive ? 1 : 0;
-      // 2 ** 32 === 4294967296
-      err = new ERR_OUT_OF_RANGE(name, `>= ${min} && < 4294967296`, value);
+      throw new ERR_INVALID_ARG_TYPE(name, 'number', value);
     }
-    Error.captureStackTrace(err, validateUint32);
-    throw err;
-  } else if (positive && value === 0) {
-    const err = new ERR_OUT_OF_RANGE(name, '>= 1 && < 4294967296', value);
-    Error.captureStackTrace(err, validateUint32);
-    throw err;
+    if (!Number.isInteger(value)) {
+      throw new ERR_OUT_OF_RANGE(name, 'an integer', value);
+    }
+    const min = positive ? 1 : 0;
+    // 2 ** 32 === 4294967296
+    throw new ERR_OUT_OF_RANGE(name, `>= ${min} && < 4294967296`, value);
   }
-
-  return value;
-}
+  if (positive && value === 0) {
+    throw new ERR_OUT_OF_RANGE(name, '>= 1 && < 4294967296', value);
+  }
+});
 
 function validateString(value, name) {
   if (typeof value !== 'string')
@@ -130,13 +117,40 @@ function validateNumber(value, name) {
     throw new ERR_INVALID_ARG_TYPE(name, 'number', value);
 }
 
+function validateSignalName(signal, name = 'signal') {
+  if (typeof signal !== 'string')
+    throw new ERR_INVALID_ARG_TYPE(name, 'string', signal);
+
+  if (signals[signal] === undefined) {
+    if (signals[signal.toUpperCase()] !== undefined) {
+      throw new ERR_UNKNOWN_SIGNAL(signal +
+                                   ' (signals must use all capital letters)');
+    }
+
+    throw new ERR_UNKNOWN_SIGNAL(signal);
+  }
+}
+
+// TODO(BridgeAR): We have multiple validation functions that call
+// `require('internal/utils').toBuf()` before validating for array buffer views.
+// Those should likely also be consolidated in here.
+const validateBuffer = hideStackFrames((buffer, name = 'buffer') => {
+  if (!isArrayBufferView(buffer)) {
+    throw new ERR_INVALID_ARG_TYPE(name,
+                                   ['Buffer', 'TypedArray', 'DataView'],
+                                   buffer);
+  }
+});
+
 module.exports = {
   isInt32,
   isUint32,
-  validateMode,
+  parseMode,
+  validateBuffer,
   validateInteger,
   validateInt32,
   validateUint32,
   validateString,
-  validateNumber
+  validateNumber,
+  validateSignalName
 };

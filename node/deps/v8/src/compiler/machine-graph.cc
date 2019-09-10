@@ -4,6 +4,7 @@
 
 #include "src/compiler/machine-graph.h"
 
+#include "src/codegen/external-reference.h"
 #include "src/compiler/node-properties.h"
 
 namespace v8 {
@@ -53,7 +54,7 @@ Node* MachineGraph::RelocatableInt64Constant(int64_t value,
 
 Node* MachineGraph::RelocatableIntPtrConstant(intptr_t value,
                                               RelocInfo::Mode rmode) {
-  return kPointerSize == 8
+  return kSystemPointerSize == 8
              ? RelocatableInt64Constant(value, rmode)
              : RelocatableInt32Constant(static_cast<int>(value), rmode);
 }

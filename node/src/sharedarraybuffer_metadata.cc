@@ -1,7 +1,12 @@
 #include "sharedarraybuffer_metadata.h"
-#include "base_object.h"
+
 #include "base_object-inl.h"
+#include "memory_tracker-inl.h"
 #include "node_errors.h"
+#include "node_worker.h"
+#include "util-inl.h"
+
+#include <utility>
 
 using v8::Context;
 using v8::Function;
@@ -43,7 +48,7 @@ class SABLifetimePartner : public BaseObject {
                      Local<Object> obj,
                      SharedArrayBufferMetadataReference r)
     : BaseObject(env, obj),
-      reference(r) {
+      reference(std::move(r)) {
     MakeWeak();
   }
 
@@ -75,7 +80,7 @@ SharedArrayBufferMetadata::ForSharedArrayBuffer(
     CHECK(source->IsExternal());
     SABLifetimePartner* partner =
         Unwrap<SABLifetimePartner>(lifetime_partner.As<Object>());
-    CHECK_NE(partner, nullptr);
+    CHECK_NOT_NULL(partner);
     return partner->reference;
   }
 
@@ -88,9 +93,16 @@ SharedArrayBufferMetadata::ForSharedArrayBuffer(
     return nullptr;
   }
 
+  // If the SharedArrayBuffer is coming from a Worker, we need to make sure
+  // that the corresponding ArrayBuffer::Allocator lives at least as long as
+  // the SharedArrayBuffer itself.
+  worker::Worker* w = env->worker_context();
+  std::shared_ptr<v8::ArrayBuffer::Allocator> allocator =
+      w != nullptr ? w->array_buffer_allocator() : nullptr;
+
   SharedArrayBuffer::Contents contents = source->Externalize();
-  SharedArrayBufferMetadataReference r(new SharedArrayBufferMetadata(
-      contents.Data(), contents.ByteLength()));
+  SharedArrayBufferMetadataReference r(
+      new SharedArrayBufferMetadata(contents, allocator));
   if (r->AssignToSharedArrayBuffer(env, context, source).IsNothing())
     return nullptr;
   return r;
@@ -111,17 +123,23 @@ Maybe<bool> SharedArrayBufferMetadata::AssignToSharedArrayBuffer(
                             obj);
 }
 
-SharedArrayBufferMetadata::SharedArrayBufferMetadata(void* data, size_t size)
-  : data(data), size(size) { }
+SharedArrayBufferMetadata::SharedArrayBufferMetadata(
+    const SharedArrayBuffer::Contents& contents,
+    std::shared_ptr<v8::ArrayBuffer::Allocator> allocator)
+  : contents_(contents), allocator_(allocator) { }
 
 SharedArrayBufferMetadata::~SharedArrayBufferMetadata() {
-  free(data);
+  contents_.Deleter()(contents_.Data(),
+                      contents_.ByteLength(),
+                      contents_.DeleterData());
 }
 
 MaybeLocal<SharedArrayBuffer> SharedArrayBufferMetadata::GetSharedArrayBuffer(
     Environment* env, Local<Context> context) {
   Local<SharedArrayBuffer> obj =
-      SharedArrayBuffer::New(env->isolate(), data, size);
+      SharedArrayBuffer::New(env->isolate(),
+                             contents_.Data(),
+                             contents_.ByteLength());
 
   if (AssignToSharedArrayBuffer(env, context, obj).IsNothing())
     return MaybeLocal<SharedArrayBuffer>();

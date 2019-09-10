@@ -15,8 +15,15 @@ void CloseCallback(uv_handle_t* handle) {}
 
 class ExampleOwnerClass {
  public:
-  virtual ~ExampleOwnerClass() {}
+  virtual ~ExampleOwnerClass();
 };
+
+// Do not inline this into the class, because that may remove the virtual
+// table when LTO is used, and with it the symbol for which we grep the process
+// output in test/abort/test-addon-uv-handle-leak.
+// When the destructor is not inlined, the compiler will have to assume that it,
+// and the vtable, is part of what this compilation unit exports, and keep them.
+ExampleOwnerClass::~ExampleOwnerClass() {}
 
 ExampleOwnerClass example_instance;
 
@@ -41,8 +48,7 @@ void LeakHandle(const FunctionCallbackInfo<Value>& args) {
   uv_unref(reinterpret_cast<uv_handle_t*>(leaked_timer));
 }
 
-void Initialize(v8::Local<v8::Object> exports) {
+// This module gets loaded multiple times in some tests so it must support that.
+NODE_MODULE_INIT(/*exports, module, context*/) {
   NODE_SET_METHOD(exports, "leakHandle", LeakHandle);
 }
-
-NODE_MODULE(NODE_GYP_MODULE_NAME, Initialize)

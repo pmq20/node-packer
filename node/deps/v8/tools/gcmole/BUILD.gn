@@ -20,9 +20,13 @@ group("v8_run_gcmole") {
     "../../include/",
     "../../src/",
     "../../test/cctest/",
+    "../../test/common/",
     "../../testing/gtest/include/gtest/gtest_prod.h",
     "../../third_party/googletest/src/googletest/include/gtest/gtest_prod.h",
     "../../third_party/icu/source/",
+    "../../third_party/wasm-api/wasm.h",
+    "../../third_party/wasm-api/wasm.hh",
+    "$target_gen_dir/../../",
     "$target_gen_dir/../../torque-generated/",
   ]
 

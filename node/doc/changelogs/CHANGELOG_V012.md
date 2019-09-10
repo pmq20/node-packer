@@ -33,6 +33,8 @@
 </table>
 
 * Other Versions
+  * [12.x](CHANGELOG_V12.md)
+  * [11.x](CHANGELOG_V11.md)
   * [10.x](CHANGELOG_V10.md)
   * [9.x](CHANGELOG_V9.md)
   * [8.x](CHANGELOG_V8.md)
@@ -129,7 +131,6 @@ This is a security release. All Node.js users should consult the security releas
 * [e75de35057] - deps: backport 3eb6764a from libuv upstream (Rod Vagg)
 * [a113e02f16] - deps: backport 3a9bfec from v8 upstream (Ben Noordhuis)
 * [8138055c88] - test: fix test failure due to expired certificates (Ben Noordhuis) https://github.com/nodejs/node/pull/7195
-
 
 <a id="0.12.14"></a>
 ## 2016-05-06, Version 0.12.14 (Maintenance), @rvagg

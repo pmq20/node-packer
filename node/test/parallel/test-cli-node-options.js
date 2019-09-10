@@ -2,8 +2,6 @@
 const common = require('../common');
 if (process.config.variables.node_without_node_options)
   common.skip('missing NODE_OPTIONS support');
-if (!common.isMainThread)
-  common.skip('process.chdir is not available in Workers');
 
 // Test options specified by env variable.
 
@@ -12,11 +10,17 @@ const exec = require('child_process').execFile;
 
 const tmpdir = require('../common/tmpdir');
 tmpdir.refresh();
-process.chdir(tmpdir.path);
 
 const printA = require.resolve('../fixtures/printA.js');
+const printSpaceA = require.resolve('../fixtures/print A.js');
+
+expect(` -r ${printA} `, 'A\nB\n');
 expect(`-r ${printA}`, 'A\nB\n');
+expect(`-r ${JSON.stringify(printA)}`, 'A\nB\n');
+expect(`-r ${JSON.stringify(printSpaceA)}`, 'A\nB\n');
 expect(`-r ${printA} -r ${printA}`, 'A\nB\n');
+expect(`   -r ${printA}    -r ${printA}`, 'A\nB\n');
+expect(`   --require ${printA}    --require ${printA}`, 'A\nB\n');
 expect('--no-deprecation', 'B\n');
 expect('--no-warnings', 'B\n');
 expect('--no_warnings', 'B\n');
@@ -35,14 +39,17 @@ expect('--trace-event-file-pattern {pid}-${rotation}.trace_events', 'B\n');
 // eslint-disable-next-line no-template-curly-in-string
 expect('--trace-event-file-pattern {pid}-${rotation}.trace_events ' +
        '--trace-event-categories node.async_hooks', 'B\n');
+expect('--unhandled-rejections=none', 'B\n');
 
 if (!common.isWindows) {
   expect('--perf-basic-prof', 'B\n');
+  expect('--perf-basic-prof-only-functions', 'B\n');
 }
 
 if (common.isLinux && ['arm', 'x64'].includes(process.arch)) {
   // PerfJitLogger is only implemented in Linux.
   expect('--perf-prof', 'B\n');
+  expect('--perf-prof-unwinding-info', 'B\n');
 }
 
 if (common.hasCrypto) {
@@ -58,10 +65,14 @@ expect('--stack-trace-limit=100',
        /(\s*at f \(\[eval\]:1:\d*\)\r?\n){100}/,
        '(function f() { f(); })();',
        true);
+// Unsupported on arm. See https://crbug.com/v8/8713.
+if (!['arm', 'arm64'].includes(process.arch))
+  expect('--interpreted-frames-native-stack', 'B\n');
 
 function expect(opt, want, command = 'console.log("B")', wantsError = false) {
   const argv = ['-e', command];
   const opts = {
+    cwd: tmpdir.path,
     env: Object.assign({}, process.env, { NODE_OPTIONS: opt }),
     maxBuffer: 1e6,
   };

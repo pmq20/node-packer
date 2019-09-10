@@ -44,7 +44,7 @@
                   "textRaw": "`hash` {string}",
                   "type": "string",
                   "name": "hash",
-                  "desc": "<p>Gets and sets the fragment portion of the URL.</p>\n<pre><code class=\"language-js\">const myURL = new URL('https://example.org/foo#bar');\nconsole.log(myURL.hash);\n// Prints #bar\n\nmyURL.hash = 'baz';\nconsole.log(myURL.href);\n// Prints https://example.org/foo#baz\n</code></pre>\n<p>Invalid URL characters included in the value assigned to the <code>hash</code> property\nare <a href=\"#whatwg-percent-encoding\">percent-encoded</a>. Note that the selection of which characters to\npercent-encode may vary somewhat from what the <a href=\"#url_url_parse_urlstring_parsequerystring_slashesdenotehost\"><code>url.parse()</code></a> and\n<a href=\"#url_url_format_urlobject\"><code>url.format()</code></a> methods would produce.</p>"
+                  "desc": "<p>Gets and sets the fragment portion of the URL.</p>\n<pre><code class=\"language-js\">const myURL = new URL('https://example.org/foo#bar');\nconsole.log(myURL.hash);\n// Prints #bar\n\nmyURL.hash = 'baz';\nconsole.log(myURL.href);\n// Prints https://example.org/foo#baz\n</code></pre>\n<p>Invalid URL characters included in the value assigned to the <code>hash</code> property\nare <a href=\"#whatwg-percent-encoding\">percent-encoded</a>. The selection of which characters to\npercent-encode may vary somewhat from what the <a href=\"#url_url_parse_urlstring_parsequerystring_slashesdenotehost\"><code>url.parse()</code></a> and\n<a href=\"#url_url_format_urlobject\"><code>url.format()</code></a> methods would produce.</p>"
                 },
                 {
                   "textRaw": "`host` {string}",
@@ -74,19 +74,19 @@
                   "textRaw": "`password` {string}",
                   "type": "string",
                   "name": "password",
-                  "desc": "<p>Gets and sets the password portion of the URL.</p>\n<pre><code class=\"language-js\">const myURL = new URL('https://abc:xyz@example.com');\nconsole.log(myURL.password);\n// Prints xyz\n\nmyURL.password = '123';\nconsole.log(myURL.href);\n// Prints https://abc:123@example.com\n</code></pre>\n<p>Invalid URL characters included in the value assigned to the <code>password</code> property\nare <a href=\"#whatwg-percent-encoding\">percent-encoded</a>. Note that the selection of which characters to\npercent-encode may vary somewhat from what the <a href=\"#url_url_parse_urlstring_parsequerystring_slashesdenotehost\"><code>url.parse()</code></a> and\n<a href=\"#url_url_format_urlobject\"><code>url.format()</code></a> methods would produce.</p>"
+                  "desc": "<p>Gets and sets the password portion of the URL.</p>\n<pre><code class=\"language-js\">const myURL = new URL('https://abc:xyz@example.com');\nconsole.log(myURL.password);\n// Prints xyz\n\nmyURL.password = '123';\nconsole.log(myURL.href);\n// Prints https://abc:123@example.com\n</code></pre>\n<p>Invalid URL characters included in the value assigned to the <code>password</code> property\nare <a href=\"#whatwg-percent-encoding\">percent-encoded</a>. The selection of which characters to\npercent-encode may vary somewhat from what the <a href=\"#url_url_parse_urlstring_parsequerystring_slashesdenotehost\"><code>url.parse()</code></a> and\n<a href=\"#url_url_format_urlobject\"><code>url.format()</code></a> methods would produce.</p>"
                 },
                 {
                   "textRaw": "`pathname` {string}",
                   "type": "string",
                   "name": "pathname",
-                  "desc": "<p>Gets and sets the path portion of the URL.</p>\n<pre><code class=\"language-js\">const myURL = new URL('https://example.org/abc/xyz?123');\nconsole.log(myURL.pathname);\n// Prints /abc/xyz\n\nmyURL.pathname = '/abcdef';\nconsole.log(myURL.href);\n// Prints https://example.org/abcdef?123\n</code></pre>\n<p>Invalid URL characters included in the value assigned to the <code>pathname</code>\nproperty are <a href=\"#whatwg-percent-encoding\">percent-encoded</a>. Note that the selection of which characters\nto percent-encode may vary somewhat from what the <a href=\"#url_url_parse_urlstring_parsequerystring_slashesdenotehost\"><code>url.parse()</code></a> and\n<a href=\"#url_url_format_urlobject\"><code>url.format()</code></a> methods would produce.</p>"
+                  "desc": "<p>Gets and sets the path portion of the URL.</p>\n<pre><code class=\"language-js\">const myURL = new URL('https://example.org/abc/xyz?123');\nconsole.log(myURL.pathname);\n// Prints /abc/xyz\n\nmyURL.pathname = '/abcdef';\nconsole.log(myURL.href);\n// Prints https://example.org/abcdef?123\n</code></pre>\n<p>Invalid URL characters included in the value assigned to the <code>pathname</code>\nproperty are <a href=\"#whatwg-percent-encoding\">percent-encoded</a>. The selection of which characters\nto percent-encode may vary somewhat from what the <a href=\"#url_url_parse_urlstring_parsequerystring_slashesdenotehost\"><code>url.parse()</code></a> and\n<a href=\"#url_url_format_urlobject\"><code>url.format()</code></a> methods would produce.</p>"
                 },
                 {
                   "textRaw": "`port` {string}",
                   "type": "string",
                   "name": "port",
-                  "desc": "<p>Gets and sets the port portion of the URL.</p>\n<p>The port value may be a number or a string containing a number in the range\n<code>0</code> to <code>65535</code> (inclusive). Setting the value to the default port of the\n<code>URL</code> objects given <code>protocol</code> will result in the <code>port</code> value becoming\nthe empty string (<code>''</code>).</p>\n<p>The port value can be an empty string in which case the port depends on\nthe protocol/scheme:</p>\n<table>\n<thead>\n<tr>\n<th align=\"left\">protocol</th>\n<th align=\"left\">port</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td align=\"left\">\"ftp\"</td>\n<td align=\"left\">21</td>\n</tr>\n<tr>\n<td align=\"left\">\"file\"</td>\n<td align=\"left\"></td>\n</tr>\n<tr>\n<td align=\"left\">\"gopher\"</td>\n<td align=\"left\">70</td>\n</tr>\n<tr>\n<td align=\"left\">\"http\"</td>\n<td align=\"left\">80</td>\n</tr>\n<tr>\n<td align=\"left\">\"https\"</td>\n<td align=\"left\">443</td>\n</tr>\n<tr>\n<td align=\"left\">\"ws\"</td>\n<td align=\"left\">80</td>\n</tr>\n<tr>\n<td align=\"left\">\"wss\"</td>\n<td align=\"left\">443</td>\n</tr>\n</tbody>\n</table>\n<p>Upon assigning a value to the port, the value will first be converted to a\nstring using <code>.toString()</code>.</p>\n<p>If that string is invalid but it begins with a number, the leading number is\nassigned to <code>port</code>.\nIf the number lies outside the range denoted above, it is ignored.</p>\n<pre><code class=\"language-js\">const myURL = new URL('https://example.org:8888');\nconsole.log(myURL.port);\n// Prints 8888\n\n// Default ports are automatically transformed to the empty string\n// (HTTPS protocol's default port is 443)\nmyURL.port = '443';\nconsole.log(myURL.port);\n// Prints the empty string\nconsole.log(myURL.href);\n// Prints https://example.org/\n\nmyURL.port = 1234;\nconsole.log(myURL.port);\n// Prints 1234\nconsole.log(myURL.href);\n// Prints https://example.org:1234/\n\n// Completely invalid port strings are ignored\nmyURL.port = 'abcd';\nconsole.log(myURL.port);\n// Prints 1234\n\n// Leading numbers are treated as a port number\nmyURL.port = '5678abcd';\nconsole.log(myURL.port);\n// Prints 5678\n\n// Non-integers are truncated\nmyURL.port = 1234.5678;\nconsole.log(myURL.port);\n// Prints 1234\n\n// Out-of-range numbers which are not represented in scientific notation\n// will be ignored.\nmyURL.port = 1e10; // 10000000000, will be range-checked as described below\nconsole.log(myURL.port);\n// Prints 1234\n</code></pre>\n<p>Note that numbers which contain a decimal point,\nsuch as floating-point numbers or numbers in scientific notation,\nare not an exception to this rule.\nLeading numbers up to the decimal point will be set as the URL's port,\nassuming they are valid:</p>\n<pre><code class=\"language-js\">myURL.port = 4.567e21;\nconsole.log(myURL.port);\n// Prints 4 (because it is the leading number in the string '4.567e21')\n</code></pre>"
+                  "desc": "<p>Gets and sets the port portion of the URL.</p>\n<p>The port value may be a number or a string containing a number in the range\n<code>0</code> to <code>65535</code> (inclusive). Setting the value to the default port of the\n<code>URL</code> objects given <code>protocol</code> will result in the <code>port</code> value becoming\nthe empty string (<code>''</code>).</p>\n<p>The port value can be an empty string in which case the port depends on\nthe protocol/scheme:</p>\n<table>\n<thead>\n<tr>\n<th align=\"left\">protocol</th>\n<th align=\"left\">port</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td align=\"left\">\"ftp\"</td>\n<td align=\"left\">21</td>\n</tr>\n<tr>\n<td align=\"left\">\"file\"</td>\n<td align=\"left\"></td>\n</tr>\n<tr>\n<td align=\"left\">\"gopher\"</td>\n<td align=\"left\">70</td>\n</tr>\n<tr>\n<td align=\"left\">\"http\"</td>\n<td align=\"left\">80</td>\n</tr>\n<tr>\n<td align=\"left\">\"https\"</td>\n<td align=\"left\">443</td>\n</tr>\n<tr>\n<td align=\"left\">\"ws\"</td>\n<td align=\"left\">80</td>\n</tr>\n<tr>\n<td align=\"left\">\"wss\"</td>\n<td align=\"left\">443</td>\n</tr>\n</tbody>\n</table>\n<p>Upon assigning a value to the port, the value will first be converted to a\nstring using <code>.toString()</code>.</p>\n<p>If that string is invalid but it begins with a number, the leading number is\nassigned to <code>port</code>.\nIf the number lies outside the range denoted above, it is ignored.</p>\n<pre><code class=\"language-js\">const myURL = new URL('https://example.org:8888');\nconsole.log(myURL.port);\n// Prints 8888\n\n// Default ports are automatically transformed to the empty string\n// (HTTPS protocol's default port is 443)\nmyURL.port = '443';\nconsole.log(myURL.port);\n// Prints the empty string\nconsole.log(myURL.href);\n// Prints https://example.org/\n\nmyURL.port = 1234;\nconsole.log(myURL.port);\n// Prints 1234\nconsole.log(myURL.href);\n// Prints https://example.org:1234/\n\n// Completely invalid port strings are ignored\nmyURL.port = 'abcd';\nconsole.log(myURL.port);\n// Prints 1234\n\n// Leading numbers are treated as a port number\nmyURL.port = '5678abcd';\nconsole.log(myURL.port);\n// Prints 5678\n\n// Non-integers are truncated\nmyURL.port = 1234.5678;\nconsole.log(myURL.port);\n// Prints 1234\n\n// Out-of-range numbers which are not represented in scientific notation\n// will be ignored.\nmyURL.port = 1e10; // 10000000000, will be range-checked as described below\nconsole.log(myURL.port);\n// Prints 1234\n</code></pre>\n<p>Numbers which contain a decimal point,\nsuch as floating-point numbers or numbers in scientific notation,\nare not an exception to this rule.\nLeading numbers up to the decimal point will be set as the URL's port,\nassuming they are valid:</p>\n<pre><code class=\"language-js\">myURL.port = 4.567e21;\nconsole.log(myURL.port);\n// Prints 4 (because it is the leading number in the string '4.567e21')\n</code></pre>"
                 },
                 {
                   "textRaw": "`protocol` {string}",
@@ -97,7 +97,7 @@
                     {
                       "textRaw": "Special Schemes",
                       "name": "special_schemes",
-                      "desc": "<p>The <a href=\"https://url.spec.whatwg.org/\">WHATWG URL Standard</a> considers a handful of URL protocol schemes to be\n<em>special</em> in terms of how they are parsed and serialized. When a URL is\nparsed using one of these special protocols, the <code>url.protocol</code> property\nmay be changed to another special protocol but cannot be changed to a\nnon-special protocol, and vice versa.</p>\n<p>For instance, changing from <code>http</code> to <code>https</code> works:</p>\n<pre><code class=\"language-js\">const u = new URL('http://example.org');\nu.protocol = 'https';\nconsole.log(u.href);\n// https://example.org\n</code></pre>\n<p>However, changing from <code>http</code> to a hypothetical <code>fish</code> protocol does not\nbecause the new protocol is not special.</p>\n<pre><code class=\"language-js\">const u = new URL('http://example.org');\nu.protocol = 'fish';\nconsole.log(u.href);\n// http://example.org\n</code></pre>\n<p>Likewise, changing from a non-special protocol to a special protocol is also\nnot permitted:</p>\n<pre><code class=\"language-js\">const u = new URL('fish://example.org');\nu.protocol = 'http';\nconsole.log(u.href);\n// fish://example.org\n</code></pre>\n<p>The protocol schemes considered to be special by the WHATWG URL Standard\ninclude: <code>ftp</code>, <code>file</code>, <code>gopher</code>, <code>http</code>, <code>https</code>, <code>ws</code>, and <code>wss</code>.</p>",
+                      "desc": "<p>The <a href=\"https://url.spec.whatwg.org/\">WHATWG URL Standard</a> considers a handful of URL protocol schemes to be\n<em>special</em> in terms of how they are parsed and serialized. When a URL is\nparsed using one of these special protocols, the <code>url.protocol</code> property\nmay be changed to another special protocol but cannot be changed to a\nnon-special protocol, and vice versa.</p>\n<p>For instance, changing from <code>http</code> to <code>https</code> works:</p>\n<pre><code class=\"language-js\">const u = new URL('http://example.org');\nu.protocol = 'https';\nconsole.log(u.href);\n// https://example.org\n</code></pre>\n<p>However, changing from <code>http</code> to a hypothetical <code>fish</code> protocol does not\nbecause the new protocol is not special.</p>\n<pre><code class=\"language-js\">const u = new URL('http://example.org');\nu.protocol = 'fish';\nconsole.log(u.href);\n// http://example.org\n</code></pre>\n<p>Likewise, changing from a non-special protocol to a special protocol is also\nnot permitted:</p>\n<pre><code class=\"language-js\">const u = new URL('fish://example.org');\nu.protocol = 'http';\nconsole.log(u.href);\n// fish://example.org\n</code></pre>\n<p>According to the WHATWG URL Standard, special protocol schemes are <code>ftp</code>,\n<code>file</code>, <code>gopher</code>, <code>http</code>, <code>https</code>, <code>ws</code>, and <code>wss</code>.</p>",
                       "type": "module",
                       "displayName": "Special Schemes"
                     }
@@ -107,7 +107,7 @@
                   "textRaw": "`search` {string}",
                   "type": "string",
                   "name": "search",
-                  "desc": "<p>Gets and sets the serialized query portion of the URL.</p>\n<pre><code class=\"language-js\">const myURL = new URL('https://example.org/abc?123');\nconsole.log(myURL.search);\n// Prints ?123\n\nmyURL.search = 'abc=xyz';\nconsole.log(myURL.href);\n// Prints https://example.org/abc?abc=xyz\n</code></pre>\n<p>Any invalid URL characters appearing in the value assigned the <code>search</code>\nproperty will be <a href=\"#whatwg-percent-encoding\">percent-encoded</a>. Note that the selection of which\ncharacters to percent-encode may vary somewhat from what the <a href=\"#url_url_parse_urlstring_parsequerystring_slashesdenotehost\"><code>url.parse()</code></a>\nand <a href=\"#url_url_format_urlobject\"><code>url.format()</code></a> methods would produce.</p>"
+                  "desc": "<p>Gets and sets the serialized query portion of the URL.</p>\n<pre><code class=\"language-js\">const myURL = new URL('https://example.org/abc?123');\nconsole.log(myURL.search);\n// Prints ?123\n\nmyURL.search = 'abc=xyz';\nconsole.log(myURL.href);\n// Prints https://example.org/abc?abc=xyz\n</code></pre>\n<p>Any invalid URL characters appearing in the value assigned the <code>search</code>\nproperty will be <a href=\"#whatwg-percent-encoding\">percent-encoded</a>. The selection of which\ncharacters to percent-encode may vary somewhat from what the <a href=\"#url_url_parse_urlstring_parsequerystring_slashesdenotehost\"><code>url.parse()</code></a>\nand <a href=\"#url_url_format_urlobject\"><code>url.format()</code></a> methods would produce.</p>"
                 },
                 {
                   "textRaw": "`searchParams` {URLSearchParams}",
@@ -119,7 +119,7 @@
                   "textRaw": "`username` {string}",
                   "type": "string",
                   "name": "username",
-                  "desc": "<p>Gets and sets the username portion of the URL.</p>\n<pre><code class=\"language-js\">const myURL = new URL('https://abc:xyz@example.com');\nconsole.log(myURL.username);\n// Prints abc\n\nmyURL.username = '123';\nconsole.log(myURL.href);\n// Prints https://123:xyz@example.com/\n</code></pre>\n<p>Any invalid URL characters appearing in the value assigned the <code>username</code>\nproperty will be <a href=\"#whatwg-percent-encoding\">percent-encoded</a>. Note that the selection of which\ncharacters to percent-encode may vary somewhat from what the <a href=\"#url_url_parse_urlstring_parsequerystring_slashesdenotehost\"><code>url.parse()</code></a>\nand <a href=\"#url_url_format_urlobject\"><code>url.format()</code></a> methods would produce.</p>"
+                  "desc": "<p>Gets and sets the username portion of the URL.</p>\n<pre><code class=\"language-js\">const myURL = new URL('https://abc:xyz@example.com');\nconsole.log(myURL.username);\n// Prints abc\n\nmyURL.username = '123';\nconsole.log(myURL.href);\n// Prints https://123:xyz@example.com/\n</code></pre>\n<p>Any invalid URL characters appearing in the value assigned the <code>username</code>\nproperty will be <a href=\"#whatwg-percent-encoding\">percent-encoded</a>. The selection of which\ncharacters to percent-encode may vary somewhat from what the <a href=\"#url_url_parse_urlstring_parsequerystring_slashesdenotehost\"><code>url.parse()</code></a>\nand <a href=\"#url_url_format_urlobject\"><code>url.format()</code></a> methods would produce.</p>"
                 }
               ],
               "methods": [
@@ -680,10 +680,21 @@
         {
           "textRaw": "Legacy URL API",
           "name": "legacy_url_api",
+          "stability": 0,
+          "stabilityText": "Deprecated: Use the WHATWG URL API instead.",
           "modules": [
             {
               "textRaw": "Legacy `urlObject`",
               "name": "legacy_`urlobject`",
+              "meta": {
+                "changes": [
+                  {
+                    "version": "v11.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/22715",
+                    "description": "The Legacy URL API is deprecated. Use the WHATWG URL API."
+                  }
+                ]
+              },
               "desc": "<p>The legacy <code>urlObject</code> (<code>require('url').Url</code>) is created and returned by the\n<code>url.parse()</code> function.</p>",
               "properties": [
                 {
@@ -762,6 +773,11 @@
                 ],
                 "changes": [
                   {
+                    "version": "v11.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/22715",
+                    "description": "The Legacy URL API is deprecated. Use the WHATWG URL API."
+                  },
+                  {
                     "version": "v7.0.0",
                     "pr-url": "https://github.com/nodejs/node/pull/7234",
                     "description": "URLs with a `file:` scheme will now always use the correct number of slashes regardless of `slashes` option. A false-y `slashes` option with no protocol is now also respected at all times."
@@ -791,6 +807,11 @@
                   "v0.1.25"
                 ],
                 "changes": [
+                  {
+                    "version": "v11.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/22715",
+                    "description": "The Legacy URL API is deprecated. Use the WHATWG URL API."
+                  },
                   {
                     "version": "v9.0.0",
                     "pr-url": "https://github.com/nodejs/node/pull/13606",
@@ -837,6 +858,11 @@
                   "v0.1.25"
                 ],
                 "changes": [
+                  {
+                    "version": "v11.0.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/22715",
+                    "description": "The Legacy URL API is deprecated. Use the WHATWG URL API."
+                  },
                   {
                     "version": "v6.6.0",
                     "pr-url": "https://github.com/nodejs/node/pull/8215",

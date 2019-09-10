@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Timers | Node.js v10.15.3 Documentation</title>
+  <title>Timers | Node.js v12.10.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -52,11 +52,13 @@
 <li><a href="os.html" class="nav-os">OS</a></li>
 <li><a href="path.html" class="nav-path">Path</a></li>
 <li><a href="perf_hooks.html" class="nav-perf_hooks">Performance Hooks</a></li>
+<li><a href="policy.html" class="nav-policy">Policies</a></li>
 <li><a href="process.html" class="nav-process">Process</a></li>
 <li><a href="punycode.html" class="nav-punycode">Punycode</a></li>
 <li><a href="querystring.html" class="nav-querystring">Query Strings</a></li>
 <li><a href="readline.html" class="nav-readline">Readline</a></li>
 <li><a href="repl.html" class="nav-repl">REPL</a></li>
+<li><a href="report.html" class="nav-report">Report</a></li>
 <li><a href="stream.html" class="nav-stream">Stream</a></li>
 <li><a href="string_decoder.html" class="nav-string_decoder">String Decoder</a></li>
 <li><a href="timers.html" class="nav-timers active">Timers</a></li>
@@ -69,7 +71,7 @@
 <li><a href="v8.html" class="nav-v8">V8</a></li>
 <li><a href="vm.html" class="nav-vm">VM</a></li>
 <li><a href="worker_threads.html" class="nav-worker_threads">Worker Threads</a></li>
-<li><a href="zlib.html" class="nav-zlib">ZLIB</a></li>
+<li><a href="zlib.html" class="nav-zlib">Zlib</a></li>
 </ul>
 <div class="line"></div>
 <ul>
@@ -79,7 +81,7 @@
 
     <div id="column1" data-id="timers" class="interior">
       <header>
-        <h1>Node.js v10.15.3 Documentation</h1>
+        <h1>Node.js v12.10.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -94,12 +96,13 @@
             
     <li class="version-picker">
       <a href="#">View another version <span>&#x25bc;</span></a>
-      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v11.x/api/timers.html">11.x</a></li>
+      <ol class="version-picker"><li><a href="https://nodejs.org/docs/latest-v12.x/api/timers.html">12.x</a></li>
+<li><a href="https://nodejs.org/docs/latest-v11.x/api/timers.html">11.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v10.x/api/timers.html">10.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v9.x/api/timers.html">9.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v8.x/api/timers.html">8.x <b>LTS</b></a></li>
 <li><a href="https://nodejs.org/docs/latest-v7.x/api/timers.html">7.x</a></li>
-<li><a href="https://nodejs.org/docs/latest-v6.x/api/timers.html">6.x <b>LTS</b></a></li>
+<li><a href="https://nodejs.org/docs/latest-v6.x/api/timers.html">6.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v5.x/api/timers.html">5.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v4.x/api/timers.html">4.x</a></li>
 <li><a href="https://nodejs.org/docs/latest-v0.12.x/api/timers.html">0.12.x</a></li>
@@ -121,6 +124,7 @@
 <li>
 <p><a href="#timers_class_immediate">Class: Immediate</a></p>
 <ul>
+<li><a href="#timers_immediate_hasref">immediate.hasRef()</a></li>
 <li><a href="#timers_immediate_ref">immediate.ref()</a></li>
 <li><a href="#timers_immediate_unref">immediate.unref()</a></li>
 </ul>
@@ -128,6 +132,7 @@
 <li>
 <p><a href="#timers_class_timeout">Class: Timeout</a></p>
 <ul>
+<li><a href="#timers_timeout_hasref">timeout.hasRef()</a></li>
 <li><a href="#timers_timeout_ref">timeout.ref()</a></li>
 <li><a href="#timers_timeout_refresh">timeout.refresh()</a></li>
 <li><a href="#timers_timeout_unref">timeout.unref()</a></li>
@@ -163,7 +168,7 @@ be called at some future period of time. Because the timer functions are
 globals, there is no need to call <code>require('timers')</code> to use the API.</p>
 <p>The timer functions within Node.js implement a similar API as the timers API
 provided by Web Browsers but use a different internal implementation that is
-built around <a href="https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick/">the Node.js Event Loop</a>.</p>
+built around the Node.js <a href="https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick/#setimmediate-vs-settimeout">Event Loop</a>.</p>
 <h2>Class: Immediate<span><a class="mark" href="#timers_class_immediate" id="timers_class_immediate">#</a></span></h2>
 <p>This object is created internally and is returned from <a href="timers.html#timers_setimmediate_callback_args"><code>setImmediate()</code></a>. It
 can be passed to <a href="timers.html#timers_clearimmediate_immediate"><code>clearImmediate()</code></a> in order to cancel the scheduled
@@ -172,6 +177,14 @@ actions.</p>
 running as long as the immediate is active. The <code>Immediate</code> object returned by
 <a href="timers.html#timers_setimmediate_callback_args"><code>setImmediate()</code></a> exports both <code>immediate.ref()</code> and <code>immediate.unref()</code>
 functions that can be used to control this default behavior.</p>
+<h3>immediate.hasRef()<span><a class="mark" href="#timers_immediate_hasref" id="timers_immediate_hasref">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v11.0.0</span>
+</div>
+<ul>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a></li>
+</ul>
+<p>If true, the <code>Immediate</code> object will keep the Node.js event loop active.</p>
 <h3>immediate.ref()<span><a class="mark" href="#timers_immediate_ref" id="timers_immediate_ref">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v9.7.0</span>
@@ -204,6 +217,14 @@ invoked. Calling <code>immediate.unref()</code> multiple times will have no effe
 timer is active. Each of the <code>Timeout</code> objects returned by these functions
 export both <code>timeout.ref()</code> and <code>timeout.unref()</code> functions that can be used to
 control this default behavior.</p>
+<h3>timeout.hasRef()<span><a class="mark" href="#timers_timeout_hasref" id="timers_timeout_hasref">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v11.0.0</span>
+</div>
+<ul>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a></li>
+</ul>
+<p>If true, the <code>Timeout</code> object will keep the Node.js event loop active.</p>
 <h3>timeout.ref()<span><a class="mark" href="#timers_timeout_ref" id="timers_timeout_ref">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.9.1</span>
@@ -253,7 +274,7 @@ event loop is doing.</p>
 </div>
 <ul>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> The function to call at the end of this turn of
-<a href="https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick/">the Node.js Event Loop</a></li>
+[the Node.js Event Loop]</li>
 <li><code>...args</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Data_types" class="type">&#x3C;any></a> Optional arguments to pass when the <code>callback</code> is called.</li>
 <li>Returns: <a href="timers.html#timers_class_immediate" class="type">&#x3C;Immediate></a> for use with <a href="timers.html#timers_clearimmediate_immediate"><code>clearImmediate()</code></a></li>
 </ul>
@@ -275,7 +296,7 @@ setImmediatePromise('foobar').then((value) => {
   // This is executed after all I/O callbacks.
 });
 
-// or with async function
+// Or with async function
 async function timerExample() {
   console.log('Before I/O callbacks');
   await setImmediatePromise();
@@ -296,7 +317,7 @@ timerExample();
 </ul>
 <p>Schedules repeated execution of <code>callback</code> every <code>delay</code> milliseconds.</p>
 <p>When <code>delay</code> is larger than <code>2147483647</code> or less than <code>1</code>, the <code>delay</code> will be
-set to <code>1</code>.</p>
+set to <code>1</code>. Non-integer delays are truncated to an integer.</p>
 <p>If <code>callback</code> is not a function, a <a href="errors.html#errors_class_typeerror"><code>TypeError</code></a> will be thrown.</p>
 <h3>setTimeout(callback, delay[, ...args])<span><a class="mark" href="#timers_settimeout_callback_delay_args" id="timers_settimeout_callback_delay_args">#</a></span></h3>
 <div class="api_metadata">
@@ -315,7 +336,7 @@ Node.js makes no guarantees about the exact timing of when callbacks will fire,
 nor of their ordering. The callback will be called as close as possible to the
 time specified.</p>
 <p>When <code>delay</code> is larger than <code>2147483647</code> or less than <code>1</code>, the <code>delay</code>
-will be set to <code>1</code>.</p>
+will be set to <code>1</code>. Non-integer delays are truncated to an integer.</p>
 <p>If <code>callback</code> is not a function, a <a href="errors.html#errors_class_typeerror"><code>TypeError</code></a> will be thrown.</p>
 <p>This method has a custom variant for promises that is available using
 <a href="util.html#util_util_promisify_original"><code>util.promisify()</code></a>:</p>

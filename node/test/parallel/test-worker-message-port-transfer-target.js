@@ -1,4 +1,3 @@
-// Flags: --experimental-worker
 'use strict';
 
 const common = require('../common');
@@ -11,8 +10,7 @@ const arrayBuf = new ArrayBuffer(10);
 
 common.expectWarning('Warning',
                      'The target port was posted to itself, and the ' +
-                     'communication channel was lost',
-                     common.noWarnCode);
+                     'communication channel was lost');
 port2.onmessage = common.mustNotCall();
 port2.postMessage(null, [port1, arrayBuf]);
 

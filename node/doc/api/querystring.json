@@ -5,11 +5,45 @@
     {
       "textRaw": "Query String",
       "name": "querystring",
-      "introduced_in": "v0.10.0",
+      "introduced_in": "v0.1.25",
       "stability": 2,
       "stabilityText": "Stable",
       "desc": "<p>The <code>querystring</code> module provides utilities for parsing and formatting URL\nquery strings. It can be accessed using:</p>\n<pre><code class=\"language-js\">const querystring = require('querystring');\n</code></pre>",
       "methods": [
+        {
+          "textRaw": "querystring.decode()",
+          "type": "method",
+          "name": "decode",
+          "meta": {
+            "added": [
+              "v0.1.99"
+            ],
+            "changes": []
+          },
+          "signatures": [
+            {
+              "params": []
+            }
+          ],
+          "desc": "<p>The <code>querystring.decode()</code> function is an alias for <code>querystring.parse()</code>.</p>"
+        },
+        {
+          "textRaw": "querystring.encode()",
+          "type": "method",
+          "name": "encode",
+          "meta": {
+            "added": [
+              "v0.1.99"
+            ],
+            "changes": []
+          },
+          "signatures": [
+            {
+              "params": []
+            }
+          ],
+          "desc": "<p>The <code>querystring.encode()</code> function is an alias for <code>querystring.stringify()</code>.</p>"
+        },
         {
           "textRaw": "querystring.escape(str)",
           "type": "method",
@@ -163,7 +197,7 @@
               ]
             }
           ],
-          "desc": "<p>The <code>querystring.stringify()</code> method produces a URL query string from a\ngiven <code>obj</code> by iterating through the object's \"own properties\".</p>\n<p>It serializes the following types of values passed in <code>obj</code>:\n<a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type\" class=\"type\">&lt;string&gt;</a> | <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number&gt;</a> | <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type\" class=\"type\">&lt;boolean&gt;</a> | <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type\" class=\"type\">&lt;string[]&gt;</a> | <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number[]&gt;</a> | <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type\" class=\"type\">&lt;boolean[]&gt;</a>\nAny other input values will be coerced to empty strings.</p>\n<pre><code class=\"language-js\">querystring.stringify({ foo: 'bar', baz: ['qux', 'quux'], corge: '' });\n// returns 'foo=bar&#x26;baz=qux&#x26;baz=quux&#x26;corge='\n\nquerystring.stringify({ foo: 'bar', baz: 'qux' }, ';', ':');\n// returns 'foo:bar;baz:qux'\n</code></pre>\n<p>By default, characters requiring percent-encoding within the query string will\nbe encoded as UTF-8. If an alternative encoding is required, then an alternative\n<code>encodeURIComponent</code> option will need to be specified:</p>\n<pre><code class=\"language-js\">// Assuming gbkEncodeURIComponent function already exists,\n\nquerystring.stringify({ w: '中文', foo: 'bar' }, null, null,\n                      { encodeURIComponent: gbkEncodeURIComponent });\n</code></pre>"
+          "desc": "<p>The <code>querystring.stringify()</code> method produces a URL query string from a\ngiven <code>obj</code> by iterating through the object's \"own properties\".</p>\n<p>It serializes the following types of values passed in <code>obj</code>:\n<a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type\" class=\"type\">&lt;string&gt;</a> | <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number&gt;</a> | <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type\" class=\"type\">&lt;boolean&gt;</a> | <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type\" class=\"type\">&lt;string[]&gt;</a> | <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number[]&gt;</a> | <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type\" class=\"type\">&lt;boolean[]&gt;</a>\nAny other input values will be coerced to empty strings.</p>\n<pre><code class=\"language-js\">querystring.stringify({ foo: 'bar', baz: ['qux', 'quux'], corge: '' });\n// Returns 'foo=bar&#x26;baz=qux&#x26;baz=quux&#x26;corge='\n\nquerystring.stringify({ foo: 'bar', baz: 'qux' }, ';', ':');\n// Returns 'foo:bar;baz:qux'\n</code></pre>\n<p>By default, characters requiring percent-encoding within the query string will\nbe encoded as UTF-8. If an alternative encoding is required, then an alternative\n<code>encodeURIComponent</code> option will need to be specified:</p>\n<pre><code class=\"language-js\">// Assuming gbkEncodeURIComponent function already exists,\n\nquerystring.stringify({ w: '中文', foo: 'bar' }, null, null,\n                      { encodeURIComponent: gbkEncodeURIComponent });\n</code></pre>"
         },
         {
           "textRaw": "querystring.unescape(str)",

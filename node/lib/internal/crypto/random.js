@@ -1,8 +1,10 @@
 'use strict';
 
+const { Math } = primordials;
+
 const { AsyncWrap, Providers } = internalBinding('async_wrap');
 const { Buffer, kMaxLength } = require('buffer');
-const { randomBytes: _randomBytes } = process.binding('crypto');
+const { randomBytes: _randomBytes } = internalBinding('crypto');
 const {
   ERR_INVALID_ARG_TYPE,
   ERR_INVALID_CALLBACK,
@@ -45,11 +47,11 @@ function assertSize(size, elementSize, offset, length) {
 function randomBytes(size, cb) {
   size = assertSize(size, 1, 0, Infinity);
   if (cb !== undefined && typeof cb !== 'function')
-    throw new ERR_INVALID_CALLBACK();
+    throw new ERR_INVALID_CALLBACK(cb);
 
   const buf = Buffer.alloc(size);
 
-  if (!cb) return handleError(buf, 0, size);
+  if (!cb) return handleError(_randomBytes(buf, 0, size), buf);
 
   const wrap = new AsyncWrap(Providers.RANDOMBYTESREQUEST);
   wrap.ondone = (ex) => {  // Retains buf while request is in flight.
@@ -75,7 +77,7 @@ function randomFillSync(buf, offset = 0, size) {
     size = assertSize(size, elementSize, offset, buf.byteLength);
   }
 
-  return handleError(buf, offset, size);
+  return handleError(_randomBytes(buf, offset, size), buf);
 }
 
 function randomFill(buf, offset, size, cb) {
@@ -93,7 +95,7 @@ function randomFill(buf, offset, size, cb) {
     cb = size;
     size = buf.byteLength - offset;
   } else if (typeof cb !== 'function') {
-    throw new ERR_INVALID_CALLBACK();
+    throw new ERR_INVALID_CALLBACK(cb);
   }
 
   offset = assertOffset(offset, elementSize, buf.byteLength);
@@ -113,8 +115,7 @@ function randomFill(buf, offset, size, cb) {
   _randomBytes(buf, offset, size, wrap);
 }
 
-function handleError(buf, offset, size) {
-  const ex = _randomBytes(buf, offset, size);
+function handleError(ex, buf) {
   if (ex) throw ex;
   return buf;
 }

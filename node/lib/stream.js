@@ -21,6 +21,8 @@
 
 'use strict';
 
+const { Object } = primordials;
+
 const { Buffer } = require('buffer');
 const pipeline = require('internal/streams/pipeline');
 const eos = require('internal/streams/end-of-stream');
@@ -43,12 +45,15 @@ Stream.Stream = Stream;
 
 // Internal utilities
 try {
-  const types = require('util').types;
+  const types = require('internal/util/types');
   if (types && typeof types.isUint8Array === 'function') {
     Stream._isUint8Array = types.isUint8Array;
   } else {
     // This throws for Node < 4.2.0 because there's no util binding and
     // returns undefined for Node < 7.4.0.
+    // Please do not convert process.binding() to internalBinding() here.
+    // This is for compatibility with older versions when loaded as
+    // readable-stream.
     Stream._isUint8Array = process.binding('util').isUint8Array;
   }
 } catch (e) { // eslint-disable-line no-unused-vars

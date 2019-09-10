@@ -5,7 +5,7 @@
 #ifndef V8_BUILTINS_BUILTINS_CONSTRUCTOR_GEN_H_
 #define V8_BUILTINS_BUILTINS_CONSTRUCTOR_GEN_H_
 
-#include "src/code-stub-assembler.h"
+#include "src/codegen/code-stub-assembler.h"
 
 namespace v8 {
 namespace internal {
@@ -35,10 +35,6 @@ class ConstructorBuiltinsAssembler : public CodeStubAssembler {
 
   Node* EmitFastNewObject(Node* context, Node* target, Node* new_target,
                           Label* call_runtime);
-
- private:
-  Node* NotHasBoilerplate(Node* literal_site);
-  Node* LoadAllocationSiteBoilerplate(Node* allocation_site);
 };
 
 }  // namespace internal

@@ -19,7 +19,7 @@ namespace compiler {
 
 namespace {
 
-Decision DecideCondition(Node* const cond) {
+Decision DecideCondition(JSHeapBroker* broker, Node* const cond) {
   switch (cond->opcode()) {
     case IrOpcode::kInt32Constant: {
       Int32Matcher mcond(cond);
@@ -27,7 +27,8 @@ Decision DecideCondition(Node* const cond) {
     }
     case IrOpcode::kHeapConstant: {
       HeapObjectMatcher mcond(cond);
-      return mcond.Value()->BooleanValue() ? Decision::kTrue : Decision::kFalse;
+      return mcond.Ref(broker).BooleanValue() ? Decision::kTrue
+                                              : Decision::kFalse;
     }
     default:
       return Decision::kUnknown;
@@ -37,11 +38,13 @@ Decision DecideCondition(Node* const cond) {
 }  // namespace
 
 CommonOperatorReducer::CommonOperatorReducer(Editor* editor, Graph* graph,
+                                             JSHeapBroker* broker,
                                              CommonOperatorBuilder* common,
                                              MachineOperatorBuilder* machine,
                                              Zone* temp_zone)
     : AdvancedReducer(editor),
       graph_(graph),
+      broker_(broker),
       common_(common),
       machine_(machine),
       dead_(graph->NewNode(common->Dead())),
@@ -50,6 +53,7 @@ CommonOperatorReducer::CommonOperatorReducer(Editor* editor, Graph* graph,
 }
 
 Reduction CommonOperatorReducer::Reduce(Node* node) {
+  DisallowHeapAccess no_heap_access;
   switch (node->opcode()) {
     case IrOpcode::kBranch:
       return ReduceBranch(node);
@@ -68,6 +72,8 @@ Reduction CommonOperatorReducer::Reduce(Node* node) {
       return ReduceSelect(node);
     case IrOpcode::kSwitch:
       return ReduceSwitch(node);
+    case IrOpcode::kStaticAssert:
+      return ReduceStaticAssert(node);
     default:
       break;
   }
@@ -85,8 +91,8 @@ Reduction CommonOperatorReducer::ReduceBranch(Node* node) {
   // not (i.e. true being returned in the false case and vice versa).
   if (cond->opcode() == IrOpcode::kBooleanNot ||
       (cond->opcode() == IrOpcode::kSelect &&
-       DecideCondition(cond->InputAt(1)) == Decision::kFalse &&
-       DecideCondition(cond->InputAt(2)) == Decision::kTrue)) {
+       DecideCondition(broker(), cond->InputAt(1)) == Decision::kFalse &&
+       DecideCondition(broker(), cond->InputAt(2)) == Decision::kTrue)) {
     for (Node* const use : node->uses()) {
       switch (use->opcode()) {
         case IrOpcode::kIfTrue:
@@ -108,7 +114,7 @@ Reduction CommonOperatorReducer::ReduceBranch(Node* node) {
         node, common()->Branch(NegateBranchHint(BranchHintOf(node->op()))));
     return Changed(node);
   }
-  Decision const decision = DecideCondition(cond);
+  Decision const decision = DecideCondition(broker(), cond);
   if (decision == Decision::kUnknown) return NoChange();
   Node* const control = node->InputAt(1);
   for (Node* const use : node->uses()) {
@@ -148,7 +154,7 @@ Reduction CommonOperatorReducer::ReduceDeoptimizeConditional(Node* node) {
             : common()->DeoptimizeUnless(p.kind(), p.reason(), p.feedback()));
     return Changed(node);
   }
-  Decision const decision = DecideCondition(condition);
+  Decision const decision = DecideCondition(broker(), condition);
   if (decision == Decision::kUnknown) return NoChange();
   if (condition_is_true == (decision == Decision::kTrue)) {
     ReplaceWithValue(node, dead(), effect, control);
@@ -381,7 +387,7 @@ Reduction CommonOperatorReducer::ReduceSelect(Node* node) {
   Node* const vtrue = node->InputAt(1);
   Node* const vfalse = node->InputAt(2);
   if (vtrue == vfalse) return Replace(vtrue);
-  switch (DecideCondition(cond)) {
+  switch (DecideCondition(broker(), cond)) {
     case Decision::kTrue:
       return Replace(vtrue);
     case Decision::kFalse:
@@ -453,6 +459,18 @@ Reduction CommonOperatorReducer::ReduceSwitch(Node* node) {
     return Replace(dead());
   }
   return NoChange();
+}
+
+Reduction CommonOperatorReducer::ReduceStaticAssert(Node* node) {
+  DCHECK_EQ(IrOpcode::kStaticAssert, node->opcode());
+  Node* const cond = node->InputAt(0);
+  Decision decision = DecideCondition(broker(), cond);
+  if (decision == Decision::kTrue) {
+    RelaxEffectsAndControls(node);
+    return Changed(node);
+  } else {
+    return NoChange();
+  }
 }
 
 Reduction CommonOperatorReducer::Change(Node* node, Operator const* op,

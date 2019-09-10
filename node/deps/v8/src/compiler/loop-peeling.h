@@ -6,8 +6,8 @@
 #define V8_COMPILER_LOOP_PEELING_H_
 
 #include "src/base/compiler-specific.h"
+#include "src/common/globals.h"
 #include "src/compiler/loop-analysis.h"
-#include "src/globals.h"
 
 namespace v8 {
 namespace internal {
@@ -26,7 +26,7 @@ class V8_EXPORT_PRIVATE PeeledIteration : public NON_EXPORTED_BASE(ZoneObject) {
   Node* map(Node* node);
 
  protected:
-  PeeledIteration() {}
+  PeeledIteration() = default;
 };
 
 class CommonOperatorBuilder;

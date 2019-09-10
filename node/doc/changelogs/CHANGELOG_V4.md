@@ -57,6 +57,8 @@
 </table>
 
 * Other Versions
+  * [12.x](CHANGELOG_V12.md)
+  * [11.x](CHANGELOG_V11.md)
   * [10.x](CHANGELOG_V10.md)
   * [9.x](CHANGELOG_V9.md)
   * [8.x](CHANGELOG_V8.md)
@@ -67,7 +69,6 @@
   * [0.10.x](CHANGELOG_V010.md)
   * [io.js](CHANGELOG_IOJS.md)
   * [Archive](CHANGELOG_ARCHIVE.md)
-
 
 *Note*: Node.js v4 is covered by the
 [Node.js Long Term Support Plan](https://github.com/nodejs/LTS) and
@@ -243,7 +244,6 @@ This is a security release. All Node.js users should consult the security releas
 * [[`80fe2662e4`](https://github.com/nodejs/node/commit/80fe2662e4)] - **deps**: cherry-pick 9478908a49 from cares upstream (David Drysdale) [nodejs/node-private#88](https://github.com/nodejs/node-private/pull/88)
 * [[`d6969a717f`](https://github.com/nodejs/node/commit/d6969a717f)] - **http**: use Buffer.from to avoid Buffer(num) call (Сковорода Никита Андреевич) [nodejs/node-private#83](https://github.com/nodejs/node-private/pull/83)
 * [[`58a8f150e5`](https://github.com/nodejs/node/commit/58a8f150e5)] - **test**: verify hash seed uniqueness (Ali Ijaz Sheikh) [nodejs/node-private#84](https://github.com/nodejs/node-private/pull/84)
-
 
 <a id="4.8.3"></a>
 ## 2017-05-02, Version 4.8.3 'Argon' (Maintenance), @MylesBorins
@@ -1271,7 +1271,7 @@ Semver Patch:
 * [[`3ff82deb2c`](https://github.com/nodejs/node/commit/3ff82deb2c)] - **lib**: make tls.checkServerIdentity() more strict (Ben Noordhuis) [nodejs/node-private#63](https://github.com/nodejs/node-private/pull/63)
 * [[`7c696e201a`](https://github.com/nodejs/node/commit/7c696e201a)] - **openssl**: fix keypress requirement in apps on win32 (Shigeki Ohtsu) [nodejs/node#1389](https://github.com/nodejs/node/pull/1389)
 * [[`44e5776c0f`](https://github.com/nodejs/node/commit/44e5776c0f)] - **openssl**: fix keypress requirement in apps on win32 (Shigeki Ohtsu) [nodejs/node#1389](https://github.com/nodejs/node/pull/1389)
-* [[`c7a601c090`](https://github.com/nodejs/node/commit/c7a601c090)] - **test**: remove openssl options of -no_<prot> (Shigeki Ohtsu) [#8714](https://github.com/nodejs/node/pull/8714)
+* [[`c7a601c090`](https://github.com/nodejs/node/commit/c7a601c090)] - **test**: remove openssl options of -no_\<prot> (Shigeki Ohtsu) [#8714](https://github.com/nodejs/node/pull/8714)
 
 <a id="4.5.0"></a>
 ## 2016-08-15, Version 4.5.0 'Argon' (LTS), @thealphanerd
@@ -1281,8 +1281,8 @@ Semver Patch:
 Semver Minor:
 
 * **buffer**:
- * backport new buffer constructor APIs to v4.x (Сковорода Никита Андреевич) [#7562](https://github.com/nodejs/node/pull/7562)
- * backport --zero-fill-buffers cli option (James M Snell) [#5745](https://github.com/nodejs/node/pull/5745)
+  * backport new buffer constructor APIs to v4.x (Сковорода Никита Андреевич) [#7562](https://github.com/nodejs/node/pull/7562)
+  * backport --zero-fill-buffers cli option (James M Snell) [#5745](https://github.com/nodejs/node/pull/5745)
 * **build**:
   * add Intel Vtune profiling support (Chunyang Dai) [#5527](https://github.com/nodejs/node/pull/5527)
 * **repl**:
@@ -3047,7 +3047,6 @@ See https://github.com/nodejs/node/labels/confirmed-bug for complete and current
 * `url.resolve` may transfer the auth portion of the url when resolving between two full hosts, see [#1435](https://github.com/nodejs/node/issues/1435).
 
 ### Commits
-
 
 * [[`8383c4fe00`](https://github.com/nodejs/node/commit/8383c4fe00)] - **assert**: support arrow functions in .throws() (Ben Noordhuis) [#3276](https://github.com/nodejs/node/pull/3276)
 * [[`3eaa593a32`](https://github.com/nodejs/node/commit/3eaa593a32)] - **async_wrap**: correctly pass parent to init callback (Trevor Norris) [#3216](https://github.com/nodejs/node/pull/3216)

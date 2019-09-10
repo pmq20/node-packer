@@ -4,12 +4,15 @@
 
 #include "src/runtime/runtime-utils.h"
 
-#include "src/arguments.h"
-#include "src/elements.h"
+#include "src/execution/arguments-inl.h"
+#include "src/execution/isolate-inl.h"
 #include "src/heap/factory.h"
-#include "src/isolate-inl.h"
-#include "src/keys.h"
-#include "src/objects-inl.h"
+#include "src/heap/heap-inl.h"  // For ToBoolean. TODO(jkummerow): Drop.
+#include "src/logging/counters.h"
+#include "src/objects/elements.h"
+#include "src/objects/keys.h"
+#include "src/objects/module.h"
+#include "src/objects/objects-inl.h"
 
 namespace v8 {
 namespace internal {
@@ -20,8 +23,8 @@ namespace {
 // that contains all enumerable properties of the {receiver} and its prototypes
 // have none, the map of the {receiver}. This is used to speed up the check for
 // deletions during a for-in.
-MaybeHandle<HeapObject> Enumerate(Handle<JSReceiver> receiver) {
-  Isolate* const isolate = receiver->GetIsolate();
+MaybeHandle<HeapObject> Enumerate(Isolate* isolate,
+                                  Handle<JSReceiver> receiver) {
   JSObject::MakePrototypesFast(receiver, kStartAtReceiver, isolate);
   FastKeyAccumulator accumulator(isolate, receiver,
                                  KeyCollectionMode::kIncludePrototypes,
@@ -114,7 +117,7 @@ RUNTIME_FUNCTION(Runtime_ForInEnumerate) {
   HandleScope scope(isolate);
   DCHECK_EQ(1, args.length());
   CONVERT_ARG_HANDLE_CHECKED(JSReceiver, receiver, 0);
-  RETURN_RESULT_OR_FAILURE(isolate, Enumerate(receiver));
+  RETURN_RESULT_OR_FAILURE(isolate, Enumerate(isolate, receiver));
 }
 
 

@@ -5,36 +5,201 @@
 #ifndef V8_OBJECTS_SHARED_FUNCTION_INFO_H_
 #define V8_OBJECTS_SHARED_FUNCTION_INFO_H_
 
-#include "src/bailout-reason.h"
-#include "src/objects.h"
+#include "src/codegen/bailout-reason.h"
+#include "src/objects/compressed-slots.h"
+#include "src/objects/function-kind.h"
+#include "src/objects/objects.h"
 #include "src/objects/script.h"
+#include "src/objects/slots.h"
+#include "src/objects/smi.h"
+#include "src/objects/struct.h"
+#include "testing/gtest/include/gtest/gtest_prod.h"
+#include "torque-generated/field-offsets-tq.h"
 
 // Has to be the last include (doesn't have include guards):
 #include "src/objects/object-macros.h"
 
 namespace v8 {
+
+namespace tracing {
+class TracedValue;
+}
+
 namespace internal {
 
+class AsmWasmData;
 class BytecodeArray;
 class CoverageInfo;
 class DebugInfo;
+class IsCompiledScope;
+class WasmCapiFunctionData;
 class WasmExportedFunctionData;
+class WasmJSFunctionData;
 
-class PreParsedScopeData : public Struct {
+// Data collected by the pre-parser storing information about scopes and inner
+// functions.
+//
+// PreparseData Layout:
+// +-------------------------------+
+// | data_length | children_length |
+// +-------------------------------+
+// | Scope Byte Data ...           |
+// | ...                           |
+// +-------------------------------+
+// | [Padding]                     |
+// +-------------------------------+
+// | Inner PreparseData 1          |
+// +-------------------------------+
+// | ...                           |
+// +-------------------------------+
+// | Inner PreparseData N          |
+// +-------------------------------+
+class PreparseData : public HeapObject {
  public:
-  DECL_ACCESSORS(scope_data, PodArray<uint8_t>)
-  DECL_ACCESSORS(child_data, FixedArray)
+  DECL_INT_ACCESSORS(data_length)
+  DECL_INT_ACCESSORS(children_length)
 
-  static const int kScopeDataOffset = Struct::kHeaderSize;
-  static const int kChildDataOffset = kScopeDataOffset + kPointerSize;
-  static const int kSize = kChildDataOffset + kPointerSize;
+  inline int inner_start_offset() const;
+  inline ObjectSlot inner_data_start() const;
 
-  DECL_CAST(PreParsedScopeData)
-  DECL_PRINTER(PreParsedScopeData)
-  DECL_VERIFIER(PreParsedScopeData)
+  inline byte get(int index) const;
+  inline void set(int index, byte value);
+  inline void copy_in(int index, const byte* buffer, int length);
+
+  inline PreparseData get_child(int index) const;
+  inline void set_child(int index, PreparseData value,
+                        WriteBarrierMode mode = UPDATE_WRITE_BARRIER);
+
+  // Clear uninitialized padding space.
+  inline void clear_padding();
+
+  DECL_CAST(PreparseData)
+  DECL_PRINTER(PreparseData)
+  DECL_VERIFIER(PreparseData)
+
+  DEFINE_FIELD_OFFSET_CONSTANTS(HeapObject::kHeaderSize,
+                                TORQUE_GENERATED_PREPARSE_DATA_FIELDS)
+  static const int kDataStartOffset = kSize;
+
+  class BodyDescriptor;
+
+  static int InnerOffset(int data_length) {
+    return RoundUp(kDataStartOffset + data_length * kByteSize, kTaggedSize);
+  }
+
+  static int SizeFor(int data_length, int children_length) {
+    return InnerOffset(data_length) + children_length * kTaggedSize;
+  }
+
+  OBJECT_CONSTRUCTORS(PreparseData, HeapObject);
 
  private:
-  DISALLOW_IMPLICIT_CONSTRUCTORS(PreParsedScopeData);
+  inline Object get_child_raw(int index) const;
+};
+
+// Abstract class representing extra data for an uncompiled function, which is
+// not stored in the SharedFunctionInfo.
+class UncompiledData : public HeapObject {
+ public:
+  DECL_ACCESSORS(inferred_name, String)
+  DECL_INT32_ACCESSORS(start_position)
+  DECL_INT32_ACCESSORS(end_position)
+  DECL_INT32_ACCESSORS(function_literal_id)
+
+  // Returns true if the UncompiledData contains a valid function_literal_id.
+  inline bool has_function_literal_id();
+
+  DECL_CAST(UncompiledData)
+
+  inline static void Initialize(
+      UncompiledData data, String inferred_name, int start_position,
+      int end_position, int function_literal_id,
+      std::function<void(HeapObject object, ObjectSlot slot, HeapObject target)>
+          gc_notify_updated_slot =
+              [](HeapObject object, ObjectSlot slot, HeapObject target) {});
+
+  // Layout description.
+#define UNCOMPILED_DATA_FIELDS(V)                                         \
+  V(kStartOfStrongFieldsOffset, 0)                                        \
+  V(kInferredNameOffset, kTaggedSize)                                     \
+  V(kEndOfStrongFieldsOffset, 0)                                          \
+  /* Raw data fields. */                                                  \
+  V(kStartPositionOffset, kInt32Size)                                     \
+  V(kEndPositionOffset, kInt32Size)                                       \
+  V(kFunctionLiteralIdOffset, kInt32Size)                                 \
+  V(kOptionalPaddingOffset, POINTER_SIZE_PADDING(kOptionalPaddingOffset)) \
+  /* Header size. */                                                      \
+  V(kSize, 0)
+
+  DEFINE_FIELD_OFFSET_CONSTANTS(HeapObject::kHeaderSize, UNCOMPILED_DATA_FIELDS)
+#undef UNCOMPILED_DATA_FIELDS
+
+  using BodyDescriptor = FixedBodyDescriptor<kStartOfStrongFieldsOffset,
+                                             kEndOfStrongFieldsOffset, kSize>;
+
+  // Clear uninitialized padding space.
+  inline void clear_padding();
+
+  OBJECT_CONSTRUCTORS(UncompiledData, HeapObject);
+};
+
+// Class representing data for an uncompiled function that does not have any
+// data from the pre-parser, either because it's a leaf function or because the
+// pre-parser bailed out.
+class UncompiledDataWithoutPreparseData : public UncompiledData {
+ public:
+  DECL_CAST(UncompiledDataWithoutPreparseData)
+  DECL_PRINTER(UncompiledDataWithoutPreparseData)
+  DECL_VERIFIER(UncompiledDataWithoutPreparseData)
+
+  static const int kSize = UncompiledData::kSize;
+
+  // No extra fields compared to UncompiledData.
+  using BodyDescriptor = UncompiledData::BodyDescriptor;
+
+  OBJECT_CONSTRUCTORS(UncompiledDataWithoutPreparseData, UncompiledData);
+};
+
+// Class representing data for an uncompiled function that has pre-parsed scope
+// data.
+class UncompiledDataWithPreparseData : public UncompiledData {
+ public:
+  DECL_ACCESSORS(preparse_data, PreparseData)
+
+  DECL_CAST(UncompiledDataWithPreparseData)
+  DECL_PRINTER(UncompiledDataWithPreparseData)
+  DECL_VERIFIER(UncompiledDataWithPreparseData)
+
+  inline static void Initialize(
+      UncompiledDataWithPreparseData data, String inferred_name,
+      int start_position, int end_position, int function_literal_id,
+      PreparseData scope_data,
+      std::function<void(HeapObject object, ObjectSlot slot, HeapObject target)>
+          gc_notify_updated_slot =
+              [](HeapObject object, ObjectSlot slot, HeapObject target) {});
+
+  // Layout description.
+
+#define UNCOMPILED_DATA_WITH_PREPARSE_DATA_FIELDS(V) \
+  V(kStartOfStrongFieldsOffset, 0)                   \
+  V(kPreparseDataOffset, kTaggedSize)                \
+  V(kEndOfStrongFieldsOffset, 0)                     \
+  /* Total size. */                                  \
+  V(kSize, 0)
+
+  DEFINE_FIELD_OFFSET_CONSTANTS(UncompiledData::kSize,
+                                UNCOMPILED_DATA_WITH_PREPARSE_DATA_FIELDS)
+#undef UNCOMPILED_DATA_WITH_PREPARSE_DATA_FIELDS
+
+  // Make sure the size is aligned
+  STATIC_ASSERT(IsAligned(kSize, kTaggedSize));
+
+  using BodyDescriptor = SubclassBodyDescriptor<
+      UncompiledData::BodyDescriptor,
+      FixedBodyDescriptor<kStartOfStrongFieldsOffset, kEndOfStrongFieldsOffset,
+                          kSize>>;
+
+  OBJECT_CONSTRUCTORS(UncompiledDataWithPreparseData, UncompiledData);
 };
 
 class InterpreterData : public Struct {
@@ -42,35 +207,35 @@ class InterpreterData : public Struct {
   DECL_ACCESSORS(bytecode_array, BytecodeArray)
   DECL_ACCESSORS(interpreter_trampoline, Code)
 
-  static const int kBytecodeArrayOffset = Struct::kHeaderSize;
-  static const int kInterpreterTrampolineOffset =
-      kBytecodeArrayOffset + kPointerSize;
-  static const int kSize = kInterpreterTrampolineOffset + kPointerSize;
+  DEFINE_FIELD_OFFSET_CONSTANTS(Struct::kHeaderSize,
+                                TORQUE_GENERATED_INTERPRETER_DATA_FIELDS)
 
   DECL_CAST(InterpreterData)
   DECL_PRINTER(InterpreterData)
   DECL_VERIFIER(InterpreterData)
 
- private:
-  DISALLOW_IMPLICIT_CONSTRUCTORS(InterpreterData);
+  OBJECT_CONSTRUCTORS(InterpreterData, Struct);
 };
 
 // SharedFunctionInfo describes the JSFunction information that can be
 // shared by multiple instances of the function.
 class SharedFunctionInfo : public HeapObject {
  public:
-  static constexpr Object* const kNoSharedNameSentinel = Smi::kZero;
+  NEVER_READ_ONLY_SPACE
+
+  V8_EXPORT_PRIVATE static constexpr Object const kNoSharedNameSentinel =
+      Smi::kZero;
 
   // [name]: Returns shared name if it exists or an empty string otherwise.
-  inline String* Name() const;
-  inline void SetName(String* name);
+  inline String Name() const;
+  inline void SetName(String name);
 
   // Get the code object which represents the execution of this function.
-  inline Code* GetCode() const;
+  V8_EXPORT_PRIVATE Code GetCode() const;
 
   // Get the abstract code associated with the function, which will either be
   // a Code object or a BytecodeArray.
-  inline AbstractCode* abstract_code();
+  inline AbstractCode abstract_code();
 
   // Tells whether or not this shared function info is interpreted.
   //
@@ -83,7 +248,7 @@ class SharedFunctionInfo : public HeapObject {
   // function info is added to the list on the script.
   V8_EXPORT_PRIVATE static void SetScript(
       Handle<SharedFunctionInfo> shared, Handle<Object> script_object,
-      bool reset_preparsed_scope_data = true);
+      int function_literal_id, bool reset_preparsed_scope_data = true);
 
   // Layout description of the optimized code map.
   static const int kEntriesStart = 0;
@@ -93,24 +258,19 @@ class SharedFunctionInfo : public HeapObject {
   static const int kInitialLength = kEntriesStart + kEntryLength;
 
   static const int kNotFound = -1;
-  static const int kInvalidLength = -1;
-
-  // Helpers for assembly code that does a backwards walk of the optimized code
-  // map.
-  static const int kOffsetToPreviousContext =
-      FixedArray::kHeaderSize + kPointerSize * (kContextOffset - kEntryLength);
-  static const int kOffsetToPreviousCachedCode =
-      FixedArray::kHeaderSize +
-      kPointerSize * (kCachedCodeOffset - kEntryLength);
 
   // [scope_info]: Scope info.
   DECL_ACCESSORS(scope_info, ScopeInfo)
 
   // End position of this function in the script source.
-  inline int EndPosition() const;
+  V8_EXPORT_PRIVATE int EndPosition() const;
 
   // Start position of this function in the script source.
-  inline int StartPosition() const;
+  V8_EXPORT_PRIVATE int StartPosition() const;
+
+  // Set the start and end position of this function in the script source.
+  // Updates the scope info if available.
+  V8_EXPORT_PRIVATE void SetPosition(int start_position, int end_position);
 
   // [outer scope info | feedback metadata] Shared storage for outer scope info
   // (on uncompiled functions) and feedback metadata (on compiled functions).
@@ -118,27 +278,35 @@ class SharedFunctionInfo : public HeapObject {
 
   // Get the outer scope info whether this function is compiled or not.
   inline bool HasOuterScopeInfo() const;
-  inline ScopeInfo* GetOuterScopeInfo() const;
+  inline ScopeInfo GetOuterScopeInfo() const;
 
   // [feedback metadata] Metadata template for feedback vectors of instances of
   // this function.
   inline bool HasFeedbackMetadata() const;
   DECL_ACCESSORS(feedback_metadata, FeedbackMetadata)
 
-  // Returns if this function has been compiled to native code yet.
+  // Returns if this function has been compiled yet. Note: with bytecode
+  // flushing, any GC after this call is made could cause the function
+  // to become uncompiled. If you need to ensure the function remains compiled
+  // for some period of time, use IsCompiledScope instead.
   inline bool is_compiled() const;
 
+  // Returns an IsCompiledScope which reports whether the function is compiled,
+  // and if compiled, will avoid the function becoming uncompiled while it is
+  // held.
+  inline IsCompiledScope is_compiled_scope() const;
+
   // [length]: The function length - usually the number of declared parameters.
-  // Use up to 2^30 parameters. The value is only reliable when the function has
-  // been compiled.
-  inline int GetLength() const;
-  inline bool HasLength() const;
+  // Use up to 2^16-2 parameters (16 bits of values, where one is reserved for
+  // kDontAdaptArgumentsSentinel). The value is only reliable when the function
+  // has been compiled.
+  inline uint16_t length() const;
   inline void set_length(int value);
 
   // [internal formal parameter count]: The declared number of parameters.
   // For subclass constructors, also includes new.target.
   // The size of function's frame is internal_formal_parameter_count + 1.
-  DECL_INT_ACCESSORS(internal_formal_parameter_count)
+  DECL_UINT16_ACCESSORS(internal_formal_parameter_count)
 
   // Set the formal parameter count so the function code will be
   // called without using argument adaptor frames.
@@ -146,12 +314,7 @@ class SharedFunctionInfo : public HeapObject {
 
   // [expected_nof_properties]: Expected number of properties for the
   // function. The value is only reliable when the function has been compiled.
-  DECL_INT_ACCESSORS(expected_nof_properties)
-
-  // [function_literal_id] - uniquely identifies the FunctionLiteral this
-  // SharedFunctionInfo represents within its script, or -1 if this
-  // SharedFunctionInfo object doesn't correspond to a parsed FunctionLiteral.
-  DECL_INT_ACCESSORS(function_literal_id)
+  DECL_UINT16_ACCESSORS(expected_nof_properties)
 
 #if V8_SFI_HAS_UNIQUE_ID
   // [unique_id] - For --trace-maps purposes, an identifier that's persistent
@@ -165,148 +328,110 @@ class SharedFunctionInfo : public HeapObject {
   //  - a BytecodeArray for the interpreter [HasBytecodeArray()].
   //  - a InterpreterData with the BytecodeArray and a copy of the
   //    interpreter trampoline [HasInterpreterData()]
-  //  - a FixedArray with Asm->Wasm conversion [HasAsmWasmData()].
+  //  - an AsmWasmData with Asm->Wasm conversion [HasAsmWasmData()].
   //  - a Smi containing the builtin id [HasBuiltinId()]
-  //  - a PreParsedScopeData for the parser [HasPreParsedScopeData()]
+  //  - a UncompiledDataWithoutPreparseData for lazy compilation
+  //    [HasUncompiledDataWithoutPreparseData()]
+  //  - a UncompiledDataWithPreparseData for lazy compilation
+  //    [HasUncompiledDataWithPreparseData()]
   //  - a WasmExportedFunctionData for Wasm [HasWasmExportedFunctionData()]
   DECL_ACCESSORS(function_data, Object)
 
   inline bool IsApiFunction() const;
-  inline FunctionTemplateInfo* get_api_func_data();
-  inline void set_api_func_data(FunctionTemplateInfo* data);
+  inline bool is_class_constructor() const;
+  inline FunctionTemplateInfo get_api_func_data();
+  inline void set_api_func_data(FunctionTemplateInfo data);
   inline bool HasBytecodeArray() const;
-  inline BytecodeArray* GetBytecodeArray() const;
-  inline void set_bytecode_array(class BytecodeArray* bytecode);
-  inline Code* InterpreterTrampoline() const;
+  inline BytecodeArray GetBytecodeArray() const;
+  inline void set_bytecode_array(BytecodeArray bytecode);
+  inline Code InterpreterTrampoline() const;
   inline bool HasInterpreterData() const;
-  inline InterpreterData* interpreter_data() const;
-  inline void set_interpreter_data(InterpreterData* interpreter_data);
+  inline InterpreterData interpreter_data() const;
+  inline void set_interpreter_data(InterpreterData interpreter_data);
+  inline BytecodeArray GetDebugBytecodeArray() const;
+  inline void SetDebugBytecodeArray(BytecodeArray bytecode);
   inline bool HasAsmWasmData() const;
-  inline FixedArray* asm_wasm_data() const;
-  inline void set_asm_wasm_data(FixedArray* data);
-  // A brief note to clear up possible confusion:
-  // builtin_id corresponds to the auto-generated
-  // Builtins::Name id, while builtin_function_id corresponds to
-  // BuiltinFunctionId (a manually maintained list of 'interesting' functions
-  // mainly used during optimization).
+  inline AsmWasmData asm_wasm_data() const;
+  inline void set_asm_wasm_data(AsmWasmData data);
+
+  // builtin_id corresponds to the auto-generated Builtins::Name id.
   inline bool HasBuiltinId() const;
   inline int builtin_id() const;
   inline void set_builtin_id(int builtin_id);
-  inline bool HasPreParsedScopeData() const;
-  inline PreParsedScopeData* preparsed_scope_data() const;
-  inline void set_preparsed_scope_data(PreParsedScopeData* data);
-  inline void ClearPreParsedScopeData();
+  inline bool HasUncompiledData() const;
+  inline UncompiledData uncompiled_data() const;
+  inline void set_uncompiled_data(UncompiledData data);
+  inline bool HasUncompiledDataWithPreparseData() const;
+  inline UncompiledDataWithPreparseData uncompiled_data_with_preparse_data()
+      const;
+  inline void set_uncompiled_data_with_preparse_data(
+      UncompiledDataWithPreparseData data);
+  inline bool HasUncompiledDataWithoutPreparseData() const;
   inline bool HasWasmExportedFunctionData() const;
-  inline WasmExportedFunctionData* wasm_exported_function_data() const;
-  inline void set_wasm_exported_function_data(WasmExportedFunctionData* data);
+  WasmExportedFunctionData wasm_exported_function_data() const;
+  inline bool HasWasmJSFunctionData() const;
+  WasmJSFunctionData wasm_js_function_data() const;
+  inline bool HasWasmCapiFunctionData() const;
+  WasmCapiFunctionData wasm_capi_function_data() const;
 
-  // [function identifier]: This field holds an additional identifier for the
-  // function.
-  //  - a Smi identifying a builtin function [HasBuiltinFunctionId()].
-  //  - a String identifying the function's inferred name [HasInferredName()].
-  // The inferred_name is inferred from variable or property
-  // assignment of this function. It is used to facilitate debugging and
-  // profiling of JavaScript code written in OO style, where almost
-  // all functions are anonymous but are assigned to object
-  // properties.
-  DECL_ACCESSORS(function_identifier, Object)
+  // Clear out pre-parsed scope data from UncompiledDataWithPreparseData,
+  // turning it into UncompiledDataWithoutPreparseData.
+  inline void ClearPreparseData();
 
-  inline bool HasBuiltinFunctionId();
-  inline BuiltinFunctionId builtin_function_id();
-  inline void set_builtin_function_id(BuiltinFunctionId id);
+  // The inferred_name is inferred from variable or property assignment of this
+  // function. It is used to facilitate debugging and profiling of JavaScript
+  // code written in OO style, where almost all functions are anonymous but are
+  // assigned to object properties.
   inline bool HasInferredName();
-  inline String* inferred_name();
-  inline void set_inferred_name(String* inferred_name);
+  inline String inferred_name();
 
-  // [script]: Script from which the function originates.
-  DECL_ACCESSORS(script, Object)
-
-  // The function is subject to debugging if a debug info is attached.
-  inline bool HasDebugInfo() const;
-  DebugInfo* GetDebugInfo() const;
+  // Get the function literal id associated with this function, for parsing.
+  V8_EXPORT_PRIVATE int FunctionLiteralId(Isolate* isolate) const;
 
   // Break infos are contained in DebugInfo, this is a convenience method
   // to simplify access.
-  bool HasBreakInfo() const;
+  V8_EXPORT_PRIVATE bool HasBreakInfo() const;
   bool BreakAtEntry() const;
 
   // Coverage infos are contained in DebugInfo, this is a convenience method
   // to simplify access.
   bool HasCoverageInfo() const;
-  CoverageInfo* GetCoverageInfo() const;
-
-  // [debug info]: Debug information.
-  DECL_ACCESSORS(debug_info, Object)
-
-  // Bit field containing various information collected for debugging.
-  // This field is either stored on the kDebugInfo slot or inside the
-  // debug info struct.
-  int debugger_hints() const;
-  void set_debugger_hints(int value);
-
-  // Indicates that the function was created by the Function function.
-  // Though it's anonymous, toString should treat it as if it had the name
-  // "anonymous".  We don't set the name itself so that the system does not
-  // see a binding for it.
-  DECL_BOOLEAN_ACCESSORS(name_should_print_as_anonymous)
-
-  // Indicates that the function is either an anonymous expression
-  // or an arrow function (the name field can be set through the API,
-  // which does not change this flag).
-  DECL_BOOLEAN_ACCESSORS(is_anonymous_expression)
-
-  // Indicates that the the shared function info is deserialized from cache.
-  DECL_BOOLEAN_ACCESSORS(deserialized)
-
-  // Indicates that the function should be skipped during stepping.
-  DECL_BOOLEAN_ACCESSORS(debug_is_blackboxed)
-
-  // Indicates that |debug_is_blackboxed| has been computed and set.
-  DECL_BOOLEAN_ACCESSORS(computed_debug_is_blackboxed)
-
-  // Indicates that the function has been reported for binary code coverage.
-  DECL_BOOLEAN_ACCESSORS(has_reported_binary_coverage)
-
-  // Id assigned to the function for debugging.
-  // This could also be implemented as a weak hash table.
-  inline int debugging_id() const;
-  inline void set_debugging_id(int value);
+  CoverageInfo GetCoverageInfo() const;
 
   // The function's name if it is non-empty, otherwise the inferred name.
-  String* DebugName();
-
-  enum SideEffectState {
-    kNotComputed = 0,
-    kHasSideEffects = 1,
-    kRequiresRuntimeChecks = 2,
-    kHasNoSideEffect = 3,
-  };
-  static SideEffectState GetSideEffectState(Handle<SharedFunctionInfo> info);
+  String DebugName();
 
   // Used for flags such as --turbo-filter.
   bool PassesFilter(const char* raw_filter);
 
-  // Position of the 'function' token in the script source.
-  DECL_INT_ACCESSORS(function_token_position)
+  // [script_or_debug_info]: One of:
+  //  - Script from which the function originates.
+  //  - a DebugInfo which holds the actual script [HasDebugInfo()].
+  DECL_ACCESSORS(script_or_debug_info, Object)
 
-  // [raw_start_position_and_type]: Field used to store both the source code
-  // position, whether or not the function is a function expression,
-  // and whether or not the function is a toplevel function. The two
-  // least significants bit indicates whether the function is an
-  // expression and the rest contains the source code position.
-  // TODO(cbruni): start_position should be removed from SFI.
-  DECL_INT_ACCESSORS(raw_start_position_and_type)
+  inline Object script() const;
+  inline void set_script(Object script);
 
-  // Position of this function in the script source.
-  // TODO(cbruni): start_position should be removed from SFI.
-  DECL_INT_ACCESSORS(raw_start_position)
+  // The function is subject to debugging if a debug info is attached.
+  inline bool HasDebugInfo() const;
+  inline DebugInfo GetDebugInfo() const;
+  inline void SetDebugInfo(DebugInfo debug_info);
 
-  // End position of this function in the script source.
-  // TODO(cbruni): end_position should be removed from SFI.
-  DECL_INT_ACCESSORS(raw_end_position)
+  // The offset of the 'function' token in the script source relative to the
+  // start position. Can return kFunctionTokenOutOfRange if offset doesn't
+  // fit in 16 bits.
+  DECL_UINT16_ACCESSORS(raw_function_token_offset)
+
+  // The position of the 'function' token in the script source. Can return
+  // kNoSourcePosition if raw_function_token_offset() returns
+  // kFunctionTokenOutOfRange.
+  inline int function_token_position() const;
 
   // Returns true if the function has shared name.
   inline bool HasSharedName() const;
+
+  // [flags] Bit field containing various flags about the function.
+  DECL_INT32_ACCESSORS(flags)
 
   // Is this function a named function expression in the source code.
   DECL_BOOLEAN_ACCESSORS(is_named_expression)
@@ -314,14 +439,11 @@ class SharedFunctionInfo : public HeapObject {
   // Is this function a top-level function (scripts, evals).
   DECL_BOOLEAN_ACCESSORS(is_toplevel)
 
-  // [flags] Bit field containing various flags about the function.
-  DECL_INT_ACCESSORS(flags)
-
   // Indicates if this function can be lazy compiled.
   DECL_BOOLEAN_ACCESSORS(allows_lazy_compilation)
 
   // Indicates the language mode.
-  inline LanguageMode language_mode();
+  inline LanguageMode language_mode() const;
   inline void set_language_mode(LanguageMode language_mode);
 
   // Indicates whether the source is implicitly wrapped in a function.
@@ -341,6 +463,39 @@ class SharedFunctionInfo : public HeapObject {
 
   // Indicates that asm->wasm conversion failed and should not be re-attempted.
   DECL_BOOLEAN_ACCESSORS(is_asm_wasm_broken)
+
+  // Indicates that the function was created by the Function function.
+  // Though it's anonymous, toString should treat it as if it had the name
+  // "anonymous".  We don't set the name itself so that the system does not
+  // see a binding for it.
+  DECL_BOOLEAN_ACCESSORS(name_should_print_as_anonymous)
+
+  // Indicates that the function is either an anonymous expression
+  // or an arrow function (the name field can be set through the API,
+  // which does not change this flag).
+  DECL_BOOLEAN_ACCESSORS(is_anonymous_expression)
+
+  // Indicates that the function represented by the shared function info was
+  // classed as an immediately invoked function execution (IIFE) function and
+  // is only executed once.
+  DECL_BOOLEAN_ACCESSORS(is_oneshot_iife)
+
+  // Whether or not the number of expected properties may change.
+  DECL_BOOLEAN_ACCESSORS(are_properties_final)
+
+  // Indicates that the function represented by the shared function info
+  // cannot observe the actual parameters passed at a call site, which
+  // means the function doesn't use the arguments object, doesn't use
+  // rest parameters, and is also in strict mode (meaning that there's
+  // no way to get to the actual arguments via the non-standard "arguments"
+  // accessor on sloppy mode functions). This can be used to speed up calls
+  // to this function even in the presence of arguments mismatch.
+  // See http://bit.ly/v8-faster-calls-with-arguments-mismatch for more
+  // information on this.
+  DECL_BOOLEAN_ACCESSORS(is_safe_to_skip_arguments_adaptor)
+
+  // Indicates that the function has been reported for binary code coverage.
+  DECL_BOOLEAN_ACCESSORS(has_reported_binary_coverage)
 
   inline FunctionKind kind() const;
 
@@ -371,7 +526,7 @@ class SharedFunctionInfo : public HeapObject {
   // initializer. This flag is set when creating the
   // SharedFunctionInfo as a reminder to emit the initializer call
   // when generating code later.
-  DECL_BOOLEAN_ACCESSORS(requires_instance_fields_initializer)
+  DECL_BOOLEAN_ACCESSORS(requires_instance_members_initializer)
 
   // [source code]: Source code for the function.
   bool HasSourceCode() const;
@@ -390,11 +545,25 @@ class SharedFunctionInfo : public HeapObject {
 
   // True if one can flush compiled code from this function, in such a way that
   // it can later be re-compiled.
-  inline bool CanFlushCompiled() const;
+  inline bool CanDiscardCompiled() const;
 
   // Flush compiled data from this function, setting it back to CompileLazy and
-  // clearing any feedback metadata.
-  inline void FlushCompiled();
+  // clearing any compiled metadata.
+  V8_EXPORT_PRIVATE static void DiscardCompiled(
+      Isolate* isolate, Handle<SharedFunctionInfo> shared_info);
+
+  // Discard the compiled metadata. If called during GC then
+  // |gc_notify_updated_slot| should be used to record any slot updates.
+  void DiscardCompiledMetadata(
+      Isolate* isolate,
+      std::function<void(HeapObject object, ObjectSlot slot, HeapObject target)>
+          gc_notify_updated_slot =
+              [](HeapObject object, ObjectSlot slot, HeapObject target) {});
+
+  // Returns true if the function has old bytecode that could be flushed. This
+  // function shouldn't access any flags as it is used by concurrent marker.
+  // Hence it takes the mode as an argument.
+  inline bool ShouldFlushBytecode(BytecodeFlushMode mode);
 
   // Check whether or not this function is inlineable.
   bool IsInlineable();
@@ -411,8 +580,23 @@ class SharedFunctionInfo : public HeapObject {
   static void InitFromFunctionLiteral(Handle<SharedFunctionInfo> shared_info,
                                       FunctionLiteral* lit, bool is_toplevel);
 
-  // Sets the expected number of properties based on estimate from parser.
-  void SetExpectedNofPropertiesFromEstimate(FunctionLiteral* literal);
+  // Updates the expected number of properties based on estimate from parser.
+  void UpdateExpectedNofPropertiesFromEstimate(FunctionLiteral* literal);
+  void UpdateAndFinalizeExpectedNofPropertiesFromEstimate(
+      FunctionLiteral* literal);
+
+  // Sets the FunctionTokenOffset field based on the given token position and
+  // start position.
+  void SetFunctionTokenPosition(int function_token_position,
+                                int start_position);
+
+  static void EnsureSourcePositionsAvailable(
+      Isolate* isolate, Handle<SharedFunctionInfo> shared_info);
+
+  bool AreSourcePositionsAvailable() const;
+
+  // Hash based on function literal id and script id.
+  V8_EXPORT_PRIVATE uint32_t Hash();
 
   inline bool construct_as_builtin() const;
 
@@ -430,16 +614,33 @@ class SharedFunctionInfo : public HeapObject {
   void PrintSourceCode(std::ostream& os);
 #endif
 
+  // Returns the SharedFunctionInfo in a format tracing can support.
+  std::unique_ptr<v8::tracing::TracedValue> ToTracedValue(
+      FunctionLiteral* literal);
+
+  // The tracing scope for SharedFunctionInfo objects.
+  static const char* kTraceScope;
+
+  // Returns the unique TraceID for this SharedFunctionInfo (within the
+  // kTraceScope, works only for functions that have a Script and start/end
+  // position).
+  uint64_t TraceID() const;
+
+  // Returns the unique trace ID reference for this SharedFunctionInfo
+  // (based on the |TraceID()| above).
+  std::unique_ptr<v8::tracing::TracedValue> TraceIDRef() const;
+
   // Iterate over all shared function infos in a given script.
   class ScriptIterator {
    public:
-    explicit ScriptIterator(Handle<Script> script);
+    V8_EXPORT_PRIVATE ScriptIterator(Isolate* isolate, Script script);
     ScriptIterator(Isolate* isolate,
                    Handle<WeakFixedArray> shared_function_infos);
-    SharedFunctionInfo* Next();
+    V8_EXPORT_PRIVATE SharedFunctionInfo Next();
+    int CurrentIndex() const { return index_ - 1; }
 
     // Reset the iterator to run on |script|.
-    void Reset(Handle<Script> script);
+    void Reset(Script script);
 
    private:
     Isolate* isolate_;
@@ -451,92 +652,57 @@ class SharedFunctionInfo : public HeapObject {
   // Iterate over all shared function infos on the heap.
   class GlobalIterator {
    public:
-    explicit GlobalIterator(Isolate* isolate);
-    SharedFunctionInfo* Next();
+    V8_EXPORT_PRIVATE explicit GlobalIterator(Isolate* isolate);
+    V8_EXPORT_PRIVATE SharedFunctionInfo Next();
 
    private:
     Script::Iterator script_iterator_;
-    FixedArrayOfWeakCells::Iterator noscript_sfi_iterator_;
+    WeakArrayList::Iterator noscript_sfi_iterator_;
     SharedFunctionInfo::ScriptIterator sfi_iterator_;
-    DisallowHeapAllocation no_gc_;
+    DISALLOW_HEAP_ALLOCATION(no_gc_)
     DISALLOW_COPY_AND_ASSIGN(GlobalIterator);
   };
 
   DECL_CAST(SharedFunctionInfo)
 
   // Constants.
-  static const int kDontAdaptArgumentsSentinel = -1;
+  static const uint16_t kDontAdaptArgumentsSentinel = static_cast<uint16_t>(-1);
 
-#if V8_SFI_HAS_UNIQUE_ID
-  static const int kUniqueIdFieldSize = kInt32Size;
-#else
-  // Just to not break the postmortrem support with conditional offsets
-  static const int kUniqueIdFieldSize = 0;
-#endif
-
-// Layout description.
-#define SHARED_FUNCTION_INFO_FIELDS(V)                     \
-  /* Pointer fields. */                                    \
-  V(kStartOfPointerFieldsOffset, 0)                        \
-  V(kFunctionDataOffset, kPointerSize)                     \
-  V(kNameOrScopeInfoOffset, kPointerSize)                  \
-  V(kOuterScopeInfoOrFeedbackMetadataOffset, kPointerSize) \
-  V(kScriptOffset, kPointerSize)                           \
-  V(kDebugInfoOffset, kPointerSize)                        \
-  V(kFunctionIdentifierOffset, kPointerSize)               \
-  V(kEndOfPointerFieldsOffset, 0)                          \
-  /* Raw data fields. */                                   \
-  V(kFunctionLiteralIdOffset, kInt32Size)                  \
-  V(kUniqueIdOffset, kUniqueIdFieldSize)                   \
-  V(kLengthOffset, kInt32Size)                             \
-  V(kFormalParameterCountOffset, kInt32Size)               \
-  V(kExpectedNofPropertiesOffset, kInt32Size)              \
-  V(kStartPositionAndTypeOffset, kInt32Size)               \
-  V(kEndPositionOffset, kInt32Size)                        \
-  V(kFunctionTokenPositionOffset, kInt32Size)              \
-  V(kFlagsOffset, kInt32Size)                              \
-  /* Total size. */                                        \
-  V(kSize, 0)
+  static const int kMaximumFunctionTokenOffset = kMaxUInt16 - 1;
+  static const uint16_t kFunctionTokenOutOfRange = static_cast<uint16_t>(-1);
+  STATIC_ASSERT(kMaximumFunctionTokenOffset + 1 == kFunctionTokenOutOfRange);
 
   DEFINE_FIELD_OFFSET_CONSTANTS(HeapObject::kHeaderSize,
-                                SHARED_FUNCTION_INFO_FIELDS)
-#undef SHARED_FUNCTION_INFO_FIELDS
+                                TORQUE_GENERATED_SHARED_FUNCTION_INFO_FIELDS)
 
   static const int kAlignedSize = POINTER_SIZE_ALIGN(kSize);
 
-  typedef FixedBodyDescriptor<kStartOfPointerFieldsOffset,
-                              kEndOfPointerFieldsOffset, kSize>
-      BodyDescriptor;
-  // No weak fields.
-  typedef BodyDescriptor BodyDescriptorWeak;
-
-// Bit fields in |raw_start_position_and_type|.
-#define START_POSITION_AND_TYPE_BIT_FIELDS(V, _) \
-  V(IsNamedExpressionBit, bool, 1, _)            \
-  V(IsTopLevelBit, bool, 1, _)                   \
-  V(StartPositionBits, int, 30, _)
-
-  DEFINE_BIT_FIELDS(START_POSITION_AND_TYPE_BIT_FIELDS)
-#undef START_POSITION_AND_TYPE_BIT_FIELDS
+  class BodyDescriptor;
 
 // Bit positions in |flags|.
-#define FLAGS_BIT_FIELDS(V, _)                           \
-  V(IsNativeBit, bool, 1, _)                             \
-  V(IsStrictBit, bool, 1, _)                             \
-  V(IsWrappedBit, bool, 1, _)                            \
-  V(IsClassConstructorBit, bool, 1, _)                   \
-  V(IsDerivedConstructorBit, bool, 1, _)                 \
-  V(FunctionKindBits, FunctionKind, 5, _)                \
-  V(HasDuplicateParametersBit, bool, 1, _)               \
-  V(AllowLazyCompilationBit, bool, 1, _)                 \
-  V(NeedsHomeObjectBit, bool, 1, _)                      \
-  V(IsDeclarationBit, bool, 1, _)                        \
-  V(IsAsmWasmBrokenBit, bool, 1, _)                      \
-  V(FunctionMapIndexBits, int, 5, _)                     \
-  V(DisabledOptimizationReasonBits, BailoutReason, 4, _) \
-  V(RequiresInstanceFieldsInitializer, bool, 1, _)       \
-  V(ConstructAsBuiltinBit, bool, 1, _)
-
+#define FLAGS_BIT_FIELDS(V, _)                               \
+  /* Have FunctionKind first to make it cheaper to access */ \
+  V(FunctionKindBits, FunctionKind, 5, _)                    \
+  V(IsNativeBit, bool, 1, _)                                 \
+  V(IsStrictBit, bool, 1, _)                                 \
+  V(IsWrappedBit, bool, 1, _)                                \
+  V(IsClassConstructorBit, bool, 1, _)                       \
+  V(HasDuplicateParametersBit, bool, 1, _)                   \
+  V(AllowLazyCompilationBit, bool, 1, _)                     \
+  V(NeedsHomeObjectBit, bool, 1, _)                          \
+  V(IsDeclarationBit, bool, 1, _)                            \
+  V(IsAsmWasmBrokenBit, bool, 1, _)                          \
+  V(FunctionMapIndexBits, int, 5, _)                         \
+  V(DisabledOptimizationReasonBits, BailoutReason, 4, _)     \
+  V(RequiresInstanceMembersInitializer, bool, 1, _)          \
+  V(ConstructAsBuiltinBit, bool, 1, _)                       \
+  V(IsAnonymousExpressionBit, bool, 1, _)                    \
+  V(NameShouldPrintAsAnonymousBit, bool, 1, _)               \
+  V(HasReportedBinaryCoverageBit, bool, 1, _)                \
+  V(IsNamedExpressionBit, bool, 1, _)                        \
+  V(IsTopLevelBit, bool, 1, _)                               \
+  V(IsOneshotIIFEOrPropertiesAreFinalBit, bool, 1, _)        \
+  V(IsSafeToSkipArgumentsAdaptorBit, bool, 1, _)
   DEFINE_BIT_FIELDS(FLAGS_BIT_FIELDS)
 #undef FLAGS_BIT_FIELDS
 
@@ -545,22 +711,6 @@ class SharedFunctionInfo : public HeapObject {
                 DisabledOptimizationReasonBits::kMax);
 
   STATIC_ASSERT(kLastFunctionKind <= FunctionKindBits::kMax);
-
-// Bit positions in |debugger_hints|.
-#define DEBUGGER_HINTS_BIT_FIELDS(V, _)        \
-  V(IsAnonymousExpressionBit, bool, 1, _)      \
-  V(NameShouldPrintAsAnonymousBit, bool, 1, _) \
-  V(IsDeserializedBit, bool, 1, _)             \
-  V(SideEffectStateBits, int, 2, _)            \
-  V(DebugIsBlackboxedBit, bool, 1, _)          \
-  V(ComputedDebugIsBlackboxedBit, bool, 1, _)  \
-  V(HasReportedBinaryCoverageBit, bool, 1, _)  \
-  V(DebuggingIdBits, int, 20, _)
-
-  DEFINE_BIT_FIELDS(DEBUGGER_HINTS_BIT_FIELDS)
-#undef DEBUGGER_HINTS_BIT_FIELDS
-
-  static const int kNoDebuggingId = 0;
 
   // Indicates that this function uses a super property (or an eval that may
   // use a super property).
@@ -576,28 +726,52 @@ class SharedFunctionInfo : public HeapObject {
   // function.
   DECL_ACCESSORS(outer_scope_info, HeapObject)
 
-  inline int side_effect_state() const;
-  inline void set_side_effect_state(int value);
+  // [is_oneshot_iife_or_properties_are_final]: This bit is used to track
+  // two mutually exclusive cases. Either this SharedFunctionInfo is
+  // a oneshot_iife or we have finished parsing its properties. These cases
+  // are mutually exclusive because the properties final bit is only used by
+  // class constructors to handle lazily parsed properties and class
+  // constructors can never be oneshot iifes.
+  DECL_BOOLEAN_ACCESSORS(is_oneshot_iife_or_properties_are_final)
 
   inline void set_kind(FunctionKind kind);
 
   inline void set_needs_home_object(bool value);
 
+  inline uint16_t get_property_estimate_from_literal(FunctionLiteral* literal);
+
   friend class Factory;
   friend class V8HeapExplorer;
   FRIEND_TEST(PreParserTest, LazyFunctionLength);
 
-  inline int length() const;
+  // Find the index of this function in the parent script. Slow path of
+  // FunctionLiteralId.
+  int FindIndexInScript(Isolate* isolate) const;
 
-  DISALLOW_IMPLICIT_CONSTRUCTORS(SharedFunctionInfo);
+  OBJECT_CONSTRUCTORS(SharedFunctionInfo, HeapObject);
 };
 
 // Printing support.
 struct SourceCodeOf {
-  explicit SourceCodeOf(SharedFunctionInfo* v, int max = -1)
+  explicit SourceCodeOf(SharedFunctionInfo v, int max = -1)
       : value(v), max_length(max) {}
-  const SharedFunctionInfo* value;
+  const SharedFunctionInfo value;
   int max_length;
+};
+
+// IsCompiledScope enables a caller to check if a function is compiled, and
+// ensure it remains compiled (i.e., doesn't have it's bytecode flushed) while
+// the scope is retained.
+class IsCompiledScope {
+ public:
+  inline IsCompiledScope(const SharedFunctionInfo shared, Isolate* isolate);
+  inline IsCompiledScope() : retain_bytecode_(), is_compiled_(false) {}
+
+  inline bool is_compiled() const { return is_compiled_; }
+
+ private:
+  MaybeHandle<BytecodeArray> retain_bytecode_;
+  bool is_compiled_;
 };
 
 std::ostream& operator<<(std::ostream& os, const SourceCodeOf& v);

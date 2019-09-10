@@ -5,8 +5,9 @@
 require('../common');
 const assert = require('assert');
 
-const { ModuleWrap } = require('internal/test/binding');
-const { getPromiseDetails, isPromise } = process.binding('util');
+const { internalBinding } = require('internal/test/binding');
+const { ModuleWrap } = internalBinding('module_wrap');
+const { getPromiseDetails, isPromise } = internalBinding('util');
 const setTimeoutAsync = require('util').promisify(setTimeout);
 
 const foo = new ModuleWrap('export * from "bar"; 6;', 'foo');

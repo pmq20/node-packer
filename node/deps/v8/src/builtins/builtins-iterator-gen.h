@@ -5,7 +5,7 @@
 #ifndef V8_BUILTINS_BUILTINS_ITERATOR_GEN_H_
 #define V8_BUILTINS_BUILTINS_ITERATOR_GEN_H_
 
-#include "src/code-stub-assembler.h"
+#include "src/codegen/code-stub-assembler.h"
 
 namespace v8 {
 namespace internal {
@@ -17,8 +17,10 @@ class IteratorBuiltinsAssembler : public CodeStubAssembler {
   explicit IteratorBuiltinsAssembler(compiler::CodeAssemblerState* state)
       : CodeStubAssembler(state) {}
 
+  using IteratorRecord = TorqueStructIteratorRecord;
+
   // Returns object[Symbol.iterator].
-  Node* GetIteratorMethod(Node* context, Node* object);
+  TNode<Object> GetIteratorMethod(Node* context, Node* object);
 
   // https://tc39.github.io/ecma262/#sec-getiterator --- never used for
   // @@asyncIterator.
@@ -34,10 +36,16 @@ class IteratorBuiltinsAssembler : public CodeStubAssembler {
   // iterator result.
   // `fast_iterator_result_map` refers to the map for the JSIteratorResult
   // object, loaded from the native context.
-  Node* IteratorStep(Node* context, const IteratorRecord& iterator,
-                     Label* if_done, Node* fast_iterator_result_map = nullptr,
-                     Label* if_exception = nullptr,
-                     Variable* exception = nullptr);
+  TNode<Object> IteratorStep(Node* context, const IteratorRecord& iterator,
+                             Label* if_done,
+                             Node* fast_iterator_result_map = nullptr,
+                             Label* if_exception = nullptr,
+                             Variable* exception = nullptr);
+
+  TNode<Object> IteratorStep(Node* context, const IteratorRecord& iterator,
+                             Node* fast_iterator_result_map, Label* if_done) {
+    return IteratorStep(context, iterator, if_done, fast_iterator_result_map);
+  }
 
   // https://tc39.github.io/ecma262/#sec-iteratorvalue
   // Return the `value` field from an iterator.
@@ -52,7 +60,16 @@ class IteratorBuiltinsAssembler : public CodeStubAssembler {
   void IteratorCloseOnException(Node* context, const IteratorRecord& iterator,
                                 Label* if_exception, Variable* exception);
   void IteratorCloseOnException(Node* context, const IteratorRecord& iterator,
-                                Variable* exception);
+                                TNode<Object> exception);
+
+  // #sec-iterabletolist
+  // Build a JSArray by iterating over {iterable} using {iterator_fn},
+  // following the ECMAscript operation with the same name.
+  TNode<JSArray> IterableToList(TNode<Context> context, TNode<Object> iterable,
+                                TNode<Object> iterator_fn);
+
+  void FastIterableToList(TNode<Context> context, TNode<Object> iterable,
+                          TVariable<Object>* var_result, Label* slow);
 };
 
 }  // namespace internal

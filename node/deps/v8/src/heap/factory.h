@@ -5,17 +5,19 @@
 #ifndef V8_HEAP_FACTORY_H_
 #define V8_HEAP_FACTORY_H_
 
+// Clients of this interface shouldn't depend on lots of heap internals.
+// Do not include anything from src/heap here!
 #include "src/builtins/builtins.h"
-#include "src/globals.h"
-#include "src/handles.h"
+#include "src/common/globals.h"
+#include "src/execution/messages.h"
+#include "src/handles/handles.h"
+#include "src/handles/maybe-handles.h"
 #include "src/heap/heap.h"
-#include "src/messages.h"
 #include "src/objects/code.h"
 #include "src/objects/dictionary.h"
-#include "src/objects/hash-table.h"
+#include "src/objects/function-kind.h"
 #include "src/objects/js-array.h"
 #include "src/objects/js-regexp.h"
-#include "src/objects/ordered-hash-table.h"
 #include "src/objects/string.h"
 
 namespace v8 {
@@ -23,37 +25,55 @@ namespace internal {
 
 // Forward declarations.
 class AliasedArgumentsEntry;
-class BoilerplateDescription;
+class ObjectBoilerplateDescription;
 class BreakPoint;
 class BreakPointInfo;
 class CallableTask;
 class CallbackTask;
 class CallHandlerInfo;
-class ConstantElementsPair;
+class Expression;
+class EmbedderDataArray;
+class ArrayBoilerplateDescription;
 class CoverageInfo;
 class DebugInfo;
 class EnumCache;
+class FinalizationGroupCleanupJobTask;
 class FreshlyAllocatedBigInt;
 class Isolate;
+class JSArrayBufferView;
+class JSDataView;
+class JSGeneratorObject;
 class JSMap;
 class JSMapIterator;
 class JSModuleNamespace;
+class JSPromise;
+class JSProxy;
 class JSSet;
 class JSSetIterator;
+class JSTypedArray;
 class JSWeakMap;
 class LoadHandler;
 class ModuleInfo;
+class NativeContext;
 class NewFunctionArgs;
-class PreParsedScopeData;
+class PreparseData;
 class PromiseResolveThenableJobTask;
 class RegExpMatchInfo;
 class ScriptContextTable;
+class StackFrameInfo;
+class StackTraceFrame;
 class StoreHandler;
 class TemplateObjectDescription;
+class UncompiledDataWithoutPreparseData;
+class UncompiledDataWithPreparseData;
+class WasmCapiFunctionData;
 class WasmExportedFunctionData;
+class WasmJSFunctionData;
+class WeakCell;
 struct SourceRange;
 template <typename T>
 class ZoneVector;
+enum class SharedFlag : uint32_t;
 
 enum FunctionMode {
   kWithNameBit = 1 << 0,
@@ -86,39 +106,41 @@ enum FunctionMode {
 // Interface for handle based allocation.
 class V8_EXPORT_PRIVATE Factory {
  public:
-  Handle<Oddball> NewOddball(Handle<Map> map, const char* to_string,
-                             Handle<Object> to_number, const char* type_of,
-                             byte kind,
-                             PretenureFlag pretenure = TENURED_READ_ONLY);
+  Handle<Oddball> NewOddball(
+      Handle<Map> map, const char* to_string, Handle<Object> to_number,
+      const char* type_of, byte kind,
+      AllocationType allocation = AllocationType::kReadOnly);
 
   // Marks self references within code generation.
-  Handle<Oddball> NewSelfReferenceMarker(PretenureFlag pretenure = TENURED);
+  Handle<Oddball> NewSelfReferenceMarker(
+      AllocationType allocation = AllocationType::kOld);
 
   // Allocates a fixed array-like object with given map and initialized with
   // undefined values.
   template <typename T = FixedArray>
-  Handle<T> NewFixedArrayWithMap(Heap::RootListIndex map_root_index, int length,
-                                 PretenureFlag pretenure = NOT_TENURED);
+  Handle<T> NewFixedArrayWithMap(
+      RootIndex map_root_index, int length,
+      AllocationType allocation = AllocationType::kYoung);
 
   // Allocates a weak fixed array-like object with given map and initialized
   // with undefined values.
   template <typename T = WeakFixedArray>
-  Handle<T> NewWeakFixedArrayWithMap(Heap::RootListIndex map_root_index,
-                                     int length,
-                                     PretenureFlag pretenure = NOT_TENURED);
+  Handle<T> NewWeakFixedArrayWithMap(
+      RootIndex map_root_index, int length,
+      AllocationType allocation = AllocationType::kYoung);
 
   // Allocates a fixed array initialized with undefined values.
-  Handle<FixedArray> NewFixedArray(int length,
-                                   PretenureFlag pretenure = NOT_TENURED);
+  Handle<FixedArray> NewFixedArray(
+      int length, AllocationType allocation = AllocationType::kYoung);
 
   // Allocates a fixed array which may contain in-place weak references. The
   // array is initialized with undefined values
   Handle<WeakFixedArray> NewWeakFixedArray(
-      int length, PretenureFlag pretenure = NOT_TENURED);
+      int length, AllocationType allocation = AllocationType::kYoung);
 
   // Allocates a property array initialized with undefined values.
-  Handle<PropertyArray> NewPropertyArray(int length,
-                                         PretenureFlag pretenure = NOT_TENURED);
+  Handle<PropertyArray> NewPropertyArray(
+      int length, AllocationType allocation = AllocationType::kYoung);
   // Tries allocating a fixed array initialized with undefined values.
   // In case of an allocation failure (OOM) an empty handle is returned.
   // The caller has to manually signal an
@@ -126,54 +148,68 @@ class V8_EXPORT_PRIVATE Factory {
   // NewFixedArray as a fallback.
   V8_WARN_UNUSED_RESULT
   MaybeHandle<FixedArray> TryNewFixedArray(
-      int length, PretenureFlag pretenure = NOT_TENURED);
+      int length, AllocationType allocation = AllocationType::kYoung);
 
   // Allocate a new fixed array with non-existing entries (the hole).
   Handle<FixedArray> NewFixedArrayWithHoles(
-      int length, PretenureFlag pretenure = NOT_TENURED);
+      int length, AllocationType allocation = AllocationType::kYoung);
 
   // Allocates an uninitialized fixed array. It must be filled by the caller.
   Handle<FixedArray> NewUninitializedFixedArray(
-      int length, PretenureFlag pretenure = NOT_TENURED);
+      int length, AllocationType allocation = AllocationType::kYoung);
+
+  // Allocates a closure feedback cell array whose feedback cells are
+  // initialized with undefined values.
+  Handle<ClosureFeedbackCellArray> NewClosureFeedbackCellArray(
+      int num_slots, AllocationType allocation = AllocationType::kYoung);
 
   // Allocates a feedback vector whose slots are initialized with undefined
   // values.
   Handle<FeedbackVector> NewFeedbackVector(
-      Handle<SharedFunctionInfo> shared, PretenureFlag pretenure = NOT_TENURED);
+      Handle<SharedFunctionInfo> shared,
+      Handle<ClosureFeedbackCellArray> closure_feedback_cell_array,
+      AllocationType allocation = AllocationType::kYoung);
+
+  // Allocates a clean embedder data array with given capacity.
+  Handle<EmbedderDataArray> NewEmbedderDataArray(
+      int length, AllocationType allocation = AllocationType::kYoung);
 
   // Allocates a fixed array for name-value pairs of boilerplate properties and
   // calculates the number of properties we need to store in the backing store.
-  Handle<BoilerplateDescription> NewBoilerplateDescription(int boilerplate,
-                                                           int all_properties,
-                                                           int index_keys,
-                                                           bool has_seen_proto);
+  Handle<ObjectBoilerplateDescription> NewObjectBoilerplateDescription(
+      int boilerplate, int all_properties, int index_keys, bool has_seen_proto);
 
   // Allocate a new uninitialized fixed double array.
   // The function returns a pre-allocated empty fixed array for length = 0,
   // so the return type must be the general fixed array class.
   Handle<FixedArrayBase> NewFixedDoubleArray(
-      int length, PretenureFlag pretenure = NOT_TENURED);
+      int length, AllocationType allocation = AllocationType::kYoung);
 
   // Allocate a new fixed double array with hole values.
   Handle<FixedArrayBase> NewFixedDoubleArrayWithHoles(
-      int size, PretenureFlag pretenure = NOT_TENURED);
+      int size, AllocationType allocation = AllocationType::kYoung);
 
   // Allocates a FeedbackMedata object and zeroes the data section.
-  Handle<FeedbackMetadata> NewFeedbackMetadata(int slot_count,
-                                               PretenureFlag tenure = TENURED);
+  Handle<FeedbackMetadata> NewFeedbackMetadata(
+      int slot_count, int feedback_cell_count,
+      AllocationType allocation = AllocationType::kOld);
 
-  Handle<FrameArray> NewFrameArray(int number_of_frames,
-                                   PretenureFlag pretenure = NOT_TENURED);
+  Handle<FrameArray> NewFrameArray(
+      int number_of_frames, AllocationType allocation = AllocationType::kYoung);
 
   Handle<OrderedHashSet> NewOrderedHashSet();
   Handle<OrderedHashMap> NewOrderedHashMap();
+  Handle<OrderedNameDictionary> NewOrderedNameDictionary();
 
   Handle<SmallOrderedHashSet> NewSmallOrderedHashSet(
-      int capacity = SmallOrderedHashSet::kMinCapacity,
-      PretenureFlag pretenure = NOT_TENURED);
+      int capacity = kSmallOrderedHashSetMinCapacity,
+      AllocationType allocation = AllocationType::kYoung);
   Handle<SmallOrderedHashMap> NewSmallOrderedHashMap(
-      int capacity = SmallOrderedHashMap::kMinCapacity,
-      PretenureFlag pretenure = NOT_TENURED);
+      int capacity = kSmallOrderedHashMapMinCapacity,
+      AllocationType allocation = AllocationType::kYoung);
+  Handle<SmallOrderedNameDictionary> NewSmallOrderedNameDictionary(
+      int capacity = kSmallOrderedHashMapMinCapacity,
+      AllocationType allocation = AllocationType::kYoung);
 
   // Create a new PrototypeInfo struct.
   Handle<PrototypeInfo> NewPrototypeInfo();
@@ -184,14 +220,14 @@ class V8_EXPORT_PRIVATE Factory {
 
   // Create a new Tuple2 struct.
   Handle<Tuple2> NewTuple2(Handle<Object> value1, Handle<Object> value2,
-                           PretenureFlag pretenure);
+                           AllocationType allocation);
 
   // Create a new Tuple3 struct.
   Handle<Tuple3> NewTuple3(Handle<Object> value1, Handle<Object> value2,
-                           Handle<Object> value3, PretenureFlag pretenure);
+                           Handle<Object> value3, AllocationType allocation);
 
-  // Create a new ConstantElementsPair struct.
-  Handle<ConstantElementsPair> NewConstantElementsPair(
+  // Create a new ArrayBoilerplateDescription struct.
+  Handle<ArrayBoilerplateDescription> NewArrayBoilerplateDescription(
       ElementsKind elements_kind, Handle<FixedArrayBase> constant_values);
 
   // Create a new TemplateObjectDescription struct.
@@ -203,16 +239,19 @@ class V8_EXPORT_PRIVATE Factory {
 
   // Finds the internalized copy for string in the string table.
   // If not found, a new string is added to the table and returned.
-  Handle<String> InternalizeUtf8String(Vector<const char> str);
+  Handle<String> InternalizeUtf8String(const Vector<const char>& str);
   Handle<String> InternalizeUtf8String(const char* str) {
     return InternalizeUtf8String(CStrVector(str));
   }
 
-  Handle<String> InternalizeOneByteString(Vector<const uint8_t> str);
-  Handle<String> InternalizeOneByteString(Handle<SeqOneByteString>, int from,
-                                          int length);
+  template <typename Char>
+  EXPORT_TEMPLATE_DECLARE(V8_EXPORT_PRIVATE)
+  Handle<String> InternalizeString(const Vector<const Char>& str,
+                                   bool convert_encoding = false);
 
-  Handle<String> InternalizeTwoByteString(Vector<const uc16> str);
+  template <typename SeqString>
+  Handle<String> InternalizeString(Handle<SeqString>, int from, int length,
+                                   bool convert_encoding = false);
 
   template <class StringTableKey>
   Handle<String> InternalizeStringWithKey(StringTableKey* key);
@@ -223,9 +262,9 @@ class V8_EXPORT_PRIVATE Factory {
   inline Handle<Name> InternalizeName(Handle<Name> name);
 
   // String creation functions.  Most of the string creation functions take
-  // a Heap::PretenureFlag argument to optionally request that they be
-  // allocated in the old generation.  The pretenure flag defaults to
-  // DONT_TENURE.
+  // an AllocationType argument to optionally request that they be
+  // allocated in the old generation. Otherwise the default is
+  // AllocationType::kYoung.
   //
   // Creates a new String object.  There are two String encodings: one-byte and
   // two-byte.  One should choose between the three string factory functions
@@ -243,53 +282,55 @@ class V8_EXPORT_PRIVATE Factory {
   //
   // One-byte strings are pretenured when used as keys in the SourceCodeCache.
   V8_WARN_UNUSED_RESULT MaybeHandle<String> NewStringFromOneByte(
-      Vector<const uint8_t> str, PretenureFlag pretenure = NOT_TENURED);
+      const Vector<const uint8_t>& str,
+      AllocationType allocation = AllocationType::kYoung);
 
   template <size_t N>
   inline Handle<String> NewStringFromStaticChars(
-      const char (&str)[N], PretenureFlag pretenure = NOT_TENURED) {
-    DCHECK(N == StrLength(str) + 1);
-    return NewStringFromOneByte(STATIC_CHAR_VECTOR(str), pretenure)
+      const char (&str)[N],
+      AllocationType allocation = AllocationType::kYoung) {
+    DCHECK_EQ(N, strlen(str) + 1);
+    return NewStringFromOneByte(StaticCharVector(str), allocation)
         .ToHandleChecked();
   }
 
   inline Handle<String> NewStringFromAsciiChecked(
-      const char* str, PretenureFlag pretenure = NOT_TENURED) {
-    return NewStringFromOneByte(OneByteVector(str), pretenure)
+      const char* str, AllocationType allocation = AllocationType::kYoung) {
+    return NewStringFromOneByte(OneByteVector(str), allocation)
         .ToHandleChecked();
   }
 
   // UTF8 strings are pretenured when used for regexp literal patterns and
   // flags in the parser.
   V8_WARN_UNUSED_RESULT MaybeHandle<String> NewStringFromUtf8(
-      Vector<const char> str, PretenureFlag pretenure = NOT_TENURED);
+      const Vector<const char>& str,
+      AllocationType allocation = AllocationType::kYoung);
 
   V8_WARN_UNUSED_RESULT MaybeHandle<String> NewStringFromUtf8SubString(
       Handle<SeqOneByteString> str, int begin, int end,
-      PretenureFlag pretenure = NOT_TENURED);
+      AllocationType allocation = AllocationType::kYoung);
 
   V8_WARN_UNUSED_RESULT MaybeHandle<String> NewStringFromTwoByte(
-      Vector<const uc16> str, PretenureFlag pretenure = NOT_TENURED);
+      const Vector<const uc16>& str,
+      AllocationType allocation = AllocationType::kYoung);
 
   V8_WARN_UNUSED_RESULT MaybeHandle<String> NewStringFromTwoByte(
-      const ZoneVector<uc16>* str, PretenureFlag pretenure = NOT_TENURED);
+      const ZoneVector<uc16>* str,
+      AllocationType allocation = AllocationType::kYoung);
 
   Handle<JSStringIterator> NewJSStringIterator(Handle<String> string);
 
-  // Allocates an internalized string in old space based on the character
-  // stream.
-  Handle<String> NewInternalizedStringFromUtf8(Vector<const char> str,
-                                               int chars, uint32_t hash_field);
-
-  Handle<String> NewOneByteInternalizedString(Vector<const uint8_t> str,
+  Handle<String> NewOneByteInternalizedString(const Vector<const uint8_t>& str,
                                               uint32_t hash_field);
 
-  Handle<String> NewOneByteInternalizedSubString(
-      Handle<SeqOneByteString> string, int offset, int length,
-      uint32_t hash_field);
+  Handle<SeqOneByteString> AllocateRawOneByteInternalizedString(
+      int length, uint32_t hash_field);
 
-  Handle<String> NewTwoByteInternalizedString(Vector<const uc16> str,
+  Handle<String> NewTwoByteInternalizedString(const Vector<const uc16>& str,
                                               uint32_t hash_field);
+
+  Handle<SeqTwoByteString> AllocateRawTwoByteInternalizedString(
+      int length, uint32_t hash_field);
 
   Handle<String> NewInternalizedStringImpl(Handle<String> string, int chars,
                                            uint32_t hash_field);
@@ -308,13 +349,13 @@ class V8_EXPORT_PRIVATE Factory {
   // characters of the string are uninitialized. Currently used in regexp code
   // only, where they are pretenured.
   V8_WARN_UNUSED_RESULT MaybeHandle<SeqOneByteString> NewRawOneByteString(
-      int length, PretenureFlag pretenure = NOT_TENURED);
+      int length, AllocationType allocation = AllocationType::kYoung);
   V8_WARN_UNUSED_RESULT MaybeHandle<SeqTwoByteString> NewRawTwoByteString(
-      int length, PretenureFlag pretenure = NOT_TENURED);
+      int length, AllocationType allocation = AllocationType::kYoung);
 
   // Creates a single character string where the character has given code.
   // A cache is used for Latin1 codes.
-  Handle<String> LookupSingleCharacterStringFromCode(uint32_t code);
+  Handle<String> LookupSingleCharacterStringFromCode(uint16_t code);
 
   // Create a new cons string object which consists of a pair of strings.
   V8_WARN_UNUSED_RESULT MaybeHandle<String> NewConsString(Handle<String> left,
@@ -349,22 +390,24 @@ class V8_EXPORT_PRIVATE Factory {
       const ExternalOneByteString::Resource* resource);
 
   // Create a symbol in old or read-only space.
-  Handle<Symbol> NewSymbol(PretenureFlag pretenure = TENURED);
-  Handle<Symbol> NewPrivateSymbol(PretenureFlag pretenure = TENURED);
-  Handle<Symbol> NewPrivateFieldSymbol();
+  Handle<Symbol> NewSymbol(AllocationType allocation = AllocationType::kOld);
+  Handle<Symbol> NewPrivateSymbol(
+      AllocationType allocation = AllocationType::kOld);
+  Handle<Symbol> NewPrivateNameSymbol(Handle<String> name);
 
   // Create a global (but otherwise uninitialized) context.
-  Handle<Context> NewNativeContext();
+  Handle<NativeContext> NewNativeContext();
 
   // Create a script context.
-  Handle<Context> NewScriptContext(Handle<Context> outer,
+  Handle<Context> NewScriptContext(Handle<NativeContext> outer,
                                    Handle<ScopeInfo> scope_info);
 
   // Create an empty script context table.
   Handle<ScriptContextTable> NewScriptContextTable();
 
   // Create a module context.
-  Handle<Context> NewModuleContext(Handle<Module> module, Handle<Context> outer,
+  Handle<Context> NewModuleContext(Handle<Module> module,
+                                   Handle<NativeContext> outer,
                                    Handle<ScopeInfo> scope_info);
 
   // Create a function or eval context.
@@ -391,8 +434,16 @@ class V8_EXPORT_PRIVATE Factory {
   Handle<Context> NewBlockContext(Handle<Context> previous,
                                   Handle<ScopeInfo> scope_info);
 
+  // Create a context that's used by builtin functions.
+  //
+  // These are similar to function context but don't have a previous
+  // context or any scope info. These are used to store spec defined
+  // context values.
+  Handle<Context> NewBuiltinContext(Handle<NativeContext> native_context,
+                                    int length);
+
   Handle<Struct> NewStruct(InstanceType type,
-                           PretenureFlag pretenure = NOT_TENURED);
+                           AllocationType allocation = AllocationType::kYoung);
 
   Handle<AliasedArgumentsEntry> NewAliasedArgumentsEntry(
       int aliased_context_slot);
@@ -400,11 +451,19 @@ class V8_EXPORT_PRIVATE Factory {
   Handle<AccessorInfo> NewAccessorInfo();
 
   Handle<Script> NewScript(Handle<String> source,
-                           PretenureFlag tenure = TENURED);
+                           AllocationType allocation = AllocationType::kOld);
+  Handle<Script> NewScriptWithId(
+      Handle<String> source, int script_id,
+      AllocationType allocation = AllocationType::kOld);
+  Handle<Script> CloneScript(Handle<Script> script);
 
   Handle<BreakPointInfo> NewBreakPointInfo(int source_position);
   Handle<BreakPoint> NewBreakPoint(int id, Handle<String> condition);
+  Handle<StackTraceFrame> NewStackTraceFrame(Handle<FrameArray> frame_array,
+                                             int index);
   Handle<StackFrameInfo> NewStackFrameInfo();
+  Handle<StackFrameInfo> NewStackFrameInfo(Handle<FrameArray> frame_array,
+                                           int index);
   Handle<SourcePositionTableWithFrameCache>
   NewSourcePositionTableWithFrameCache(
       Handle<ByteArray> source_position_table,
@@ -418,43 +477,37 @@ class V8_EXPORT_PRIVATE Factory {
   Handle<PromiseResolveThenableJobTask> NewPromiseResolveThenableJobTask(
       Handle<JSPromise> promise_to_resolve, Handle<JSReceiver> then,
       Handle<JSReceiver> thenable, Handle<Context> context);
+  Handle<FinalizationGroupCleanupJobTask> NewFinalizationGroupCleanupJobTask(
+      Handle<JSFinalizationGroup> finalization_group);
 
   // Foreign objects are pretenured when allocated by the bootstrapper.
-  Handle<Foreign> NewForeign(Address addr,
-                             PretenureFlag pretenure = NOT_TENURED);
+  Handle<Foreign> NewForeign(
+      Address addr, AllocationType allocation = AllocationType::kYoung);
 
-  Handle<ByteArray> NewByteArray(int length,
-                                 PretenureFlag pretenure = NOT_TENURED);
+  Handle<ByteArray> NewByteArray(
+      int length, AllocationType allocation = AllocationType::kYoung);
 
   Handle<BytecodeArray> NewBytecodeArray(int length, const byte* raw_bytecodes,
                                          int frame_size, int parameter_count,
                                          Handle<FixedArray> constant_pool);
 
-  Handle<FixedTypedArrayBase> NewFixedTypedArrayWithExternalPointer(
-      int length, ExternalArrayType array_type, void* external_pointer,
-      PretenureFlag pretenure = NOT_TENURED);
-
-  Handle<FixedTypedArrayBase> NewFixedTypedArray(
-      size_t length, size_t byte_length, ExternalArrayType array_type,
-      bool initialize, PretenureFlag pretenure = NOT_TENURED);
-
   Handle<Cell> NewCell(Handle<Object> value);
 
-  Handle<PropertyCell> NewPropertyCell(Handle<Name> name,
-                                       PretenureFlag pretenure = TENURED);
-
-  Handle<WeakCell> NewWeakCell(Handle<HeapObject> value,
-                               PretenureFlag pretenure = TENURED);
+  Handle<PropertyCell> NewPropertyCell(
+      Handle<Name> name, AllocationType allocation = AllocationType::kOld);
 
   Handle<FeedbackCell> NewNoClosuresCell(Handle<HeapObject> value);
   Handle<FeedbackCell> NewOneClosureCell(Handle<HeapObject> value);
   Handle<FeedbackCell> NewManyClosuresCell(Handle<HeapObject> value);
 
+  Handle<DescriptorArray> NewDescriptorArray(
+      int number_of_entries, int slack = 0,
+      AllocationType allocation = AllocationType::kYoung);
   Handle<TransitionArray> NewTransitionArray(int number_of_transitions,
                                              int slack = 0);
 
   // Allocate a tenured AllocationSite. Its payload is null.
-  Handle<AllocationSite> NewAllocationSite();
+  Handle<AllocationSite> NewAllocationSite(bool with_weak_next);
 
   // Allocates and initializes a new Map.
   Handle<Map> NewMap(InstanceType type, int instance_size,
@@ -462,15 +515,17 @@ class V8_EXPORT_PRIVATE Factory {
                      int inobject_properties = 0);
   // Initializes the fields of a newly created Map. Exposed for tests and
   // heap setup; other code should just call NewMap which takes care of it.
-  Map* InitializeMap(Map* map, InstanceType type, int instance_size,
-                     ElementsKind elements_kind, int inobject_properties);
+  Map InitializeMap(Map map, InstanceType type, int instance_size,
+                    ElementsKind elements_kind, int inobject_properties);
 
-  // Allocate a block of memory in the given space (filled with a filler).
-  // Used as a fall-back for generated code when the space is full.
+  // Allocate a block of memory of the given AllocationType (filled with a
+  // filler). Used as a fall-back for generated code when the space is full.
   Handle<HeapObject> NewFillerObject(int size, bool double_align,
-                                     AllocationSpace space);
+                                     AllocationType allocation);
 
   Handle<JSObject> NewFunctionPrototype(Handle<JSFunction> function);
+
+  Handle<WeakCell> NewWeakCell();
 
   // Returns a deep copy of the JavaScript object.
   // Properties and elements are copied too.
@@ -485,22 +540,23 @@ class V8_EXPORT_PRIVATE Factory {
 
   Handle<FixedArray> CopyFixedArrayAndGrow(
       Handle<FixedArray> array, int grow_by,
-      PretenureFlag pretenure = NOT_TENURED);
+      AllocationType allocation = AllocationType::kYoung);
 
   Handle<WeakFixedArray> CopyWeakFixedArrayAndGrow(
       Handle<WeakFixedArray> array, int grow_by,
-      PretenureFlag pretenure = NOT_TENURED);
+      AllocationType allocation = AllocationType::kYoung);
 
   Handle<WeakArrayList> CopyWeakArrayListAndGrow(
       Handle<WeakArrayList> array, int grow_by,
-      PretenureFlag pretenure = NOT_TENURED);
+      AllocationType allocation = AllocationType::kYoung);
 
   Handle<PropertyArray> CopyPropertyArrayAndGrow(
       Handle<PropertyArray> array, int grow_by,
-      PretenureFlag pretenure = NOT_TENURED);
+      AllocationType allocation = AllocationType::kYoung);
 
-  Handle<FixedArray> CopyFixedArrayUpTo(Handle<FixedArray> array, int new_len,
-                                        PretenureFlag pretenure = NOT_TENURED);
+  Handle<FixedArray> CopyFixedArrayUpTo(
+      Handle<FixedArray> array, int new_len,
+      AllocationType allocation = AllocationType::kYoung);
 
   Handle<FixedArray> CopyFixedArray(Handle<FixedArray> array);
 
@@ -510,38 +566,41 @@ class V8_EXPORT_PRIVATE Factory {
 
   Handle<FixedDoubleArray> CopyFixedDoubleArray(Handle<FixedDoubleArray> array);
 
-  Handle<FeedbackVector> CopyFeedbackVector(Handle<FeedbackVector> array);
-
   // Numbers (e.g. literals) are pretenured by the parser.
   // The return value may be a smi or a heap number.
-  Handle<Object> NewNumber(double value, PretenureFlag pretenure = NOT_TENURED);
+  Handle<Object> NewNumber(double value,
+                           AllocationType allocation = AllocationType::kYoung);
 
-  Handle<Object> NewNumberFromInt(int32_t value,
-                                  PretenureFlag pretenure = NOT_TENURED);
-  Handle<Object> NewNumberFromUint(uint32_t value,
-                                   PretenureFlag pretenure = NOT_TENURED);
+  Handle<Object> NewNumberFromInt(
+      int32_t value, AllocationType allocation = AllocationType::kYoung);
+  Handle<Object> NewNumberFromUint(
+      uint32_t value, AllocationType allocation = AllocationType::kYoung);
   inline Handle<Object> NewNumberFromSize(
-      size_t value, PretenureFlag pretenure = NOT_TENURED);
+      size_t value, AllocationType allocation = AllocationType::kYoung);
   inline Handle<Object> NewNumberFromInt64(
-      int64_t value, PretenureFlag pretenure = NOT_TENURED);
+      int64_t value, AllocationType allocation = AllocationType::kYoung);
   inline Handle<HeapNumber> NewHeapNumber(
-      double value, MutableMode mode = IMMUTABLE,
-      PretenureFlag pretenure = NOT_TENURED);
+      double value, AllocationType allocation = AllocationType::kYoung);
   inline Handle<HeapNumber> NewHeapNumberFromBits(
-      uint64_t bits, MutableMode mode = IMMUTABLE,
-      PretenureFlag pretenure = NOT_TENURED);
-  // Creates mutable heap number object with value field set to hole NaN.
-  inline Handle<HeapNumber> NewMutableHeapNumber(
-      PretenureFlag pretenure = NOT_TENURED);
+      uint64_t bits, AllocationType allocation = AllocationType::kYoung);
 
   // Creates heap number object with not yet set value field.
-  Handle<HeapNumber> NewHeapNumber(MutableMode mode,
-                                   PretenureFlag pretenure = NOT_TENURED);
+  Handle<HeapNumber> NewHeapNumber(
+      AllocationType allocation = AllocationType::kYoung);
+
+  Handle<MutableHeapNumber> NewMutableHeapNumber(
+      AllocationType allocation = AllocationType::kYoung);
+  inline Handle<MutableHeapNumber> NewMutableHeapNumber(
+      double value, AllocationType allocation = AllocationType::kYoung);
+  inline Handle<MutableHeapNumber> NewMutableHeapNumberFromBits(
+      uint64_t bits, AllocationType allocation = AllocationType::kYoung);
+  inline Handle<MutableHeapNumber> NewMutableHeapNumberWithHoleNaN(
+      AllocationType allocation = AllocationType::kYoung);
 
   // Allocates a new BigInt with {length} digits. Only to be used by
   // MutableBigInt::New*.
   Handle<FreshlyAllocatedBigInt> NewBigInt(
-      int length, PretenureFlag pretenure = NOT_TENURED);
+      int length, AllocationType allocation = AllocationType::kYoung);
 
   Handle<JSObject> NewArgumentsObject(Handle<JSFunction> callee, int length);
 
@@ -549,11 +608,12 @@ class V8_EXPORT_PRIVATE Factory {
   // constructor.
   // JS objects are pretenured when allocated by the bootstrapper and
   // runtime.
-  Handle<JSObject> NewJSObject(Handle<JSFunction> constructor,
-                               PretenureFlag pretenure = NOT_TENURED);
+  Handle<JSObject> NewJSObject(
+      Handle<JSFunction> constructor,
+      AllocationType allocation = AllocationType::kYoung);
   // JSObject without a prototype.
   Handle<JSObject> NewJSObjectWithNullProto(
-      PretenureFlag pretenure = NOT_TENURED);
+      AllocationType allocation = AllocationType::kYoung);
 
   // Global objects are pretenured and initialized based on a constructor.
   Handle<JSGlobalObject> NewJSGlobalObject(Handle<JSFunction> constructor);
@@ -564,12 +624,22 @@ class V8_EXPORT_PRIVATE Factory {
   // JS objects are pretenured when allocated by the bootstrapper and
   // runtime.
   Handle<JSObject> NewJSObjectFromMap(
-      Handle<Map> map, PretenureFlag pretenure = NOT_TENURED,
+      Handle<Map> map, AllocationType allocation = AllocationType::kYoung,
       Handle<AllocationSite> allocation_site = Handle<AllocationSite>::null());
   Handle<JSObject> NewSlowJSObjectFromMap(
       Handle<Map> map,
       int number_of_slow_properties = NameDictionary::kInitialCapacity,
-      PretenureFlag pretenure = NOT_TENURED);
+      AllocationType allocation = AllocationType::kYoung);
+  // Allocates and initializes a new JavaScript object with the given
+  // {prototype} and {properties}. The newly created object will be
+  // in dictionary properties mode. The {elements} can either be the
+  // empty fixed array, in which case the resulting object will have
+  // fast elements, or a NumberDictionary, in which case the resulting
+  // object will have dictionary elements.
+  Handle<JSObject> NewSlowJSObjectWithPropertiesAndElements(
+      Handle<HeapObject> prototype, Handle<NameDictionary> properties,
+      Handle<FixedArrayBase> elements,
+      AllocationType allocation = AllocationType::kYoung);
 
   // JS arrays are pretenured when allocated by the parser.
 
@@ -578,27 +648,27 @@ class V8_EXPORT_PRIVATE Factory {
   Handle<JSArray> NewJSArray(
       ElementsKind elements_kind, int length, int capacity,
       ArrayStorageAllocationMode mode = DONT_INITIALIZE_ARRAY_ELEMENTS,
-      PretenureFlag pretenure = NOT_TENURED);
+      AllocationType allocation = AllocationType::kYoung);
 
   Handle<JSArray> NewJSArray(
       int capacity, ElementsKind elements_kind = TERMINAL_FAST_ELEMENTS_KIND,
-      PretenureFlag pretenure = NOT_TENURED) {
+      AllocationType allocation = AllocationType::kYoung) {
     if (capacity != 0) {
       elements_kind = GetHoleyElementsKind(elements_kind);
     }
     return NewJSArray(elements_kind, 0, capacity,
-                      INITIALIZE_ARRAY_ELEMENTS_WITH_HOLE, pretenure);
+                      INITIALIZE_ARRAY_ELEMENTS_WITH_HOLE, allocation);
   }
 
   // Create a JSArray with the given elements.
-  Handle<JSArray> NewJSArrayWithElements(Handle<FixedArrayBase> elements,
-                                         ElementsKind elements_kind, int length,
-                                         PretenureFlag pretenure = NOT_TENURED);
+  Handle<JSArray> NewJSArrayWithElements(
+      Handle<FixedArrayBase> elements, ElementsKind elements_kind, int length,
+      AllocationType allocation = AllocationType::kYoung);
 
   inline Handle<JSArray> NewJSArrayWithElements(
       Handle<FixedArrayBase> elements,
       ElementsKind elements_kind = TERMINAL_FAST_ELEMENTS_KIND,
-      PretenureFlag pretenure = NOT_TENURED);
+      AllocationType allocation = AllocationType::kYoung);
 
   void NewJSArrayStorage(
       Handle<JSArray> array, int length, int capacity,
@@ -613,32 +683,20 @@ class V8_EXPORT_PRIVATE Factory {
   Handle<Module> NewModule(Handle<SharedFunctionInfo> code);
 
   Handle<JSArrayBuffer> NewJSArrayBuffer(
-      SharedFlag shared = SharedFlag::kNotShared,
-      PretenureFlag pretenure = NOT_TENURED);
+      SharedFlag shared, AllocationType allocation = AllocationType::kYoung);
 
   static void TypeAndSizeForElementsKind(ElementsKind kind,
                                          ExternalArrayType* array_type,
                                          size_t* element_size);
 
-  Handle<JSTypedArray> NewJSTypedArray(ExternalArrayType type,
-                                       PretenureFlag pretenure = NOT_TENURED);
-
-  Handle<JSTypedArray> NewJSTypedArray(ElementsKind elements_kind,
-                                       PretenureFlag pretenure = NOT_TENURED);
-
   // Creates a new JSTypedArray with the specified buffer.
-  Handle<JSTypedArray> NewJSTypedArray(ExternalArrayType type,
-                                       Handle<JSArrayBuffer> buffer,
-                                       size_t byte_offset, size_t length,
-                                       PretenureFlag pretenure = NOT_TENURED);
+  Handle<JSTypedArray> NewJSTypedArray(
+      ExternalArrayType type, Handle<JSArrayBuffer> buffer, size_t byte_offset,
+      size_t length, AllocationType allocation = AllocationType::kYoung);
 
-  // Creates a new on-heap JSTypedArray.
-  Handle<JSTypedArray> NewJSTypedArray(ElementsKind elements_kind,
-                                       size_t number_of_elements,
-                                       PretenureFlag pretenure = NOT_TENURED);
-
-  Handle<JSDataView> NewJSDataView(Handle<JSArrayBuffer> buffer,
-                                   size_t byte_offset, size_t byte_length);
+  Handle<JSDataView> NewJSDataView(
+      Handle<JSArrayBuffer> buffer, size_t byte_offset, size_t byte_length,
+      AllocationType allocation = AllocationType::kYoung);
 
   Handle<JSIteratorResult> NewJSIteratorResult(Handle<Object> value, bool done);
   Handle<JSAsyncFromSyncIterator> NewJSAsyncFromSyncIterator(
@@ -646,13 +704,6 @@ class V8_EXPORT_PRIVATE Factory {
 
   Handle<JSMap> NewJSMap();
   Handle<JSSet> NewJSSet();
-
-  Handle<JSMapIterator> NewJSMapIterator(Handle<Map> map,
-                                         Handle<OrderedHashMap> table,
-                                         int index);
-  Handle<JSSetIterator> NewJSSetIterator(Handle<Map> map,
-                                         Handle<OrderedHashSet> table,
-                                         int index);
 
   // Allocates a bound function.
   MaybeHandle<JSBoundFunction> NewJSBoundFunction(
@@ -684,83 +735,56 @@ class V8_EXPORT_PRIVATE Factory {
   Handle<JSFunction> NewFunctionFromSharedFunctionInfo(
       Handle<Map> initial_map, Handle<SharedFunctionInfo> function_info,
       Handle<Context> context, Handle<FeedbackCell> feedback_cell,
-      PretenureFlag pretenure = TENURED);
+      AllocationType allocation = AllocationType::kOld);
 
   Handle<JSFunction> NewFunctionFromSharedFunctionInfo(
       Handle<SharedFunctionInfo> function_info, Handle<Context> context,
-      Handle<FeedbackCell> feedback_cell, PretenureFlag pretenure = TENURED);
+      Handle<FeedbackCell> feedback_cell,
+      AllocationType allocation = AllocationType::kOld);
 
   Handle<JSFunction> NewFunctionFromSharedFunctionInfo(
       Handle<Map> initial_map, Handle<SharedFunctionInfo> function_info,
-      Handle<Context> context, PretenureFlag pretenure = TENURED);
+      Handle<Context> context,
+      AllocationType allocation = AllocationType::kOld);
 
   Handle<JSFunction> NewFunctionFromSharedFunctionInfo(
       Handle<SharedFunctionInfo> function_info, Handle<Context> context,
-      PretenureFlag pretenure = TENURED);
+      AllocationType allocation = AllocationType::kOld);
 
   // The choke-point for JSFunction creation. Handles allocation and
   // initialization. All other utility methods call into this.
-  Handle<JSFunction> NewFunction(Handle<Map> map,
-                                 Handle<SharedFunctionInfo> info,
-                                 Handle<Context> context,
-                                 PretenureFlag pretenure = TENURED);
+  Handle<JSFunction> NewFunction(
+      Handle<Map> map, Handle<SharedFunctionInfo> info, Handle<Context> context,
+      AllocationType allocation = AllocationType::kOld);
 
   // Create a serialized scope info.
   Handle<ScopeInfo> NewScopeInfo(int length);
 
   Handle<ModuleInfo> NewModuleInfo();
 
-  Handle<PreParsedScopeData> NewPreParsedScopeData();
+  Handle<PreparseData> NewPreparseData(int data_length, int children_length);
+
+  Handle<UncompiledDataWithoutPreparseData>
+  NewUncompiledDataWithoutPreparseData(Handle<String> inferred_name,
+                                       int32_t start_position,
+                                       int32_t end_position,
+                                       int32_t function_literal_id);
+
+  Handle<UncompiledDataWithPreparseData> NewUncompiledDataWithPreparseData(
+      Handle<String> inferred_name, int32_t start_position,
+      int32_t end_position, int32_t function_literal_id, Handle<PreparseData>);
 
   // Create an External object for V8's external API.
   Handle<JSObject> NewExternal(void* value);
 
   // Creates a new CodeDataContainer for a Code object.
-  Handle<CodeDataContainer> NewCodeDataContainer(int flags);
+  Handle<CodeDataContainer> NewCodeDataContainer(int flags,
+                                                 AllocationType allocation);
 
-  // Allocates a new code object (fully initialized). All header fields of the
-  // returned object are immutable and the code object is write protected.
-  // The reference to the Code object is stored in self_reference.
-  // This allows generated code to reference its own Code object
-  // by containing this handle.
-  Handle<Code> NewCode(const CodeDesc& desc, Code::Kind kind,
-                       Handle<Object> self_reference,
-                       int32_t builtin_index = Builtins::kNoBuiltinId,
-                       MaybeHandle<ByteArray> maybe_source_position_table =
-                           MaybeHandle<ByteArray>(),
-                       MaybeHandle<DeoptimizationData> maybe_deopt_data =
-                           MaybeHandle<DeoptimizationData>(),
-                       Movability movability = kMovable, uint32_t stub_key = 0,
-                       bool is_turbofanned = false, int stack_slots = 0,
-                       int safepoint_table_offset = 0,
-                       int handler_table_offset = 0);
-
-  // Like NewCode, this function allocates a new code object (fully
-  // initialized). It may return an empty handle if the allocation does not
-  // succeed.
-  V8_WARN_UNUSED_RESULT MaybeHandle<Code> TryNewCode(
-      const CodeDesc& desc, Code::Kind kind, Handle<Object> self_reference,
-      int32_t builtin_index = Builtins::kNoBuiltinId,
-      MaybeHandle<ByteArray> maybe_source_position_table =
-          MaybeHandle<ByteArray>(),
-      MaybeHandle<DeoptimizationData> maybe_deopt_data =
-          MaybeHandle<DeoptimizationData>(),
-      Movability movability = kMovable, uint32_t stub_key = 0,
-      bool is_turbofanned = false, int stack_slots = 0,
-      int safepoint_table_offset = 0, int handler_table_offset = 0);
-
-  // Allocates a new, empty code object for use by builtin deserialization. The
-  // given {size} argument specifies the size of the entire code object.
-  // Can only be used when code space is unprotected and requires manual
-  // initialization by the caller.
-  Handle<Code> NewCodeForDeserialization(uint32_t size);
-
-#ifdef V8_EMBEDDED_BUILTINS
   // Allocates a new code object and initializes it as the trampoline to the
   // given off-heap entry point.
   Handle<Code> NewOffHeapTrampolineFor(Handle<Code> code,
                                        Address off_heap_entry);
-#endif
 
   Handle<Code> CopyCode(Handle<Code> code);
 
@@ -775,15 +799,15 @@ class V8_EXPORT_PRIVATE Factory {
   inline Handle<Object> NewURIError();
 
   Handle<Object> NewError(Handle<JSFunction> constructor,
-                          MessageTemplate::Template template_index,
+                          MessageTemplate template_index,
                           Handle<Object> arg0 = Handle<Object>(),
                           Handle<Object> arg1 = Handle<Object>(),
                           Handle<Object> arg2 = Handle<Object>());
 
-#define DECLARE_ERROR(NAME)                                          \
-  Handle<Object> New##NAME(MessageTemplate::Template template_index, \
-                           Handle<Object> arg0 = Handle<Object>(),   \
-                           Handle<Object> arg1 = Handle<Object>(),   \
+#define DECLARE_ERROR(NAME)                                        \
+  Handle<Object> New##NAME(MessageTemplate template_index,         \
+                           Handle<Object> arg0 = Handle<Object>(), \
+                           Handle<Object> arg1 = Handle<Object>(), \
                            Handle<Object> arg2 = Handle<Object>());
   DECLARE_ERROR(Error)
   DECLARE_ERROR(EvalError)
@@ -796,46 +820,22 @@ class V8_EXPORT_PRIVATE Factory {
   DECLARE_ERROR(WasmRuntimeError)
 #undef DECLARE_ERROR
 
-  Handle<String> NumberToString(Handle<Object> number,
-                                bool check_number_string_cache = true);
+  Handle<String> NumberToString(Handle<Object> number, bool check_cache = true);
+  Handle<String> NumberToString(Smi number, bool check_cache = true);
 
-  inline Handle<String> Uint32ToString(uint32_t value);
+  inline Handle<String> Uint32ToString(uint32_t value, bool check_cache = true);
 
-#define ROOT_ACCESSOR(type, name, camel_name) inline Handle<type> name();
+#define ROOT_ACCESSOR(Type, name, CamelName) inline Handle<Type> name();
   ROOT_LIST(ROOT_ACCESSOR)
 #undef ROOT_ACCESSOR
-
-#define STRUCT_MAP_ACCESSOR(NAME, Name, name) inline Handle<Map> name##_map();
-  STRUCT_LIST(STRUCT_MAP_ACCESSOR)
-#undef STRUCT_MAP_ACCESSOR
-
-#define DATA_HANDLER_MAP_ACCESSOR(NAME, Name, Size, name) \
-  inline Handle<Map> name##_map();
-  DATA_HANDLER_LIST(DATA_HANDLER_MAP_ACCESSOR)
-#undef DATA_HANDLER_MAP_ACCESSOR
-
-#define STRING_ACCESSOR(name, str) inline Handle<String> name();
-  INTERNALIZED_STRING_LIST(STRING_ACCESSOR)
-#undef STRING_ACCESSOR
-
-#define SYMBOL_ACCESSOR(name) inline Handle<Symbol> name();
-  PRIVATE_SYMBOL_LIST(SYMBOL_ACCESSOR)
-#undef SYMBOL_ACCESSOR
-
-#define SYMBOL_ACCESSOR(name, description) inline Handle<Symbol> name();
-  PUBLIC_SYMBOL_LIST(SYMBOL_ACCESSOR)
-  WELL_KNOWN_SYMBOL_LIST(SYMBOL_ACCESSOR)
-#undef SYMBOL_ACCESSOR
-
-#define ACCESSOR_INFO_ACCESSOR(accessor_name, AccessorName) \
-  inline Handle<AccessorInfo> accessor_name##_accessor();
-  ACCESSOR_INFO_LIST(ACCESSOR_INFO_ACCESSOR)
-#undef ACCESSOR_INFO_ACCESSOR
 
   // Allocates a new SharedFunctionInfo object.
   Handle<SharedFunctionInfo> NewSharedFunctionInfoForApiFunction(
       MaybeHandle<String> maybe_name,
       Handle<FunctionTemplateInfo> function_template_info, FunctionKind kind);
+
+  Handle<SharedFunctionInfo> NewSharedFunctionInfoForWasmCapiFunction(
+      Handle<WasmCapiFunctionData> data);
 
   Handle<SharedFunctionInfo> NewSharedFunctionInfoForBuiltin(
       MaybeHandle<String> name, int builtin_index,
@@ -869,20 +869,19 @@ class V8_EXPORT_PRIVATE Factory {
   Handle<Map> CreateClassFunctionMap(Handle<JSFunction> empty_function);
 
   // Allocates a new JSMessageObject object.
-  Handle<JSMessageObject> NewJSMessageObject(MessageTemplate::Template message,
-                                             Handle<Object> argument,
-                                             int start_position,
-                                             int end_position,
-                                             Handle<Object> script,
-                                             Handle<Object> stack_frames);
+  Handle<JSMessageObject> NewJSMessageObject(
+      MessageTemplate message, Handle<Object> argument, int start_position,
+      int end_position, Handle<SharedFunctionInfo> shared_info,
+      int bytecode_offset, Handle<Script> script, Handle<Object> stack_frames);
 
+  Handle<ClassPositions> NewClassPositions(int start, int end);
   Handle<DebugInfo> NewDebugInfo(Handle<SharedFunctionInfo> shared);
 
   Handle<CoverageInfo> NewCoverageInfo(const ZoneVector<SourceRange>& slots);
 
   // Return a map for given number of properties using the map cache in the
   // native context.
-  Handle<Map> ObjectLiteralMapFromCache(Handle<Context> native_context,
+  Handle<Map> ObjectLiteralMapFromCache(Handle<NativeContext> native_context,
                                         int number_of_properties);
 
   Handle<LoadHandler> NewLoadHandler(int data_count);
@@ -913,80 +912,179 @@ class V8_EXPORT_PRIVATE Factory {
   // Converts the given ToPrimitive hint to it's string representation.
   Handle<String> ToPrimitiveHintString(ToPrimitiveHint hint);
 
-  Handle<JSPromise> NewJSPromise(PretenureFlag pretenure = NOT_TENURED);
+  Handle<JSPromise> NewJSPromiseWithoutHook(
+      AllocationType allocation = AllocationType::kYoung);
+  Handle<JSPromise> NewJSPromise(
+      AllocationType allocation = AllocationType::kYoung);
 
   Handle<CallHandlerInfo> NewCallHandlerInfo(bool has_no_side_effect = false);
 
-  HeapObject* NewForTest(Handle<Map> map, PretenureFlag pretenure) {
-    return New(map, pretenure);
+  HeapObject NewForTest(Handle<Map> map, AllocationType allocation) {
+    return New(map, allocation);
   }
+
+  // Allows creation of Code objects. It provides two build methods, one of
+  // which tries to gracefully handle allocation failure.
+  class V8_EXPORT_PRIVATE CodeBuilder final {
+   public:
+    CodeBuilder(Isolate* isolate, const CodeDesc& desc, Code::Kind kind);
+
+    // Builds a new code object (fully initialized). All header fields of the
+    // returned object are immutable and the code object is write protected.
+    V8_WARN_UNUSED_RESULT Handle<Code> Build();
+    // Like Build, builds a new code object. May return an empty handle if the
+    // allocation fails.
+    V8_WARN_UNUSED_RESULT MaybeHandle<Code> TryBuild();
+
+    // Sets the self-reference object in which a reference to the code object is
+    // stored. This allows generated code to reference its own Code object by
+    // using this handle.
+    CodeBuilder& set_self_reference(Handle<Object> self_reference) {
+      DCHECK(!self_reference.is_null());
+      self_reference_ = self_reference;
+      return *this;
+    }
+
+    CodeBuilder& set_builtin_index(int32_t builtin_index) {
+      builtin_index_ = builtin_index;
+      return *this;
+    }
+
+    CodeBuilder& set_source_position_table(Handle<ByteArray> table) {
+      DCHECK(!table.is_null());
+      source_position_table_ = table;
+      return *this;
+    }
+
+    CodeBuilder& set_deoptimization_data(
+        Handle<DeoptimizationData> deopt_data) {
+      DCHECK(!deopt_data.is_null());
+      deoptimization_data_ = deopt_data;
+      return *this;
+    }
+
+    CodeBuilder& set_immovable() {
+      is_movable_ = false;
+      return *this;
+    }
+
+    CodeBuilder& set_is_turbofanned() {
+      is_turbofanned_ = true;
+      return *this;
+    }
+
+    // Indicates the CodeDataContainer should be allocated in read-only space.
+    // As an optimization, if the kind-specific flags match that of a canonical
+    // container, it will be used instead.
+    CodeBuilder& set_read_only_data_container(int32_t flags) {
+      read_only_data_container_ = true;
+      kind_specific_flags_ = flags;
+      return *this;
+    }
+
+    CodeBuilder& set_stack_slots(int stack_slots) {
+      stack_slots_ = stack_slots;
+      return *this;
+    }
+
+   private:
+    MaybeHandle<Code> BuildInternal(bool retry_allocation_or_fail);
+
+    Isolate* const isolate_;
+    const CodeDesc& code_desc_;
+    const Code::Kind kind_;
+
+    MaybeHandle<Object> self_reference_;
+    int32_t builtin_index_ = Builtins::kNoBuiltinId;
+    int32_t kind_specific_flags_ = 0;
+    Handle<ByteArray> source_position_table_;
+    Handle<DeoptimizationData> deoptimization_data_ =
+        DeoptimizationData::Empty(isolate_);
+    bool read_only_data_container_ = false;
+    bool is_movable_ = true;
+    bool is_turbofanned_ = false;
+    int stack_slots_ = 0;
+  };
 
  private:
   Isolate* isolate() {
     // Downcast to the privately inherited sub-class using c-style casts to
     // avoid undefined behavior (as static_cast cannot cast across private
     // bases).
+    // NOLINTNEXTLINE (google-readability-casting)
     return (Isolate*)this;  // NOLINT(readability/casting)
   }
 
-  HeapObject* AllocateRawWithImmortalMap(
-      int size, PretenureFlag pretenure, Map* map,
+  HeapObject AllocateRawWithImmortalMap(
+      int size, AllocationType allocation, Map map,
       AllocationAlignment alignment = kWordAligned);
-  HeapObject* AllocateRawWithAllocationSite(
-      Handle<Map> map, PretenureFlag pretenure,
+  HeapObject AllocateRawWithAllocationSite(
+      Handle<Map> map, AllocationType allocation,
       Handle<AllocationSite> allocation_site);
 
+  Handle<JSArrayBufferView> NewJSArrayBufferView(
+      Handle<Map> map, Handle<FixedArrayBase> elements,
+      Handle<JSArrayBuffer> buffer, size_t byte_offset, size_t byte_length,
+      AllocationType allocation);
+
   // Allocate memory for an uninitialized array (e.g., a FixedArray or similar).
-  HeapObject* AllocateRawArray(int size, PretenureFlag pretenure);
-  HeapObject* AllocateRawFixedArray(int length, PretenureFlag pretenure);
-  HeapObject* AllocateRawWeakArrayList(int length, PretenureFlag pretenure);
-  Handle<FixedArray> NewFixedArrayWithFiller(Heap::RootListIndex map_root_index,
-                                             int length, Object* filler,
-                                             PretenureFlag pretenure);
+  HeapObject AllocateRawArray(int size, AllocationType allocation);
+  HeapObject AllocateRawFixedArray(int length, AllocationType allocation);
+  HeapObject AllocateRawWeakArrayList(int length, AllocationType allocation);
+  Handle<FixedArray> NewFixedArrayWithFiller(RootIndex map_root_index,
+                                             int length, Object filler,
+                                             AllocationType allocation);
+
+  // Allocates new context with given map, sets length and initializes the
+  // after-header part with uninitialized values and leaves the context header
+  // uninitialized.
+  Handle<Context> NewContext(RootIndex map_root_index, int size,
+                             int variadic_part_length,
+                             AllocationType allocation);
+
+  template <typename T>
+  Handle<T> AllocateSmallOrderedHashTable(Handle<Map> map, int capacity,
+                                          AllocationType allocation);
 
   // Creates a heap object based on the map. The fields of the heap object are
   // not initialized, it's the responsibility of the caller to do that.
-  HeapObject* New(Handle<Map> map, PretenureFlag pretenure);
+  HeapObject New(Handle<Map> map, AllocationType allocation);
 
   template <typename T>
   Handle<T> CopyArrayWithMap(Handle<T> src, Handle<Map> map);
   template <typename T>
   Handle<T> CopyArrayAndGrow(Handle<T> src, int grow_by,
-                             PretenureFlag pretenure);
+                             AllocationType allocation);
 
   template <bool is_one_byte, typename T>
   Handle<String> AllocateInternalizedStringImpl(T t, int chars,
                                                 uint32_t hash_field);
 
-  Handle<SeqOneByteString> AllocateRawOneByteInternalizedString(
-      int length, uint32_t hash_field);
-
-  Handle<String> AllocateTwoByteInternalizedString(Vector<const uc16> str,
-                                                   uint32_t hash_field);
+  Handle<String> AllocateTwoByteInternalizedString(
+      const Vector<const uc16>& str, uint32_t hash_field);
 
   MaybeHandle<String> NewStringFromTwoByte(const uc16* string, int length,
-                                           PretenureFlag pretenure);
+                                           AllocationType allocation);
 
   // Attempt to find the number in a small cache.  If we finds it, return
   // the string representation of the number.  Otherwise return undefined.
-  Handle<Object> GetNumberStringCache(Handle<Object> number);
+  Handle<Object> NumberToStringCacheGet(Object number, int hash);
 
   // Update the cache with a new number-string pair.
-  void SetNumberStringCache(Handle<Object> number, Handle<String> string);
+  Handle<String> NumberToStringCacheSet(Handle<Object> number, int hash,
+                                        const char* string, bool check_cache);
 
   // Create a JSArray with no elements and no length.
-  Handle<JSArray> NewJSArray(ElementsKind elements_kind,
-                             PretenureFlag pretenure = NOT_TENURED);
-
-  Handle<JSPromise> NewJSPromiseWithoutHook(
-      PretenureFlag pretenure = NOT_TENURED);
+  Handle<JSArray> NewJSArray(
+      ElementsKind elements_kind,
+      AllocationType allocation = AllocationType::kYoung);
 
   Handle<SharedFunctionInfo> NewSharedFunctionInfo(
       MaybeHandle<String> name, MaybeHandle<HeapObject> maybe_function_data,
       int maybe_builtin_index, FunctionKind kind = kNormalFunction);
 
-  void InitializeAllocationMemento(AllocationMemento* memento,
-                                   AllocationSite* allocation_site);
+  void InitializeAllocationMemento(AllocationMemento memento,
+                                   AllocationSite allocation_site);
 
   // Initializes a JSObject based on its map.
   void InitializeJSObjectFromMap(Handle<JSObject> obj,
@@ -1002,13 +1100,17 @@ class NewFunctionArgs final {
   static NewFunctionArgs ForWasm(
       Handle<String> name,
       Handle<WasmExportedFunctionData> exported_function_data, Handle<Map> map);
-  static NewFunctionArgs ForBuiltin(Handle<String> name, Handle<Map> map,
-                                    int builtin_id);
+  static NewFunctionArgs ForWasm(Handle<String> name,
+                                 Handle<WasmJSFunctionData> js_function_data,
+                                 Handle<Map> map);
+  V8_EXPORT_PRIVATE static NewFunctionArgs ForBuiltin(Handle<String> name,
+                                                      Handle<Map> map,
+                                                      int builtin_id);
   static NewFunctionArgs ForFunctionWithoutCode(Handle<String> name,
                                                 Handle<Map> map,
                                                 LanguageMode language_mode);
   static NewFunctionArgs ForBuiltinWithPrototype(
-      Handle<String> name, Handle<Object> prototype, InstanceType type,
+      Handle<String> name, Handle<HeapObject> prototype, InstanceType type,
       int instance_size, int inobject_properties, int builtin_id,
       MutableMode prototype_mutability);
   static NewFunctionArgs ForBuiltinWithoutPrototype(Handle<String> name,
@@ -1018,7 +1120,7 @@ class NewFunctionArgs final {
   Handle<Map> GetMap(Isolate* isolate) const;
 
  private:
-  NewFunctionArgs() {}  // Use the static factory constructors.
+  NewFunctionArgs() = default;  // Use the static factory constructors.
 
   void SetShouldCreateAndSetInitialMap();
   void SetShouldSetPrototype();
@@ -1029,7 +1131,7 @@ class NewFunctionArgs final {
 
   Handle<String> name_;
   MaybeHandle<Map> maybe_map_;
-  MaybeHandle<WasmExportedFunctionData> maybe_exported_function_data_;
+  MaybeHandle<Struct> maybe_wasm_function_data_;
 
   bool should_create_and_set_initial_map_ = false;
   InstanceType type_;
@@ -1037,7 +1139,7 @@ class NewFunctionArgs final {
   int inobject_properties_ = kUninitialized;
 
   bool should_set_prototype_ = false;
-  MaybeHandle<Object> maybe_prototype_;
+  MaybeHandle<HeapObject> maybe_prototype_;
 
   bool should_set_language_mode_ = false;
   LanguageMode language_mode_;

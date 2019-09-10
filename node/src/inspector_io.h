@@ -1,44 +1,26 @@
-#ifndef SRC_INSPECTOR_IO_H_
-#define SRC_INSPECTOR_IO_H_
+#pragma once
 
 #if defined(NODE_WANT_INTERNALS) && NODE_WANT_INTERNALS
-
-#include "inspector_socket_server.h"
-#include "node_mutex.h"
-#include "uv.h"
-
-#include <memory>
-#include <stddef.h>
 
 #if !HAVE_INSPECTOR
 #error("This header can only be used when inspector is enabled")
 #endif
 
+#include "inspector_socket_server.h"
+#include "node_mutex.h"
 
-namespace v8_inspector {
-class StringBuffer;
-class StringView;
-}  // namespace v8_inspector
+#include "uv.h"
+
+#include <cstddef>
+#include <memory>
 
 namespace node {
 // Forward declaration to break recursive dependency chain with src/env.h.
 class Environment;
 namespace inspector {
 
-std::string FormatWsAddress(const std::string& host, int port,
-                            const std::string& target_id,
-                            bool include_protocol);
-
-class InspectorIoDelegate;
 class MainThreadHandle;
 class RequestQueue;
-
-// kKill closes connections and stops the server, kStop only stops the server
-enum class TransportAction {
-  kKill,
-  kSendMessage,
-  kStop
-};
 
 class InspectorIo {
  public:
@@ -46,21 +28,22 @@ class InspectorIo {
   // bool Start();
   // Returns empty pointer if thread was not started
   static std::unique_ptr<InspectorIo> Start(
-      std::shared_ptr<MainThreadHandle> main_thread, const std::string& path,
-      std::shared_ptr<DebugOptions> options);
+      std::shared_ptr<MainThreadHandle> main_thread,
+      const std::string& path,
+      std::shared_ptr<HostPort> host_port,
+      const InspectPublishUid& inspect_publish_uid);
 
   // Will block till the transport thread shuts down
   ~InspectorIo();
 
   void StopAcceptingNewConnections();
-  const std::string& host() const { return options_->host(); }
-  int port() const { return port_; }
-  std::vector<std::string> GetTargetIds() const;
+  std::string GetWsUrl() const;
 
  private:
   InspectorIo(std::shared_ptr<MainThreadHandle> handle,
               const std::string& path,
-              std::shared_ptr<DebugOptions> options);
+              std::shared_ptr<HostPort> host_port,
+              const InspectPublishUid& inspect_publish_uid);
 
   // Wrapper for agent->ThreadMain()
   static void ThreadMain(void* agent);
@@ -74,7 +57,8 @@ class InspectorIo {
   // Used to post on a frontend interface thread, lives while the server is
   // running
   std::shared_ptr<RequestQueue> request_queue_;
-  std::shared_ptr<DebugOptions> options_;
+  std::shared_ptr<HostPort> host_port_;
+  InspectPublishUid inspect_publish_uid_;
 
   // The IO thread runs its own uv_loop to implement the TCP server off
   // the main thread.
@@ -84,7 +68,6 @@ class InspectorIo {
   Mutex thread_start_lock_;
   ConditionVariable thread_start_condition_;
   std::string script_name_;
-  int port_ = -1;
   // May be accessed from any thread
   const std::string id_;
 };
@@ -93,5 +76,3 @@ class InspectorIo {
 }  // namespace node
 
 #endif  // defined(NODE_WANT_INTERNALS) && NODE_WANT_INTERNALS
-
-#endif  // SRC_INSPECTOR_IO_H_

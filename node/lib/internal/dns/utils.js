@@ -6,12 +6,13 @@ const {
   strerror,
   AI_ADDRCONFIG,
   AI_V4MAPPED
-} = process.binding('cares_wrap');
+} = internalBinding('cares_wrap');
 const IANA_DNS_PORT = 53;
 const IPv6RE = /^\[([^[\]]*)\]/;
 const addrSplitRE = /(^.+?)(?::(\d+))?$/;
 const {
   ERR_DNS_SET_SERVERS_FAILED,
+  ERR_INVALID_ARG_TYPE,
   ERR_INVALID_IP_ADDRESS,
   ERR_INVALID_OPT_VALUE
 } = errors.codes;
@@ -37,13 +38,20 @@ class Resolver {
   }
 
   setServers(servers) {
+    if (!Array.isArray(servers)) {
+      throw new ERR_INVALID_ARG_TYPE('servers', 'Array', servers);
+    }
+
     // Cache the original servers because in the event of an error while
     // setting the servers, c-ares won't have any servers available for
     // resolution.
     const orig = this._handle.getServers();
     const newSet = [];
 
-    servers.forEach((serv) => {
+    servers.forEach((serv, index) => {
+      if (typeof serv !== 'string') {
+        throw new ERR_INVALID_ARG_TYPE(`servers[${index}]`, 'string', serv);
+      }
       var ipVersion = isIP(serv);
 
       if (ipVersion !== 0)
@@ -57,8 +65,7 @@ class Resolver {
 
         if (ipVersion !== 0) {
           const port =
-            parseInt(serv.replace(addrSplitRE, '$2')) ||
-            IANA_DNS_PORT;
+            parseInt(serv.replace(addrSplitRE, '$2')) || IANA_DNS_PORT;
           return newSet.push([ipVersion, match[1], port]);
         }
       }
@@ -95,18 +102,18 @@ let defaultResolver = new Resolver();
 const resolverKeys = [
   'getServers',
   'resolve',
-  'resolveAny',
   'resolve4',
   'resolve6',
+  'resolveAny',
   'resolveCname',
   'resolveMx',
-  'resolveNs',
-  'resolveTxt',
-  'resolveSrv',
-  'resolvePtr',
   'resolveNaptr',
+  'resolveNs',
+  'resolvePtr',
   'resolveSoa',
-  'reverse'
+  'resolveSrv',
+  'resolveTxt',
+  'reverse',
 ];
 
 function getDefaultResolver() {
@@ -132,10 +139,26 @@ function validateHints(hints) {
   }
 }
 
+let invalidHostnameWarningEmitted = false;
+
+function emitInvalidHostnameWarning(hostname) {
+  if (invalidHostnameWarningEmitted) {
+    return;
+  }
+  invalidHostnameWarningEmitted = true;
+  process.emitWarning(
+    `The provided hostname "${hostname}" is not a valid ` +
+    'hostname, and is supported in the dns module solely for compatibility.',
+    'DeprecationWarning',
+    'DEP0118'
+  );
+}
+
 module.exports = {
   bindDefaultResolver,
   getDefaultResolver,
   setDefaultResolver,
   validateHints,
-  Resolver
+  Resolver,
+  emitInvalidHostnameWarning,
 };

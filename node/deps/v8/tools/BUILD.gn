@@ -25,14 +25,33 @@ group("v8_check_static_initializers") {
   ]
 }
 
+group("v8_android_test_runner_deps") {
+  testonly = true
+
+  if (is_android && !build_with_chromium) {
+    data_deps = [
+      "//build/android:test_runner_py",
+    ]
+    data = [
+      # This is used by android.py, but not included by test_runner_py above.
+      "//third_party/catapult/devil/devil/android/perf/",
+    ]
+  }
+}
+
 group("v8_testrunner") {
+  testonly = true
+
   data_deps = [
+    "..:v8_python_base",
     "..:v8_dump_build_config",
+    ":v8_android_test_runner_deps",
   ]
 
   data = [
     # Also add the num-fuzzer wrapper script in order to be able to run the
     # num-fuzzer on all existing isolated V8 test suites.
+    "predictable_wrapper.py",
     "run-num-fuzzer.py",
     "run-tests.py",
     "testrunner/",

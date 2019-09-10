@@ -205,6 +205,7 @@ const server = http.createServer(common.mustCall((req, res) => {
 });
 
 ```
+
 #### Countdown Module
 
 The common [Countdown module](https://github.com/nodejs/node/tree/master/test/common#countdown-module)
@@ -281,6 +282,33 @@ assert.throws(
 );
 ```
 
+### Console output
+
+Output written by tests to stdout or stderr, such as with `console.log()` or
+`console.error()`, can be useful when writing tests, as well as for debugging
+them during later maintenance. The output will be suppressed by the test runner
+(`./tools/test.py`) unless the test fails, but will always be displayed when
+running tests directly with `node`. For failing tests, the test runner will
+include the output along with the failed test assertion in the test report.
+
+Some output can help debugging by giving context to test failures. For example,
+when troubleshooting tests that timeout in CI. With no log statements, we have
+no idea where the test got hung up.
+
+There have been cases where tests fail without `console.log()`, and then pass
+when its added, so be cautious about its use, particularly in tests of the I/O
+and streaming APIs.
+
+Excessive use of console output is discouraged as it can overwhelm the display,
+including the Jenkins console and test report displays. Be particularly
+cautious of output in loops, or other contexts where output may be repeated many
+times in the case of failure.
+
+In some tests, it can be unclear whether a `console.log()` statement is required
+as part of the test (message tests, tests that check output from child
+processes, etc.), or is there as a debug aide. If there is any chance of
+confusion, use comments to make the purpose clear.
+
 ### ES.Next features
 
 For performance considerations, we only use a selected subset of ES.Next
@@ -310,27 +338,7 @@ functions worked correctly with the `beforeExit` event, then it might be named
 
 ### Web Platform Tests
 
-Some of the tests for the WHATWG URL implementation (named
-`test-whatwg-url-*.js`) are imported from the [Web Platform Tests Project][].
-These imported tests will be wrapped like this:
-
-```js
-/* The following tests are copied from WPT. Modifications to them should be
-   upstreamed first. Refs:
-   https://github.com/w3c/web-platform-tests/blob/8791bed/url/urlsearchparams-stringifier.html
-   License: http://www.w3.org/Consortium/Legal/2008/04-testsuite-copyright.html
-*/
-/* eslint-disable */
-
-// Test code
-
-/* eslint-enable */
-```
-
-To improve tests that have been imported this way, please send
-a PR to the upstream project first. When the proposed change is merged in
-the upstream project, send another PR here to update Node.js accordingly.
-Be sure to update the hash in the URL following `WPT Refs:`.
+See [`test/wpt`](../../test/wpt/README.md) for more information.
 
 ## C++ Unit test
 
@@ -382,7 +390,7 @@ Next add the test to the `sources` in the `cctest` target in node.gyp:
 ],
 ```
 
-Note that the only sources that should be included in the cctest target are
+The only sources that should be included in the cctest target are
 actual test or helper source files. There might be a need to include specific
 object files that are compiled by the `node` target and this can be done by
 adding them to the `libraries` section in the cctest target.
@@ -394,11 +402,13 @@ $ make cctest
 ```
 
 A filter can be applied to run single/multiple test cases:
+
 ```console
 $ make cctest GTEST_FILTER=EnvironmentTest.AtExitWithArgument
 ```
 
 `cctest` can also be run directly which can be useful when debugging:
+
 ```console
 $ out/Release/cctest --gtest_filter=EnvironmentTest.AtExit*
 ```
@@ -416,9 +426,11 @@ will depend on what is being tested if this is required or not.
 To generate a test coverage report, see the
 [Test Coverage section of the Building guide][].
 
+Nightly coverage reports for the Node.js master branch are available at
+https://coverage.nodejs.org/.
+
 [ASCII]: http://man7.org/linux/man-pages/man7/ascii.7.html
 [Google Test]: https://github.com/google/googletest
-[Web Platform Tests Project]: https://github.com/w3c/web-platform-tests/tree/master/url
 [`common` module]: https://github.com/nodejs/node/blob/master/test/common/README.md
 [all maintained branches]: https://github.com/nodejs/lts
 [node.green]: http://node.green/

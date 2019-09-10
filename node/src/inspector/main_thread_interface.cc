@@ -2,9 +2,12 @@
 
 #include "node_mutex.h"
 #include "v8-inspector.h"
+#include "util-inl.h"
+
+#include <unicode/unistr.h>
 
 #include <functional>
-#include <unicode/unistr.h>
+#include <memory>
 
 namespace node {
 namespace inspector {
@@ -41,7 +44,7 @@ class CreateObjectRequest : public Request {
   CreateObjectRequest(int object_id, Factory factory)
                       : object_id_(object_id), factory_(std::move(factory)) {}
 
-  void Call(MainThreadInterface* thread) {
+  void Call(MainThreadInterface* thread) override {
     thread->AddObject(object_id_, WrapInDeletable(factory_(thread)));
   }
 
@@ -95,13 +98,6 @@ class DispatchMessagesTask : public v8::Task {
   MainThreadInterface* thread_;
 };
 
-void DisposePairCallback(uv_handle_t* ref) {
-  using AsyncAndInterface = std::pair<uv_async_t, MainThreadInterface*>;
-  AsyncAndInterface* pair = node::ContainerOf(
-      &AsyncAndInterface::first, reinterpret_cast<uv_async_t*>(ref));
-  delete pair;
-}
-
 template <typename T>
 class AnotherThreadObjectReference {
  public:
@@ -119,8 +115,7 @@ class AnotherThreadObjectReference {
 
   ~AnotherThreadObjectReference() {
     // Disappearing thread may cause a memory leak
-    thread_->Post(
-        std::unique_ptr<DeleteRequest>(new DeleteRequest(object_id_)));
+    thread_->Post(std::make_unique<DeleteRequest>(object_id_));
   }
 
   template <typename Fn>
@@ -156,8 +151,7 @@ class MainThreadSessionState {
 
   static std::unique_ptr<MainThreadSessionState> Create(
       MainThreadInterface* thread, bool prevent_shutdown) {
-    return std::unique_ptr<MainThreadSessionState>(
-        new MainThreadSessionState(thread, prevent_shutdown));
+    return std::make_unique<MainThreadSessionState>(thread, prevent_shutdown);
   }
 
   void Connect(std::unique_ptr<InspectorSessionDelegate> delegate) {
@@ -223,11 +217,6 @@ MainThreadInterface::MainThreadInterface(Agent* agent, uv_loop_t* loop,
                                          v8::Platform* platform)
                                          : agent_(agent), isolate_(isolate),
                                            platform_(platform) {
-  main_thread_request_.reset(new AsyncAndInterface(uv_async_t(), this));
-  CHECK_EQ(0, uv_async_init(loop, &main_thread_request_->first,
-                            DispatchMessagesAsyncCallback));
-  // Inspector uv_async_t should not prevent main loop shutdown.
-  uv_unref(reinterpret_cast<uv_handle_t*>(&main_thread_request_->first));
 }
 
 MainThreadInterface::~MainThreadInterface() {
@@ -235,24 +224,11 @@ MainThreadInterface::~MainThreadInterface() {
     handle_->Reset();
 }
 
-// static
-void MainThreadInterface::DispatchMessagesAsyncCallback(uv_async_t* async) {
-  AsyncAndInterface* asyncAndInterface =
-      node::ContainerOf(&AsyncAndInterface::first, async);
-  asyncAndInterface->second->DispatchMessages();
-}
-
-// static
-void MainThreadInterface::CloseAsync(AsyncAndInterface* pair) {
-  uv_close(reinterpret_cast<uv_handle_t*>(&pair->first), DisposePairCallback);
-}
-
 void MainThreadInterface::Post(std::unique_ptr<Request> request) {
   Mutex::ScopedLock scoped_lock(requests_lock_);
   bool needs_notify = requests_.empty();
   requests_.push_back(std::move(request));
   if (needs_notify) {
-    CHECK_EQ(0, uv_async_send(&main_thread_request_->first));
     if (isolate_ != nullptr && platform_ != nullptr) {
       std::shared_ptr<v8::TaskRunner> taskrunner =
         platform_->GetForegroundTaskRunner(isolate_);
@@ -292,6 +268,8 @@ void MainThreadInterface::DispatchMessages() {
       MessageQueue::value_type task;
       std::swap(dispatching_message_queue_.front(), task);
       dispatching_message_queue_.pop_front();
+
+      v8::SealHandleScope seal_handle_scope(isolate_);
       task->Call(this);
     }
   } while (had_messages);
@@ -306,7 +284,7 @@ std::shared_ptr<MainThreadHandle> MainThreadInterface::GetHandle() {
 
 void MainThreadInterface::AddObject(int id,
                                     std::unique_ptr<Deletable> object) {
-  CHECK_NE(nullptr, object);
+  CHECK_NOT_NULL(object);
   managed_objects_[id] = std::move(object);
 }
 
@@ -315,13 +293,19 @@ void MainThreadInterface::RemoveObject(int id) {
 }
 
 Deletable* MainThreadInterface::GetObject(int id) {
-  auto iterator = managed_objects_.find(id);
+  Deletable* pointer = GetObjectIfExists(id);
   // This would mean the object is requested after it was disposed, which is
   // a coding error.
-  CHECK_NE(managed_objects_.end(), iterator);
-  Deletable* pointer = iterator->second.get();
-  CHECK_NE(nullptr, pointer);
+  CHECK_NOT_NULL(pointer);
   return pointer;
+}
+
+Deletable* MainThreadInterface::GetObjectIfExists(int id) {
+  auto iterator = managed_objects_.find(id);
+  if (iterator == managed_objects_.end()) {
+    return nullptr;
+  }
+  return iterator->second.get();
 }
 
 std::unique_ptr<StringBuffer> Utf8ToStringView(const std::string& message) {

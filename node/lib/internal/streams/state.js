@@ -1,10 +1,16 @@
 'use strict';
 
+const { Math } = primordials;
+
 const { ERR_INVALID_OPT_VALUE } = require('internal/errors').codes;
 
 function highWaterMarkFrom(options, isDuplex, duplexKey) {
   return options.highWaterMark != null ? options.highWaterMark :
     isDuplex ? options[duplexKey] : null;
+}
+
+function getDefaultHighWaterMark(objectMode) {
+  return objectMode ? 16 : 16 * 1024;
 }
 
 function getHighWaterMark(state, options, duplexKey, isDuplex) {
@@ -18,9 +24,10 @@ function getHighWaterMark(state, options, duplexKey, isDuplex) {
   }
 
   // Default value
-  return state.objectMode ? 16 : 16 * 1024;
+  return getDefaultHighWaterMark(state.objectMode);
 }
 
 module.exports = {
-  getHighWaterMark
+  getHighWaterMark,
+  getDefaultHighWaterMark
 };

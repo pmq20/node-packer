@@ -19,7 +19,7 @@ class JSGraph;
 class V8_EXPORT_PRIVATE TypeNarrowingReducer final
     : public NON_EXPORTED_BASE(AdvancedReducer) {
  public:
-  TypeNarrowingReducer(Editor* editor, JSGraph* jsgraph);
+  TypeNarrowingReducer(Editor* editor, JSGraph* jsgraph, JSHeapBroker* broker);
   ~TypeNarrowingReducer() final;
 
   const char* reducer_name() const override { return "TypeNarrowingReducer"; }

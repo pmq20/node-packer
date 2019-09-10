@@ -18,6 +18,10 @@
 namespace node {
 namespace inspector {
 
+std::string FormatWsAddress(const std::string& host, int port,
+                            const std::string& target_id,
+                            bool include_protocol);
+
 class InspectorSocketServer;
 class SocketSession;
 class ServerSocket;
@@ -31,7 +35,7 @@ class SocketServerDelegate {
   virtual std::vector<std::string> GetTargetIds() = 0;
   virtual std::string GetTargetTitle(const std::string& id) = 0;
   virtual std::string GetTargetUrl(const std::string& id) = 0;
-  virtual ~SocketServerDelegate() {}
+  virtual ~SocketServerDelegate() = default;
 };
 
 // HTTP Server, writes messages requested as TransportActions, and responds
@@ -43,6 +47,7 @@ class InspectorSocketServer {
                         uv_loop_t* loop,
                         const std::string& host,
                         int port,
+                        const InspectPublishUid& inspect_publish_uid,
                         FILE* out = stderr);
   ~InspectorSocketServer();
 
@@ -73,22 +78,22 @@ class InspectorSocketServer {
     return server_sockets_.empty() && connected_sessions_.empty();
   }
 
- private:
   static void CloseServerSocket(ServerSocket*);
   using ServerSocketPtr = DeleteFnPtr<ServerSocket, CloseServerSocket>;
 
+ private:
   void SendListResponse(InspectorSocket* socket, const std::string& host,
                         SocketSession* session);
   std::string GetFrontendURL(bool is_compat,
                              const std::string &formatted_address);
   bool TargetExists(const std::string& id);
 
-  enum class ServerState {kNew, kRunning, kStopping, kStopped};
+  enum class ServerState {kNew, kRunning, kStopped};
   uv_loop_t* loop_;
   std::unique_ptr<SocketServerDelegate> delegate_;
   const std::string host_;
   int port_;
-  std::string path_;
+  InspectPublishUid inspect_publish_uid_;
   std::vector<ServerSocketPtr> server_sockets_;
   std::map<int, std::pair<std::string, std::unique_ptr<SocketSession>>>
       connected_sessions_;

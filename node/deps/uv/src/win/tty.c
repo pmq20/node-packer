@@ -164,7 +164,7 @@ void uv_console_init(void) {
                                        OPEN_EXISTING,
                                        0,
                                        0);
-  if (uv__tty_console_handle != NULL) {
+  if (uv__tty_console_handle != INVALID_HANDLE_VALUE) {
     QueueUserWorkItem(uv__tty_console_resize_message_loop_thread,
                       NULL,
                       WT_EXECUTELONGFUNCTION);
@@ -360,6 +360,8 @@ int uv_tty_set_mode(uv_tty_t* tty, uv_tty_mode_t mode) {
     }
   } else {
     was_reading = 0;
+    alloc_cb = NULL;
+    read_cb = NULL;
   }
 
   uv_sem_wait(&uv_tty_output_lock);
@@ -733,8 +735,9 @@ void uv_process_tty_read_raw_req(uv_loop_t* loop, uv_tty_t* handle,
 
       /* Ignore keyup events, unless the left alt key was held and a valid
        * unicode character was emitted. */
-      if (!KEV.bKeyDown && !(((KEV.dwControlKeyState & LEFT_ALT_PRESSED) ||
-          KEV.wVirtualKeyCode==VK_MENU) && KEV.uChar.UnicodeChar != 0)) {
+      if (!KEV.bKeyDown &&
+          (KEV.wVirtualKeyCode != VK_MENU ||
+           KEV.uChar.UnicodeChar == 0)) {
         continue;
       }
 
@@ -791,8 +794,9 @@ void uv_process_tty_read_raw_req(uv_loop_t* loop, uv_tty_t* handle,
         if (KEV.uChar.UnicodeChar >= 0xDC00 &&
             KEV.uChar.UnicodeChar < 0xE000) {
           /* UTF-16 surrogate pair */
-          WCHAR utf16_buffer[2] = { handle->tty.rd.last_utf16_high_surrogate,
-                                    KEV.uChar.UnicodeChar};
+          WCHAR utf16_buffer[2];
+          utf16_buffer[0] = handle->tty.rd.last_utf16_high_surrogate;
+          utf16_buffer[1] = KEV.uChar.UnicodeChar;
           char_len = WideCharToMultiByte(CP_UTF8,
                                          0,
                                          utf16_buffer,
@@ -941,20 +945,15 @@ void uv_process_tty_read_line_req(uv_loop_t* loop, uv_tty_t* handle,
       handle->read_cb((uv_stream_t*) handle,
                       uv_translate_sys_error(GET_REQ_ERROR(req)),
                       &buf);
-    } else {
-      /* The read was cancelled, or whatever we don't care */
-      handle->read_cb((uv_stream_t*) handle, 0, &buf);
     }
-
   } else {
-    if (!(handle->flags & UV_HANDLE_CANCELLATION_PENDING)) {
+    if (!(handle->flags & UV_HANDLE_CANCELLATION_PENDING) &&
+        req->u.io.overlapped.InternalHigh != 0) {
       /* Read successful. TODO: read unicode, convert to utf-8 */
       DWORD bytes = req->u.io.overlapped.InternalHigh;
       handle->read_cb((uv_stream_t*) handle, bytes, &buf);
-    } else {
-      handle->flags &= ~UV_HANDLE_CANCELLATION_PENDING;
-      handle->read_cb((uv_stream_t*) handle, 0, &buf);
     }
+    handle->flags &= ~UV_HANDLE_CANCELLATION_PENDING;
   }
 
   /* Wait for more input events. */
@@ -2281,6 +2280,8 @@ static void uv__determine_vterm_state(HANDLE handle) {
 
 static DWORD WINAPI uv__tty_console_resize_message_loop_thread(void* param) {
   CONSOLE_SCREEN_BUFFER_INFO sb_info;
+  NTSTATUS status;
+  ULONG_PTR conhost_pid;
   MSG msg;
 
   if (!GetConsoleScreenBufferInfo(uv__tty_console_handle, &sb_info))
@@ -2289,14 +2290,29 @@ static DWORD WINAPI uv__tty_console_resize_message_loop_thread(void* param) {
   uv__tty_console_width = sb_info.dwSize.X;
   uv__tty_console_height = sb_info.srWindow.Bottom - sb_info.srWindow.Top + 1;
 
-  if (pSetWinEventHook == NULL)
+  if (pSetWinEventHook == NULL || pNtQueryInformationProcess == NULL)
     return 0;
+
+  status = pNtQueryInformationProcess(GetCurrentProcess(),
+                                      ProcessConsoleHostProcess,
+                                      &conhost_pid,
+                                      sizeof(conhost_pid),
+                                      NULL);
+
+  if (!NT_SUCCESS(status))
+    /* We couldn't retrieve our console host process, probably because this
+     * is a 32-bit process running on 64-bit Windows. Fall back to receiving
+     * console events from all processes. */
+    conhost_pid = 0;
+
+  /* Ensure the PID is a multiple of 4, which is required by SetWinEventHook */
+  conhost_pid &= ~(ULONG_PTR)0x3;
 
   if (!pSetWinEventHook(EVENT_CONSOLE_LAYOUT,
                         EVENT_CONSOLE_LAYOUT,
                         NULL,
                         uv__tty_console_resize_event,
-                        0,
+                        (DWORD)conhost_pid,
                         0,
                         WINEVENT_OUTOFCONTEXT))
     return 0;

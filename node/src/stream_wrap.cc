@@ -25,15 +25,14 @@
 #include "env-inl.h"
 #include "handle_wrap.h"
 #include "node_buffer.h"
-#include "node_counters.h"
 #include "pipe_wrap.h"
 #include "req_wrap-inl.h"
 #include "tcp_wrap.h"
 #include "udp_wrap.h"
 #include "util-inl.h"
 
-#include <string.h>  // memcpy()
-#include <limits.h>  // INT_MAX
+#include <cstring>  // memcpy()
+#include <climits>  // INT_MAX
 
 
 namespace node {
@@ -45,6 +44,7 @@ using v8::FunctionCallbackInfo;
 using v8::FunctionTemplate;
 using v8::HandleScope;
 using v8::Local;
+using v8::MaybeLocal;
 using v8::Object;
 using v8::ReadOnly;
 using v8::Signature;
@@ -53,7 +53,8 @@ using v8::Value;
 
 void LibuvStreamWrap::Initialize(Local<Object> target,
                                  Local<Value> unused,
-                                 Local<Context> context) {
+                                 Local<Context> context,
+                                 void* priv) {
   Environment* env = Environment::GetCurrent(context);
 
   auto is_construct_call_callback =
@@ -63,12 +64,32 @@ void LibuvStreamWrap::Initialize(Local<Object> target,
   };
   Local<FunctionTemplate> sw =
       FunctionTemplate::New(env->isolate(), is_construct_call_callback);
-  sw->InstanceTemplate()->SetInternalFieldCount(StreamReq::kStreamReqField + 1);
+  sw->InstanceTemplate()->SetInternalFieldCount(
+      StreamReq::kStreamReqField + 1 + 3);
   Local<String> wrapString =
       FIXED_ONE_BYTE_STRING(env->isolate(), "ShutdownWrap");
   sw->SetClassName(wrapString);
+
+  // we need to set handle and callback to null,
+  // so that those fields are created and functions
+  // do not become megamorphic
+  // Fields:
+  // - oncomplete
+  // - callback
+  // - handle
+  sw->InstanceTemplate()->Set(
+      FIXED_ONE_BYTE_STRING(env->isolate(), "oncomplete"),
+      v8::Null(env->isolate()));
+  sw->InstanceTemplate()->Set(FIXED_ONE_BYTE_STRING(env->isolate(), "callback"),
+      v8::Null(env->isolate()));
+  sw->InstanceTemplate()->Set(FIXED_ONE_BYTE_STRING(env->isolate(), "handle"),
+      v8::Null(env->isolate()));
+
   sw->Inherit(AsyncWrap::GetConstructorTemplate(env));
-  target->Set(wrapString, sw->GetFunction(env->context()).ToLocalChecked());
+
+  target->Set(env->context(),
+              wrapString,
+              sw->GetFunction(env->context()).ToLocalChecked()).Check();
   env->set_shutdown_wrap_template(sw->InstanceTemplate());
 
   Local<FunctionTemplate> ww =
@@ -78,9 +99,17 @@ void LibuvStreamWrap::Initialize(Local<Object> target,
       FIXED_ONE_BYTE_STRING(env->isolate(), "WriteWrap");
   ww->SetClassName(writeWrapString);
   ww->Inherit(AsyncWrap::GetConstructorTemplate(env));
-  target->Set(writeWrapString,
-              ww->GetFunction(env->context()).ToLocalChecked());
+  target->Set(env->context(),
+              writeWrapString,
+              ww->GetFunction(env->context()).ToLocalChecked()).Check();
   env->set_write_wrap_template(ww->InstanceTemplate());
+
+  NODE_DEFINE_CONSTANT(target, kReadBytesOrError);
+  NODE_DEFINE_CONSTANT(target, kArrayBufferOffset);
+  NODE_DEFINE_CONSTANT(target, kBytesWritten);
+  NODE_DEFINE_CONSTANT(target, kLastWriteWasAsync);
+  target->Set(context, FIXED_ONE_BYTE_STRING(env->isolate(), "streamBaseState"),
+              env->stream_base_state().GetJSArray()).Check();
 }
 
 
@@ -94,6 +123,7 @@ LibuvStreamWrap::LibuvStreamWrap(Environment* env,
                  provider),
       StreamBase(env),
       stream_(stream) {
+  StreamBase::AttachToObject(object);
 }
 
 
@@ -105,10 +135,12 @@ Local<FunctionTemplate> LibuvStreamWrap::GetConstructorTemplate(
     tmpl->SetClassName(
         FIXED_ONE_BYTE_STRING(env->isolate(), "LibuvStreamWrap"));
     tmpl->Inherit(HandleWrap::GetConstructorTemplate(env));
+    tmpl->InstanceTemplate()->SetInternalFieldCount(
+        StreamBase::kStreamBaseFieldCount);
     Local<FunctionTemplate> get_write_queue_size =
         FunctionTemplate::New(env->isolate(),
                               GetWriteQueueSize,
-                              env->as_external(),
+                              env->as_callback_data(),
                               Signature::New(env->isolate(), tmpl));
     tmpl->PrototypeTemplate()->SetAccessorProperty(
         env->write_queue_size_string(),
@@ -116,7 +148,7 @@ Local<FunctionTemplate> LibuvStreamWrap::GetConstructorTemplate(
         Local<FunctionTemplate>(),
         static_cast<PropertyAttribute>(ReadOnly | DontDelete));
     env->SetProtoMethod(tmpl, "setBlocking", SetBlocking);
-    StreamBase::AddMethods<LibuvStreamWrap>(env, tmpl);
+    StreamBase::AddMethods(env, tmpl);
     env->set_libuv_stream_wrap_ctor_template(tmpl);
   }
   return tmpl;
@@ -185,10 +217,9 @@ void LibuvStreamWrap::OnUvAlloc(size_t suggested_size, uv_buf_t* buf) {
   *buf = EmitAlloc(suggested_size);
 }
 
-
-
 template <class WrapType>
-static Local<Object> AcceptHandle(Environment* env, LibuvStreamWrap* parent) {
+static MaybeLocal<Object> AcceptHandle(Environment* env,
+                                       LibuvStreamWrap* parent) {
   static_assert(std::is_base_of<LibuvStreamWrap, WrapType>::value ||
                 std::is_base_of<UDPWrap, WrapType>::value,
                 "Can only accept stream handles");
@@ -196,8 +227,7 @@ static Local<Object> AcceptHandle(Environment* env, LibuvStreamWrap* parent) {
   EscapableHandleScope scope(env->isolate());
   Local<Object> wrap_obj;
 
-  wrap_obj = WrapType::Instantiate(env, parent, WrapType::SOCKET);
-  if (wrap_obj.IsEmpty())
+  if (!WrapType::Instantiate(env, parent, WrapType::SOCKET).ToLocal(&wrap_obj))
     return Local<Object>();
 
   HandleWrap* wrap = Unwrap<HandleWrap>(wrap_obj);
@@ -222,18 +252,12 @@ void LibuvStreamWrap::OnUvRead(ssize_t nread, const uv_buf_t* buf) {
     type = uv_pipe_pending_type(reinterpret_cast<uv_pipe_t*>(stream()));
   }
 
-  // We should not be getting this callback if someone as already called
+  // We should not be getting this callback if someone has already called
   // uv_close() on the handle.
   CHECK_EQ(persistent().IsEmpty(), false);
 
   if (nread > 0) {
-    if (is_tcp()) {
-      NODE_COUNT_NET_BYTES_RECV(nread);
-    } else if (is_named_pipe()) {
-      NODE_COUNT_PIPE_BYTES_RECV(nread);
-    }
-
-    Local<Object> pending_obj;
+    MaybeLocal<Object> pending_obj;
 
     if (type == UV_TCP) {
       pending_obj = AcceptHandle<TCPWrap>(env(), this);
@@ -246,9 +270,11 @@ void LibuvStreamWrap::OnUvRead(ssize_t nread, const uv_buf_t* buf) {
     }
 
     if (!pending_obj.IsEmpty()) {
-      object()->Set(env()->context(),
-                    env()->pending_handle_string(),
-                    pending_obj).FromJust();
+      object()
+          ->Set(env()->context(),
+                env()->pending_handle_string(),
+                pending_obj.ToLocalChecked())
+          .Check();
     }
   }
 
@@ -356,30 +382,12 @@ int LibuvStreamWrap::DoWrite(WriteWrap* req_wrap,
                              size_t count,
                              uv_stream_t* send_handle) {
   LibuvWriteWrap* w = static_cast<LibuvWriteWrap*>(req_wrap);
-  int r;
-  if (send_handle == nullptr) {
-    r = w->Dispatch(uv_write, stream(), bufs, count, AfterUvWrite);
-  } else {
-    r = w->Dispatch(uv_write2,
-                    stream(),
-                    bufs,
-                    count,
-                    send_handle,
-                    AfterUvWrite);
-  }
-
-  if (!r) {
-    size_t bytes = 0;
-    for (size_t i = 0; i < count; i++)
-      bytes += bufs[i].len;
-    if (stream()->type == UV_TCP) {
-      NODE_COUNT_NET_BYTES_SENT(bytes);
-    } else if (stream()->type == UV_NAMED_PIPE) {
-      NODE_COUNT_PIPE_BYTES_SENT(bytes);
-    }
-  }
-
-  return r;
+  return w->Dispatch(uv_write2,
+                     stream(),
+                     bufs,
+                     count,
+                     send_handle,
+                     AfterUvWrite);
 }
 
 
@@ -395,5 +403,5 @@ void LibuvStreamWrap::AfterUvWrite(uv_write_t* req, int status) {
 
 }  // namespace node
 
-NODE_BUILTIN_MODULE_CONTEXT_AWARE(stream_wrap,
-                                  node::LibuvStreamWrap::Initialize)
+NODE_MODULE_CONTEXT_AWARE_INTERNAL(stream_wrap,
+                                   node::LibuvStreamWrap::Initialize)

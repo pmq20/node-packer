@@ -1,9 +1,11 @@
 'use strict';
 
+const { Object } = primordials;
+
 const {
   RSA_PKCS1_OAEP_PADDING,
   RSA_PKCS1_PADDING
-} = process.binding('constants').crypto;
+} = internalBinding('constants').crypto;
 
 const {
   ERR_CRYPTO_INVALID_STATE,
@@ -13,7 +15,13 @@ const {
 const { validateString } = require('internal/validators');
 
 const {
+  preparePrivateKey,
+  preparePublicOrPrivateKey,
+  prepareSecretKey
+} = require('internal/crypto/keys');
+const {
   getDefaultEncoding,
+  kHandle,
   toBuf
 } = require('internal/crypto/util');
 
@@ -25,30 +33,38 @@ const {
   privateEncrypt: _privateEncrypt,
   publicDecrypt: _publicDecrypt,
   publicEncrypt: _publicEncrypt
-} = process.binding('crypto');
+} = internalBinding('crypto');
 
-const assert = require('assert');
+const assert = require('internal/assert');
 const LazyTransform = require('internal/streams/lazy_transform');
 
-const { inherits } = require('util');
-const { deprecate, normalizeEncoding } = require('internal/util');
+const { normalizeEncoding } = require('internal/util');
 
 // Lazy loaded for startup performance.
 let StringDecoder;
 
-function rsaFunctionFor(method, defaultPadding) {
+function rsaFunctionFor(method, defaultPadding, keyType) {
   return (options, buffer) => {
-    const key = options.key || options;
+    const { format, type, data, passphrase } =
+      keyType === 'private' ?
+        preparePrivateKey(options) :
+        preparePublicOrPrivateKey(options);
     const padding = options.padding || defaultPadding;
-    const passphrase = options.passphrase || null;
-    return method(toBuf(key), buffer, padding, passphrase);
+    const { oaepHash } = options;
+    if (oaepHash !== undefined && typeof oaepHash !== 'string')
+      throw new ERR_INVALID_ARG_TYPE('options.oaepHash', 'string', oaepHash);
+    return method(data, format, type, passphrase, buffer, padding, oaepHash);
   };
 }
 
-const publicEncrypt = rsaFunctionFor(_publicEncrypt, RSA_PKCS1_OAEP_PADDING);
-const publicDecrypt = rsaFunctionFor(_publicDecrypt, RSA_PKCS1_PADDING);
-const privateEncrypt = rsaFunctionFor(_privateEncrypt, RSA_PKCS1_PADDING);
-const privateDecrypt = rsaFunctionFor(_privateDecrypt, RSA_PKCS1_OAEP_PADDING);
+const publicEncrypt = rsaFunctionFor(_publicEncrypt, RSA_PKCS1_OAEP_PADDING,
+                                     'public');
+const publicDecrypt = rsaFunctionFor(_publicDecrypt, RSA_PKCS1_PADDING,
+                                     'private');
+const privateEncrypt = rsaFunctionFor(_privateEncrypt, RSA_PKCS1_PADDING,
+                                      'private');
+const privateDecrypt = rsaFunctionFor(_privateDecrypt, RSA_PKCS1_OAEP_PADDING,
+                                      'public');
 
 function getDecoder(decoder, encoding) {
   encoding = normalizeEncoding(encoding);
@@ -72,11 +88,11 @@ function getUIntOption(options, key) {
 function createCipherBase(cipher, credential, options, decipher, iv) {
   const authTagLength = getUIntOption(options, 'authTagLength');
 
-  this._handle = new CipherBase(decipher);
+  this[kHandle] = new CipherBase(decipher);
   if (iv === undefined) {
-    this._handle.init(cipher, credential, authTagLength);
+    this[kHandle].init(cipher, credential, authTagLength);
   } else {
-    this._handle.initiv(cipher, credential, iv, authTagLength);
+    this[kHandle].initiv(cipher, credential, iv, authTagLength);
   }
   this._decoder = null;
 
@@ -103,11 +119,7 @@ function createCipher(cipher, password, options, decipher) {
 
 function createCipherWithIV(cipher, key, options, decipher, iv) {
   validateString(cipher, 'cipher');
-  key = toBuf(key);
-  if (!isArrayBufferView(key)) {
-    throw invalidArrayBufferView('key', key);
-  }
-
+  key = prepareSecretKey(key);
   iv = toBuf(iv);
   if (iv !== null && !isArrayBufferView(iv)) {
     throw invalidArrayBufferView('iv', iv);
@@ -122,16 +134,17 @@ function Cipher(cipher, password, options) {
   createCipher.call(this, cipher, password, options, true);
 }
 
-inherits(Cipher, LazyTransform);
+Object.setPrototypeOf(Cipher.prototype, LazyTransform.prototype);
+Object.setPrototypeOf(Cipher, LazyTransform);
 
 Cipher.prototype._transform = function _transform(chunk, encoding, callback) {
-  this.push(this._handle.update(chunk, encoding));
+  this.push(this[kHandle].update(chunk, encoding));
   callback();
 };
 
 Cipher.prototype._flush = function _flush(callback) {
   try {
-    this.push(this._handle.final());
+    this.push(this[kHandle].final());
   } catch (e) {
     callback(e);
     return;
@@ -148,7 +161,7 @@ Cipher.prototype.update = function update(data, inputEncoding, outputEncoding) {
     throw invalidArrayBufferView('data', data);
   }
 
-  const ret = this._handle.update(data, inputEncoding);
+  const ret = this[kHandle].update(data, inputEncoding);
 
   if (outputEncoding && outputEncoding !== 'buffer') {
     this._decoder = getDecoder(this._decoder, outputEncoding);
@@ -161,7 +174,7 @@ Cipher.prototype.update = function update(data, inputEncoding, outputEncoding) {
 
 Cipher.prototype.final = function final(outputEncoding) {
   outputEncoding = outputEncoding || getDefaultEncoding();
-  const ret = this._handle.final();
+  const ret = this[kHandle].final();
 
   if (outputEncoding && outputEncoding !== 'buffer') {
     this._decoder = getDecoder(this._decoder, outputEncoding);
@@ -173,29 +186,29 @@ Cipher.prototype.final = function final(outputEncoding) {
 
 
 Cipher.prototype.setAutoPadding = function setAutoPadding(ap) {
-  if (!this._handle.setAutoPadding(!!ap))
+  if (!this[kHandle].setAutoPadding(!!ap))
     throw new ERR_CRYPTO_INVALID_STATE('setAutoPadding');
   return this;
 };
 
 Cipher.prototype.getAuthTag = function getAuthTag() {
-  const ret = this._handle.getAuthTag();
+  const ret = this[kHandle].getAuthTag();
   if (ret === undefined)
     throw new ERR_CRYPTO_INVALID_STATE('getAuthTag');
   return ret;
 };
 
 
-Cipher.prototype.setAuthTag = function setAuthTag(tagbuf) {
+function setAuthTag(tagbuf) {
   if (!isArrayBufferView(tagbuf)) {
     throw new ERR_INVALID_ARG_TYPE('buffer',
                                    ['Buffer', 'TypedArray', 'DataView'],
                                    tagbuf);
   }
-  if (!this._handle.setAuthTag(tagbuf))
+  if (!this[kHandle].setAuthTag(tagbuf))
     throw new ERR_CRYPTO_INVALID_STATE('setAuthTag');
   return this;
-};
+}
 
 Cipher.prototype.setAAD = function setAAD(aadbuf, options) {
   if (!isArrayBufferView(aadbuf)) {
@@ -205,7 +218,7 @@ Cipher.prototype.setAAD = function setAAD(aadbuf, options) {
   }
 
   const plaintextLength = getUIntOption(options, 'plaintextLength');
-  if (!this._handle.setAAD(aadbuf, plaintextLength))
+  if (!this[kHandle].setAAD(aadbuf, plaintextLength))
     throw new ERR_CRYPTO_INVALID_STATE('setAAD');
   return this;
 };
@@ -223,17 +236,17 @@ function addCipherPrototypeFunctions(constructor) {
   constructor.prototype.update = Cipher.prototype.update;
   constructor.prototype.final = Cipher.prototype.final;
   constructor.prototype.setAutoPadding = Cipher.prototype.setAutoPadding;
-  constructor.prototype.getAuthTag = Cipher.prototype.getAuthTag;
-  constructor.prototype.setAuthTag = Cipher.prototype.setAuthTag;
+  if (constructor === Cipheriv) {
+    constructor.prototype.getAuthTag = Cipher.prototype.getAuthTag;
+  } else {
+    constructor.prototype.setAuthTag = setAuthTag;
+  }
   constructor.prototype.setAAD = Cipher.prototype.setAAD;
 }
 
-inherits(Cipheriv, LazyTransform);
+Object.setPrototypeOf(Cipheriv.prototype, LazyTransform.prototype);
+Object.setPrototypeOf(Cipheriv, LazyTransform);
 addCipherPrototypeFunctions(Cipheriv);
-
-const finaltol = deprecate(Cipher.prototype.final,
-                           'crypto.Decipher.finaltol is deprecated. Use ' +
-                           'crypto.Decipher.final instead.', 'DEP0105');
 
 function Decipher(cipher, password, options) {
   if (!(this instanceof Decipher))
@@ -242,9 +255,9 @@ function Decipher(cipher, password, options) {
   createCipher.call(this, cipher, password, options, false);
 }
 
-inherits(Decipher, LazyTransform);
+Object.setPrototypeOf(Decipher.prototype, LazyTransform.prototype);
+Object.setPrototypeOf(Decipher, LazyTransform);
 addCipherPrototypeFunctions(Decipher);
-Decipher.prototype.finaltol = finaltol;
 
 
 function Decipheriv(cipher, key, iv, options) {
@@ -254,9 +267,9 @@ function Decipheriv(cipher, key, iv, options) {
   createCipherWithIV.call(this, cipher, key, options, false, iv);
 }
 
-inherits(Decipheriv, LazyTransform);
+Object.setPrototypeOf(Decipheriv.prototype, LazyTransform.prototype);
+Object.setPrototypeOf(Decipheriv, LazyTransform);
 addCipherPrototypeFunctions(Decipheriv);
-Decipheriv.prototype.finaltol = finaltol;
 
 module.exports = {
   Cipher,

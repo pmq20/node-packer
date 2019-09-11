@@ -467,13 +467,13 @@ static void __enclose_io_memfs__extract(const v8::FunctionCallbackInfo<v8::Value
 	int length = wcstombs(mbs_buf, ret, sizeof(mbs_buf));
 	v8::MaybeLocal<v8::String> str = v8::String::NewFromUtf8(env->isolate(),
 								 reinterpret_cast<const char*>(mbs_buf),
-								 v8::String::kNormalString,
+								 v8::NewStringType::kNormal,
 								 length);
 #else
 	int length = strlen(ret);
 	v8::MaybeLocal<v8::String> str = v8::String::NewFromUtf8(env->isolate(),
 								 reinterpret_cast<const char*>(ret),
-								 v8::String::kNormalString,
+								 v8::NewStringType::kNormal,
 								 length);
 #endif
 	if (str.IsEmpty()) {

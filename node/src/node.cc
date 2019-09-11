@@ -407,20 +407,6 @@ MaybeLocal<Value> StartExecution(Environment* env, const char* main_script_id) {
   return scope.Escape(result);
 }
 
-MaybeLocal<Value> result = script.ToLocalChecked()->Run(env->context());
-  if (result.IsEmpty()) {
-    if (try_catch.HasTerminated()) {
-      env->isolate()->CancelTerminateExecution();
-      return MaybeLocal<Value>();
-    }
-    ReportException(env, try_catch);
-    env->Exit(4);
-    return MaybeLocal<Value>();
-  }
-
-  return scope.Escape(result.ToLocalChecked());
-}
-
 
 [[noreturn]] void Abort() {
   DumpBacktrace(stderr);

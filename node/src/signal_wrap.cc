@@ -18,7 +18,7 @@
 // DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
-
+#define NODE_WANT_INTERNALS 1
 #include "async_wrap-inl.h"
 #include "env-inl.h"
 #include "handle_wrap.h"
@@ -57,9 +57,11 @@ class SignalWrap : public HandleWrap {
     env->SetProtoMethod(constructor, "start", Start);
     env->SetProtoMethod(constructor, "stop", Stop);
 
-    target->Set(env->context(), signalString,
-                constructor->GetFunction(env->context()).ToLocalChecked())
-                .Check();
+    target
+        ->Set(env->context(),
+              signalString,
+              constructor->GetFunction(env->context()).ToLocalChecked())
+        .Check();
   }
 
   SET_NO_MEMORY_INFO()
@@ -125,9 +127,7 @@ class SignalWrap : public HandleWrap {
   uv_signal_t handle_;
 };
 
-
 }  // anonymous namespace
 }  // namespace node
-
 
 NODE_MODULE_CONTEXT_AWARE_INTERNAL(signal_wrap, node::SignalWrap::Initialize)

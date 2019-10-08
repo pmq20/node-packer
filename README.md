@@ -2,9 +2,9 @@
 
 *Packing your Node.js application into a single executable.*
 
-[![Build status](https://ci.appveyor.com/api/projects/status/fsuhe9x6mamohuym/branch/Series12?svg=true)](https://ci.appveyor.com/project/slee047/node-packer/branch/Series12)
+[![Build status](https://ci.appveyor.com/api/projects/status/fsuhe9x6mamohuym/branch/Series10?svg=true)](https://ci.appveyor.com/project/slee047/node-packer/branch/Series10)
 [![Status](https://travis-ci.org/slee047/node-packer.svg?branch=Series10)](https://travis-ci.org/slee047/node-packer)
-[![GitHub version](https://img.shields.io/badge/version-1.6.0%20(12.10.0)-blue.svg)](https://badge.fury.io/gh/slee047%2Fnode-packer)
+[![GitHub version](https://img.shields.io/badge/version-1.6.0%20(12.11.1)-blue.svg)](https://badge.fury.io/gh/slee047%2Fnode-packer)
 
 ![Terminal simulation of a simple compilation](https://github.com/pmq20/node-compiler/raw/master/doc/nodec.gif)
 
@@ -44,8 +44,14 @@ First install the prerequisites:
   "Common Tools for Visual C++ 2015" feature during installation).
   - [Visual Studio 2017](https://www.visualstudio.com/downloads/), any edition (including the Build Tools SKU).
   __Required Components:__ "MSbuild", "VC++ 2017 v141 toolset" and one of the Windows SDKs (10 or 8.1).
+  
+Please take note that Visual Studio 2019 is NOT supported for now.
 
 Then download [nodec-x64.zip](http://enclose.io/nodec/nodec-x64.zip), and this zip file contains only one executable. Unzip it. Optionally, rename it to `nodec.exe` and put it under `C:\Windows` (or any other directory that is part of `PATH`). Execute `nodec` from the command line.
+
+NOTE: This zip file ([nodec-x64.zip](http://enclose.io/nodec/nodec-x64.zip)) contains an outdated version of nodec (nodec 1.5.0 with Node.js 8.3.0).
+The original maintainer did not specify how to build this repo into single executable, therefore newer versions can only be run on source code directly.
+
 
 ### Install on Linux
 
@@ -64,6 +70,9 @@ Then,
     curl -L http://enclose.io/nodec/nodec-linux-x64.gz | gunzip > nodec
     chmod +x nodec
     ./nodec
+
+NOTE: This gz file ([nodec-linux-x64.gz](http://enclose.io/nodec/nodec-linux-x64.gz)) contains an outdated version of nodec (nodec 1.5.0 with Node.js 8.3.0).
+The original maintainer did not specify how to build this repo into single executable, therefore newer versions can only be run on source code directly.
 
 #### Additional Notes on the compatibility between RHEL based (CentOS) / Ubuntu
 It is known that the default repo for Red Hat and CentOS distros contains a very outdated gcc / g++ (3.8.5) while the latest Long Term Support (LTS) of Ubuntu as of 15 Feb 2018 (Ubuntu 18.04 LTS) contains a relatively updated gcc / g++ (7.3.0).
@@ -97,6 +106,9 @@ Then,
     curl -L http://enclose.io/nodec/nodec-darwin-x64.gz | gunzip > nodec
     chmod +x nodec
     ./nodec
+
+NOTE: This gz file ([nodec-darwin-x64.gz](http://enclose.io/nodec/nodec-darwin-x64.gz)) contains an outdated version of nodec (nodec 1.5.0 with Node.js 8.3.0).
+The original maintainer did not specify how to build this repo into single executable, therefore newer versions can only be run on source code directly.
 
 ## Usage
 

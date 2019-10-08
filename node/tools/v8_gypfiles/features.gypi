@@ -187,10 +187,6 @@
     # http://v8project.blogspot.com/2015/09/custom-startup-snapshots.html
     'v8_use_snapshot%': 1,
 
-    # Use external files for startup data blobs:
-    # the JS builtins sources and the start snapshot.
-    'v8_use_external_startup_data%': 0,
-
     # Enable ECMAScript Internationalization API. Enabling this feature will
     # add a dependency on the ICU library.
     'v8_enable_i18n_support%': 1,
@@ -253,6 +249,7 @@
         'defines': [
           'V8_ENABLE_ALLOCATION_TIMEOUT',
           'V8_ENABLE_FORCE_SLOW_PATH',
+          'V8_ENABLE_DOUBLE_CONST_STORE_CHECK',
         ],
       }],
       ['v8_enable_v8_checks==1', {
@@ -282,9 +279,6 @@
             'defines': ['V8_SNAPSHOT_NATIVE_CODE_COUNTERS',],
           }],
         ],
-      }],
-      ['v8_use_external_startup_data==1', {
-        'defines': ['V8_USE_EXTERNAL_STARTUP_DATA',],
       }],
       ['v8_enable_concurrent_marking==1', {
         'defines': ['V8_CONCURRENT_MARKING',],

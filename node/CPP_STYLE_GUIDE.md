@@ -36,6 +36,7 @@ features and idioms, as well as have some specific guidelines for the use of
 runtime features.
 
 Coding guidelines are based on the following guides (highest priority first):
+
 1. This document
 2. The [Google C++ Style Guide][]
 3. The ISO [C++ Core Guidelines][]
@@ -190,8 +191,8 @@ class FancyContainer {
 
 ### Memory allocation
 
-- `Malloc()`, `Calloc()`, etc. from `util.h` abort in Out-of-Memory situations
-- `UncheckedMalloc()`, etc. return `nullptr` in OOM situations
+* `Malloc()`, `Calloc()`, etc. from `util.h` abort in Out-of-Memory situations
+* `UncheckedMalloc()`, etc. return `nullptr` in OOM situations
 
 ### Use `nullptr` instead of `NULL` or `0`
 
@@ -277,13 +278,14 @@ data[0] = 12345;
 
 ### Type casting
 
-- Use `static_cast<T>` if casting is required, and it is valid
-- Use `reinterpret_cast` only when it is necessary
-- Avoid C-style casts (`(type)value`)
-- `dynamic_cast` does not work because Node.js is built without
+* Use `static_cast<T>` if casting is required, and it is valid
+* Use `reinterpret_cast` only when it is necessary
+* Avoid C-style casts (`(type)value`)
+* `dynamic_cast` does not work because Node.js is built without
   [Run Time Type Information][]
 
 Further reading:
+
 * [ES.48]: Avoid casts
 * [ES.49]: If you must use a cast, use a named cast
 

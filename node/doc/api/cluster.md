@@ -41,7 +41,7 @@ if (cluster.isMaster) {
 
 Running Node.js will now share port 8000 between the workers:
 
-```txt
+```console
 $ node server.js
 Master 3596 is running
 Worker 4324 started
@@ -336,7 +336,9 @@ added: v6.0.0
 
 * {boolean}
 
-Set by calling `.kill()` or `.disconnect()`. Until then, it is `undefined`.
+This property is `true` if the worker exited due to `.kill()` or
+`.disconnect()`. If the worker exited any other way, it is `false`. If the
+worker has not exited, it is `undefined`.
 
 The boolean [`worker.exitedAfterDisconnect`][] allows distinguishing between
 voluntary and accidental exit, the master may choose not to respawn a worker

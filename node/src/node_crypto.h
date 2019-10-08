@@ -125,6 +125,7 @@ class SecureContext : public BaseObject {
   static void AddRootCerts(const v8::FunctionCallbackInfo<v8::Value>& args);
   static void SetCipherSuites(const v8::FunctionCallbackInfo<v8::Value>& args);
   static void SetCiphers(const v8::FunctionCallbackInfo<v8::Value>& args);
+  static void SetSigalgs(const v8::FunctionCallbackInfo<v8::Value>& args);
   static void SetECDHCurve(const v8::FunctionCallbackInfo<v8::Value>& args);
   static void SetDHParam(const v8::FunctionCallbackInfo<v8::Value>& args);
   static void SetOptions(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -250,6 +251,7 @@ class SSLWrap {
   static void IsSessionReused(const v8::FunctionCallbackInfo<v8::Value>& args);
   static void VerifyError(const v8::FunctionCallbackInfo<v8::Value>& args);
   static void GetCipher(const v8::FunctionCallbackInfo<v8::Value>& args);
+  static void GetSharedSigalgs(const v8::FunctionCallbackInfo<v8::Value>& args);
   static void EndParser(const v8::FunctionCallbackInfo<v8::Value>& args);
   static void CertCbDone(const v8::FunctionCallbackInfo<v8::Value>& args);
   static void Renegotiate(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -714,6 +716,8 @@ class PublicKeyCipher {
                      const ManagedEVPPKey& pkey,
                      int padding,
                      const EVP_MD* digest,
+                     const void* oaep_label,
+                     size_t oaep_label_size,
                      const unsigned char* data,
                      int len,
                      AllocatedBuffer* out);

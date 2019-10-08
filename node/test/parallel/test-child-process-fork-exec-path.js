@@ -43,31 +43,6 @@ if (process.env.FORK) {
   assert.ok(process.send);
   process.send(msg);
   return process.exit();
-} else {
-  tmpdir.refresh();
-  try {
-    fs.unlinkSync(copyPath);
-  } catch (e) {
-    if (e.code !== 'ENOENT') throw e;
-  }
-  fs.copyFileSync(nodePath, copyPath, COPYFILE_FICLONE);
-  fs.chmodSync(copyPath, '0755');
-
-  // slow but simple
-  const envCopy = JSON.parse(JSON.stringify(process.env));
-  envCopy.FORK = 'true';
-  envCopy.ENCLOSE_IO_USE_ORIGINAL_NODE = '1';
-  const child = require('child_process').fork(__filename, {
-    execPath: copyPath,
-    env: envCopy
-  });
-  child.on('message', common.mustCall(function(recv) {
-    assert.deepStrictEqual(msg, recv);
-  }));
-  child.on('exit', common.mustCall(function(code) {
-    fs.unlinkSync(copyPath);
-    assert.strictEqual(code, 0);
-  }));
 }
 
 // Parent

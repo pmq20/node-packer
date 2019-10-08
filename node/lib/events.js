@@ -22,6 +22,7 @@
 'use strict';
 
 const { Math, Object, Reflect } = primordials;
+const apply = Reflect.apply;
 
 var spliceOne;
 
@@ -206,12 +207,12 @@ EventEmitter.prototype.emit = function emit(type, ...args) {
     return false;
 
   if (typeof handler === 'function') {
-    Reflect.apply(handler, this, args);
+    apply(handler, this, args);
   } else {
     const len = handler.length;
     const listeners = arrayClone(handler, len);
     for (var i = 0; i < len; ++i)
-      Reflect.apply(listeners[i], this, args);
+      apply(listeners[i], this, args);
   }
 
   return true;
@@ -497,6 +498,17 @@ function unwrapListeners(arr) {
 
 function once(emitter, name) {
   return new Promise((resolve, reject) => {
+    if (typeof emitter.addEventListener === 'function') {
+      // EventTarget does not have `error` event semantics like Node
+      // EventEmitters, we do not listen to `error` events here.
+      emitter.addEventListener(
+        name,
+        (...args) => { resolve(args); },
+        { once: true }
+      );
+      return;
+    }
+
     const eventListener = (...args) => {
       if (errorListener !== undefined) {
         emitter.removeListener('error', errorListener);

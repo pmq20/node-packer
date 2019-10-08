@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Command Line Options | Node.js v12.10.0 Documentation</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
+  <title>Command Line Options | Node.js v12.11.1 Documentation</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
   <link rel="canonical" href="https://nodejs.org/api/cli.html">
@@ -81,7 +81,7 @@
 
     <div id="column1" data-id="cli" class="interior">
       <header>
-        <h1>Node.js v12.10.0 Documentation</h1>
+        <h1>Node.js v12.11.1 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -159,7 +159,7 @@
 </ul>
 </li>
 <li><a href="#cli_inspect_publish_uid_stderr_http"><code>--inspect-publish-uid=stderr,http</code></a></li>
-<li><a href="#cli_loader_file"><code>--loader=file</code></a></li>
+<li><a href="#cli_experimental_loader_module"><code>--experimental-loader=module</code></a></li>
 <li><a href="#cli_max_http_header_size_size"><code>--max-http-header-size=size</code></a></li>
 <li><a href="#cli_napi_modules"><code>--napi-modules</code></a></li>
 <li><a href="#cli_no_deprecation"><code>--no-deprecation</code></a></li>
@@ -227,7 +227,13 @@
 <li><a href="#cli_node_redirect_warnings_file"><code>NODE_REDIRECT_WARNINGS=file</code></a></li>
 <li><a href="#cli_node_repl_history_file"><code>NODE_REPL_HISTORY=file</code></a></li>
 <li><a href="#cli_node_tls_reject_unauthorized_value"><code>NODE_TLS_REJECT_UNAUTHORIZED=value</code></a></li>
-<li><a href="#cli_node_v8_coverage_dir"><code>NODE_V8_COVERAGE=dir</code></a></li>
+<li>
+<p><a href="#cli_node_v8_coverage_dir"><code>NODE_V8_COVERAGE=dir</code></a></p>
+<ul>
+<li><a href="#cli_coverage_output">Coverage Output</a></li>
+<li><a href="#cli_source_map_cache">Source Map Cache</a></li>
+</ul>
+</li>
 <li><a href="#cli_openssl_conf_file"><code>OPENSSL_CONF=file</code></a></li>
 <li><a href="#cli_ssl_cert_dir_dir"><code>SSL_CERT_DIR=dir</code></a></li>
 <li><a href="#cli_ssl_cert_file_file"><code>SSL_CERT_FILE=file</code></a></li>
@@ -525,11 +531,12 @@ default) is not firewall-protected.</strong></p>
 <p>Specify ways of the inspector web socket url exposure.</p>
 <p>By default inspector websocket url is available in stderr and under <code>/json/list</code>
 endpoint on <code>http://host:port/json/list</code>.</p>
-<h3><code>--loader=file</code><span><a class="mark" href="#cli_loader_file" id="cli_loader_file">#</a></span></h3>
+<h3><code>--experimental-loader=module</code><span><a class="mark" href="#cli_experimental_loader_module" id="cli_experimental_loader_module">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v9.0.0</span>
 </div>
-<p>Specify the <code>file</code> of the custom <a href="esm.html#esm_resolve_hook">experimental ECMAScript Module</a> loader.</p>
+<p>Specify the <code>module</code> of a custom <a href="esm.html#esm_resolve_hook">experimental ECMAScript Module</a> loader.
+<code>module</code> may be either a path to a file, or an ECMAScript Module name.</p>
 <h3><code>--max-http-header-size=size</code><span><a class="mark" href="#cli_max_http_header_size_size" id="cli_max_http_header_size_size">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v11.6.0</span>
@@ -1018,6 +1025,7 @@ node --require "./a.js" --require "./b.js"
 <li><code>--enable-fips</code></li>
 <li><code>--es-module-specifier-resolution</code></li>
 <li><code>--experimental-exports</code></li>
+<li><code>--experimental-loader</code></li>
 <li><code>--experimental-modules</code></li>
 <li><code>--experimental-policy</code></li>
 <li><code>--experimental-repl-await</code></li>
@@ -1035,7 +1043,6 @@ node --require "./a.js" --require "./b.js"
 <li><code>--inspect-port</code>, <code>--debug-port</code></li>
 <li><code>--inspect-publish-uid</code></li>
 <li><code>--inspect</code></li>
-<li><code>--loader</code></li>
 <li><code>--max-http-header-size</code></li>
 <li><code>--napi-modules</code></li>
 <li><code>--no-deprecation</code></li>
@@ -1143,9 +1150,16 @@ to an empty string (<code>''</code> or <code>' '</code>) disables persistent REP
 This makes TLS, and HTTPS by extension, insecure. The use of this environment
 variable is strongly discouraged.</p>
 <h3><code>NODE_V8_COVERAGE=dir</code><span><a class="mark" href="#cli_node_v8_coverage_dir" id="cli_node_v8_coverage_dir">#</a></span></h3>
-<p>When set, Node.js will begin outputting <a href="https://v8project.blogspot.com/2017/12/javascript-code-coverage.html">V8 JavaScript code coverage</a> to the
-directory provided as an argument. Coverage is output as an array of
-<a href="https://chromedevtools.github.io/devtools-protocol/tot/Profiler#type-ScriptCoverage">ScriptCoverage</a> objects:</p>
+<p>When set, Node.js will begin outputting <a href="https://v8project.blogspot.com/2017/12/javascript-code-coverage.html">V8 JavaScript code coverage</a> and
+<a href="https://sourcemaps.info/spec.html">Source Map</a> data to the directory provided as an argument (coverage
+information is written as JSON to files with a <code>coverage</code> prefix).</p>
+<p><code>NODE_V8_COVERAGE</code> will automatically propagate to subprocesses, making it
+easier to instrument applications that call the <code>child_process.spawn()</code> family
+of functions. <code>NODE_V8_COVERAGE</code> can be set to an empty string, to prevent
+propagation.</p>
+<h4>Coverage Output<span><a class="mark" href="#cli_coverage_output" id="cli_coverage_output">#</a></span></h4>
+<p>Coverage is output as an array of <a href="https://chromedevtools.github.io/devtools-protocol/tot/Profiler#type-ScriptCoverage">ScriptCoverage</a> objects on the top-level
+key <code>result</code>:</p>
 <pre><code class="language-json">{
   "result": [
     {
@@ -1156,12 +1170,41 @@ directory provided as an argument. Coverage is output as an array of
   ]
 }
 </code></pre>
-<p><code>NODE_V8_COVERAGE</code> will automatically propagate to subprocesses, making it
-easier to instrument applications that call the <code>child_process.spawn()</code> family
-of functions. <code>NODE_V8_COVERAGE</code> can be set to an empty string, to prevent
-propagation.</p>
-<p>At this time coverage is only collected in the main thread and will not be
-output for code executed by worker threads.</p>
+<h4>Source Map Cache<span><a class="mark" href="#cli_source_map_cache" id="cli_source_map_cache">#</a></span></h4>
+<p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
+<p>If found, Source Map data is appended to the top-level key <code>source-map-cache</code>
+on the JSON coverage object.</p>
+<p><code>source-map-cache</code> is an object with keys representing the files source maps
+were extracted from, and the values include the raw source-map URL
+(in the key <code>url</code>) and the parsed Source Map V3 information (in the key <code>data</code>).</p>
+<pre><code class="language-json">{
+  "result": [
+    {
+      "scriptId": "68",
+      "url": "file:///absolute/path/to/source.js",
+      "functions": []
+    }
+  ],
+  "source-map-cache": {
+    "file:///absolute/path/to/source.js": {
+      "url": "./path-to-map.json",
+      "data": {
+        "version": 3,
+        "sources": [
+          "file:///absolute/path/to/original.js"
+        ],
+        "names": [
+          "Foo",
+          "console",
+          "info"
+        ],
+        "mappings": "MAAMA,IACJC,YAAaC",
+        "sourceRoot": "./"
+      }
+    }
+  }
+}
+</code></pre>
 <h3><code>OPENSSL_CONF=file</code><span><a class="mark" href="#cli_openssl_conf_file" id="cli_openssl_conf_file">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v6.11.0</span>

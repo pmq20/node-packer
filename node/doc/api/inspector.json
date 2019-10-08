@@ -162,7 +162,24 @@
                   "params": []
                 }
               ],
-              "desc": "<p>Connects a session to the inspector back-end. An exception will be thrown\nif there is already a connected session established either through the API or by\na front-end connected to the Inspector WebSocket port.</p>"
+              "desc": "<p>Connects a session to the inspector back-end.</p>"
+            },
+            {
+              "textRaw": "session.connectToMainThread()",
+              "type": "method",
+              "name": "connectToMainThread",
+              "meta": {
+                "added": [
+                  "v12.11.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": []
+                }
+              ],
+              "desc": "<p>Connects a session to the main thread inspector back-end. An exception will\nbe thrown if this API was not called on a Worker thread.</p>"
             },
             {
               "textRaw": "session.disconnect()",
@@ -228,7 +245,7 @@
             {
               "textRaw": "Heap Profiler",
               "name": "heap_profiler",
-              "desc": "<p>Here's an example showing how to use the <a href=\"https://chromedevtools.github.io/devtools-protocol/v8/HeapProfiler\">Heap Profiler</a>:</p>\n<pre><code class=\"language-js\">const inspector = require('inspector');\nconst fs = require('fs');\nconst session = new inspector.Session();\n\nconst fd = fs.openSync('profile.heapsnapshot', 'w');\n\nsession.connect();\n\nsession.on('HeapProfiler.addHeapSnapshotChunk', (m) => {\n  fs.writeSync(fd, m.params.chunk);\n});\n\nsession.post('HeapProfiler.takeHeapSnapshot', null, (err, r) => {\n  console.log('Runtime.takeHeapSnapshot done:', err, r);\n  session.disconnect();\n  fs.closeSync(fd);\n});\n</code></pre>",
+              "desc": "<p>Here's an example showing how to use the <a href=\"https://chromedevtools.github.io/devtools-protocol/v8/HeapProfiler\">Heap Profiler</a>:</p>\n<pre><code class=\"language-js\">const inspector = require('inspector');\nconst fs = require('fs');\nconst session = new inspector.Session();\n\nconst fd = fs.openSync('profile.heapsnapshot', 'w');\n\nsession.connect();\n\nsession.on('HeapProfiler.addHeapSnapshotChunk', (m) => {\n  fs.writeSync(fd, m.params.chunk);\n});\n\nsession.post('HeapProfiler.takeHeapSnapshot', null, (err, r) => {\n  console.log('HeapProfiler.takeHeapSnapshot done:', err, r);\n  session.disconnect();\n  fs.closeSync(fd);\n});\n</code></pre>",
               "type": "module",
               "displayName": "Heap Profiler"
             }

@@ -1,3 +1,4 @@
+#define NODE_WANT_INTERNALS 1
 #include "diagnosticfilename-inl.h"
 #include "env-inl.h"
 #include "memory_tracker-inl.h"
@@ -68,10 +69,9 @@ class JSGraph : public EmbedderGraph {
   explicit JSGraph(Isolate* isolate) : isolate_(isolate) {}
 
   Node* V8Node(const Local<Value>& value) override {
-    std::unique_ptr<JSGraphJSNode> n { new JSGraphJSNode(isolate_, value) };
+    std::unique_ptr<JSGraphJSNode> n{new JSGraphJSNode(isolate_, value)};
     auto it = engine_nodes_.find(n.get());
-    if (it != engine_nodes_.end())
-      return *it;
+    if (it != engine_nodes_.end()) return *it;
     engine_nodes_.insert(n.get());
     return AddNode(std::unique_ptr<Node>(n.release()));
   }
@@ -169,8 +169,8 @@ class JSGraph : public EmbedderGraph {
         const char* edge_name = edge.first;
         if (edge_name != nullptr) {
           if (!String::NewFromUtf8(
-                  isolate_, edge_name, v8::NewStringType::kNormal)
-                  .ToLocal(&edge_name_value)) {
+                   isolate_, edge_name, v8::NewStringType::kNormal)
+                   .ToLocal(&edge_name_value)) {
             return MaybeLocal<Array>();
           }
         } else {
@@ -200,8 +200,7 @@ void BuildEmbedderGraph(const FunctionCallbackInfo<Value>& args) {
   JSGraph graph(env->isolate());
   Environment::BuildEmbedderGraph(env->isolate(), &graph, env);
   Local<Array> ret;
-  if (graph.CreateObject().ToLocal(&ret))
-    args.GetReturnValue().Set(ret);
+  if (graph.CreateObject().ToLocal(&ret)) args.GetReturnValue().Set(ret);
 }
 
 namespace {
@@ -233,20 +232,17 @@ class HeapSnapshotStream : public AsyncWrap,
                            public StreamBase,
                            public v8::OutputStream {
  public:
-  HeapSnapshotStream(
-      Environment* env,
-      const HeapSnapshot* snapshot,
-      v8::Local<v8::Object> obj) :
-      AsyncWrap(env, obj, AsyncWrap::PROVIDER_HEAPSNAPSHOT),
-      StreamBase(env),
-      snapshot_(snapshot) {
+  HeapSnapshotStream(Environment* env,
+                     const HeapSnapshot* snapshot,
+                     v8::Local<v8::Object> obj)
+      : AsyncWrap(env, obj, AsyncWrap::PROVIDER_HEAPSNAPSHOT),
+        StreamBase(env),
+        snapshot_(snapshot) {
     MakeWeak();
     StreamBase::AttachToObject(GetObject());
   }
 
-  ~HeapSnapshotStream() override {
-    Cleanup();
-  }
+  ~HeapSnapshotStream() override { Cleanup(); }
 
   int GetChunkSize() override {
     return 65536;  // big chunks == faster
@@ -262,8 +258,7 @@ class HeapSnapshotStream : public AsyncWrap,
     while (len != 0) {
       uv_buf_t buf = EmitAlloc(size);
       ssize_t avail = len;
-      if (static_cast<ssize_t>(buf.len) < avail)
-        avail = buf.len;
+      if (static_cast<ssize_t>(buf.len) < avail) avail = buf.len;
       memcpy(buf.base, data, avail);
       data += avail;
       len -= avail;
@@ -278,13 +273,9 @@ class HeapSnapshotStream : public AsyncWrap,
     return 0;
   }
 
-  int ReadStop() override {
-    return 0;
-  }
+  int ReadStop() override { return 0; }
 
-  int DoShutdown(ShutdownWrap* req_wrap) override {
-    UNREACHABLE();
-  }
+  int DoShutdown(ShutdownWrap* req_wrap) override { UNREACHABLE(); }
 
   int DoWrite(WriteWrap* w,
               uv_buf_t* bufs,
@@ -315,7 +306,6 @@ class HeapSnapshotStream : public AsyncWrap,
     }
   }
 
-
   const HeapSnapshot* snapshot_;
 };
 
@@ -328,8 +318,7 @@ inline void TakeSnapshot(Isolate* isolate, v8::OutputStream* out) {
 
 inline bool WriteSnapshot(Isolate* isolate, const char* filename) {
   FILE* fp = fopen(filename, "w");
-  if (fp == nullptr)
-    return false;
+  if (fp == nullptr) return false;
   FileOutputStream stream(fp);
   TakeSnapshot(isolate, &stream);
   fclose(fp);
@@ -362,8 +351,7 @@ void TriggerHeapSnapshot(const FunctionCallbackInfo<Value>& args) {
 
   if (filename_v->IsUndefined()) {
     DiagnosticFilename name(env, "Heap", "heapsnapshot");
-    if (!WriteSnapshot(isolate, *name))
-      return;
+    if (!WriteSnapshot(isolate, *name)) return;
     if (String::NewFromUtf8(isolate, *name, v8::NewStringType::kNormal)
             .ToLocal(&filename_v)) {
       args.GetReturnValue().Set(filename_v);
@@ -373,8 +361,7 @@ void TriggerHeapSnapshot(const FunctionCallbackInfo<Value>& args) {
 
   BufferValue path(isolate, filename_v);
   CHECK_NOT_NULL(*path);
-  if (!WriteSnapshot(isolate, *path))
-    return;
+  if (!WriteSnapshot(isolate, *path)) return;
   return args.GetReturnValue().Set(filename_v);
 }
 
@@ -384,15 +371,11 @@ void Initialize(Local<Object> target,
                 void* priv) {
   Environment* env = Environment::GetCurrent(context);
 
-  env->SetMethodNoSideEffect(target,
-                             "buildEmbedderGraph",
-                             BuildEmbedderGraph);
-  env->SetMethodNoSideEffect(target,
-                             "triggerHeapSnapshot",
-                             TriggerHeapSnapshot);
-  env->SetMethodNoSideEffect(target,
-                             "createHeapSnapshotStream",
-                             CreateHeapSnapshotStream);
+  env->SetMethodNoSideEffect(target, "buildEmbedderGraph", BuildEmbedderGraph);
+  env->SetMethodNoSideEffect(
+      target, "triggerHeapSnapshot", TriggerHeapSnapshot);
+  env->SetMethodNoSideEffect(
+      target, "createHeapSnapshotStream", CreateHeapSnapshotStream);
 
   // Create FunctionTemplate for HeapSnapshotStream
   Local<FunctionTemplate> os = FunctionTemplate::New(env->isolate());

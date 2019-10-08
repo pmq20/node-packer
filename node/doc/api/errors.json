@@ -941,9 +941,16 @@
             {
               "textRaw": "ERR_INSPECTOR_NOT_CONNECTED",
               "name": "err_inspector_not_connected",
-              "desc": "<p>While using the <code>inspector</code> module, an attempt was made to use the inspector\nbefore it was connected.</p>\n<p><a id=\"ERR_INVALID_ADDRESS_FAMILY\"></a></p>",
+              "desc": "<p>While using the <code>inspector</code> module, an attempt was made to use the inspector\nbefore it was connected.</p>\n<p><a id=\"ERR_INSPECTOR_NOT_WORKER\"></a></p>",
               "type": "module",
               "displayName": "ERR_INSPECTOR_NOT_CONNECTED"
+            },
+            {
+              "textRaw": "ERR_INSPECTOR_NOT_WORKER",
+              "name": "err_inspector_not_worker",
+              "desc": "<p>An API was called on the main thread that can only be used from\nthe worker thread.</p>\n<p><a id=\"ERR_INVALID_ADDRESS_FAMILY\"></a></p>",
+              "type": "module",
+              "displayName": "ERR_INSPECTOR_NOT_WORKER"
             },
             {
               "textRaw": "ERR_INVALID_ADDRESS_FAMILY",

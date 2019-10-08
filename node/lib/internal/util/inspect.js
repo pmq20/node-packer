@@ -351,7 +351,7 @@ function getEmptyFormatArray() {
   return [];
 }
 
-function getConstructorName(obj, ctx) {
+function getConstructorName(obj, ctx, recurseTimes) {
   let firstProto;
   const tmp = obj;
   while (obj) {
@@ -372,10 +372,23 @@ function getConstructorName(obj, ctx) {
     return null;
   }
 
-  return `${internalGetConstructorName(tmp)} <${inspect(firstProto, {
-    ...ctx,
-    customInspect: false
-  })}>`;
+  const res = internalGetConstructorName(tmp);
+
+  if (recurseTimes > ctx.depth && ctx.depth !== null) {
+    return `${res} <Complex prototype>`;
+  }
+
+  const protoConstr = getConstructorName(firstProto, ctx, recurseTimes + 1);
+
+  if (protoConstr === null) {
+    return `${res} <${inspect(firstProto, {
+      ...ctx,
+      customInspect: false,
+      depth: -1
+    })}>`;
+  }
+
+  return `${res} <${protoConstr}>`;
 }
 
 function getPrefix(constructor, tag, fallback) {
@@ -561,8 +574,19 @@ function formatValue(ctx, value, recurseTimes, typedArray) {
 
   // Using an array here is actually better for the average case than using
   // a Set. `seen` will only check for the depth and will never grow too large.
-  if (ctx.seen.includes(value))
+  if (ctx.seen.includes(value)) {
+    let index = 1;
+    if (ctx.circular === undefined) {
+      ctx.circular = new Map([[value, index]]);
+    } else {
+      index = ctx.circular.get(value);
+      if (index === undefined) {
+        index = ctx.circular.size + 1;
+        ctx.circular.set(value, index);
+      }
+    }
     return ctx.stylize('[Circular]', 'special');
+  }
 
   return formatRaw(ctx, value, recurseTimes, typedArray);
 }
@@ -570,7 +594,7 @@ function formatValue(ctx, value, recurseTimes, typedArray) {
 function formatRaw(ctx, value, recurseTimes, typedArray) {
   let keys;
 
-  const constructor = getConstructorName(value, ctx);
+  const constructor = getConstructorName(value, ctx, recurseTimes);
   let tag = value[Symbol.toStringTag];
   // Only list the tag in case it's non-enumerable / not an own property.
   // Otherwise we'd print this twice.
@@ -763,6 +787,17 @@ function formatRaw(ctx, value, recurseTimes, typedArray) {
   } catch (err) {
     const constructorName = getCtxStyle(value, constructor, tag).slice(0, -1);
     return handleMaxCallStackSize(ctx, err, constructorName, indentationLvl);
+  }
+  if (ctx.circular !== undefined) {
+    const index = ctx.circular.get(value);
+    if (index !== undefined) {
+      // Add reference always to the very beginning of the output.
+      if (ctx.compact !== true) {
+        base = base === '' ? '' : `${base}`;
+      } else {
+        braces[0] = `${braces[0]}`;
+      }
+    }
   }
   ctx.seen.pop();
 
@@ -1596,7 +1631,6 @@ function formatWithOptions(inspectOptions, ...args) {
               tempStr = inspect(args[++a], inspectOptions);
               break;
             case 111: // 'o'
-            {
               tempStr = inspect(args[++a], {
                 ...inspectOptions,
                 showHidden: true,
@@ -1604,7 +1638,6 @@ function formatWithOptions(inspectOptions, ...args) {
                 depth: 4
               });
               break;
-            }
             case 105: // 'i'
               const tempInteger = args[++a];
               if (typeof tempInteger === 'bigint') {
@@ -1622,6 +1655,10 @@ function formatWithOptions(inspectOptions, ...args) {
               } else {
                 tempStr = formatNumber(stylizeNoColor, parseFloat(tempFloat));
               }
+              break;
+            case 99: // 'c'
+              a += 1;
+              tempStr = '';
               break;
             case 37: // '%'
               str += first.slice(lastPos, i);

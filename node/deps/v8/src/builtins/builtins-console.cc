@@ -39,13 +39,30 @@ namespace internal {
 
 namespace {
 void ConsoleCall(
-    Isolate* isolate, internal::BuiltinArguments& args,
+    Isolate* isolate,
+    internal::BuiltinArguments& args,  // NOLINT(runtime/references)
     void (debug::ConsoleDelegate::*func)(const v8::debug::ConsoleCallArguments&,
                                          const v8::debug::ConsoleContext&)) {
   CHECK(!isolate->has_pending_exception());
   CHECK(!isolate->has_scheduled_exception());
   if (!isolate->console_delegate()) return;
   HandleScope scope(isolate);
+
+  // Access check. The current context has to match the context of all
+  // arguments, otherwise the inspector might leak objects across contexts.
+  Handle<Context> context = handle(isolate->context(), isolate);
+  for (int i = 0; i < args.length(); ++i) {
+    Handle<Object> argument = args.at<Object>(i);
+    if (!argument->IsJSObject()) continue;
+
+    Handle<JSObject> argument_obj = Handle<JSObject>::cast(argument);
+    if (argument->IsAccessCheckNeeded(isolate) &&
+        !isolate->MayAccess(context, argument_obj)) {
+      isolate->ReportFailedAccessCheck(argument_obj);
+      return;
+    }
+  }
+
   debug::ConsoleCallArguments wrapper(args);
   Handle<Object> context_id_obj = JSObject::GetDataProperty(
       args.target(), isolate->factory()->console_context_id_symbol());

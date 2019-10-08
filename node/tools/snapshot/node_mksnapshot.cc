@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#define NODE_WANT_INTERNALS 1
+
 #include "libplatform/libplatform.h"
 #include "node_internals.h"
 #include "snapshot_builder.h"

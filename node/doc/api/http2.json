@@ -2797,6 +2797,18 @@
                   "desc": "<p>The request authority pseudo header field. It can also be accessed via\n<code>req.headers[':authority']</code>.</p>"
                 },
                 {
+                  "textRaw": "`complete` {boolean}",
+                  "type": "boolean",
+                  "name": "complete",
+                  "meta": {
+                    "added": [
+                      "v12.10.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<p>The <code>request.complete</code> property will be <code>true</code> if the request has\nbeen completed, aborted, or destroyed.</p>"
+                },
+                {
                   "textRaw": "`headers` {Object}",
                   "type": "Object",
                   "name": "headers",
@@ -2914,7 +2926,7 @@
                     ],
                     "changes": []
                   },
-                  "desc": "<p>Request URL string. This contains only the URL that is\npresent in the actual HTTP request. If the request is:</p>\n<pre><code class=\"language-txt\">GET /status?name=ryan HTTP/1.1\\r\\n\nAccept: text/plain\\r\\n\n\\r\\n\n</code></pre>\n<p>Then <code>request.url</code> will be:</p>\n<!-- eslint-disable semi -->\n<pre><code class=\"language-js\">'/status?name=ryan'\n</code></pre>\n<p>To parse the url into its parts <code>require('url').parse(request.url)</code>\ncan be used:</p>\n<pre><code class=\"language-txt\">$ node\n> require('url').parse('/status?name=ryan')\nUrl {\n  protocol: null,\n  slashes: null,\n  auth: null,\n  host: null,\n  port: null,\n  hostname: null,\n  hash: null,\n  search: '?name=ryan',\n  query: 'name=ryan',\n  pathname: '/status',\n  path: '/status?name=ryan',\n  href: '/status?name=ryan' }\n</code></pre>\n<p>To extract the parameters from the query string, the\n<code>require('querystring').parse</code> function can be used, or\n<code>true</code> can be passed as the second argument to <code>require('url').parse</code>.</p>\n<pre><code class=\"language-txt\">$ node\n> require('url').parse('/status?name=ryan', true)\nUrl {\n  protocol: null,\n  slashes: null,\n  auth: null,\n  host: null,\n  port: null,\n  hostname: null,\n  hash: null,\n  search: '?name=ryan',\n  query: { name: 'ryan' },\n  pathname: '/status',\n  path: '/status?name=ryan',\n  href: '/status?name=ryan' }\n</code></pre>"
+                  "desc": "<p>Request URL string. This contains only the URL that is\npresent in the actual HTTP request. If the request is:</p>\n<pre><code class=\"language-txt\">GET /status?name=ryan HTTP/1.1\\r\\n\nAccept: text/plain\\r\\n\n\\r\\n\n</code></pre>\n<p>Then <code>request.url</code> will be:</p>\n<!-- eslint-disable semi -->\n<pre><code class=\"language-js\">'/status?name=ryan'\n</code></pre>\n<p>To parse the url into its parts <code>require('url').parse(request.url)</code>\ncan be used:</p>\n<pre><code class=\"language-txt\">$ node\n> require('url').parse('/status?name=ryan')\nUrl {\n  protocol: null,\n  slashes: null,\n  auth: null,\n  host: null,\n  port: null,\n  hostname: null,\n  hash: null,\n  search: '?name=ryan',\n  query: 'name=ryan',\n  pathname: '/status',\n  path: '/status?name=ryan',\n  href: '/status?name=ryan' }\n</code></pre>\n<p>To extract the parameters from the query string, the\n<code>require('querystring').parse</code> function can be used, or\n<code>true</code> can be passed as the second argument to <code>require('url').parse</code>.</p>\n<pre><code class=\"language-console\">$ node\n> require('url').parse('/status?name=ryan', true)\nUrl {\n  protocol: null,\n  slashes: null,\n  auth: null,\n  host: null,\n  port: null,\n  hostname: null,\n  hash: null,\n  search: '?name=ryan',\n  query: { name: 'ryan' },\n  pathname: '/status',\n  path: '/status?name=ryan',\n  href: '/status?name=ryan' }\n</code></pre>"
                 }
               ],
               "methods": [
@@ -3041,7 +3053,7 @@
                   "desc": "<p>This method adds HTTP trailing headers (a header but at the end of the\nmessage) to the response.</p>\n<p>Attempting to set a header field name or value that contains invalid characters\nwill result in a <a href=\"errors.html#errors_class_typeerror\"><code>TypeError</code></a> being thrown.</p>"
                 },
                 {
-                  "textRaw": "response.end([data][, encoding][, callback])",
+                  "textRaw": "response.end([data[, encoding]][, callback])",
                   "type": "method",
                   "name": "end",
                   "meta": {

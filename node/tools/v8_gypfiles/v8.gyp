@@ -34,6 +34,7 @@
       "<(V8_ROOT)/src/builtins/array-unshift.tq",
       "<(V8_ROOT)/src/builtins/array.tq",
       "<(V8_ROOT)/src/builtins/base.tq",
+      "<(V8_ROOT)/src/builtins/bigint.tq",
       "<(V8_ROOT)/src/builtins/boolean.tq",
       "<(V8_ROOT)/src/builtins/collections.tq",
       "<(V8_ROOT)/src/builtins/data-view.tq",
@@ -44,13 +45,20 @@
       "<(V8_ROOT)/src/builtins/iterator.tq",
       "<(V8_ROOT)/src/builtins/math.tq",
       "<(V8_ROOT)/src/builtins/object-fromentries.tq",
+      "<(V8_ROOT)/src/builtins/object.tq",
       "<(V8_ROOT)/src/builtins/proxy-constructor.tq",
+      "<(V8_ROOT)/src/builtins/proxy-delete-property.tq",
       "<(V8_ROOT)/src/builtins/proxy-get-property.tq",
+      "<(V8_ROOT)/src/builtins/proxy-get-prototype-of.tq",
       "<(V8_ROOT)/src/builtins/proxy-has-property.tq",
+      "<(V8_ROOT)/src/builtins/proxy-is-extensible.tq",
+      "<(V8_ROOT)/src/builtins/proxy-prevent-extensions.tq",
       "<(V8_ROOT)/src/builtins/proxy-revocable.tq",
       "<(V8_ROOT)/src/builtins/proxy-revoke.tq",
       "<(V8_ROOT)/src/builtins/proxy-set-property.tq",
+      "<(V8_ROOT)/src/builtins/proxy-set-prototype-of.tq",
       "<(V8_ROOT)/src/builtins/proxy.tq",
+      "<(V8_ROOT)/src/builtins/reflect.tq",
       "<(V8_ROOT)/src/builtins/regexp-replace.tq",
       "<(V8_ROOT)/src/builtins/regexp.tq",
       "<(V8_ROOT)/src/builtins/string.tq",
@@ -74,66 +82,12 @@
       "<(V8_ROOT)/src/builtins/typed-array-subarray.tq",
       "<(V8_ROOT)/src/builtins/typed-array.tq",
       "<(V8_ROOT)/third_party/v8/builtins/array-sort.tq",
-    ],
-    'torque_namespaces': [
-      "arguments",
-      "array",
-      "array-copywithin",
-      "array-filter",
-      "array-find",
-      "array-findindex",
-      "array-foreach",
-      "array-join",
-      "array-map",
-      "array-of",
-      "array-reverse",
-      "array-shift",
-      "array-slice",
-      "array-splice",
-      "array-unshift",
-      "array-lastindexof",
-      "base",
-      "boolean",
-      "collections",
-      "data-view",
-      "extras-utils",
-      "growable-fixed-array",
-      "internal-coverage",
-      "iterator",
-      "math",
-      "object",
-      "proxy",
-      "regexp",
-      "regexp-replace",
-      "string",
-      "string-html",
-      "string-iterator",
-      "string-repeat",
-      "string-slice",
-      "string-substring",
-      "typed-array",
-      "typed-array-createtypedarray",
-      "typed-array-every",
-      "typed-array-filter",
-      "typed-array-find",
-      "typed-array-findindex",
-      "typed-array-foreach",
-      "typed-array-reduce",
-      "typed-array-reduceright",
-      "typed-array-slice",
-      "typed-array-some",
-      "typed-array-subarray",
+      "<(V8_ROOT)/test/torque/test-torque.tq",
     ],
     'torque_output_root': '<(SHARED_INTERMEDIATE_DIR)/torque-output-root',
-    # Since there is no foreach in GYP we use `ForEachFormat` to unroll the following:
-    # foreach(namespace, torque_namespaces) {
-    #   outputs += [
-    #     "$target_gen_dir/torque-generated/builtins-$namespace-gen-tq.cc",
-    #     "$target_gen_dir/torque-generated/builtins-$namespace-gen-tq.h",
-    #   ]
-    # }
-    'torque_outputs': ['<!@pymod_do_main(ForEachFormat "<(torque_output_root)/torque-generated/builtins-%s-gen-tq.cc" <@(torque_namespaces))'],
-    'torque_outputs+': ['<!@pymod_do_main(ForEachFormat "<(torque_output_root)/torque-generated/builtins-%s-gen-tq.h" <@(torque_namespaces))'],
+    'torque_files_replaced': ['<!@pymod_do_main(ForEachReplace ".tq" "-tq-csa" <@(torque_files))'],
+    'torque_outputs': ['<!@pymod_do_main(ForEachFormat "<(torque_output_root)/torque-generated/%s.cc" <@(torque_files_replaced))'],
+    'torque_outputs+': ['<!@pymod_do_main(ForEachFormat "<(torque_output_root)/torque-generated/%s.h" <@(torque_files_replaced))'],
     'v8_compiler_sources': ['<!@pymod_do_main(GN-scraper "<(V8_ROOT)/BUILD.gn"  "v8_compiler_sources = ")'],
 
     'conditions': [
@@ -144,7 +98,7 @@
       }]
     ],
   },
-  'includes': ['toolchain.gypi', 'features.gypi', 'v8_external_snapshot.gypi'],
+  'includes': ['toolchain.gypi', 'features.gypi'],
   'targets': [
     {
       'target_name': 'run_torque',
@@ -182,11 +136,13 @@
             '<(torque_output_root)/torque-generated/exported-macros-assembler-tq.cc',
             '<(torque_output_root)/torque-generated/exported-macros-assembler-tq.h',
             '<(torque_output_root)/torque-generated/csa-types-tq.h',
+            '<(torque_output_root)/torque-generated/instance-types-tq.h',
             '<@(torque_outputs)',
           ],
           'action': [
             '<@(_inputs)',
-            '-o', '<(torque_output_root)/torque-generated'
+            '-o', '<(torque_output_root)/torque-generated',
+            '-v8-root', '<(V8_ROOT)'
           ],
         },
       ],
@@ -301,31 +257,21 @@
     },  # generate_bytecode_builtins_list
 
     {
-      # This rule delegates to either v8_snapshot, v8_nosnapshot, or
-      # v8_external_snapshot, depending on the current variables.
+      # This rule delegates to either v8_snapshot or v8_nosnapshot depending on
+      # the current variables.
       # The intention is to make the 'calling' rules a bit simpler.
       'target_name': 'v8_maybe_snapshot',
       'type': 'none',
       'toolsets': ['target'],
       'hard_dependency': 1,
       'conditions': [
-        ['v8_use_snapshot!=1', {
-          # The dependency on v8_base should come from a transitive
-          # dependency however the Android toolchain requires libv8_base.a
-          # to appear before libv8_snapshot.a so it's listed explicitly.
-          'dependencies': ['v8_base', 'v8_init', 'v8_nosnapshot'],
-        }],
-        ['v8_use_snapshot==1 and v8_use_external_startup_data==0', {
-          # The dependency on v8_base should come from a transitive
-          # dependency however the Android toolchain requires libv8_base.a
-          # to appear before libv8_snapshot.a so it's listed explicitly.
+        # The dependency on v8_base should come from a transitive
+        # dependency however the Android toolchain requires libv8_base.a
+        # to appear before libv8_snapshot.a so it's listed explicitly.
+        ['v8_use_snapshot==1', {
           'dependencies': ['v8_base', 'v8_snapshot'],
-        }],
-        ['v8_use_snapshot==1 and v8_use_external_startup_data==1 and want_separate_host_toolset==0', {
-          'dependencies': ['v8_base', 'v8_external_snapshot'],
-        }],
-        ['v8_use_snapshot==1 and v8_use_external_startup_data==1 and want_separate_host_toolset==1', {
-          'dependencies': ['v8_base', 'v8_external_snapshot'],
+        }, {
+          'dependencies': ['v8_base', 'v8_init', 'v8_nosnapshot'],
         }],
       ]
     },  # v8_maybe_snapshot
@@ -482,11 +428,13 @@
               # but the target OS is really <(OS).
               '--target_os=<(OS)',
               '--target_arch=<(v8_target_arch)',
+              '--startup_src', '<(INTERMEDIATE_DIR)/snapshot.cc',
             ],
           },
           'inputs': [
             '<(mksnapshot_exec)',
           ],
+          'outputs': ["<(INTERMEDIATE_DIR)/snapshot.cc"],
           'process_outputs_as_sources': 1,
           'conditions': [
             ['v8_enable_embedded_builtins', {
@@ -512,17 +460,6 @@
                 'mksnapshot_flags': ['--v8_os_page_size', '<(v8_os_page_size)'],
               },
             }],
-            ['v8_use_external_startup_data', {
-              'outputs': ['<(INTERMEDIATE_DIR)/snapshot_blob.bin', ],
-              'variables': {
-                'mksnapshot_flags': ['--startup_blob', '<(INTERMEDIATE_DIR)/snapshot_blob.bin', ],
-              },
-            }, {
-               'outputs': ["<(INTERMEDIATE_DIR)/snapshot.cc"],
-               'variables': {
-                 'mksnapshot_flags': ['--startup_src', '<(INTERMEDIATE_DIR)/snapshot.cc', ],
-               },
-             }],
             ['v8_embed_script != ""', {
               'inputs': ['<(v8_embed_script)'],
               'variables': {
@@ -1237,16 +1174,7 @@
           'sources': [
             '<(V8_ROOT)/src/libplatform/tracing/json-trace-event-listener.cc',
             '<(V8_ROOT)/src/libplatform/tracing/json-trace-event-listener.h',
-            '<(V8_ROOT)/src/libplatform/tracing/perfetto-consumer.cc',
-            '<(V8_ROOT)/src/libplatform/tracing/perfetto-consumer.h',
-            '<(V8_ROOT)/src/libplatform/tracing/perfetto-producer.cc',
-            '<(V8_ROOT)/src/libplatform/tracing/perfetto-producer.h',
-            '<(V8_ROOT)/src/libplatform/tracing/perfetto-shared-memory.cc',
-            '<(V8_ROOT)/src/libplatform/tracing/perfetto-shared-memory.h',
-            '<(V8_ROOT)/src/libplatform/tracing/perfetto-tasks.cc',
-            '<(V8_ROOT)/src/libplatform/tracing/perfetto-tasks.h',
-            '<(V8_ROOT)/src/libplatform/tracing/perfetto-tracing-controller.cc',
-            '<(V8_ROOT)/src/libplatform/tracing/perfetto-tracing-controller.h',
+            '<(V8_ROOT)/src/libplatform/tracing/trace-event-listener.cc',
             '<(V8_ROOT)/src/libplatform/tracing/trace-event-listener.h',
           ],
           'dependencies': [

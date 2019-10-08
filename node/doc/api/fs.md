@@ -85,7 +85,7 @@ variable:
 Omitting the callback function on asynchronous fs functions is deprecated and
 may result in an error being thrown in the future.
 
-```txt
+```console
 $ cat script.js
 function bad() {
   require('fs').readFile('/');
@@ -2086,8 +2086,8 @@ changes:
 -->
 
 * `fd` {integer}
-* `atime` {integer}
-* `mtime` {integer}
+* `atime` {number|string|Date}
+* `mtime` {number|string|Date}
 
 Synchronous version of [`fs.futimes()`][]. Returns `undefined`.
 
@@ -2696,6 +2696,7 @@ The `fs.readFile()` function buffers the entire file. To minimize memory costs,
 when possible prefer streaming via `fs.createReadStream()`.
 
 ### File Descriptors
+
 1. Any specified file descriptor has to support reading.
 2. If a file descriptor is specified as the `path`, it will not be closed
 automatically.
@@ -3248,22 +3249,32 @@ changes:
 * `callback` {Function}
   * `err` {Error}
 
-Asynchronous symlink(2). No arguments other than a possible exception are given
-to the completion callback. The `type` argument is only available on Windows
-and ignored on other platforms. It can be set to `'dir'`, `'file'`, or
-`'junction'`. If the `type` argument is not set, Node will autodetect `target`
-type and use `'file'` or `'dir'`. If the `target` does not exist, `'file'` will
-be used. Windows junction points require the destination path to be absolute.
-When using `'junction'`, the `target` argument will automatically be normalized
-to absolute path.
+Asynchronous symlink(2) which creates the link called `path` pointing to
+`target`.  No arguments other than a possible exception are given to the
+completion callback.
 
-Here is an example below:
+The `type` argument is only available on Windows and ignored on other platforms.
+It can be set to `'dir'`, `'file'`, or `'junction'`. If the `type` argument is
+not set, Node will autodetect `target` type and use `'file'` or `'dir'`. If the
+`target` does not exist, `'file'` will be used. Windows junction points require
+the destination path to be absolute.  When using `'junction'`, the `target`
+argument will automatically be normalized to absolute path.
+
+Relative targets are relative to the link’s parent directory.
 
 ```js
-fs.symlink('./foo', './new-port', callback);
+fs.symlink('./mew', './example/mewtwo', callback);
 ```
 
-It creates a symbolic link named "new-port" that points to "foo".
+The above example creates a symbolic link `mewtwo` in the `example` which points
+to `mew` in the same directory:
+
+```bash
+$ tree example/
+example/
+├── mew
+└── mewtwo -> ./mew
+```
 
 ## fs.symlinkSync(target, path[, type])
 <!-- YAML
@@ -3436,9 +3447,10 @@ changes:
 Change the file system timestamps of the object referenced by `path`.
 
 The `atime` and `mtime` arguments follow these rules:
-- Values can be either numbers representing Unix epoch time, `Date`s, or a
+
+* Values can be either numbers representing Unix epoch time, `Date`s, or a
   numeric string like `'123456789.0'`.
-- If the value can not be converted to a number, or is `NaN`, `Infinity` or
+* If the value can not be converted to a number, or is `NaN`, `Infinity` or
   `-Infinity`, an `Error` will be thrown.
 
 ## fs.utimesSync(path, atime, mtime)
@@ -3460,8 +3472,8 @@ changes:
 -->
 
 * `path` {string|Buffer|URL}
-* `atime` {integer}
-* `mtime` {integer}
+* `atime` {number|string|Date}
+* `mtime` {number|string|Date}
 
 Returns `undefined`.
 
@@ -3637,8 +3649,9 @@ reappearance) will be the same as the `previousStat` of the first callback
 event (its disappearance).
 
 This happens when:
-- the file is deleted, followed by a restore
-- the file is renamed twice - the second time back to its original name
+
+* the file is deleted, followed by a restore
+* the file is renamed twice - the second time back to its original name
 
 ## fs.write(fd, buffer[, offset[, length[, position]]], callback)
 <!-- YAML
@@ -3991,6 +4004,7 @@ rejected.
 <!-- YAML
 added: v10.0.0
 -->
+
 * `data` {string|Buffer}
 * `options` {Object|string}
   * `encoding` {string|null} **Default:** `'utf8'`
@@ -4010,6 +4024,7 @@ The `FileHandle` must have been opened for appending.
 <!-- YAML
 added: v10.0.0
 -->
+
 * `mode` {integer}
 * Returns: {Promise}
 
@@ -4020,6 +4035,7 @@ arguments upon success.
 <!-- YAML
 added: v10.0.0
 -->
+
 * `uid` {integer}
 * `gid` {integer}
 * Returns: {Promise}
@@ -4055,6 +4071,7 @@ async function openAndClose() {
 <!-- YAML
 added: v10.0.0
 -->
+
 * Returns: {Promise}
 
 Asynchronous fdatasync(2). The `Promise` is resolved with no arguments upon
@@ -4071,6 +4088,7 @@ added: v10.0.0
 <!-- YAML
 added: v10.0.0
 -->
+
 * `buffer` {Buffer|Uint8Array}
 * `offset` {integer}
 * `length` {integer}
@@ -4098,6 +4116,7 @@ property that is a reference to the passed in `buffer` argument.
 <!-- YAML
 added: v10.0.0
 -->
+
 * `options` {Object|string}
   * `encoding` {string|null} **Default:** `null`
   * `flag` {string} See [support of file system `flags`][]. **Default:** `'r'`.
@@ -4132,6 +4151,7 @@ changes:
     description: Accepts an additional `options` object to specify whether
                  the numeric values returned should be bigint.
 -->
+
 * `options` {Object}
   * `bigint` {boolean} Whether the numeric values in the returned
     [`fs.Stats`][] object should be `bigint`. **Default:** `false`.
@@ -4143,6 +4163,7 @@ Retrieves the [`fs.Stats`][] for the file.
 <!-- YAML
 added: v10.0.0
 -->
+
 * Returns: {Promise}
 
 Asynchronous fsync(2). The `Promise` is resolved with no arguments upon
@@ -4152,6 +4173,7 @@ success.
 <!-- YAML
 added: v10.0.0
 -->
+
 * `len` {integer} **Default:** `0`
 * Returns: {Promise}
 
@@ -4220,6 +4242,7 @@ The last three bytes are null bytes (`'\0'`), to compensate the over-truncation.
 <!-- YAML
 added: v10.0.0
 -->
+
 * `atime` {number|string|Date}
 * `mtime` {number|string|Date}
 * Returns: {Promise}
@@ -4230,10 +4253,11 @@ then resolves the `Promise` with no arguments upon success.
 This function does not work on AIX versions before 7.1, it will resolve the
 `Promise` with an error using code `UV_ENOSYS`.
 
-#### filehandle.write(buffer, offset, length, position)
+#### filehandle.write(buffer[, offset[, length[, position]]])
 <!-- YAML
 added: v10.0.0
 -->
+
 * `buffer` {Buffer|Uint8Array}
 * `offset` {integer}
 * `length` {integer}
@@ -4296,6 +4320,7 @@ the end of the file.
 <!-- YAML
 added: v10.0.0
 -->
+
 * `data` {string|Buffer|Uint8Array}
 * `options` {Object|string}
   * `encoding` {string|null} **Default:** `'utf8'`
@@ -4832,9 +4857,10 @@ Change the file system timestamps of the object referenced by `path` then
 resolves the `Promise` with no arguments upon success.
 
 The `atime` and `mtime` arguments follow these rules:
-- Values can be either numbers representing Unix epoch time, `Date`s, or a
+
+* Values can be either numbers representing Unix epoch time, `Date`s, or a
   numeric string like `'123456789.0'`.
-- If the value can not be converted to a number, or is `NaN`, `Infinity` or
+* If the value can not be converted to a number, or is `NaN`, `Infinity` or
   `-Infinity`, an `Error` will be thrown.
 
 ### fsPromises.writeFile(file, data[, options])
@@ -5014,6 +5040,12 @@ The following constants are meant for use with `fs.open()`.
   <tr>
     <td><code>O_NONBLOCK</code></td>
     <td>Flag indicating to open the file in nonblocking mode when possible.</td>
+  </tr>
+  <tr>
+    <td><code>UV_FS_O_FILEMAP</code></td>
+    <td>When set, a memory file mapping is used to access the file. This flag
+    is available on Windows operating systems only. On other operating systems,
+    this flag is ignored.</td>
   </tr>
 </table>
 
@@ -5219,7 +5251,7 @@ the file contents.
 [`URL`]: url.html#url_the_whatwg_url_api
 [`UV_THREADPOOL_SIZE`]: cli.html#cli_uv_threadpool_size_size
 [`WriteStream`]: #fs_class_fs_writestream
-[`event ports`]: http://illumos.org/man/port_create
+[`event ports`]: https://illumos.org/man/port_create
 [`fs.Dirent`]: #fs_class_fs_dirent
 [`fs.FSWatcher`]: #fs_class_fs_fswatcher
 [`fs.Stats`]: #fs_class_fs_stats

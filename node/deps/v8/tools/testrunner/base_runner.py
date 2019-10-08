@@ -120,8 +120,9 @@ class ModeConfig(object):
     self.execution_mode = execution_mode
 
 
-DEBUG_FLAGS = ["--nohard-abort", "--enable-slow-asserts", "--verify-heap"]
-RELEASE_FLAGS = ["--nohard-abort"]
+DEBUG_FLAGS = ["--nohard-abort", "--enable-slow-asserts", "--verify-heap",
+               "--testing-d8-test-runner"]
+RELEASE_FLAGS = ["--nohard-abort", "--testing-d8-test-runner"]
 MODES = {
   "debug": ModeConfig(
     flags=DEBUG_FLAGS,
@@ -561,6 +562,9 @@ class BaseTestRunner(object):
         asan_options.append('detect_leaks=1')
       else:
         asan_options.append('detect_leaks=0')
+      if utils.GuessOS() == 'windows':
+        # https://crbug.com/967663
+        asan_options.append('detect_stack_use_after_return=0')
       os.environ['ASAN_OPTIONS'] = ":".join(asan_options)
 
     if self.build_config.cfi_vptr:

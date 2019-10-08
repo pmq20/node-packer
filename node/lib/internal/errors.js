@@ -750,7 +750,7 @@ E('ERR_CRYPTO_SCRYPT_NOT_SUPPORTED', 'Scrypt algorithm not supported', Error);
 // Switch to TypeError. The current implementation does not seem right.
 E('ERR_CRYPTO_SIGN_KEY_REQUIRED', 'No key provided to sign', Error);
 E('ERR_CRYPTO_TIMING_SAFE_EQUAL_LENGTH',
-  'Input buffers must have the same length', RangeError);
+  'Input buffers must have the same byte length', RangeError);
 E('ERR_DNS_SET_SERVERS_FAILED', 'c-ares failed to set servers: "%s" [%s]',
   Error);
 E('ERR_DOMAIN_CALLBACK_NOT_AVAILABLE',
@@ -888,6 +888,7 @@ E('ERR_INSPECTOR_COMMAND', 'Inspector error %d: %s', Error);
 E('ERR_INSPECTOR_NOT_ACTIVE', 'Inspector is not active', Error);
 E('ERR_INSPECTOR_NOT_AVAILABLE', 'Inspector is not available', Error);
 E('ERR_INSPECTOR_NOT_CONNECTED', 'Session is not connected', Error);
+E('ERR_INSPECTOR_NOT_WORKER', 'Current thread is not a worker', Error);
 E('ERR_INTERNAL_ASSERTION', (message) => {
   const suffix = 'This is caused by either a bug in Node.js ' +
     'or incorrect usage of Node.js internals.\n' +
@@ -1124,7 +1125,7 @@ E('ERR_SOCKET_DGRAM_IS_CONNECTED', 'Already connected', Error);
 E('ERR_SOCKET_DGRAM_NOT_CONNECTED', 'Not connected', Error);
 E('ERR_SOCKET_DGRAM_NOT_RUNNING', 'Not running', Error);
 E('ERR_SRI_PARSE',
-  'Subresource Integrity string %s had an unexpected at %d',
+  'Subresource Integrity string %j had an unexpected %j at position %d',
   SyntaxError);
 E('ERR_STREAM_CANNOT_PIPE', 'Cannot pipe, not readable', Error);
 E('ERR_STREAM_DESTROYED', 'Cannot call %s after a stream was destroyed', Error);

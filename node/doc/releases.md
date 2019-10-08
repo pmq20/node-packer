@@ -32,6 +32,7 @@ official release builds for Node.js, hosted on <https://nodejs.org/>.
   * [17. Cleanup](#17-cleanup)
   * [18. Announce](#18-announce)
   * [19. Celebrate](#19-celebrate)
+* [Major Releases](#major-Releases)
 
 ## Who can make a release?
 
@@ -104,11 +105,11 @@ should be listed in the Node.js GitHub README.md file.
 
 Notes:
 
-- Dates listed below as _"YYYY-MM-DD"_ should be the date of the release **as
+* Dates listed below as _"YYYY-MM-DD"_ should be the date of the release **as
   UTC**. Use `date -u +'%Y-%m-%d'` to find out what this is.
-- Version strings are listed below as _"vx.y.z"_ or _"x.y.z"_. Substitute for
+* Version strings are listed below as _"vx.y.z"_ or _"x.y.z"_. Substitute for
   the release version.
-- Examples will use the fictional release version `1.2.3`.
+* Examples will use the fictional release version `1.2.3`.
 
 ### 0. Pre-release steps
 
@@ -143,10 +144,11 @@ appropriate PRs and commits into it.
 Go through PRs with the label `vN.x`. e.g. [PRs with the `v8.x` label](https://github.com/nodejs/node/pulls?q=is%3Apr+is%3Aopen+sort%3Aupdated-desc+label%3Av8.x).
 
 For each PR:
-- Run or check that there is a passing CI.
-- Check approvals (you can approve yourself).
-- Check that the commit metadata was not changed from the `master` commit.
-- If there are merge conflicts, ask the PR author to rebase.
+
+* Run or check that there is a passing CI.
+* Check approvals (you can approve yourself).
+* Check that the commit metadata was not changed from the `master` commit.
+* If there are merge conflicts, ask the PR author to rebase.
 Simple conflicts can be resolved when landing.
 
 When landing the PR add the `Backport-PR-URL:` line to each commit. Close the
@@ -171,11 +173,12 @@ Previous release commits and version bumps do not need to be
 cherry-picked.
 
 Carefully review the list of commits:
-- Checking for errors (incorrect `PR-URL`)
-- Checking semver status - Commits labeled as `semver-minor` or `semver-major`
+
+* Checking for errors (incorrect `PR-URL`)
+* Checking semver status - Commits labeled as `semver-minor` or `semver-major`
 should only be cherry-picked when appropriate for the type of release being
 made.
-- If you think it's risky so should wait for a while, add the `baking-for-lts`
+* If you think it's risky so should wait for a while, add the `baking-for-lts`
    tag.
 
 When cherry-picking commits, if there are simple conflicts you can resolve
@@ -222,10 +225,10 @@ be produced with a version string that does not have a trailing pre-release tag:
 This macro is used to signal an ABI version for native addons. It currently has
 two common uses in the community:
 
-- Determining what API to work against for compiling native addons, e.g.
+* Determining what API to work against for compiling native addons, e.g.
   [NAN](https://github.com/nodejs/nan) uses it to form a compatibility-layer for
   much of what it wraps.
-- Determining the ABI for downloading pre-built binaries of native addons, e.g.
+* Determining the ABI for downloading pre-built binaries of native addons, e.g.
   [node-pre-gyp](https://github.com/mapbox/node-pre-gyp) uses this value as
   exposed via `process.versions.modules` to help determine the appropriate
   binary to download at install-time.
@@ -501,8 +504,8 @@ remainder of the release steps.
 
 On release proposal branch, edit `src/node_version.h` again and:
 
-- Increment `NODE_PATCH_VERSION` by one
-- Change `NODE_VERSION_IS_RELEASE` back to `0`
+* Increment `NODE_PATCH_VERSION` by one
+* Change `NODE_VERSION_IS_RELEASE` back to `0`
 
 Commit this change with the following commit message format:
 
@@ -607,16 +610,16 @@ This script will use the promoted builds and changelog to generate the post. Run
 `npm run serve` to preview the post locally before pushing to the
 [nodejs.org](https://github.com/nodejs/nodejs.org) repo.
 
-- You can add a short blurb just under the main heading if you want to say
+* You can add a short blurb just under the main heading if you want to say
   something important, otherwise the text should be publication ready.
-- The links to the download files won't be complete unless you waited for the
+* The links to the download files won't be complete unless you waited for the
   ARMv6 builds. Any downloads that are missing will have `*Coming soon*` next to
   them. It's your responsibility to manually update these later when you have
   the outstanding builds.
-- The SHASUMS256.txt.asc content is at the bottom of the post. When you update
+* The SHASUMS256.txt.asc content is at the bottom of the post. When you update
   the list of tarballs you'll need to copy/paste the new contents of this file
   to reflect those changes.
-- Always use pull-requests on the nodejs.org repo. Be respectful of that working
+* Always use pull-requests on the nodejs.org repo. Be respectful of that working
   group, but you shouldn't have to wait for PR sign-off. Opening a PR and
   merging it immediately _should_ be fine. However, please follow the following
   commit message format:
@@ -627,16 +630,16 @@ This script will use the promoted builds and changelog to generate the post. Run
   Refs: <full URL to your release proposal PR>
   ```
 
-- Changes to `master` on the nodejs.org repo will trigger a new build of
+* Changes to `master` on the nodejs.org repo will trigger a new build of
   nodejs.org so your changes should appear in a few minutes after pushing.
 
 ### 16. Create the release on GitHub
 
-- Go to the [New release page](https://github.com/nodejs/node/releases/new).
-- Select the tag version you pushed earlier.
-- For release title, copy the title from the changelog.
-- For the description, copy the rest of the changelog entry.
-- Click on the "Publish release" button.
+* Go to the [New release page](https://github.com/nodejs/node/releases/new).
+* Select the tag version you pushed earlier.
+* For release title, copy the title from the changelog.
+* For the description, copy the rest of the changelog entry.
+* Click on the "Publish release" button.
 
 ### 17. Cleanup
 
@@ -662,6 +665,98 @@ Ping the IRC ops and the other [Partner Communities] liaisons.
 ### 19. Celebrate
 
 _In whatever form you do this..._
+
+## Major Releases
+
+The process for cutting a new Node.js major release has a number of differences
+from cutting a minor or patch release.
+
+### Schedule
+
+New Node.js Major releases happen twice per year:
+
+* Even-numbered releases are cut in April.
+* Odd-numbered releases are cut in October.
+
+Major releases should be targeted for the third Tuesday of the release month.
+
+A major release must not slip beyond the release month. In other words, major
+ releases must not slip into May or November.
+
+The release date for the next major release should be announced immediately
+following the current release (e.g. the release date for 13.0.0 should be
+announced immediately following the release of 12.0.0).
+
+### Release Branch
+
+Approximately three months before a major release, new `vN.x` and
+`vN.x-staging` branches (where `N` indicates the major release) should be
+created as forks of the `master` branch. Up until one month before the release
+date, these must be kept in sync with `master` and must not be considered to
+be stable branches (e.g. they may be force pushed).
+
+The `vN.x` and `vN.x-staging` branches must be kept in sync with one another
+up until the date of release.
+
+One month or less before the release date, commits must be cherry-picked into
+the two branches. To land `SEMVER-MAJOR` at this time requires no objections
+from the TSC.
+
+### Release Proposal
+
+A draft release proposal should be created two months before the release. A
+separate `vN.x-proposal` branch should be created that tracks the `vN.x`
+branch. This branch will contain the draft release commit (with the draft
+changelog).
+
+### Test Releases and Release Candidates
+
+Test builds should be generated from the `vN.x-proposal` branch starting at
+about 6 weeks before the release.
+
+Release Candidates should be generated from the `vN.x-proposal` branch starting
+at about 4 weeks before the release, with a target of one release candidate
+per week.
+
+Always run test releases and release candidates through the Canary in the
+Goldmine tool for additional testing.
+
+### Changelogs
+
+Generating major release changelogs is a bit more involved than minor and patch
+changelogs.
+
+#### Create the changelog file
+
+In the `doc/changelogs` directory, create a new `CHANGELOG_V{N}.md` file where
+`{N}` is the major version of the release. Follow the structure of the existing
+`CHANGELOG_V*.md` files.
+
+The navigation headers in all of the `CHANGELOG_V*.md` files must be
+updated to account for the new `CHANGELOG_V{N}.md` file.
+
+Once the file is created, the root `CHANGELOG.md` file must be updated to
+reference the newly-created major release `CHANGELOG_V{N}.md`.
+
+#### Generate the changelog
+
+To generate a proper major release changelog, use the `branch-diff` tool to
+compare the `vN.x` branch against the `vN-1.x` branch (e.g. for Node.js 12.0,
+we compare the `v12.x` branch against the up to date `v11.x` branch). Make sure
+that the local copy of the downlevel branch is up to date.
+
+The commits in the generated changelog must then be organized:
+
+* Remove all release commits from the list
+* Remove all reverted commits and their reverts
+* Separate all SEMVER-MAJOR, SEMVER-MINOR, and SEMVER-PATCH commits into lists
+
+#### Generate the notable changes
+
+For a major release, all SEMVER-MAJOR commits that are not strictly internal,
+test, or doc-related are to be listed as notable changes. Some SEMVER-MINOR
+commits may be listed as notable changes on a case-by-case basis. Use your
+judgment there.
 
 [CI lockdown procedure]: https://github.com/nodejs/build/blob/master/doc/jenkins-guide.md#restricting-access-for-security-releases
 [Build issue tracker]: https://github.com/nodejs/build/issues/new

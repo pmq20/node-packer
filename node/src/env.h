@@ -211,6 +211,7 @@ constexpr size_t kFsStatsBufferLength =
   V(dns_soa_string, "SOA")                                                     \
   V(dns_srv_string, "SRV")                                                     \
   V(dns_txt_string, "TXT")                                                     \
+  V(done_string, "done")                                                       \
   V(duration_string, "duration")                                               \
   V(emit_warning_string, "emitWarning")                                        \
   V(encoding_string, "encoding")                                               \
@@ -272,6 +273,7 @@ constexpr size_t kFsStatsBufferLength =
   V(modulus_string, "modulus")                                                 \
   V(name_string, "name")                                                       \
   V(netmask_string, "netmask")                                                 \
+  V(next_string, "next")                                                       \
   V(nistcurve_string, "nistCurve")                                             \
   V(nsname_string, "nsname")                                                   \
   V(ocsp_request_string, "OCSPRequest")                                        \
@@ -353,6 +355,7 @@ constexpr size_t kFsStatsBufferLength =
   V(ticketkeycallback_string, "onticketkeycallback")                           \
   V(timeout_string, "timeout")                                                 \
   V(tls_ticket_string, "tlsTicket")                                            \
+  V(transfer_string, "transfer")                                               \
   V(ttl_string, "ttl")                                                         \
   V(type_string, "type")                                                       \
   V(uid_string, "uid")                                                         \
@@ -442,6 +445,7 @@ constexpr size_t kFsStatsBufferLength =
   V(primordials, v8::Object)                                                   \
   V(promise_reject_callback, v8::Function)                                     \
   V(script_data_constructor_function, v8::Function)                            \
+  V(source_map_cache_getter, v8::Function)                                     \
   V(tick_callback_function, v8::Function)                                      \
   V(timers_callback_function, v8::Function)                                    \
   V(tls_wrap_constructor_function, v8::Function)                               \
@@ -608,8 +612,8 @@ class KVStore {
   KVStore(KVStore&&) = delete;
   KVStore& operator=(KVStore&&) = delete;
 
-  virtual v8::Local<v8::String> Get(v8::Isolate* isolate,
-                                    v8::Local<v8::String> key) const = 0;
+  virtual v8::MaybeLocal<v8::String> Get(v8::Isolate* isolate,
+                                         v8::Local<v8::String> key) const = 0;
   virtual void Set(v8::Isolate* isolate,
                    v8::Local<v8::String> key,
                    v8::Local<v8::String> value) = 0;
@@ -1248,6 +1252,10 @@ class Environment : public MemoryRetainer {
 
 #endif  // HAVE_INSPECTOR
 
+  // Only available if a MultiIsolatePlatform is in use.
+  void AddArrayBufferAllocatorToKeepAliveUntilIsolateDispose(
+      std::shared_ptr<v8::ArrayBuffer::Allocator>);
+
  private:
   template <typename Fn>
   inline void CreateImmediate(Fn&& cb,
@@ -1421,6 +1429,10 @@ class Environment : public MemoryRetainer {
   // A custom async abstraction (a pair of async handle and a state variable)
   // Used by embedders to shutdown running Node instance.
   AsyncRequest thread_stopper_;
+
+  typedef std::unordered_set<std::shared_ptr<v8::ArrayBuffer::Allocator>>
+      ArrayBufferAllocatorList;
+  ArrayBufferAllocatorList* keep_alive_allocators_ = nullptr;
 
   template <typename T>
   void ForEachBaseObject(T&& iterator);

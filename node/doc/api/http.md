@@ -909,9 +909,9 @@ ensure the response is a properly formatted HTTP response message.
 
 `err` is an instance of `Error` with two extra columns:
 
-+ `bytesParsed`: the bytes count of request packet that Node.js may have parsed
+* `bytesParsed`: the bytes count of request packet that Node.js may have parsed
   correctly;
-+ `rawPacket`: the raw packet of current request.
+* `rawPacket`: the raw packet of current request.
 
 ### Event: 'close'
 <!-- YAML
@@ -1167,7 +1167,7 @@ added: v0.3.0
 
 See [`response.socket`][].
 
-### response.end([data][, encoding][, callback])
+### response.end([data[, encoding]][, callback])
 <!-- YAML
 added: v0.1.90
 changes:
@@ -1770,7 +1770,7 @@ added: v0.11.6
 The raw request/response trailer keys and values exactly as they were
 received. Only populated at the `'end'` event.
 
-### message.setTimeout(msecs, callback)
+### message.setTimeout(msecs[, callback])
 <!-- YAML
 added: v0.5.9
 -->
@@ -1853,7 +1853,7 @@ Then `request.url` will be:
 To parse the url into its parts `require('url').parse(request.url)`
 can be used:
 
-```txt
+```console
 $ node
 > require('url').parse('/status?name=ryan')
 Url {
@@ -1875,7 +1875,7 @@ To extract the parameters from the query string, the
 `require('querystring').parse` function can be used, or
 `true` can be passed as the second argument to `require('url').parse`:
 
-```txt
+```console
 $ node
 > require('url').parse('/status?name=ryan', true)
 Url {
@@ -1921,6 +1921,7 @@ changes:
     pr-url: https://github.com/nodejs/node/pull/15752
     description: The `options` argument is supported now.
 -->
+
 * `options` {Object}
   * `IncomingMessage` {http.IncomingMessage} Specifies the `IncomingMessage`
     class to be used. Useful for extending the original `IncomingMessage`.

@@ -401,9 +401,7 @@ class Platform {
   /**
    * Returns true if idle tasks are enabled for the given |isolate|.
    */
-  virtual bool IdleTasksEnabled(Isolate* isolate) {
-    return false;
-  }
+  virtual bool IdleTasksEnabled(Isolate* isolate) { return false; }
 
   /**
    * Monotonically increasing time in seconds from an arbitrary fixed point in
@@ -438,6 +436,14 @@ class Platform {
    * but non-critical scenario.
    */
   virtual void DumpWithoutCrashing() {}
+
+  /**
+   * Lets the embedder to add crash keys.
+   */
+  virtual void AddCrashKey(int id, const char* name, uintptr_t value) {
+    // "noop" is a valid implementation if the embedder doesn't care to log
+    // additional data for crashes.
+  }
 
  protected:
   /**

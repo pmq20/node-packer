@@ -301,8 +301,8 @@ added: v11.4.0
 
 Chooses an HTTP parser library. Available values are:
 
-- `llhttp` for https://llhttp.org/
-- `legacy` for https://github.com/nodejs/http-parser
+* `llhttp` for https://llhttp.org/
+* `legacy` for https://github.com/nodejs/http-parser
 
 The default is `llhttp`, unless otherwise specified when building Node.js.
 
@@ -395,12 +395,13 @@ Specify ways of the inspector web socket url exposure.
 By default inspector websocket url is available in stderr and under `/json/list`
 endpoint on `http://host:port/json/list`.
 
-### `--loader=file`
+### `--experimental-loader=module`
 <!-- YAML
 added: v9.0.0
 -->
 
-Specify the `file` of the custom [experimental ECMAScript Module][] loader.
+Specify the `module` of a custom [experimental ECMAScript Module][] loader.
+`module` may be either a path to a file, or an ECMAScript Module name.
 
 ### `--max-http-header-size=size`
 <!-- YAML
@@ -998,80 +999,80 @@ node --require "./a.js" --require "./b.js"
 
 Node.js options that are allowed are:
 <!-- node-options-node start -->
-- `--enable-fips`
-- `--es-module-specifier-resolution`
-- `--experimental-exports`
-- `--experimental-modules`
-- `--experimental-policy`
-- `--experimental-repl-await`
-- `--experimental-report`
-- `--experimental-vm-modules`
-- `--experimental-wasm-modules`
-- `--force-fips`
-- `--frozen-intrinsics`
-- `--heapsnapshot-signal`
-- `--http-parser`
-- `--http-server-default-timeout`
-- `--icu-data-dir`
-- `--input-type`
-- `--inspect-brk`
-- `--inspect-port`, `--debug-port`
-- `--inspect-publish-uid`
-- `--inspect`
-- `--loader`
-- `--max-http-header-size`
-- `--napi-modules`
-- `--no-deprecation`
-- `--no-force-async-hooks-checks`
-- `--no-warnings`
-- `--openssl-config`
-- `--pending-deprecation`
-- `--policy-integrity`
-- `--preserve-symlinks-main`
-- `--preserve-symlinks`
-- `--prof-process`
-- `--redirect-warnings`
-- `--report-directory`
-- `--report-filename`
-- `--report-on-fatalerror`
-- `--report-on-signal`
-- `--report-signal`
-- `--report-uncaught-exception`
-- `--require`, `-r`
-- `--throw-deprecation`
-- `--title`
-- `--tls-cipher-list`
-- `--tls-max-v1.2`
-- `--tls-max-v1.3`
-- `--tls-min-v1.0`
-- `--tls-min-v1.1`
-- `--tls-min-v1.2`
-- `--tls-min-v1.3`
-- `--trace-deprecation`
-- `--trace-event-categories`
-- `--trace-event-file-pattern`
-- `--trace-events-enabled`
-- `--trace-sync-io`
-- `--trace-tls`
-- `--trace-warnings`
-- `--track-heap-objects`
-- `--unhandled-rejections`
-- `--use-bundled-ca`
-- `--use-openssl-ca`
-- `--v8-pool-size`
-- `--zero-fill-buffers`
+* `--enable-fips`
+* `--es-module-specifier-resolution`
+* `--experimental-exports`
+* `--experimental-loader`
+* `--experimental-modules`
+* `--experimental-policy`
+* `--experimental-repl-await`
+* `--experimental-report`
+* `--experimental-vm-modules`
+* `--experimental-wasm-modules`
+* `--force-fips`
+* `--frozen-intrinsics`
+* `--heapsnapshot-signal`
+* `--http-parser`
+* `--http-server-default-timeout`
+* `--icu-data-dir`
+* `--input-type`
+* `--inspect-brk`
+* `--inspect-port`, `--debug-port`
+* `--inspect-publish-uid`
+* `--inspect`
+* `--max-http-header-size`
+* `--napi-modules`
+* `--no-deprecation`
+* `--no-force-async-hooks-checks`
+* `--no-warnings`
+* `--openssl-config`
+* `--pending-deprecation`
+* `--policy-integrity`
+* `--preserve-symlinks-main`
+* `--preserve-symlinks`
+* `--prof-process`
+* `--redirect-warnings`
+* `--report-directory`
+* `--report-filename`
+* `--report-on-fatalerror`
+* `--report-on-signal`
+* `--report-signal`
+* `--report-uncaught-exception`
+* `--require`, `-r`
+* `--throw-deprecation`
+* `--title`
+* `--tls-cipher-list`
+* `--tls-max-v1.2`
+* `--tls-max-v1.3`
+* `--tls-min-v1.0`
+* `--tls-min-v1.1`
+* `--tls-min-v1.2`
+* `--tls-min-v1.3`
+* `--trace-deprecation`
+* `--trace-event-categories`
+* `--trace-event-file-pattern`
+* `--trace-events-enabled`
+* `--trace-sync-io`
+* `--trace-tls`
+* `--trace-warnings`
+* `--track-heap-objects`
+* `--unhandled-rejections`
+* `--use-bundled-ca`
+* `--use-openssl-ca`
+* `--v8-pool-size`
+* `--zero-fill-buffers`
 <!-- node-options-node end -->
 
 V8 options that are allowed are:
 <!-- node-options-v8 start -->
-- `--abort-on-uncaught-exception`
-- `--interpreted-frames-native-stack`
-- `--max-old-space-size`
-- `--perf-basic-prof-only-functions`
-- `--perf-basic-prof`
-- `--perf-prof-unwinding-info`
-- `--perf-prof`
-- `--stack-trace-limit`
+* `--abort-on-uncaught-exception`
+* `--interpreted-frames-native-stack`
+* `--max-old-space-size`
+* `--perf-basic-prof-only-functions`
+* `--perf-basic-prof`
+* `--perf-prof-unwinding-info`
+* `--perf-prof`
+* `--stack-trace-limit`
 <!-- node-options-v8 end -->
 
 ### `NODE_PATH=path[:…]`
@@ -1138,9 +1139,19 @@ variable is strongly discouraged.
 
 ### `NODE_V8_COVERAGE=dir`
 
-When set, Node.js will begin outputting [V8 JavaScript code coverage][] to the
-directory provided as an argument. Coverage is output as an array of
-[ScriptCoverage][] objects:
+When set, Node.js will begin outputting [V8 JavaScript code coverage][] and
+[Source Map][] data to the directory provided as an argument (coverage
+information is written as JSON to files with a `coverage` prefix).
+
+`NODE_V8_COVERAGE` will automatically propagate to subprocesses, making it
+easier to instrument applications that call the `child_process.spawn()` family
+of functions. `NODE_V8_COVERAGE` can be set to an empty string, to prevent
+propagation.
+
+#### Coverage Output
+
+Coverage is output as an array of [ScriptCoverage][] objects on the top-level
+key `result`:
 
 ```json
 {
@@ -1154,13 +1165,46 @@ directory provided as an argument. Coverage is output as an array of
 }
 ```
 
-`NODE_V8_COVERAGE` will automatically propagate to subprocesses, making it
-easier to instrument applications that call the `child_process.spawn()` family
-of functions. `NODE_V8_COVERAGE` can be set to an empty string, to prevent
-propagation.
+#### Source Map Cache
 
-At this time coverage is only collected in the main thread and will not be
-output for code executed by worker threads.
+> Stability: 1 - Experimental
+
+If found, Source Map data is appended to the top-level key `source-map-cache`
+on the JSON coverage object.
+
+`source-map-cache` is an object with keys representing the files source maps
+were extracted from, and the values include the raw source-map URL
+(in the key `url`) and the parsed Source Map V3 information (in the key `data`).
+
+```json
+{
+  "result": [
+    {
+      "scriptId": "68",
+      "url": "file:///absolute/path/to/source.js",
+      "functions": []
+    }
+  ],
+  "source-map-cache": {
+    "file:///absolute/path/to/source.js": {
+      "url": "./path-to-map.json",
+      "data": {
+        "version": 3,
+        "sources": [
+          "file:///absolute/path/to/original.js"
+        ],
+        "names": [
+          "Foo",
+          "console",
+          "info"
+        ],
+        "mappings": "MAAMA,IACJC,YAAaC",
+        "sourceRoot": "./"
+      }
+    }
+  }
+}
+```
 
 ### `OPENSSL_CONF=file`
 <!-- YAML
@@ -1206,12 +1250,12 @@ Asynchronous system APIs are used by Node.js whenever possible, but where they
 do not exist, libuv's threadpool is used to create asynchronous node APIs based
 on synchronous system APIs. Node.js APIs that use the threadpool are:
 
-- all `fs` APIs, other than the file watcher APIs and those that are explicitly
+* all `fs` APIs, other than the file watcher APIs and those that are explicitly
   synchronous
-- asynchronous crypto APIs such as `crypto.pbkdf2()`, `crypto.scrypt()`,
+* asynchronous crypto APIs such as `crypto.pbkdf2()`, `crypto.scrypt()`,
   `crypto.randomBytes()`, `crypto.randomFill()`, `crypto.generateKeyPair()`
-- `dns.lookup()`
-- all `zlib` APIs, other than those that are explicitly synchronous
+* `dns.lookup()`
+* all `zlib` APIs, other than those that are explicitly synchronous
 
 Because libuv's threadpool has a fixed size, it means that if for whatever
 reason any of these APIs takes a long time, other (seemingly unrelated) APIs
@@ -1231,6 +1275,7 @@ greater than `4` (its current default value). For more information, see the
 [Chrome DevTools Protocol]: https://chromedevtools.github.io/devtools-protocol/
 [REPL]: repl.html
 [ScriptCoverage]: https://chromedevtools.github.io/devtools-protocol/tot/Profiler#type-ScriptCoverage
+[Source Map]: https://sourcemaps.info/spec.html
 [Subresource Integrity]: https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity
 [V8 JavaScript code coverage]: https://v8project.blogspot.com/2017/12/javascript-code-coverage.html
 [customizing esm specifier resolution]: esm.html#esm_customizing_esm_specifier_resolution_algorithm

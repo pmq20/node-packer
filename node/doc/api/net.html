@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Net | Node.js v12.10.0 Documentation</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
+  <title>Net | Node.js v12.11.1 Documentation</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
   <link rel="canonical" href="https://nodejs.org/api/net.html">
@@ -81,7 +81,7 @@
 
     <div id="column1" data-id="net" class="interior">
       <header>
-        <h1>Node.js v12.10.0 Documentation</h1>
+        <h1>Node.js v12.11.1 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -182,7 +182,7 @@
 <li><a href="#net_socket_connecting">socket.connecting</a></li>
 <li><a href="#net_socket_destroy_exception">socket.destroy([exception])</a></li>
 <li><a href="#net_socket_destroyed">socket.destroyed</a></li>
-<li><a href="#net_socket_end_data_encoding_callback">socket.end([data][, encoding][, callback])</a></li>
+<li><a href="#net_socket_end_data_encoding_callback">socket.end([data[, encoding]][, callback])</a></li>
 <li><a href="#net_socket_localaddress">socket.localAddress</a></li>
 <li><a href="#net_socket_localport">socket.localPort</a></li>
 <li><a href="#net_socket_pause">socket.pause()</a></li>
@@ -267,7 +267,7 @@ escaping such as:</p>
 <pre><code class="language-js">net.createServer().listen(
   path.join('\\\\?\\pipe', process.cwd(), 'myctl'));
 </code></pre>
-<h2>Class: net.Server<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/net.js#L1140">[src]</a><span><a class="mark" href="#net_class_net_server" id="net_class_net_server">#</a></span></h2>
+<h2>Class: net.Server<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/net.js#L1140">[src]</a><span><a class="mark" href="#net_class_net_server" id="net_class_net_server">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.90</span>
 </div>
@@ -315,7 +315,7 @@ event will <strong>not</strong> be emitted directly following this event unless
 <span>Added in: v0.1.90</span>
 </div>
 <p>Emitted when the server has been bound after calling <a href="#net_server_listen"><code>server.listen()</code></a>.</p>
-<h3>server.address()<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/net.js#L1499">[src]</a><span><a class="mark" href="#net_server_address" id="net_server_address">#</a></span></h3>
+<h3>server.address()<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/net.js#L1499">[src]</a><span><a class="mark" href="#net_server_address" id="net_server_address">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.90</span>
 </div>
@@ -331,7 +331,7 @@ as a string.</p>
 <pre><code class="language-js">const server = net.createServer((socket) => {
   socket.end('goodbye\n');
 }).on('error', (err) => {
-  // handle errors here
+  // Handle errors here.
   throw err;
 });
 
@@ -341,12 +341,12 @@ server.listen(() => {
 });
 </code></pre>
 <p>Don't call <code>server.address()</code> until the <code>'listening'</code> event has been emitted.</p>
-<h3>server.close([callback])<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/net.js#L1585">[src]</a><span><a class="mark" href="#net_server_close_callback" id="net_server_close_callback">#</a></span></h3>
+<h3>server.close([callback])<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/net.js#L1585">[src]</a><span><a class="mark" href="#net_server_close_callback" id="net_server_close_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.90</span>
 </div>
 <ul>
-<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> Called when the server is closed</li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> Called when the server is closed.</li>
 <li>Returns: <a href="net.html#net_class_net_server" class="type">&#x3C;net.Server></a></li>
 </ul>
 <p>Stops the server from accepting new connections and keeps existing
@@ -360,11 +360,14 @@ was not open when it was closed.</p>
 <span>Added in: v0.2.0</span><span>Deprecated since: v0.9.7</span>
 </div>
 <p></p><div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="#net_server_getconnections_callback"><code>server.getConnections()</code></a> instead.</div><p></p>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Null_type" class="type">&#x3C;null></a></li>
+</ul>
 <p>The number of concurrent connections on the server.</p>
 <p>This becomes <code>null</code> when sending a socket to a child with
 <a href="child_process.html#child_process_child_process_fork_modulepath_args_options"><code>child_process.fork()</code></a>. To poll forks and get current number of active
 connections, use asynchronous <a href="#net_server_getconnections_callback"><code>server.getConnections()</code></a> instead.</p>
-<h3>server.getConnections(callback)<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/net.js#L1547">[src]</a><span><a class="mark" href="#net_server_getconnections_callback" id="net_server_getconnections_callback">#</a></span></h3>
+<h3>server.getConnections(callback)<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/net.js#L1547">[src]</a><span><a class="mark" href="#net_server_getconnections_callback" id="net_server_getconnections_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.9.7</span>
 </div>
@@ -375,7 +378,7 @@ connections, use asynchronous <a href="#net_server_getconnections_callback"><cod
 <p>Asynchronously get the number of concurrent connections on the server. Works
 when sockets were sent to forks.</p>
 <p>Callback should take two arguments <code>err</code> and <code>count</code>.</p>
-<h3>server.listen()<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/net.js#L1378">[src]</a><span><a class="mark" href="#net_server_listen" id="net_server_listen">#</a></span></h3>
+<h3>server.listen()<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/net.js#L1378">[src]</a><span><a class="mark" href="#net_server_listen" id="net_server_listen">#</a></span></h3>
 <p>Start a server listening for connections. A <code>net.Server</code> can be a TCP or
 an <a href="#net_ipc_support">IPC</a> server depending on what it listens to.</p>
 <p>Possible signatures:</p>
@@ -416,7 +419,7 @@ after a certain amount of time:</p>
   }
 });
 </code></pre>
-<h4>server.listen(handle[, backlog][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/net.js#L1378">[src]</a><span><a class="mark" href="#net_server_listen_handle_backlog_callback" id="net_server_listen_handle_backlog_callback">#</a></span></h4>
+<h4>server.listen(handle[, backlog][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/net.js#L1378">[src]</a><span><a class="mark" href="#net_server_listen_handle_backlog_callback" id="net_server_listen_handle_backlog_callback">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v0.5.10</span>
 </div>
@@ -432,7 +435,7 @@ already been bound to a port, a Unix domain socket, or a Windows named pipe.</p>
 underlying <code>_handle</code> member), or an object with an <code>fd</code> member that is a
 valid file descriptor.</p>
 <p>Listening on a file descriptor is not supported on Windows.</p>
-<h4>server.listen(options[, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/net.js#L1378">[src]</a><span><a class="mark" href="#net_server_listen_options_callback" id="net_server_listen_options_callback">#</a></span></h4>
+<h4>server.listen(options[, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/net.js#L1378">[src]</a><span><a class="mark" href="#net_server_listen_options_callback" id="net_server_listen_options_callback">#</a></span></h4>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -456,9 +459,9 @@ valid file descriptor.</p>
 functions.</li>
 <li><code>exclusive</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> <strong>Default:</strong> <code>false</code></li>
 <li><code>readableAll</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> For IPC servers makes the pipe readable
-for all users. <strong>Default:</strong> <code>false</code></li>
+for all users. <strong>Default:</strong> <code>false</code>.</li>
 <li><code>writableAll</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> For IPC servers makes the pipe writable
-for all users. <strong>Default:</strong> <code>false</code></li>
+for all users. <strong>Default:</strong> <code>false</code>.</li>
 <li><code>ipv6Only</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> For TCP servers, setting <code>ipv6Only</code> to <code>true</code> will
 disable dual-stack support, i.e., binding to host <code>::</code> won't make
 <code>0.0.0.0</code> be bound. <strong>Default:</strong> <code>false</code>.</li>
@@ -488,7 +491,7 @@ shown below.</p>
 <p>Starting an IPC server as root may cause the server path to be inaccessible for
 unprivileged users. Using <code>readableAll</code> and <code>writableAll</code> will make the server
 accessible for all users.</p>
-<h4>server.listen(path[, backlog][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/net.js#L1378">[src]</a><span><a class="mark" href="#net_server_listen_path_backlog_callback" id="net_server_listen_path_backlog_callback">#</a></span></h4>
+<h4>server.listen(path[, backlog][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/net.js#L1378">[src]</a><span><a class="mark" href="#net_server_listen_path_backlog_callback" id="net_server_listen_path_backlog_callback">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v0.1.90</span>
 </div>
@@ -500,7 +503,7 @@ accessible for all users.</p>
 <li>Returns: <a href="net.html#net_class_net_server" class="type">&#x3C;net.Server></a></li>
 </ul>
 <p>Start an <a href="#net_ipc_support">IPC</a> server listening for connections on the given <code>path</code>.</p>
-<h4>server.listen([port[, host[, backlog]]][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/net.js#L1378">[src]</a><span><a class="mark" href="#net_server_listen_port_host_backlog_callback" id="net_server_listen_port_host_backlog_callback">#</a></span></h4>
+<h4>server.listen([port[, host[, backlog]]][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/net.js#L1378">[src]</a><span><a class="mark" href="#net_server_listen_port_host_backlog_callback" id="net_server_listen_port_host_backlog_callback">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v0.1.90</span>
 </div>
@@ -532,11 +535,14 @@ may cause the <code>net.Server</code> to also listen on the <a href="https://en.
 <div class="api_metadata">
 <span>Added in: v0.2.0</span>
 </div>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
+</ul>
 <p>Set this property to reject connections when the server's connection count gets
 high.</p>
 <p>It is not recommended to use this option once a socket has been sent to a child
 with <a href="child_process.html#child_process_child_process_fork_modulepath_args_options"><code>child_process.fork()</code></a>.</p>
-<h3>server.ref()<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/net.js#L1667">[src]</a><span><a class="mark" href="#net_server_ref" id="net_server_ref">#</a></span></h3>
+<h3>server.ref()<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/net.js#L1667">[src]</a><span><a class="mark" href="#net_server_ref" id="net_server_ref">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.9.1</span>
 </div>
@@ -546,7 +552,7 @@ with <a href="child_process.html#child_process_child_process_fork_modulepath_arg
 <p>Opposite of <code>unref()</code>, calling <code>ref()</code> on a previously <code>unref</code>ed server will
 <em>not</em> let the program exit if it's the only server left (the default behavior).
 If the server is <code>ref</code>ed calling <code>ref()</code> again will have no effect.</p>
-<h3>server.unref()<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/net.js#L1676">[src]</a><span><a class="mark" href="#net_server_unref" id="net_server_unref">#</a></span></h3>
+<h3>server.unref()<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/net.js#L1676">[src]</a><span><a class="mark" href="#net_server_unref" id="net_server_unref">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.9.1</span>
 </div>
@@ -556,7 +562,7 @@ If the server is <code>ref</code>ed calling <code>ref()</code> again will have n
 <p>Calling <code>unref()</code> on a server will allow the program to exit if this is the only
 active server in the event system. If the server is already <code>unref</code>ed calling
 <code>unref()</code> again will have no effect.</p>
-<h2>Class: net.Socket<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/net.js#L252">[src]</a><span><a class="mark" href="#net_class_net_socket" id="net_class_net_socket">#</a></span></h2>
+<h2>Class: net.Socket<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/net.js#L252">[src]</a><span><a class="mark" href="#net_class_net_socket" id="net_class_net_socket">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.3.4</span>
 </div>
@@ -684,7 +690,7 @@ Not applicable to Unix sockets.</p>
 <p>Emitted if the socket times out from inactivity. This is only to notify that
 the socket has been idle. The user must manually close the connection.</p>
 <p>See also: <a href="#net_socket_settimeout_timeout_callback"><code>socket.setTimeout()</code></a>.</p>
-<h3>socket.address()<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/dgram.js#L716">[src]</a><span><a class="mark" href="#net_socket_address" id="net_socket_address">#</a></span></h3>
+<h3>socket.address()<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/dgram.js#L716">[src]</a><span><a class="mark" href="#net_socket_address" id="net_socket_address">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.90</span>
 </div>
@@ -698,6 +704,9 @@ socket as reported by the operating system:
 <div class="api_metadata">
 <span>Added in: v0.3.8</span>
 </div>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
+</ul>
 <p><code>net.Socket</code> has the property that <code>socket.write()</code> always works. This is to
 help users get up and running quickly. The computer cannot always keep up
 with the amount of data that is written to a socket - the network connection
@@ -716,13 +725,19 @@ encoded, so the exact number of bytes is not known.)</p>
 <div class="api_metadata">
 <span>Added in: v0.5.3</span>
 </div>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
+</ul>
 <p>The amount of received bytes.</p>
 <h3>socket.bytesWritten<span><a class="mark" href="#net_socket_byteswritten" id="net_socket_byteswritten">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.5.3</span>
 </div>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
+</ul>
 <p>The amount of bytes sent.</p>
-<h3>socket.connect()<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/dgram.js#L348">[src]</a><span><a class="mark" href="#net_socket_connect" id="net_socket_connect">#</a></span></h3>
+<h3>socket.connect()<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/dgram.js#L348">[src]</a><span><a class="mark" href="#net_socket_connect" id="net_socket_connect">#</a></span></h3>
 <p>Initiate a connection on a given socket.</p>
 <p>Possible signatures:</p>
 <ul>
@@ -739,7 +754,7 @@ instead of a <a href="#net_event_connect"><code>'connect'</code></a> event, an <
 the error passed to the <a href="#net_event_error_1"><code>'error'</code></a> listener.
 The last parameter <code>connectListener</code>, if supplied, will be added as a listener
 for the <a href="#net_event_connect"><code>'connect'</code></a> event <strong>once</strong>.</p>
-<h4>socket.connect(options[, connectListener])<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/dgram.js#L348">[src]</a><span><a class="mark" href="#net_socket_connect_options_connectlistener" id="net_socket_connect_options_connectlistener">#</a></span></h4>
+<h4>socket.connect(options[, connectListener])<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/dgram.js#L348">[src]</a><span><a class="mark" href="#net_socket_connect_options_connectlistener" id="net_socket_connect_options_connectlistener">#</a></span></h4>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -806,16 +821,16 @@ global context.</li>
 net.connect({
   port: 80,
   onread: {
-    // Reuses a 4KiB Buffer for every read from the socket
+    // Reuses a 4KiB Buffer for every read from the socket.
     buffer: Buffer.alloc(4 * 1024),
     callback: function(nread, buf) {
-      // Received data is available in `buf` from 0 to `nread`
+      // Received data is available in `buf` from 0 to `nread`.
       console.log(buf.toString('utf8', 0, nread));
     }
   }
 });
 </code></pre>
-<h4>socket.connect(path[, connectListener])<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/dgram.js#L348">[src]</a><span><a class="mark" href="#net_socket_connect_path_connectlistener" id="net_socket_connect_path_connectlistener">#</a></span></h4>
+<h4>socket.connect(path[, connectListener])<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/dgram.js#L348">[src]</a><span><a class="mark" href="#net_socket_connect_path_connectlistener" id="net_socket_connect_path_connectlistener">#</a></span></h4>
 <ul>
 <li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Path the client should connect to. See
 <a href="#net_identifying_paths_for_ipc_connections">Identifying paths for IPC connections</a>.</li>
@@ -827,7 +842,7 @@ methods. Will be added as a listener for the <a href="#net_event_connect"><code>
 <p>Alias to
 <a href="#net_socket_connect_options_connectlistener"><code>socket.connect(options[, connectListener])</code></a>
 called with <code>{ path: path }</code> as <code>options</code>.</p>
-<h4>socket.connect(port[, host][, connectlistener])<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/dgram.js#L348">[src]</a><span><a class="mark" href="#net_socket_connect_port_host_connectlistener" id="net_socket_connect_port_host_connectlistener">#</a></span></h4>
+<h4>socket.connect(port[, host][, connectlistener])<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/dgram.js#L348">[src]</a><span><a class="mark" href="#net_socket_connect_port_host_connectlistener" id="net_socket_connect_port_host_connectlistener">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v0.1.90</span>
 </div>
@@ -846,6 +861,9 @@ called with <code>{port: port, host: host}</code> as <code>options</code>.</p>
 <div class="api_metadata">
 <span>Added in: v6.1.0</span>
 </div>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a></li>
+</ul>
 <p>If <code>true</code>,
 <a href="#net_socket_connect_options_connectlistener"><code>socket.connect(options[, connectListener])</code></a> was
 called and has not yet finished. It will stay <code>true</code> until the socket becomes
@@ -870,7 +888,7 @@ listeners for that event will receive <code>exception</code> as an argument.</p>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> Indicates if the connection is destroyed or not. Once a
 connection is destroyed no further data can be transferred using it.</li>
 </ul>
-<h3>socket.end([data][, encoding][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/net.js#L573">[src]</a><span><a class="mark" href="#net_socket_end_data_encoding_callback" id="net_socket_end_data_encoding_callback">#</a></span></h3>
+<h3>socket.end([data[, encoding]][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/net.js#L573">[src]</a><span><a class="mark" href="#net_socket_end_data_encoding_callback" id="net_socket_end_data_encoding_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.90</span>
 </div>
@@ -888,6 +906,9 @@ server will still send some data.</p>
 <div class="api_metadata">
 <span>Added in: v0.9.6</span>
 </div>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+</ul>
 <p>The string representation of the local IP address the remote client is
 connecting on. For example, in a server listening on <code>'0.0.0.0'</code>, if a client
 connects on <code>'192.168.1.1'</code>, the value of <code>socket.localAddress</code> would be
@@ -896,8 +917,11 @@ connects on <code>'192.168.1.1'</code>, the value of <code>socket.localAddress</
 <div class="api_metadata">
 <span>Added in: v0.9.6</span>
 </div>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
+</ul>
 <p>The numeric representation of the local port. For example, <code>80</code> or <code>21</code>.</p>
-<h3>socket.pause()<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/net.js#L580">[src]</a><span><a class="mark" href="#net_socket_pause" id="net_socket_pause">#</a></span></h3>
+<h3>socket.pause()<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/net.js#L580">[src]</a><span><a class="mark" href="#net_socket_pause" id="net_socket_pause">#</a></span></h3>
 <ul>
 <li>Returns: <a href="net.html#net_class_net_socket" class="type">&#x3C;net.Socket></a> The socket itself.</li>
 </ul>
@@ -913,7 +937,7 @@ Useful to throttle back an upload.</p>
 <p>This is <code>true</code> if the socket is not connected yet, either because <code>.connect()</code>
 has not yet been called or because it is still in the process of connecting
 (see <a href="#net_socket_connecting"><code>socket.connecting</code></a>).</p>
-<h3>socket.ref()<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/dgram.js#L857">[src]</a><span><a class="mark" href="#net_socket_ref" id="net_socket_ref">#</a></span></h3>
+<h3>socket.ref()<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/dgram.js#L857">[src]</a><span><a class="mark" href="#net_socket_ref" id="net_socket_ref">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.9.1</span>
 </div>
@@ -923,10 +947,13 @@ has not yet been called or because it is still in the process of connecting
 <p>Opposite of <code>unref()</code>, calling <code>ref()</code> on a previously <code>unref</code>ed socket will
 <em>not</em> let the program exit if it's the only socket left (the default behavior).
 If the socket is <code>ref</code>ed calling <code>ref</code> again will have no effect.</p>
-<h3>socket.remoteAddress<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/dgram.js#L728">[src]</a><span><a class="mark" href="#net_socket_remoteaddress" id="net_socket_remoteaddress">#</a></span></h3>
+<h3>socket.remoteAddress<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/dgram.js#L728">[src]</a><span><a class="mark" href="#net_socket_remoteaddress" id="net_socket_remoteaddress">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.5.10</span>
 </div>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+</ul>
 <p>The string representation of the remote IP address. For example,
 <code>'74.125.127.100'</code> or <code>'2001:4860:a005::68'</code>. Value may be <code>undefined</code> if
 the socket is destroyed (for example, if the client disconnected).</p>
@@ -934,13 +961,19 @@ the socket is destroyed (for example, if the client disconnected).</p>
 <div class="api_metadata">
 <span>Added in: v0.11.14</span>
 </div>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+</ul>
 <p>The string representation of the remote IP family. <code>'IPv4'</code> or <code>'IPv6'</code>.</p>
 <h3>socket.remotePort<span><a class="mark" href="#net_socket_remoteport" id="net_socket_remoteport">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.5.10</span>
 </div>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
+</ul>
 <p>The numeric representation of the remote port. For example, <code>80</code> or <code>21</code>.</p>
-<h3>socket.resume()<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/net.js#L594">[src]</a><span><a class="mark" href="#net_socket_resume" id="net_socket_resume">#</a></span></h3>
+<h3>socket.resume()<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/net.js#L594">[src]</a><span><a class="mark" href="#net_socket_resume" id="net_socket_resume">#</a></span></h3>
 <ul>
 <li>Returns: <a href="net.html#net_class_net_socket" class="type">&#x3C;net.Socket></a> The socket itself.</li>
 </ul>
@@ -955,7 +988,7 @@ the socket is destroyed (for example, if the client disconnected).</p>
 </ul>
 <p>Set the encoding for the socket as a <a href="stream.html#stream_class_stream_readable">Readable Stream</a>. See
 <a href="stream.html#stream_readable_setencoding_encoding"><code>readable.setEncoding()</code></a> for more information.</p>
-<h3>socket.setKeepAlive([enable][, initialdelay])<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/net.js#L487">[src]</a><span><a class="mark" href="#net_socket_setkeepalive_enable_initialdelay" id="net_socket_setkeepalive_enable_initialdelay">#</a></span></h3>
+<h3>socket.setKeepAlive([enable][, initialdelay])<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/net.js#L487">[src]</a><span><a class="mark" href="#net_socket_setkeepalive_enable_initialdelay" id="net_socket_setkeepalive_enable_initialdelay">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.92</span>
 </div>
@@ -970,7 +1003,7 @@ delay before the first keepalive probe is sent on an idle socket.</p>
 data packet received and the first keepalive probe. Setting <code>0</code> for
 <code>initialDelay</code> will leave the value unchanged from the default
 (or previous) setting.</p>
-<h3>socket.setNoDelay([noDelay])<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/net.js#L472">[src]</a><span><a class="mark" href="#net_socket_setnodelay_nodelay" id="net_socket_setnodelay_nodelay">#</a></span></h3>
+<h3>socket.setNoDelay([noDelay])<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/net.js#L472">[src]</a><span><a class="mark" href="#net_socket_setnodelay_nodelay" id="net_socket_setnodelay_nodelay">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.90</span>
 </div>
@@ -981,7 +1014,7 @@ data packet received and the first keepalive probe. Setting <code>0</code> for
 <p>Disables the Nagle algorithm. By default TCP connections use the Nagle
 algorithm, they buffer data before sending it off. Setting <code>true</code> for
 <code>noDelay</code> will immediately fire off data each time <code>socket.write()</code> is called.</p>
-<h3>socket.setTimeout(timeout[, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/net.js#L451">[src]</a><span><a class="mark" href="#net_socket_settimeout_timeout_callback" id="net_socket_settimeout_timeout_callback">#</a></span></h3>
+<h3>socket.setTimeout(timeout[, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/net.js#L451">[src]</a><span><a class="mark" href="#net_socket_settimeout_timeout_callback" id="net_socket_settimeout_timeout_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.90</span>
 </div>
@@ -1004,7 +1037,7 @@ socket.on('timeout', () => {
 <p>If <code>timeout</code> is 0, then the existing idle timeout is disabled.</p>
 <p>The optional <code>callback</code> parameter will be added as a one-time listener for the
 <a href="#net_event_timeout"><code>'timeout'</code></a> event.</p>
-<h3>socket.unref()<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/dgram.js#L867">[src]</a><span><a class="mark" href="#net_socket_unref" id="net_socket_unref">#</a></span></h3>
+<h3>socket.unref()<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/dgram.js#L867">[src]</a><span><a class="mark" href="#net_socket_unref" id="net_socket_unref">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.9.1</span>
 </div>
@@ -1033,7 +1066,7 @@ buffer. Returns <code>false</code> if all or part of the data was queued in user
 written out - this may not be immediately.</p>
 <p>See <code>Writable</code> stream <a href="stream.html#stream_writable_write_chunk_encoding_callback"><code>write()</code></a> method for more
 information.</p>
-<h2>net.connect()<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/net.js#L162">[src]</a><span><a class="mark" href="#net_net_connect" id="net_net_connect">#</a></span></h2>
+<h2>net.connect()<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/net.js#L162">[src]</a><span><a class="mark" href="#net_net_connect" id="net_net_connect">#</a></span></h2>
 <p>Aliases to
 <a href="#net_net_createconnection"><code>net.createConnection()</code></a>.</p>
 <p>Possible signatures:</p>
@@ -1044,27 +1077,29 @@ connections.</li>
 <li><a href="#net_net_connect_port_host_connectlistener"><code>net.connect(port[, host][, connectListener])</code></a>
 for TCP connections.</li>
 </ul>
-<h3>net.connect(options[, connectListener])<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/net.js#L162">[src]</a><span><a class="mark" href="#net_net_connect_options_connectlistener" id="net_net_connect_options_connectlistener">#</a></span></h3>
+<h3>net.connect(options[, connectListener])<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/net.js#L162">[src]</a><span><a class="mark" href="#net_net_connect_options_connectlistener" id="net_net_connect_options_connectlistener">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.7.0</span>
 </div>
 <ul>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></li>
 <li><code>connectListener</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
+<li>Returns: <a href="net.html#net_class_net_socket" class="type">&#x3C;net.Socket></a></li>
 </ul>
 <p>Alias to
 <a href="#net_net_createconnection_options_connectlistener"><code>net.createConnection(options[, connectListener])</code></a>.</p>
-<h3>net.connect(path[, connectListener])<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/net.js#L162">[src]</a><span><a class="mark" href="#net_net_connect_path_connectlistener" id="net_net_connect_path_connectlistener">#</a></span></h3>
+<h3>net.connect(path[, connectListener])<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/net.js#L162">[src]</a><span><a class="mark" href="#net_net_connect_path_connectlistener" id="net_net_connect_path_connectlistener">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.90</span>
 </div>
 <ul>
 <li><code>path</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 <li><code>connectListener</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
+<li>Returns: <a href="net.html#net_class_net_socket" class="type">&#x3C;net.Socket></a></li>
 </ul>
 <p>Alias to
 <a href="#net_net_createconnection_path_connectlistener"><code>net.createConnection(path[, connectListener])</code></a>.</p>
-<h3>net.connect(port[, host][, connectlistener])<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/net.js#L162">[src]</a><span><a class="mark" href="#net_net_connect_port_host_connectlistener" id="net_net_connect_port_host_connectlistener">#</a></span></h3>
+<h3>net.connect(port[, host][, connectlistener])<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/net.js#L162">[src]</a><span><a class="mark" href="#net_net_connect_port_host_connectlistener" id="net_net_connect_port_host_connectlistener">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.90</span>
 </div>
@@ -1072,6 +1107,7 @@ for TCP connections.</li>
 <li><code>port</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
 <li><code>host</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 <li><code>connectListener</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
+<li>Returns: <a href="net.html#net_class_net_socket" class="type">&#x3C;net.Socket></a></li>
 </ul>
 <p>Alias to
 <a href="#net_net_createconnection_port_host_connectlistener"><code>net.createConnection(port[, host][, connectListener])</code></a>.</p>
@@ -1118,7 +1154,7 @@ it starts the connection.</li>
 in the <a href="#net_net_createserver_options_connectionlistener"><code>net.createServer()</code></a> section:</p>
 <pre><code class="language-js">const net = require('net');
 const client = net.createConnection({ port: 8124 }, () => {
-  // 'connect' listener
+  // 'connect' listener.
   console.log('connected to server!');
   client.write('world!\r\n');
 });
@@ -1166,7 +1202,7 @@ then returns the <code>net.Socket</code> that starts the connection.</p>
 <li><code>connectListener</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> Common parameter of the
 <a href="#net_net_createconnection"><code>net.createConnection()</code></a> functions, an "once" listener for the
 <code>'connect'</code> event on the initiating socket. Will be passed to
-<a href="#net_socket_connect_port_host_connectlistener"><code>socket.connect(path[, connectListener])</code></a>.</li>
+<a href="#net_socket_connect_port_host_connectlistener"><code>socket.connect(port[, host][, connectListener])</code></a>.</li>
 <li>Returns: <a href="net.html#net_class_net_socket" class="type">&#x3C;net.Socket></a> The newly created socket used to start the connection.</li>
 </ul>
 <p>Initiates a TCP connection.</p>
@@ -1174,7 +1210,7 @@ then returns the <code>net.Socket</code> that starts the connection.</p>
 immediately initiates connection with
 <a href="#net_socket_connect_port_host_connectlistener"><code>socket.connect(port[, host][, connectListener])</code></a>,
 then returns the <code>net.Socket</code> that starts the connection.</p>
-<h2>net.createServer([options][, connectionlistener])<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/net.js#L145">[src]</a><span><a class="mark" href="#net_net_createserver_options_connectionlistener" id="net_net_createserver_options_connectionlistener">#</a></span></h2>
+<h2>net.createServer([options][, connectionlistener])<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/net.js#L145">[src]</a><span><a class="mark" href="#net_net_createserver_options_connectionlistener" id="net_net_createserver_options_connectionlistener">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.5.0</span>
 </div>
@@ -1209,7 +1245,7 @@ read by the original process. To begin reading data from a paused socket, call
 on port 8124:</p>
 <pre><code class="language-js">const net = require('net');
 const server = net.createServer((c) => {
-  // 'connection' listener
+  // 'connection' listener.
   console.log('client connected');
   c.on('end', () => {
     console.log('client disconnected');

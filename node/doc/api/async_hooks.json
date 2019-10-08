@@ -74,6 +74,12 @@
                               "name": "destroy",
                               "type": "Function",
                               "desc": "The [`destroy` callback][]."
+                            },
+                            {
+                              "textRaw": "`promiseResolve` {Function} The [`promiseResolve` callback][].",
+                              "name": "promiseResolve",
+                              "type": "Function",
+                              "desc": "The [`promiseResolve` callback][]."
                             }
                           ]
                         }

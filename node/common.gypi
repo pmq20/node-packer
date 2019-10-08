@@ -38,7 +38,7 @@
 
     # Reset this number to 0 on major V8 upgrades.
     # Increment by one for each non-official patch applied to deps/v8.
-    'v8_embedder_string': '-node.16',
+    'v8_embedder_string': '-node.12',
 
     ##### V8 defaults for Node.js #####
 
@@ -87,9 +87,11 @@
       ['OS == "win"', {
         'os_posix': 0,
         'v8_postmortem_support%': 0,
+        '_WIN32': 1,
       }, {
         'os_posix': 1,
         'v8_postmortem_support%': 1,
+        '_WIN32': 0,
       }],
       ['v8_use_snapshot==1', {
         'conditions': [

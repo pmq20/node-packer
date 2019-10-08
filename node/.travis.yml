@@ -6,9 +6,13 @@ x-ccache-setup-steps: &ccache-setup-steps
 
 os: linux
 language: cpp
+# Currently this file can only support one PYTHON_VERSION.
+# To experiment with Python 3, comment out Python 2.7 and uncomment one of the Python 3 versions.
 env:
   global:
     - PYTHON_VERSION="2.7.15"
+    # - PYTHON_VERSION="3.6.7"
+    # - PYTHON_VERSION="3.7.1"
 jobs:
   include:
     - stage: "Compile"
@@ -87,31 +91,3 @@ jobs:
         - if [ "${TRAVIS_PULL_REQUEST}" != "false" ]; then
             bash -x tools/lint-pr-commit-message.sh ${TRAVIS_PULL_REQUEST};
           fi
-
-    - name: "Python 3 is EXPERIMENTAL (Py36)"
-      language: node_js
-      node_js: "node"
-      install:
-        - pyenv global 3.6.7
-        - python3.6 -m pip install --upgrade pip
-        - make lint-py-build
-      script:
-        - NODE=$(which node) make lint lint-py
-        - python3.6 ./configure.py
-        - NODE=$(which node) make test
-
-    - name: "Python 3 is EXPERIMENTAL (Py37)"
-      language: node_js
-      node_js: "node"
-      install:
-        - pyenv global 3.7.1
-        - python3.7 -m pip install --upgrade pip
-        - make lint-py-build
-      script:
-        - NODE=$(which node) make lint lint-py
-        - python3.7 ./configure.py
-        - NODE=$(which node) make test
-
-  allow_failures:
-    - name: "Python 3 is EXPERIMENTAL (Py36)"
-    - name: "Python 3 is EXPERIMENTAL (Py37)"

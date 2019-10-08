@@ -17,34 +17,34 @@ for more information on N-API.
 When not using N-API, implementing Addons is complicated,
 involving knowledge of several components and APIs:
 
- - V8: the C++ library Node.js currently uses to provide the
-   JavaScript implementation. V8 provides the mechanisms for creating objects,
-   calling functions, etc. V8's API is documented mostly in the
-   `v8.h` header file (`deps/v8/include/v8.h` in the Node.js source
-   tree), which is also available [online][v8-docs].
+* V8: the C++ library Node.js currently uses to provide the
+  JavaScript implementation. V8 provides the mechanisms for creating objects,
+  calling functions, etc. V8's API is documented mostly in the
+  `v8.h` header file (`deps/v8/include/v8.h` in the Node.js source
+  tree), which is also available [online][v8-docs].
 
- - [libuv][]: The C library that implements the Node.js event loop, its worker
-   threads and all of the asynchronous behaviors of the platform. It also
-   serves as a cross-platform abstraction library, giving easy, POSIX-like
-   access across all major operating systems to many common system tasks, such
-   as interacting with the filesystem, sockets, timers, and system events. libuv
-   also provides a pthreads-like threading abstraction that may be used to
-   power more sophisticated asynchronous Addons that need to move beyond the
-   standard event loop. Addon authors are encouraged to think about how to
-   avoid blocking the event loop with I/O or other time-intensive tasks by
-   off-loading work via libuv to non-blocking system operations, worker threads
-   or a custom use of libuv's threads.
+* [libuv][]: The C library that implements the Node.js event loop, its worker
+  threads and all of the asynchronous behaviors of the platform. It also
+  serves as a cross-platform abstraction library, giving easy, POSIX-like
+  access across all major operating systems to many common system tasks, such
+  as interacting with the filesystem, sockets, timers, and system events. libuv
+  also provides a pthreads-like threading abstraction that may be used to
+  power more sophisticated asynchronous Addons that need to move beyond the
+  standard event loop. Addon authors are encouraged to think about how to
+  avoid blocking the event loop with I/O or other time-intensive tasks by
+  off-loading work via libuv to non-blocking system operations, worker threads
+  or a custom use of libuv's threads.
 
- - Internal Node.js libraries. Node.js itself exports a number of C++ APIs
-   that Addons can use &mdash; the most important of which is the
-   `node::ObjectWrap` class.
+* Internal Node.js libraries. Node.js itself exports a number of C++ APIs
+  that Addons can use &mdash; the most important of which is the
+  `node::ObjectWrap` class.
 
- - Node.js includes a number of other statically linked libraries including
-   OpenSSL. These other libraries are located in the `deps/` directory in the
-   Node.js source tree. Only the libuv, OpenSSL, V8 and zlib symbols are
-   purposefully re-exported by Node.js and may be used to various extents by
-   Addons.
-   See [Linking to Node.js' own dependencies][] for additional information.
+* Node.js includes a number of other statically linked libraries including
+  OpenSSL. These other libraries are located in the `deps/` directory in the
+  Node.js source tree. Only the libuv, OpenSSL, V8 and zlib symbols are
+  purposefully re-exported by Node.js and may be used to various extents by
+  Addons.
+  See [Linking to Node.js' own dependencies][] for additional information.
 
 All of the following examples are available for [download][] and may
 be used as the starting-point for an Addon.
@@ -143,6 +143,7 @@ followed by a function body.
 
 The following three variables may be used inside the function body following an
 invocation of `NODE_MODULE_INIT()`:
+
 * `Local<Object> exports`,
 * `Local<Value> module`, and
 * `Local<Context> context`
@@ -158,6 +159,7 @@ they were created.
 
 The context-aware addon can be structured to avoid global static data by
 performing the following steps:
+
 * defining a class which will hold per-addon-instance data. Such
 a class should include a `v8::Persistent<v8::Object>` which will hold a weak
 reference to the addon's `exports` object. The callback associated with the weak
@@ -259,8 +261,9 @@ signature.
 
 In order to be loaded from multiple Node.js environments,
 such as a main thread and a Worker thread, an add-on needs to either:
-- Be an N-API addon, or
-- Be declared as context-aware using `NODE_MODULE_INIT()` as described above
+
+* Be an N-API addon, or
+* Be declared as context-aware using `NODE_MODULE_INIT()` as described above
 
 ### Building
 

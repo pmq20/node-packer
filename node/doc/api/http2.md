@@ -1026,6 +1026,7 @@ the `'aborted'` event will have been emitted.
 <!-- YAML
 added: v11.2.0
 -->
+
 * {number}
 
 This property shows the number of characters currently buffered to be written.
@@ -1750,6 +1751,7 @@ flag.
 <!-- YAML
 added: v8.4.0
 -->
+
 * `callback` {Function}
 
 Stops the server from establishing new sessions. This does not prevent new
@@ -1898,6 +1900,7 @@ the connection is terminated. See the [Compatibility API][].
 <!-- YAML
 added: v8.4.0
 -->
+
 * `callback` {Function}
 
 Stops the server from establishing new sessions. This does not prevent new
@@ -1970,23 +1973,23 @@ changes:
     exceed this limit will result in a `'frameError'` event being emitted
     and the stream being closed and destroyed.
   * `paddingStrategy` {number} Identifies the strategy used for determining the
-     amount of padding to use for `HEADERS` and `DATA` frames. **Default:**
-     `http2.constants.PADDING_STRATEGY_NONE`. Value may be one of:
-     * `http2.constants.PADDING_STRATEGY_NONE` - Specifies that no padding is
-       to be applied.
-     * `http2.constants.PADDING_STRATEGY_MAX` - Specifies that the maximum
-       amount of padding, as determined by the internal implementation, is to
-       be applied.
-     * `http2.constants.PADDING_STRATEGY_CALLBACK` - Specifies that the user
-       provided `options.selectPadding()` callback is to be used to determine
-       the amount of padding.
-     * `http2.constants.PADDING_STRATEGY_ALIGNED` - Will *attempt* to apply
-       enough padding to ensure that the total frame length, including the
-       9-byte header, is a multiple of 8. For each frame, however, there is a
-       maximum allowed number of padding bytes that is determined by current
-       flow control state and settings. If this maximum is less than the
-       calculated amount needed to ensure alignment, the maximum will be used
-       and the total frame length will *not* necessarily be aligned at 8 bytes.
+    amount of padding to use for `HEADERS` and `DATA` frames. **Default:**
+    `http2.constants.PADDING_STRATEGY_NONE`. Value may be one of:
+    * `http2.constants.PADDING_STRATEGY_NONE` - Specifies that no padding is
+      to be applied.
+    * `http2.constants.PADDING_STRATEGY_MAX` - Specifies that the maximum
+      amount of padding, as determined by the internal implementation, is to
+      be applied.
+    * `http2.constants.PADDING_STRATEGY_CALLBACK` - Specifies that the user
+      provided `options.selectPadding()` callback is to be used to determine
+      the amount of padding.
+    * `http2.constants.PADDING_STRATEGY_ALIGNED` - Will *attempt* to apply
+      enough padding to ensure that the total frame length, including the
+      9-byte header, is a multiple of 8. For each frame, however, there is a
+      maximum allowed number of padding bytes that is determined by current
+      flow control state and settings. If this maximum is less than the
+      calculated amount needed to ensure alignment, the maximum will be used
+      and the total frame length will *not* necessarily be aligned at 8 bytes.
   * `peerMaxConcurrentStreams` {number} Sets the maximum number of concurrent
     streams for the remote peer as if a `SETTINGS` frame had been received. Will
     be overridden if the remote peer sets its own value for
@@ -2085,23 +2088,23 @@ changes:
     exceed this limit will result in a `'frameError'` event being emitted
     and the stream being closed and destroyed.
   * `paddingStrategy` {number} Identifies the strategy used for determining the
-     amount of padding to use for `HEADERS` and `DATA` frames. **Default:**
-     `http2.constants.PADDING_STRATEGY_NONE`. Value may be one of:
-     * `http2.constants.PADDING_STRATEGY_NONE` - Specifies that no padding is
-       to be applied.
-     * `http2.constants.PADDING_STRATEGY_MAX` - Specifies that the maximum
-       amount of padding, as determined by the internal implementation, is to
-       be applied.
-     * `http2.constants.PADDING_STRATEGY_CALLBACK` - Specifies that the user
-       provided `options.selectPadding()` callback is to be used to determine
-       the amount of padding.
-     * `http2.constants.PADDING_STRATEGY_ALIGNED` - Will *attempt* to apply
-       enough padding to ensure that the total frame length, including the
-       9-byte header, is a multiple of 8. For each frame, however, there is a
-       maximum allowed number of padding bytes that is determined by current
-       flow control state and settings. If this maximum is less than the
-       calculated amount needed to ensure alignment, the maximum will be used
-       and the total frame length will *not* necessarily be aligned at 8 bytes.
+    amount of padding to use for `HEADERS` and `DATA` frames. **Default:**
+    `http2.constants.PADDING_STRATEGY_NONE`. Value may be one of:
+    * `http2.constants.PADDING_STRATEGY_NONE` - Specifies that no padding is
+      to be applied.
+    * `http2.constants.PADDING_STRATEGY_MAX` - Specifies that the maximum
+      amount of padding, as determined by the internal implementation, is to
+      be applied.
+    * `http2.constants.PADDING_STRATEGY_CALLBACK` - Specifies that the user
+      provided `options.selectPadding()` callback is to be used to determine
+      the amount of padding.
+    * `http2.constants.PADDING_STRATEGY_ALIGNED` - Will *attempt* to apply
+      enough padding to ensure that the total frame length, including the
+      9-byte header, is a multiple of 8. For each frame, however, there is a
+      maximum allowed number of padding bytes that is determined by current
+      flow control state and settings. If this maximum is less than the
+      calculated amount needed to ensure alignment, the maximum will be used
+      and the total frame length will *not* necessarily be aligned at 8 bytes.
   * `peerMaxConcurrentStreams` {number} Sets the maximum number of concurrent
     streams for the remote peer as if a `SETTINGS` frame had been received. Will
     be overridden if the remote peer sets its own value for
@@ -2186,23 +2189,23 @@ changes:
     exceed this limit will result in a `'frameError'` event being emitted
     and the stream being closed and destroyed.
   * `paddingStrategy` {number} Identifies the strategy used for determining the
-     amount of padding to use for `HEADERS` and `DATA` frames. **Default:**
-     `http2.constants.PADDING_STRATEGY_NONE`. Value may be one of:
-     * `http2.constants.PADDING_STRATEGY_NONE` - Specifies that no padding is
-       to be applied.
-     * `http2.constants.PADDING_STRATEGY_MAX` - Specifies that the maximum
-       amount of padding, as determined by the internal implementation, is to
-       be applied.
-     * `http2.constants.PADDING_STRATEGY_CALLBACK` - Specifies that the user
-       provided `options.selectPadding()` callback is to be used to determine
-       the amount of padding.
-     * `http2.constants.PADDING_STRATEGY_ALIGNED` - Will *attempt* to apply
-       enough padding to ensure that the total frame length, including the
-       9-byte header, is a multiple of 8. For each frame, however, there is a
-       maximum allowed number of padding bytes that is determined by current
-       flow control state and settings. If this maximum is less than the
-       calculated amount needed to ensure alignment, the maximum will be used
-       and the total frame length will *not* necessarily be aligned at 8 bytes.
+    amount of padding to use for `HEADERS` and `DATA` frames. **Default:**
+    `http2.constants.PADDING_STRATEGY_NONE`. Value may be one of:
+    * `http2.constants.PADDING_STRATEGY_NONE` - Specifies that no padding is
+      to be applied.
+    * `http2.constants.PADDING_STRATEGY_MAX` - Specifies that the maximum
+      amount of padding, as determined by the internal implementation, is to
+      be applied.
+    * `http2.constants.PADDING_STRATEGY_CALLBACK` - Specifies that the user
+      provided `options.selectPadding()` callback is to be used to determine
+      the amount of padding.
+    * `http2.constants.PADDING_STRATEGY_ALIGNED` - Will *attempt* to apply
+      enough padding to ensure that the total frame length, including the
+      9-byte header, is a multiple of 8. For each frame, however, there is a
+      maximum allowed number of padding bytes that is determined by current
+      flow control state and settings. If this maximum is less than the
+      calculated amount needed to ensure alignment, the maximum will be used
+      and the total frame length will *not* necessarily be aligned at 8 bytes.
   * `peerMaxConcurrentStreams` {number} Sets the maximum number of concurrent
     streams for the remote peer as if a `SETTINGS` frame had been received. Will
     be overridden if the remote peer sets its own value for
@@ -2325,17 +2328,18 @@ means that normal JavaScript object methods such as
 not work.
 
 For incoming headers:
+
 * The `:status` header is converted to `number`.
 * Duplicates of `:status`, `:method`, `:authority`, `:scheme`, `:path`,
-`:protocol`, `age`, `authorization`, `access-control-allow-credentials`,
-`access-control-max-age`, `access-control-request-method`, `content-encoding`,
-`content-language`, `content-length`, `content-location`, `content-md5`,
-`content-range`, `content-type`, `date`, `dnt`, `etag`, `expires`, `from`,
-`if-match`, `if-modified-since`, `if-none-match`, `if-range`,
-`if-unmodified-since`, `last-modified`, `location`, `max-forwards`,
-`proxy-authorization`, `range`, `referer`,`retry-after`, `tk`,
-`upgrade-insecure-requests`, `user-agent` or `x-content-type-options` are
-discarded.
+  `:protocol`, `age`, `authorization`, `access-control-allow-credentials`,
+  `access-control-max-age`, `access-control-request-method`, `content-encoding`,
+  `content-language`, `content-length`, `content-location`, `content-md5`,
+  `content-range`, `content-type`, `date`, `dnt`, `etag`, `expires`, `from`,
+  `if-match`, `if-modified-since`, `if-none-match`, `if-range`,
+  `if-unmodified-since`, `last-modified`, `location`, `max-forwards`,
+  `proxy-authorization`, `range`, `referer`,`retry-after`, `tk`,
+  `upgrade-insecure-requests`, `user-agent` or `x-content-type-options` are
+  discarded.
 * `set-cookie` is always an array. Duplicates are added to the array.
 * For duplicate `cookie` headers, the values are joined together with '; '.
 * For all other headers, the values are joined together with ', '.
@@ -2704,6 +2708,16 @@ added: v8.4.0
 The request authority pseudo header field. It can also be accessed via
 `req.headers[':authority']`.
 
+#### request.complete
+<!-- YAML
+added: v12.10.0
+-->
+
+* {boolean}
+
+The `request.complete` property will be `true` if the request has
+been completed, aborted, or destroyed.
+
 #### request.destroy([error])
 <!-- YAML
 added: v8.4.0
@@ -2932,7 +2946,7 @@ To extract the parameters from the query string, the
 `require('querystring').parse` function can be used, or
 `true` can be passed as the second argument to `require('url').parse`.
 
-```txt
+```console
 $ node
 > require('url').parse('/status?name=ryan', true)
 Url {
@@ -3002,7 +3016,7 @@ added: v8.4.0
 
 See [`response.socket`][].
 
-#### response.end([data][, encoding][, callback])
+#### response.end([data[, encoding]][, callback])
 <!-- YAML
 added: v8.4.0
 changes:
@@ -3396,6 +3410,7 @@ will result in a [`TypeError`][] being thrown.
 <!-- YAML
 added: v8.4.0
 -->
+
 * `headers` {HTTP/2 Headers Object} An object describing the headers
 * `callback` {Function} Called once `http2stream.pushStream()` is finished,
   or either when the attempt to create the pushed `Http2Stream` has failed or

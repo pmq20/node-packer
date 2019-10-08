@@ -105,10 +105,11 @@ $ git checkout -b my-branch -t upstream/master
 
 The vast majority of Pull Requests opened against the `nodejs/node`
 repository includes changes to one or more of the following:
-   - the C/C++ code contained in the `src` directory
-   - the JavaScript code contained in the `lib` directory
-   - the documentation in `doc/api`
-   - tests within the `test` directory.
+
+* the C/C++ code contained in the `src` directory
+* the JavaScript code contained in the `lib` directory
+* the documentation in `doc/api`
+* tests within the `test` directory.
 
 If you are modifying code, please be sure to run `make lint` from time to
 time to ensure that the changes follow the Node.js code style guide.
@@ -142,29 +143,29 @@ notes about [commit squashing](#commit-squashing).
 A good commit message should describe what changed and why.
 
 1. The first line should:
-   - contain a short description of the change (preferably 50 characters or
+   * contain a short description of the change (preferably 50 characters or
      less, and no more than 72 characters)
-   - be entirely in lowercase with the exception of proper nouns, acronyms, and
+   * be entirely in lowercase with the exception of proper nouns, acronyms, and
    the words that refer to code, like function/variable names
-   - be prefixed with the name of the changed subsystem and start with an
+   * be prefixed with the name of the changed subsystem and start with an
    imperative verb. Check the output of `git log --oneline files/you/changed` to
    find out what subsystems your changes touch.
 
    Examples:
-   - `net: add localAddress and localPort to Socket`
-   - `src: fix typos in async_wrap.h`
+   * `net: add localAddress and localPort to Socket`
+   * `src: fix typos in async_wrap.h`
 
 2. Keep the second line blank.
 3. Wrap all other lines at 72 columns (except for long URLs).
 
 4. If your patch fixes an open issue, you can add a reference to it at the end
-of the log. Use the `Fixes:` prefix and the full issue URL. For other references
-use `Refs:`.
+   of the log. Use the `Fixes:` prefix and the full issue URL. For other
+   references use `Refs:`.
 
    Examples:
-   - `Fixes: https://github.com/nodejs/node/issues/1337`
-   - `Refs: http://eslint.org/docs/rules/space-in-parens.html`
-   - `Refs: https://github.com/nodejs/node/pull/3615`
+   * `Fixes: https://github.com/nodejs/node/issues/1337`
+   * `Refs: https://eslint.org/docs/rules/space-in-parens.html`
+   * `Refs: https://github.com/nodejs/node/pull/3615`
 
 5. If your commit introduces a breaking change (`semver-major`), it should
 contain an explanation about the reason of the breaking change, which
@@ -180,7 +181,7 @@ things in more detail. Please word-wrap to keep columns to 72 characters or
 less.
 
 Fixes: https://github.com/nodejs/node/issues/1337
-Refs: http://eslint.org/docs/rules/space-in-parens.html
+Refs: https://eslint.org/docs/rules/space-in-parens.html
 ```
 
 If you are new to contributing to Node.js, please try to do your best at

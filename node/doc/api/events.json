@@ -188,6 +188,11 @@
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {boolean}",
+                    "name": "return",
+                    "type": "boolean"
+                  },
                   "params": [
                     {
                       "textRaw": "`eventName` {string|symbol}",
@@ -195,13 +200,15 @@
                       "type": "string|symbol"
                     },
                     {
+                      "textRaw": "`...args` {any}",
                       "name": "...args",
+                      "type": "any",
                       "optional": true
                     }
                   ]
                 }
               ],
-              "desc": "<ul>\n<li><code>...args</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Data_types\" class=\"type\">&lt;any&gt;</a></li>\n</ul>\n<ul>\n<li>Returns: <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type\" class=\"type\">&lt;boolean&gt;</a></li>\n</ul>\n<p>Synchronously calls each of the listeners registered for the event named\n<code>eventName</code>, in the order they were registered, passing the supplied arguments\nto each.</p>\n<p>Returns <code>true</code> if the event had listeners, <code>false</code> otherwise.</p>\n<pre><code class=\"language-js\">const EventEmitter = require('events');\nconst myEmitter = new EventEmitter();\n\n// First listener\nmyEmitter.on('event', function firstListener() {\n  console.log('Helloooo! first listener');\n});\n// Second listener\nmyEmitter.on('event', function secondListener(arg1, arg2) {\n  console.log(`event with parameters ${arg1}, ${arg2} in second listener`);\n});\n// Third listener\nmyEmitter.on('event', function thirdListener(...args) {\n  const parameters = args.join(', ');\n  console.log(`event with parameters ${parameters} in third listener`);\n});\n\nconsole.log(myEmitter.listeners('event'));\n\nmyEmitter.emit('event', 1, 2, 3, 4, 5);\n\n// Prints:\n// [\n//   [Function: firstListener],\n//   [Function: secondListener],\n//   [Function: thirdListener]\n// ]\n// Helloooo! first listener\n// event with parameters 1, 2 in second listener\n// event with parameters 1, 2, 3, 4, 5 in third listener\n</code></pre>"
+              "desc": "<p>Synchronously calls each of the listeners registered for the event named\n<code>eventName</code>, in the order they were registered, passing the supplied arguments\nto each.</p>\n<p>Returns <code>true</code> if the event had listeners, <code>false</code> otherwise.</p>\n<pre><code class=\"language-js\">const EventEmitter = require('events');\nconst myEmitter = new EventEmitter();\n\n// First listener\nmyEmitter.on('event', function firstListener() {\n  console.log('Helloooo! first listener');\n});\n// Second listener\nmyEmitter.on('event', function secondListener(arg1, arg2) {\n  console.log(`event with parameters ${arg1}, ${arg2} in second listener`);\n});\n// Third listener\nmyEmitter.on('event', function thirdListener(...args) {\n  const parameters = args.join(', ');\n  console.log(`event with parameters ${parameters} in third listener`);\n});\n\nconsole.log(myEmitter.listeners('event'));\n\nmyEmitter.emit('event', 1, 2, 3, 4, 5);\n\n// Prints:\n// [\n//   [Function: firstListener],\n//   [Function: secondListener],\n//   [Function: thirdListener]\n// ]\n// Helloooo! first listener\n// event with parameters 1, 2 in second listener\n// event with parameters 1, 2, 3, 4, 5 in third listener\n</code></pre>"
             },
             {
               "textRaw": "emitter.eventNames()",
@@ -649,7 +656,7 @@
               ]
             }
           ],
-          "desc": "<p>Creates a <code>Promise</code> that is resolved when the <code>EventEmitter</code> emits the given\nevent or that is rejected when the <code>EventEmitter</code> emits <code>'error'</code>.\nThe <code>Promise</code> will resolve with an array of all the arguments emitted to the\ngiven event.</p>\n<pre><code class=\"language-js\">const { once, EventEmitter } = require('events');\n\nasync function run() {\n  const ee = new EventEmitter();\n\n  process.nextTick(() => {\n    ee.emit('myevent', 42);\n  });\n\n  const [value] = await once(ee, 'myevent');\n  console.log(value);\n\n  const err = new Error('kaboom');\n  process.nextTick(() => {\n    ee.emit('error', err);\n  });\n\n  try {\n    await once(ee, 'myevent');\n  } catch (err) {\n    console.log('error happened', err);\n  }\n}\n\nrun();\n</code></pre>"
+          "desc": "<p>Creates a <code>Promise</code> that is fulfilled when the <code>EventEmitter</code> emits the given\nevent or that is rejected when the <code>EventEmitter</code> emits <code>'error'</code>.\nThe <code>Promise</code> will resolve with an array of all the arguments emitted to the\ngiven event.</p>\n<p>This method is intentionally generic and works with the web platform\n<a href=\"https://dom.spec.whatwg.org/#interface-eventtarget\">EventTarget</a> interface, which has no special\n<code>'error'</code> event semantics and does not listen to the <code>'error'</code> event.</p>\n<pre><code class=\"language-js\">const { once, EventEmitter } = require('events');\n\nasync function run() {\n  const ee = new EventEmitter();\n\n  process.nextTick(() => {\n    ee.emit('myevent', 42);\n  });\n\n  const [value] = await once(ee, 'myevent');\n  console.log(value);\n\n  const err = new Error('kaboom');\n  process.nextTick(() => {\n    ee.emit('error', err);\n  });\n\n  try {\n    await once(ee, 'myevent');\n  } catch (err) {\n    console.log('error happened', err);\n  }\n}\n\nrun();\n</code></pre>"
         }
       ]
     }

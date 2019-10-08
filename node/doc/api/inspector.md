@@ -121,9 +121,15 @@ session.on('Debugger.paused', ({ params }) => {
 added: v8.0.0
 -->
 
-Connects a session to the inspector back-end. An exception will be thrown
-if there is already a connected session established either through the API or by
-a front-end connected to the Inspector WebSocket port.
+Connects a session to the inspector back-end.
+
+### session.connectToMainThread()
+<!-- YAML
+added: v12.11.0
+-->
+
+Connects a session to the main thread inspector back-end. An exception will
+be thrown if this API was not called on a Worker thread.
 
 ### session.disconnect()
 <!-- YAML
@@ -210,7 +216,7 @@ session.on('HeapProfiler.addHeapSnapshotChunk', (m) => {
 });
 
 session.post('HeapProfiler.takeHeapSnapshot', null, (err, r) => {
-  console.log('Runtime.takeHeapSnapshot done:', err, r);
+  console.log('HeapProfiler.takeHeapSnapshot done:', err, r);
   session.disconnect();
   fs.closeSync(fd);
 });

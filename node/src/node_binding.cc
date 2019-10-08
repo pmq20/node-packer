@@ -1,3 +1,5 @@
+#define NODE_WANT_INTERNALS 1
+
 #include "node_binding.h"
 #include <atomic>
 #include "env-inl.h"
@@ -130,16 +132,14 @@ struct dl_wrap {
   };
 
   struct equal {
-    bool operator()(const dl_wrap* a,
-                    const dl_wrap* b) const {
+    bool operator()(const dl_wrap* a, const dl_wrap* b) const {
       return a->st_dev == b->st_dev && a->st_ino == b->st_ino;
     }
   };
 };
 
 static Mutex dlhandles_mutex;
-static std::unordered_set<dl_wrap*, dl_wrap::hash, dl_wrap::equal>
-    dlhandles;
+static std::unordered_set<dl_wrap*, dl_wrap::hash, dl_wrap::equal> dlhandles;
 static thread_local std::string dlerror_storage;
 
 char* wrapped_dlerror() {
@@ -159,11 +159,7 @@ void* wrapped_dlopen(const char* filename, int flags) {
     return nullptr;
   }
 
-  dl_wrap search = {
-    req.statbuf.st_dev,
-    req.statbuf.st_ino,
-    0, nullptr
-  };
+  dl_wrap search = {req.statbuf.st_dev, req.statbuf.st_ino, 0, nullptr};
 
   auto it = dlhandles.find(&search);
   if (it != dlhandles.end()) {
@@ -219,14 +215,16 @@ void* wrapped_dlsym(void* handle, const char* symbol) {
 #ifdef __linux__
 static bool libc_may_be_musl() {
   static std::atomic_bool retval;  // Cache the return value.
-  static std::atomic_bool has_cached_retval { false };
+  static std::atomic_bool has_cached_retval{false};
   if (has_cached_retval) return retval;
   retval = dlsym(RTLD_DEFAULT, "gnu_get_libc_version") == nullptr;
   has_cached_retval = true;
   return retval;
 }
-#else  // __linux__
-static bool libc_may_be_musl() { return false; }
+#else   // __linux__
+static bool libc_may_be_musl() {
+  return false;
+}
 #endif  // __linux__
 
 namespace node {
@@ -302,8 +300,7 @@ static struct global_handle_map_t {
     if (it == map_.end()) return;
     CHECK_GE(it->second.refcount, 1);
     if (--it->second.refcount == 0) {
-      if (it->second.wants_delete_module)
-        delete it->second.module;
+      if (it->second.wants_delete_module) delete it->second.module;
       map_.erase(handle);
     }
   }
@@ -343,8 +340,7 @@ void DLib::Close() {
 
   int err = dlclose(handle_);
   if (err == 0) {
-    if (has_entry_in_global_handle_map_)
-      global_handle_map.erase(handle_);
+    if (has_entry_in_global_handle_map_) global_handle_map.erase(handle_);
   }
   handle_ = nullptr;
 }
@@ -366,8 +362,7 @@ bool DLib::Open() {
 
 void DLib::Close() {
   if (handle_ == nullptr) return;
-  if (has_entry_in_global_handle_map_)
-    global_handle_map.erase(handle_);
+  if (has_entry_in_global_handle_map_) global_handle_map.erase(handle_);
   uv_dlclose(&lib_);
   handle_ = nullptr;
 }

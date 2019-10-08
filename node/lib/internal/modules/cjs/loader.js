@@ -31,6 +31,7 @@ const {
 } = primordials;
 
 const { NativeModule } = require('internal/bootstrap/loaders');
+const { maybeCacheSourceMap } = require('internal/source_map');
 const { pathToFileURL, fileURLToPath, URL } = require('internal/url');
 const { deprecate } = require('internal/util');
 const vm = require('vm');
@@ -97,7 +98,7 @@ function enrichCJSError(err) {
     usage. However, some cases are not matching, cases like import statement
     after a comment block and/or after a variable definition.
   */
-  if (err.message.startsWith('Unexpected token export') ||
+  if (err.message.startsWith('Unexpected token \'export\'') ||
     (/^\s*import(?=[ {'"*])\s*(?![ (])/).test(lineWithErr)) {
     process.emitWarning(
       'To load an ES module, set "type": "module" in the package.json or use ' +
@@ -213,16 +214,17 @@ Module._debug = deprecate(debug, 'Module._debug is deprecated.', 'DEP0077');
 //   -> a.<ext>
 //   -> a/index.<ext>
 
-// Check if the directory is a package.json dir.
-const packageMainCache = Object.create(null);
-// Explicit exports from package.json files
-const packageExportsCache = new SafeMap();
+const packageJsonCache = new SafeMap();
 
-function readPackageRaw(requestPath) {
+function readPackage(requestPath) {
   const jsonPath = path.resolve(requestPath, 'package.json');
-  const json = internalModuleReadJSON(path.toNamespacedPath(jsonPath));
 
+  const existing = packageJsonCache.get(jsonPath);
+  if (existing !== undefined) return existing;
+
+  const json = internalModuleReadJSON(path.toNamespacedPath(jsonPath));
   if (json === undefined) {
+    packageJsonCache.set(jsonPath, false);
     return false;
   }
 
@@ -233,11 +235,13 @@ function readPackageRaw(requestPath) {
 
   try {
     const parsed = JSON.parse(json);
-    packageMainCache[requestPath] = parsed.main;
-    if (experimentalExports) {
-      packageExportsCache.set(requestPath, parsed.exports);
-    }
-    return parsed;
+    const filtered = {
+      main: parsed.main,
+      exports: parsed.exports,
+      type: parsed.type
+    };
+    packageJsonCache.set(jsonPath, filtered);
+    return filtered;
   } catch (e) {
     e.path = jsonPath;
     e.message = 'Error parsing ' + jsonPath + ': ' + e.message;
@@ -245,33 +249,33 @@ function readPackageRaw(requestPath) {
   }
 }
 
-function readPackage(requestPath) {
-  const entry = packageMainCache[requestPath];
-  if (entry)
-    return entry;
-
-  const pkg = readPackageRaw(requestPath);
-  if (pkg === false) return false;
-
-  return pkg.main;
+function readPackageScope(checkPath) {
+  const rootSeparatorIndex = checkPath.indexOf(path.sep);
+  let separatorIndex;
+  while (
+    (separatorIndex = checkPath.lastIndexOf(path.sep)) > rootSeparatorIndex
+  ) {
+    checkPath = checkPath.slice(0, separatorIndex);
+    if (checkPath.endsWith(path.sep + 'node_modules'))
+      return false;
+    const pjson = readPackage(checkPath);
+    if (pjson) return pjson;
+  }
+  return false;
 }
 
-function readExports(requestPath) {
-  if (packageExportsCache.has(requestPath)) {
-    return packageExportsCache.get(requestPath);
-  }
+function readPackageMain(requestPath) {
+  const pkg = readPackage(requestPath);
+  return pkg ? pkg.main : undefined;
+}
 
-  const pkg = readPackageRaw(requestPath);
-  if (!pkg) {
-    packageExportsCache.set(requestPath, null);
-    return null;
-  }
-
-  return pkg.exports;
+function readPackageExports(requestPath) {
+  const pkg = readPackage(requestPath);
+  return pkg ? pkg.exports : undefined;
 }
 
 function tryPackage(requestPath, exts, isMain, originalPath) {
-  const pkg = readPackage(requestPath);
+  const pkg = readPackageMain(requestPath);
 
   if (!pkg) {
     return tryExtensions(path.resolve(requestPath, 'index'), exts, isMain);
@@ -361,18 +365,18 @@ function findLongestRegisteredExtension(filename) {
 // This only applies to requests of a specific form:
 // 1. name/.*
 // 2. @scope/name/.*
-const EXPORTS_PATTERN = /^((?:@[^/\\%]+\/)?[^./\\%][^/\\%]*)(\/.*)$/;
+const EXPORTS_PATTERN = /^((?:@[^/\\%]+\/)?[^./\\%][^/\\%]*)(\/.*)?$/;
 function resolveExports(nmPath, request, absoluteRequest) {
   // The implementation's behavior is meant to mirror resolution in ESM.
   if (experimentalExports && !absoluteRequest) {
-    const [, name, expansion] =
+    const [, name, expansion = ''] =
       StringPrototype.match(request, EXPORTS_PATTERN) || [];
     if (!name) {
       return path.resolve(nmPath, request);
     }
 
     const basePath = path.resolve(nmPath, name);
-    const pkgExports = readExports(basePath);
+    const pkgExports = readPackageExports(basePath);
     const mappingKey = `.${expansion}`;
 
     if (typeof pkgExports === 'object' && pkgExports !== null) {
@@ -397,6 +401,10 @@ function resolveExports(nmPath, request, absoluteRequest) {
         return resolveExportsTarget(pathToFileURL(basePath + '/'), mapping,
                                     subpath, basePath, mappingKey);
       }
+    }
+    if (mappingKey === '.' && typeof pkgExports === 'string') {
+      return resolveExportsTarget(pathToFileURL(basePath + '/'), pkgExports,
+                                  '', basePath, mappingKey);
     }
     if (pkgExports != null) {
       // eslint-disable-next-line no-restricted-syntax
@@ -848,11 +856,12 @@ Module.prototype._compile = function(content, filename) {
   let redirects;
   if (manifest) {
     moduleURL = pathToFileURL(filename);
-    redirects = manifest.getRedirects(moduleURL);
+    redirects = manifest.getRedirector(moduleURL);
     manifest.assertIntegrity(moduleURL, content);
   }
 
   content = stripShebang(content);
+  maybeCacheSourceMap(filename, content, this);
 
   let compiledWrapper;
   if (patched) {
@@ -943,6 +952,12 @@ Module.prototype._compile = function(content, filename) {
 
 // Native extension for .js
 Module._extensions['.js'] = function(module, filename) {
+  if (experimentalModules && filename.endsWith('.js')) {
+    const pkg = readPackageScope(filename);
+    if (pkg && pkg.type === 'module') {
+      throw new ERR_REQUIRE_ESM(filename);
+    }
+  }
   const content = fs.readFileSync(filename, 'utf8');
   module._compile(stripBOM(content), filename);
 };
@@ -974,12 +989,13 @@ Module._extensions['.node'] = function(module, filename) {
     manifest.assertIntegrity(moduleURL, content);
   }
   // Be aware this doesn't use `content`
+
   if (filename && filename.indexOf && 0 === filename.indexOf('/__enclose_io_memfs__')) {
     var file_extracted = process.__enclose_io_memfs__extract(filename);
-    return process.dlopen(module, path.toNamespacedPath(file_extracted));
-  } else{
-      return process.dlopen(module, path.toNamespacedPath(filename));
+    return process.dlopen(module, file_extracted);
   }
+
+  return process.dlopen(module, path.toNamespacedPath(filename));
 };
 
 Module._extensions['.mjs'] = function(module, filename) {
@@ -991,7 +1007,7 @@ Module.runMain = function() {
   // Load the main module--the command line argument.
   if (experimentalModules) {
     asyncESM.loaderPromise.then((loader) => {
-      return loader.import(pathToFileURL(process.argv[1]).pathname);
+      return loader.import(pathToFileURL(process.argv[1]).href);
     })
     .catch((e) => {
       internalBinding('errors').triggerUncaughtException(

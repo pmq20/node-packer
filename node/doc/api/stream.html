@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Stream | Node.js v12.10.0 Documentation</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
+  <title>Stream | Node.js v12.11.1 Documentation</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
   <link rel="canonical" href="https://nodejs.org/api/stream.html">
@@ -81,7 +81,7 @@
 
     <div id="column1" data-id="stream" class="interior">
       <header>
-        <h1>Node.js v12.10.0 Documentation</h1>
+        <h1>Node.js v12.11.1 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -147,7 +147,7 @@
 <li><a href="#stream_writable_cork">writable.cork()</a></li>
 <li><a href="#stream_writable_destroy_error">writable.destroy([error])</a></li>
 <li><a href="#stream_writable_destroyed">writable.destroyed</a></li>
-<li><a href="#stream_writable_end_chunk_encoding_callback">writable.end([chunk][, encoding][, callback])</a></li>
+<li><a href="#stream_writable_end_chunk_encoding_callback">writable.end([chunk[, encoding]][, callback])</a></li>
 <li><a href="#stream_writable_setdefaultencoding_encoding">writable.setDefaultEncoding(encoding)</a></li>
 <li><a href="#stream_writable_uncork">writable.uncork()</a></li>
 <li><a href="#stream_writable_writable">writable.writable</a></li>
@@ -186,6 +186,7 @@
 <li><a href="#stream_readable_readable">readable.readable</a></li>
 <li><a href="#stream_readable_readableencoding">readable.readableEncoding</a></li>
 <li><a href="#stream_readable_readableended">readable.readableEnded</a></li>
+<li><a href="#stream_readable_readableflowing">readable.readableFlowing</a></li>
 <li><a href="#stream_readable_readablehighwatermark">readable.readableHighWaterMark</a></li>
 <li><a href="#stream_readable_readablelength">readable.readableLength</a></li>
 <li><a href="#stream_readable_readableobjectmode">readable.readableObjectMode</a></li>
@@ -287,7 +288,7 @@
       </div>
 
       <div id="apicontent">
-        <h1>Stream<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/stream.js#L32">[src]</a><span><a class="mark" href="#stream_stream" id="stream_stream">#</a></span></h1>
+        <h1>Stream<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/stream.js#L30">[src]</a><span><a class="mark" href="#stream_stream" id="stream_stream">#</a></span></h1>
 
 <p></p><div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><p></p>
 <p>A stream is an abstract interface for working with streaming data in Node.js.
@@ -594,7 +595,7 @@ buffered writes in a more optimized manner.</p>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this" class="type">&#x3C;this></a></li>
 </ul>
 <p>Destroy the stream. Optionally emit an <code>'error'</code> event, and emit a <code>'close'</code>
-event unless <code>emitClose</code> is set in <code>false</code>. After this call, the writable
+event (unless <code>emitClose</code> is set to <code>false</code>). After this call, the writable
 stream has ended and subsequent calls to <code>write()</code> or <code>end()</code> will result in
 an <code>ERR_STREAM_DESTROYED</code> error.
 This is a destructive and immediate way to destroy a stream. Previous calls to
@@ -611,7 +612,7 @@ but instead implement <a href="#stream_writable_destroy_err_callback"><code>writ
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a></li>
 </ul>
 <p>Is <code>true</code> after <a href="#stream_writable_destroy_error"><code>writable.destroy()</code></a> has been called.</p>
-<h5>writable.end([chunk][, encoding][, callback])<span><a class="mark" href="#stream_writable_end_chunk_encoding_callback" id="stream_writable_end_chunk_encoding_callback">#</a></span></h5>
+<h5>writable.end([chunk[, encoding]][, callback])<span><a class="mark" href="#stream_writable_end_chunk_encoding_callback" id="stream_writable_end_chunk_encoding_callback">#</a></span></h5>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1060,7 +1061,7 @@ rr.on('end', () => {
 });
 </code></pre>
 <p>The output of running this script is:</p>
-<pre><code class="language-txt">$ node test.js
+<pre><code class="language-console">$ node test.js
 readable: null
 end
 </code></pre>
@@ -1089,7 +1090,7 @@ called and <code>readableFlowing</code> is not <code>true</code>.</p>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this" class="type">&#x3C;this></a></li>
 </ul>
 <p>Destroy the stream. Optionally emit an <code>'error'</code> event, and emit a <code>'close'</code>
-event unless <code>emitClose</code> is set in <code>false</code>. After this call, the readable
+event (unless <code>emitClose</code> is set to <code>false</code>). After this call, the readable
 stream will release any internal resources and subsequent calls to <code>push()</code>
 will be ignored.
 Implementors should not override this method, but instead implement
@@ -1262,6 +1263,15 @@ property can be set using the <a href="#stream_readable_setencoding_encoding"><c
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a></li>
 </ul>
 <p>Becomes <code>true</code> when <a href="#stream_event_end"><code>'end'</code></a> event is emitted.</p>
+<h5>readable.readableFlowing<span><a class="mark" href="#stream_readable_readableflowing" id="stream_readable_readableflowing">#</a></span></h5>
+<div class="api_metadata">
+<span>Added in: v9.4.0</span>
+</div>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a></li>
+</ul>
+<p>This property reflects the current state of a <code>Readable</code> stream as described
+in the <a href="#stream_three_states">Stream Three States</a> section.</p>
 <h5>readable.readableHighWaterMark<span><a class="mark" href="#stream_readable_readablehighwatermark" id="stream_readable_readablehighwatermark">#</a></span></h5>
 <div class="api_metadata">
 <span>Added in: v9.3.0</span>
@@ -1571,6 +1581,8 @@ the stream ends even though the stream might still be writable.
 </li>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> A callback function that takes an optional error
 argument.</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> A cleanup function which removes all registered
+listeners.</li>
 </ul>
 <p>A function to get notified when a stream is no longer readable, writable
 or has experienced an error or a premature close event.</p>
@@ -1603,6 +1615,17 @@ async function run() {
 
 run().catch(console.error);
 rs.resume(); // Drain the stream.
+</code></pre>
+<p><code>stream.finished()</code> leaves dangling event listeners (in particular
+<code>'error'</code>, <code>'end'</code>, <code>'finish'</code> and <code>'close'</code>) after <code>callback</code> has been
+invoked. The reason for this is so that unexpected <code>'error'</code> events (due to
+incorrect stream implementations) do not cause unexpected crashes.
+If this is unwanted behavior then the returned cleanup function needs to be
+invoked in the callback:</p>
+<pre><code class="language-js">const cleanup = finished(...streams, (err) => {
+  cleanup();
+  // ...
+});
 </code></pre>
 <h3>stream.pipeline(...streams, callback)<span><a class="mark" href="#stream_stream_pipeline_streams_callback" id="stream_stream_pipeline_streams_callback">#</a></span></h3>
 <div class="api_metadata">
@@ -1655,6 +1678,14 @@ async function run() {
 
 run().catch(console.error);
 </code></pre>
+<p><code>stream.pipeline()</code> will call <code>stream.destroy(err)</code> on all streams except:</p>
+<ul>
+<li><code>Readable</code> streams which have emitted <code>'end'</code> or <code>'close'</code>.</li>
+<li><code>Writable</code> streams which have emitted <code>'finish'</code> or <code>'close'</code>.</li>
+</ul>
+<p><code>stream.pipeline()</code> leaves dangling event listeners on the streams
+after the <code>callback</code> has been invoked. In the case of reuse of streams after
+failure, this can cause event listener leaks and swallowed errors.</p>
 <h3>stream.Readable.from(iterable, [options])<span><a class="mark" href="#stream_stream_readable_from_iterable_options" id="stream_stream_readable_from_iterable_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v12.3.0</span>
@@ -1755,8 +1786,8 @@ const myWritable = new Writable({
 <h3>Implementing a Writable Stream<span><a class="mark" href="#stream_implementing_a_writable_stream" id="stream_implementing_a_writable_stream">#</a></span></h3>
 <p>The <code>stream.Writable</code> class is extended to implement a <a href="#stream_class_stream_writable"><code>Writable</code></a> stream.</p>
 <p>Custom <code>Writable</code> streams <em>must</em> call the <code>new stream.Writable([options])</code>
-constructor and implement the <code>writable._write()</code> method. The
-<code>writable._writev()</code> method <em>may</em> also be implemented.</p>
+constructor and implement the <code>writable._write()</code> and/or <code>writable._writev()</code>
+method.</p>
 <h4>Constructor: new stream.Writable([options])<span><a class="mark" href="#stream_constructor_new_stream_writable_options" id="stream_constructor_new_stream_writable_options">#</a></span></h4>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -1840,6 +1871,15 @@ const myWritable = new Writable({
 });
 </code></pre>
 <h4>writable._write(chunk, encoding, callback)<span><a class="mark" href="#stream_writable_write_chunk_encoding_callback_1" id="stream_writable_write_chunk_encoding_callback_1">#</a></span></h4>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v12.11.0</td>
+<td><p>_write() is optional when providing _writev().</p></td></tr>
+</tbody></table>
+</details>
+</div>
 <ul>
 <li><code>chunk</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Data_types" class="type">&#x3C;any></a> The <code>Buffer</code> to be written, converted from the
 <code>string</code> passed to <a href="#stream_writable_write_chunk_encoding_callback"><code>stream.write()</code></a>. If the stream's
@@ -1853,7 +1893,8 @@ stream is operating in object mode, <code>encoding</code> may be ignored.</li>
 argument) when processing is complete for the supplied chunk.</li>
 </ul>
 <p>All <code>Writable</code> stream implementations must provide a
-<a href="#stream_writable_write_chunk_encoding_callback_1"><code>writable._write()</code></a> method to send data to the underlying
+<a href="#stream_writable_write_chunk_encoding_callback_1"><code>writable._write()</code></a> and/or
+<a href="#stream_writable_writev_chunks_callback"><code>writable._writev()</code></a> method to send data to the underlying
 resource.</p>
 <p><a href="#stream_class_stream_transform"><code>Transform</code></a> streams provide their own implementation of the
 <a href="#stream_writable_write_chunk_encoding_callback_1"><code>writable._write()</code></a>.</p>
@@ -1888,8 +1929,8 @@ argument) to be invoked when processing is complete for the supplied chunks.</li
 <p>This function MUST NOT be called by application code directly. It should be
 implemented by child classes, and called by the internal <code>Writable</code> class
 methods only.</p>
-<p>The <code>writable._writev()</code> method may be implemented in addition to
-<code>writable._write()</code> in stream implementations that are capable of processing
+<p>The <code>writable._writev()</code> method may be implemented in addition or alternatively
+to <code>writable._write()</code> in stream implementations that are capable of processing
 multiple chunks of data at once. If implemented, the method will be called with
 all chunks of data currently buffered in the write queue.</p>
 <p>The <code>writable._writev()</code> method is prefixed with an underscore because it is
@@ -1921,13 +1962,11 @@ class methods only.</p>
 <code>'finish'</code> event until <code>callback</code> is called. This is useful to close resources
 or write buffered data before a stream ends.</p>
 <h4>Errors While Writing<span><a class="mark" href="#stream_errors_while_writing" id="stream_errors_while_writing">#</a></span></h4>
-<p>It is recommended that errors occurring during the processing of the
-<code>writable._write()</code> and <code>writable._writev()</code> methods are reported by invoking
-the callback and passing the error as the first argument. This will cause an
-<code>'error'</code> event to be emitted by the <code>Writable</code>. Throwing an <code>Error</code> from within
-<code>writable._write()</code> can result in unexpected and inconsistent behavior depending
-on how the stream is being used. Using the callback ensures consistent and
-predictable handling of errors.</p>
+<p>Errors occurring during the processing of the <a href="#stream_writable_write_chunk_encoding_callback_1"><code>writable._write()</code></a>,
+<a href="#stream_writable_writev_chunks_callback"><code>writable._writev()</code></a> and <a href="#stream_writable_final_callback"><code>writable._final()</code></a> methods must be propagated
+by invoking the callback and passing the error as the first argument.
+Throwing an <code>Error</code> from within these methods or manually emitting an <code>'error'</code>
+event results in undefined behavior.</p>
 <p>If a <code>Readable</code> stream pipes into a <code>Writable</code> stream when <code>Writable</code> emits an
 error, the <code>Readable</code> stream will be unpiped.</p>
 <pre><code class="language-js">const { Writable } = require('stream');
@@ -2165,28 +2204,26 @@ class SourceWrapper extends Readable {
   }
 }
 </code></pre>
-<p>The <code>readable.push()</code> method is intended be called only by <code>Readable</code>
-implementers, and only from within the <code>readable._read()</code> method.</p>
+<p>The <code>readable.push()</code> method is used to push the content
+into the internal buffer. It can be driven by the <code>readable._read()</code> method.</p>
 <p>For streams not operating in object mode, if the <code>chunk</code> parameter of
 <code>readable.push()</code> is <code>undefined</code>, it will be treated as empty string or
 buffer. See <a href="#stream_readable_push"><code>readable.push('')</code></a> for more information.</p>
 <h4>Errors While Reading<span><a class="mark" href="#stream_errors_while_reading" id="stream_errors_while_reading">#</a></span></h4>
-<p>It is recommended that errors occurring during the processing of the
-<code>readable._read()</code> method are emitted using the <code>'error'</code> event rather than
-being thrown. Throwing an <code>Error</code> from within <code>readable._read()</code> can result in
-unexpected and inconsistent behavior depending on whether the stream is
-operating in flowing or paused mode. Using the <code>'error'</code> event ensures
-consistent and predictable handling of errors.</p>
-<!-- eslint-disable no-useless-return -->
+<p>Errors occurring during processing of the <a href="#stream_readable_read_size_1"><code>readable._read()</code></a> must be
+propagated through the <a href="#stream_readable_destroy_err_callback"><code>readable.destroy(err)</code></a> method.
+Throwing an <code>Error</code> from within <a href="#stream_readable_read_size_1"><code>readable._read()</code></a> or manually emitting an
+<code>'error'</code> event results in undefined behavior.</p>
 <pre><code class="language-js">const { Readable } = require('stream');
 
 const myReadable = new Readable({
   read(size) {
-    if (checkSomeErrorCondition()) {
-      process.nextTick(() => this.emit('error', err));
-      return;
+    const err = checkSomeErrorCondition();
+    if (err) {
+      this.destroy(err);
+    } else {
+      // Do some work.
     }
-    // Do some work.
   }
 });
 </code></pre>
@@ -2540,6 +2577,7 @@ readable.on('data', (chunk) => {
 <p>In the scenario of writing to a writable stream from an async iterator,
 it is important to ensure the correct handling of backpressure and errors.</p>
 <pre><code class="language-js">const { once } = require('events');
+const finished = util.promisify(stream.finished);
 
 const writable = fs.createWriteStream('./file');
 
@@ -2551,14 +2589,20 @@ const writable = fs.createWriteStream('./file');
   }
   writable.end();
   // Ensure completion without errors.
-  await once(writable, 'finish');
+  await finished(writable);
 })();
 </code></pre>
-<p>In the above, errors on the write stream would be caught and thrown by the two
-<code>once()</code> listeners, since <code>once()</code> will also handle <code>'error'</code> events.</p>
-<p>Alternatively the readable stream could be wrapped with <code>Readable.from()</code> and
+<p>In the above, errors on <code>write()</code> would be caught and thrown by the
+<code>once()</code> listener for the <code>'drain'</code> event, since <code>once()</code> will also handle the
+<code>'error'</code> event. To ensure completion of the write stream without errors,
+it is safer to use the <code>finished()</code> method as above, instead of using the
+<code>once()</code> listener for the <code>'finish'</code> event. Under certain cases, an <code>'error'</code>
+event could be emitted by the writable stream after <code>'finish'</code> and as <code>once()</code>
+will release the <code>'error'</code> handler on handling the <code>'finish'</code> event, it could
+result in an unhandled error.</p>
+<p>Alternatively, the readable stream could be wrapped with <code>Readable.from()</code> and
 then piped via <code>.pipe()</code>:</p>
-<pre><code class="language-js">const { once } = require('events');
+<pre><code class="language-js">const finished = util.promisify(stream.finished);
 
 const writable = fs.createWriteStream('./file');
 
@@ -2566,7 +2610,17 @@ const writable = fs.createWriteStream('./file');
   const readable = Readable.from(iterator);
   readable.pipe(writable);
   // Ensure completion without errors.
-  await once(writable, 'finish');
+  await finished(writable);
+})();
+</code></pre>
+<p>Or, using <code>stream.pipeline()</code> to pipe streams:</p>
+<pre><code class="language-js">const pipeline = util.promisify(stream.pipeline);
+
+const writable = fs.createWriteStream('./file');
+
+(async function() {
+  const readable = Readable.from(iterator);
+  await pipeline(readable, writable);
 })();
 </code></pre>
 

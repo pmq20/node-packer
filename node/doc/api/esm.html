@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>ECMAScript Modules | Node.js v12.10.0 Documentation</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
+  <title>ECMAScript Modules | Node.js v12.11.1 Documentation</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
   <link rel="canonical" href="https://nodejs.org/api/esm.html">
@@ -81,7 +81,7 @@
 
     <div id="column1" data-id="esm" class="interior">
       <header>
-        <h1>Node.js v12.10.0 Documentation</h1>
+        <h1>Node.js v12.11.1 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -116,12 +116,26 @@
 <p><span class="stability_1"><a href="#esm_ecmascript_modules">ECMAScript Modules</a></span></p>
 <ul>
 <li><a href="#esm_introduction">Introduction</a></li>
-<li><a href="#esm_enabling">Enabling</a></li>
+<li>
+<p><a href="#esm_enabling">Enabling</a></p>
+<ul>
 <li><a href="#esm_code_package_json_code_code_type_code_field"><code>package.json</code> <code>"type"</code> field</a></li>
 <li><a href="#esm_package_scope_and_file_extensions">Package Scope and File Extensions</a></li>
 <li><a href="#esm_code_input_type_code_flag"><code>--input-type</code> flag</a></li>
-<li><a href="#esm_package_entry_points">Package Entry Points</a></li>
+</ul>
+</li>
+<li>
+<p><a href="#esm_packages">Packages</a></p>
+<ul>
+<li>
+<p><a href="#esm_package_entry_points">Package Entry Points</a></p>
+<ul>
+<li><a href="#esm_compatibility_with_commonjs_only_versions_of_node_js">Compatibility with CommonJS-Only Versions of Node.js</a></li>
+</ul>
+</li>
 <li><a href="#esm_package_exports">Package Exports</a></li>
+</ul>
+</li>
 <li>
 <p><a href="#esm_code_import_code_specifiers"><code>import</code> Specifiers</a></p>
 <ul>
@@ -236,7 +250,7 @@ or when referenced by <code>import</code> statements within ES module code:</p>
 <code>node</code> via <code>STDIN</code>, with the flag <code>--input-type=commonjs</code>.</p>
 </li>
 </ul>
-<h2><code>package.json</code> <code>"type"</code> field<span><a class="mark" href="#esm_code_package_json_code_code_type_code_field" id="esm_code_package_json_code_code_type_code_field">#</a></span></h2>
+<h3><code>package.json</code> <code>"type"</code> field<span><a class="mark" href="#esm_code_package_json_code_code_type_code_field" id="esm_code_package_json_code_code_type_code_field">#</a></span></h3>
 <p>Files ending with <code>.js</code> or <code>.mjs</code>, or lacking any extension,
 will be loaded as ES modules when the nearest parent <code>package.json</code> file
 contains a top-level field <code>"type"</code> with a value of <code>"module"</code>.</p>
@@ -262,7 +276,12 @@ if the nearest parent <code>package.json</code> contains <code>"type": "module"<
 <pre><code class="language-js">// my-app.js, part of the same example as above
 import './startup.js'; // Loaded as ES module because of package.json
 </code></pre>
-<h2>Package Scope and File Extensions<span><a class="mark" href="#esm_package_scope_and_file_extensions" id="esm_package_scope_and_file_extensions">#</a></span></h2>
+<p>Package authors should include the <code>"type"</code> field, even in packages where all
+sources are CommonJS. Being explicit about the <code>type</code> of the package will
+future-proof the package in case the default type of Node.js ever changes, and
+it will also make things easier for build tools and loaders to determine how the
+files in the package should be interpreted.</p>
+<h3>Package Scope and File Extensions<span><a class="mark" href="#esm_package_scope_and_file_extensions" id="esm_package_scope_and_file_extensions">#</a></span></h3>
 <p>A folder containing a <code>package.json</code> file, and all subfolders below that
 folder down until the next folder containing another <code>package.json</code>, is
 considered a <em>package scope</em>. The <code>"type"</code> field defines how <code>.js</code> and
@@ -314,7 +333,7 @@ extension (since both <code>.js</code> and <code>.cjs</code> files are treated a
 <code>"commonjs"</code> package scope).</p>
 </li>
 </ul>
-<h2><code>--input-type</code> flag<span><a class="mark" href="#esm_code_input_type_code_flag" id="esm_code_input_type_code_flag">#</a></span></h2>
+<h3><code>--input-type</code> flag<span><a class="mark" href="#esm_code_input_type_code_flag" id="esm_code_input_type_code_flag">#</a></span></h3>
 <p>Strings passed in as an argument to <code>--eval</code> or <code>--print</code> (or <code>-e</code> or <code>-p</code>), or
 piped to <code>node</code> via <code>STDIN</code>, will be treated as ES modules when the
 <code>--input-type=module</code> flag is set.</p>
@@ -327,7 +346,8 @@ echo "import { sep } from 'path'; console.log(sep);" | \
 <p>For completeness there is also <code>--input-type=commonjs</code>, for explicitly running
 string input as CommonJS. This is the default behavior if <code>--input-type</code> is
 unspecified.</p>
-<h2>Package Entry Points<span><a class="mark" href="#esm_package_entry_points" id="esm_package_entry_points">#</a></span></h2>
+<h2>Packages<span><a class="mark" href="#esm_packages" id="esm_packages">#</a></span></h2>
+<h3>Package Entry Points<span><a class="mark" href="#esm_package_entry_points" id="esm_package_entry_points">#</a></span></h3>
 <p>The <code>package.json</code> <code>"main"</code> field defines the entry point for a package,
 whether the package is included into CommonJS via <code>require</code> or into an ES
 module via <code>import</code>.</p>
@@ -353,13 +373,48 @@ a full path including extension: <code>"./index.mjs"</code>, not <code>"./index"
 be interpreted as CommonJS.</p>
 <p>The <code>"main"</code> field can point to exactly one file, regardless of whether the
 package is referenced via <code>require</code> (in a CommonJS context) or <code>import</code> (in an
-ES module context). Package authors who want to publish a package to be used in
-both contexts can do so by setting <code>"main"</code> to point to the CommonJS entry point
-and informing the package’s users of the path to the ES module entry point. Such
-a package would be accessible like <code>require('pkg')</code> and <code>import 'pkg/module.mjs'</code>. Alternatively the package <code>"main"</code> could point to the ES
-module entry point and legacy users could be informed of the CommonJS entry
-point path, e.g. <code>require('pkg/commonjs')</code>.</p>
-<h2>Package Exports<span><a class="mark" href="#esm_package_exports" id="esm_package_exports">#</a></span></h2>
+ES module context).</p>
+<h4>Compatibility with CommonJS-Only Versions of Node.js<span><a class="mark" href="#esm_compatibility_with_commonjs_only_versions_of_node_js" id="esm_compatibility_with_commonjs_only_versions_of_node_js">#</a></span></h4>
+<p>Prior to the introduction of support for ES modules in Node.js, it was a common
+pattern for package authors to include both CommonJS and ES module JavaScript
+sources in their package, with <code>package.json</code> <code>"main"</code> specifying the CommonJS
+entry point and <code>package.json</code> <code>"module"</code> specifying the ES module entry point.
+This enabled Node.js to run the CommonJS entry point while build tools such as
+bundlers used the ES module entry point, since Node.js ignored (and still
+ignores) <code>"module"</code>.</p>
+<p>Node.js can now run ES module entry points, but it remains impossible for a
+package to define separate CommonJS and ES module entry points. This is for good
+reason: the <code>pkg</code> variable created from <code>import pkg from 'pkg'</code> is not the same
+singleton as the <code>pkg</code> variable created from <code>const pkg = require('pkg')</code>, so if
+both are referenced within the same app (including dependencies), unexpected
+behavior might occur.</p>
+<p>There are two general approaches to addressing this limitation while still
+publishing a package that contains both CommonJS and ES module sources:</p>
+<ol>
+<li>
+<p>Document a new ES module entry point that’s not the package <code>"main"</code>, e.g.
+<code>import pkg from 'pkg/module.mjs'</code> (or <code>import 'pkg/esm'</code>, if using <a href="#esm_package_exports">package
+exports</a>). The package <code>"main"</code> would still point to a CommonJS file, and
+thus the package would remain compatible with older versions of Node.js that
+lack support for ES modules.</p>
+</li>
+<li>
+<p>Switch the package <code>"main"</code> entry point to an ES module file as part of a
+breaking change version bump. This version and above would only be usable on
+ES module-supporting versions of Node.js. If the package still contains a
+CommonJS version, it would be accessible via a path within the package, e.g.
+<code>require('pkg/commonjs')</code>; this is essentially the inverse of the previous
+approach. Package consumers who are using CommonJS-only versions of Node.js
+would need to update their code from <code>require('pkg')</code> to e.g.
+<code>require('pkg/commonjs')</code>.</p>
+</li>
+</ol>
+<p>Of course, a package could also include only CommonJS or only ES module sources.
+An existing package could make a semver major bump to an ES module-only version,
+that would only be supported in ES module-supporting versions of Node.js (and
+other runtimes). New packages could be published containing only ES module
+sources, and would be compatible only with ES module-supporting runtimes.</p>
+<h3>Package Exports<span><a class="mark" href="#esm_package_exports" id="esm_package_exports">#</a></span></h3>
 <p>By default, all subpaths from a package can be imported (<code>import 'pkg/x.js'</code>).
 Custom subpath aliasing and encapsulation can be provided through the
 <code>"exports"</code> field.</p>
@@ -398,6 +453,26 @@ loaded by absolute paths.</p>
 <p>If a package has no exports, setting <code>"exports": false</code> can be used instead of
 <code>"exports": {}</code> to indicate the package does not intend for submodules to be
 exposed.</p>
+<p>Exports can also be used to map the main entry point of a package:</p>
+<!-- eslint-skip -->
+<pre><code class="language-js">// ./node_modules/es-module-package/package.json
+{
+  "exports": {
+    ".": "./main.js"
+  }
+}
+</code></pre>
+<p>where the "." indicates loading the package without any subpath. Exports will
+always override any existing <code>"main"</code> value for both CommonJS and
+ES module packages.</p>
+<p>For packages with only a main entry point, an <code>"exports"</code> value of just
+a string is also supported:</p>
+<!-- eslint-skip -->
+<pre><code class="language-js">// ./node_modules/es-module-package/package.json
+{
+  "exports": "./main.js"
+}
+</code></pre>
 <p>Any invalid exports entries will be ignored. This includes exports not
 starting with <code>"./"</code> or a missing trailing <code>"/"</code> for directory exports.</p>
 <p>Array fallback support is provided for exports, similarly to import maps
@@ -609,14 +684,20 @@ console.log(M);
 <p><strong>Note: This API is currently being redesigned and will still change.</strong></p>
 
 <p>To customize the default module resolution, loader hooks can optionally be
-provided via a <code>--loader ./loader-name.mjs</code> argument to Node.js.</p>
+provided via a <code>--experimental-loader ./loader-name.mjs</code> argument to Node.js.</p>
 <p>When hooks are used they only apply to ES module loading and not to any
 CommonJS modules loaded.</p>
 <h3>Resolve hook<span><a class="mark" href="#esm_resolve_hook" id="esm_resolve_hook">#</a></span></h3>
 <p>The resolve hook returns the resolved file URL and module format for a
 given module specifier and parent file URL:</p>
-<pre><code class="language-js">const baseURL = new URL(`${process.cwd()}/`, 'file://');
+<pre><code class="language-js">import { URL, pathToFileURL } from 'url';
+const baseURL = pathToFileURL(process.cwd()).href;
 
+/**
+ * @param {string} specifier
+ * @param {string} parentModuleURL
+ * @param {function} defaultResolver
+ */
 export async function resolve(specifier,
                               parentModuleURL = baseURL,
                               defaultResolver) {
@@ -673,13 +754,21 @@ be written:</p>
 <pre><code class="language-js">import path from 'path';
 import process from 'process';
 import Module from 'module';
+import { URL, pathToFileURL } from 'url';
 
 const builtins = Module.builtinModules;
 const JS_EXTENSIONS = new Set(['.js', '.mjs']);
 
-const baseURL = new URL(`${process.cwd()}/`, 'file://');
+const baseURL = pathToFileURL(process.cwd()).href;
 
-export function resolve(specifier, parentModuleURL = baseURL, defaultResolve) {
+/**
+ * @param {string} specifier
+ * @param {string} parentModuleURL
+ * @param {function} defaultResolver
+ */
+export async function resolve(specifier,
+                              parentModuleURL = baseURL,
+                              defaultResolver) {
   if (builtins.includes(specifier)) {
     return {
       url: specifier,
@@ -688,7 +777,7 @@ export function resolve(specifier, parentModuleURL = baseURL, defaultResolve) {
   }
   if (/^\.{0,2}[/]/.test(specifier) !== true &#x26;&#x26; !specifier.startsWith('file:')) {
     // For node_modules support:
-    // return defaultResolve(specifier, parentModuleURL);
+    // return defaultResolver(specifier, parentModuleURL);
     throw new Error(
       `imports must begin with '/', './', or '../'; '${specifier}' does not`);
   }
@@ -705,7 +794,7 @@ export function resolve(specifier, parentModuleURL = baseURL, defaultResolve) {
 }
 </code></pre>
 <p>With this loader, running:</p>
-<pre><code class="language-console">NODE_OPTIONS='--experimental-modules --loader ./custom-loader.mjs' node x.js
+<pre><code class="language-console">NODE_OPTIONS='--experimental-modules --experimental-loader ./custom-loader.mjs' node x.js
 </code></pre>
 <p>would load the module <code>x.js</code> as an ES module with relative resolution support
 (with <code>node_modules</code> loading skipped in this example).</p>
@@ -914,6 +1003,31 @@ concatenated with <em>packageSpecifier</em>, relative to <em>parentURL</em>.</li
 <p>If <em>pjson</em> is <strong>null</strong>, then</p>
 <ol>
 <li>Throw a <em>Module Not Found</em> error.</li>
+</ol>
+</li>
+<li>
+<p>If <em>pjson.exports</em> is not <strong>null</strong> or <strong>undefined</strong>, then</p>
+<ol>
+<li>
+<p>If <em>pjson.exports</em> is a String or Array, then</p>
+<ol>
+<li>Return <em>PACKAGE_EXPORTS_TARGET_RESOLVE(packageURL, pjson.exports,
+"")</em>.</li>
+</ol>
+</li>
+<li>
+<p>If _pjson.exports is an Object, then</p>
+<ol>
+<li>
+<p>If <em>pjson.exports</em> contains a <em>"."</em> property, then</p>
+<ol>
+<li>Let <em>mainExport</em> be the <em>"."</em> property in <em>pjson.exports</em>.</li>
+<li>Return <em>PACKAGE_EXPORTS_TARGET_RESOLVE(packageURL, mainExport,
+"")</em>.</li>
+</ol>
+</li>
+</ol>
+</li>
 </ol>
 </li>
 <li>

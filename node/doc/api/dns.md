@@ -6,52 +6,54 @@
 
 The `dns` module contains functions belonging to two different categories:
 
-1) Functions that use the underlying operating system facilities to perform
-name resolution, and that do not necessarily perform any network communication.
-This category contains only one function: [`dns.lookup()`][]. **Developers
-looking to perform name resolution in the same way that other applications on
-the same operating system behave should use [`dns.lookup()`][].**
+1. Functions that use the underlying operating system facilities to perform
+    name resolution, and that do not necessarily perform any network
+    communication.
+    This category contains only one function: [`dns.lookup()`][]. **Developers
+    looking to perform name resolution in the same way that other applications
+    on the same operating system behave should use [`dns.lookup()`][].**
 
-For example, looking up `iana.org`.
+    For example, looking up `iana.org`.
 
-```js
-const dns = require('dns');
+    ```js
+    const dns = require('dns');
 
-dns.lookup('iana.org', (err, address, family) => {
-  console.log('address: %j family: IPv%s', address, family);
-});
-// address: "192.0.43.8" family: IPv4
-```
-
-2) Functions that connect to an actual DNS server to perform name resolution,
-and that _always_ use the network to perform DNS queries. This category
-contains all functions in the `dns` module _except_ [`dns.lookup()`][]. These
-functions do not use the same set of configuration files used by
-[`dns.lookup()`][] (e.g. `/etc/hosts`). These functions should be used by
-developers who do not want to use the underlying operating system's facilities
-for name resolution, and instead want to _always_ perform DNS queries.
-
-Below is an example that resolves `'archive.org'` then reverse resolves the IP
-addresses that are returned.
-
-```js
-const dns = require('dns');
-
-dns.resolve4('archive.org', (err, addresses) => {
-  if (err) throw err;
-
-  console.log(`addresses: ${JSON.stringify(addresses)}`);
-
-  addresses.forEach((a) => {
-    dns.reverse(a, (err, hostnames) => {
-      if (err) {
-        throw err;
-      }
-      console.log(`reverse for ${a}: ${JSON.stringify(hostnames)}`);
+    dns.lookup('iana.org', (err, address, family) => {
+      console.log('address: %j family: IPv%s', address, family);
     });
-  });
-});
-```
+    // address: "192.0.43.8" family: IPv4
+    ```
+
+2. Functions that connect to an actual DNS server to perform name resolution,
+    and that _always_ use the network to perform DNS queries. This category
+    contains all functions in the `dns` module _except_ [`dns.lookup()`][].
+    These functions do not use the same set of configuration files used by
+    [`dns.lookup()`][] (e.g. `/etc/hosts`). These functions should be used by
+    developers who do not want to use the underlying operating system's
+    facilities for name resolution, and instead want to _always_ perform DNS
+    queries.
+
+    Below is an example that resolves `'archive.org'` then reverse resolves the
+    IP addresses that are returned.
+
+    ```js
+    const dns = require('dns');
+
+    dns.resolve4('archive.org', (err, addresses) => {
+      if (err) throw err;
+
+      console.log(`addresses: ${JSON.stringify(addresses)}`);
+
+      addresses.forEach((a) => {
+        dns.reverse(a, (err, hostnames) => {
+          if (err) {
+            throw err;
+          }
+          console.log(`reverse for ${a}: ${JSON.stringify(hostnames)}`);
+        });
+      });
+    });
+    ```
 
 There are subtle consequences in choosing one over the other, please consult
 the [Implementation considerations section][] for more information.
@@ -137,25 +139,26 @@ changes:
     pr-url: https://github.com/nodejs/node/pull/744
     description: The `all` option is supported now.
 -->
+
 * `hostname` {string}
 * `options` {integer | Object}
-  - `family` {integer} The record family. Must be `4`, `6`, or `0`. The value
+  * `family` {integer} The record family. Must be `4`, `6`, or `0`. The value
     `0` indicates that IPv4 and IPv6 addresses are both returned. **Default:**
     `0`.
-  - `hints` {number} One or more [supported `getaddrinfo` flags][]. Multiple
+  * `hints` {number} One or more [supported `getaddrinfo` flags][]. Multiple
     flags may be passed by bitwise `OR`ing their values.
-  - `all` {boolean} When `true`, the callback returns all resolved addresses in
+  * `all` {boolean} When `true`, the callback returns all resolved addresses in
     an array. Otherwise, returns a single address. **Default:** `false`.
-  - `verbatim` {boolean} When `true`, the callback receives IPv4 and IPv6
+  * `verbatim` {boolean} When `true`, the callback receives IPv4 and IPv6
     addresses in the order the DNS resolver returned them. When `false`,
     IPv4 addresses are placed before IPv6 addresses.
     **Default:** currently `false` (addresses are reordered) but this is
     expected to change in the not too distant future.
     New code should use `{ verbatim: true }`.
 * `callback` {Function}
-  - `err` {Error}
-  - `address` {string} A string representation of an IPv4 or IPv6 address.
-  - `family` {integer} `4` or `6`, denoting the family of `address`, or `0` if
+  * `err` {Error}
+  * `address` {string} A string representation of an IPv4 or IPv6 address.
+  * `family` {integer} `4` or `6`, denoting the family of `address`, or `0` if
     the address is not an IPv4 or IPv6 address. `0` is a likely indicator of a
     bug in the name resolution service used by the operating system.
 
@@ -207,11 +210,11 @@ is not set to `true`, it returns a `Promise` for an `Object` with `address` and
 
 The following flags can be passed as hints to [`dns.lookup()`][].
 
-- `dns.ADDRCONFIG`: Returned address types are determined by the types
+* `dns.ADDRCONFIG`: Returned address types are determined by the types
 of addresses supported by the current system. For example, IPv4 addresses
 are only returned if the current system has at least one IPv4 address
 configured. Loopback addresses are not considered.
-- `dns.V4MAPPED`: If the IPv6 family was specified, but no IPv6 addresses were
+* `dns.V4MAPPED`: If the IPv6 family was specified, but no IPv6 addresses were
 found, then return IPv4 mapped IPv6 addresses. It is not supported
 on some operating systems (e.g FreeBSD 10.1).
 
@@ -219,12 +222,13 @@ on some operating systems (e.g FreeBSD 10.1).
 <!-- YAML
 added: v0.11.14
 -->
+
 * `address` {string}
 * `port` {number}
 * `callback` {Function}
-  - `err` {Error}
-  - `hostname` {string} e.g. `example.com`
-  - `service` {string} e.g. `http`
+  * `err` {Error}
+  * `hostname` {string} e.g. `example.com`
+  * `service` {string} e.g. `http`
 
 Resolves the given `address` and `port` into a hostname and service using
 the operating system's underlying `getnameinfo` implementation.
@@ -250,11 +254,12 @@ If this method is invoked as its [`util.promisify()`][]ed version, it returns a
 <!-- YAML
 added: v0.1.27
 -->
+
 * `hostname` {string} Hostname to resolve.
 * `rrtype` {string} Resource record type. **Default:** `'A'`.
 * `callback` {Function}
-  - `err` {Error}
-  - `records` {string[] | Object[] | Object}
+  * `err` {Error}
+  * `records` {string[] | Object[] | Object}
 
 Uses the DNS protocol to resolve a hostname (e.g. `'nodejs.org'`) into an array
 of the resource records. The `callback` function has arguments
@@ -287,15 +292,16 @@ changes:
     description: This method now supports passing `options`,
                  specifically `options.ttl`.
 -->
+
 * `hostname` {string} Hostname to resolve.
 * `options` {Object}
-  - `ttl` {boolean} Retrieve the Time-To-Live value (TTL) of each record.
+  * `ttl` {boolean} Retrieve the Time-To-Live value (TTL) of each record.
     When `true`, the callback receives an array of
     `{ address: '1.2.3.4', ttl: 60 }` objects rather than an array of strings,
     with the TTL expressed in seconds.
 * `callback` {Function}
-  - `err` {Error}
-  - `addresses` {string[] | Object[]}
+  * `err` {Error}
+  * `addresses` {string[] | Object[]}
 
 Uses the DNS protocol to resolve a IPv4 addresses (`A` records) for the
 `hostname`. The `addresses` argument passed to the `callback` function
@@ -311,15 +317,16 @@ changes:
     description: This method now supports passing `options`,
                  specifically `options.ttl`.
 -->
+
 * `hostname` {string} Hostname to resolve.
 * `options` {Object}
-  - `ttl` {boolean} Retrieve the Time-To-Live value (TTL) of each record.
+  * `ttl` {boolean} Retrieve the Time-To-Live value (TTL) of each record.
     When `true`, the callback receives an array of
     `{ address: '0:1:2:3:4:5:6:7', ttl: 60 }` objects rather than an array of
     strings, with the TTL expressed in seconds.
 * `callback` {Function}
-  - `err` {Error}
-  - `addresses` {string[] | Object[]}
+  * `err` {Error}
+  * `addresses` {string[] | Object[]}
 
 Uses the DNS protocol to resolve a IPv6 addresses (`AAAA` records) for the
 `hostname`. The `addresses` argument passed to the `callback` function
@@ -329,8 +336,8 @@ will contain an array of IPv6 addresses.
 
 * `hostname` {string}
 * `callback` {Function}
-  - `err` {Error}
-  - `ret` {Object[]}
+  * `err` {Error}
+  * `ret` {Object[]}
 
 Uses the DNS protocol to resolve all records (also known as `ANY` or `*` query).
 The `ret` argument passed to the `callback` function will be an array containing
@@ -378,10 +385,11 @@ queries. It may be better to call individual methods like [`dns.resolve4()`][],
 <!-- YAML
 added: v0.3.2
 -->
+
 * `hostname` {string}
 * `callback` {Function}
-  - `err` {Error}
-  - `addresses` {string[]}
+  * `err` {Error}
+  * `addresses` {string[]}
 
 Uses the DNS protocol to resolve `CNAME` records for the `hostname`. The
 `addresses` argument passed to the `callback` function
@@ -392,10 +400,11 @@ will contain an array of canonical name records available for the `hostname`
 <!-- YAML
 added: v0.1.27
 -->
+
 * `hostname` {string}
 * `callback` {Function}
-  - `err` {Error}
-  - `addresses` {Object[]}
+  * `err` {Error}
+  * `addresses` {Object[]}
 
 Uses the DNS protocol to resolve mail exchange records (`MX` records) for the
 `hostname`. The `addresses` argument passed to the `callback` function will
@@ -406,10 +415,11 @@ property (e.g. `[{priority: 10, exchange: 'mx.example.com'}, ...]`).
 <!-- YAML
 added: v0.9.12
 -->
+
 * `hostname` {string}
 * `callback` {Function}
-  - `err` {Error}
-  - `addresses` {Object[]}
+  * `err` {Error}
+  * `addresses` {Object[]}
 
 Uses the DNS protocol to resolve regular expression based records (`NAPTR`
 records) for the `hostname`. The `addresses` argument passed to the `callback`
@@ -438,10 +448,11 @@ function will contain an array of objects with the following properties:
 <!-- YAML
 added: v0.1.90
 -->
+
 * `hostname` {string}
 * `callback` {Function}
-  - `err` {Error}
-  - `addresses` {string[]}
+  * `err` {Error}
+  * `addresses` {string[]}
 
 Uses the DNS protocol to resolve name server records (`NS` records) for the
 `hostname`. The `addresses` argument passed to the `callback` function will
@@ -452,10 +463,11 @@ contain an array of name server records available for `hostname`
 <!-- YAML
 added: v6.0.0
 -->
+
 * `hostname` {string}
 * `callback` {Function}
-  - `err` {Error}
-  - `addresses` {string[]}
+  * `err` {Error}
+  * `addresses` {string[]}
 
 Uses the DNS protocol to resolve pointer records (`PTR` records) for the
 `hostname`. The `addresses` argument passed to the `callback` function will
@@ -465,10 +477,11 @@ be an array of strings containing the reply records.
 <!-- YAML
 added: v0.11.10
 -->
+
 * `hostname` {string}
 * `callback` {Function}
-  - `err` {Error}
-  - `address` {Object}
+  * `err` {Error}
+  * `address` {Object}
 
 Uses the DNS protocol to resolve a start of authority record (`SOA` record) for
 the `hostname`. The `address` argument passed to the `callback` function will
@@ -499,10 +512,11 @@ be an object with the following properties:
 <!-- YAML
 added: v0.1.27
 -->
+
 * `hostname` {string}
 * `callback` {Function}
-  - `err` {Error}
-  - `addresses` {Object[]}
+  * `err` {Error}
+  * `addresses` {Object[]}
 
 Uses the DNS protocol to resolve service records (`SRV` records) for the
 `hostname`. The `addresses` argument passed to the `callback` function will
@@ -527,10 +541,11 @@ be an array of objects with the following properties:
 <!-- YAML
 added: v0.1.27
 -->
+
 * `hostname` {string}
 * `callback` {Function}
-  - `err` {Error}
-  - `records` <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string[][]&gt;</a>
+  * `err` {Error}
+  * `records` <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string[][]&gt;</a>
 
 Uses the DNS protocol to resolve text queries (`TXT` records) for the
 `hostname`. The `records` argument passed to the `callback` function is a
@@ -543,10 +558,11 @@ treated separately.
 <!-- YAML
 added: v0.1.16
 -->
+
 * `ip` {string}
 * `callback` {Function}
-  - `err` {Error}
-  - `hostnames` {string[]}
+  * `err` {Error}
+  * `hostnames` {string[]}
 
 Performs a reverse DNS query that resolves an IPv4 or IPv6 address to an
 array of hostnames.
@@ -558,6 +574,7 @@ one of the [DNS error codes][].
 <!-- YAML
 added: v0.11.3
 -->
+
 * `servers` {string[]} array of [RFC 5952][] formatted addresses
 
 Sets the IP address and port of servers to be used when performing DNS
@@ -666,16 +683,17 @@ section if a custom port is used.
 <!-- YAML
 added: v10.6.0
 -->
+
 * `hostname` {string}
 * `options` {integer | Object}
-  - `family` {integer} The record family. Must be `4`, `6`, or `0`. The value
+  * `family` {integer} The record family. Must be `4`, `6`, or `0`. The value
     `0` indicates that IPv4 and IPv6 addresses are both returned. **Default:**
     `0`.
-  - `hints` {number} One or more [supported `getaddrinfo` flags][]. Multiple
+  * `hints` {number} One or more [supported `getaddrinfo` flags][]. Multiple
     flags may be passed by bitwise `OR`ing their values.
-  - `all` {boolean} When `true`, the `Promise` is resolved with all addresses in
+  * `all` {boolean} When `true`, the `Promise` is resolved with all addresses in
     an array. Otherwise, returns a single address. **Default:** `false`.
-  - `verbatim` {boolean} When `true`, the `Promise` is resolved with IPv4 and
+  * `verbatim` {boolean} When `true`, the `Promise` is resolved with IPv4 and
     IPv6 addresses in the order the DNS resolver returned them. When `false`,
     IPv4 addresses are placed before IPv6 addresses.
     **Default:** currently `false` (addresses are reordered) but this is
@@ -730,6 +748,7 @@ dnsPromises.lookup('example.com', options).then((result) => {
 <!-- YAML
 added: v10.6.0
 -->
+
 * `address` {string}
 * `port` {number}
 
@@ -755,6 +774,7 @@ dnsPromises.lookupService('127.0.0.1', 22).then((result) => {
 <!-- YAML
 added: v10.6.0
 -->
+
 * `hostname` {string} Hostname to resolve.
 * `rrtype` {string} Resource record type. **Default:** `'A'`.
 
@@ -784,9 +804,10 @@ is one of the [DNS error codes](#dns_error_codes).
 <!-- YAML
 added: v10.6.0
 -->
+
 * `hostname` {string} Hostname to resolve.
 * `options` {Object}
-  - `ttl` {boolean} Retrieve the Time-To-Live value (TTL) of each record.
+  * `ttl` {boolean} Retrieve the Time-To-Live value (TTL) of each record.
     When `true`, the `Promise` is resolved with an array of
     `{ address: '1.2.3.4', ttl: 60 }` objects rather than an array of strings,
     with the TTL expressed in seconds.
@@ -799,9 +820,10 @@ addresses (e.g. `['74.125.79.104', '74.125.79.105', '74.125.79.106']`).
 <!-- YAML
 added: v10.6.0
 -->
+
 * `hostname` {string} Hostname to resolve.
 * `options` {Object}
-  - `ttl` {boolean} Retrieve the Time-To-Live value (TTL) of each record.
+  * `ttl` {boolean} Retrieve the Time-To-Live value (TTL) of each record.
     When `true`, the `Promise` is resolved with an array of
     `{ address: '0:1:2:3:4:5:6:7', ttl: 60 }` objects rather than an array of
     strings, with the TTL expressed in seconds.
@@ -814,6 +836,7 @@ addresses.
 <!-- YAML
 added: v10.6.0
 -->
+
 * `hostname` {string}
 
 Uses the DNS protocol to resolve all records (also known as `ANY` or `*` query).
@@ -858,6 +881,7 @@ Here is an example of the result object:
 <!-- YAML
 added: v10.6.0
 -->
+
 * `hostname` {string}
 
 Uses the DNS protocol to resolve `CNAME` records for the `hostname`. On success,
@@ -868,6 +892,7 @@ the `hostname` (e.g. `['bar.example.com']`).
 <!-- YAML
 added: v10.6.0
 -->
+
 * `hostname` {string}
 
 Uses the DNS protocol to resolve mail exchange records (`MX` records) for the
@@ -879,6 +904,7 @@ containing both a `priority` and `exchange` property (e.g.
 <!-- YAML
 added: v10.6.0
 -->
+
 * `hostname` {string}
 
 Uses the DNS protocol to resolve regular expression based records (`NAPTR`
@@ -908,6 +934,7 @@ of objects with the following properties:
 <!-- YAML
 added: v10.6.0
 -->
+
 * `hostname` {string}
 
 Uses the DNS protocol to resolve name server records (`NS` records) for the
@@ -919,6 +946,7 @@ records available for `hostname` (e.g.
 <!-- YAML
 added: v10.6.0
 -->
+
 * `hostname` {string}
 
 Uses the DNS protocol to resolve pointer records (`PTR` records) for the
@@ -929,6 +957,7 @@ containing the reply records.
 <!-- YAML
 added: v10.6.0
 -->
+
 * `hostname` {string}
 
 Uses the DNS protocol to resolve a start of authority record (`SOA` record) for
@@ -960,6 +989,7 @@ following properties:
 <!-- YAML
 added: v10.6.0
 -->
+
 * `hostname` {string}
 
 Uses the DNS protocol to resolve service records (`SRV` records) for the
@@ -985,6 +1015,7 @@ the following properties:
 <!-- YAML
 added: v10.6.0
 -->
+
 * `hostname` {string}
 
 Uses the DNS protocol to resolve text queries (`TXT` records) for the
@@ -998,6 +1029,7 @@ treated separately.
 <!-- YAML
 added: v10.6.0
 -->
+
 * `ip` {string}
 
 Performs a reverse DNS query that resolves an IPv4 or IPv6 address to an
@@ -1010,6 +1042,7 @@ is one of the [DNS error codes](#dns_error_codes).
 <!-- YAML
 added: v10.6.0
 -->
+
 * `servers` {string[]} array of [RFC 5952][] formatted addresses
 
 Sets the IP address and port of servers to be used when performing DNS
@@ -1041,30 +1074,30 @@ earlier ones time out or result in some other error.
 
 Each DNS query can return one of the following error codes:
 
-- `dns.NODATA`: DNS server returned answer with no data.
-- `dns.FORMERR`: DNS server claims query was misformatted.
-- `dns.SERVFAIL`: DNS server returned general failure.
-- `dns.NOTFOUND`: Domain name not found.
-- `dns.NOTIMP`: DNS server does not implement requested operation.
-- `dns.REFUSED`: DNS server refused query.
-- `dns.BADQUERY`: Misformatted DNS query.
-- `dns.BADNAME`: Misformatted hostname.
-- `dns.BADFAMILY`: Unsupported address family.
-- `dns.BADRESP`: Misformatted DNS reply.
-- `dns.CONNREFUSED`: Could not contact DNS servers.
-- `dns.TIMEOUT`: Timeout while contacting DNS servers.
-- `dns.EOF`: End of file.
-- `dns.FILE`: Error reading file.
-- `dns.NOMEM`: Out of memory.
-- `dns.DESTRUCTION`: Channel is being destroyed.
-- `dns.BADSTR`: Misformatted string.
-- `dns.BADFLAGS`: Illegal flags specified.
-- `dns.NONAME`: Given hostname is not numeric.
-- `dns.BADHINTS`: Illegal hints flags specified.
-- `dns.NOTINITIALIZED`: c-ares library initialization not yet performed.
-- `dns.LOADIPHLPAPI`: Error loading `iphlpapi.dll`.
-- `dns.ADDRGETNETWORKPARAMS`: Could not find `GetNetworkParams` function.
-- `dns.CANCELLED`: DNS query cancelled.
+* `dns.NODATA`: DNS server returned answer with no data.
+* `dns.FORMERR`: DNS server claims query was misformatted.
+* `dns.SERVFAIL`: DNS server returned general failure.
+* `dns.NOTFOUND`: Domain name not found.
+* `dns.NOTIMP`: DNS server does not implement requested operation.
+* `dns.REFUSED`: DNS server refused query.
+* `dns.BADQUERY`: Misformatted DNS query.
+* `dns.BADNAME`: Misformatted hostname.
+* `dns.BADFAMILY`: Unsupported address family.
+* `dns.BADRESP`: Misformatted DNS reply.
+* `dns.CONNREFUSED`: Could not contact DNS servers.
+* `dns.TIMEOUT`: Timeout while contacting DNS servers.
+* `dns.EOF`: End of file.
+* `dns.FILE`: Error reading file.
+* `dns.NOMEM`: Out of memory.
+* `dns.DESTRUCTION`: Channel is being destroyed.
+* `dns.BADSTR`: Misformatted string.
+* `dns.BADFLAGS`: Illegal flags specified.
+* `dns.NONAME`: Given hostname is not numeric.
+* `dns.BADHINTS`: Illegal hints flags specified.
+* `dns.NOTINITIALIZED`: c-ares library initialization not yet performed.
+* `dns.LOADIPHLPAPI`: Error loading `iphlpapi.dll`.
+* `dns.ADDRGETNETWORKPARAMS`: Could not find `GetNetworkParams` function.
+* `dns.CANCELLED`: DNS query cancelled.
 
 ## Implementation considerations
 

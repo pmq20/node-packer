@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>HTTP/2 | Node.js v12.10.0 Documentation</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
+  <title>HTTP/2 | Node.js v12.11.1 Documentation</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
   <link rel="canonical" href="https://nodejs.org/api/http2.html">
@@ -81,7 +81,7 @@
 
     <div id="column1" data-id="http2" class="interior">
       <header>
-        <h1>Node.js v12.10.0 Documentation</h1>
+        <h1>Node.js v12.11.1 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -289,6 +289,7 @@
 <li><a href="#http2_event_close_2">Event: 'close'</a></li>
 <li><a href="#http2_request_aborted">request.aborted</a></li>
 <li><a href="#http2_request_authority">request.authority</a></li>
+<li><a href="#http2_request_complete">request.complete</a></li>
 <li><a href="#http2_request_destroy_error">request.destroy([error])</a></li>
 <li><a href="#http2_request_headers">request.headers</a></li>
 <li><a href="#http2_request_httpversion">request.httpVersion</a></li>
@@ -310,7 +311,7 @@
 <li><a href="#http2_event_finish">Event: 'finish'</a></li>
 <li><a href="#http2_response_addtrailers_headers">response.addTrailers(headers)</a></li>
 <li><a href="#http2_response_connection">response.connection</a></li>
-<li><a href="#http2_response_end_data_encoding_callback">response.end([data][, encoding][, callback])</a></li>
+<li><a href="#http2_response_end_data_encoding_callback">response.end([data[, encoding]][, callback])</a></li>
 <li><a href="#http2_response_finished">response.finished</a></li>
 <li><a href="#http2_response_getheader_name">response.getHeader(name)</a></li>
 <li><a href="#http2_response_getheadernames">response.getHeaderNames()</a></li>
@@ -1891,7 +1892,7 @@ a given number of milliseconds set using <code>http2server.setTimeout()</code>.
 <strong>Default:</strong> 2 minutes.</p>
 <p>To change the default timeout use the <a href="cli.html#cli_http_server_default_timeout_milliseconds"><code>--http-server-default-timeout</code></a>
 flag.</p>
-<h4>server.close([callback])<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/net.js#L1585">[src]</a><span><a class="mark" href="#http2_server_close_callback" id="http2_server_close_callback">#</a></span></h4>
+<h4>server.close([callback])<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/net.js#L1585">[src]</a><span><a class="mark" href="#http2_server_close_callback" id="http2_server_close_callback">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
 </div>
@@ -1905,7 +1906,7 @@ all active sessions.</p>
 <p>If <code>callback</code> is provided, it is not invoked until all active sessions have been
 closed, although the server has already stopped allowing new sessions. See
 <a href="net.html#net_server_close_callback"><code>net.Server.close()</code></a> for more details.</p>
-<h4>server.setTimeout([msecs][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/_http_server.js#L348">[src]</a><span><a class="mark" href="#http2_server_settimeout_msecs_callback" id="http2_server_settimeout_msecs_callback">#</a></span></h4>
+<h4>server.setTimeout([msecs][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/_http_server.js#L348">[src]</a><span><a class="mark" href="#http2_server_settimeout_msecs_callback" id="http2_server_settimeout_msecs_callback">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
 </div>
@@ -2017,7 +2018,7 @@ a given number of milliseconds set using <code>http2secureServer.setTimeout()</c
 negotiate an allowed protocol (i.e. HTTP/2 or HTTP/1.1). The event handler
 receives the socket for handling. If no listener is registered for this event,
 the connection is terminated. See the <a href="#http2_compatibility_api">Compatibility API</a>.</p>
-<h4>server.close([callback])<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/net.js#L1585">[src]</a><span><a class="mark" href="#http2_server_close_callback_1" id="http2_server_close_callback_1">#</a></span></h4>
+<h4>server.close([callback])<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/net.js#L1585">[src]</a><span><a class="mark" href="#http2_server_close_callback_1" id="http2_server_close_callback_1">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
 </div>
@@ -2031,7 +2032,7 @@ all active sessions.</p>
 <p>If <code>callback</code> is provided, it is not invoked until all active sessions have been
 closed, although the server has already stopped allowing new sessions. See
 <a href="tls.html#tls_server_close_callback"><code>tls.Server.close()</code></a> for more details.</p>
-<h4>server.setTimeout([msecs][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/3a2e75d9a5c31d20e429d505b82dd182e33f459a/lib/_http_server.js#L348">[src]</a><span><a class="mark" href="#http2_server_settimeout_msecs_callback_1" id="http2_server_settimeout_msecs_callback_1">#</a></span></h4>
+<h4>server.setTimeout([msecs][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/_http_server.js#L348">[src]</a><span><a class="mark" href="#http2_server_settimeout_msecs_callback_1" id="http2_server_settimeout_msecs_callback_1">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
 </div>
@@ -2089,7 +2090,7 @@ exceed this limit will result in a <code>'frameError'</code> event being emitted
 and the stream being closed and destroyed.</li>
 <li>
 <p><code>paddingStrategy</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Identifies the strategy used for determining the
- amount of padding to use for <code>HEADERS</code> and <code>DATA</code> frames. <strong>Default:</strong>
+amount of padding to use for <code>HEADERS</code> and <code>DATA</code> frames. <strong>Default:</strong>
 <code>http2.constants.PADDING_STRATEGY_NONE</code>. Value may be one of:</p>
 <ul>
 <li><code>http2.constants.PADDING_STRATEGY_NONE</code> - Specifies that no padding is
@@ -2207,7 +2208,7 @@ exceed this limit will result in a <code>'frameError'</code> event being emitted
 and the stream being closed and destroyed.</li>
 <li>
 <p><code>paddingStrategy</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Identifies the strategy used for determining the
- amount of padding to use for <code>HEADERS</code> and <code>DATA</code> frames. <strong>Default:</strong>
+amount of padding to use for <code>HEADERS</code> and <code>DATA</code> frames. <strong>Default:</strong>
 <code>http2.constants.PADDING_STRATEGY_NONE</code>. Value may be one of:</p>
 <ul>
 <li><code>http2.constants.PADDING_STRATEGY_NONE</code> - Specifies that no padding is
@@ -2314,7 +2315,7 @@ exceed this limit will result in a <code>'frameError'</code> event being emitted
 and the stream being closed and destroyed.</li>
 <li>
 <p><code>paddingStrategy</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Identifies the strategy used for determining the
- amount of padding to use for <code>HEADERS</code> and <code>DATA</code> frames. <strong>Default:</strong>
+amount of padding to use for <code>HEADERS</code> and <code>DATA</code> frames. <strong>Default:</strong>
 <code>http2.constants.PADDING_STRATEGY_NONE</code>. Value may be one of:</p>
 <ul>
 <li><code>http2.constants.PADDING_STRATEGY_NONE</code> - Specifies that no padding is
@@ -2825,6 +2826,15 @@ been aborted.</p>
 </ul>
 <p>The request authority pseudo header field. It can also be accessed via
 <code>req.headers[':authority']</code>.</p>
+<h4>request.complete<span><a class="mark" href="#http2_request_complete" id="http2_request_complete">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v12.10.0</span>
+</div>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a></li>
+</ul>
+<p>The <code>request.complete</code> property will be <code>true</code> if the request has
+been completed, aborted, or destroyed.</p>
 <h4>request.destroy([error])<span><a class="mark" href="#http2_request_destroy_error" id="http2_request_destroy_error">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
@@ -3013,7 +3023,7 @@ Url {
 <p>To extract the parameters from the query string, the
 <code>require('querystring').parse</code> function can be used, or
 <code>true</code> can be passed as the second argument to <code>require('url').parse</code>.</p>
-<pre><code class="language-txt">$ node
+<pre><code class="language-console">$ node
 > require('url').parse('/status?name=ryan', true)
 Url {
   protocol: null,
@@ -3072,7 +3082,7 @@ will result in a <a href="errors.html#errors_class_typeerror"><code>TypeError</c
 <li><a href="net.html#net_class_net_socket" class="type">&#x3C;net.Socket></a> | <a href="tls.html#tls_class_tls_tlssocket" class="type">&#x3C;tls.TLSSocket></a></li>
 </ul>
 <p>See <a href="#http2_response_socket"><code>response.socket</code></a>.</p>
-<h4>response.end([data][, encoding][, callback])<span><a class="mark" href="#http2_response_end_data_encoding_callback" id="http2_response_end_data_encoding_callback">#</a></span></h4>
+<h4>response.end([data[, encoding]][, callback])<span><a class="mark" href="#http2_response_end_data_encoding_callback" id="http2_response_end_data_encoding_callback">#</a></span></h4>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>

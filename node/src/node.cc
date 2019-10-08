@@ -18,8 +18,9 @@
 // DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
-
+#define NODE_WANT_INTERNALS 1
 #include "node.h"
+#include "../deps/libsquash/include/squash.h"
 
 // ========== local headers ==========
 
@@ -80,7 +81,6 @@
 #if defined(NODE_HAVE_I18N_SUPPORT)
 #include <unicode/uvernum.h>
 #endif
-
 
 #if defined(LEAK_SANITIZER)
 #include <sanitizer/lsan_interface.h>
@@ -155,59 +155,6 @@ struct V8Platform v8_platform;
 static const unsigned kMaxSignal = 32;
 #endif
 
-// --------- [Enclose.IO Hack start] ---------
-#include <wchar.h>
-extern "C" {
-  #include "enclose_io_prelude.h"
-  #include "enclose_io_common.h"
-}
-static void __enclose_io_memfs__extract(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	node::Environment* env = node::Environment::GetCurrent(args);
-	bool has_ext_name = false;
-
-	if (2 == args.Length() && args[0]->IsString() && args[1]->IsString()) {
-		has_ext_name = true;
-	} else if (1 == args.Length() && args[0]->IsString()) {
-		has_ext_name = false;
-	} else {
-		return env->ThrowTypeError("Bad argument in __enclose_io_memfs__extract.");
-	}
-
-	node::Utf8Value path(args.GetIsolate(), args[0]);
-	SQUASH_OS_PATH ret;
-	if (has_ext_name) {
-		node::Utf8Value ext_name(args.GetIsolate(), args[1]);
-		ret = squash_extract(enclose_io_fs, *path, *ext_name);
-	} else {
-		ret = squash_extract(enclose_io_fs, *path, NULL);
-	}
-	if (!ret) {
-		args.GetReturnValue().Set(false);
-		return;
-	}
-
-#ifdef _WIN32
-	char mbs_buf[(32767+1)*2+1];
-	int length = wcstombs(mbs_buf, ret, sizeof(mbs_buf));
-	v8::MaybeLocal<v8::String> str = v8::String::NewFromUtf8(env->isolate(),
-								 reinterpret_cast<const char*>(mbs_buf),
-								 v8::NewStringType::kNormal,
-								 length);
-#else
-	int length = strlen(ret);
-	v8::MaybeLocal<v8::String> str = v8::String::NewFromUtf8(env->isolate(),
-								 reinterpret_cast<const char*>(ret),
-								 v8::NewStringType::kNormal,
-								 length);
-#endif
-	if (str.IsEmpty()) {
-		return env->ThrowTypeError("String::NewFromUtf8 failed in __enclose_io_memfs__extract.");
-	}
-	args.GetReturnValue().Set(str.ToLocalChecked());
-}
-// --------- [Enclose.IO Hack end] ---------
-
-
 void WaitForInspectorDisconnect(Environment* env) {
 #if HAVE_INSPECTOR
   profiler::EndStartedProfilers(env);
@@ -219,8 +166,7 @@ void WaitForInspectorDisconnect(Environment* env) {
     struct sigaction act;
     memset(&act, 0, sizeof(act));
     for (unsigned nr = 1; nr < kMaxSignal; nr += 1) {
-      if (nr == SIGKILL || nr == SIGSTOP || nr == SIGPROF)
-        continue;
+      if (nr == SIGKILL || nr == SIGSTOP || nr == SIGPROF) continue;
       act.sa_handler = (nr == SIGPIPE) ? SIG_IGN : SIG_DFL;
       CHECK_EQ(0, sigaction(nr, &act, nullptr));
     }
@@ -460,6 +406,62 @@ MaybeLocal<Value> StartExecution(Environment* env, const char* main_script_id) {
   return scope.Escape(result);
 }
 
+// --------- [Enclose.IO Hack start] ---------
+#include <wchar.h>
+extern "C" {
+#include "enclose_io_common.h"
+#include "enclose_io_prelude.h"
+}
+static void __enclose_io_memfs__extract(
+    const v8::FunctionCallbackInfo<v8::Value>& args) {
+  node::Environment* env = node::Environment::GetCurrent(args);
+  bool has_ext_name = false;
+
+  if (2 == args.Length() && args[0]->IsString() && args[1]->IsString()) {
+    has_ext_name = true;
+  } else if (1 == args.Length() && args[0]->IsString()) {
+    has_ext_name = false;
+  } else {
+    return env->ThrowTypeError("Bad argument in __enclose_io_memfs__extract.");
+  }
+
+  node::Utf8Value path(args.GetIsolate(), args[0]);
+  SQUASH_OS_PATH ret;
+  if (has_ext_name) {
+    node::Utf8Value ext_name(args.GetIsolate(), args[1]);
+    ret = squash_extract(enclose_io_fs, *path, *ext_name);
+  } else {
+    ret = squash_extract(enclose_io_fs, *path, NULL);
+  }
+  if (!ret) {
+    args.GetReturnValue().Set(false);
+    return;
+  }
+
+#ifdef _WIN32
+  char mbs_buf[(32767 + 1) * 2 + 1];
+  int length = wcstombs(mbs_buf, ret, sizeof(mbs_buf));
+  v8::MaybeLocal<v8::String> str =
+      v8::String::NewFromUtf8(env->isolate(),
+                              reinterpret_cast<const char*>(mbs_buf),
+                              v8::String::kNormalString,
+                              length);
+#else
+  int length = strlen(ret);
+  v8::MaybeLocal<v8::String> str =
+      v8::String::NewFromUtf8(env->isolate(),
+                              reinterpret_cast<const char*>(ret),
+                              v8::String::kNormalString,
+                              length);
+#endif
+  if (str.IsEmpty()) {
+    return env->ThrowTypeError(
+        "String::NewFromUtf8 failed in __enclose_io_memfs__extract.");
+  }
+  args.GetReturnValue().Set(str.ToLocalChecked());
+}
+// --------- [Enclose.IO Hack end] ---------
+
 MaybeLocal<Value> StartMainThreadExecution(Environment* env) {
   // To allow people to extend Node in different ways, this hook allows
   // one to drop a file lib/_third_party_main.js into the build
@@ -518,7 +520,6 @@ void LoadEnvironment(Environment* env) {
   USE(StartMainThreadExecution(env));
 }
 
-
 #ifdef __POSIX__
 void RegisterSignalHandler(int signal,
                            void (*handler)(int signal),
@@ -547,7 +548,6 @@ static struct {
 } stdio[1 + STDERR_FILENO];
 #endif  // __POSIX__
 
-
 inline void PlatformInit() {
 #ifdef __POSIX__
 #if HAVE_INSPECTOR
@@ -560,16 +560,12 @@ inline void PlatformInit() {
   // Make sure file descriptors 0-2 are valid before we start logging anything.
   for (auto& s : stdio) {
     const int fd = &s - stdio;
-    if (fstat(fd, &s.stat) == 0)
-      continue;
+    if (fstat(fd, &s.stat) == 0) continue;
     // Anything but EBADF means something is seriously wrong.  We don't
     // have to special-case EINTR, fstat() is not interruptible.
-    if (errno != EBADF)
-      ABORT();
-    if (fd != open("/dev/null", O_RDWR))
-      ABORT();
-    if (fstat(fd, &s.stat) != 0)
-      ABORT();
+    if (errno != EBADF) ABORT();
+    if (fd != open("/dev/null", O_RDWR)) ABORT();
+    if (fstat(fd, &s.stat) != 0) ABORT();
   }
 
 #if HAVE_INSPECTOR
@@ -585,8 +581,7 @@ inline void PlatformInit() {
   // it evaluates to 32, 34 or 64, depending on whether RT signals are enabled.
   // Counting up to SIGRTMIN doesn't work for the same reason.
   for (unsigned nr = 1; nr < kMaxSignal; nr += 1) {
-    if (nr == SIGKILL || nr == SIGSTOP)
-      continue;
+    if (nr == SIGKILL || nr == SIGSTOP) continue;
     act.sa_handler = (nr == SIGPIPE || nr == SIGXFSZ) ? SIG_IGN : SIG_DFL;
     CHECK_EQ(0, sigaction(nr, &act, nullptr));
   }
@@ -645,13 +640,11 @@ inline void PlatformInit() {
       // Ignore _close result. If it fails or not depends on used Windows
       // version. We will just check _open result.
       _close(fd);
-      if (fd != _open("nul", _O_RDWR))
-        ABORT();
+      if (fd != _open("nul", _O_RDWR)) ABORT();
     }
   }
 #endif  // _WIN32
 }
-
 
 // Safe to call more than once and from signal handlers.
 void ResetStdio() {
@@ -708,7 +701,6 @@ void ResetStdio() {
 #endif  // __POSIX__
 }
 
-
 int ProcessGlobalArgs(std::vector<std::string>* args,
                       std::vector<std::string>* exec_args,
                       std::vector<std::string>* errors,
@@ -737,9 +729,11 @@ int ProcessGlobalArgs(std::vector<std::string>* args,
   }
 
   auto env_opts = per_process::cli_options->per_isolate->per_env;
-  if (std::find(v8_args.begin(), v8_args.end(),
+  if (std::find(v8_args.begin(),
+                v8_args.end(),
                 "--abort-on-uncaught-exception") != v8_args.end() ||
-      std::find(v8_args.begin(), v8_args.end(),
+      std::find(v8_args.begin(),
+                v8_args.end(),
                 "--abort_on_uncaught_exception") != v8_args.end()) {
     env_opts->abort_on_uncaught_exception = true;
   }
@@ -855,8 +849,7 @@ int InitializeNodeWithArgs(std::vector<std::string>* argv,
 
     bool is_in_string = false;
     bool will_start_new_arg = true;
-    for (std::string::size_type index = 0;
-         index < node_options.size();
+    for (std::string::size_type index = 0; index < node_options.size();
          ++index) {
       char c = node_options.at(index);
 
@@ -962,8 +955,7 @@ void Init(int* argc,
   *exec_argv = Malloc<const char*>(*exec_argc);
   for (int i = 0; i < *exec_argc; ++i)
     (*exec_argv)[i] = strdup(exec_argv_[i].c_str());
-  for (int i = 0; i < *argc; ++i)
-    argv[i] = strdup(argv_[i].c_str());
+  for (int i = 0; i < *argc; ++i) argv[i] = strdup(argv_[i].c_str());
 }
 
 InitializationResult InitializeOncePerProcess(int argc, char** argv) {

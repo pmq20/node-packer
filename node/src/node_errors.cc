@@ -324,6 +324,8 @@ static void ReportFatalException(Environment* env,
         break;
       }
       case EnhanceFatalException::kDontEnhance: {
+        USE(err_obj->Get(env->context(), env->stack_string())
+                .ToLocal(&stack_trace));
         report_to_inspector();
         break;
       }
@@ -978,6 +980,9 @@ void TriggerUncaughtException(Isolate* isolate,
 
   // Now we are certain that the exception is fatal.
   ReportFatalException(env, error, message, EnhanceFatalException::kEnhance);
+#if HAVE_INSPECTOR
+  profiler::EndStartedProfilers(env);
+#endif
 
   // If the global uncaught exception handler sets process.exitCode,
   // exit with that code. Otherwise, exit with 1.

@@ -859,6 +859,7 @@ function makeSocketMethodProxy(name) {
 
 [
   'getCipher',
+  'getSharedSigalgs',
   'getEphemeralKeyInfo',
   'getFinished',
   'getPeerFinished',
@@ -1113,15 +1114,14 @@ Server.prototype.setSecureContext = function(options) {
   else
     this.crl = undefined;
 
+  this.sigalgs = options.sigalgs;
+
   if (options.ciphers)
     this.ciphers = options.ciphers;
   else
     this.ciphers = undefined;
 
-  if (options.ecdhCurve !== undefined)
-    this.ecdhCurve = options.ecdhCurve;
-  else
-    this.ecdhCurve = undefined;
+  this.ecdhCurve = options.ecdhCurve;
 
   if (options.dhparam)
     this.dhparam = options.dhparam;
@@ -1157,6 +1157,7 @@ Server.prototype.setSecureContext = function(options) {
     clientCertEngine: this.clientCertEngine,
     ca: this.ca,
     ciphers: this.ciphers,
+    sigalgs: this.sigalgs,
     ecdhCurve: this.ecdhCurve,
     dhparam: this.dhparam,
     minVersion: this.minVersion,

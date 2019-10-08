@@ -374,7 +374,7 @@ command-line option can be used to suppress the default console output but the
 The following example illustrates the warning that is printed to `stderr` when
 too many listeners have been added to an event:
 
-```txt
+```console
 $ node
 > events.defaultMaxListeners = 1;
 > process.on('foo', () => {});
@@ -386,7 +386,7 @@ detected. 2 foo listeners added. Use emitter.setMaxListeners() to increase limit
 In contrast, the following example turns off the default warning output and
 adds a custom handler to the `'warning'` event:
 
-```txt
+```console
 $ node --no-warnings
 > const p = process.on('warning', (warning) => console.warn('Do not do that!'));
 > events.defaultMaxListeners = 1;
@@ -511,16 +511,16 @@ environment variable.
 representations.  `process.allowedNodeEnvironmentFlags.has()` will
 return `true` in the following cases:
 
-- Flags may omit leading single (`-`) or double (`--`) dashes; e.g.,
+* Flags may omit leading single (`-`) or double (`--`) dashes; e.g.,
   `inspect-brk` for `--inspect-brk`, or `r` for `-r`.
-- Flags passed through to V8 (as listed in `--v8-options`) may replace
+* Flags passed through to V8 (as listed in `--v8-options`) may replace
   one or more *non-leading* dashes for an underscore, or vice-versa;
   e.g., `--perf_basic_prof`, `--perf-basic-prof`, `--perf_basic-prof`,
   etc.
-- Flags may contain one or more equals (`=`) characters; all
+* Flags may contain one or more equals (`=`) characters; all
   characters after and including the first equals will be ignored;
   e.g., `--stack-trace-limit=100`.
-- Flags *must* be allowable within [`NODE_OPTIONS`][].
+* Flags *must* be allowable within [`NODE_OPTIONS`][].
 
 When iterating over `process.allowedNodeEnvironmentFlags`, flags will
 appear only *once*; each will begin with one or more dashes. Flags
@@ -679,7 +679,7 @@ An example of the possible output looks like:
   variables:
    {
      host_arch: 'x64',
-     napi_build_version: 4,
+     napi_build_version: 5,
      node_install_npm: 'true',
      node_prefix: '',
      node_shared_cares: 'false',
@@ -723,8 +723,8 @@ added: v6.1.0
 * `previousValue` {Object} A previous return value from calling
   `process.cpuUsage()`
 * Returns: {Object}
-    * `user` {integer}
-    * `system` {integer}
+  * `user` {integer}
+  * `system` {integer}
 
 The `process.cpuUsage()` method returns the user and system CPU time usage of
 the current process, in an object with properties `user` and `system`, whose
@@ -765,6 +765,7 @@ console.log(`Current directory: ${process.cwd()}`);
 <!-- YAML
 added: v0.7.2
 -->
+
 * {number}
 
 The port used by Node.js's debugger when enabled.
@@ -1338,7 +1339,7 @@ added: v10.7.0
 * Returns: {bigint}
 
 The `bigint` version of the [`process.hrtime()`][] method returning the
-current high-resolution real time in a `bigint`.
+current high-resolution real time in nanoseconds as a `bigint`.
 
 Unlike [`process.hrtime()`][], it does not support an additional `time`
 argument since the difference can just be computed directly
@@ -1450,10 +1451,10 @@ changes:
 -->
 
 * Returns: {Object}
-    * `rss` {integer}
-    * `heapTotal` {integer}
-    * `heapUsed` {integer}
-    * `external` {integer}
+  * `rss` {integer}
+  * `heapTotal` {integer}
+  * `heapUsed` {integer}
+  * `external` {integer}
 
 The `process.memoryUsage()` method returns an object describing the memory usage
 of the Node.js process measured in bytes.
@@ -1679,9 +1680,9 @@ tarball.
 * `lts` {string} a string label identifying the [LTS][] label for this release.
   This property only exists for LTS releases and is `undefined` for all other
   release types, including _Current_ releases. Currently the valid values are:
-  - `'Argon'` for the 4.x LTS line beginning with 4.2.0.
-  - `'Boron'` for the 6.x LTS line beginning with 6.9.0.
-  - `'Carbon'` for the 8.x LTS line beginning with 8.9.1.
+  * `'Argon'` for the 4.x LTS line beginning with 4.2.0.
+  * `'Boron'` for the 6.x LTS line beginning with 6.9.0.
+  * `'Carbon'` for the 8.x LTS line beginning with 8.9.1.
 
 <!-- eslint-skip -->
 ```js
@@ -1866,45 +1867,45 @@ added: v12.6.0
 * Returns: {Object} the resource usage for the current process. All of these
   values come from the `uv_getrusage` call which returns
   a [`uv_rusage_t` struct][uv_rusage_t].
-    * `userCPUTime` {integer} maps to `ru_utime` computed in microseconds.
-      It is the same value as [`process.cpuUsage().user`][process.cpuUsage].
-    * `systemCPUTime` {integer} maps to `ru_stime` computed in microseconds.
-      It is the same value as [`process.cpuUsage().system`][process.cpuUsage].
-    * `maxRSS` {integer} maps to `ru_maxrss` which is the maximum resident set
-      size used in kilobytes.
-    * `sharedMemorySize` {integer} maps to `ru_ixrss` but is not supported by
-      any platform.
-    * `unsharedDataSize` {integer} maps to `ru_idrss` but is not supported by
-      any platform.
-    * `unsharedStackSize` {integer} maps to `ru_isrss` but is not supported by
-      any platform.
-    * `minorPageFault` {integer} maps to `ru_minflt` which is the number of
-      minor page faults for the process, see
-      [this article for more details][wikipedia_minor_fault].
-    * `majorPageFault` {integer} maps to `ru_majflt` which is the number of
-      major page faults for the process, see
-      [this article for more details][wikipedia_major_fault]. This field is not
-      supported on Windows.
-    * `swappedOut` {integer} maps to `ru_nswap` but is not supported by any
-      platform.
-    * `fsRead` {integer} maps to `ru_inblock` which is the number of times the
-      file system had to perform input.
-    * `fsWrite` {integer} maps to `ru_oublock` which is the number of times the
-      file system had to perform output.
-    * `ipcSent` {integer} maps to `ru_msgsnd` but is not supported by any
-      platform.
-    * `ipcReceived` {integer} maps to `ru_msgrcv` but is not supported by any
-      platform.
-    * `signalsCount` {integer} maps to `ru_nsignals` but is not supported by any
-      platform.
-    * `voluntaryContextSwitches` {integer} maps to `ru_nvcsw` which is the
-      number of times a CPU context switch resulted due to a process voluntarily
-      giving up the processor before its time slice was completed (usually to
-      await availability of a resource). This field is not supported on Windows.
-    * `involuntaryContextSwitches` {integer} maps to `ru_nivcsw` which is the
-      number of times a CPU context switch resulted due to a higher priority
-      process becoming runnable or because the current process exceeded its
-      time slice. This field is not supported on Windows.
+  * `userCPUTime` {integer} maps to `ru_utime` computed in microseconds.
+    It is the same value as [`process.cpuUsage().user`][process.cpuUsage].
+  * `systemCPUTime` {integer} maps to `ru_stime` computed in microseconds.
+    It is the same value as [`process.cpuUsage().system`][process.cpuUsage].
+  * `maxRSS` {integer} maps to `ru_maxrss` which is the maximum resident set
+    size used in kilobytes.
+  * `sharedMemorySize` {integer} maps to `ru_ixrss` but is not supported by
+    any platform.
+  * `unsharedDataSize` {integer} maps to `ru_idrss` but is not supported by
+    any platform.
+  * `unsharedStackSize` {integer} maps to `ru_isrss` but is not supported by
+    any platform.
+  * `minorPageFault` {integer} maps to `ru_minflt` which is the number of
+    minor page faults for the process, see
+    [this article for more details][wikipedia_minor_fault].
+  * `majorPageFault` {integer} maps to `ru_majflt` which is the number of
+    major page faults for the process, see
+    [this article for more details][wikipedia_major_fault]. This field is not
+    supported on Windows.
+  * `swappedOut` {integer} maps to `ru_nswap` but is not supported by any
+    platform.
+  * `fsRead` {integer} maps to `ru_inblock` which is the number of times the
+    file system had to perform input.
+  * `fsWrite` {integer} maps to `ru_oublock` which is the number of times the
+    file system had to perform output.
+  * `ipcSent` {integer} maps to `ru_msgsnd` but is not supported by any
+    platform.
+  * `ipcReceived` {integer} maps to `ru_msgrcv` but is not supported by any
+    platform.
+  * `signalsCount` {integer} maps to `ru_nsignals` but is not supported by any
+    platform.
+  * `voluntaryContextSwitches` {integer} maps to `ru_nvcsw` which is the
+    number of times a CPU context switch resulted due to a process voluntarily
+    giving up the processor before its time slice was completed (usually to
+    await availability of a resource). This field is not supported on Windows.
+  * `involuntaryContextSwitches` {integer} maps to `ru_nivcsw` which is the
+    number of times a CPU context switch resulted due to a higher priority
+    process becoming runnable or because the current process exceeded its
+    time slice. This field is not supported on Windows.
 
 ```js
 console.log(process.resourceUsage());
@@ -2057,6 +2058,7 @@ This feature is not available in [`Worker`][] threads.
 <!-- YAML
 added: v0.1.28
 -->
+
 * `id` {integer | string}
 
 The `process.setuid(id)` method sets the user identity of the process. (See
@@ -2176,9 +2178,9 @@ important ways:
    respectively.
 2. Writes may be synchronous depending on what the stream is connected to
    and whether the system is Windows or POSIX:
-   - Files: *synchronous* on Windows and POSIX
-   - TTYs (Terminals): *asynchronous* on Windows, *synchronous* on POSIX
-   - Pipes (and sockets): *synchronous* on Windows, *asynchronous* on POSIX
+   * Files: *synchronous* on Windows and POSIX
+   * TTYs (Terminals): *asynchronous* on Windows, *synchronous* on POSIX
+   * Pipes (and sockets): *synchronous* on Windows, *asynchronous* on POSIX
 
 These behaviors are partly for historical reasons, as changing them would
 create backwards incompatibility, but they are also expected by some users.
@@ -2222,11 +2224,28 @@ added: v0.9.12
 
 * {boolean}
 
-The `process.throwDeprecation` property indicates whether the
-`--throw-deprecation` flag is set on the current Node.js process. See the
+The initial value of `process.throwDeprecation` indicates whether the
+`--throw-deprecation` flag is set on the current Node.js process.
+`process.throwDeprecation` is mutable, so whether or not deprecation
+warnings result in errors may be altered at runtime. See the
 documentation for the [`'warning'` event][process_warning] and the
-[`emitWarning()` method][process_emit_warning] for more information about this
-flag's behavior.
+[`emitWarning()` method][process_emit_warning] for more information.
+
+```console
+$ node --throw-deprecation -p "process.throwDeprecation"
+true
+$ node -p "process.throwDeprecation"
+undefined
+$ node
+> process.emitWarning('test', 'DeprecationWarning');
+undefined
+> (node:26598) DeprecationWarning: test
+> process.throwDeprecation = true;
+true
+> process.emitWarning('test', 'DeprecationWarning');
+Thrown:
+[DeprecationWarning: test] { name: 'DeprecationWarning' }
+```
 
 ## process.title
 <!-- YAML

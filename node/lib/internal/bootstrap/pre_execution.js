@@ -119,7 +119,17 @@ function setupCoverageHooks(dir) {
   const cwd = require('internal/process/execution').tryGetCwd();
   const { resolve } = require('path');
   const coverageDirectory = resolve(cwd, dir);
-  internalBinding('profiler').setCoverageDirectory(coverageDirectory);
+  const { sourceMapCacheToObject } = require('internal/source_map');
+
+  if (process.features.inspector) {
+    internalBinding('profiler').setCoverageDirectory(coverageDirectory);
+    internalBinding('profiler').setSourceMapCacheGetter(sourceMapCacheToObject);
+  } else {
+    process.emitWarning('The inspector is disabled, ' +
+                        'coverage could not be collected',
+                        'Warning');
+    return '';
+  }
   return coverageDirectory;
 }
 
@@ -390,12 +400,12 @@ function initializeESMLoader() {
     // track of for different ESM modules.
     setInitializeImportMetaObjectCallback(esm.initializeImportMetaObject);
     setImportModuleDynamicallyCallback(esm.importModuleDynamicallyCallback);
-    const userLoader = getOptionValue('--loader');
-    // If --loader is specified, create a loader with user hooks. Otherwise
-    // create the default loader.
+    const userLoader = getOptionValue('--experimental-loader');
+    // If --experimental-loader is specified, create a loader with user hooks.
+    // Otherwise create the default loader.
     if (userLoader) {
       const { emitExperimentalWarning } = require('internal/util');
-      emitExperimentalWarning('--loader');
+      emitExperimentalWarning('--experimental-loader');
     }
     esm.initializeLoader(process.cwd(), userLoader);
   }

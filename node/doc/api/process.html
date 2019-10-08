@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Process | Node.js v12.10.0 Documentation</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
+  <title>Process | Node.js v12.11.1 Documentation</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
   <link rel="canonical" href="https://nodejs.org/api/process.html">
@@ -81,7 +81,7 @@
 
     <div id="column1" data-id="process" class="interior">
       <header>
-        <h1>Node.js v12.10.0 Documentation</h1>
+        <h1>Node.js v12.11.1 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -560,7 +560,7 @@ command-line option can be used to suppress the default console output but the
 <code>'warning'</code> event will still be emitted by the <code>process</code> object.</p>
 <p>The following example illustrates the warning that is printed to <code>stderr</code> when
 too many listeners have been added to an event:</p>
-<pre><code class="language-txt">$ node
+<pre><code class="language-console">$ node
 > events.defaultMaxListeners = 1;
 > process.on('foo', () => {});
 > process.on('foo', () => {});
@@ -569,7 +569,7 @@ detected. 2 foo listeners added. Use emitter.setMaxListeners() to increase limit
 </code></pre>
 <p>In contrast, the following example turns off the default warning output and
 adds a custom handler to the <code>'warning'</code> event:</p>
-<pre><code class="language-txt">$ node --no-warnings
+<pre><code class="language-console">$ node --no-warnings
 > const p = process.on('warning', (warning) => console.warn('Do not do that!'));
 > events.defaultMaxListeners = 1;
 > process.on('foo', () => {});
@@ -812,7 +812,7 @@ running the <code>./configure</code> script.</p>
   variables:
    {
      host_arch: 'x64',
-     napi_build_version: 4,
+     napi_build_version: 5,
      node_install_npm: 'true',
      node_prefix: '',
      node_shared_cares: 'false',
@@ -1358,7 +1358,7 @@ setTimeout(() => {
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt" class="type">&#x3C;bigint></a></li>
 </ul>
 <p>The <code>bigint</code> version of the <a href="#process_process_hrtime_time"><code>process.hrtime()</code></a> method returning the
-current high-resolution real time in a <code>bigint</code>.</p>
+current high-resolution real time in nanoseconds as a <code>bigint</code>.</p>
 <p>Unlike <a href="#process_process_hrtime_time"><code>process.hrtime()</code></a>, it does not support an additional <code>time</code>
 argument since the difference can just be computed directly
 by subtraction of the two <code>bigint</code>s.</p>
@@ -2132,11 +2132,26 @@ false
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a></li>
 </ul>
-<p>The <code>process.throwDeprecation</code> property indicates whether the
-<code>--throw-deprecation</code> flag is set on the current Node.js process. See the
+<p>The initial value of <code>process.throwDeprecation</code> indicates whether the
+<code>--throw-deprecation</code> flag is set on the current Node.js process.
+<code>process.throwDeprecation</code> is mutable, so whether or not deprecation
+warnings result in errors may be altered at runtime. See the
 documentation for the <a href="#process_event_warning"><code>'warning'</code> event</a> and the
-<a href="#process_process_emitwarning_warning_type_code_ctor"><code>emitWarning()</code> method</a> for more information about this
-flag's behavior.</p>
+<a href="#process_process_emitwarning_warning_type_code_ctor"><code>emitWarning()</code> method</a> for more information.</p>
+<pre><code class="language-console">$ node --throw-deprecation -p "process.throwDeprecation"
+true
+$ node -p "process.throwDeprecation"
+undefined
+$ node
+> process.emitWarning('test', 'DeprecationWarning');
+undefined
+> (node:26598) DeprecationWarning: test
+> process.throwDeprecation = true;
+true
+> process.emitWarning('test', 'DeprecationWarning');
+Thrown:
+[DeprecationWarning: test] { name: 'DeprecationWarning' }
+</code></pre>
 <h2>process.title<span><a class="mark" href="#process_process_title" id="process_process_title">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.104</span>

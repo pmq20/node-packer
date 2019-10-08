@@ -15,7 +15,8 @@ const {
   timeOriginTimestamp,
   timerify,
   constants,
-  setupGarbageCollectionTracking
+  installGarbageCollectionTracking,
+  removeGarbageCollectionTracking
 } = internalBinding('performance');
 
 const {
@@ -92,11 +93,12 @@ const IDX_SESSION_STATS_DATA_SENT = 6;
 const IDX_SESSION_STATS_DATA_RECEIVED = 7;
 const IDX_SESSION_STATS_MAX_CONCURRENT_STREAMS = 8;
 
+let http2;
 let sessionStats;
 let streamStats;
 
 function collectHttp2Stats(entry) {
-  const http2 = internalBinding('http2');
+  if (http2 === undefined) http2 = internalBinding('http2');
   switch (entry.name) {
     case 'Http2Stream':
       if (streamStats === undefined)
@@ -203,15 +205,7 @@ class PerformanceNodeTiming extends PerformanceEntry {
       bootstrapComplete: this.bootstrapComplete,
       environment: this.environment,
       loopStart: this.loopStart,
-      loopExit: this.loopExit,
-      thirdPartyMainStart: this.thirdPartyMainStart,
-      thirdPartyMainEnd: this.thirdPartyMainEnd,
-      clusterSetupStart: this.clusterSetupStart,
-      clusterSetupEnd: this.clusterSetupEnd,
-      moduleLoadStart: this.moduleLoadStart,
-      moduleLoadEnd: this.moduleLoadEnd,
-      preloadModuleLoadStart: this.preloadModuleLoadStart,
-      preloadModuleLoadEnd: this.preloadModuleLoadEnd
+      loopExit: this.loopExit
     };
   }
 }
@@ -280,8 +274,6 @@ class PerformanceObserverEntryList {
   }
 }
 
-let gcTrackingIsEnabled = false;
-
 class PerformanceObserver extends AsyncResource {
   constructor(callback) {
     if (typeof callback !== 'function') {
@@ -318,6 +310,7 @@ class PerformanceObserver extends AsyncResource {
   }
 
   disconnect() {
+    const observerCountsGC = observerCounts[NODE_PERFORMANCE_ENTRY_TYPE_GC];
     const types = this[kTypes];
     const keys = Object.keys(types);
     for (var n = 0; n < keys.length; n++) {
@@ -328,6 +321,10 @@ class PerformanceObserver extends AsyncResource {
       }
     }
     this[kTypes] = {};
+    if (observerCountsGC === 1 &&
+      observerCounts[NODE_PERFORMANCE_ENTRY_TYPE_GC] === 0) {
+      removeGarbageCollectionTracking();
+    }
   }
 
   observe(options) {
@@ -341,22 +338,23 @@ class PerformanceObserver extends AsyncResource {
     if (entryTypes.length === 0) {
       throw new ERR_VALID_PERFORMANCE_ENTRY_TYPE();
     }
-    if (entryTypes.includes(NODE_PERFORMANCE_ENTRY_TYPE_GC) &&
-      !gcTrackingIsEnabled) {
-      setupGarbageCollectionTracking();
-      gcTrackingIsEnabled = true;
-    }
     this.disconnect();
+    const observerCountsGC = observerCounts[NODE_PERFORMANCE_ENTRY_TYPE_GC];
     this[kBuffer][kEntries] = [];
     L.init(this[kBuffer][kEntries]);
     this[kBuffering] = Boolean(options.buffered);
     for (var n = 0; n < entryTypes.length; n++) {
       const entryType = entryTypes[n];
       const list = getObserversList(entryType);
+      if (this[kTypes][entryType]) continue;
       const item = { obs: this };
       this[kTypes][entryType] = item;
       L.append(list, item);
       observerCounts[entryType]++;
+    }
+    if (observerCountsGC === 0 &&
+      observerCounts[NODE_PERFORMANCE_ENTRY_TYPE_GC] === 1) {
+      installGarbageCollectionTracking();
     }
   }
 }

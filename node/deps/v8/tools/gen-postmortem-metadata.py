@@ -229,6 +229,15 @@ consts_misc = [
 
     { 'name': 'class_SharedFunctionInfo__function_data__Object',
         'value': 'SharedFunctionInfo::kFunctionDataOffset' },
+
+    { 'name': 'class_ConsString__first_offset__int',
+        'value': 'ConsString::kFirstOffset' },
+    { 'name': 'class_ConsString__second_offset__int',
+        'value': 'ConsString::kSecondOffset' },
+    { 'name': 'class_SlicedString__offset_offset__int',
+        'value': 'SlicedString::kOffsetOffset' },
+    { 'name': 'class_ThinString__actual_offset__int',
+        'value': 'ThinString::kActualOffset' },
 ];
 
 #
@@ -261,8 +270,6 @@ extras_accessors = [
     'Map, prototype, Object, kPrototypeOffset',
     'Oddball, kind_offset, int, kKindOffset',
     'HeapNumber, value, double, kValueOffset',
-    'ConsString, first, String, kFirstOffset',
-    'ConsString, second, String, kSecondOffset',
     'ExternalString, resource, Object, kResourceOffset',
     'SeqOneByteString, chars, char, kHeaderSize',
     'SeqTwoByteString, chars, char, kHeaderSize',
@@ -285,7 +292,7 @@ extras_accessors = [
 #
 expected_classes = [
     'ConsString', 'FixedArray', 'HeapNumber', 'JSArray', 'JSFunction',
-    'JSObject', 'JSRegExp', 'JSValue', 'Map', 'Oddball', 'Script',
+    'JSObject', 'JSRegExp', 'JSPrimitiveWrapper', 'Map', 'Oddball', 'Script',
     'SeqOneByteString', 'SharedFunctionInfo', 'ScopeInfo', 'JSPromise'
 ];
 
@@ -377,6 +384,7 @@ def load_objects_from_file(objfilename, checktypes):
         in_insttype = False;
 
         typestr = '';
+        uncommented_file = ''
 
         #
         # Iterate the header file line-by-line to collect type and class
@@ -399,21 +407,26 @@ def load_objects_from_file(objfilename, checktypes):
                         typestr += line;
                         continue;
 
-                match = re.match(r'class(?:\s+V8_EXPORT(?:_PRIVATE)?)?'
-                                 r'\s+(\w[^:]*)'
+                uncommented_file += '\n' + line
+
+        for match in re.finditer(r'\nclass(?:\s+V8_EXPORT(?:_PRIVATE)?)?'
+                                 r'\s+(\w[^:;]*)'
                                  r'(?:: public (\w[^{]*))?\s*{\s*',
-                                 line);
-
-                if (match):
-                        klass = match.group(1).strip();
-                        pklass = match.group(2);
-                        if (pklass):
-                                # Strip potential template arguments from parent
-                                # class.
-                                match = re.match(r'(\w+)(<.*>)?', pklass.strip());
-                                pklass = match.group(1).strip();
-
-                        klasses[klass] = { 'parent': pklass };
+                                 uncommented_file):
+                klass = match.group(1).strip();
+                pklass = match.group(2);
+                if (pklass):
+                        # Check for generated Torque class.
+                        gen_match = re.match(
+                            r'TorqueGenerated\w+\s*<\s*\w+,\s*(\w+)\s*>',
+                            pklass)
+                        if (gen_match):
+                                pklass = gen_match.group(1)
+                        # Strip potential template arguments from parent
+                        # class.
+                        match = re.match(r'(\w+)(<.*>)?', pklass.strip());
+                        pklass = match.group(1).strip();
+                klasses[klass] = { 'parent': pklass };
 
         #
         # Process the instance type declaration.

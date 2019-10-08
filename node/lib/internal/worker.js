@@ -207,11 +207,11 @@ class Worker extends EventEmitter {
 
     const { stdout, stderr } = this[kParentSideStdio];
 
-    if (!stdout._readableState.ended) {
+    if (!stdout.readableEnded) {
       debug(`[${threadId}] explicitly closes stdout for ${this.threadId}`);
       stdout.push(null);
     }
-    if (!stderr._readableState.ended) {
+    if (!stderr.readableEnded) {
       debug(`[${threadId}] explicitly closes stderr for ${this.threadId}`);
       stderr.push(null);
     }
@@ -225,6 +225,8 @@ class Worker extends EventEmitter {
 
   terminate(callback) {
     debug(`[${threadId}] terminates Worker with ID ${this.threadId}`);
+
+    this.ref();
 
     if (typeof callback === 'function') {
       process.emitWarning(

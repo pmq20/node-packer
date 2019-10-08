@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Errors | Node.js v12.10.0 Documentation</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
+  <title>Errors | Node.js v12.11.1 Documentation</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
   <link rel="canonical" href="https://nodejs.org/api/errors.html">
@@ -81,7 +81,7 @@
 
     <div id="column1" data-id="errors" class="interior">
       <header>
-        <h1>Node.js v12.10.0 Documentation</h1>
+        <h1>Node.js v12.11.1 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -270,6 +270,7 @@
 <li><a href="#errors_err_inspector_not_active">ERR_INSPECTOR_NOT_ACTIVE</a></li>
 <li><a href="#errors_err_inspector_not_available">ERR_INSPECTOR_NOT_AVAILABLE</a></li>
 <li><a href="#errors_err_inspector_not_connected">ERR_INSPECTOR_NOT_CONNECTED</a></li>
+<li><a href="#errors_err_inspector_not_worker">ERR_INSPECTOR_NOT_WORKER</a></li>
 <li><a href="#errors_err_invalid_address_family">ERR_INVALID_ADDRESS_FAMILY</a></li>
 <li><a href="#errors_err_invalid_arg_type">ERR_INVALID_ARG_TYPE</a></li>
 <li><a href="#errors_err_invalid_arg_value">ERR_INVALID_ARG_VALUE</a></li>
@@ -1380,6 +1381,10 @@ after the session had already closed.</p>
 <h3>ERR_INSPECTOR_NOT_CONNECTED<span><a class="mark" href="#errors_err_inspector_not_connected" id="errors_err_inspector_not_connected">#</a></span><span><a class="mark" href="#ERR_INSPECTOR_NOT_CONNECTED" id="ERR_INSPECTOR_NOT_CONNECTED">#</a></span></h3>
 <p>While using the <code>inspector</code> module, an attempt was made to use the inspector
 before it was connected.</p>
+<p><a id="ERR_INSPECTOR_NOT_WORKER"></a></p>
+<h3>ERR_INSPECTOR_NOT_WORKER<span><a class="mark" href="#errors_err_inspector_not_worker" id="errors_err_inspector_not_worker">#</a></span><span><a class="mark" href="#ERR_INSPECTOR_NOT_WORKER" id="ERR_INSPECTOR_NOT_WORKER">#</a></span></h3>
+<p>An API was called on the main thread that can only be used from
+the worker thread.</p>
 <p><a id="ERR_INVALID_ADDRESS_FAMILY"></a></p>
 <h3>ERR_INVALID_ADDRESS_FAMILY<span><a class="mark" href="#errors_err_invalid_address_family" id="errors_err_invalid_address_family">#</a></span><span><a class="mark" href="#ERR_INVALID_ADDRESS_FAMILY" id="ERR_INVALID_ADDRESS_FAMILY">#</a></span></h3>
 <p>The provided address family is not understood by the Node.js API.</p>

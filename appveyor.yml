@@ -14,8 +14,6 @@ environment:
     - TEST_SCRIPT: coffeescript_1
     - TEST_SCRIPT: coffeescript_2
     - TEST_SCRIPT: datetime
-cache:
-  - node_modules
 
 build_script:
 - ps: |

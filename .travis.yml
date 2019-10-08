@@ -52,7 +52,7 @@ addons:
         - openssl
         - nasm
 install:
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then export PRJROOT_DIR="$OSXPRJDIR"; clang --version; fi
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew update; export PRJROOT_DIR="$OSXPRJDIR"; clang --version; fi
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then export PRJROOT_DIR="$LINPRJDIR"; export CXX="g++-$GCCVER" CC="gcc-$GCCVER"; "gcc-$GCCVER" --version; "g++-$GCCVER" --version; fi
   - mkdir -p $NODEC_TESTS_TMPDIR
   - git clone --depth 1 https://github.com/jashkenas/coffeescript.git

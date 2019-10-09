@@ -43,7 +43,7 @@ build_script:
 
 test_script:
 - cmd: |
-    set PATH=%DEPEND_DIR%\node-v%NODEC_NODE%-win-%arch%;%DEPEND_DIR%\usr\bin;%PATH%
+    set PATH=%DEPEND_DIR%\usr\bin\node-v%NODEC_NODE%-win-%arch%;%DEPEND_DIR%\usr\bin;%PATH%
 
     npm install npm-cli -g
 

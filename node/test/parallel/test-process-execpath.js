@@ -20,7 +20,7 @@ if (process.argv[2] === 'child') {
   const symlinkedNode = path.join(tmpdir.path, 'symlinked-node');
   fs.symlinkSync(process.execPath, symlinkedNode);
 
-  const proc = child_process.spawnSync(symlinkedNode, [__filename, 'child']);
+  const proc = child_process.spawnSync(symlinkedNode, [__filename, 'child'], { env: { ENCLOSE_IO_USE_ORIGINAL_NODE: '1' } });
   assert.strictEqual(proc.stderr.toString(), '');
   assert.strictEqual(proc.stdout.toString(), `${process.execPath}\n`);
   assert.strictEqual(proc.status, 0);

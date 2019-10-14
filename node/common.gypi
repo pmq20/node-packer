@@ -87,9 +87,11 @@
       ['OS == "win"', {
         'os_posix': 0,
         'v8_postmortem_support%': 0,
+        '_WIN32': 1,
       }, {
         'os_posix': 1,
         'v8_postmortem_support%': 1,
+        '_WIN32': 0,
       }],
       ['v8_use_snapshot==1', {
         'conditions': [

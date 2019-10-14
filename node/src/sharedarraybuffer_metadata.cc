@@ -1,3 +1,4 @@
+#define NODE_WANT_INTERNALS 1
 #include "sharedarraybuffer_metadata.h"
 
 #include "base_object-inl.h"
@@ -27,16 +28,15 @@ namespace {
 // Yield a JS constructor for SABLifetimePartner objects in the form of a
 // standard API object, that has a single field for containing the raw
 // SABLifetimePartner* pointer.
-Local<Function> GetSABLifetimePartnerConstructor(
-    Environment* env, Local<Context> context) {
+Local<Function> GetSABLifetimePartnerConstructor(Environment* env,
+                                                 Local<Context> context) {
   Local<FunctionTemplate> templ;
   templ = env->sab_lifetimepartner_constructor_template();
-  if (!templ.IsEmpty())
-    return templ->GetFunction(context).ToLocalChecked();
+  if (!templ.IsEmpty()) return templ->GetFunction(context).ToLocalChecked();
 
   templ = BaseObject::MakeLazilyInitializedJSTemplate(env);
-  templ->SetClassName(FIXED_ONE_BYTE_STRING(env->isolate(),
-                                            "SABLifetimePartner"));
+  templ->SetClassName(
+      FIXED_ONE_BYTE_STRING(env->isolate(), "SABLifetimePartner"));
   env->set_sab_lifetimepartner_constructor_template(templ);
 
   return GetSABLifetimePartnerConstructor(env, context);
@@ -47,8 +47,7 @@ class SABLifetimePartner : public BaseObject {
   SABLifetimePartner(Environment* env,
                      Local<Object> obj,
                      SharedArrayBufferMetadataReference r)
-    : BaseObject(env, obj),
-      reference(std::move(r)) {
+      : BaseObject(env, obj), reference(std::move(r)) {
     MakeWeak();
     env->AddCleanupHook(CleanupHook, static_cast<void*>(this));
   }
@@ -87,20 +86,17 @@ class SABLifetimePartner : public BaseObject {
 
 SharedArrayBufferMetadataReference
 SharedArrayBufferMetadata::ForSharedArrayBuffer(
-    Environment* env,
-    Local<Context> context,
-    Local<SharedArrayBuffer> source) {
+    Environment* env, Local<Context> context, Local<SharedArrayBuffer> source) {
   Local<Value> lifetime_partner;
 
-  if (!source->GetPrivate(context,
-                          env->sab_lifetimepartner_symbol())
-                              .ToLocal(&lifetime_partner)) {
+  if (!source->GetPrivate(context, env->sab_lifetimepartner_symbol())
+           .ToLocal(&lifetime_partner)) {
     return nullptr;
   }
 
   if (lifetime_partner->IsObject() &&
-      env->sab_lifetimepartner_constructor_template()
-         ->HasInstance(lifetime_partner)) {
+      env->sab_lifetimepartner_constructor_template()->HasInstance(
+          lifetime_partner)) {
     CHECK(source->IsExternal());
     SABLifetimePartner* partner =
         Unwrap<SABLifetimePartner>(lifetime_partner.As<Object>());
@@ -133,37 +129,30 @@ SharedArrayBufferMetadata::ForSharedArrayBuffer(
 }
 
 Maybe<bool> SharedArrayBufferMetadata::AssignToSharedArrayBuffer(
-    Environment* env, Local<Context> context,
-    Local<SharedArrayBuffer> target) {
+    Environment* env, Local<Context> context, Local<SharedArrayBuffer> target) {
   CHECK(target->IsExternal());
   Local<Function> ctor = GetSABLifetimePartnerConstructor(env, context);
   Local<Object> obj;
-  if (!ctor->NewInstance(context).ToLocal(&obj))
-    return Nothing<bool>();
+  if (!ctor->NewInstance(context).ToLocal(&obj)) return Nothing<bool>();
 
   new SABLifetimePartner(env, obj, shared_from_this());
-  return target->SetPrivate(context,
-                            env->sab_lifetimepartner_symbol(),
-                            obj);
+  return target->SetPrivate(context, env->sab_lifetimepartner_symbol(), obj);
 }
 
 SharedArrayBufferMetadata::SharedArrayBufferMetadata(
     const SharedArrayBuffer::Contents& contents,
     std::shared_ptr<v8::ArrayBuffer::Allocator> allocator)
-  : contents_(contents), allocator_(allocator) { }
+    : contents_(contents), allocator_(allocator) {}
 
 SharedArrayBufferMetadata::~SharedArrayBufferMetadata() {
-  contents_.Deleter()(contents_.Data(),
-                      contents_.ByteLength(),
-                      contents_.DeleterData());
+  contents_.Deleter()(
+      contents_.Data(), contents_.ByteLength(), contents_.DeleterData());
 }
 
 MaybeLocal<SharedArrayBuffer> SharedArrayBufferMetadata::GetSharedArrayBuffer(
     Environment* env, Local<Context> context) {
-  Local<SharedArrayBuffer> obj =
-      SharedArrayBuffer::New(env->isolate(),
-                             contents_.Data(),
-                             contents_.ByteLength());
+  Local<SharedArrayBuffer> obj = SharedArrayBuffer::New(
+      env->isolate(), contents_.Data(), contents_.ByteLength());
 
   if (AssignToSharedArrayBuffer(env, context, obj).IsNothing())
     return MaybeLocal<SharedArrayBuffer>();

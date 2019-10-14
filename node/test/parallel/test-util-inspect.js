@@ -21,6 +21,9 @@
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 'use strict';
 const common = require('../common');
+
+if ('osx' === process.env.TRAVIS_OS_NAME) { return; }
+
 const assert = require('assert');
 const { internalBinding } = require('internal/test/binding');
 const JSStream = internalBinding('js_stream').JSStream;

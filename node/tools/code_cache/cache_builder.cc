@@ -1,12 +1,13 @@
+#define NODE_WANT_INTERNALS 1
 #include "cache_builder.h"
 #include "node_native_module.h"
 #include "util.h"
 
+#include <cstdlib>
 #include <iostream>
 #include <map>
 #include <sstream>
 #include <vector>
-#include <cstdlib>
 
 namespace node {
 namespace native_module {

@@ -2,6 +2,8 @@
 
 'use strict';
 
+if ('osx' === process.env.TRAVIS_OS_NAME) { return; }
+
 const common = require('../common');
 const fixtures = require('../common/fixtures');
 const { internalBinding } = require('internal/test/binding');

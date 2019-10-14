@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Errors | Node.js v12.11.1 Documentation</title>
+  <title>Errors | Node.js v12.12.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -81,7 +81,7 @@
 
     <div id="column1" data-id="errors" class="interior">
       <header>
-        <h1>Node.js v12.11.1 Documentation</h1>
+        <h1>Node.js v12.12.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -193,7 +193,6 @@
 <li><a href="#errors_err_crypto_engine_unknown">ERR_CRYPTO_ENGINE_UNKNOWN</a></li>
 <li><a href="#errors_err_crypto_fips_forced">ERR_CRYPTO_FIPS_FORCED</a></li>
 <li><a href="#errors_err_crypto_fips_unavailable">ERR_CRYPTO_FIPS_UNAVAILABLE</a></li>
-<li><a href="#errors_err_crypto_hash_digest_no_utf16">ERR_CRYPTO_HASH_DIGEST_NO_UTF16</a></li>
 <li><a href="#errors_err_crypto_hash_finalized">ERR_CRYPTO_HASH_FINALIZED</a></li>
 <li><a href="#errors_err_crypto_hash_update_failed">ERR_CRYPTO_HASH_UPDATE_FAILED</a></li>
 <li><a href="#errors_err_crypto_incompatible_key_options">ERR_CRYPTO_INCOMPATIBLE_KEY_OPTIONS</a></li>
@@ -205,6 +204,7 @@
 <li><a href="#errors_err_crypto_scrypt_not_supported">ERR_CRYPTO_SCRYPT_NOT_SUPPORTED</a></li>
 <li><a href="#errors_err_crypto_sign_key_required">ERR_CRYPTO_SIGN_KEY_REQUIRED</a></li>
 <li><a href="#errors_err_crypto_timing_safe_equal_length">ERR_CRYPTO_TIMING_SAFE_EQUAL_LENGTH</a></li>
+<li><a href="#errors_err_dir_closed">ERR_DIR_CLOSED</a></li>
 <li><a href="#errors_err_dns_set_servers_failed">ERR_DNS_SET_SERVERS_FAILED</a></li>
 <li><a href="#errors_err_domain_callback_not_available">ERR_DOMAIN_CALLBACK_NOT_AVAILABLE</a></li>
 <li><a href="#errors_err_domain_cannot_set_uncaught_exception_capture">ERR_DOMAIN_CANNOT_SET_UNCAUGHT_EXCEPTION_CAPTURE</a></li>
@@ -333,6 +333,7 @@
 <li><a href="#errors_err_napi_tsfn_stop_idle_loop">ERR_NAPI_TSFN_STOP_IDLE_LOOP</a></li>
 <li><a href="#errors_err_no_crypto">ERR_NO_CRYPTO</a></li>
 <li><a href="#errors_err_no_icu">ERR_NO_ICU</a></li>
+<li><a href="#errors_err_non_context_aware_disabled">ERR_NON_CONTEXT_AWARE_DISABLED</a></li>
 <li><a href="#errors_err_out_of_range">ERR_OUT_OF_RANGE</a></li>
 <li><a href="#errors_err_require_esm">ERR_REQUIRE_ESM</a></li>
 <li><a href="#errors_err_script_execution_interrupted">ERR_SCRIPT_EXECUTION_INTERRUPTED</a></li>
@@ -392,7 +393,6 @@
 <li><a href="#errors_err_vm_module_already_linked">ERR_VM_MODULE_ALREADY_LINKED</a></li>
 <li><a href="#errors_err_vm_module_different_context">ERR_VM_MODULE_DIFFERENT_CONTEXT</a></li>
 <li><a href="#errors_err_vm_module_linking_errored">ERR_VM_MODULE_LINKING_ERRORED</a></li>
-<li><a href="#errors_err_vm_module_not_linked">ERR_VM_MODULE_NOT_LINKED</a></li>
 <li><a href="#errors_err_vm_module_not_module">ERR_VM_MODULE_NOT_MODULE</a></li>
 <li><a href="#errors_err_vm_module_status">ERR_VM_MODULE_STATUS</a></li>
 <li><a href="#errors_err_worker_invalid_exec_argv">ERR_WORKER_INVALID_EXEC_ARGV</a></li>
@@ -410,6 +410,7 @@
 <ul>
 <li><a href="#errors_err_cannot_transfer_object">ERR_CANNOT_TRANSFER_OBJECT</a></li>
 <li><a href="#errors_err_closed_message_port">ERR_CLOSED_MESSAGE_PORT</a></li>
+<li><a href="#errors_err_crypto_hash_digest_no_utf16">ERR_CRYPTO_HASH_DIGEST_NO_UTF16</a></li>
 <li><a href="#errors_err_http2_frame_error">ERR_HTTP2_FRAME_ERROR</a></li>
 <li><a href="#errors_err_http2_headers_object">ERR_HTTP2_HEADERS_OBJECT</a></li>
 <li><a href="#errors_err_http2_header_required">ERR_HTTP2_HEADER_REQUIRED</a></li>
@@ -429,6 +430,7 @@
 <li><a href="#errors_err_unknown_stdin_type">ERR_UNKNOWN_STDIN_TYPE</a></li>
 <li><a href="#errors_err_unknown_stream_type">ERR_UNKNOWN_STREAM_TYPE</a></li>
 <li><a href="#errors_err_value_out_of_range">ERR_VALUE_OUT_OF_RANGE</a></li>
+<li><a href="#errors_err_vm_module_not_linked">ERR_VM_MODULE_NOT_LINKED</a></li>
 <li><a href="#errors_err_zlib_binding_closed">ERR_ZLIB_BINDING_CLOSED</a></li>
 <li>
 <p><a href="#errors_other_error_codes">Other error codes</a></p>
@@ -1087,12 +1089,6 @@ to enable or disable FIPS mode in the <code>crypto</code> module.</p>
 <h3>ERR_CRYPTO_FIPS_UNAVAILABLE<span><a class="mark" href="#errors_err_crypto_fips_unavailable" id="errors_err_crypto_fips_unavailable">#</a></span><span><a class="mark" href="#ERR_CRYPTO_FIPS_UNAVAILABLE" id="ERR_CRYPTO_FIPS_UNAVAILABLE">#</a></span></h3>
 <p>An attempt was made to enable or disable FIPS mode, but FIPS mode was not
 available.</p>
-<p><a id="ERR_CRYPTO_HASH_DIGEST_NO_UTF16"></a></p>
-<h3>ERR_CRYPTO_HASH_DIGEST_NO_UTF16<span><a class="mark" href="#errors_err_crypto_hash_digest_no_utf16" id="errors_err_crypto_hash_digest_no_utf16">#</a></span><span><a class="mark" href="#ERR_CRYPTO_HASH_DIGEST_NO_UTF16" id="ERR_CRYPTO_HASH_DIGEST_NO_UTF16">#</a></span></h3>
-<p>The UTF-16 encoding was used with <a href="crypto.html#crypto_hash_digest_encoding"><code>hash.digest()</code></a>. While the
-<code>hash.digest()</code> method does allow an <code>encoding</code> argument to be passed in,
-causing the method to return a string rather than a <code>Buffer</code>, the UTF-16
-encoding (e.g. <code>ucs</code> or <code>utf16le</code>) is not supported.</p>
 <p><a id="ERR_CRYPTO_HASH_FINALIZED"></a></p>
 <h3>ERR_CRYPTO_HASH_FINALIZED<span><a class="mark" href="#errors_err_crypto_hash_finalized" id="errors_err_crypto_hash_finalized">#</a></span><span><a class="mark" href="#ERR_CRYPTO_HASH_FINALIZED" id="ERR_CRYPTO_HASH_FINALIZED">#</a></span></h3>
 <p><a href="crypto.html#crypto_hash_digest_encoding"><code>hash.digest()</code></a> was called multiple times. The <code>hash.digest()</code> method must
@@ -1132,6 +1128,9 @@ release binaries but can happen with custom builds, including distro builds.</p>
 <h3>ERR_CRYPTO_TIMING_SAFE_EQUAL_LENGTH<span><a class="mark" href="#errors_err_crypto_timing_safe_equal_length" id="errors_err_crypto_timing_safe_equal_length">#</a></span><span><a class="mark" href="#ERR_CRYPTO_TIMING_SAFE_EQUAL_LENGTH" id="ERR_CRYPTO_TIMING_SAFE_EQUAL_LENGTH">#</a></span></h3>
 <p><a href="crypto.html#crypto_crypto_timingsafeequal_a_b"><code>crypto.timingSafeEqual()</code></a> was called with <code>Buffer</code>, <code>TypedArray</code>, or
 <code>DataView</code> arguments of different lengths.</p>
+<p><a id="ERR_DIR_CLOSED"></a></p>
+<h3>ERR_DIR_CLOSED<span><a class="mark" href="#errors_err_dir_closed" id="errors_err_dir_closed">#</a></span><span><a class="mark" href="#ERR_DIR_CLOSED" id="ERR_DIR_CLOSED">#</a></span></h3>
+<p>The <a href="fs.html#fs_class_fs_dir"><code>fs.Dir</code></a> was previously closed.</p>
 <p><a id="ERR_DNS_SET_SERVERS_FAILED"></a></p>
 <h3>ERR_DNS_SET_SERVERS_FAILED<span><a class="mark" href="#errors_err_dns_set_servers_failed" id="errors_err_dns_set_servers_failed">#</a></span><span><a class="mark" href="#ERR_DNS_SET_SERVERS_FAILED" id="ERR_DNS_SET_SERVERS_FAILED">#</a></span></h3>
 <p><code>c-ares</code> failed to set the DNS server.</p>
@@ -1432,8 +1431,8 @@ semantics for determining whether a path can be used is platform-dependent.</p>
 <p><a id="ERR_INVALID_HANDLE_TYPE"></a></p>
 <h3>ERR_INVALID_HANDLE_TYPE<span><a class="mark" href="#errors_err_invalid_handle_type" id="errors_err_invalid_handle_type">#</a></span><span><a class="mark" href="#ERR_INVALID_HANDLE_TYPE" id="ERR_INVALID_HANDLE_TYPE">#</a></span></h3>
 <p>An attempt was made to send an unsupported "handle" over an IPC communication
-channel to a child process. See <a href="child_process.html#child_process_subprocess_send_message_sendhandle_options_callback"><code>subprocess.send()</code></a> and <a href="process.html#process_process_send_message_sendhandle_options_callback"><code>process.send()</code></a> for
-more information.</p>
+channel to a child process. See <a href="child_process.html#child_process_subprocess_send_message_sendhandle_options_callback"><code>subprocess.send()</code></a> and <a href="process.html#process_process_send_message_sendhandle_options_callback"><code>process.send()</code></a>
+for more information.</p>
 <p><a id="ERR_INVALID_HTTP_TOKEN"></a></p>
 <h3>ERR_INVALID_HTTP_TOKEN<span><a class="mark" href="#errors_err_invalid_http_token" id="errors_err_invalid_http_token">#</a></span><span><a class="mark" href="#ERR_INVALID_HTTP_TOKEN" id="ERR_INVALID_HTTP_TOKEN">#</a></span></h3>
 <p>An invalid HTTP token was supplied.</p>
@@ -1645,6 +1644,9 @@ OpenSSL crypto support.</p>
 <h3>ERR_NO_ICU<span><a class="mark" href="#errors_err_no_icu" id="errors_err_no_icu">#</a></span><span><a class="mark" href="#ERR_NO_ICU" id="ERR_NO_ICU">#</a></span></h3>
 <p>An attempt was made to use features that require <a href="intl.html#intl_internationalization_support">ICU</a>, but Node.js was not
 compiled with ICU support.</p>
+<p><a id="ERR_NON_CONTEXT_AWARE_DISABLED"></a></p>
+<h3>ERR_NON_CONTEXT_AWARE_DISABLED<span><a class="mark" href="#errors_err_non_context_aware_disabled" id="errors_err_non_context_aware_disabled">#</a></span><span><a class="mark" href="#ERR_NON_CONTEXT_AWARE_DISABLED" id="ERR_NON_CONTEXT_AWARE_DISABLED">#</a></span></h3>
+<p>A non-context-aware native addon was loaded in a process that disallows them.</p>
 <p><a id="ERR_OUT_OF_RANGE"></a></p>
 <h3>ERR_OUT_OF_RANGE<span><a class="mark" href="#errors_err_out_of_range" id="errors_err_out_of_range">#</a></span><span><a class="mark" href="#ERR_OUT_OF_RANGE" id="ERR_OUT_OF_RANGE">#</a></span></h3>
 <p>A given value is out of the accepted range.</p>
@@ -1883,9 +1885,6 @@ than the parent module. Linked modules must share the same context.</p>
 <p><a id="ERR_VM_MODULE_LINKING_ERRORED"></a></p>
 <h3>ERR_VM_MODULE_LINKING_ERRORED<span><a class="mark" href="#errors_err_vm_module_linking_errored" id="errors_err_vm_module_linking_errored">#</a></span><span><a class="mark" href="#ERR_VM_MODULE_LINKING_ERRORED" id="ERR_VM_MODULE_LINKING_ERRORED">#</a></span></h3>
 <p>The linker function returned a module for which linking has failed.</p>
-<p><a id="ERR_VM_MODULE_NOT_LINKED"></a></p>
-<h3>ERR_VM_MODULE_NOT_LINKED<span><a class="mark" href="#errors_err_vm_module_not_linked" id="errors_err_vm_module_not_linked">#</a></span><span><a class="mark" href="#ERR_VM_MODULE_NOT_LINKED" id="ERR_VM_MODULE_NOT_LINKED">#</a></span></h3>
-<p>The module must be successfully linked before instantiation.</p>
 <p><a id="ERR_VM_MODULE_NOT_MODULE"></a></p>
 <h3>ERR_VM_MODULE_NOT_MODULE<span><a class="mark" href="#errors_err_vm_module_not_module" id="errors_err_vm_module_not_module">#</a></span><span><a class="mark" href="#ERR_VM_MODULE_NOT_MODULE" id="ERR_VM_MODULE_NOT_MODULE">#</a></span></h3>
 <p>The fulfilled value of a linking promise is not a <code>vm.SourceTextModule</code> object.</p>
@@ -1960,6 +1959,15 @@ for transferring.</p>
 </div>
 <p>There was an attempt to use a <code>MessagePort</code> instance in a closed
 state, usually after <code>.close()</code> has been called.</p>
+<p><a id="ERR_CRYPTO_HASH_DIGEST_NO_UTF16"></a></p>
+<h3>ERR_CRYPTO_HASH_DIGEST_NO_UTF16<span><a class="mark" href="#errors_err_crypto_hash_digest_no_utf16" id="errors_err_crypto_hash_digest_no_utf16">#</a></span><span><a class="mark" href="#ERR_CRYPTO_HASH_DIGEST_NO_UTF16" id="ERR_CRYPTO_HASH_DIGEST_NO_UTF16">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v9.0.0</span><span>Removed in: v12.12.0</span>
+</div>
+<p>The UTF-16 encoding was used with <a href="crypto.html#crypto_hash_digest_encoding"><code>hash.digest()</code></a>. While the
+<code>hash.digest()</code> method does allow an <code>encoding</code> argument to be passed in,
+causing the method to return a string rather than a <code>Buffer</code>, the UTF-16
+encoding (e.g. <code>ucs</code> or <code>utf16le</code>) is not supported.</p>
 <p><a id="ERR_HTTP2_FRAME_ERROR"></a></p>
 <h3>ERR_HTTP2_FRAME_ERROR<span><a class="mark" href="#errors_err_http2_frame_error" id="errors_err_http2_frame_error">#</a></span><span><a class="mark" href="#ERR_HTTP2_FRAME_ERROR" id="ERR_HTTP2_FRAME_ERROR">#</a></span></h3>
 <div class="api_metadata">
@@ -2103,6 +2111,9 @@ itself, although it is possible for user code to trigger it.</p>
 <span>Added in: v9.0.0</span><span>Removed in: v10.0.0</span>
 </div>
 <p>Used when a given value is out of the accepted range.</p>
+<p><a id="ERR_VM_MODULE_NOT_LINKED"></a></p>
+<h3>ERR_VM_MODULE_NOT_LINKED<span><a class="mark" href="#errors_err_vm_module_not_linked" id="errors_err_vm_module_not_linked">#</a></span><span><a class="mark" href="#ERR_VM_MODULE_NOT_LINKED" id="ERR_VM_MODULE_NOT_LINKED">#</a></span></h3>
+<p>The module must be successfully linked before instantiation.</p>
 <p><a id="ERR_ZLIB_BINDING_CLOSED"></a></p>
 <h3>ERR_ZLIB_BINDING_CLOSED<span><a class="mark" href="#errors_err_zlib_binding_closed" id="errors_err_zlib_binding_closed">#</a></span><span><a class="mark" href="#ERR_ZLIB_BINDING_CLOSED" id="ERR_ZLIB_BINDING_CLOSED">#</a></span></h3>
 <div class="api_metadata">

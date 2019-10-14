@@ -82,6 +82,7 @@ const {
   hideStackFrames
 } = require('internal/errors');
 const { validateNumber, validateString } = require('internal/validators');
+const fsPromisesInternal = require('internal/fs/promises');
 const { utcDate } = require('internal/http');
 const { onServerStream,
         Http2ServerRequest,
@@ -161,7 +162,7 @@ function debugSessionObj(session, message, ...args) {
 
 const kMaxFrameSize = (2 ** 24) - 1;
 const kMaxInt = (2 ** 32) - 1;
-const kMaxStreams = (2 ** 31) - 1;
+const kMaxStreams = (2 ** 32) - 1;
 const kMaxALTSVC = (2 ** 14) - 2;
 
 // eslint-disable-next-line no-control-regex
@@ -518,6 +519,7 @@ function onSettings() {
     return;
   session[kUpdateTimer]();
   debugSessionObj(session, 'new settings received');
+  session[kRemoteSettings] = undefined;
   session.emit('remoteSettings', session.remoteSettings);
 }
 
@@ -2544,7 +2546,10 @@ class ServerHttp2Stream extends Http2Stream {
       this[kState].flags |= STREAM_FLAGS_HAS_TRAILERS;
     }
 
-    validateNumber(fd, 'fd');
+    if (fd instanceof fsPromisesInternal.FileHandle)
+      fd = fd.fd;
+    else if (typeof fd !== 'number')
+      throw new ERR_INVALID_ARG_TYPE('fd', ['number', 'FileHandle'], fd);
 
     debugStreamObj(this, 'initiating response from fd');
     this[kUpdateTimer]();
@@ -2919,7 +2924,7 @@ function connect(authority, options, listener) {
   } else {
     switch (protocol) {
       case 'http:':
-        socket = net.connect(options.port || port, options.host || host);
+        socket = net.connect({ port, host, ...options });
         break;
       case 'https:':
         socket = tls.connect(port, host, initializeTLSOptions(options, host));

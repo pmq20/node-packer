@@ -117,17 +117,12 @@ class Loader {
     source,
     url = pathToFileURL(`${process.cwd()}/[eval${++this.evalIndex}]`).href
   ) {
-    const evalInstance = async (url) => {
-      return {
-        module: new ModuleWrap(source, url),
-        reflect: undefined
-      };
-    };
+    const evalInstance = (url) => new ModuleWrap(source, url);
     const job = new ModuleJob(this, url, evalInstance, false);
     this.moduleMap.set(url, job);
     const { module, result } = await job.run();
     return {
-      namespace: module.namespace(),
+      namespace: module.getNamespace(),
       result
     };
   }
@@ -135,7 +130,7 @@ class Loader {
   async import(specifier, parent) {
     const job = await this.getModuleJob(specifier, parent);
     const { module } = await job.run();
-    return module.namespace();
+    return module.getNamespace();
   }
 
   hook({ resolve, dynamicInstantiate }) {
@@ -165,7 +160,7 @@ class Loader {
         return createDynamicModule([], exports, url, (reflect) => {
           debug(`Loading dynamic ${url}`);
           execute(reflect.exports);
-        });
+        }).module;
       };
     } else {
       if (!translators.has(format))

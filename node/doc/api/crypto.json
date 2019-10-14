@@ -429,9 +429,9 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns: {DiffieHellman}",
+                    "textRaw": "Returns: {DiffieHellmanGroup}",
                     "name": "return",
-                    "type": "DiffieHellman"
+                    "type": "DiffieHellmanGroup"
                   },
                   "params": [
                     {
@@ -1032,9 +1032,9 @@
               "signatures": [
                 {
                   "return": {
-                    "textRaw": "Returns: {DiffieHellman}",
+                    "textRaw": "Returns: {DiffieHellmanGroup}",
                     "name": "return",
-                    "type": "DiffieHellman"
+                    "type": "DiffieHellmanGroup"
                   },
                   "params": [
                     {
@@ -1045,7 +1045,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Creates a predefined <code>DiffieHellman</code> key exchange object. The\nsupported groups are: <code>'modp1'</code>, <code>'modp2'</code>, <code>'modp5'</code> (defined in\n<a href=\"https://www.rfc-editor.org/rfc/rfc2412.txt\">RFC 2412</a>, but see <a href=\"#crypto_support_for_weak_or_compromised_algorithms\">Caveats</a>) and <code>'modp14'</code>, <code>'modp15'</code>,\n<code>'modp16'</code>, <code>'modp17'</code>, <code>'modp18'</code> (defined in <a href=\"https://www.rfc-editor.org/rfc/rfc3526.txt\">RFC 3526</a>). The\nreturned object mimics the interface of objects created by\n<a href=\"#crypto_crypto_creatediffiehellman_prime_primeencoding_generator_generatorencoding\"><code>crypto.createDiffieHellman()</code></a>, but will not allow changing\nthe keys (with <a href=\"#crypto_diffiehellman_setpublickey_publickey_encoding\"><code>diffieHellman.setPublicKey()</code></a>, for example). The\nadvantage of using this method is that the parties do not have to\ngenerate nor exchange a group modulus beforehand, saving both processor\nand communication time.</p>\n<p>Example (obtaining a shared secret):</p>\n<pre><code class=\"language-js\">const crypto = require('crypto');\nconst alice = crypto.getDiffieHellman('modp14');\nconst bob = crypto.getDiffieHellman('modp14');\n\nalice.generateKeys();\nbob.generateKeys();\n\nconst aliceSecret = alice.computeSecret(bob.getPublicKey(), null, 'hex');\nconst bobSecret = bob.computeSecret(alice.getPublicKey(), null, 'hex');\n\n/* aliceSecret and bobSecret should be the same */\nconsole.log(aliceSecret === bobSecret);\n</code></pre>"
+              "desc": "<p>Creates a predefined <code>DiffieHellmanGroup</code> key exchange object. The\nsupported groups are: <code>'modp1'</code>, <code>'modp2'</code>, <code>'modp5'</code> (defined in\n<a href=\"https://www.rfc-editor.org/rfc/rfc2412.txt\">RFC 2412</a>, but see <a href=\"#crypto_support_for_weak_or_compromised_algorithms\">Caveats</a>) and <code>'modp14'</code>, <code>'modp15'</code>,\n<code>'modp16'</code>, <code>'modp17'</code>, <code>'modp18'</code> (defined in <a href=\"https://www.rfc-editor.org/rfc/rfc3526.txt\">RFC 3526</a>). The\nreturned object mimics the interface of objects created by\n<a href=\"#crypto_crypto_creatediffiehellman_prime_primeencoding_generator_generatorencoding\"><code>crypto.createDiffieHellman()</code></a>, but will not allow changing\nthe keys (with <a href=\"#crypto_diffiehellman_setpublickey_publickey_encoding\"><code>diffieHellman.setPublicKey()</code></a>, for example). The\nadvantage of using this method is that the parties do not have to\ngenerate nor exchange a group modulus beforehand, saving both processor\nand communication time.</p>\n<p>Example (obtaining a shared secret):</p>\n<pre><code class=\"language-js\">const crypto = require('crypto');\nconst alice = crypto.getDiffieHellman('modp14');\nconst bob = crypto.getDiffieHellman('modp14');\n\nalice.generateKeys();\nbob.generateKeys();\n\nconst aliceSecret = alice.computeSecret(bob.getPublicKey(), null, 'hex');\nconst bobSecret = bob.computeSecret(alice.getPublicKey(), null, 'hex');\n\n/* aliceSecret and bobSecret should be the same */\nconsole.log(aliceSecret === bobSecret);\n</code></pre>"
             },
             {
               "textRaw": "crypto.getFips()",

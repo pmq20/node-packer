@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>HTTP/2 | Node.js v12.11.1 Documentation</title>
+  <title>HTTP/2 | Node.js v12.12.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -81,7 +81,7 @@
 
     <div id="column1" data-id="http2" class="interior">
       <header>
-        <h1>Node.js v12.11.1 Documentation</h1>
+        <h1>Node.js v12.12.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -1615,6 +1615,8 @@ server.on('stream', (stream) => {
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v12.12.0</td>
+<td><p>The <code>fd</code> option may now be a <code>FileHandle</code>.</p></td></tr>
 <tr><td>v10.0.0</td>
 <td><p>Any readable file descriptor, not necessarily for a regular file, is supported now.</p></td></tr>
 <tr><td>v8.4.0</td>
@@ -1623,7 +1625,7 @@ server.on('stream', (stream) => {
 </details>
 </div>
 <ul>
-<li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> A readable file descriptor.</li>
+<li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> | <a href="fs.html#fs_class_filehandle" class="type">&#x3C;FileHandle></a> A readable file descriptor.</li>
 <li><code>headers</code> <a href="http2.html#http2_headers_object" class="type">&#x3C;HTTP/2 Headers Object></a></li>
 <li>
 <p><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></p>
@@ -1667,8 +1669,8 @@ collect details on the provided file descriptor.</p>
 <p>The <code>offset</code> and <code>length</code> options may be used to limit the response to a
 specific range subset. This can be used, for instance, to support HTTP Range
 requests.</p>
-<p>The file descriptor is not closed when the stream is closed, so it will need
-to be closed manually once it is no longer needed.
+<p>The file descriptor or <code>FileHandle</code> is not closed when the stream is closed,
+so it will need to be closed manually once it is no longer needed.
 Using the same file descriptor concurrently for multiple streams
 is not supported and may result in data loss. Re-using a file descriptor
 after a stream has finished is supported.</p>
@@ -1892,7 +1894,7 @@ a given number of milliseconds set using <code>http2server.setTimeout()</code>.
 <strong>Default:</strong> 2 minutes.</p>
 <p>To change the default timeout use the <a href="cli.html#cli_http_server_default_timeout_milliseconds"><code>--http-server-default-timeout</code></a>
 flag.</p>
-<h4>server.close([callback])<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/net.js#L1585">[src]</a><span><a class="mark" href="#http2_server_close_callback" id="http2_server_close_callback">#</a></span></h4>
+<h4>server.close([callback])<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/net.js#L1587">[src]</a><span><a class="mark" href="#http2_server_close_callback" id="http2_server_close_callback">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
 </div>
@@ -1906,7 +1908,7 @@ all active sessions.</p>
 <p>If <code>callback</code> is provided, it is not invoked until all active sessions have been
 closed, although the server has already stopped allowing new sessions. See
 <a href="net.html#net_server_close_callback"><code>net.Server.close()</code></a> for more details.</p>
-<h4>server.setTimeout([msecs][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/_http_server.js#L348">[src]</a><span><a class="mark" href="#http2_server_settimeout_msecs_callback" id="http2_server_settimeout_msecs_callback">#</a></span></h4>
+<h4>server.setTimeout([msecs][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/_http_server.js#L348">[src]</a><span><a class="mark" href="#http2_server_settimeout_msecs_callback" id="http2_server_settimeout_msecs_callback">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
 </div>
@@ -2018,7 +2020,7 @@ a given number of milliseconds set using <code>http2secureServer.setTimeout()</c
 negotiate an allowed protocol (i.e. HTTP/2 or HTTP/1.1). The event handler
 receives the socket for handling. If no listener is registered for this event,
 the connection is terminated. See the <a href="#http2_compatibility_api">Compatibility API</a>.</p>
-<h4>server.close([callback])<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/net.js#L1585">[src]</a><span><a class="mark" href="#http2_server_close_callback_1" id="http2_server_close_callback_1">#</a></span></h4>
+<h4>server.close([callback])<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/net.js#L1587">[src]</a><span><a class="mark" href="#http2_server_close_callback_1" id="http2_server_close_callback_1">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
 </div>
@@ -2032,7 +2034,7 @@ all active sessions.</p>
 <p>If <code>callback</code> is provided, it is not invoked until all active sessions have been
 closed, although the server has already stopped allowing new sessions. See
 <a href="tls.html#tls_server_close_callback"><code>tls.Server.close()</code></a> for more details.</p>
-<h4>server.setTimeout([msecs][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/_http_server.js#L348">[src]</a><span><a class="mark" href="#http2_server_settimeout_msecs_callback_1" id="http2_server_settimeout_msecs_callback_1">#</a></span></h4>
+<h4>server.setTimeout([msecs][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/_http_server.js#L348">[src]</a><span><a class="mark" href="#http2_server_settimeout_msecs_callback_1" id="http2_server_settimeout_msecs_callback_1">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
 </div>
@@ -2535,6 +2537,8 @@ server.on('stream', (stream, headers) => {
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v12.12.0</td>
+<td><p>The <code>maxConcurrentStreams</code> setting is stricter.</p></td></tr>
 <tr><td>v8.9.3</td>
 <td><p>The <code>maxHeaderListSize</code> setting is now strictly enforced.</p></td></tr>
 <tr><td>v8.4.0</td>
@@ -2563,9 +2567,10 @@ The minimum allowed value is 16,384. The maximum allowed value
 is 2<sup>24</sup>-1. <strong>Default:</strong> <code>16,384 bytes</code>.</li>
 <li><code>maxConcurrentStreams</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Specifies the maximum number of concurrent
 streams permitted on an <code>Http2Session</code>. There is no default value which
-implies, at least theoretically, 2<sup>31</sup>-1 streams may be open
+implies, at least theoretically, 2<sup>32</sup>-1 streams may be open
 concurrently at any given time in an <code>Http2Session</code>. The minimum value
-is 0. The maximum allowed value is 2<sup>31</sup>-1.</li>
+is 0. The maximum allowed value is 2<sup>32</sup>-1. <strong>Default:</strong>
+<code>4294967295</code>.</li>
 <li><code>maxHeaderListSize</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Specifies the maximum size (uncompressed octets)
 of header list that will be accepted. The minimum allowed value is 0. The
 maximum allowed value is 2<sup>32</sup>-1. <strong>Default:</strong> <code>65535</code>.</li>

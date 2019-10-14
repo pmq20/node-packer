@@ -157,6 +157,21 @@
               "displayName": "`--enable-fips`"
             },
             {
+              "textRaw": "`--enable-source-maps`",
+              "name": "`--enable-source-maps`",
+              "meta": {
+                "added": [
+                  "v12.12.0"
+                ],
+                "changes": []
+              },
+              "stability": 1,
+              "stabilityText": "Experimental",
+              "desc": "<p>Enable experimental Source Map V3 support for stack traces.</p>",
+              "type": "module",
+              "displayName": "`--enable-source-maps`"
+            },
+            {
               "textRaw": "`--es-module-specifier-resolution=mode`",
               "name": "`--es-module-specifier-resolution=mode`",
               "meta": {
@@ -181,6 +196,19 @@
               "desc": "<p>Enable experimental resolution using the <code>exports</code> field in <code>package.json</code>.</p>",
               "type": "module",
               "displayName": "`--experimental-exports`"
+            },
+            {
+              "textRaw": "`--experimental-json-modules`",
+              "name": "`--experimental-json-modules`",
+              "meta": {
+                "added": [
+                  "v12.9.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Enable experimental JSON support for the ES Module loader.</p>",
+              "type": "module",
+              "displayName": "`--experimental-json-modules`"
             },
             {
               "textRaw": "`--experimental-modules`",
@@ -545,6 +573,19 @@
               "desc": "<p>Silence all process warnings (including deprecations).</p>",
               "type": "module",
               "displayName": "`--no-warnings`"
+            },
+            {
+              "textRaw": "`--force-context-aware`",
+              "name": "`--force-context-aware`",
+              "meta": {
+                "added": [
+                  "v12.12.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Disable loading native addons that are not <a href=\"addons.html#addons_context_aware_addons\">context-aware</a>.</p>",
+              "type": "module",
+              "displayName": "`--force-context-aware`"
             },
             {
               "textRaw": "`--openssl-config=file`",
@@ -1251,7 +1292,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>A space-separated list of command line options. <code>options...</code> are interpreted\nbefore command line options, so command line options will override or\ncompound after anything in <code>options...</code>. Node.js will exit with an error if\nan option that is not allowed in the environment is used, such as <code>-p</code> or a\nscript file.</p>\n<p>In case an option value happens to contain a space (for example a path listed\nin <code>--require</code>), it must be escaped using double quotes. For example:</p>\n<pre><code class=\"language-bash\">NODE_OPTIONS='--require \"./my path/file.js\"'\n</code></pre>\n<p>A singleton flag passed as a command line option will override the same flag\npassed into <code>NODE_OPTIONS</code>:</p>\n<pre><code class=\"language-bash\"># The inspector will be available on port 5555\nNODE_OPTIONS='--inspect=localhost:4444' node --inspect=localhost:5555\n</code></pre>\n<p>A flag that can be passed multiple times will be treated as if its\n<code>NODE_OPTIONS</code> instances were passed first, and then its command line\ninstances afterwards:</p>\n<pre><code class=\"language-bash\">NODE_OPTIONS='--require \"./a.js\"' node --require \"./b.js\"\n# is equivalent to:\nnode --require \"./a.js\" --require \"./b.js\"\n</code></pre>\n<p>Node.js options that are allowed are:</p>\n<!-- node-options-node start -->\n<ul>\n<li><code>--enable-fips</code></li>\n<li><code>--es-module-specifier-resolution</code></li>\n<li><code>--experimental-exports</code></li>\n<li><code>--experimental-loader</code></li>\n<li><code>--experimental-modules</code></li>\n<li><code>--experimental-policy</code></li>\n<li><code>--experimental-repl-await</code></li>\n<li><code>--experimental-report</code></li>\n<li><code>--experimental-vm-modules</code></li>\n<li><code>--experimental-wasm-modules</code></li>\n<li><code>--force-fips</code></li>\n<li><code>--frozen-intrinsics</code></li>\n<li><code>--heapsnapshot-signal</code></li>\n<li><code>--http-parser</code></li>\n<li><code>--http-server-default-timeout</code></li>\n<li><code>--icu-data-dir</code></li>\n<li><code>--input-type</code></li>\n<li><code>--inspect-brk</code></li>\n<li><code>--inspect-port</code>, <code>--debug-port</code></li>\n<li><code>--inspect-publish-uid</code></li>\n<li><code>--inspect</code></li>\n<li><code>--max-http-header-size</code></li>\n<li><code>--napi-modules</code></li>\n<li><code>--no-deprecation</code></li>\n<li><code>--no-force-async-hooks-checks</code></li>\n<li><code>--no-warnings</code></li>\n<li><code>--openssl-config</code></li>\n<li><code>--pending-deprecation</code></li>\n<li><code>--policy-integrity</code></li>\n<li><code>--preserve-symlinks-main</code></li>\n<li><code>--preserve-symlinks</code></li>\n<li><code>--prof-process</code></li>\n<li><code>--redirect-warnings</code></li>\n<li><code>--report-directory</code></li>\n<li><code>--report-filename</code></li>\n<li><code>--report-on-fatalerror</code></li>\n<li><code>--report-on-signal</code></li>\n<li><code>--report-signal</code></li>\n<li><code>--report-uncaught-exception</code></li>\n<li><code>--require</code>, <code>-r</code></li>\n<li><code>--throw-deprecation</code></li>\n<li><code>--title</code></li>\n<li><code>--tls-cipher-list</code></li>\n<li><code>--tls-max-v1.2</code></li>\n<li><code>--tls-max-v1.3</code></li>\n<li><code>--tls-min-v1.0</code></li>\n<li><code>--tls-min-v1.1</code></li>\n<li><code>--tls-min-v1.2</code></li>\n<li><code>--tls-min-v1.3</code></li>\n<li><code>--trace-deprecation</code></li>\n<li><code>--trace-event-categories</code></li>\n<li><code>--trace-event-file-pattern</code></li>\n<li><code>--trace-events-enabled</code></li>\n<li><code>--trace-sync-io</code></li>\n<li><code>--trace-tls</code></li>\n<li><code>--trace-warnings</code></li>\n<li><code>--track-heap-objects</code></li>\n<li><code>--unhandled-rejections</code></li>\n<li><code>--use-bundled-ca</code></li>\n<li><code>--use-openssl-ca</code></li>\n<li><code>--v8-pool-size</code></li>\n<li>\n<p><code>--zero-fill-buffers</code></p>\n<!-- node-options-node end -->\n</li>\n</ul>\n<p>V8 options that are allowed are:</p>\n<!-- node-options-v8 start -->\n<ul>\n<li><code>--abort-on-uncaught-exception</code></li>\n<li><code>--interpreted-frames-native-stack</code></li>\n<li><code>--max-old-space-size</code></li>\n<li><code>--perf-basic-prof-only-functions</code></li>\n<li><code>--perf-basic-prof</code></li>\n<li><code>--perf-prof-unwinding-info</code></li>\n<li><code>--perf-prof</code></li>\n<li>\n<p><code>--stack-trace-limit</code></p>\n<!-- node-options-v8 end -->\n</li>\n</ul>",
+              "desc": "<p>A space-separated list of command line options. <code>options...</code> are interpreted\nbefore command line options, so command line options will override or\ncompound after anything in <code>options...</code>. Node.js will exit with an error if\nan option that is not allowed in the environment is used, such as <code>-p</code> or a\nscript file.</p>\n<p>In case an option value happens to contain a space (for example a path listed\nin <code>--require</code>), it must be escaped using double quotes. For example:</p>\n<pre><code class=\"language-bash\">NODE_OPTIONS='--require \"./my path/file.js\"'\n</code></pre>\n<p>A singleton flag passed as a command line option will override the same flag\npassed into <code>NODE_OPTIONS</code>:</p>\n<pre><code class=\"language-bash\"># The inspector will be available on port 5555\nNODE_OPTIONS='--inspect=localhost:4444' node --inspect=localhost:5555\n</code></pre>\n<p>A flag that can be passed multiple times will be treated as if its\n<code>NODE_OPTIONS</code> instances were passed first, and then its command line\ninstances afterwards:</p>\n<pre><code class=\"language-bash\">NODE_OPTIONS='--require \"./a.js\"' node --require \"./b.js\"\n# is equivalent to:\nnode --require \"./a.js\" --require \"./b.js\"\n</code></pre>\n<p>Node.js options that are allowed are:</p>\n<!-- node-options-node start -->\n<ul>\n<li><code>--enable-fips</code></li>\n<li><code>--enable-source-maps</code></li>\n<li><code>--es-module-specifier-resolution</code></li>\n<li><code>--experimental-exports</code></li>\n<li><code>--experimental-json-modules</code></li>\n<li><code>--experimental-loader</code></li>\n<li><code>--experimental-modules</code></li>\n<li><code>--experimental-policy</code></li>\n<li><code>--experimental-repl-await</code></li>\n<li><code>--experimental-report</code></li>\n<li><code>--experimental-vm-modules</code></li>\n<li><code>--experimental-wasm-modules</code></li>\n<li><code>--force-context-aware</code></li>\n<li><code>--force-fips</code></li>\n<li><code>--frozen-intrinsics</code></li>\n<li><code>--heapsnapshot-signal</code></li>\n<li><code>--http-parser</code></li>\n<li><code>--http-server-default-timeout</code></li>\n<li><code>--icu-data-dir</code></li>\n<li><code>--input-type</code></li>\n<li><code>--inspect-brk</code></li>\n<li><code>--inspect-port</code>, <code>--debug-port</code></li>\n<li><code>--inspect-publish-uid</code></li>\n<li><code>--inspect</code></li>\n<li><code>--max-http-header-size</code></li>\n<li><code>--napi-modules</code></li>\n<li><code>--no-deprecation</code></li>\n<li><code>--no-force-async-hooks-checks</code></li>\n<li><code>--no-warnings</code></li>\n<li><code>--openssl-config</code></li>\n<li><code>--pending-deprecation</code></li>\n<li><code>--policy-integrity</code></li>\n<li><code>--preserve-symlinks-main</code></li>\n<li><code>--preserve-symlinks</code></li>\n<li><code>--prof-process</code></li>\n<li><code>--redirect-warnings</code></li>\n<li><code>--report-directory</code></li>\n<li><code>--report-filename</code></li>\n<li><code>--report-on-fatalerror</code></li>\n<li><code>--report-on-signal</code></li>\n<li><code>--report-signal</code></li>\n<li><code>--report-uncaught-exception</code></li>\n<li><code>--require</code>, <code>-r</code></li>\n<li><code>--throw-deprecation</code></li>\n<li><code>--title</code></li>\n<li><code>--tls-cipher-list</code></li>\n<li><code>--tls-max-v1.2</code></li>\n<li><code>--tls-max-v1.3</code></li>\n<li><code>--tls-min-v1.0</code></li>\n<li><code>--tls-min-v1.1</code></li>\n<li><code>--tls-min-v1.2</code></li>\n<li><code>--tls-min-v1.3</code></li>\n<li><code>--trace-deprecation</code></li>\n<li><code>--trace-event-categories</code></li>\n<li><code>--trace-event-file-pattern</code></li>\n<li><code>--trace-events-enabled</code></li>\n<li><code>--trace-sync-io</code></li>\n<li><code>--trace-tls</code></li>\n<li><code>--trace-warnings</code></li>\n<li><code>--track-heap-objects</code></li>\n<li><code>--unhandled-rejections</code></li>\n<li><code>--use-bundled-ca</code></li>\n<li><code>--use-openssl-ca</code></li>\n<li><code>--v8-pool-size</code></li>\n<li>\n<p><code>--zero-fill-buffers</code></p>\n<!-- node-options-node end -->\n</li>\n</ul>\n<p>V8 options that are allowed are:</p>\n<!-- node-options-v8 start -->\n<ul>\n<li><code>--abort-on-uncaught-exception</code></li>\n<li><code>--interpreted-frames-native-stack</code></li>\n<li><code>--max-old-space-size</code></li>\n<li><code>--perf-basic-prof-only-functions</code></li>\n<li><code>--perf-basic-prof</code></li>\n<li><code>--perf-prof-unwinding-info</code></li>\n<li><code>--perf-prof</code></li>\n<li>\n<p><code>--stack-trace-limit</code></p>\n<!-- node-options-v8 end -->\n</li>\n</ul>",
               "type": "module",
               "displayName": "`NODE_OPTIONS=options...`"
             },

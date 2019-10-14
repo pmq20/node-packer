@@ -147,7 +147,7 @@
                   }
                 ]
               },
-              "desc": "<p>Type: Runtime (supports <a href=\"cli.html#cli_pending_deprecation\"><code>--pending-deprecation</code></a>)</p>\n<p>The <code>Buffer()</code> function and <code>new Buffer()</code> constructor are deprecated due to\nAPI usability issues that can lead to accidental security issues.</p>\n<p>As an alternative, use one of the following methods of constructing <code>Buffer</code>\nobjects:</p>\n<ul>\n<li><a href=\"buffer.html#buffer_class_method_buffer_alloc_size_fill_encoding\"><code>Buffer.alloc(size[, fill[, encoding]])</code></a> - Create a <code>Buffer</code> with\n<em>initialized</em> memory.</li>\n<li><a href=\"buffer.html#buffer_class_method_buffer_allocunsafe_size\"><code>Buffer.allocUnsafe(size)</code></a> - Create a <code>Buffer</code> with\n<em>uninitialized</em> memory.</li>\n<li><a href=\"buffer.html#buffer_class_method_buffer_allocunsafeslow_size\"><code>Buffer.allocUnsafeSlow(size)</code></a> - Create a <code>Buffer</code> with <em>uninitialized</em>\nmemory.</li>\n<li><a href=\"buffer.html#buffer_class_method_buffer_from_array\"><code>Buffer.from(array)</code></a> - Create a <code>Buffer</code> with a copy of <code>array</code></li>\n<li><a href=\"buffer.html#buffer_class_method_buffer_from_arraybuffer_byteoffset_length\"><code>Buffer.from(arrayBuffer[, byteOffset[, length]])</code></a> -\nCreate a <code>Buffer</code> that wraps the given <code>arrayBuffer</code>.</li>\n<li><a href=\"buffer.html#buffer_class_method_buffer_from_buffer\"><code>Buffer.from(buffer)</code></a> - Create a <code>Buffer</code> that copies <code>buffer</code>.</li>\n<li><a href=\"buffer.html#buffer_class_method_buffer_from_string_encoding\"><code>Buffer.from(string[, encoding])</code></a> - Create a <code>Buffer</code>\nthat copies <code>string</code>.</li>\n</ul>\n<p>As of v10.0.0, a deprecation warning is printed at runtime when\n<code>--pending-deprecation</code> is used or when the calling code is\noutside <code>node_modules</code> in order to better target developers, rather than users.</p>\n<p><a id=\"DEP0006\"></a></p>",
+              "desc": "<p>Type: Runtime (supports <a href=\"cli.html#cli_pending_deprecation\"><code>--pending-deprecation</code></a>)</p>\n<p>The <code>Buffer()</code> function and <code>new Buffer()</code> constructor are deprecated due to\nAPI usability issues that can lead to accidental security issues.</p>\n<p>As an alternative, use one of the following methods of constructing <code>Buffer</code>\nobjects:</p>\n<ul>\n<li><a href=\"buffer.html#buffer_class_method_buffer_alloc_size_fill_encoding\"><code>Buffer.alloc(size[, fill[, encoding]])</code></a> - Create a <code>Buffer</code> with\n<em>initialized</em> memory.</li>\n<li><a href=\"buffer.html#buffer_class_method_buffer_allocunsafe_size\"><code>Buffer.allocUnsafe(size)</code></a> - Create a <code>Buffer</code> with\n<em>uninitialized</em> memory.</li>\n<li><a href=\"buffer.html#buffer_class_method_buffer_allocunsafeslow_size\"><code>Buffer.allocUnsafeSlow(size)</code></a> - Create a <code>Buffer</code> with <em>uninitialized</em>\nmemory.</li>\n<li><a href=\"buffer.html#buffer_class_method_buffer_from_array\"><code>Buffer.from(array)</code></a> - Create a <code>Buffer</code> with a copy of <code>array</code></li>\n<li><a href=\"buffer.html#buffer_class_method_buffer_from_arraybuffer_byteoffset_length\"><code>Buffer.from(arrayBuffer[, byteOffset[, length]])</code></a> -\nCreate a <code>Buffer</code> that wraps the given <code>arrayBuffer</code>.</li>\n<li><a href=\"buffer.html#buffer_class_method_buffer_from_buffer\"><code>Buffer.from(buffer)</code></a> - Create a <code>Buffer</code> that copies <code>buffer</code>.</li>\n<li><a href=\"buffer.html#buffer_class_method_buffer_from_string_encoding\"><code>Buffer.from(string[, encoding])</code></a> - Create a <code>Buffer</code>\nthat copies <code>string</code>.</li>\n</ul>\n<p>Without <code>--pending-deprecation</code>, runtime warnings occur only for code not in\n<code>node_modules</code>. This means there will not be deprecation warnings for\n<code>Buffer()</code> usage in dependencies. With <code>--pending-deprecation</code>, a runtime\nwarning results no matter where the <code>Buffer()</code> usage occurs.</p>\n<p><a id=\"DEP0006\"></a></p>",
               "type": "module",
               "displayName": "DEP0005: Buffer() constructor"
             },
@@ -2902,9 +2902,41 @@
                   }
                 ]
               },
-              "desc": "<p>Type: Runtime</p>\n<p>Passing a callback to <a href=\"worker_threads.html#worker_threads_worker_terminate\"><code>worker.terminate()</code></a> is deprecated. Use the returned\n<code>Promise</code> instead, or a listener to the worker’s <code>'exit'</code> event.</p>",
+              "desc": "<p>Type: Runtime</p>\n<p>Passing a callback to <a href=\"worker_threads.html#worker_threads_worker_terminate\"><code>worker.terminate()</code></a> is deprecated. Use the returned\n<code>Promise</code> instead, or a listener to the worker’s <code>'exit'</code> event.</p>\n<p><a id=\"DEP0133\"></a></p>",
               "type": "module",
               "displayName": "DEP0132: worker.terminate() with callback"
+            },
+            {
+              "textRaw": "DEP0133: http connection",
+              "name": "dep0133:_http_connection",
+              "meta": {
+                "changes": [
+                  {
+                    "version": "v12.12.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/29015",
+                    "description": "Documentation-only deprecation."
+                  }
+                ]
+              },
+              "desc": "<p>Type: Documentation-only</p>\n<p>Prefer [<code>response.socket</code>][] over [<code>response.connection</code>][] and\n[<code>request.socket</code>][] over [<code>request.connection</code>][].</p>\n<p><a id=\"DEP0134\"></a></p>",
+              "type": "module",
+              "displayName": "DEP0133: http connection"
+            },
+            {
+              "textRaw": "DEP0134: process._tickCallback",
+              "name": "dep0134:_process._tickcallback",
+              "meta": {
+                "changes": [
+                  {
+                    "version": "v12.12.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/29781",
+                    "description": "Documentation-only deprecation."
+                  }
+                ]
+              },
+              "desc": "<p>Type: Documentation-only (supports <a href=\"cli.html#cli_pending_deprecation\"><code>--pending-deprecation</code></a>)</p>\n<p>The <code>process._tickCallback</code> property was never documented as\nan officially supported API.</p>",
+              "type": "module",
+              "displayName": "DEP0134: process._tickCallback"
             }
           ],
           "type": "misc",

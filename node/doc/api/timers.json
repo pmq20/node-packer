@@ -212,10 +212,10 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`callback` {Function} The function to call at the end of this turn of [the Node.js Event Loop]",
+                      "textRaw": "`callback` {Function} The function to call at the end of this turn of the Node.js [Event Loop][]",
                       "name": "callback",
                       "type": "Function",
-                      "desc": "The function to call at the end of this turn of [the Node.js Event Loop]"
+                      "desc": "The function to call at the end of this turn of the Node.js [Event Loop][]"
                     },
                     {
                       "textRaw": "`...args` {any} Optional arguments to pass when the `callback` is called.",

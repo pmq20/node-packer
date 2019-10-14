@@ -47,6 +47,207 @@
           "displayName": "Threadpool Usage"
         },
         {
+          "textRaw": "Class fs.Dir",
+          "name": "class_fs.dir",
+          "meta": {
+            "added": [
+              "v12.12.0"
+            ],
+            "changes": []
+          },
+          "desc": "<p>A class representing a directory stream.</p>\n<p>Created by <a href=\"#fs_fs_opendir_path_options_callback\"><code>fs.opendir()</code></a>, <a href=\"#fs_fs_opendirsync_path_options\"><code>fs.opendirSync()</code></a>, or <a href=\"#fs_fspromises_opendir_path_options\"><code>fsPromises.opendir()</code></a>.</p>\n<pre><code class=\"language-js\">const fs = require('fs');\n\nasync function print(path) {\n  const dir = await fs.promises.opendir(path);\n  for await (const dirent of dir) {\n    console.log(dirent.name);\n  }\n}\nprint('./').catch(console.error);\n</code></pre>",
+          "properties": [
+            {
+              "textRaw": "`path` {string}",
+              "type": "string",
+              "name": "path",
+              "meta": {
+                "added": [
+                  "v12.12.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>The read-only path of this directory as was provided to <a href=\"#fs_fs_opendir_path_options_callback\"><code>fs.opendir()</code></a>,\n<a href=\"#fs_fs_opendirsync_path_options\"><code>fs.opendirSync()</code></a>, or <a href=\"#fs_fspromises_opendir_path_options\"><code>fsPromises.opendir()</code></a>.</p>"
+            }
+          ],
+          "methods": [
+            {
+              "textRaw": "dir.close()",
+              "type": "method",
+              "name": "close",
+              "meta": {
+                "added": [
+                  "v12.12.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {Promise}",
+                    "name": "return",
+                    "type": "Promise"
+                  },
+                  "params": []
+                }
+              ],
+              "desc": "<p>Asynchronously close the directory's underlying resource handle.\nSubsequent reads will result in errors.</p>\n<p>A <code>Promise</code> is returned that will be resolved after the resource has been\nclosed.</p>"
+            },
+            {
+              "textRaw": "dir.close(callback)",
+              "type": "method",
+              "name": "close",
+              "meta": {
+                "added": [
+                  "v12.12.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`callback` {Function}",
+                      "name": "callback",
+                      "type": "Function",
+                      "options": [
+                        {
+                          "textRaw": "`err` {Error}",
+                          "name": "err",
+                          "type": "Error"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Asynchronously close the directory's underlying resource handle.\nSubsequent reads will result in errors.</p>\n<p>The <code>callback</code> will be called after the resource handle has been closed.</p>"
+            },
+            {
+              "textRaw": "dir.closeSync()",
+              "type": "method",
+              "name": "closeSync",
+              "meta": {
+                "added": [
+                  "v12.12.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": []
+                }
+              ],
+              "desc": "<p>Synchronously close the directory's underlying resource handle.\nSubsequent reads will result in errors.</p>"
+            },
+            {
+              "textRaw": "dir.read()",
+              "type": "method",
+              "name": "read",
+              "meta": {
+                "added": [
+                  "v12.12.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {Promise} containing {fs.Dirent|null}",
+                    "name": "return",
+                    "type": "Promise",
+                    "desc": "containing {fs.Dirent|null}"
+                  },
+                  "params": []
+                }
+              ],
+              "desc": "<p>Asynchronously read the next directory entry via <a href=\"http://man7.org/linux/man-pages/man3/readdir.3.html\"><code>readdir(3)</code></a> as an\n<a href=\"#fs_class_fs_dirent\"><code>fs.Dirent</code></a>.</p>\n<p>After the read is completed, a <code>Promise</code> is returned that will be resolved with\nan <a href=\"#fs_class_fs_dirent\"><code>fs.Dirent</code></a>, or <code>null</code> if there are no more directory entries to read.</p>\n<p><em>Directory entries returned by this function are in no particular order as\nprovided by the operating system's underlying directory mechanisms.</em></p>"
+            },
+            {
+              "textRaw": "dir.read(callback)",
+              "type": "method",
+              "name": "read",
+              "meta": {
+                "added": [
+                  "v12.12.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": [
+                    {
+                      "textRaw": "`callback` {Function}",
+                      "name": "callback",
+                      "type": "Function",
+                      "options": [
+                        {
+                          "textRaw": "`err` {Error}",
+                          "name": "err",
+                          "type": "Error"
+                        },
+                        {
+                          "textRaw": "`dirent` {fs.Dirent|null}",
+                          "name": "dirent",
+                          "type": "fs.Dirent|null"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Asynchronously read the next directory entry via <a href=\"http://man7.org/linux/man-pages/man3/readdir.3.html\"><code>readdir(3)</code></a> as an\n<a href=\"#fs_class_fs_dirent\"><code>fs.Dirent</code></a>.</p>\n<p>After the read is completed, the <code>callback</code> will be called with an\n<a href=\"#fs_class_fs_dirent\"><code>fs.Dirent</code></a>, or <code>null</code> if there are no more directory entries to read.</p>\n<p><em>Directory entries returned by this function are in no particular order as\nprovided by the operating system's underlying directory mechanisms.</em></p>"
+            },
+            {
+              "textRaw": "dir.readSync()",
+              "type": "method",
+              "name": "readSync",
+              "meta": {
+                "added": [
+                  "v12.12.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {fs.Dirent|null}",
+                    "name": "return",
+                    "type": "fs.Dirent|null"
+                  },
+                  "params": []
+                }
+              ],
+              "desc": "<p>Synchronously read the next directory entry via <a href=\"http://man7.org/linux/man-pages/man3/readdir.3.html\"><code>readdir(3)</code></a> as an\n<a href=\"#fs_class_fs_dirent\"><code>fs.Dirent</code></a>.</p>\n<p>If there are no more directory entries to read, <code>null</code> will be returned.</p>\n<p><em>Directory entries returned by this function are in no particular order as\nprovided by the operating system's underlying directory mechanisms.</em></p>"
+            },
+            {
+              "textRaw": "dir[Symbol.asyncIterator]()",
+              "type": "method",
+              "name": "[Symbol.asyncIterator]",
+              "meta": {
+                "added": [
+                  "v12.12.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {AsyncIterator} of {fs.Dirent}",
+                    "name": "return",
+                    "type": "AsyncIterator",
+                    "desc": "of {fs.Dirent}"
+                  },
+                  "params": []
+                }
+              ],
+              "desc": "<p>Asynchronously iterates over the directory via <a href=\"http://man7.org/linux/man-pages/man3/readdir.3.html\"><code>readdir(3)</code></a> until all entries have\nbeen read.</p>\n<p>Entries returned by the async iterator are always an <a href=\"#fs_class_fs_dirent\"><code>fs.Dirent</code></a>.\nThe <code>null</code> case from <code>dir.read()</code> is handled internally.</p>\n<p>See <a href=\"#fs_class_fs_dir\"><code>fs.Dir</code></a> for an example.</p>\n<p><em>Directory entries returned by this iterator are in no particular order as\nprovided by the operating system's underlying directory mechanisms.</em></p>"
+            }
+          ],
+          "type": "module",
+          "displayName": "Class fs.Dir"
+        },
+        {
           "textRaw": "fs Promises API",
           "name": "fs_promises_api",
           "desc": "<p>The <code>fs.promises</code> API provides an alternative set of asynchronous file system\nmethods that return <code>Promise</code> objects rather than using callbacks. The\nAPI is accessible via <code>require('fs').promises</code>.</p>",
@@ -1137,543 +1338,6 @@
                 }
               ],
               "desc": "<p>Asynchronous file open that returns a <code>Promise</code> that, when resolved, yields a\n<code>FileHandle</code> object. See <a href=\"http://man7.org/linux/man-pages/man2/open.2.html\"><code>open(2)</code></a>.</p>\n<p><code>mode</code> sets the file mode (permission and sticky bits), but only if the file was\ncreated.</p>\n<p>Some characters (<code>&#x3C; > : \" / \\ | ? *</code>) are reserved under Windows as documented\nby <a href=\"https://docs.microsoft.com/en-us/windows/desktop/FileIO/naming-a-file\">Naming Files, Paths, and Namespaces</a>. Under NTFS, if the filename contains\na colon, Node.js will open a file system stream, as described by\n<a href=\"https://docs.microsoft.com/en-us/windows/desktop/FileIO/using-streams\">this MSDN page</a>.</p>"
-            },
-            {
-              "textRaw": "fsPromises.readdir(path[, options])",
-              "type": "method",
-              "name": "readdir",
-              "meta": {
-                "added": [
-                  "v10.0.0"
-                ],
-                "changes": [
-                  {
-                    "version": "v10.11.0",
-                    "pr-url": "https://github.com/nodejs/node/pull/22020",
-                    "description": "New option `withFileTypes` was added."
-                  }
-                ]
-              },
-              "signatures": [
-                {
-                  "return": {
-                    "textRaw": "Returns: {Promise}",
-                    "name": "return",
-                    "type": "Promise"
-                  },
-                  "params": [
-                    {
-                      "textRaw": "`path` {string|Buffer|URL}",
-                      "name": "path",
-                      "type": "string|Buffer|URL"
-                    },
-                    {
-                      "textRaw": "`options` {string|Object}",
-                      "name": "options",
-                      "type": "string|Object",
-                      "options": [
-                        {
-                          "textRaw": "`encoding` {string} **Default:** `'utf8'`",
-                          "name": "encoding",
-                          "type": "string",
-                          "default": "`'utf8'`"
-                        },
-                        {
-                          "textRaw": "`withFileTypes` {boolean} **Default:** `false`",
-                          "name": "withFileTypes",
-                          "type": "boolean",
-                          "default": "`false`"
-                        }
-                      ],
-                      "optional": true
-                    }
-                  ]
-                }
-              ],
-              "desc": "<p>Reads the contents of a directory then resolves the <code>Promise</code> with an array\nof the names of the files in the directory excluding <code>'.'</code> and <code>'..'</code>.</p>\n<p>The optional <code>options</code> argument can be a string specifying an encoding, or an\nobject with an <code>encoding</code> property specifying the character encoding to use for\nthe filenames. If the <code>encoding</code> is set to <code>'buffer'</code>, the filenames returned\nwill be passed as <code>Buffer</code> objects.</p>\n<p>If <code>options.withFileTypes</code> is set to <code>true</code>, the resolved array will contain\n<a href=\"#fs_class_fs_dirent\"><code>fs.Dirent</code></a> objects.</p>"
-            },
-            {
-              "textRaw": "fsPromises.readFile(path[, options])",
-              "type": "method",
-              "name": "readFile",
-              "meta": {
-                "added": [
-                  "v10.0.0"
-                ],
-                "changes": []
-              },
-              "signatures": [
-                {
-                  "return": {
-                    "textRaw": "Returns: {Promise}",
-                    "name": "return",
-                    "type": "Promise"
-                  },
-                  "params": [
-                    {
-                      "textRaw": "`path` {string|Buffer|URL|FileHandle} filename or `FileHandle`",
-                      "name": "path",
-                      "type": "string|Buffer|URL|FileHandle",
-                      "desc": "filename or `FileHandle`"
-                    },
-                    {
-                      "textRaw": "`options` {Object|string}",
-                      "name": "options",
-                      "type": "Object|string",
-                      "options": [
-                        {
-                          "textRaw": "`encoding` {string|null} **Default:** `null`",
-                          "name": "encoding",
-                          "type": "string|null",
-                          "default": "`null`"
-                        },
-                        {
-                          "textRaw": "`flag` {string} See [support of file system `flags`][]. **Default:** `'r'`.",
-                          "name": "flag",
-                          "type": "string",
-                          "default": "`'r'`",
-                          "desc": "See [support of file system `flags`][]."
-                        }
-                      ],
-                      "optional": true
-                    }
-                  ]
-                }
-              ],
-              "desc": "<p>Asynchronously reads the entire contents of a file.</p>\n<p>The <code>Promise</code> is resolved with the contents of the file. If no encoding is\nspecified (using <code>options.encoding</code>), the data is returned as a <code>Buffer</code>\nobject. Otherwise, the data will be a string.</p>\n<p>If <code>options</code> is a string, then it specifies the encoding.</p>\n<p>When the <code>path</code> is a directory, the behavior of <code>fsPromises.readFile()</code> is\nplatform-specific. On macOS, Linux, and Windows, the promise will be rejected\nwith an error. On FreeBSD, a representation of the directory's contents will be\nreturned.</p>\n<p>Any specified <code>FileHandle</code> has to support reading.</p>"
-            },
-            {
-              "textRaw": "fsPromises.readlink(path[, options])",
-              "type": "method",
-              "name": "readlink",
-              "meta": {
-                "added": [
-                  "v10.0.0"
-                ],
-                "changes": []
-              },
-              "signatures": [
-                {
-                  "return": {
-                    "textRaw": "Returns: {Promise}",
-                    "name": "return",
-                    "type": "Promise"
-                  },
-                  "params": [
-                    {
-                      "textRaw": "`path` {string|Buffer|URL}",
-                      "name": "path",
-                      "type": "string|Buffer|URL"
-                    },
-                    {
-                      "textRaw": "`options` {string|Object}",
-                      "name": "options",
-                      "type": "string|Object",
-                      "options": [
-                        {
-                          "textRaw": "`encoding` {string} **Default:** `'utf8'`",
-                          "name": "encoding",
-                          "type": "string",
-                          "default": "`'utf8'`"
-                        }
-                      ],
-                      "optional": true
-                    }
-                  ]
-                }
-              ],
-              "desc": "<p>Asynchronous <a href=\"http://man7.org/linux/man-pages/man2/readlink.2.html\"><code>readlink(2)</code></a>. The <code>Promise</code> is resolved with the <code>linkString</code> upon\nsuccess.</p>\n<p>The optional <code>options</code> argument can be a string specifying an encoding, or an\nobject with an <code>encoding</code> property specifying the character encoding to use for\nthe link path returned. If the <code>encoding</code> is set to <code>'buffer'</code>, the link path\nreturned will be passed as a <code>Buffer</code> object.</p>"
-            },
-            {
-              "textRaw": "fsPromises.realpath(path[, options])",
-              "type": "method",
-              "name": "realpath",
-              "meta": {
-                "added": [
-                  "v10.0.0"
-                ],
-                "changes": []
-              },
-              "signatures": [
-                {
-                  "return": {
-                    "textRaw": "Returns: {Promise}",
-                    "name": "return",
-                    "type": "Promise"
-                  },
-                  "params": [
-                    {
-                      "textRaw": "`path` {string|Buffer|URL}",
-                      "name": "path",
-                      "type": "string|Buffer|URL"
-                    },
-                    {
-                      "textRaw": "`options` {string|Object}",
-                      "name": "options",
-                      "type": "string|Object",
-                      "options": [
-                        {
-                          "textRaw": "`encoding` {string} **Default:** `'utf8'`",
-                          "name": "encoding",
-                          "type": "string",
-                          "default": "`'utf8'`"
-                        }
-                      ],
-                      "optional": true
-                    }
-                  ]
-                }
-              ],
-              "desc": "<p>Determines the actual location of <code>path</code> using the same semantics as the\n<code>fs.realpath.native()</code> function then resolves the <code>Promise</code> with the resolved\npath.</p>\n<p>Only paths that can be converted to UTF8 strings are supported.</p>\n<p>The optional <code>options</code> argument can be a string specifying an encoding, or an\nobject with an <code>encoding</code> property specifying the character encoding to use for\nthe path. If the <code>encoding</code> is set to <code>'buffer'</code>, the path returned will be\npassed as a <code>Buffer</code> object.</p>\n<p>On Linux, when Node.js is linked against musl libc, the procfs file system must\nbe mounted on <code>/proc</code> in order for this function to work. Glibc does not have\nthis restriction.</p>"
-            },
-            {
-              "textRaw": "fsPromises.rename(oldPath, newPath)",
-              "type": "method",
-              "name": "rename",
-              "meta": {
-                "added": [
-                  "v10.0.0"
-                ],
-                "changes": []
-              },
-              "signatures": [
-                {
-                  "return": {
-                    "textRaw": "Returns: {Promise}",
-                    "name": "return",
-                    "type": "Promise"
-                  },
-                  "params": [
-                    {
-                      "textRaw": "`oldPath` {string|Buffer|URL}",
-                      "name": "oldPath",
-                      "type": "string|Buffer|URL"
-                    },
-                    {
-                      "textRaw": "`newPath` {string|Buffer|URL}",
-                      "name": "newPath",
-                      "type": "string|Buffer|URL"
-                    }
-                  ]
-                }
-              ],
-              "desc": "<p>Renames <code>oldPath</code> to <code>newPath</code> and resolves the <code>Promise</code> with no arguments\nupon success.</p>"
-            },
-            {
-              "textRaw": "fsPromises.rmdir(path[, options])",
-              "type": "method",
-              "name": "rmdir",
-              "meta": {
-                "added": [
-                  "v10.0.0"
-                ],
-                "changes": [
-                  {
-                    "version": "v12.10.0",
-                    "pr-url": "https://github.com/nodejs/node/pull/29168",
-                    "description": "The `recursive`, `maxBusyTries`, and `emfileWait` options are now supported."
-                  }
-                ]
-              },
-              "stability": 1,
-              "stabilityText": "Recursive removal is experimental.",
-              "signatures": [
-                {
-                  "return": {
-                    "textRaw": "Returns: {Promise}",
-                    "name": "return",
-                    "type": "Promise"
-                  },
-                  "params": [
-                    {
-                      "textRaw": "`path` {string|Buffer|URL}",
-                      "name": "path",
-                      "type": "string|Buffer|URL"
-                    },
-                    {
-                      "textRaw": "`options` {Object}",
-                      "name": "options",
-                      "type": "Object",
-                      "options": [
-                        {
-                          "textRaw": "`emfileWait` {integer} If an `EMFILE` error is encountered, Node.js will retry the operation with a linear backoff of 1ms longer on each try until the timeout duration passes this limit. This option is ignored if the `recursive` option is not `true`. **Default:** `1000`.",
-                          "name": "emfileWait",
-                          "type": "integer",
-                          "default": "`1000`",
-                          "desc": "If an `EMFILE` error is encountered, Node.js will retry the operation with a linear backoff of 1ms longer on each try until the timeout duration passes this limit. This option is ignored if the `recursive` option is not `true`."
-                        },
-                        {
-                          "textRaw": "`maxBusyTries` {integer} If an `EBUSY`, `ENOTEMPTY`, or `EPERM` error is encountered, Node.js will retry the operation with a linear backoff wait of 100ms longer on each try. This option represents the number of retries. This option is ignored if the `recursive` option is not `true`. **Default:** `3`.",
-                          "name": "maxBusyTries",
-                          "type": "integer",
-                          "default": "`3`",
-                          "desc": "If an `EBUSY`, `ENOTEMPTY`, or `EPERM` error is encountered, Node.js will retry the operation with a linear backoff wait of 100ms longer on each try. This option represents the number of retries. This option is ignored if the `recursive` option is not `true`."
-                        },
-                        {
-                          "textRaw": "`recursive` {boolean} If `true`, perform a recursive directory removal. In recursive mode, errors are not reported if `path` does not exist, and operations are retried on failure. **Default:** `false`.",
-                          "name": "recursive",
-                          "type": "boolean",
-                          "default": "`false`",
-                          "desc": "If `true`, perform a recursive directory removal. In recursive mode, errors are not reported if `path` does not exist, and operations are retried on failure."
-                        }
-                      ],
-                      "optional": true
-                    }
-                  ]
-                }
-              ],
-              "desc": "<p>Removes the directory identified by <code>path</code> then resolves the <code>Promise</code> with\nno arguments upon success.</p>\n<p>Using <code>fsPromises.rmdir()</code> on a file (not a directory) results in the\n<code>Promise</code> being rejected with an <code>ENOENT</code> error on Windows and an <code>ENOTDIR</code>\nerror on POSIX.</p>"
-            },
-            {
-              "textRaw": "fsPromises.stat(path[, options])",
-              "type": "method",
-              "name": "stat",
-              "meta": {
-                "added": [
-                  "v10.0.0"
-                ],
-                "changes": [
-                  {
-                    "version": "v10.5.0",
-                    "pr-url": "https://github.com/nodejs/node/pull/20220",
-                    "description": "Accepts an additional `options` object to specify whether the numeric values returned should be bigint."
-                  }
-                ]
-              },
-              "signatures": [
-                {
-                  "return": {
-                    "textRaw": "Returns: {Promise}",
-                    "name": "return",
-                    "type": "Promise"
-                  },
-                  "params": [
-                    {
-                      "textRaw": "`path` {string|Buffer|URL}",
-                      "name": "path",
-                      "type": "string|Buffer|URL"
-                    },
-                    {
-                      "textRaw": "`options` {Object}",
-                      "name": "options",
-                      "type": "Object",
-                      "options": [
-                        {
-                          "textRaw": "`bigint` {boolean} Whether the numeric values in the returned [`fs.Stats`][] object should be `bigint`. **Default:** `false`.",
-                          "name": "bigint",
-                          "type": "boolean",
-                          "default": "`false`",
-                          "desc": "Whether the numeric values in the returned [`fs.Stats`][] object should be `bigint`."
-                        }
-                      ],
-                      "optional": true
-                    }
-                  ]
-                }
-              ],
-              "desc": "<p>The <code>Promise</code> is resolved with the <a href=\"#fs_class_fs_stats\"><code>fs.Stats</code></a> object for the given <code>path</code>.</p>"
-            },
-            {
-              "textRaw": "fsPromises.symlink(target, path[, type])",
-              "type": "method",
-              "name": "symlink",
-              "meta": {
-                "added": [
-                  "v10.0.0"
-                ],
-                "changes": []
-              },
-              "signatures": [
-                {
-                  "return": {
-                    "textRaw": "Returns: {Promise}",
-                    "name": "return",
-                    "type": "Promise"
-                  },
-                  "params": [
-                    {
-                      "textRaw": "`target` {string|Buffer|URL}",
-                      "name": "target",
-                      "type": "string|Buffer|URL"
-                    },
-                    {
-                      "textRaw": "`path` {string|Buffer|URL}",
-                      "name": "path",
-                      "type": "string|Buffer|URL"
-                    },
-                    {
-                      "textRaw": "`type` {string} **Default:** `'file'`",
-                      "name": "type",
-                      "type": "string",
-                      "default": "`'file'`",
-                      "optional": true
-                    }
-                  ]
-                }
-              ],
-              "desc": "<p>Creates a symbolic link then resolves the <code>Promise</code> with no arguments upon\nsuccess.</p>\n<p>The <code>type</code> argument is only used on Windows platforms and can be one of <code>'dir'</code>,\n<code>'file'</code>, or <code>'junction'</code>. Windows junction points require the destination path\nto be absolute. When using <code>'junction'</code>, the <code>target</code> argument will\nautomatically be normalized to absolute path.</p>"
-            },
-            {
-              "textRaw": "fsPromises.truncate(path[, len])",
-              "type": "method",
-              "name": "truncate",
-              "meta": {
-                "added": [
-                  "v10.0.0"
-                ],
-                "changes": []
-              },
-              "signatures": [
-                {
-                  "return": {
-                    "textRaw": "Returns: {Promise}",
-                    "name": "return",
-                    "type": "Promise"
-                  },
-                  "params": [
-                    {
-                      "textRaw": "`path` {string|Buffer|URL}",
-                      "name": "path",
-                      "type": "string|Buffer|URL"
-                    },
-                    {
-                      "textRaw": "`len` {integer} **Default:** `0`",
-                      "name": "len",
-                      "type": "integer",
-                      "default": "`0`",
-                      "optional": true
-                    }
-                  ]
-                }
-              ],
-              "desc": "<p>Truncates the <code>path</code> then resolves the <code>Promise</code> with no arguments upon\nsuccess. The <code>path</code> <em>must</em> be a string or <code>Buffer</code>.</p>"
-            },
-            {
-              "textRaw": "fsPromises.unlink(path)",
-              "type": "method",
-              "name": "unlink",
-              "meta": {
-                "added": [
-                  "v10.0.0"
-                ],
-                "changes": []
-              },
-              "signatures": [
-                {
-                  "return": {
-                    "textRaw": "Returns: {Promise}",
-                    "name": "return",
-                    "type": "Promise"
-                  },
-                  "params": [
-                    {
-                      "textRaw": "`path` {string|Buffer|URL}",
-                      "name": "path",
-                      "type": "string|Buffer|URL"
-                    }
-                  ]
-                }
-              ],
-              "desc": "<p>Asynchronous <a href=\"http://man7.org/linux/man-pages/man2/unlink.2.html\"><code>unlink(2)</code></a>. The <code>Promise</code> is resolved with no arguments upon\nsuccess.</p>"
-            },
-            {
-              "textRaw": "fsPromises.utimes(path, atime, mtime)",
-              "type": "method",
-              "name": "utimes",
-              "meta": {
-                "added": [
-                  "v10.0.0"
-                ],
-                "changes": []
-              },
-              "signatures": [
-                {
-                  "return": {
-                    "textRaw": "Returns: {Promise}",
-                    "name": "return",
-                    "type": "Promise"
-                  },
-                  "params": [
-                    {
-                      "textRaw": "`path` {string|Buffer|URL}",
-                      "name": "path",
-                      "type": "string|Buffer|URL"
-                    },
-                    {
-                      "textRaw": "`atime` {number|string|Date}",
-                      "name": "atime",
-                      "type": "number|string|Date"
-                    },
-                    {
-                      "textRaw": "`mtime` {number|string|Date}",
-                      "name": "mtime",
-                      "type": "number|string|Date"
-                    }
-                  ]
-                }
-              ],
-              "desc": "<p>Change the file system timestamps of the object referenced by <code>path</code> then\nresolves the <code>Promise</code> with no arguments upon success.</p>\n<p>The <code>atime</code> and <code>mtime</code> arguments follow these rules:</p>\n<ul>\n<li>Values can be either numbers representing Unix epoch time, <code>Date</code>s, or a\nnumeric string like <code>'123456789.0'</code>.</li>\n<li>If the value can not be converted to a number, or is <code>NaN</code>, <code>Infinity</code> or\n<code>-Infinity</code>, an <code>Error</code> will be thrown.</li>\n</ul>"
-            },
-            {
-              "textRaw": "fsPromises.writeFile(file, data[, options])",
-              "type": "method",
-              "name": "writeFile",
-              "meta": {
-                "added": [
-                  "v10.0.0"
-                ],
-                "changes": []
-              },
-              "signatures": [
-                {
-                  "return": {
-                    "textRaw": "Returns: {Promise}",
-                    "name": "return",
-                    "type": "Promise"
-                  },
-                  "params": [
-                    {
-                      "textRaw": "`file` {string|Buffer|URL|FileHandle} filename or `FileHandle`",
-                      "name": "file",
-                      "type": "string|Buffer|URL|FileHandle",
-                      "desc": "filename or `FileHandle`"
-                    },
-                    {
-                      "textRaw": "`data` {string|Buffer|Uint8Array}",
-                      "name": "data",
-                      "type": "string|Buffer|Uint8Array"
-                    },
-                    {
-                      "textRaw": "`options` {Object|string}",
-                      "name": "options",
-                      "type": "Object|string",
-                      "options": [
-                        {
-                          "textRaw": "`encoding` {string|null} **Default:** `'utf8'`",
-                          "name": "encoding",
-                          "type": "string|null",
-                          "default": "`'utf8'`"
-                        },
-                        {
-                          "textRaw": "`mode` {integer} **Default:** `0o666`",
-                          "name": "mode",
-                          "type": "integer",
-                          "default": "`0o666`"
-                        },
-                        {
-                          "textRaw": "`flag` {string} See [support of file system `flags`][]. **Default:** `'w'`.",
-                          "name": "flag",
-                          "type": "string",
-                          "default": "`'w'`",
-                          "desc": "See [support of file system `flags`][]."
-                        }
-                      ],
-                      "optional": true
-                    }
-                  ]
-                }
-              ],
-              "desc": "<p>Asynchronously writes data to a file, replacing the file if it already exists.\n<code>data</code> can be a string or a buffer. The <code>Promise</code> will be resolved with no\narguments upon success.</p>\n<p>The <code>encoding</code> option is ignored if <code>data</code> is a buffer.</p>\n<p>If <code>options</code> is a string, then it specifies the encoding.</p>\n<p>Any specified <code>FileHandle</code> has to support writing.</p>\n<p>It is unsafe to use <code>fsPromises.writeFile()</code> multiple times on the same file\nwithout waiting for the <code>Promise</code> to be resolved (or rejected).</p>"
             }
           ],
           "type": "module",
@@ -1742,7 +1406,7 @@
             ],
             "changes": []
           },
-          "desc": "<p>When <a href=\"#fs_fs_readdir_path_options_callback\"><code>fs.readdir()</code></a> or <a href=\"#fs_fs_readdirsync_path_options\"><code>fs.readdirSync()</code></a> is called with the\n<code>withFileTypes</code> option set to <code>true</code>, the resulting array is filled with\n<code>fs.Dirent</code> objects, rather than strings or <code>Buffers</code>.</p>",
+          "desc": "<p>A representation of a directory entry, as returned by reading from an <a href=\"#fs_class_fs_dir\"><code>fs.Dir</code></a>.</p>\n<p>Additionally, when <a href=\"#fs_fs_readdir_path_options_callback\"><code>fs.readdir()</code></a> or <a href=\"#fs_fs_readdirsync_path_options\"><code>fs.readdirSync()</code></a> is called with\nthe <code>withFileTypes</code> option set to <code>true</code>, the resulting array is filled with\n<code>fs.Dirent</code> objects, rather than strings or <code>Buffers</code>.</p>",
           "methods": [
             {
               "textRaw": "dirent.isBlockDevice()",
@@ -4860,6 +4524,102 @@
           "desc": "<p>Returns an integer representing the file descriptor.</p>\n<p>For detailed information, see the documentation of the asynchronous version of\nthis API: <a href=\"#fs_fs_open_path_flags_mode_callback\"><code>fs.open()</code></a>.</p>"
         },
         {
+          "textRaw": "fs.opendir(path[, options], callback)",
+          "type": "method",
+          "name": "opendir",
+          "meta": {
+            "added": [
+              "v12.12.0"
+            ],
+            "changes": []
+          },
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`path` {string|Buffer|URL}",
+                  "name": "path",
+                  "type": "string|Buffer|URL"
+                },
+                {
+                  "textRaw": "`options` {Object}",
+                  "name": "options",
+                  "type": "Object",
+                  "options": [
+                    {
+                      "textRaw": "`encoding` {string|null} **Default:** `'utf8'`",
+                      "name": "encoding",
+                      "type": "string|null",
+                      "default": "`'utf8'`"
+                    }
+                  ],
+                  "optional": true
+                },
+                {
+                  "textRaw": "`callback` {Function}",
+                  "name": "callback",
+                  "type": "Function",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error}",
+                      "name": "err",
+                      "type": "Error"
+                    },
+                    {
+                      "textRaw": "`dir` {fs.Dir}",
+                      "name": "dir",
+                      "type": "fs.Dir"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "desc": "<p>Asynchronously open a directory. See <a href=\"http://man7.org/linux/man-pages/man3/opendir.3.html\"><code>opendir(3)</code></a>.</p>\n<p>Creates an <a href=\"#fs_class_fs_dir\"><code>fs.Dir</code></a>, which contains all further functions for reading from\nand cleaning up the directory.</p>\n<p>The <code>encoding</code> option sets the encoding for the <code>path</code> while opening the\ndirectory and subsequent read operations.</p>"
+        },
+        {
+          "textRaw": "fs.opendirSync(path[, options])",
+          "type": "method",
+          "name": "opendirSync",
+          "meta": {
+            "added": [
+              "v12.12.0"
+            ],
+            "changes": []
+          },
+          "signatures": [
+            {
+              "return": {
+                "textRaw": "Returns: {fs.Dir}",
+                "name": "return",
+                "type": "fs.Dir"
+              },
+              "params": [
+                {
+                  "textRaw": "`path` {string|Buffer|URL}",
+                  "name": "path",
+                  "type": "string|Buffer|URL"
+                },
+                {
+                  "textRaw": "`options` {Object}",
+                  "name": "options",
+                  "type": "Object",
+                  "options": [
+                    {
+                      "textRaw": "`encoding` {string|null} **Default:** `'utf8'`",
+                      "name": "encoding",
+                      "type": "string|null",
+                      "default": "`'utf8'`"
+                    }
+                  ],
+                  "optional": true
+                }
+              ]
+            }
+          ],
+          "desc": "<p>Synchronously open a directory. See <a href=\"http://man7.org/linux/man-pages/man3/opendir.3.html\"><code>opendir(3)</code></a>.</p>\n<p>Creates an <a href=\"#fs_class_fs_dir\"><code>fs.Dir</code></a>, which contains all further functions for reading from\nand cleaning up the directory.</p>\n<p>The <code>encoding</code> option sets the encoding for the <code>path</code> while opening the\ndirectory and subsequent read operations.</p>"
+        },
+        {
           "textRaw": "fs.read(fd, buffer, offset, length, position, callback)",
           "type": "method",
           "name": "read",
@@ -6534,7 +6294,7 @@
                   "textRaw": "Availability",
                   "name": "Availability",
                   "type": "misc",
-                  "desc": "<p>This feature depends on the underlying operating system providing a way\nto be notified of filesystem changes.</p>\n<ul>\n<li>On Linux systems, this uses <a href=\"http://man7.org/linux/man-pages/man7/inotify.7.html\"><code>inotify(7)</code></a>.</li>\n<li>On BSD systems, this uses <a href=\"https://www.freebsd.org/cgi/man.cgi?query=kqueue&#x26;sektion=2\"><code>kqueue(2)</code></a>.</li>\n<li>On macOS, this uses <a href=\"https://www.freebsd.org/cgi/man.cgi?query=kqueue&#x26;sektion=2\"><code>kqueue(2)</code></a> for files and <a href=\"https://developer.apple.com/documentation/coreservices/file_system_events\"><code>FSEvents</code></a> for directories.</li>\n<li>On SunOS systems (including Solaris and SmartOS), this uses <a href=\"https://illumos.org/man/port_create\"><code>event ports</code></a>.</li>\n<li>On Windows systems, this feature depends on <a href=\"https://docs.microsoft.com/en-us/windows/desktop/api/winbase/nf-winbase-readdirectorychangesw\"><code>ReadDirectoryChangesW</code></a>.</li>\n<li>On Aix systems, this feature depends on <a href=\"https://www.ibm.com/developerworks/aix/library/au-aix_event_infrastructure/\"><code>AHAFS</code></a>, which must be enabled.</li>\n</ul>\n<p>If the underlying functionality is not available for some reason, then\n<code>fs.watch</code> will not be able to function. For example, watching files or\ndirectories can be unreliable, and in some cases impossible, on network file\nsystems (NFS, SMB, etc), or host file systems when using virtualization software\nsuch as Vagrant, Docker, etc.</p>\n<p>It is still possible to use <code>fs.watchFile()</code>, which uses stat polling, but\nthis method is slower and less reliable.</p>"
+                  "desc": "<p>This feature depends on the underlying operating system providing a way\nto be notified of filesystem changes.</p>\n<ul>\n<li>On Linux systems, this uses <a href=\"http://man7.org/linux/man-pages/man7/inotify.7.html\"><code>inotify(7)</code></a>.</li>\n<li>On BSD systems, this uses <a href=\"https://www.freebsd.org/cgi/man.cgi?query=kqueue&#x26;sektion=2\"><code>kqueue(2)</code></a>.</li>\n<li>On macOS, this uses <a href=\"https://www.freebsd.org/cgi/man.cgi?query=kqueue&#x26;sektion=2\"><code>kqueue(2)</code></a> for files and <a href=\"https://developer.apple.com/documentation/coreservices/file_system_events\"><code>FSEvents</code></a> for\ndirectories.</li>\n<li>On SunOS systems (including Solaris and SmartOS), this uses <a href=\"https://illumos.org/man/port_create\"><code>event ports</code></a>.</li>\n<li>On Windows systems, this feature depends on <a href=\"https://docs.microsoft.com/en-us/windows/desktop/api/winbase/nf-winbase-readdirectorychangesw\"><code>ReadDirectoryChangesW</code></a>.</li>\n<li>On Aix systems, this feature depends on <a href=\"https://www.ibm.com/developerworks/aix/library/au-aix_event_infrastructure/\"><code>AHAFS</code></a>, which must be enabled.</li>\n</ul>\n<p>If the underlying functionality is not available for some reason, then\n<code>fs.watch</code> will not be able to function. For example, watching files or\ndirectories can be unreliable, and in some cases impossible, on network file\nsystems (NFS, SMB, etc), or host file systems when using virtualization software\nsuch as Vagrant, Docker, etc.</p>\n<p>It is still possible to use <code>fs.watchFile()</code>, which uses stat polling, but\nthis method is slower and less reliable.</p>"
                 },
                 {
                   "textRaw": "Inodes",
@@ -7181,6 +6941,588 @@
             }
           ],
           "desc": "<p>For detailed information, see the documentation of the asynchronous version of\nthis API: <a href=\"#fs_fs_writev_fd_buffers_position_callback\"><code>fs.writev()</code></a>.</p>"
+        },
+        {
+          "textRaw": "fsPromises.opendir(path[, options])",
+          "type": "method",
+          "name": "opendir",
+          "meta": {
+            "added": [
+              "v12.12.0"
+            ],
+            "changes": []
+          },
+          "signatures": [
+            {
+              "return": {
+                "textRaw": "Returns: {Promise} containing {fs.Dir}",
+                "name": "return",
+                "type": "Promise",
+                "desc": "containing {fs.Dir}"
+              },
+              "params": [
+                {
+                  "textRaw": "`path` {string|Buffer|URL}",
+                  "name": "path",
+                  "type": "string|Buffer|URL"
+                },
+                {
+                  "textRaw": "`options` {Object}",
+                  "name": "options",
+                  "type": "Object",
+                  "options": [
+                    {
+                      "textRaw": "`encoding` {string|null} **Default:** `'utf8'`",
+                      "name": "encoding",
+                      "type": "string|null",
+                      "default": "`'utf8'`"
+                    }
+                  ],
+                  "optional": true
+                }
+              ]
+            }
+          ],
+          "desc": "<p>Asynchronously open a directory. See <a href=\"http://man7.org/linux/man-pages/man3/opendir.3.html\"><code>opendir(3)</code></a>.</p>\n<p>Creates an <a href=\"#fs_class_fs_dir\"><code>fs.Dir</code></a>, which contains all further functions for reading from\nand cleaning up the directory.</p>\n<p>The <code>encoding</code> option sets the encoding for the <code>path</code> while opening the\ndirectory and subsequent read operations.</p>\n<p>Example using async iteration:</p>\n<pre><code class=\"language-js\">const fs = require('fs');\n\nasync function print(path) {\n  const dir = await fs.promises.opendir(path);\n  for await (const dirent of dir) {\n    console.log(dirent.name);\n  }\n}\nprint('./').catch(console.error);\n</code></pre>",
+          "methods": [
+            {
+              "textRaw": "fsPromises.readdir(path[, options])",
+              "type": "method",
+              "name": "readdir",
+              "meta": {
+                "added": [
+                  "v10.0.0"
+                ],
+                "changes": [
+                  {
+                    "version": "v10.11.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/22020",
+                    "description": "New option `withFileTypes` was added."
+                  }
+                ]
+              },
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {Promise}",
+                    "name": "return",
+                    "type": "Promise"
+                  },
+                  "params": [
+                    {
+                      "textRaw": "`path` {string|Buffer|URL}",
+                      "name": "path",
+                      "type": "string|Buffer|URL"
+                    },
+                    {
+                      "textRaw": "`options` {string|Object}",
+                      "name": "options",
+                      "type": "string|Object",
+                      "options": [
+                        {
+                          "textRaw": "`encoding` {string} **Default:** `'utf8'`",
+                          "name": "encoding",
+                          "type": "string",
+                          "default": "`'utf8'`"
+                        },
+                        {
+                          "textRaw": "`withFileTypes` {boolean} **Default:** `false`",
+                          "name": "withFileTypes",
+                          "type": "boolean",
+                          "default": "`false`"
+                        }
+                      ],
+                      "optional": true
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Reads the contents of a directory then resolves the <code>Promise</code> with an array\nof the names of the files in the directory excluding <code>'.'</code> and <code>'..'</code>.</p>\n<p>The optional <code>options</code> argument can be a string specifying an encoding, or an\nobject with an <code>encoding</code> property specifying the character encoding to use for\nthe filenames. If the <code>encoding</code> is set to <code>'buffer'</code>, the filenames returned\nwill be passed as <code>Buffer</code> objects.</p>\n<p>If <code>options.withFileTypes</code> is set to <code>true</code>, the resolved array will contain\n<a href=\"#fs_class_fs_dirent\"><code>fs.Dirent</code></a> objects.</p>"
+            },
+            {
+              "textRaw": "fsPromises.readFile(path[, options])",
+              "type": "method",
+              "name": "readFile",
+              "meta": {
+                "added": [
+                  "v10.0.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {Promise}",
+                    "name": "return",
+                    "type": "Promise"
+                  },
+                  "params": [
+                    {
+                      "textRaw": "`path` {string|Buffer|URL|FileHandle} filename or `FileHandle`",
+                      "name": "path",
+                      "type": "string|Buffer|URL|FileHandle",
+                      "desc": "filename or `FileHandle`"
+                    },
+                    {
+                      "textRaw": "`options` {Object|string}",
+                      "name": "options",
+                      "type": "Object|string",
+                      "options": [
+                        {
+                          "textRaw": "`encoding` {string|null} **Default:** `null`",
+                          "name": "encoding",
+                          "type": "string|null",
+                          "default": "`null`"
+                        },
+                        {
+                          "textRaw": "`flag` {string} See [support of file system `flags`][]. **Default:** `'r'`.",
+                          "name": "flag",
+                          "type": "string",
+                          "default": "`'r'`",
+                          "desc": "See [support of file system `flags`][]."
+                        }
+                      ],
+                      "optional": true
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Asynchronously reads the entire contents of a file.</p>\n<p>The <code>Promise</code> is resolved with the contents of the file. If no encoding is\nspecified (using <code>options.encoding</code>), the data is returned as a <code>Buffer</code>\nobject. Otherwise, the data will be a string.</p>\n<p>If <code>options</code> is a string, then it specifies the encoding.</p>\n<p>When the <code>path</code> is a directory, the behavior of <code>fsPromises.readFile()</code> is\nplatform-specific. On macOS, Linux, and Windows, the promise will be rejected\nwith an error. On FreeBSD, a representation of the directory's contents will be\nreturned.</p>\n<p>Any specified <code>FileHandle</code> has to support reading.</p>"
+            },
+            {
+              "textRaw": "fsPromises.readlink(path[, options])",
+              "type": "method",
+              "name": "readlink",
+              "meta": {
+                "added": [
+                  "v10.0.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {Promise}",
+                    "name": "return",
+                    "type": "Promise"
+                  },
+                  "params": [
+                    {
+                      "textRaw": "`path` {string|Buffer|URL}",
+                      "name": "path",
+                      "type": "string|Buffer|URL"
+                    },
+                    {
+                      "textRaw": "`options` {string|Object}",
+                      "name": "options",
+                      "type": "string|Object",
+                      "options": [
+                        {
+                          "textRaw": "`encoding` {string} **Default:** `'utf8'`",
+                          "name": "encoding",
+                          "type": "string",
+                          "default": "`'utf8'`"
+                        }
+                      ],
+                      "optional": true
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Asynchronous <a href=\"http://man7.org/linux/man-pages/man2/readlink.2.html\"><code>readlink(2)</code></a>. The <code>Promise</code> is resolved with the <code>linkString</code> upon\nsuccess.</p>\n<p>The optional <code>options</code> argument can be a string specifying an encoding, or an\nobject with an <code>encoding</code> property specifying the character encoding to use for\nthe link path returned. If the <code>encoding</code> is set to <code>'buffer'</code>, the link path\nreturned will be passed as a <code>Buffer</code> object.</p>"
+            },
+            {
+              "textRaw": "fsPromises.realpath(path[, options])",
+              "type": "method",
+              "name": "realpath",
+              "meta": {
+                "added": [
+                  "v10.0.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {Promise}",
+                    "name": "return",
+                    "type": "Promise"
+                  },
+                  "params": [
+                    {
+                      "textRaw": "`path` {string|Buffer|URL}",
+                      "name": "path",
+                      "type": "string|Buffer|URL"
+                    },
+                    {
+                      "textRaw": "`options` {string|Object}",
+                      "name": "options",
+                      "type": "string|Object",
+                      "options": [
+                        {
+                          "textRaw": "`encoding` {string} **Default:** `'utf8'`",
+                          "name": "encoding",
+                          "type": "string",
+                          "default": "`'utf8'`"
+                        }
+                      ],
+                      "optional": true
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Determines the actual location of <code>path</code> using the same semantics as the\n<code>fs.realpath.native()</code> function then resolves the <code>Promise</code> with the resolved\npath.</p>\n<p>Only paths that can be converted to UTF8 strings are supported.</p>\n<p>The optional <code>options</code> argument can be a string specifying an encoding, or an\nobject with an <code>encoding</code> property specifying the character encoding to use for\nthe path. If the <code>encoding</code> is set to <code>'buffer'</code>, the path returned will be\npassed as a <code>Buffer</code> object.</p>\n<p>On Linux, when Node.js is linked against musl libc, the procfs file system must\nbe mounted on <code>/proc</code> in order for this function to work. Glibc does not have\nthis restriction.</p>"
+            },
+            {
+              "textRaw": "fsPromises.rename(oldPath, newPath)",
+              "type": "method",
+              "name": "rename",
+              "meta": {
+                "added": [
+                  "v10.0.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {Promise}",
+                    "name": "return",
+                    "type": "Promise"
+                  },
+                  "params": [
+                    {
+                      "textRaw": "`oldPath` {string|Buffer|URL}",
+                      "name": "oldPath",
+                      "type": "string|Buffer|URL"
+                    },
+                    {
+                      "textRaw": "`newPath` {string|Buffer|URL}",
+                      "name": "newPath",
+                      "type": "string|Buffer|URL"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Renames <code>oldPath</code> to <code>newPath</code> and resolves the <code>Promise</code> with no arguments\nupon success.</p>"
+            },
+            {
+              "textRaw": "fsPromises.rmdir(path[, options])",
+              "type": "method",
+              "name": "rmdir",
+              "meta": {
+                "added": [
+                  "v10.0.0"
+                ],
+                "changes": [
+                  {
+                    "version": "v12.10.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/29168",
+                    "description": "The `recursive`, `maxBusyTries`, and `emfileWait` options are now supported."
+                  }
+                ]
+              },
+              "stability": 1,
+              "stabilityText": "Recursive removal is experimental.",
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {Promise}",
+                    "name": "return",
+                    "type": "Promise"
+                  },
+                  "params": [
+                    {
+                      "textRaw": "`path` {string|Buffer|URL}",
+                      "name": "path",
+                      "type": "string|Buffer|URL"
+                    },
+                    {
+                      "textRaw": "`options` {Object}",
+                      "name": "options",
+                      "type": "Object",
+                      "options": [
+                        {
+                          "textRaw": "`emfileWait` {integer} If an `EMFILE` error is encountered, Node.js will retry the operation with a linear backoff of 1ms longer on each try until the timeout duration passes this limit. This option is ignored if the `recursive` option is not `true`. **Default:** `1000`.",
+                          "name": "emfileWait",
+                          "type": "integer",
+                          "default": "`1000`",
+                          "desc": "If an `EMFILE` error is encountered, Node.js will retry the operation with a linear backoff of 1ms longer on each try until the timeout duration passes this limit. This option is ignored if the `recursive` option is not `true`."
+                        },
+                        {
+                          "textRaw": "`maxBusyTries` {integer} If an `EBUSY`, `ENOTEMPTY`, or `EPERM` error is encountered, Node.js will retry the operation with a linear backoff wait of 100ms longer on each try. This option represents the number of retries. This option is ignored if the `recursive` option is not `true`. **Default:** `3`.",
+                          "name": "maxBusyTries",
+                          "type": "integer",
+                          "default": "`3`",
+                          "desc": "If an `EBUSY`, `ENOTEMPTY`, or `EPERM` error is encountered, Node.js will retry the operation with a linear backoff wait of 100ms longer on each try. This option represents the number of retries. This option is ignored if the `recursive` option is not `true`."
+                        },
+                        {
+                          "textRaw": "`recursive` {boolean} If `true`, perform a recursive directory removal. In recursive mode, errors are not reported if `path` does not exist, and operations are retried on failure. **Default:** `false`.",
+                          "name": "recursive",
+                          "type": "boolean",
+                          "default": "`false`",
+                          "desc": "If `true`, perform a recursive directory removal. In recursive mode, errors are not reported if `path` does not exist, and operations are retried on failure."
+                        }
+                      ],
+                      "optional": true
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Removes the directory identified by <code>path</code> then resolves the <code>Promise</code> with\nno arguments upon success.</p>\n<p>Using <code>fsPromises.rmdir()</code> on a file (not a directory) results in the\n<code>Promise</code> being rejected with an <code>ENOENT</code> error on Windows and an <code>ENOTDIR</code>\nerror on POSIX.</p>"
+            },
+            {
+              "textRaw": "fsPromises.stat(path[, options])",
+              "type": "method",
+              "name": "stat",
+              "meta": {
+                "added": [
+                  "v10.0.0"
+                ],
+                "changes": [
+                  {
+                    "version": "v10.5.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/20220",
+                    "description": "Accepts an additional `options` object to specify whether the numeric values returned should be bigint."
+                  }
+                ]
+              },
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {Promise}",
+                    "name": "return",
+                    "type": "Promise"
+                  },
+                  "params": [
+                    {
+                      "textRaw": "`path` {string|Buffer|URL}",
+                      "name": "path",
+                      "type": "string|Buffer|URL"
+                    },
+                    {
+                      "textRaw": "`options` {Object}",
+                      "name": "options",
+                      "type": "Object",
+                      "options": [
+                        {
+                          "textRaw": "`bigint` {boolean} Whether the numeric values in the returned [`fs.Stats`][] object should be `bigint`. **Default:** `false`.",
+                          "name": "bigint",
+                          "type": "boolean",
+                          "default": "`false`",
+                          "desc": "Whether the numeric values in the returned [`fs.Stats`][] object should be `bigint`."
+                        }
+                      ],
+                      "optional": true
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>The <code>Promise</code> is resolved with the <a href=\"#fs_class_fs_stats\"><code>fs.Stats</code></a> object for the given <code>path</code>.</p>"
+            },
+            {
+              "textRaw": "fsPromises.symlink(target, path[, type])",
+              "type": "method",
+              "name": "symlink",
+              "meta": {
+                "added": [
+                  "v10.0.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {Promise}",
+                    "name": "return",
+                    "type": "Promise"
+                  },
+                  "params": [
+                    {
+                      "textRaw": "`target` {string|Buffer|URL}",
+                      "name": "target",
+                      "type": "string|Buffer|URL"
+                    },
+                    {
+                      "textRaw": "`path` {string|Buffer|URL}",
+                      "name": "path",
+                      "type": "string|Buffer|URL"
+                    },
+                    {
+                      "textRaw": "`type` {string} **Default:** `'file'`",
+                      "name": "type",
+                      "type": "string",
+                      "default": "`'file'`",
+                      "optional": true
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Creates a symbolic link then resolves the <code>Promise</code> with no arguments upon\nsuccess.</p>\n<p>The <code>type</code> argument is only used on Windows platforms and can be one of <code>'dir'</code>,\n<code>'file'</code>, or <code>'junction'</code>. Windows junction points require the destination path\nto be absolute. When using <code>'junction'</code>, the <code>target</code> argument will\nautomatically be normalized to absolute path.</p>"
+            },
+            {
+              "textRaw": "fsPromises.truncate(path[, len])",
+              "type": "method",
+              "name": "truncate",
+              "meta": {
+                "added": [
+                  "v10.0.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {Promise}",
+                    "name": "return",
+                    "type": "Promise"
+                  },
+                  "params": [
+                    {
+                      "textRaw": "`path` {string|Buffer|URL}",
+                      "name": "path",
+                      "type": "string|Buffer|URL"
+                    },
+                    {
+                      "textRaw": "`len` {integer} **Default:** `0`",
+                      "name": "len",
+                      "type": "integer",
+                      "default": "`0`",
+                      "optional": true
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Truncates the <code>path</code> then resolves the <code>Promise</code> with no arguments upon\nsuccess. The <code>path</code> <em>must</em> be a string or <code>Buffer</code>.</p>"
+            },
+            {
+              "textRaw": "fsPromises.unlink(path)",
+              "type": "method",
+              "name": "unlink",
+              "meta": {
+                "added": [
+                  "v10.0.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {Promise}",
+                    "name": "return",
+                    "type": "Promise"
+                  },
+                  "params": [
+                    {
+                      "textRaw": "`path` {string|Buffer|URL}",
+                      "name": "path",
+                      "type": "string|Buffer|URL"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Asynchronous <a href=\"http://man7.org/linux/man-pages/man2/unlink.2.html\"><code>unlink(2)</code></a>. The <code>Promise</code> is resolved with no arguments upon\nsuccess.</p>"
+            },
+            {
+              "textRaw": "fsPromises.utimes(path, atime, mtime)",
+              "type": "method",
+              "name": "utimes",
+              "meta": {
+                "added": [
+                  "v10.0.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {Promise}",
+                    "name": "return",
+                    "type": "Promise"
+                  },
+                  "params": [
+                    {
+                      "textRaw": "`path` {string|Buffer|URL}",
+                      "name": "path",
+                      "type": "string|Buffer|URL"
+                    },
+                    {
+                      "textRaw": "`atime` {number|string|Date}",
+                      "name": "atime",
+                      "type": "number|string|Date"
+                    },
+                    {
+                      "textRaw": "`mtime` {number|string|Date}",
+                      "name": "mtime",
+                      "type": "number|string|Date"
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Change the file system timestamps of the object referenced by <code>path</code> then\nresolves the <code>Promise</code> with no arguments upon success.</p>\n<p>The <code>atime</code> and <code>mtime</code> arguments follow these rules:</p>\n<ul>\n<li>Values can be either numbers representing Unix epoch time, <code>Date</code>s, or a\nnumeric string like <code>'123456789.0'</code>.</li>\n<li>If the value can not be converted to a number, or is <code>NaN</code>, <code>Infinity</code> or\n<code>-Infinity</code>, an <code>Error</code> will be thrown.</li>\n</ul>"
+            },
+            {
+              "textRaw": "fsPromises.writeFile(file, data[, options])",
+              "type": "method",
+              "name": "writeFile",
+              "meta": {
+                "added": [
+                  "v10.0.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "return": {
+                    "textRaw": "Returns: {Promise}",
+                    "name": "return",
+                    "type": "Promise"
+                  },
+                  "params": [
+                    {
+                      "textRaw": "`file` {string|Buffer|URL|FileHandle} filename or `FileHandle`",
+                      "name": "file",
+                      "type": "string|Buffer|URL|FileHandle",
+                      "desc": "filename or `FileHandle`"
+                    },
+                    {
+                      "textRaw": "`data` {string|Buffer|Uint8Array}",
+                      "name": "data",
+                      "type": "string|Buffer|Uint8Array"
+                    },
+                    {
+                      "textRaw": "`options` {Object|string}",
+                      "name": "options",
+                      "type": "Object|string",
+                      "options": [
+                        {
+                          "textRaw": "`encoding` {string|null} **Default:** `'utf8'`",
+                          "name": "encoding",
+                          "type": "string|null",
+                          "default": "`'utf8'`"
+                        },
+                        {
+                          "textRaw": "`mode` {integer} **Default:** `0o666`",
+                          "name": "mode",
+                          "type": "integer",
+                          "default": "`0o666`"
+                        },
+                        {
+                          "textRaw": "`flag` {string} See [support of file system `flags`][]. **Default:** `'w'`.",
+                          "name": "flag",
+                          "type": "string",
+                          "default": "`'w'`",
+                          "desc": "See [support of file system `flags`][]."
+                        }
+                      ],
+                      "optional": true
+                    }
+                  ]
+                }
+              ],
+              "desc": "<p>Asynchronously writes data to a file, replacing the file if it already exists.\n<code>data</code> can be a string or a buffer. The <code>Promise</code> will be resolved with no\narguments upon success.</p>\n<p>The <code>encoding</code> option is ignored if <code>data</code> is a buffer.</p>\n<p>If <code>options</code> is a string, then it specifies the encoding.</p>\n<p>Any specified <code>FileHandle</code> has to support writing.</p>\n<p>It is unsafe to use <code>fsPromises.writeFile()</code> multiple times on the same file\nwithout waiting for the <code>Promise</code> to be resolved (or rejected).</p>"
+            }
+          ]
         }
       ],
       "properties": [

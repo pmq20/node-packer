@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Command Line Options | Node.js v12.11.1 Documentation</title>
+  <title>Command Line Options | Node.js v12.12.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -81,7 +81,7 @@
 
     <div id="column1" data-id="cli" class="interior">
       <header>
-        <h1>Node.js v12.11.1 Documentation</h1>
+        <h1>Node.js v12.12.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -131,8 +131,10 @@
 <li><span class="stability_1"><a href="#cli_cpu_prof_interval"><code>--cpu-prof-interval</code></a></span></li>
 <li><span class="stability_1"><a href="#cli_cpu_prof_name"><code>--cpu-prof-name</code></a></span></li>
 <li><a href="#cli_enable_fips"><code>--enable-fips</code></a></li>
+<li><span class="stability_1"><a href="#cli_enable_source_maps"><code>--enable-source-maps</code></a></span></li>
 <li><a href="#cli_es_module_specifier_resolution_mode"><code>--es-module-specifier-resolution=mode</code></a></li>
 <li><a href="#cli_experimental_exports"><code>--experimental-exports</code></a></li>
+<li><a href="#cli_experimental_json_modules"><code>--experimental-json-modules</code></a></li>
 <li><a href="#cli_experimental_modules"><code>--experimental-modules</code></a></li>
 <li><a href="#cli_experimental_policy"><code>--experimental-policy</code></a></li>
 <li><a href="#cli_experimental_repl_await"><code>--experimental-repl-await</code></a></li>
@@ -165,6 +167,7 @@
 <li><a href="#cli_no_deprecation"><code>--no-deprecation</code></a></li>
 <li><a href="#cli_no_force_async_hooks_checks"><code>--no-force-async-hooks-checks</code></a></li>
 <li><a href="#cli_no_warnings"><code>--no-warnings</code></a></li>
+<li><a href="#cli_force_context_aware"><code>--force-context-aware</code></a></li>
 <li><a href="#cli_openssl_config_file"><code>--openssl-config=file</code></a></li>
 <li><a href="#cli_pending_deprecation"><code>--pending-deprecation</code></a></li>
 <li><span class="stability_1"><a href="#cli_policy_integrity_sri"><code>--policy-integrity=sri</code></a></span></li>
@@ -343,6 +346,12 @@ by <code>--cpu-prof</code>. The default is 1000 microseconds.</p>
 </div>
 <p>Enable FIPS-compliant crypto at startup. (Requires Node.js to be built with
 <code>./configure --openssl-fips</code>.)</p>
+<h3><code>--enable-source-maps</code><span><a class="mark" href="#cli_enable_source_maps" id="cli_enable_source_maps">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v12.12.0</span>
+</div>
+<p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
+<p>Enable experimental Source Map V3 support for stack traces.</p>
 <h3><code>--es-module-specifier-resolution=mode</code><span><a class="mark" href="#cli_es_module_specifier_resolution_mode" id="cli_es_module_specifier_resolution_mode">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v12.0.0</span>
@@ -358,6 +367,11 @@ the ability to import a directory that has an index file.</p>
 <span>Added in: v12.7.0</span>
 </div>
 <p>Enable experimental resolution using the <code>exports</code> field in <code>package.json</code>.</p>
+<h3><code>--experimental-json-modules</code><span><a class="mark" href="#cli_experimental_json_modules" id="cli_experimental_json_modules">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v12.9.0</span>
+</div>
+<p>Enable experimental JSON support for the ES Module loader.</p>
 <h3><code>--experimental-modules</code><span><a class="mark" href="#cli_experimental_modules" id="cli_experimental_modules">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.5.0</span>
@@ -563,6 +577,11 @@ dynamically when <code>async_hooks</code> is enabled.</p>
 <span>Added in: v6.0.0</span>
 </div>
 <p>Silence all process warnings (including deprecations).</p>
+<h3><code>--force-context-aware</code><span><a class="mark" href="#cli_force_context_aware" id="cli_force_context_aware">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v12.12.0</span>
+</div>
+<p>Disable loading native addons that are not <a href="addons.html#addons_context_aware_addons">context-aware</a>.</p>
 <h3><code>--openssl-config=file</code><span><a class="mark" href="#cli_openssl_config_file" id="cli_openssl_config_file">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v6.9.0</span>
@@ -1023,8 +1042,10 @@ node --require "./a.js" --require "./b.js"
 <!-- node-options-node start -->
 <ul>
 <li><code>--enable-fips</code></li>
+<li><code>--enable-source-maps</code></li>
 <li><code>--es-module-specifier-resolution</code></li>
 <li><code>--experimental-exports</code></li>
+<li><code>--experimental-json-modules</code></li>
 <li><code>--experimental-loader</code></li>
 <li><code>--experimental-modules</code></li>
 <li><code>--experimental-policy</code></li>
@@ -1032,6 +1053,7 @@ node --require "./a.js" --require "./b.js"
 <li><code>--experimental-report</code></li>
 <li><code>--experimental-vm-modules</code></li>
 <li><code>--experimental-wasm-modules</code></li>
+<li><code>--force-context-aware</code></li>
 <li><code>--force-fips</code></li>
 <li><code>--frozen-intrinsics</code></li>
 <li><code>--heapsnapshot-signal</code></li>

@@ -1075,10 +1075,10 @@
                       "desc": "What to search for."
                     },
                     {
-                      "textRaw": "`byteOffset` {integer} Where to begin searching in `buf`. If negative, then offset is calculated from the end of `buf`. **Default:** [`buf.length`][]` - 1`.",
+                      "textRaw": "`byteOffset` {integer} Where to begin searching in `buf`. If negative, then offset is calculated from the end of `buf`. **Default:** `buf.length - 1`.",
                       "name": "byteOffset",
                       "type": "integer",
-                      "default": "[`buf.length`][]` - 1`",
+                      "default": "`buf.length - 1`",
                       "desc": "Where to begin searching in `buf`. If negative, then offset is calculated from the end of `buf`.",
                       "optional": true
                     },

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Modules | Node.js v12.11.1 Documentation</title>
+  <title>Modules | Node.js v12.12.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -81,7 +81,7 @@
 
     <div id="column1" data-id="modules" class="interior">
       <header>
-        <h1>Node.js v12.11.1 Documentation</h1>
+        <h1>Node.js v12.12.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -185,6 +185,7 @@
 <li><a href="#modules_module_builtinmodules">module.builtinModules</a></li>
 <li><a href="#modules_module_createrequire_filename">module.createRequire(filename)</a></li>
 <li><span class="stability_0"><a href="#modules_module_createrequirefrompath_filename">module.createRequireFromPath(filename)</a></span></li>
+<li><a href="#modules_module_syncbuiltinesmexports">module.syncBuiltinESMExports()</a></li>
 </ul>
 </li>
 </ul>
@@ -969,17 +970,43 @@ const siblingModule = require('./sibling-module');
 <div class="api_metadata">
 <span>Added in: v10.12.0</span><span>Deprecated since: v12.2.0</span>
 </div>
+<p></p><div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Please use <a href="#modules_module_createrequire_filename"><code>createRequire()</code></a> instead.</div><p></p>
 <ul>
 <li><code>filename</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Filename to be used to construct the relative require
 function.</li>
 <li>Returns: <a href="modules.html#modules_require_id" class="type">&#x3C;require></a> Require function</li>
 </ul>
-<p></p><div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Please use <a href="#modules_module_createrequire_filename"><code>createRequire()</code></a> instead.</div><p></p>
 <pre><code class="language-js">const { createRequireFromPath } = require('module');
 const requireUtil = createRequireFromPath('../src/utils/');
 
 // Require `../src/utils/some-tool`
 requireUtil('./some-tool');
+</code></pre>
+<h3>module.syncBuiltinESMExports()<span><a class="mark" href="#modules_module_syncbuiltinesmexports" id="modules_module_syncbuiltinesmexports">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v12.12.0</span>
+</div>
+<p>The <code>module.syncBuiltinESMExports()</code> method updates all the live bindings for
+builtin ES Modules to match the properties of the CommonJS exports. It does
+not add or remove exported names from the ES Modules.</p>
+<pre><code class="language-js">const fs = require('fs');
+const { syncBuiltinESMExports } = require('module');
+
+fs.readFile = null;
+
+delete fs.readFileSync;
+
+fs.newAPI = function newAPI() {
+  // ...
+};
+
+syncBuiltinESMExports();
+
+import('fs').then((esmFS) => {
+  assert.strictEqual(esmFS.readFile, null);
+  assert.strictEqual('readFileSync' in fs, true);
+  assert.strictEqual(esmFS.newAPI, undefined);
+});
 </code></pre>
       </div>
     </div>

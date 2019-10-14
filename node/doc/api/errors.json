@@ -400,16 +400,9 @@
             {
               "textRaw": "ERR_CRYPTO_FIPS_UNAVAILABLE",
               "name": "err_crypto_fips_unavailable",
-              "desc": "<p>An attempt was made to enable or disable FIPS mode, but FIPS mode was not\navailable.</p>\n<p><a id=\"ERR_CRYPTO_HASH_DIGEST_NO_UTF16\"></a></p>",
+              "desc": "<p>An attempt was made to enable or disable FIPS mode, but FIPS mode was not\navailable.</p>\n<p><a id=\"ERR_CRYPTO_HASH_FINALIZED\"></a></p>",
               "type": "module",
               "displayName": "ERR_CRYPTO_FIPS_UNAVAILABLE"
-            },
-            {
-              "textRaw": "ERR_CRYPTO_HASH_DIGEST_NO_UTF16",
-              "name": "err_crypto_hash_digest_no_utf16",
-              "desc": "<p>The UTF-16 encoding was used with <a href=\"crypto.html#crypto_hash_digest_encoding\"><code>hash.digest()</code></a>. While the\n<code>hash.digest()</code> method does allow an <code>encoding</code> argument to be passed in,\ncausing the method to return a string rather than a <code>Buffer</code>, the UTF-16\nencoding (e.g. <code>ucs</code> or <code>utf16le</code>) is not supported.</p>\n<p><a id=\"ERR_CRYPTO_HASH_FINALIZED\"></a></p>",
-              "type": "module",
-              "displayName": "ERR_CRYPTO_HASH_DIGEST_NO_UTF16"
             },
             {
               "textRaw": "ERR_CRYPTO_HASH_FINALIZED",
@@ -484,9 +477,16 @@
             {
               "textRaw": "ERR_CRYPTO_TIMING_SAFE_EQUAL_LENGTH",
               "name": "err_crypto_timing_safe_equal_length",
-              "desc": "<p><a href=\"crypto.html#crypto_crypto_timingsafeequal_a_b\"><code>crypto.timingSafeEqual()</code></a> was called with <code>Buffer</code>, <code>TypedArray</code>, or\n<code>DataView</code> arguments of different lengths.</p>\n<p><a id=\"ERR_DNS_SET_SERVERS_FAILED\"></a></p>",
+              "desc": "<p><a href=\"crypto.html#crypto_crypto_timingsafeequal_a_b\"><code>crypto.timingSafeEqual()</code></a> was called with <code>Buffer</code>, <code>TypedArray</code>, or\n<code>DataView</code> arguments of different lengths.</p>\n<p><a id=\"ERR_DIR_CLOSED\"></a></p>",
               "type": "module",
               "displayName": "ERR_CRYPTO_TIMING_SAFE_EQUAL_LENGTH"
+            },
+            {
+              "textRaw": "ERR_DIR_CLOSED",
+              "name": "err_dir_closed",
+              "desc": "<p>The <a href=\"fs.html#fs_class_fs_dir\"><code>fs.Dir</code></a> was previously closed.</p>\n<p><a id=\"ERR_DNS_SET_SERVERS_FAILED\"></a></p>",
+              "type": "module",
+              "displayName": "ERR_DIR_CLOSED"
             },
             {
               "textRaw": "ERR_DNS_SET_SERVERS_FAILED",
@@ -1039,7 +1039,7 @@
             {
               "textRaw": "ERR_INVALID_HANDLE_TYPE",
               "name": "err_invalid_handle_type",
-              "desc": "<p>An attempt was made to send an unsupported \"handle\" over an IPC communication\nchannel to a child process. See <a href=\"child_process.html#child_process_subprocess_send_message_sendhandle_options_callback\"><code>subprocess.send()</code></a> and <a href=\"process.html#process_process_send_message_sendhandle_options_callback\"><code>process.send()</code></a> for\nmore information.</p>\n<p><a id=\"ERR_INVALID_HTTP_TOKEN\"></a></p>",
+              "desc": "<p>An attempt was made to send an unsupported \"handle\" over an IPC communication\nchannel to a child process. See <a href=\"child_process.html#child_process_subprocess_send_message_sendhandle_options_callback\"><code>subprocess.send()</code></a> and <a href=\"process.html#process_process_send_message_sendhandle_options_callback\"><code>process.send()</code></a>\nfor more information.</p>\n<p><a id=\"ERR_INVALID_HTTP_TOKEN\"></a></p>",
               "type": "module",
               "displayName": "ERR_INVALID_HANDLE_TYPE"
             },
@@ -1386,9 +1386,16 @@
             {
               "textRaw": "ERR_NO_ICU",
               "name": "err_no_icu",
-              "desc": "<p>An attempt was made to use features that require <a href=\"intl.html#intl_internationalization_support\">ICU</a>, but Node.js was not\ncompiled with ICU support.</p>\n<p><a id=\"ERR_OUT_OF_RANGE\"></a></p>",
+              "desc": "<p>An attempt was made to use features that require <a href=\"intl.html#intl_internationalization_support\">ICU</a>, but Node.js was not\ncompiled with ICU support.</p>\n<p><a id=\"ERR_NON_CONTEXT_AWARE_DISABLED\"></a></p>",
               "type": "module",
               "displayName": "ERR_NO_ICU"
+            },
+            {
+              "textRaw": "ERR_NON_CONTEXT_AWARE_DISABLED",
+              "name": "err_non_context_aware_disabled",
+              "desc": "<p>A non-context-aware native addon was loaded in a process that disallows them.</p>\n<p><a id=\"ERR_OUT_OF_RANGE\"></a></p>",
+              "type": "module",
+              "displayName": "ERR_NON_CONTEXT_AWARE_DISABLED"
             },
             {
               "textRaw": "ERR_OUT_OF_RANGE",
@@ -1805,16 +1812,9 @@
             {
               "textRaw": "ERR_VM_MODULE_LINKING_ERRORED",
               "name": "err_vm_module_linking_errored",
-              "desc": "<p>The linker function returned a module for which linking has failed.</p>\n<p><a id=\"ERR_VM_MODULE_NOT_LINKED\"></a></p>",
+              "desc": "<p>The linker function returned a module for which linking has failed.</p>\n<p><a id=\"ERR_VM_MODULE_NOT_MODULE\"></a></p>",
               "type": "module",
               "displayName": "ERR_VM_MODULE_LINKING_ERRORED"
-            },
-            {
-              "textRaw": "ERR_VM_MODULE_NOT_LINKED",
-              "name": "err_vm_module_not_linked",
-              "desc": "<p>The module must be successfully linked before instantiation.</p>\n<p><a id=\"ERR_VM_MODULE_NOT_MODULE\"></a></p>",
-              "type": "module",
-              "displayName": "ERR_VM_MODULE_NOT_LINKED"
             },
             {
               "textRaw": "ERR_VM_MODULE_NOT_MODULE",
@@ -1934,9 +1934,25 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>There was an attempt to use a <code>MessagePort</code> instance in a closed\nstate, usually after <code>.close()</code> has been called.</p>\n<p><a id=\"ERR_HTTP2_FRAME_ERROR\"></a></p>",
+              "desc": "<p>There was an attempt to use a <code>MessagePort</code> instance in a closed\nstate, usually after <code>.close()</code> has been called.</p>\n<p><a id=\"ERR_CRYPTO_HASH_DIGEST_NO_UTF16\"></a></p>",
               "type": "module",
               "displayName": "ERR_CLOSED_MESSAGE_PORT"
+            },
+            {
+              "textRaw": "ERR_CRYPTO_HASH_DIGEST_NO_UTF16",
+              "name": "err_crypto_hash_digest_no_utf16",
+              "meta": {
+                "added": [
+                  "v9.0.0"
+                ],
+                "removed": [
+                  "v12.12.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>The UTF-16 encoding was used with <a href=\"crypto.html#crypto_hash_digest_encoding\"><code>hash.digest()</code></a>. While the\n<code>hash.digest()</code> method does allow an <code>encoding</code> argument to be passed in,\ncausing the method to return a string rather than a <code>Buffer</code>, the UTF-16\nencoding (e.g. <code>ucs</code> or <code>utf16le</code>) is not supported.</p>\n<p><a id=\"ERR_HTTP2_FRAME_ERROR\"></a></p>",
+              "type": "module",
+              "displayName": "ERR_CRYPTO_HASH_DIGEST_NO_UTF16"
             },
             {
               "textRaw": "ERR_HTTP2_FRAME_ERROR",
@@ -2235,9 +2251,16 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Used when a given value is out of the accepted range.</p>\n<p><a id=\"ERR_ZLIB_BINDING_CLOSED\"></a></p>",
+              "desc": "<p>Used when a given value is out of the accepted range.</p>\n<p><a id=\"ERR_VM_MODULE_NOT_LINKED\"></a></p>",
               "type": "module",
               "displayName": "ERR_VALUE_OUT_OF_RANGE"
+            },
+            {
+              "textRaw": "ERR_VM_MODULE_NOT_LINKED",
+              "name": "err_vm_module_not_linked",
+              "desc": "<p>The module must be successfully linked before instantiation.</p>\n<p><a id=\"ERR_ZLIB_BINDING_CLOSED\"></a></p>",
+              "type": "module",
+              "displayName": "ERR_VM_MODULE_NOT_LINKED"
             },
             {
               "textRaw": "ERR_ZLIB_BINDING_CLOSED",

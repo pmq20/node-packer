@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Stream | Node.js v12.11.1 Documentation</title>
+  <title>Stream | Node.js v12.12.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -81,7 +81,7 @@
 
     <div id="column1" data-id="stream" class="interior">
       <header>
-        <h1>Node.js v12.11.1 Documentation</h1>
+        <h1>Node.js v12.12.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -288,7 +288,7 @@
       </div>
 
       <div id="apicontent">
-        <h1>Stream<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/stream.js#L30">[src]</a><span><a class="mark" href="#stream_stream" id="stream_stream">#</a></span></h1>
+        <h1>Stream<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/stream.js#L30">[src]</a><span><a class="mark" href="#stream_stream" id="stream_stream">#</a></span></h1>
 
 <p></p><div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><p></p>
 <p>A stream is an abstract interface for working with streaming data in Node.js.
@@ -1762,7 +1762,7 @@ on the type of stream being created, as detailed in the chart below:</p>
 
 
 
-<table><thead><tr><th>Use-case</th><th>Class</th><th>Method(s) to implement</th></tr></thead><tbody><tr><td>Reading only</td><td><a href="#stream_class_stream_readable"><code>Readable</code></a></td><td><code><a href="#stream_readable_read_size_1">_read()</a></code></td></tr><tr><td>Writing only</td><td><a href="#stream_class_stream_writable"><code>Writable</code></a></td><td><code><a href="#stream_writable_write_chunk_encoding_callback_1">_write()</a></code>, <code><a href="#stream_writable_writev_chunks_callback">_writev()</a></code>, <code><a href="#stream_writable_final_callback">_final()</a></code></td></tr><tr><td>Reading and writing</td><td><a href="#stream_class_stream_duplex"><code>Duplex</code></a></td><td><code><a href="#stream_readable_read_size_1">_read()</a></code>, <code><a href="#stream_writable_write_chunk_encoding_callback_1">_write()</a></code>, <code><a href="#stream_writable_writev_chunks_callback">_writev()</a></code>, <code><a href="#stream_writable_final_callback">_final()</a></code></td></tr><tr><td>Operate on written data, then read the result</td><td><a href="#stream_class_stream_transform"><code>Transform</code></a></td><td><code><a href="#stream_transform_transform_chunk_encoding_callback">_transform()</a></code>, <code><a href="#stream_transform_flush_callback">_flush()</a></code>, <code><a href="#stream_writable_final_callback">_final()</a></code></td></tr></tbody></table>
+<table><thead><tr><th>Use-case</th><th>Class</th><th>Method(s) to implement</th></tr></thead><tbody><tr><td>Reading only</td><td><a href="#stream_class_stream_readable"><code>Readable</code></a></td><td><a href="#stream_readable_read_size_1"><code>_read()</code></a></td></tr><tr><td>Writing only</td><td><a href="#stream_class_stream_writable"><code>Writable</code></a></td><td><a href="#stream_writable_write_chunk_encoding_callback_1"><code>_write()</code></a>, <a href="#stream_writable_writev_chunks_callback"><code>_writev()</code></a>, <a href="#stream_writable_final_callback"><code>_final()</code></a></td></tr><tr><td>Reading and writing</td><td><a href="#stream_class_stream_duplex"><code>Duplex</code></a></td><td><a href="#stream_readable_read_size_1"><code>_read()</code></a>, <a href="#stream_writable_write_chunk_encoding_callback_1"><code>_write()</code></a>, <a href="#stream_writable_writev_chunks_callback"><code>_writev()</code></a>, <a href="#stream_writable_final_callback"><code>_final()</code></a></td></tr><tr><td>Operate on written data, then read the result</td><td><a href="#stream_class_stream_transform"><code>Transform</code></a></td><td><a href="#stream_transform_transform_chunk_encoding_callback"><code>_transform()</code></a>, <a href="#stream_transform_flush_callback"><code>_flush()</code></a>, <a href="#stream_writable_final_callback"><code>_final()</code></a></td></tr></tbody></table>
 <p>The implementation code for a stream should <em>never</em> call the "public" methods
 of a stream that are intended for use by consumers (as described in the
 <a href="#stream_api_for_stream_consumers">API for Stream Consumers</a> section). Doing so may lead to adverse side effects
@@ -2121,7 +2121,9 @@ from the resource and pushing data until <code>readable.push()</code> returns <c
 when <code>_read()</code> is called again after it has stopped should it resume pushing
 additional data onto the queue.</p>
 <p>Once the <code>readable._read()</code> method has been called, it will not be called again
-until the <a href="#stream_readable_push_chunk_encoding"><code>readable.push()</code></a> method is called.</p>
+until more data is pushed through the <a href="#stream_readable_push_chunk_encoding"><code>readable.push()</code></a> method.
+Empty data such as empty buffers and strings will not cause <code>readable._read()</code>
+to be called.</p>
 <p>The <code>size</code> argument is advisory. For implementations where a "read" is a
 single operation that returns data can use the <code>size</code> argument to determine how
 much data to fetch. Other implementations may ignore this argument and simply

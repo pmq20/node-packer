@@ -36,6 +36,7 @@ const {
   validateRmdirOptions,
   warnOnNonPortableTemplate
 } = require('internal/fs/utils');
+const { opendir } = require('internal/fs/dir');
 const {
   parseMode,
   validateBuffer,
@@ -45,7 +46,7 @@ const {
 const pathModule = require('path');
 const { promisify } = require('internal/util');
 
-const kHandle = Symbol('handle');
+const kHandle = Symbol('kHandle');
 const { kUsePromises } = binding;
 
 const getDirectoryEntriesPromise = promisify(getDirents);
@@ -497,28 +498,33 @@ async function readFile(path, options) {
 }
 
 module.exports = {
-  access,
-  copyFile,
-  open,
-  rename,
-  truncate,
-  rmdir,
-  mkdir,
-  readdir,
-  readlink,
-  symlink,
-  lstat,
-  stat,
-  link,
-  unlink,
-  chmod,
-  lchmod,
-  lchown,
-  chown,
-  utimes,
-  realpath,
-  mkdtemp,
-  writeFile,
-  appendFile,
-  readFile
+  exports: {
+    access,
+    copyFile,
+    open,
+    opendir: promisify(opendir),
+    rename,
+    truncate,
+    rmdir,
+    mkdir,
+    readdir,
+    readlink,
+    symlink,
+    lstat,
+    stat,
+    link,
+    unlink,
+    chmod,
+    lchmod,
+    lchown,
+    chown,
+    utimes,
+    realpath,
+    mkdtemp,
+    writeFile,
+    appendFile,
+    readFile,
+  },
+
+  FileHandle
 };

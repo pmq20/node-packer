@@ -375,6 +375,23 @@
                 }
               ],
               "desc": "<pre><code class=\"language-js\">const { createRequireFromPath } = require('module');\nconst requireUtil = createRequireFromPath('../src/utils/');\n\n// Require `../src/utils/some-tool`\nrequireUtil('./some-tool');\n</code></pre>"
+            },
+            {
+              "textRaw": "module.syncBuiltinESMExports()",
+              "type": "method",
+              "name": "syncBuiltinESMExports",
+              "meta": {
+                "added": [
+                  "v12.12.0"
+                ],
+                "changes": []
+              },
+              "signatures": [
+                {
+                  "params": []
+                }
+              ],
+              "desc": "<p>The <code>module.syncBuiltinESMExports()</code> method updates all the live bindings for\nbuiltin ES Modules to match the properties of the CommonJS exports. It does\nnot add or remove exported names from the ES Modules.</p>\n<pre><code class=\"language-js\">const fs = require('fs');\nconst { syncBuiltinESMExports } = require('module');\n\nfs.readFile = null;\n\ndelete fs.readFileSync;\n\nfs.newAPI = function newAPI() {\n  // ...\n};\n\nsyncBuiltinESMExports();\n\nimport('fs').then((esmFS) => {\n  assert.strictEqual(esmFS.readFile, null);\n  assert.strictEqual('readFileSync' in fs, true);\n  assert.strictEqual(esmFS.newAPI, undefined);\n});\n</code></pre>"
             }
           ],
           "type": "module",

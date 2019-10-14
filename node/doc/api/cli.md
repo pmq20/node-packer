@@ -135,6 +135,15 @@ added: v6.0.0
 Enable FIPS-compliant crypto at startup. (Requires Node.js to be built with
 `./configure --openssl-fips`.)
 
+### `--enable-source-maps`
+<!-- YAML
+added: v12.12.0
+-->
+
+> Stability: 1 - Experimental
+
+Enable experimental Source Map V3 support for stack traces.
+
 ### `--es-module-specifier-resolution=mode`
 <!-- YAML
 added: v12.0.0
@@ -155,6 +164,13 @@ added: v12.7.0
 -->
 
 Enable experimental resolution using the `exports` field in `package.json`.
+
+### `--experimental-json-modules`
+<!-- YAML
+added: v12.9.0
+-->
+
+Enable experimental JSON support for the ES Module loader.
 
 ### `--experimental-modules`
 <!-- YAML
@@ -438,6 +454,13 @@ added: v6.0.0
 -->
 
 Silence all process warnings (including deprecations).
+
+### `--force-context-aware`
+<!-- YAML
+added: v12.12.0
+-->
+
+Disable loading native addons that are not [context-aware][].
 
 ### `--openssl-config=file`
 <!-- YAML
@@ -1000,8 +1023,10 @@ node --require "./a.js" --require "./b.js"
 Node.js options that are allowed are:
 <!-- node-options-node start -->
 * `--enable-fips`
+* `--enable-source-maps`
 * `--es-module-specifier-resolution`
 * `--experimental-exports`
+* `--experimental-json-modules`
 * `--experimental-loader`
 * `--experimental-modules`
 * `--experimental-policy`
@@ -1009,6 +1034,7 @@ Node.js options that are allowed are:
 * `--experimental-report`
 * `--experimental-vm-modules`
 * `--experimental-wasm-modules`
+* `--force-context-aware`
 * `--force-fips`
 * `--frozen-intrinsics`
 * `--heapsnapshot-signal`
@@ -1285,3 +1311,4 @@ greater than `4` (its current default value). For more information, see the
 [experimental ECMAScript Module]: esm.html#esm_resolve_hook
 [libuv threadpool documentation]: http://docs.libuv.org/en/latest/threadpool.html
 [remote code execution]: https://www.owasp.org/index.php/Code_Injection
+[context-aware]: addons.html#addons_context_aware_addons

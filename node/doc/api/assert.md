@@ -34,9 +34,9 @@ All instances contain the built-in `Error` properties (`message` and `name`)
 and:
 
 * `actual` {any} Set to the `actual` argument for methods such as
-  [`assert.strictEqual()`].
+  [`assert.strictEqual()`][].
 * `expected` {any} Set to the `expected` value for methods such as
-  [`assert.strictEqual()`].
+  [`assert.strictEqual()`][].
 * `generatedMessage` {boolean} Indicates if the message was auto-generated
   (`true`) or not.
 * `code` {string} Value is always `ERR_ASSERTION` to show that the error is an
@@ -623,14 +623,14 @@ changes:
                  deprecated and emits a warning.
 -->
 
+> Stability: 0 - Deprecated: Use `assert.fail([message])` or other assert
+> functions instead.
+
 * `actual` {any}
 * `expected` {any}
 * `message` {string|Error}
 * `operator` {string} **Default:** `'!='`
 * `stackStartFn` {Function} **Default:** `assert.fail`
-
-> Stability: 0 - Deprecated: Use `assert.fail([message])` or other assert
-> functions instead.
 
 If `message` is falsy, the error message is set as the values of `actual` and
 `expected` separated by the provided `operator`. If just the two `actual` and
@@ -638,7 +638,7 @@ If `message` is falsy, the error message is set as the values of `actual` and
 `message` is provided as third argument it will be used as the error message and
 the other arguments will be stored as properties on the thrown object. If
 `stackStartFn` is provided, all stack frames above that function will be
-removed from stacktrace (see [`Error.captureStackTrace`]). If no arguments are
+removed from stacktrace (see [`Error.captureStackTrace`][]). If no arguments are
 given, the default message `Failed` will be used.
 
 ```js
@@ -1300,7 +1300,10 @@ second argument. This might lead to difficult-to-spot errors.
 [`assert.deepEqual()`]: #assert_assert_deepequal_actual_expected_message
 [`assert.deepStrictEqual()`]: #assert_assert_deepstrictequal_actual_expected_message
 [`assert.doesNotThrow()`]: #assert_assert_doesnotthrow_fn_error_message
+[`assert.equal()`]: #assert_assert_equal_actual_expected_message
+[`assert.notDeepEqual()`]: #assert_assert_notdeepequal_actual_expected_message
 [`assert.notDeepStrictEqual()`]: #assert_assert_notdeepstrictequal_actual_expected_message
+[`assert.notEqual()`]: #assert_assert_notequal_actual_expected_message
 [`assert.notStrictEqual()`]: #assert_assert_notstrictequal_actual_expected_message
 [`assert.ok()`]: #assert_assert_ok_value_message
 [`assert.strictEqual()`]: #assert_assert_strictequal_actual_expected_message

@@ -149,8 +149,8 @@ function loadSession(hello) {
 
   if (hello.sessionId.length <= 0 ||
       hello.tlsTicket ||
-      owner.server &&
-      !owner.server.emit('resumeSession', hello.sessionId, onSession)) {
+      (owner.server &&
+      !owner.server.emit('resumeSession', hello.sessionId, onSession))) {
     // Sessions without identifiers can't be resumed.
     // Sessions with tickets can be resumed directly from the ticket, no server
     // session storage is necessary.
@@ -411,7 +411,9 @@ function TLSSocket(socket, opts) {
   net.Socket.call(this, {
     handle: this._wrapHandle(wrap),
     allowHalfOpen: socket ? socket.allowHalfOpen : tlsOptions.allowHalfOpen,
-    readable: false,
+    pauseOnCreate: tlsOptions.pauseOnConnect,
+    // The readable flag is only needed if pauseOnCreate will be handled.
+    readable: tlsOptions.pauseOnConnect,
     writable: false
   });
 
@@ -926,7 +928,8 @@ function tlsConnectionListener(rawSocket) {
     handshakeTimeout: this[kHandshakeTimeout],
     ALPNProtocols: this.ALPNProtocols,
     SNICallback: this[kSNICallback] || SNICallback,
-    enableTrace: this[kEnableTrace]
+    enableTrace: this[kEnableTrace],
+    pauseOnConnect: this.pauseOnConnect,
   });
 
   socket.on('secure', onServerSocketSecure);

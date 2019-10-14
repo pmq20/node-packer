@@ -31,7 +31,10 @@ const {
 } = primordials;
 
 const { NativeModule } = require('internal/bootstrap/loaders');
-const { maybeCacheSourceMap } = require('internal/source_map');
+const {
+  maybeCacheSourceMap,
+  rekeySourceMap
+} = require('internal/source_map/source_map_cache');
 const { pathToFileURL, fileURLToPath, URL } = require('internal/url');
 const { deprecate } = require('internal/util');
 const vm = require('vm');
@@ -52,6 +55,7 @@ const {
   loadNativeModule
 } = require('internal/modules/cjs/helpers');
 const { getOptionValue } = require('internal/options');
+const enableSourceMaps = getOptionValue('--enable-source-maps');
 const preserveSymlinks = getOptionValue('--preserve-symlinks');
 const preserveSymlinksMain = getOptionValue('--preserve-symlinks-main');
 const experimentalModules = getOptionValue('--experimental-modules');
@@ -71,9 +75,7 @@ const experimentalExports = getOptionValue('--experimental-exports');
 
 module.exports = Module;
 
-let asyncESM;
-let ModuleJob;
-let createDynamicModule;
+let asyncESM, ModuleJob, ModuleWrap, kInstantiated;
 
 const {
   CHAR_FORWARD_SLASH,
@@ -708,7 +710,19 @@ Module._load = function(request, parent, isMain) {
 
   let threw = true;
   try {
-    module.load(filename);
+    // Intercept exceptions that occur during the first tick and rekey them
+    // on error instance rather than module instance (which will immediately be
+    // garbage collected).
+    if (enableSourceMaps) {
+      try {
+        module.load(filename);
+      } catch (err) {
+        rekeySourceMap(Module._cache[filename], err);
+        throw err; /* node-do-not-add-exception-line */
+      }
+    } else {
+      module.load(filename);
+    }
     threw = false;
   } finally {
     if (threw) {
@@ -733,7 +747,7 @@ Module._resolveFilename = function(request, parent, isMain, options) {
     if (Array.isArray(options.paths)) {
       const isRelative = request.startsWith('./') ||
           request.startsWith('../') ||
-          (isWindows && request.startsWith('.\\') ||
+          ((isWindows && request.startsWith('.\\')) ||
           request.startsWith('..\\'));
 
       if (isRelative) {
@@ -804,21 +818,18 @@ Module.prototype.load = function(filename) {
     const module = ESMLoader.moduleMap.get(url);
     // Create module entry at load time to snapshot exports correctly
     const exports = this.exports;
-    if (module !== undefined) { // Called from cjs translator
-      if (module.reflect) {
-        module.reflect.onReady((reflect) => {
-          reflect.exports.default.set(exports);
-        });
-      }
+    // Called from cjs translator
+    if (module !== undefined && module.module !== undefined) {
+      if (module.module.getStatus() >= kInstantiated)
+        module.module.setExport('default', exports);
     } else { // preemptively cache
       ESMLoader.moduleMap.set(
         url,
-        new ModuleJob(ESMLoader, url, async () => {
-          return createDynamicModule(
-            [], ['default'], url, (reflect) => {
-              reflect.exports.default.set(exports);
-            });
-        })
+        new ModuleJob(ESMLoader, url, () =>
+          new ModuleWrap(function() {
+            this.setExport('default', exports);
+          }, ['default'], url)
+        )
       );
     }
   }
@@ -1114,6 +1125,14 @@ Module._preloadModules = function(requests) {
     parent.require(requests[n]);
 };
 
+Module.syncBuiltinESMExports = function syncBuiltinESMExports() {
+  for (const mod of NativeModule.map.values()) {
+    if (mod.canBeRequiredByUsers) {
+      mod.syncExports();
+    }
+  }
+};
+
 // Backwards compatibility
 Module.Module = Module;
 
@@ -1121,6 +1140,5 @@ Module.Module = Module;
 if (experimentalModules) {
   asyncESM = require('internal/process/esm_loader');
   ModuleJob = require('internal/modules/esm/module_job');
-  createDynamicModule = require(
-    'internal/modules/esm/create_dynamic_module');
+  ({ ModuleWrap, kInstantiated } = internalBinding('module_wrap'));
 }

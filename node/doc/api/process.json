@@ -1304,7 +1304,7 @@
             ],
             "changes": []
           },
-          "desc": "<p>The <code>process.argv</code> property returns an array containing the command line\narguments passed when the Node.js process was launched. The first element will\nbe <a href=\"#process_process_execpath\"><code>process.execPath</code></a>. See <code>process.argv0</code> if access to the original value of\n<code>argv[0]</code> is needed. The second element will be the path to the JavaScript\nfile being executed. The remaining elements will be any additional command line\narguments.</p>\n<p>For example, assuming the following script for <code>process-args.js</code>:</p>\n<pre><code class=\"language-js\">// print process.argv\nprocess.argv.forEach((val, index) => {\n  console.log(`${index}: ${val}`);\n});\n</code></pre>\n<p>Launching the Node.js process as:</p>\n<pre><code class=\"language-console\">$ node process-args.js one two=three four\n</code></pre>\n<p>Would generate the output:</p>\n<pre><code class=\"language-text\">0: /usr/local/bin/node\n1: /Users/mjr/work/node/process-args.js\n2: one\n3: two=three\n4: four\n</code></pre>"
+          "desc": "<p>The <code>process.argv</code> property returns an array containing the command line\narguments passed when the Node.js process was launched. The first element will\nbe <a href=\"#process_process_execpath\"><code>process.execPath</code></a>. See <code>process.argv0</code> if access to the original value\nof <code>argv[0]</code> is needed. The second element will be the path to the JavaScript\nfile being executed. The remaining elements will be any additional command line\narguments.</p>\n<p>For example, assuming the following script for <code>process-args.js</code>:</p>\n<pre><code class=\"language-js\">// print process.argv\nprocess.argv.forEach((val, index) => {\n  console.log(`${index}: ${val}`);\n});\n</code></pre>\n<p>Launching the Node.js process as:</p>\n<pre><code class=\"language-console\">$ node process-args.js one two=three four\n</code></pre>\n<p>Would generate the output:</p>\n<pre><code class=\"language-text\">0: /usr/local/bin/node\n1: /Users/mjr/work/node/process-args.js\n2: one\n3: two=three\n4: four\n</code></pre>"
         },
         {
           "textRaw": "`argv0` {string}",
@@ -1479,7 +1479,9 @@
           "name": "ppid",
           "meta": {
             "added": [
-              "v9.2.0"
+              "v9.2.0",
+              "v8.10.0",
+              "v6.13.0"
             ],
             "changes": []
           },

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>ECMAScript Modules | Node.js v12.11.1 Documentation</title>
+  <title>ECMAScript Modules | Node.js v12.12.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -81,7 +81,7 @@
 
     <div id="column1" data-id="esm" class="interior">
       <header>
-        <h1>Node.js v12.11.1 Documentation</h1>
+        <h1>Node.js v12.12.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -169,7 +169,7 @@
 </li>
 <li><a href="#esm_commonjs_json_and_native_modules">CommonJS, JSON, and Native Modules</a></li>
 <li><a href="#esm_builtin_modules">Builtin modules</a></li>
-<li><a href="#esm_json_modules">JSON Modules</a></li>
+<li><a href="#esm_experimental_json_modules">Experimental JSON Modules</a></li>
 <li><a href="#esm_experimental_wasm_modules">Experimental Wasm Modules</a></li>
 <li>
 <p><a href="#esm_experimental_loader_hooks">Experimental Loader hooks</a></p>
@@ -633,10 +633,11 @@ const cjs = require('./cjs');
 cjs === 'cjs'; // true
 </code></pre>
 <h2>Builtin modules<span><a class="mark" href="#esm_builtin_modules" id="esm_builtin_modules">#</a></span></h2>
-<p>Builtin modules will provide named exports of their public API, as well as a
-default export which can be used for, among other things, modifying the named
-exports. Named exports of builtin modules are updated when the corresponding
-exports property is accessed, redefined, or deleted.</p>
+<p>Builtin modules will provide named exports of their public API. A
+default export is also provided which is the value of the CommonJS exports.
+The default export can be used for, among other things, modifying the named
+exports. Named exports of builtin modules are updated only by calling
+<a href="modules.html#modules_module_syncbuiltinesmexports"><code>module.syncBuiltinESMExports()</code></a>.</p>
 <pre><code class="language-js">import EventEmitter from 'events';
 const e = new EventEmitter();
 </code></pre>
@@ -650,14 +651,21 @@ readFile('./foo.txt', (err, source) => {
 });
 </code></pre>
 <pre><code class="language-js">import fs, { readFileSync } from 'fs';
+import { syncBuiltinESMExports } from 'module';
 
 fs.readFileSync = () => Buffer.from('Hello, ESM');
+syncBuiltinESMExports();
 
 fs.readFileSync === readFileSync;
 </code></pre>
-<h2>JSON Modules<span><a class="mark" href="#esm_json_modules" id="esm_json_modules">#</a></span></h2>
-<p>JSON modules follow the <a href="https://html.spec.whatwg.org/#creating-a-json-module-script">WHATWG JSON modules specification</a>.</p>
-<p>The imported JSON only exposes a <code>default</code>. There is no
+<h2>Experimental JSON Modules<span><a class="mark" href="#esm_experimental_json_modules" id="esm_experimental_json_modules">#</a></span></h2>
+<p>Currently importing JSON modules are only supported in the <code>commonjs</code> mode
+and are loaded using the CJS loader. <a href="https://html.spec.whatwg.org/#creating-a-json-module-script">WHATWG JSON modules specification</a> are
+still being standardized, and are experimentally supported by including the
+additional flag <code>--experimental-json-modules</code> when running Node.js.</p>
+<p>When the <code>--experimental-json-modules</code> flag is included both the
+<code>commonjs</code> and <code>module</code> mode will use the new experimental JSON
+loader. The imported JSON only exposes a <code>default</code>, there is no
 support for named exports. A cache entry is created in the CommonJS
 cache, to avoid duplication. The same object will be returned in
 CommonJS if the JSON module has already been imported from the
@@ -665,6 +673,11 @@ same path.</p>
 <p>Assuming an <code>index.mjs</code> with</p>
 <!-- eslint-skip -->
 <pre><code class="language-js">import packageConfig from './package.json';
+</code></pre>
+<p>The <code>--experimental-json-modules</code> flag is needed for the module
+to work.</p>
+<pre><code class="language-bash">node --experimental-modules index.mjs # fails
+node --experimental-modules --experimental-json-modules index.mjs # works
 </code></pre>
 <h2>Experimental Wasm Modules<span><a class="mark" href="#esm_experimental_wasm_modules" id="esm_experimental_wasm_modules">#</a></span></h2>
 <p>Importing Web Assembly modules is supported under the

@@ -500,7 +500,7 @@ added: v9.4.0
 -->
 
 Calls [`ref()`][`net.Socket.prototype.ref()`] on this `Http2Session`
-instance's underlying [`net.Socket`].
+instance's underlying [`net.Socket`][].
 
 #### http2session.remoteSettings
 <!-- YAML
@@ -613,7 +613,7 @@ added: v9.4.0
 -->
 
 Calls [`unref()`][`net.Socket.prototype.unref()`] on this `Http2Session`
-instance's underlying [`net.Socket`].
+instance's underlying [`net.Socket`][].
 
 ### Class: ServerHttp2Session
 <!-- YAML
@@ -1439,13 +1439,16 @@ server.on('stream', (stream) => {
 <!-- YAML
 added: v8.4.0
 changes:
+  - version: v12.12.0
+    pr-url: https://github.com/nodejs/node/pull/29876
+    description: The `fd` option may now be a `FileHandle`.
   - version: v10.0.0
     pr-url: https://github.com/nodejs/node/pull/18936
     description: Any readable file descriptor, not necessarily for a
                  regular file, is supported now.
 -->
 
-* `fd` {number} A readable file descriptor.
+* `fd` {number|FileHandle} A readable file descriptor.
 * `headers` {HTTP/2 Headers Object}
 * `options` {Object}
   * `statCheck` {Function}
@@ -1491,8 +1494,8 @@ The `offset` and `length` options may be used to limit the response to a
 specific range subset. This can be used, for instance, to support HTTP Range
 requests.
 
-The file descriptor is not closed when the stream is closed, so it will need
-to be closed manually once it is no longer needed.
+The file descriptor or `FileHandle` is not closed when the stream is closed,
+so it will need to be closed manually once it is no longer needed.
 Using the same file descriptor concurrently for multiple streams
 is not supported and may result in data loss. Re-using a file descriptor
 after a stream has finished is supported.
@@ -1756,7 +1759,7 @@ added: v8.4.0
 
 Stops the server from establishing new sessions. This does not prevent new
 request streams from being created due to the persistent nature of HTTP/2
-sessions. To gracefully shut down the server, call [`http2session.close()`] on
+sessions. To gracefully shut down the server, call [`http2session.close()`][] on
 all active sessions.
 
 If `callback` is provided, it is not invoked until all active sessions have been
@@ -1905,7 +1908,7 @@ added: v8.4.0
 
 Stops the server from establishing new sessions. This does not prevent new
 request streams from being created due to the persistent nature of HTTP/2
-sessions. To gracefully shut down the server, call [`http2session.close()`] on
+sessions. To gracefully shut down the server, call [`http2session.close()`][] on
 all active sessions.
 
 If `callback` is provided, it is not invoked until all active sessions have been
@@ -2357,6 +2360,9 @@ server.on('stream', (stream, headers) => {
 <!-- YAML
 added: v8.4.0
 changes:
+  - version: v12.12.0
+    pr-url: https://github.com/nodejs/node/pull/29833
+    description: The `maxConcurrentStreams` setting is stricter.
   - version: v8.9.3
     pr-url: https://github.com/nodejs/node/pull/16676
     description: The `maxHeaderListSize` setting is now strictly enforced.
@@ -2382,9 +2388,10 @@ properties.
   is 2<sup>24</sup>-1. **Default:** `16,384 bytes`.
 * `maxConcurrentStreams` {number} Specifies the maximum number of concurrent
   streams permitted on an `Http2Session`. There is no default value which
-  implies, at least theoretically, 2<sup>31</sup>-1 streams may be open
+  implies, at least theoretically, 2<sup>32</sup>-1 streams may be open
   concurrently at any given time in an `Http2Session`. The minimum value
-  is 0. The maximum allowed value is 2<sup>31</sup>-1.
+  is 0. The maximum allowed value is 2<sup>32</sup>-1. **Default:**
+  `4294967295`.
 * `maxHeaderListSize` {number} Specifies the maximum size (uncompressed octets)
   of header list that will be accepted. The minimum allowed value is 0. The
   maximum allowed value is 2<sup>32</sup>-1. **Default:** `65535`.
@@ -3420,7 +3427,7 @@ added: v8.4.0
   * `stream` {ServerHttp2Stream} The newly-created `ServerHttp2Stream` object
 
 Call [`http2stream.pushStream()`][] with the given headers, and wrap the
-given [`Http2Stream`] on a newly created `Http2ServerResponse` as the callback
+given [`Http2Stream`][] on a newly created `Http2ServerResponse` as the callback
 parameter if successful. When `Http2ServerRequest` is closed, the callback is
 called with an error `ERR_HTTP2_INVALID_STREAM`.
 

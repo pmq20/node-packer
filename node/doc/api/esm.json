@@ -207,16 +207,16 @@
         {
           "textRaw": "Builtin modules",
           "name": "builtin_modules",
-          "desc": "<p>Builtin modules will provide named exports of their public API, as well as a\ndefault export which can be used for, among other things, modifying the named\nexports. Named exports of builtin modules are updated when the corresponding\nexports property is accessed, redefined, or deleted.</p>\n<pre><code class=\"language-js\">import EventEmitter from 'events';\nconst e = new EventEmitter();\n</code></pre>\n<pre><code class=\"language-js\">import { readFile } from 'fs';\nreadFile('./foo.txt', (err, source) => {\n  if (err) {\n    console.error(err);\n  } else {\n    console.log(source);\n  }\n});\n</code></pre>\n<pre><code class=\"language-js\">import fs, { readFileSync } from 'fs';\n\nfs.readFileSync = () => Buffer.from('Hello, ESM');\n\nfs.readFileSync === readFileSync;\n</code></pre>",
+          "desc": "<p>Builtin modules will provide named exports of their public API. A\ndefault export is also provided which is the value of the CommonJS exports.\nThe default export can be used for, among other things, modifying the named\nexports. Named exports of builtin modules are updated only by calling\n<a href=\"modules.html#modules_module_syncbuiltinesmexports\"><code>module.syncBuiltinESMExports()</code></a>.</p>\n<pre><code class=\"language-js\">import EventEmitter from 'events';\nconst e = new EventEmitter();\n</code></pre>\n<pre><code class=\"language-js\">import { readFile } from 'fs';\nreadFile('./foo.txt', (err, source) => {\n  if (err) {\n    console.error(err);\n  } else {\n    console.log(source);\n  }\n});\n</code></pre>\n<pre><code class=\"language-js\">import fs, { readFileSync } from 'fs';\nimport { syncBuiltinESMExports } from 'module';\n\nfs.readFileSync = () => Buffer.from('Hello, ESM');\nsyncBuiltinESMExports();\n\nfs.readFileSync === readFileSync;\n</code></pre>",
           "type": "misc",
           "displayName": "Builtin modules"
         },
         {
-          "textRaw": "JSON Modules",
-          "name": "json_modules",
-          "desc": "<p>JSON modules follow the <a href=\"https://html.spec.whatwg.org/#creating-a-json-module-script\">WHATWG JSON modules specification</a>.</p>\n<p>The imported JSON only exposes a <code>default</code>. There is no\nsupport for named exports. A cache entry is created in the CommonJS\ncache, to avoid duplication. The same object will be returned in\nCommonJS if the JSON module has already been imported from the\nsame path.</p>\n<p>Assuming an <code>index.mjs</code> with</p>\n<!-- eslint-skip -->\n<pre><code class=\"language-js\">import packageConfig from './package.json';\n</code></pre>",
+          "textRaw": "Experimental JSON Modules",
+          "name": "experimental_json_modules",
+          "desc": "<p>Currently importing JSON modules are only supported in the <code>commonjs</code> mode\nand are loaded using the CJS loader. <a href=\"https://html.spec.whatwg.org/#creating-a-json-module-script\">WHATWG JSON modules specification</a> are\nstill being standardized, and are experimentally supported by including the\nadditional flag <code>--experimental-json-modules</code> when running Node.js.</p>\n<p>When the <code>--experimental-json-modules</code> flag is included both the\n<code>commonjs</code> and <code>module</code> mode will use the new experimental JSON\nloader. The imported JSON only exposes a <code>default</code>, there is no\nsupport for named exports. A cache entry is created in the CommonJS\ncache, to avoid duplication. The same object will be returned in\nCommonJS if the JSON module has already been imported from the\nsame path.</p>\n<p>Assuming an <code>index.mjs</code> with</p>\n<!-- eslint-skip -->\n<pre><code class=\"language-js\">import packageConfig from './package.json';\n</code></pre>\n<p>The <code>--experimental-json-modules</code> flag is needed for the module\nto work.</p>\n<pre><code class=\"language-bash\">node --experimental-modules index.mjs # fails\nnode --experimental-modules --experimental-json-modules index.mjs # works\n</code></pre>",
           "type": "misc",
-          "displayName": "JSON Modules"
+          "displayName": "Experimental JSON Modules"
         },
         {
           "textRaw": "Experimental Wasm Modules",

@@ -12,7 +12,8 @@ const {
     ERR_INVALID_OPT_VALUE_ENCODING,
     ERR_OUT_OF_RANGE
   },
-  hideStackFrames
+  hideStackFrames,
+  uvException
 } = require('internal/errors');
 const {
   isArrayBufferView,
@@ -165,16 +166,30 @@ function getDirents(path, [names, types], callback) {
   } else {
     const len = names.length;
     for (i = 0; i < len; i++) {
-      const type = types[i];
-      if (type === UV_DIRENT_UNKNOWN) {
-        const name = names[i];
-        const stats = lazyLoadFs().lstatSync(pathModule.join(path, name));
-        names[i] = new DirentFromStats(name, stats);
-      } else {
-        names[i] = new Dirent(names[i], types[i]);
-      }
+      names[i] = getDirent(path, names[i], types[i]);
     }
     return names;
+  }
+}
+
+function getDirent(path, name, type, callback) {
+  if (typeof callback === 'function') {
+    if (type === UV_DIRENT_UNKNOWN) {
+      lazyLoadFs().lstat(pathModule.join(path, name), (err, stats) => {
+        if (err) {
+          callback(err);
+          return;
+        }
+        callback(null, new DirentFromStats(name, stats));
+      });
+    } else {
+      callback(null, new Dirent(name, type));
+    }
+  } else if (type === UV_DIRENT_UNKNOWN) {
+    const stats = lazyLoadFs().lstatSync(pathModule.join(path, name));
+    return new DirentFromStats(name, stats);
+  } else {
+    return new Dirent(name, type);
   }
 }
 
@@ -197,6 +212,23 @@ function getOptions(options, defaultOptions) {
   return options;
 }
 
+function handleErrorFromBinding(ctx) {
+  if (ctx.errno !== undefined) {  // libuv error numbers
+    const err = uvException(ctx);
+    // eslint-disable-next-line no-restricted-syntax
+    Error.captureStackTrace(err, handleErrorFromBinding);
+    throw err;
+  }
+  if (ctx.error !== undefined) {  // Errors created in C++ land.
+    // TODO(joyeecheung): currently, ctx.error are encoding errors
+    // usually caused by memory problems. We need to figure out proper error
+    // code(s) for this.
+    // eslint-disable-next-line no-restricted-syntax
+    Error.captureStackTrace(ctx.error, handleErrorFromBinding);
+    throw ctx.error;
+  }
+}
+
 // Check if the path contains null types if it is a string nor Uint8Array,
 // otherwise return silently.
 const nullCheck = hideStackFrames((path, propName, throwError = true) => {
@@ -204,9 +236,9 @@ const nullCheck = hideStackFrames((path, propName, throwError = true) => {
   const pathIsUint8Array = isUint8Array(path);
 
   // We can only perform meaningful checks on strings and Uint8Arrays.
-  if (!pathIsString && !pathIsUint8Array ||
-      pathIsString && !path.includes('\u0000') ||
-      pathIsUint8Array && !path.includes(0)) {
+  if ((!pathIsString && !pathIsUint8Array) ||
+      (pathIsString && !path.includes('\u0000')) ||
+      (pathIsUint8Array && !path.includes(0))) {
     return;
   }
 
@@ -559,9 +591,11 @@ module.exports = {
   BigIntStats,  // for testing
   copyObject,
   Dirent,
+  getDirent,
   getDirents,
   getOptions,
   getValidatedPath,
+  handleErrorFromBinding,
   nullCheck,
   preprocessSymlinkDestination,
   realpathCacheKey: Symbol('realpathCacheKey'),

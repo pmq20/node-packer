@@ -32,7 +32,9 @@ const {
 } = require('internal/errors').codes;
 const readFileAsync = promisify(fs.readFile);
 const JsonParse = JSON.parse;
-const { maybeCacheSourceMap } = require('internal/source_map');
+const { maybeCacheSourceMap } = require('internal/source_map/source_map_cache');
+const moduleWrap = internalBinding('module_wrap');
+const { ModuleWrap } = moduleWrap;
 
 const debug = debuglog('esm');
 
@@ -78,22 +80,18 @@ translators.set('module', async function moduleStrategy(url) {
   const source = `${await getSource(url)}`;
   maybeCacheSourceMap(url, source);
   debug(`Translating StandardModule ${url}`);
-  const { ModuleWrap, callbackMap } = internalBinding('module_wrap');
   const module = new ModuleWrap(stripShebang(source), url);
-  callbackMap.set(module, {
+  moduleWrap.callbackMap.set(module, {
     initializeImportMeta,
     importModuleDynamically,
   });
-  return {
-    module,
-    reflect: undefined,
-  };
+  return module;
 });
 
 // Strategy for loading a node-style CommonJS module
 const isWindows = process.platform === 'win32';
 const winSepRegEx = /\//g;
-translators.set('commonjs', async function commonjsStrategy(url, isMain) {
+translators.set('commonjs', function commonjsStrategy(url, isMain) {
   debug(`Translating CJSModule ${url}`);
   const pathname = internalURLModule.fileURLToPath(new URL(url));
   const cached = this.cjsCache.get(url);
@@ -106,17 +104,17 @@ translators.set('commonjs', async function commonjsStrategy(url, isMain) {
   ];
   if (module && module.loaded) {
     const exports = module.exports;
-    return createDynamicModule([], ['default'], url, (reflect) => {
-      reflect.exports.default.set(exports);
-    });
+    return new ModuleWrap(function() {
+      this.setExport('default', exports);
+    }, ['default'], url);
   }
-  return createDynamicModule([], ['default'], url, () => {
+  return new ModuleWrap(function() {
     debug(`Loading CJSModule ${url}`);
     // We don't care about the return val of _load here because Module#load
     // will handle it for us by checking the loader registry and filling the
     // exports like above
     CJSModule._load(pathname, undefined, isMain);
-  });
+  }, ['default'], url);
 });
 
 // Strategy for loading a node builtin CommonJS module that isn't
@@ -129,14 +127,8 @@ translators.set('builtin', async function builtinStrategy(url) {
   if (!module) {
     throw new ERR_UNKNOWN_BUILTIN_MODULE(id);
   }
-  return createDynamicModule(
-    [], [...module.exportKeys, 'default'], url, (reflect) => {
-      debug(`Loading BuiltinModule ${url}`);
-      module.reflect = reflect;
-      for (const key of module.exportKeys)
-        reflect.exports[key].set(module.exports[key]);
-      reflect.exports.default.set(module.exports);
-    });
+  debug(`Loading BuiltinModule ${url}`);
+  return module.getESMFacade();
 });
 
 // Strategy for loading a JSON file
@@ -152,9 +144,9 @@ translators.set('json', async function jsonStrategy(url) {
     module = CJSModule._cache[modulePath];
     if (module && module.loaded) {
       const exports = module.exports;
-      return createDynamicModule([], ['default'], url, (reflect) => {
-        reflect.exports.default.set(exports);
-      });
+      return new ModuleWrap(function() {
+        this.setExport('default', exports);
+      }, ['default'], url);
     }
   }
   const content = `${await getSource(url)}`;
@@ -165,9 +157,9 @@ translators.set('json', async function jsonStrategy(url) {
     module = CJSModule._cache[modulePath];
     if (module && module.loaded) {
       const exports = module.exports;
-      return createDynamicModule(['default'], url, (reflect) => {
-        reflect.exports.default.set(exports);
-      });
+      return new ModuleWrap(function() {
+        this.setExport('default', exports);
+      }, ['default'], url);
     }
   }
   try {
@@ -187,10 +179,10 @@ translators.set('json', async function jsonStrategy(url) {
   if (pathname) {
     CJSModule._cache[modulePath] = module;
   }
-  return createDynamicModule([], ['default'], url, (reflect) => {
+  return new ModuleWrap(function() {
     debug(`Parsing JSONModule ${url}`);
-    reflect.exports.default.set(module.exports);
-  });
+    this.setExport('default', module.exports);
+  }, ['default'], url);
 });
 
 // Strategy for loading a wasm module
@@ -213,5 +205,5 @@ translators.set('wasm', async function(url) {
     const { exports } = new WebAssembly.Instance(compiled, reflect.imports);
     for (const expt of Object.keys(exports))
       reflect.exports[expt].set(exports[expt]);
-  });
+  }).module;
 });

@@ -970,11 +970,11 @@ added: v10.12.0
 deprecated: v12.2.0
 -->
 
+> Stability: 0 - Deprecated: Please use [`createRequire()`][] instead.
+
 * `filename` {string} Filename to be used to construct the relative require
   function.
 * Returns: {require} Require function
-
-> Stability: 0 - Deprecated: Please use [`createRequire()`][] instead.
 
 ```js
 const { createRequireFromPath } = require('module');
@@ -982,6 +982,36 @@ const requireUtil = createRequireFromPath('../src/utils/');
 
 // Require `../src/utils/some-tool`
 requireUtil('./some-tool');
+```
+
+### module.syncBuiltinESMExports()
+<!-- YAML
+added: v12.12.0
+-->
+
+The `module.syncBuiltinESMExports()` method updates all the live bindings for
+builtin ES Modules to match the properties of the CommonJS exports. It does
+not add or remove exported names from the ES Modules.
+
+```js
+const fs = require('fs');
+const { syncBuiltinESMExports } = require('module');
+
+fs.readFile = null;
+
+delete fs.readFileSync;
+
+fs.newAPI = function newAPI() {
+  // ...
+};
+
+syncBuiltinESMExports();
+
+import('fs').then((esmFS) => {
+  assert.strictEqual(esmFS.readFile, null);
+  assert.strictEqual('readFileSync' in fs, true);
+  assert.strictEqual(esmFS.newAPI, undefined);
+});
 ```
 
 [GLOBAL_FOLDERS]: #modules_loading_from_the_global_folders

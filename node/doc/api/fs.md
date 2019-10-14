@@ -284,13 +284,147 @@ synchronous use libuv's threadpool, which can have surprising and negative
 performance implications for some applications. See the
 [`UV_THREADPOOL_SIZE`][] documentation for more information.
 
+## Class fs.Dir
+<!-- YAML
+added: v12.12.0
+-->
+
+A class representing a directory stream.
+
+Created by [`fs.opendir()`][], [`fs.opendirSync()`][], or [`fsPromises.opendir()`][].
+
+```js
+const fs = require('fs');
+
+async function print(path) {
+  const dir = await fs.promises.opendir(path);
+  for await (const dirent of dir) {
+    console.log(dirent.name);
+  }
+}
+print('./').catch(console.error);
+```
+
+### dir.path
+<!-- YAML
+added: v12.12.0
+-->
+
+* {string}
+
+The read-only path of this directory as was provided to [`fs.opendir()`][],
+[`fs.opendirSync()`][], or [`fsPromises.opendir()`][].
+
+### dir.close()
+<!-- YAML
+added: v12.12.0
+-->
+
+* Returns: {Promise}
+
+Asynchronously close the directory's underlying resource handle.
+Subsequent reads will result in errors.
+
+A `Promise` is returned that will be resolved after the resource has been
+closed.
+
+### dir.close(callback)
+<!-- YAML
+added: v12.12.0
+-->
+
+* `callback` {Function}
+  * `err` {Error}
+
+Asynchronously close the directory's underlying resource handle.
+Subsequent reads will result in errors.
+
+The `callback` will be called after the resource handle has been closed.
+
+### dir.closeSync()
+<!-- YAML
+added: v12.12.0
+-->
+
+Synchronously close the directory's underlying resource handle.
+Subsequent reads will result in errors.
+
+### dir.read()
+<!-- YAML
+added: v12.12.0
+-->
+
+* Returns: {Promise} containing {fs.Dirent|null}
+
+Asynchronously read the next directory entry via readdir(3) as an
+[`fs.Dirent`][].
+
+After the read is completed, a `Promise` is returned that will be resolved with
+an [`fs.Dirent`][], or `null` if there are no more directory entries to read.
+
+_Directory entries returned by this function are in no particular order as
+provided by the operating system's underlying directory mechanisms._
+
+### dir.read(callback)
+<!-- YAML
+added: v12.12.0
+-->
+
+* `callback` {Function}
+  * `err` {Error}
+  * `dirent` {fs.Dirent|null}
+
+Asynchronously read the next directory entry via readdir(3) as an
+[`fs.Dirent`][].
+
+After the read is completed, the `callback` will be called with an
+[`fs.Dirent`][], or `null` if there are no more directory entries to read.
+
+_Directory entries returned by this function are in no particular order as
+provided by the operating system's underlying directory mechanisms._
+
+### dir.readSync()
+<!-- YAML
+added: v12.12.0
+-->
+
+* Returns: {fs.Dirent|null}
+
+Synchronously read the next directory entry via readdir(3) as an
+[`fs.Dirent`][].
+
+If there are no more directory entries to read, `null` will be returned.
+
+_Directory entries returned by this function are in no particular order as
+provided by the operating system's underlying directory mechanisms._
+
+### dir\[Symbol.asyncIterator\]()
+<!-- YAML
+added: v12.12.0
+-->
+
+* Returns: {AsyncIterator} of {fs.Dirent}
+
+Asynchronously iterates over the directory via readdir(3) until all entries have
+been read.
+
+Entries returned by the async iterator are always an [`fs.Dirent`][].
+The `null` case from `dir.read()` is handled internally.
+
+See [`fs.Dir`][] for an example.
+
+_Directory entries returned by this iterator are in no particular order as
+provided by the operating system's underlying directory mechanisms._
+
 ## Class: fs.Dirent
 <!-- YAML
 added: v10.10.0
 -->
 
-When [`fs.readdir()`][] or [`fs.readdirSync()`][] is called with the
-`withFileTypes` option set to `true`, the resulting array is filled with
+A representation of a directory entry, as returned by reading from an [`fs.Dir`][].
+
+Additionally, when [`fs.readdir()`][] or [`fs.readdirSync()`][] is called with
+the `withFileTypes` option set to `true`, the resulting array is filled with
 `fs.Dirent` objects, rather than strings or `Buffers`.
 
 ### dirent.isBlockDevice()
@@ -2505,6 +2639,44 @@ Returns an integer representing the file descriptor.
 For detailed information, see the documentation of the asynchronous version of
 this API: [`fs.open()`][].
 
+## fs.opendir(path[, options], callback)
+<!-- YAML
+added: v12.12.0
+-->
+
+* `path` {string|Buffer|URL}
+* `options` {Object}
+  * `encoding` {string|null} **Default:** `'utf8'`
+* `callback` {Function}
+  * `err` {Error}
+  * `dir` {fs.Dir}
+
+Asynchronously open a directory. See opendir(3).
+
+Creates an [`fs.Dir`][], which contains all further functions for reading from
+and cleaning up the directory.
+
+The `encoding` option sets the encoding for the `path` while opening the
+directory and subsequent read operations.
+
+## fs.opendirSync(path[, options])
+<!-- YAML
+added: v12.12.0
+-->
+
+* `path` {string|Buffer|URL}
+* `options` {Object}
+  * `encoding` {string|null} **Default:** `'utf8'`
+* Returns: {fs.Dir}
+
+Synchronously open a directory. See opendir(3).
+
+Creates an [`fs.Dir`][], which contains all further functions for reading from
+and cleaning up the directory.
+
+The `encoding` option sets the encoding for the `path` while opening the
+directory and subsequent read operations.
+
 ## fs.read(fd, buffer, offset, length, position, callback)
 <!-- YAML
 added: v0.0.2
@@ -3133,7 +3305,7 @@ Using `fs.stat()` to check for the existence of a file before calling
 Instead, user code should open/read/write the file directly and handle the
 error raised if the file is not available.
 
-To check if a file exists without manipulating it afterwards, [`fs.access()`]
+To check if a file exists without manipulating it afterwards, [`fs.access()`][]
 is recommended.
 
 For example, given the following folder structure:
@@ -3541,12 +3713,13 @@ The recursive option is only supported on macOS and Windows.
 This feature depends on the underlying operating system providing a way
 to be notified of filesystem changes.
 
-* On Linux systems, this uses [`inotify(7)`].
-* On BSD systems, this uses [`kqueue(2)`].
-* On macOS, this uses [`kqueue(2)`] for files and [`FSEvents`] for directories.
-* On SunOS systems (including Solaris and SmartOS), this uses [`event ports`].
-* On Windows systems, this feature depends on [`ReadDirectoryChangesW`].
-* On Aix systems, this feature depends on [`AHAFS`], which must be enabled.
+* On Linux systems, this uses [`inotify(7)`][].
+* On BSD systems, this uses [`kqueue(2)`][].
+* On macOS, this uses [`kqueue(2)`][] for files and [`FSEvents`][] for
+  directories.
+* On SunOS systems (including Solaris and SmartOS), this uses [`event ports`][].
+* On Windows systems, this feature depends on [`ReadDirectoryChangesW`][].
+* On Aix systems, this feature depends on [`AHAFS`][], which must be enabled.
 
 If the underlying functionality is not available for some reason, then
 `fs.watch` will not be able to function. For example, watching files or
@@ -4643,6 +4816,38 @@ by [Naming Files, Paths, and Namespaces][]. Under NTFS, if the filename contains
 a colon, Node.js will open a file system stream, as described by
 [this MSDN page][MSDN-Using-Streams].
 
+## fsPromises.opendir(path[, options])
+<!-- YAML
+added: v12.12.0
+-->
+
+* `path` {string|Buffer|URL}
+* `options` {Object}
+  * `encoding` {string|null} **Default:** `'utf8'`
+* Returns: {Promise} containing {fs.Dir}
+
+Asynchronously open a directory. See opendir(3).
+
+Creates an [`fs.Dir`][], which contains all further functions for reading from
+and cleaning up the directory.
+
+The `encoding` option sets the encoding for the `path` while opening the
+directory and subsequent read operations.
+
+Example using async iteration:
+
+```js
+const fs = require('fs');
+
+async function print(path) {
+  const dir = await fs.promises.opendir(path);
+  for await (const dirent of dir) {
+    console.log(dirent.name);
+  }
+}
+print('./').catch(console.error);
+```
+
 ### fsPromises.readdir(path[, options])
 <!-- YAML
 added: v10.0.0
@@ -5252,6 +5457,7 @@ the file contents.
 [`UV_THREADPOOL_SIZE`]: cli.html#cli_uv_threadpool_size_size
 [`WriteStream`]: #fs_class_fs_writestream
 [`event ports`]: https://illumos.org/man/port_create
+[`fs.Dir`]: #fs_class_fs_dir
 [`fs.Dirent`]: #fs_class_fs_dirent
 [`fs.FSWatcher`]: #fs_class_fs_fswatcher
 [`fs.Stats`]: #fs_class_fs_stats
@@ -5268,6 +5474,8 @@ the file contents.
 [`fs.mkdir()`]: #fs_fs_mkdir_path_options_callback
 [`fs.mkdtemp()`]: #fs_fs_mkdtemp_prefix_options_callback
 [`fs.open()`]: #fs_fs_open_path_flags_mode_callback
+[`fs.opendir()`]: #fs_fs_opendir_path_options_callback
+[`fs.opendirSync()`]: #fs_fs_opendirsync_path_options
 [`fs.read()`]: #fs_fs_read_fd_buffer_offset_length_position_callback
 [`fs.readFile()`]: #fs_fs_readfile_path_options_callback
 [`fs.readFileSync()`]: #fs_fs_readfilesync_path_options
@@ -5283,6 +5491,7 @@ the file contents.
 [`fs.write(fd, string...)`]: #fs_fs_write_fd_string_position_encoding_callback
 [`fs.writeFile()`]: #fs_fs_writefile_file_data_options_callback
 [`fs.writev()`]: #fs_fs_writev_fd_buffers_position_callback
+[`fsPromises.opendir()`]: #fs_fspromises_opendir_path_options
 [`inotify(7)`]: http://man7.org/linux/man-pages/man7/inotify.7.html
 [`kqueue(2)`]: https://www.freebsd.org/cgi/man.cgi?query=kqueue&sektion=2
 [`net.Socket`]: net.html#net_class_net_socket

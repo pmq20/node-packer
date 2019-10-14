@@ -555,10 +555,11 @@ cjs === 'cjs'; // true
 
 ## Builtin modules
 
-Builtin modules will provide named exports of their public API, as well as a
-default export which can be used for, among other things, modifying the named
-exports. Named exports of builtin modules are updated when the corresponding
-exports property is accessed, redefined, or deleted.
+Builtin modules will provide named exports of their public API. A
+default export is also provided which is the value of the CommonJS exports.
+The default export can be used for, among other things, modifying the named
+exports. Named exports of builtin modules are updated only by calling
+[`module.syncBuiltinESMExports()`][].
 
 ```js
 import EventEmitter from 'events';
@@ -578,17 +579,24 @@ readFile('./foo.txt', (err, source) => {
 
 ```js
 import fs, { readFileSync } from 'fs';
+import { syncBuiltinESMExports } from 'module';
 
 fs.readFileSync = () => Buffer.from('Hello, ESM');
+syncBuiltinESMExports();
 
 fs.readFileSync === readFileSync;
 ```
 
-## JSON Modules
+## Experimental JSON Modules
 
-JSON modules follow the [WHATWG JSON modules specification][].
+Currently importing JSON modules are only supported in the `commonjs` mode
+and are loaded using the CJS loader. [WHATWG JSON modules specification][] are
+still being standardized, and are experimentally supported by including the
+additional flag `--experimental-json-modules` when running Node.js.
 
-The imported JSON only exposes a `default`. There is no
+When the `--experimental-json-modules` flag is included both the
+`commonjs` and `module` mode will use the new experimental JSON
+loader. The imported JSON only exposes a `default`, there is no
 support for named exports. A cache entry is created in the CommonJS
 cache, to avoid duplication. The same object will be returned in
 CommonJS if the JSON module has already been imported from the
@@ -599,6 +607,14 @@ Assuming an `index.mjs` with
 <!-- eslint-skip -->
 ```js
 import packageConfig from './package.json';
+```
+
+The `--experimental-json-modules` flag is needed for the module
+to work.
+
+```bash
+node --experimental-modules index.mjs # fails
+node --experimental-modules --experimental-json-modules index.mjs # works
 ```
 
 ## Experimental Wasm Modules
@@ -1008,6 +1024,7 @@ success!
 [`import.meta.url`]: #esm_import_meta
 [`import`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import
 [`module.createRequire()`]: modules.html#modules_module_createrequire_filename
+[`module.syncBuiltinESMExports()`]: modules.html#modules_module_syncbuiltinesmexports
 [dynamic instantiate hook]: #esm_dynamic_instantiate_hook
 [package exports]: #esm_package_exports
 [special scheme]: https://url.spec.whatwg.org/#special-scheme

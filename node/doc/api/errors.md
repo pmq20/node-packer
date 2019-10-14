@@ -461,7 +461,7 @@ system error.
 
 The `error.errno` property is a number or a string. If it is a number, it is a
 negative value which corresponds to the error code defined in
-[`libuv Error handling`]. See the libuv `errno.h` header file
+[`libuv Error handling`][]. See the libuv `errno.h` header file
 (`deps/uv/include/uv/errno.h` in the Node.js source tree) for details. In case
 of a string, it is the same as `error.code`.
 
@@ -763,14 +763,6 @@ to enable or disable FIPS mode in the `crypto` module.
 An attempt was made to enable or disable FIPS mode, but FIPS mode was not
 available.
 
-<a id="ERR_CRYPTO_HASH_DIGEST_NO_UTF16"></a>
-### ERR_CRYPTO_HASH_DIGEST_NO_UTF16
-
-The UTF-16 encoding was used with [`hash.digest()`][]. While the
-`hash.digest()` method does allow an `encoding` argument to be passed in,
-causing the method to return a string rather than a `Buffer`, the UTF-16
-encoding (e.g. `ucs` or `utf16le`) is not supported.
-
 <a id="ERR_CRYPTO_HASH_FINALIZED"></a>
 ### ERR_CRYPTO_HASH_FINALIZED
 
@@ -831,6 +823,11 @@ A signing `key` was not provided to the [`sign.sign()`][] method.
 
 [`crypto.timingSafeEqual()`][] was called with `Buffer`, `TypedArray`, or
 `DataView` arguments of different lengths.
+
+<a id="ERR_DIR_CLOSED"></a>
+### ERR_DIR_CLOSED
+
+The [`fs.Dir`][] was previously closed.
 
 <a id="ERR_DNS_SET_SERVERS_FAILED"></a>
 ### ERR_DNS_SET_SERVERS_FAILED
@@ -1291,8 +1288,8 @@ semantics for determining whether a path can be used is platform-dependent.
 ### ERR_INVALID_HANDLE_TYPE
 
 An attempt was made to send an unsupported "handle" over an IPC communication
-channel to a child process. See [`subprocess.send()`] and [`process.send()`] for
-more information.
+channel to a child process. See [`subprocess.send()`][] and [`process.send()`][]
+for more information.
 
 <a id="ERR_INVALID_HTTP_TOKEN"></a>
 ### ERR_INVALID_HTTP_TOKEN
@@ -1444,7 +1441,7 @@ for more information.
 ### ERR_MANIFEST_ASSERT_INTEGRITY
 
 An attempt was made to load a resource, but the resource did not match the
-integrity defined by the policy manifest. See the documentation for [policy]
+integrity defined by the policy manifest. See the documentation for [policy][]
 manifests for more information.
 
 <a id="ERR_MANIFEST_DEPENDENCY_MISSING"></a>
@@ -1452,7 +1449,7 @@ manifests for more information.
 
 An attempt was made to load a resource, but the resource was not listed as a
 dependency from the location that attempted to load it. See the documentation
-for [policy] manifests for more information.
+for [policy][] manifests for more information.
 
 <a id="ERR_MANIFEST_INTEGRITY_MISMATCH"></a>
 ### ERR_MANIFEST_INTEGRITY_MISMATCH
@@ -1460,20 +1457,20 @@ for [policy] manifests for more information.
 An attempt was made to load a policy manifest, but the manifest had multiple
 entries for a resource which did not match each other. Update the manifest
 entries to match in order to resolve this error. See the documentation for
-[policy] manifests for more information.
+[policy][] manifests for more information.
 
 <a id="ERR_MANIFEST_INVALID_RESOURCE_FIELD"></a>
 ### ERR_MANIFEST_INVALID_RESOURCE_FIELD
 
 A policy manifest resource had an invalid value for one of its fields. Update
 the manifest entry to match in order to resolve this error. See the
-documentation for [policy] manifests for more information.
+documentation for [policy][] manifests for more information.
 
 <a id="ERR_MANIFEST_PARSE_POLICY"></a>
 ### ERR_MANIFEST_PARSE_POLICY
 
 An attempt was made to load a policy manifest, but the manifest was unable to
-be parsed. See the documentation for [policy] manifests for more information.
+be parsed. See the documentation for [policy][] manifests for more information.
 
 <a id="ERR_MANIFEST_TDZ"></a>
 ### ERR_MANIFEST_TDZ
@@ -1485,7 +1482,7 @@ initialization has not yet taken place. This is likely a bug in Node.js.
 ### ERR_MANIFEST_UNKNOWN_ONERROR
 
 A policy manifest was loaded, but had an unknown value for its "onerror"
-behavior. See the documentation for [policy] manifests for more information.
+behavior. See the documentation for [policy][] manifests for more information.
 
 <a id="ERR_MEMORY_ALLOCATION_FAILED"></a>
 ### ERR_MEMORY_ALLOCATION_FAILED
@@ -1608,6 +1605,11 @@ OpenSSL crypto support.
 
 An attempt was made to use features that require [ICU][], but Node.js was not
 compiled with ICU support.
+
+<a id="ERR_NON_CONTEXT_AWARE_DISABLED"></a>
+### ERR_NON_CONTEXT_AWARE_DISABLED
+
+A non-context-aware native addon was loaded in a process that disallows them.
 
 <a id="ERR_OUT_OF_RANGE"></a>
 ### ERR_OUT_OF_RANGE
@@ -1971,11 +1973,6 @@ than the parent module. Linked modules must share the same context.
 
 The linker function returned a module for which linking has failed.
 
-<a id="ERR_VM_MODULE_NOT_LINKED"></a>
-### ERR_VM_MODULE_NOT_LINKED
-
-The module must be successfully linked before instantiation.
-
 <a id="ERR_VM_MODULE_NOT_MODULE"></a>
 ### ERR_VM_MODULE_NOT_MODULE
 
@@ -2069,6 +2066,18 @@ removed: v11.12.0
 
 There was an attempt to use a `MessagePort` instance in a closed
 state, usually after `.close()` has been called.
+
+<a id="ERR_CRYPTO_HASH_DIGEST_NO_UTF16"></a>
+### ERR_CRYPTO_HASH_DIGEST_NO_UTF16
+<!-- YAML
+added: v9.0.0
+removed: v12.12.0
+-->
+
+The UTF-16 encoding was used with [`hash.digest()`][]. While the
+`hash.digest()` method does allow an `encoding` argument to be passed in,
+causing the method to return a string rather than a `Buffer`, the UTF-16
+encoding (e.g. `ucs` or `utf16le`) is not supported.
 
 <a id="ERR_HTTP2_FRAME_ERROR"></a>
 ### ERR_HTTP2_FRAME_ERROR
@@ -2262,6 +2271,11 @@ removed: v10.0.0
 
 Used when a given value is out of the accepted range.
 
+<a id="ERR_VM_MODULE_NOT_LINKED"></a>
+### ERR_VM_MODULE_NOT_LINKED
+
+The module must be successfully linked before instantiation.
+
 <a id="ERR_ZLIB_BINDING_CLOSED"></a>
 ### ERR_ZLIB_BINDING_CLOSED
 <!-- YAML
@@ -2371,6 +2385,7 @@ such as `process.stdout.on('data')`.
 [`dgram.disconnect()`]: dgram.html#dgram_socket_disconnect
 [`dgram.remoteAddress()`]: dgram.html#dgram_socket_remoteaddress
 [`errno`(3) man page]: http://man7.org/linux/man-pages/man3/errno.3.html
+[`fs.Dir`]: fs.html#fs_class_fs_dir
 [`fs.readFileSync`]: fs.html#fs_fs_readfilesync_path_options
 [`fs.readdir`]: fs.html#fs_fs_readdir_path_options_callback
 [`fs.symlink()`]: fs.html#fs_fs_symlink_target_path_type_callback

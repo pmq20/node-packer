@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>TLS (SSL) | Node.js v12.11.1 Documentation</title>
+  <title>TLS (SSL) | Node.js v12.12.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -81,7 +81,7 @@
 
     <div id="column1" data-id="tls" class="interior">
       <header>
-        <h1>Node.js v12.11.1 Documentation</h1>
+        <h1>Node.js v12.12.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -270,12 +270,12 @@ a single file, e.g. <code>cat ca1-cert.pem ca2-cert.pem > ca-cert.pem</code></li
 </ul>
 <h3>Perfect Forward Secrecy<span><a class="mark" href="#tls_perfect_forward_secrecy" id="tls_perfect_forward_secrecy">#</a></span></h3>
 
-<p>The term "<a href="https://en.wikipedia.org/wiki/Perfect_forward_secrecy">Forward Secrecy</a>" or "Perfect Forward Secrecy" describes a feature of
-key-agreement (i.e., key-exchange) methods. That is, the server and client keys
-are used to negotiate new temporary keys that are used specifically and only for
-the current communication session. Practically, this means that even if the
-server's private key is compromised, communication can only be decrypted by
-eavesdroppers if the attacker manages to obtain the key-pair specifically
+<p>The term "<a href="https://en.wikipedia.org/wiki/Perfect_forward_secrecy">Forward Secrecy</a>" or "Perfect Forward Secrecy" describes a feature
+of key-agreement (i.e., key-exchange) methods. That is, the server and client
+keys are used to negotiate new temporary keys that are used specifically and
+only for the current communication session. Practically, this means that even
+if the server's private key is compromised, communication can only be decrypted
+by eavesdroppers if the attacker manages to obtain the key-pair specifically
 generated for the session.</p>
 <p>Perfect Forward Secrecy is achieved by randomly generating a key pair for
 key-agreement on every TLS/SSL handshake (in contrast to using the same key for
@@ -645,7 +645,7 @@ from the <a href="#tls_tls_createsecurecontext_options"><code>tls.createSecureCo
 </ul>
 <p>The <code>server.addContext()</code> method adds a secure context that will be used if
 the client request's SNI name matches the supplied <code>hostname</code> (or wildcard).</p>
-<h3>server.address()<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/net.js#L1499">[src]</a><span><a class="mark" href="#tls_server_address" id="tls_server_address">#</a></span></h3>
+<h3>server.address()<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/net.js#L1501">[src]</a><span><a class="mark" href="#tls_server_address" id="tls_server_address">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.6.0</span>
 </div>
@@ -655,7 +655,7 @@ the client request's SNI name matches the supplied <code>hostname</code> (or wil
 <p>Returns the bound address, the address family name, and port of the
 server as reported by the operating system. See <a href="net.html#net_server_address"><code>net.Server.address()</code></a> for
 more information.</p>
-<h3>server.close([callback])<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/net.js#L1585">[src]</a><span><a class="mark" href="#tls_server_close_callback" id="tls_server_close_callback">#</a></span></h3>
+<h3>server.close([callback])<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/net.js#L1587">[src]</a><span><a class="mark" href="#tls_server_close_callback" id="tls_server_close_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.3.2</span>
 </div>
@@ -685,7 +685,7 @@ when the server has no more open connections.</p>
 </ul>
 <p>Returns the session ticket keys.</p>
 <p>See <a href="#tls_session_resumption">Session Resumption</a> for more information.</p>
-<h3>server.listen()<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/net.js#L1378">[src]</a><span><a class="mark" href="#tls_server_listen" id="tls_server_listen">#</a></span></h3>
+<h3>server.listen()<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/net.js#L1380">[src]</a><span><a class="mark" href="#tls_server_listen" id="tls_server_listen">#</a></span></h3>
 <p>Starts the server listening for encrypted connections.
 This method is identical to <a href="net.html#net_server_listen"><code>server.listen()</code></a> from <a href="net.html#net_class_net_server"><code>net.Server</code></a>.</p>
 <h3>server.setSecureContext(options)<span><a class="mark" href="#tls_server_setsecurecontext_options" id="tls_server_setsecurecontext_options">#</a></span></h3>
@@ -1235,7 +1235,7 @@ and its integrity is verified; large fragments can span multiple roundtrips
 and their processing can be delayed due to packet loss or reordering. However,
 smaller fragments add extra TLS framing bytes and CPU overhead, which may
 decrease overall server throughput.</p>
-<h2>tls.checkServerIdentity(hostname, cert)<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/tls.js#L207">[src]</a><span><a class="mark" href="#tls_tls_checkserveridentity_hostname_cert" id="tls_tls_checkserveridentity_hostname_cert">#</a></span></h2>
+<h2>tls.checkServerIdentity(hostname, cert)<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/tls.js#L207">[src]</a><span><a class="mark" href="#tls_tls_checkserveridentity_hostname_cert" id="tls_tls_checkserveridentity_hostname_cert">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.8.4</span>
 </div>
@@ -1411,6 +1411,8 @@ argument.</p>
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v12.12.0</td>
+<td><p>Added <code>privateKeyIdentifier</code> and <code>privateKeyEngine</code> options to get private key from an OpenSSL engine.</p></td></tr>
 <tr><td>v12.11.0</td>
 <td><p>Added <code>sigalgs</code> option to override supported signature algorithms.</p></td></tr>
 <tr><td>v12.0.0</td>
@@ -1505,6 +1507,12 @@ buffers, or an array of objects in the form
 occur in an array. <code>object.passphrase</code> is optional. Encrypted keys will be
 decrypted with <code>object.passphrase</code> if provided, or <code>options.passphrase</code> if
 it is not.</li>
+<li><code>privateKeyEngine</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Name of an OpenSSL engine to get private key
+from. Should be used together with <code>privateKeyIdentifier</code>.</li>
+<li><code>privateKeyIdentifier</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Identifier of a private key managed by
+an OpenSSL engine. Should be used together with <code>privateKeyEngine</code>.
+Should not be set together with <code>key</code>, because both options define a
+private key in different ways.</li>
 <li><code>maxVersion</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Optionally set the maximum TLS version to allow. One
 of <code>TLSv1.3</code>, <code>TLSv1.2'</code>, <code>'TLSv1.1'</code>, or <code>'TLSv1'</code>. Cannot be specified
 along with the <code>secureProtocol</code> option, use one or the other.

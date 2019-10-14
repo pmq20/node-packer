@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Child Process | Node.js v12.11.1 Documentation</title>
+  <title>Child Process | Node.js v12.12.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -81,7 +81,7 @@
 
     <div id="column1" data-id="child_process" class="interior">
       <header>
-        <h1>Node.js v12.11.1 Documentation</h1>
+        <h1>Node.js v12.12.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -295,7 +295,7 @@ exec('"my script.cmd" a b', (err, stdout, stderr) => {
   // ...
 });
 </code></pre>
-<h3>child_process.exec(command[, options][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/child_process.js#L143">[src]</a><span><a class="mark" href="#child_process_child_process_exec_command_options_callback" id="child_process_child_process_exec_command_options_callback">#</a></span></h3>
+<h3>child_process.exec(command[, options][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/child_process.js#L143">[src]</a><span><a class="mark" href="#child_process_child_process_exec_command_options_callback" id="child_process_child_process_exec_command_options_callback">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -398,7 +398,7 @@ async function lsExample() {
 }
 lsExample();
 </code></pre>
-<h3>child_process.execFile(file[, args][, options][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/child_process.js#L178">[src]</a><span><a class="mark" href="#child_process_child_process_execfile_file_args_options_callback" id="child_process_child_process_execfile_file_args_options_callback">#</a></span></h3>
+<h3>child_process.execFile(file[, args][, options][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/child_process.js#L178">[src]</a><span><a class="mark" href="#child_process_child_process_execfile_file_args_options_callback" id="child_process_child_process_execfile_file_args_options_callback">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -485,7 +485,7 @@ getVersion();
 <p><strong>If the <code>shell</code> option is enabled, do not pass unsanitized user input to this
 function. Any input containing shell metacharacters may be used to trigger
 arbitrary command execution.</strong></p>
-<h3>child_process.fork(modulePath[, args][, options])<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/child_process.js#L54">[src]</a><span><a class="mark" href="#child_process_child_process_fork_modulepath_args_options" id="child_process_child_process_fork_modulepath_args_options">#</a></span></h3>
+<h3>child_process.fork(modulePath[, args][, options])<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/child_process.js#L54">[src]</a><span><a class="mark" href="#child_process_child_process_fork_modulepath_args_options" id="child_process_child_process_fork_modulepath_args_options">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -551,7 +551,7 @@ environment variable <code>NODE_CHANNEL_FD</code> on the child process.</p>
 current process.</p>
 <p>The <code>shell</code> option available in <a href="#child_process_child_process_spawn_command_args_options"><code>child_process.spawn()</code></a> is not supported by
 <code>child_process.fork()</code> and will be ignored if set.</p>
-<h3>child_process.spawn(command[, args][, options])<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/child_process.js#L533">[src]</a><span><a class="mark" href="#child_process_child_process_spawn_command_args_options" id="child_process_child_process_spawn_command_args_options">#</a></span></h3>
+<h3>child_process.spawn(command[, args][, options])<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/child_process.js#L533">[src]</a><span><a class="mark" href="#child_process_child_process_spawn_command_args_options" id="child_process_child_process_spawn_command_args_options">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -838,7 +838,7 @@ process exits.</p>
 <p>Blocking calls like these are mostly useful for simplifying general-purpose
 scripting tasks and for simplifying the loading/processing of application
 configuration at startup.</p>
-<h3>child_process.execFileSync(file[, args][, options])<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/child_process.js#L630">[src]</a><span><a class="mark" href="#child_process_child_process_execfilesync_file_args_options" id="child_process_child_process_execfilesync_file_args_options">#</a></span></h3>
+<h3>child_process.execFileSync(file[, args][, options])<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/child_process.js#L630">[src]</a><span><a class="mark" href="#child_process_child_process_execfilesync_file_args_options" id="child_process_child_process_execfilesync_file_args_options">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -905,7 +905,7 @@ exited.</p>
 <p><strong>If the <code>shell</code> option is enabled, do not pass unsanitized user input to this
 function. Any input containing shell metacharacters may be used to trigger
 arbitrary command execution.</strong></p>
-<h3>child_process.execSync(command[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/child_process.js#L648">[src]</a><span><a class="mark" href="#child_process_child_process_execsync_command_options" id="child_process_child_process_execsync_command_options">#</a></span></h3>
+<h3>child_process.execSync(command[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/child_process.js#L648">[src]</a><span><a class="mark" href="#child_process_child_process_execsync_command_options" id="child_process_child_process_execsync_command_options">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -967,7 +967,7 @@ The <a href="errors.html#errors_class_error"><code>Error</code></a> object will 
 <a href="#child_process_child_process_spawnsync_command_args_options"><code>child_process.spawnSync()</code></a>.</p>
 <p><strong>Never pass unsanitized user input to this function. Any input containing shell
 metacharacters may be used to trigger arbitrary command execution.</strong></p>
-<h3>child_process.spawnSync(command[, args][, options])<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/child_process.js#L556">[src]</a><span><a class="mark" href="#child_process_child_process_spawnsync_command_args_options" id="child_process_child_process_spawnsync_command_args_options">#</a></span></h3>
+<h3>child_process.spawnSync(command[, args][, options])<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/child_process.js#L556">[src]</a><span><a class="mark" href="#child_process_child_process_spawnsync_command_args_options" id="child_process_child_process_spawnsync_command_args_options">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>

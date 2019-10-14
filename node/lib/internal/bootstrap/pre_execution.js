@@ -21,6 +21,15 @@ function prepareMainThreadExecution(expandArgv1 = false) {
       setupCoverageHooks(process.env.NODE_V8_COVERAGE);
   }
 
+  // If source-map support has been enabled, we substitute in a new
+  // prepareStackTrace method, replacing the default in errors.js.
+  if (getOptionValue('--enable-source-maps')) {
+    const { prepareStackTrace } =
+      require('internal/source_map/source_map_cache');
+    const { setPrepareStackTraceCallback } = internalBinding('errors');
+    setPrepareStackTraceCallback(prepareStackTrace);
+  }
+
   setupDebugEnv();
 
   // Only main thread receives signals.
@@ -119,7 +128,8 @@ function setupCoverageHooks(dir) {
   const cwd = require('internal/process/execution').tryGetCwd();
   const { resolve } = require('path');
   const coverageDirectory = resolve(cwd, dir);
-  const { sourceMapCacheToObject } = require('internal/source_map');
+  const { sourceMapCacheToObject } =
+    require('internal/source_map/source_map_cache');
 
   if (process.features.inspector) {
     internalBinding('profiler').setCoverageDirectory(coverageDirectory);
@@ -271,6 +281,10 @@ function initializeDeprecations() {
     process.binding = deprecate(process.binding,
                                 'process.binding() is deprecated. ' +
                                 'Please use public APIs instead.', 'DEP0111');
+
+    process._tickCallback = deprecate(process._tickCallback,
+                                      'process._tickCallback() is deprecated',
+                                      'DEP0134');
   }
 
   // Create global.process and global.Buffer as getters so that we have a

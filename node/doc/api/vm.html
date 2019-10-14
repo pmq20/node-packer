@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>VM (Executing JavaScript) | Node.js v12.11.1 Documentation</title>
+  <title>VM (Executing JavaScript) | Node.js v12.12.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -81,7 +81,7 @@
 
     <div id="column1" data-id="vm" class="interior">
       <header>
-        <h1>Node.js v12.11.1 Documentation</h1>
+        <h1>Node.js v12.12.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -138,12 +138,10 @@
 <li><a href="#vm_module_dependencyspecifiers">module.dependencySpecifiers</a></li>
 <li><a href="#vm_module_error">module.error</a></li>
 <li><a href="#vm_module_evaluate_options">module.evaluate([options])</a></li>
-<li><a href="#vm_module_instantiate">module.instantiate()</a></li>
 <li><a href="#vm_module_link_linker">module.link(linker)</a></li>
-<li><a href="#vm_module_linkingstatus">module.linkingStatus</a></li>
 <li><a href="#vm_module_namespace">module.namespace</a></li>
 <li><a href="#vm_module_status">module.status</a></li>
-<li><a href="#vm_module_url">module.url</a></li>
+<li><a href="#vm_module_identifier">module.identifier</a></li>
 </ul>
 </li>
 <li><a href="#vm_vm_compilefunction_code_params_options">vm.compileFunction(code[, params[, options]])</a></li>
@@ -285,7 +283,7 @@ script.runInThisContext();
 
 const cacheWithX = script.createCachedData();
 </code></pre>
-<h3>script.runInContext(contextifiedSandbox[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/vm.js#L130">[src]</a><span><a class="mark" href="#vm_script_runincontext_contextifiedsandbox_options" id="vm_script_runincontext_contextifiedsandbox_options">#</a></span></h3>
+<h3>script.runInContext(contextifiedSandbox[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/vm.js#L120">[src]</a><span><a class="mark" href="#vm_script_runincontext_contextifiedsandbox_options" id="vm_script_runincontext_contextifiedsandbox_options">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -346,7 +344,7 @@ console.log(util.inspect(sandbox));
 <p>Using the <code>timeout</code> or <code>breakOnSigint</code> options will result in new event loops
 and corresponding threads being started, which have a non-zero performance
 overhead.</p>
-<h3>script.runInNewContext([sandbox[, options]])<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/vm.js#L141">[src]</a><span><a class="mark" href="#vm_script_runinnewcontext_sandbox_options" id="vm_script_runinnewcontext_sandbox_options">#</a></span></h3>
+<h3>script.runInNewContext([sandbox[, options]])<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/vm.js#L131">[src]</a><span><a class="mark" href="#vm_script_runinnewcontext_sandbox_options" id="vm_script_runinnewcontext_sandbox_options">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -420,7 +418,7 @@ console.log(util.inspect(sandboxes));
 
 // [{ globalVar: 'set' }, { globalVar: 'set' }, { globalVar: 'set' }]
 </code></pre>
-<h3>script.runInThisContext([options])<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/vm.js#L121">[src]</a><span><a class="mark" href="#vm_script_runinthiscontext_options" id="vm_script_runinthiscontext_options">#</a></span></h3>
+<h3>script.runInThisContext([options])<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/vm.js#L111">[src]</a><span><a class="mark" href="#vm_script_runinthiscontext_options" id="vm_script_runinthiscontext_options">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -479,16 +477,16 @@ console.log(globalVar);
 flag enabled.</em></p>
 <p>The <code>vm.SourceTextModule</code> class provides a low-level interface for using
 ECMAScript modules in VM contexts. It is the counterpart of the <code>vm.Script</code>
-class that closely mirrors <a href="https://tc39.github.io/ecma262/#sec-source-text-module-records">Source Text Module Record</a>s as defined in the
+class that closely mirrors <a href="https://tc39.es/ecma262/#sec-source-text-module-records">Source Text Module Record</a>s as defined in the
 ECMAScript specification.</p>
 <p>Unlike <code>vm.Script</code> however, every <code>vm.SourceTextModule</code> object is bound to a
 context from its creation. Operations on <code>vm.SourceTextModule</code> objects are
 intrinsically asynchronous, in contrast with the synchronous nature of
 <code>vm.Script</code> objects. With the help of async functions, however, manipulating
 <code>vm.SourceTextModule</code> objects is fairly straightforward.</p>
-<p>Using a <code>vm.SourceTextModule</code> object requires four distinct steps:
-creation/parsing, linking, instantiation, and evaluation. These four steps are
-illustrated in the following example.</p>
+<p>Using a <code>vm.SourceTextModule</code> object requires three distinct steps:
+creation/parsing, linking, and evaluation. These three steps are illustrated in
+the following example.</p>
 <p>This implementation lies at a lower level than the <a href="esm.html#esm_ecmascript_modules">ECMAScript Module
 loader</a>. There is also currently no way to interact with the Loader, though
 support is planned.</p>
@@ -552,15 +550,6 @@ const contextifiedSandbox = vm.createContext({ secret: 42 });
 
   // Step 3
   //
-  // Instantiate the top-level Module.
-  //
-  // Only the top-level Module needs to be explicitly instantiated; its
-  // dependencies will be recursively instantiated by instantiate().
-
-  bar.instantiate();
-
-  // Step 4
-  //
   // Evaluate the Module. The evaluate() method returns a Promise with a single
   // property "result" that contains the result of the very last statement
   // executed in the Module. In the case of `bar`, it is `s;`, which refers to
@@ -579,8 +568,9 @@ const contextifiedSandbox = vm.createContext({ secret: 42 });
 <li>
 <p><code>options</code></p>
 <ul>
-<li><code>url</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> URL used in module resolution and stack traces. <strong>Default:</strong>
-<code>'vm:module(i)'</code> where <code>i</code> is a context-specific ascending index.</li>
+<li><code>identifier</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> String used in stack traces.
+<strong>Default:</strong> <code>'vm:module(i)'</code> where <code>i</code> is a context-specific ascending
+index.</li>
 <li><code>context</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> The <a href="#vm_what_does_it_mean_to_contextify_an_object">contextified</a> object as returned by the
 <code>vm.createContext()</code> method, to compile and evaluate this <code>Module</code> in.</li>
 <li><code>lineOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> Specifies the line number offset that is displayed
@@ -634,7 +624,6 @@ const contextifiedSandbox = vm.createContext({ secret: 42 });
     });
   // Since module has no dependencies, the linker function will never be called.
   await module.link(() => {});
-  module.instantiate();
   await module.evaluate();
 
   // Now, Object.prototype.secret will be equal to 42.
@@ -652,7 +641,7 @@ const contextifiedSandbox = vm.createContext({ secret: 42 });
 <p>The specifiers of all dependencies of this module. The returned array is frozen
 to disallow any changes to it.</p>
 <p>Corresponds to the <code>[[RequestedModules]]</code> field of
-<a href="https://tc39.github.io/ecma262/#sec-source-text-module-records">Source Text Module Record</a>s in the ECMAScript specification.</p>
+<a href="https://tc39.es/ecma262/#sec-source-text-module-records">Source Text Module Record</a>s in the ECMAScript specification.</p>
 <h3>module.error<span><a class="mark" href="#vm_module_error" id="vm_module_error">#</a></span></h3>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Data_types" class="type">&#x3C;any></a></li>
@@ -662,7 +651,7 @@ thrown by the module during evaluation. If the status is anything else,
 accessing this property will result in a thrown exception.</p>
 <p>The value <code>undefined</code> cannot be used for cases where there is not a thrown
 exception due to possible ambiguity with <code>throw undefined;</code>.</p>
-<p>Corresponds to the <code>[[EvaluationError]]</code> field of <a href="https://tc39.github.io/ecma262/#sec-source-text-module-records">Source Text Module Record</a>s
+<p>Corresponds to the <code>[[EvaluationError]]</code> field of <a href="https://tc39.es/ecma262/#sec-source-text-module-records">Source Text Module Record</a>s
 in the ECMAScript specification.</p>
 <h3>module.evaluate([options])<span><a class="mark" href="#vm_module_evaluate_options" id="vm_module_evaluate_options">#</a></span></h3>
 <ul>
@@ -682,7 +671,7 @@ interrupted, an <a href="errors.html#errors_class_error"><code>Error</code></a> 
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise" class="type">&#x3C;Promise></a></li>
 </ul>
 <p>Evaluate the module.</p>
-<p>This must be called after the module has been instantiated; otherwise it will
+<p>This must be called after the module has been linked; otherwise it will
 throw an error. It could be called also when the module has already been
 evaluated, in which case it will do one of the following two things:</p>
 <ul>
@@ -693,20 +682,8 @@ evaluation ended in an error (<code>module.status</code> is <code>'errored'</cod
 </ul>
 <p>This method cannot be called while the module is being evaluated
 (<code>module.status</code> is <code>'evaluating'</code>) to prevent infinite recursion.</p>
-<p>Corresponds to the <a href="https://tc39.github.io/ecma262/#sec-moduleevaluation">Evaluate() concrete method</a> field of <a href="https://tc39.github.io/ecma262/#sec-source-text-module-records">Source Text Module
+<p>Corresponds to the <a href="https://tc39.es/ecma262/#sec-moduleevaluation">Evaluate() concrete method</a> field of <a href="https://tc39.es/ecma262/#sec-source-text-module-records">Source Text Module
 Record</a>s in the ECMAScript specification.</p>
-<h3>module.instantiate()<span><a class="mark" href="#vm_module_instantiate" id="vm_module_instantiate">#</a></span></h3>
-<p>Instantiate the module. This must be called after linking has completed
-(<code>linkingStatus</code> is <code>'linked'</code>); otherwise it will throw an error. It may also
-throw an exception if one of the dependencies does not provide an export the
-parent module requires.</p>
-<p>However, if this function succeeded, further calls to this function after the
-initial instantiation will be no-ops, to be consistent with the ECMAScript
-specification.</p>
-<p>Unlike other methods operating on <code>Module</code>, this function completes
-synchronously and returns nothing.</p>
-<p>Corresponds to the <a href="https://tc39.github.io/ecma262/#sec-moduledeclarationinstantiation">Instantiate() concrete method</a> field of <a href="https://tc39.github.io/ecma262/#sec-source-text-module-records">Source Text
-Module Record</a>s in the ECMAScript specification.</p>
 <h3>module.link(linker)<span><a class="mark" href="#vm_module_link_linker" id="vm_module_link_linker">#</a></span></h3>
 <ul>
 <li>
@@ -732,58 +709,42 @@ called on.</p>
 <p>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise" class="type">&#x3C;Promise></a></p>
 </li>
 </ul>
-<p>Link module dependencies. This method must be called before instantiation, and
+<p>Link module dependencies. This method must be called before evaluation, and
 can only be called once per module.</p>
 <p>The function is expected to return a <code>Module</code> object or a <code>Promise</code> that
 eventually resolves to a <code>Module</code> object. The returned <code>Module</code> must satisfy the
 following two invariants:</p>
 <ul>
 <li>It must belong to the same context as the parent <code>Module</code>.</li>
-<li>Its <code>linkingStatus</code> must not be <code>'errored'</code>.</li>
+<li>Its <code>status</code> must not be <code>'errored'</code>.</li>
 </ul>
-<p>If the returned <code>Module</code>'s <code>linkingStatus</code> is <code>'unlinked'</code>, this method will be
+<p>If the returned <code>Module</code>'s <code>status</code> is <code>'unlinked'</code>, this method will be
 recursively called on the returned <code>Module</code> with the same provided <code>linker</code>
 function.</p>
 <p><code>link()</code> returns a <code>Promise</code> that will either get resolved when all linking
 instances resolve to a valid <code>Module</code>, or rejected if the linker function either
 throws an exception or returns an invalid <code>Module</code>.</p>
 <p>The linker function roughly corresponds to the implementation-defined
-<a href="https://tc39.github.io/ecma262/#sec-hostresolveimportedmodule">HostResolveImportedModule</a> abstract operation in the ECMAScript
+<a href="https://tc39.es/ecma262/#sec-hostresolveimportedmodule">HostResolveImportedModule</a> abstract operation in the ECMAScript
 specification, with a few key differences:</p>
 <ul>
 <li>The linker function is allowed to be asynchronous while
-<a href="https://tc39.github.io/ecma262/#sec-hostresolveimportedmodule">HostResolveImportedModule</a> is synchronous.</li>
-<li>The linker function is executed during linking, a Node.js-specific stage
-before instantiation, while <a href="https://tc39.github.io/ecma262/#sec-hostresolveimportedmodule">HostResolveImportedModule</a> is called during
-instantiation.</li>
+<a href="https://tc39.es/ecma262/#sec-hostresolveimportedmodule">HostResolveImportedModule</a> is synchronous.</li>
 </ul>
-<p>The actual <a href="https://tc39.github.io/ecma262/#sec-hostresolveimportedmodule">HostResolveImportedModule</a> implementation used during module
-instantiation is one that returns the modules linked during linking. Since at
+<p>The actual <a href="https://tc39.es/ecma262/#sec-hostresolveimportedmodule">HostResolveImportedModule</a> implementation used during module
+linking is one that returns the modules linked during linking. Since at
 that point all modules would have been fully linked already, the
-<a href="https://tc39.github.io/ecma262/#sec-hostresolveimportedmodule">HostResolveImportedModule</a> implementation is fully synchronous per
+<a href="https://tc39.es/ecma262/#sec-hostresolveimportedmodule">HostResolveImportedModule</a> implementation is fully synchronous per
 specification.</p>
-<h3>module.linkingStatus<span><a class="mark" href="#vm_module_linkingstatus" id="vm_module_linkingstatus">#</a></span></h3>
-<ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
-</ul>
-<p>The current linking status of <code>module</code>. It will be one of the following values:</p>
-<ul>
-<li><code>'unlinked'</code>: <code>module.link()</code> has not yet been called.</li>
-<li><code>'linking'</code>: <code>module.link()</code> has been called, but not all Promises returned by
-the linker function have been resolved yet.</li>
-<li><code>'linked'</code>: <code>module.link()</code> has been called, and all its dependencies have
-been successfully linked.</li>
-<li><code>'errored'</code>: <code>module.link()</code> has been called, but at least one of its
-dependencies failed to link, either because the callback returned a <code>Promise</code>
-that is rejected, or because the <code>Module</code> the callback returned is invalid.</li>
-</ul>
+<p>Corresponds to the <a href="https://tc39.es/ecma262/#sec-moduledeclarationlinking">Link() concrete method</a> field of <a href="https://tc39.es/ecma262/#sec-source-text-module-records">Source Text Module
+Record</a>s in the ECMAScript specification.</p>
 <h3>module.namespace<span><a class="mark" href="#vm_module_namespace" id="vm_module_namespace">#</a></span></h3>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></li>
 </ul>
-<p>The namespace object of the module. This is only available after instantiation
-(<code>module.instantiate()</code>) has completed.</p>
-<p>Corresponds to the <a href="https://tc39.github.io/ecma262/#sec-getmodulenamespace">GetModuleNamespace</a> abstract operation in the ECMAScript
+<p>The namespace object of the module. This is only available after linking
+(<code>module.link()</code>) has completed.</p>
+<p>Corresponds to the <a href="https://tc39.es/ecma262/#sec-getmodulenamespace">GetModuleNamespace</a> abstract operation in the ECMAScript
 specification.</p>
 <h3>module.status<span><a class="mark" href="#vm_module_status" id="vm_module_status">#</a></span></h3>
 <ul>
@@ -792,23 +753,15 @@ specification.</p>
 <p>The current status of the module. Will be one of:</p>
 <ul>
 <li>
-<p><code>'uninstantiated'</code>: The module is not instantiated. It may because of any of
-the following reasons:</p>
-<ul>
-<li>The module was just created.</li>
-<li><code>module.instantiate()</code> has been called on this module, but it failed for
-some reason.</li>
-</ul>
-<p>This status does not convey any information regarding if <code>module.link()</code> has
-been called. See <code>module.linkingStatus</code> for that.</p>
+<p><code>'unlinked'</code>: <code>module.link()</code> has not yet been called.</p>
 </li>
 <li>
-<p><code>'instantiating'</code>: The module is currently being instantiated through a
-<code>module.instantiate()</code> call on itself or a parent module.</p>
+<p><code>'linking'</code>: <code>module.link()</code> has been called, but not all Promises returned
+by the linker function have been resolved yet.</p>
 </li>
 <li>
-<p><code>'instantiated'</code>: The module has been instantiated successfully, but
-<code>module.evaluate()</code> has not yet been called.</p>
+<p><code>'linked'</code>: The module has been linked successfully, and all of its
+dependencies are linked, but <code>module.evaluate()</code> has not yet been called.</p>
 </li>
 <li>
 <p><code>'evaluating'</code>: The module is being evaluated through a <code>module.evaluate()</code> on
@@ -822,15 +775,15 @@ itself or a parent module.</p>
 </li>
 </ul>
 <p>Other than <code>'errored'</code>, this status string corresponds to the specification's
-<a href="https://tc39.github.io/ecma262/#sec-source-text-module-records">Source Text Module Record</a>'s <code>[[Status]]</code> field. <code>'errored'</code> corresponds to
+<a href="https://tc39.es/ecma262/#sec-source-text-module-records">Source Text Module Record</a>'s <code>[[Status]]</code> field. <code>'errored'</code> corresponds to
 <code>'evaluated'</code> in the specification, but with <code>[[EvaluationError]]</code> set to a
 value that is not <code>undefined</code>.</p>
-<h3>module.url<span><a class="mark" href="#vm_module_url" id="vm_module_url">#</a></span></h3>
+<h3>module.identifier<span><a class="mark" href="#vm_module_identifier" id="vm_module_identifier">#</a></span></h3>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
-<p>The URL of the current module, as set in the constructor.</p>
-<h2>vm.compileFunction(code[, params[, options]])<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/vm.js#L319">[src]</a><span><a class="mark" href="#vm_vm_compilefunction_code_params_options" id="vm_vm_compilefunction_code_params_options">#</a></span></h2>
+<p>The identifier of the current module, as set in the constructor.</p>
+<h2>vm.compileFunction(code[, params[, options]])<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/vm.js#L309">[src]</a><span><a class="mark" href="#vm_vm_compilefunction_code_params_options" id="vm_vm_compilefunction_code_params_options">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v10.10.0</span>
 </div>
@@ -864,7 +817,7 @@ compiling. <strong>Default:</strong> <code>[]</code>.</li>
 <p>Compiles the given code into the provided context/sandbox (if no context is
 supplied, the current context is used), and returns it wrapped inside a
 function with the given <code>params</code>.</p>
-<h2>vm.createContext([sandbox[, options]])<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/vm.js#L235">[src]</a><span><a class="mark" href="#vm_vm_createcontext_sandbox_options" id="vm_vm_createcontext_sandbox_options">#</a></span></h2>
+<h2>vm.createContext([sandbox[, options]])<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/vm.js#L225">[src]</a><span><a class="mark" href="#vm_vm_createcontext_sandbox_options" id="vm_vm_createcontext_sandbox_options">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -936,7 +889,7 @@ window's global object, then run all <code>&#x3C;script></code> tags together wi
 of that sandbox.</p>
 <p>The provided <code>name</code> and <code>origin</code> of the context are made visible through the
 Inspector API.</p>
-<h2>vm.isContext(sandbox)<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/vm.js#L227">[src]</a><span><a class="mark" href="#vm_vm_iscontext_sandbox" id="vm_vm_iscontext_sandbox">#</a></span></h2>
+<h2>vm.isContext(sandbox)<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/vm.js#L217">[src]</a><span><a class="mark" href="#vm_vm_iscontext_sandbox" id="vm_vm_iscontext_sandbox">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.11.7</span>
 </div>
@@ -946,7 +899,7 @@ Inspector API.</p>
 </ul>
 <p>Returns <code>true</code> if the given <code>sandbox</code> object has been <a href="#vm_what_does_it_mean_to_contextify_an_object">contextified</a> using
 <a href="#vm_vm_createcontext_sandbox_options"><code>vm.createContext()</code></a>.</p>
-<h2>vm.runInContext(code, contextifiedSandbox[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/vm.js#L289">[src]</a><span><a class="mark" href="#vm_vm_runincontext_code_contextifiedsandbox_options" id="vm_vm_runincontext_code_contextifiedsandbox_options">#</a></span></h2>
+<h2>vm.runInContext(code, contextifiedSandbox[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/vm.js#L279">[src]</a><span><a class="mark" href="#vm_vm_runincontext_code_contextifiedsandbox_options" id="vm_vm_runincontext_code_contextifiedsandbox_options">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1033,7 +986,7 @@ console.log(util.inspect(sandbox));
 
 // { globalVar: 1024 }
 </code></pre>
-<h2>vm.runInNewContext(code[, sandbox[, options]])<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/vm.js#L303">[src]</a><span><a class="mark" href="#vm_vm_runinnewcontext_code_sandbox_options" id="vm_vm_runinnewcontext_code_sandbox_options">#</a></span></h2>
+<h2>vm.runInNewContext(code[, sandbox[, options]])<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/vm.js#L293">[src]</a><span><a class="mark" href="#vm_vm_runinnewcontext_code_sandbox_options" id="vm_vm_runinnewcontext_code_sandbox_options">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1141,7 +1094,7 @@ console.log(util.inspect(sandbox));
 
 // { animal: 'cat', count: 3, name: 'kitty' }
 </code></pre>
-<h2>vm.runInThisContext(code[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/8507485fb242dfcaf07092414871aa9c185a28e4/lib/vm.js#L312">[src]</a><span><a class="mark" href="#vm_vm_runinthiscontext_code_options" id="vm_vm_runinthiscontext_code_options">#</a></span></h2>
+<h2>vm.runInThisContext(code[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/vm.js#L302">[src]</a><span><a class="mark" href="#vm_vm_runinthiscontext_code_options" id="vm_vm_runinthiscontext_code_options">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>

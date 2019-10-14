@@ -4473,7 +4473,6 @@ void Heap::ConfigureHeap(const v8::ResourceConstraints& constraints) {
     }
     max_old_generation_size_ =
         Max(max_old_generation_size_, MinOldGenerationSize());
-
     max_old_generation_size_ =
         RoundDown<Page::kPageSize>(max_old_generation_size_);
 

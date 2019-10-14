@@ -18,7 +18,7 @@
 // DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
-#define NODE_WANT_INTERNALS 1
+
 #include "string_bytes.h"
 
 #include "base64.h"
@@ -53,24 +53,31 @@ using v8::Value;
 namespace {
 
 template <typename ResourceType, typename TypeName>
-class ExternString : public ResourceType {
+class ExternString: public ResourceType {
  public:
   ~ExternString() override {
     free(const_cast<TypeName*>(data_));
     isolate()->AdjustAmountOfExternalAllocatedMemory(-byte_length());
   }
 
-  const TypeName* data() const override { return data_; }
+  const TypeName* data() const override {
+    return data_;
+  }
 
-  size_t length() const override { return length_; }
+  size_t length() const override {
+    return length_;
+  }
 
-  int64_t byte_length() const { return length() * sizeof(*data()); }
+  int64_t byte_length() const {
+    return length() * sizeof(*data());
+  }
 
   static MaybeLocal<Value> NewFromCopy(Isolate* isolate,
                                        const TypeName* data,
                                        size_t length,
                                        Local<Value>* error) {
-    if (length == 0) return String::Empty(isolate);
+    if (length == 0)
+      return String::Empty(isolate);
 
     if (length < EXTERN_APEX)
       return NewSimpleFromCopy(isolate, data, length, error);
@@ -82,8 +89,10 @@ class ExternString : public ResourceType {
     }
     memcpy(new_data, data, length * sizeof(*new_data));
 
-    return ExternString<ResourceType, TypeName>::New(
-        isolate, new_data, length, error);
+    return ExternString<ResourceType, TypeName>::New(isolate,
+                                                     new_data,
+                                                     length,
+                                                     error);
   }
 
   // uses "data" for external resource, and will be free'd on gc
@@ -91,7 +100,8 @@ class ExternString : public ResourceType {
                                TypeName* data,
                                size_t length,
                                Local<Value>* error) {
-    if (length == 0) return String::Empty(isolate);
+    if (length == 0)
+      return String::Empty(isolate);
 
     if (length < EXTERN_APEX) {
       MaybeLocal<Value> str = NewSimpleFromCopy(isolate, data, length, error);
@@ -99,8 +109,9 @@ class ExternString : public ResourceType {
       return str;
     }
 
-    ExternString* h_str =
-        new ExternString<ResourceType, TypeName>(isolate, data, length);
+    ExternString* h_str = new ExternString<ResourceType, TypeName>(isolate,
+                                                                   data,
+                                                                   length);
     MaybeLocal<Value> str = NewExternal(isolate, h_str);
     isolate->AdjustAmountOfExternalAllocatedMemory(h_str->byte_length());
 
@@ -117,8 +128,9 @@ class ExternString : public ResourceType {
 
  private:
   ExternString(Isolate* isolate, const TypeName* data, size_t length)
-      : isolate_(isolate), data_(data), length_(length) {}
-  static MaybeLocal<Value> NewExternal(Isolate* isolate, ExternString* h_str);
+    : isolate_(isolate), data_(data), length_(length) { }
+  static MaybeLocal<Value> NewExternal(Isolate* isolate,
+                                       ExternString* h_str);
 
   // This method does not actually create ExternString instances.
   static MaybeLocal<Value> NewSimpleFromCopy(Isolate* isolate,
@@ -131,20 +143,23 @@ class ExternString : public ResourceType {
   size_t length_;
 };
 
-typedef ExternString<String::ExternalOneByteStringResource, char>
-    ExternOneByteString;
-typedef ExternString<String::ExternalStringResource, uint16_t>
-    ExternTwoByteString;
+
+typedef ExternString<String::ExternalOneByteStringResource,
+                     char> ExternOneByteString;
+typedef ExternString<String::ExternalStringResource,
+                     uint16_t> ExternTwoByteString;
+
 
 template <>
-MaybeLocal<Value> ExternOneByteString::NewExternal(Isolate* isolate,
-                                                   ExternOneByteString* h_str) {
+MaybeLocal<Value> ExternOneByteString::NewExternal(
+    Isolate* isolate, ExternOneByteString* h_str) {
   return String::NewExternalOneByte(isolate, h_str).FromMaybe(Local<Value>());
 }
 
+
 template <>
-MaybeLocal<Value> ExternTwoByteString::NewExternal(Isolate* isolate,
-                                                   ExternTwoByteString* h_str) {
+MaybeLocal<Value> ExternTwoByteString::NewExternal(
+    Isolate* isolate, ExternTwoByteString* h_str) {
   return String::NewExternalTwoByte(isolate, h_str).FromMaybe(Local<Value>());
 }
 
@@ -165,13 +180,17 @@ MaybeLocal<Value> ExternOneByteString::NewSimpleFromCopy(Isolate* isolate,
   return str.ToLocalChecked();
 }
 
+
 template <>
 MaybeLocal<Value> ExternTwoByteString::NewSimpleFromCopy(Isolate* isolate,
                                                          const uint16_t* data,
                                                          size_t length,
                                                          Local<Value>* error) {
   MaybeLocal<String> str =
-      String::NewFromTwoByte(isolate, data, v8::NewStringType::kNormal, length);
+      String::NewFromTwoByte(isolate,
+                             data,
+                             v8::NewStringType::kNormal,
+                             length);
   if (str.IsEmpty()) {
     *error = node::ERR_STRING_TOO_LONG(isolate);
     return MaybeLocal<Value>();
@@ -182,37 +201,44 @@ MaybeLocal<Value> ExternTwoByteString::NewSimpleFromCopy(Isolate* isolate,
 }  // anonymous namespace
 
 // supports regular and URL-safe base64
-const int8_t unbase64_table[256] = {
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -2, -1, -1, -2, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -2, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, 62, -1, 62, -1, 63, 52, 53, 54, 55, 56, 57, 58, 59, 60,
-    61, -1, -1, -1, -1, -1, -1, -1, 0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10,
-    11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1,
-    63, -1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42,
-    43, 44, 45, 46, 47, 48, 49, 50, 51, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1};
+const int8_t unbase64_table[256] =
+  { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -2, -1, -1, -2, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 62, -1, 62, -1, 63,
+    52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1, -1, -1, -1,
+    -1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,
+    15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, 63,
+    -1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+    41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
+  };
 
-static const int8_t unhex_table[256] = {
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0,  1,  2,  3,  4,  5,  6,  7,  8,
-    9,  -1, -1, -1, -1, -1, -1, -1, 10, 11, 12, 13, 14, 15, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, 10, 11, 12, 13, 14, 15, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1};
+
+static const int8_t unhex_table[256] =
+  { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+     0,  1,  2,  3,  4,  5,  6,  7,  8,  9, -1, -1, -1, -1, -1, -1,
+    -1, 10, 11, 12, 13, 14, 15, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, 10, 11, 12, 13, 14, 15, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
+  };
 
 static inline unsigned unhex(uint8_t x) {
   return unhex_table[x];
@@ -227,7 +253,8 @@ static size_t hex_decode(char* buf,
   for (i = 0; i < len && i * 2 + 1 < srcLen; ++i) {
     unsigned a = unhex(src[i * 2 + 0]);
     unsigned b = unhex(src[i * 2 + 1]);
-    if (!~a || !~b) return i;
+    if (!~a || !~b)
+      return i;
     buf[i] = (a << 4) | b;
   }
 
@@ -260,7 +287,7 @@ size_t StringBytes::WriteUCS2(Isolate* isolate,
   CHECK_EQ(reinterpret_cast<uintptr_t>(aligned_dst) % sizeof(*dst), 0);
 
   // Write all but the last char
-  max_chars = (std::min)(max_chars, static_cast<size_t>(str->Length()));
+  max_chars = std::min(max_chars, static_cast<size_t>(str->Length()));
   if (max_chars == 0) return 0;
   nchars = str->Write(isolate, aligned_dst, 0, max_chars - 1, flags);
   CHECK_EQ(nchars, max_chars - 1);
@@ -278,6 +305,7 @@ size_t StringBytes::WriteUCS2(Isolate* isolate,
   return nchars * sizeof(*dst);
 }
 
+
 size_t StringBytes::Write(Isolate* isolate,
                           char* buf,
                           size_t buflen,
@@ -288,12 +316,14 @@ size_t StringBytes::Write(Isolate* isolate,
   size_t nbytes;
   int nchars;
 
-  if (chars_written == nullptr) chars_written = &nchars;
+  if (chars_written == nullptr)
+    chars_written = &nchars;
 
   CHECK(val->IsString() == true);
   Local<String> str = val.As<String>();
 
-  int flags = String::HINT_MANY_WRITES_EXPECTED | String::NO_NULL_TERMINATION |
+  int flags = String::HINT_MANY_WRITES_EXPECTED |
+              String::NO_NULL_TERMINATION |
               String::REPLACE_INVALID_UTF8;
 
   switch (encoding) {
@@ -301,7 +331,7 @@ size_t StringBytes::Write(Isolate* isolate,
     case LATIN1:
       if (str->IsExternalOneByte()) {
         auto ext = str->GetExternalOneByteStringResource();
-        nbytes = (std::min)(buflen, ext->length());
+        nbytes = std::min(buflen, ext->length());
         memcpy(buf, ext->data(), nbytes);
       } else {
         uint8_t* const dst = reinterpret_cast<uint8_t*>(buf);
@@ -325,7 +355,8 @@ size_t StringBytes::Write(Isolate* isolate,
       // the Buffer, so we need to reorder on BE platforms.  See
       // https://nodejs.org/api/buffer.html regarding Node's "ucs2"
       // encoding specification
-      if (IsBigEndian()) SwapBytes16(buf, nbytes);
+      if (IsBigEndian())
+        SwapBytes16(buf, nbytes);
 
       break;
     }
@@ -360,11 +391,15 @@ size_t StringBytes::Write(Isolate* isolate,
   return nbytes;
 }
 
-bool StringBytes::IsValidString(Local<String> string, enum encoding enc) {
-  if (enc == HEX && string->Length() % 2 != 0) return false;
+
+bool StringBytes::IsValidString(Local<String> string,
+                                enum encoding enc) {
+  if (enc == HEX && string->Length() % 2 != 0)
+    return false;
   // TODO(bnoordhuis) Add BASE64 check?
   return true;
 }
+
 
 // Quick and dirty size calculation
 // Will always be at least big enough, but may have some extra
@@ -455,12 +490,17 @@ Maybe<size_t> StringBytes::Size(Isolate* isolate,
   UNREACHABLE();
 }
 
+
+
+
 static bool contains_non_ascii_slow(const char* buf, size_t len) {
   for (size_t i = 0; i < len; ++i) {
-    if (buf[i] & 0x80) return true;
+    if (buf[i] & 0x80)
+      return true;
   }
   return false;
 }
+
 
 static bool contains_non_ascii(const char* src, size_t len) {
   if (len < 16) {
@@ -473,10 +513,12 @@ static bool contains_non_ascii(const char* src, size_t len) {
 
   if (unaligned > 0) {
     const unsigned n = bytes_per_word - unaligned;
-    if (contains_non_ascii_slow(src, n)) return true;
+    if (contains_non_ascii_slow(src, n))
+      return true;
     src += n;
     len -= n;
   }
+
 
 #if defined(_WIN64) || defined(_LP64)
   const uintptr_t mask = 0x8080808080808080ll;
@@ -487,23 +529,27 @@ static bool contains_non_ascii(const char* src, size_t len) {
   const uintptr_t* srcw = reinterpret_cast<const uintptr_t*>(src);
 
   for (size_t i = 0, n = len / bytes_per_word; i < n; ++i) {
-    if (srcw[i] & mask) return true;
+    if (srcw[i] & mask)
+      return true;
   }
 
   const unsigned remainder = len & align_mask;
   if (remainder > 0) {
     const size_t offset = len - remainder;
-    if (contains_non_ascii_slow(src + offset, remainder)) return true;
+    if (contains_non_ascii_slow(src + offset, remainder))
+      return true;
   }
 
   return false;
 }
+
 
 static void force_ascii_slow(const char* src, char* dst, size_t len) {
   for (size_t i = 0; i < len; ++i) {
     dst[i] = src[i] & 0x7f;
   }
 }
+
 
 static void force_ascii(const char* src, char* dst, size_t len) {
   if (len < 16) {
@@ -549,9 +595,11 @@ static void force_ascii(const char* src, char* dst, size_t len) {
   }
 }
 
+
 static size_t hex_encode(const char* src, size_t slen, char* dst, size_t dlen) {
   // We know how much we'll write, just make sure that there's space.
-  CHECK(dlen >= slen * 2 && "not enough space provided for hex encode");
+  CHECK(dlen >= slen * 2 &&
+      "not enough space provided for hex encode");
 
   dlen = slen * 2;
   for (uint32_t i = 0, k = 0; k < dlen; i += 1, k += 2) {
@@ -564,13 +612,15 @@ static size_t hex_encode(const char* src, size_t slen, char* dst, size_t dlen) {
   return dlen;
 }
 
-#define CHECK_BUFLEN_IN_RANGE(len)                                             \
-  do {                                                                         \
-    if ((len) > Buffer::kMaxLength) {                                          \
-      *error = node::ERR_BUFFER_TOO_LARGE(isolate);                            \
-      return MaybeLocal<Value>();                                              \
-    }                                                                          \
+
+#define CHECK_BUFLEN_IN_RANGE(len)                                    \
+  do {                                                                \
+    if ((len) > Buffer::kMaxLength) {                                 \
+      *error = node::ERR_BUFFER_TOO_LARGE(isolate);                   \
+      return MaybeLocal<Value>();                                     \
+    }                                                                 \
   } while (0)
+
 
 MaybeLocal<Value> StringBytes::Encode(Isolate* isolate,
                                       const char* buf,
@@ -586,18 +636,19 @@ MaybeLocal<Value> StringBytes::Encode(Isolate* isolate,
   MaybeLocal<String> val;
 
   switch (encoding) {
-    case BUFFER: {
-      if (buflen > node::Buffer::kMaxLength) {
-        *error = node::ERR_BUFFER_TOO_LARGE(isolate);
-        return MaybeLocal<Value>();
+    case BUFFER:
+      {
+        if (buflen > node::Buffer::kMaxLength) {
+          *error = node::ERR_BUFFER_TOO_LARGE(isolate);
+          return MaybeLocal<Value>();
+        }
+        auto maybe_buf = Buffer::Copy(isolate, buf, buflen);
+        if (maybe_buf.IsEmpty()) {
+          *error = node::ERR_MEMORY_ALLOCATION_FAILED(isolate);
+          return MaybeLocal<Value>();
+        }
+        return maybe_buf.ToLocalChecked();
       }
-      auto maybe_buf = Buffer::Copy(isolate, buf, buflen);
-      if (maybe_buf.IsEmpty()) {
-        *error = node::ERR_MEMORY_ALLOCATION_FAILED(isolate);
-        return MaybeLocal<Value>();
-      }
-      return maybe_buf.ToLocalChecked();
-    }
 
     case ASCII:
       if (contains_non_ascii(buf, buflen)) {
@@ -613,8 +664,10 @@ MaybeLocal<Value> StringBytes::Encode(Isolate* isolate,
       }
 
     case UTF8:
-      val =
-          String::NewFromUtf8(isolate, buf, v8::NewStringType::kNormal, buflen);
+      val = String::NewFromUtf8(isolate,
+                                buf,
+                                v8::NewStringType::kNormal,
+                                buflen);
       if (val.IsEmpty()) {
         *error = node::ERR_STRING_TOO_LONG(isolate);
         return MaybeLocal<Value>();
@@ -689,6 +742,7 @@ MaybeLocal<Value> StringBytes::Encode(Isolate* isolate,
 
   UNREACHABLE();
 }
+
 
 MaybeLocal<Value> StringBytes::Encode(Isolate* isolate,
                                       const uint16_t* buf,

@@ -309,10 +309,7 @@
 
       'include_dirs': [
         'src',
-        'deps/v8/include',
-        'deps/libsquash/include',
-        'deps/libsquash/sample',
-        'deps/libautoupdate/include',
+        'deps/v8/include'
       ],
 
       'sources': [
@@ -485,26 +482,13 @@
     {
       'target_name': '<(node_lib_target_name)',
       'type': '<(node_intermediate_lib_type)',
-      'product_name': '<(node_core_target_name)',
-
-      'dependencies': [
-        'deps/nghttp2/nghttp2.gyp:nghttp2',
-        'deps/libsquash/enclose_io_libsquash.gyp:enclose_io_libsquash',
-        'deps/libautoupdate/libautoupdate.gyp:libautoupdate',
-      ],
       'includes': [
         'node.gypi',
       ],
 
       'include_dirs': [
         'src',
-        'tools/msvs/genfiles',
-        'deps/uv/src/ares',
-        'deps/nghttp2/lib/includes',
-        'deps/libsquash/include',
-        'deps/libsquash/sample',
-        'deps/libautoupdate/include',
-        '<(SHARED_INTERMEDIATE_DIR)', # for node_natives.h
+        '<(SHARED_INTERMEDIATE_DIR)' # for node_natives.h
       ],
       'dependencies': [ 'deps/histogram/histogram.gyp:histogram' ],
 
@@ -1080,43 +1064,12 @@
       ]
     }, # specialize_node_d
     {
-      # When using shared lib to build executable in Windows, in order to avoid
-      # filename collision, the executable name is node-win.exe. Need to rename
-      # it back to node.exe
-      'target_name': 'rename_node_bin_win',
-      'type': 'none',
-      'dependencies': [
-        '<(node_core_target_name)',
-      ],
-      'conditions': [
-        [ 'OS=="win" and node_intermediate_lib_type=="shared_library"', {
-          'actions': [
-            {
-              'action_name': 'rename_node_bin_win',
-              'inputs': [
-                '<(PRODUCT_DIR)/<(node_core_target_name)-win.exe'
-              ],
-              'outputs': [
-                '<(PRODUCT_DIR)/<(node_core_target_name).exe',
-              ],
-              'action': [
-                'mv', '<@(_inputs)', '<@(_outputs)',
-              ],
-            },
-          ],
-        } ],
-      ]
-    }, # rename_node_bin_win
-    {
       'target_name': 'cctest',
       'type': 'executable',
 
       'dependencies': [
         '<(node_lib_target_name)',
         'deps/histogram/histogram.gyp:histogram',
-        'rename_node_bin_win',
-        'deps/libsquash/enclose_io_libsquash.gyp:enclose_io_libsquash',
-        'deps/libautoupdate/libautoupdate.gyp:libautoupdate',
         'node_dtrace_header',
         'node_dtrace_ustack',
         'node_dtrace_provider',

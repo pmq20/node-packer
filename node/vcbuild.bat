@@ -360,13 +360,16 @@ if "%target%"=="Build" (
   if "%test_args%"=="" set target=node
   if defined cctest set target="Build"
 )
+
 if "%target%"=="node" if exist "%config%\cctest.exe" del "%config%\cctest.exe"
 if defined msbuild_args set "extra_msbuild_args=%extra_msbuild_args% %msbuild_args%"
 msbuild node.sln %msbcpu% /t:%target% /p:Configuration=%config% /p:Platform=%msbplatform% /clp:NoItemAndPropertyList;Verbosity=minimal /nologo %extra_msbuild_args%
+
 if errorlevel 1 (
   if not defined project_generated echo Building Node with reused solution failed. To regenerate project files use "vcbuild projgen"
   exit /B 1
 )
+
 if "%target%" == "Clean" goto exit
 
 :after-build

@@ -1,3 +1,4 @@
+#define NODE_WANT_INTERNALS 1
 #include "node_native_module.h"
 #include "util-inl.h"
 
@@ -75,32 +76,23 @@ void NativeModuleLoader::InitializeModuleCategories() {
 
   module_categories_.cannot_be_required = std::set<std::string> {
 #if !HAVE_INSPECTOR
-      "inspector",
-      "internal/util/inspector",
+    "inspector", "internal/util/inspector",
 #endif  // !HAVE_INSPECTOR
 
 #if !NODE_USE_V8_PLATFORM || !defined(NODE_HAVE_I18N_SUPPORT)
-      "trace_events",
+        "trace_events",
 #endif  // !NODE_USE_V8_PLATFORM
 
 #if !HAVE_OPENSSL
-      "crypto",
-      "https",
-      "http2",
-      "tls",
-      "_tls_common",
-      "_tls_wrap",
-      "internal/http2/core",
-      "internal/http2/compat",
-      "internal/policy/manifest",
-      "internal/process/policy",
-      "internal/streams/lazy_transform",
+        "crypto", "https", "http2", "tls", "_tls_common", "_tls_wrap",
+        "internal/http2/core", "internal/http2/compat",
+        "internal/policy/manifest", "internal/process/policy",
+        "internal/streams/lazy_transform",
 #endif  // !HAVE_OPENSSL
 
-      "sys",  // Deprecated.
-      "internal/test/binding",
-      "internal/v8_prof_polyfill",
-      "internal/v8_prof_processor",
+        "sys",  // Deprecated.
+        "internal/test/binding", "internal/v8_prof_polyfill",
+        "internal/v8_prof_processor",
   };
 
   for (auto const& x : source_) {

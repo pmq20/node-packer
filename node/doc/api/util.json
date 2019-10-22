@@ -2103,7 +2103,7 @@
                 "changes": []
               },
               "stability": 0,
-              "stabilityText": "Deprecated: Use [`Object.assign()`] instead.",
+              "stabilityText": "Deprecated: Use [`Object.assign()`][] instead.",
               "signatures": [
                 {
                   "params": [

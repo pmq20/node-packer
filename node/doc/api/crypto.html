@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Crypto | Node.js v12.12.0 Documentation</title>
+  <title>Crypto | Node.js v12.13.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -81,7 +81,7 @@
 
     <div id="column1" data-id="crypto" class="interior">
       <header>
-        <h1>Node.js v12.12.0 Documentation</h1>
+        <h1>Node.js v12.13.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -580,7 +580,7 @@ Disabling automatic padding is useful for non-standard padding, for instance
 using <code>0x0</code> instead of PKCS padding.</p>
 <p>The <code>cipher.setAutoPadding()</code> method must be called before
 <a href="#crypto_cipher_final_outputencoding"><code>cipher.final()</code></a>.</p>
-<h3>cipher.update(data[, inputEncoding][, outputencoding])<span><a class="mark" href="#crypto_cipher_update_data_inputencoding_outputencoding" id="crypto_cipher_update_data_inputencoding_outputencoding">#</a></span></h3>
+<h3>cipher.update(data[, inputEncoding][, outputEncoding])<span><a class="mark" href="#crypto_cipher_update_data_inputencoding_outputencoding" id="crypto_cipher_update_data_inputencoding_outputencoding">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -782,7 +782,7 @@ is invalid according to <a href="https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nis
 multiple of the ciphers block size.</p>
 <p>The <code>decipher.setAutoPadding()</code> method must be called before
 <a href="#crypto_decipher_final_outputencoding"><code>decipher.final()</code></a>.</p>
-<h3>decipher.update(data[, inputEncoding][, outputencoding])<span><a class="mark" href="#crypto_decipher_update_data_inputencoding_outputencoding" id="crypto_decipher_update_data_inputencoding_outputencoding">#</a></span></h3>
+<h3>decipher.update(data[, inputEncoding][, outputEncoding])<span><a class="mark" href="#crypto_decipher_update_data_inputencoding_outputencoding" id="crypto_decipher_update_data_inputencoding_outputencoding">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -838,7 +838,7 @@ const bobSecret = bob.computeSecret(aliceKey);
 // OK
 assert.strictEqual(aliceSecret.toString('hex'), bobSecret.toString('hex'));
 </code></pre>
-<h3>diffieHellman.computeSecret(otherPublicKey[, inputEncoding][, outputencoding])<span><a class="mark" href="#crypto_diffiehellman_computesecret_otherpublickey_inputencoding_outputencoding" id="crypto_diffiehellman_computesecret_otherpublickey_inputencoding_outputencoding">#</a></span></h3>
+<h3>diffieHellman.computeSecret(otherPublicKey[, inputEncoding][, outputEncoding])<span><a class="mark" href="#crypto_diffiehellman_computesecret_otherpublickey_inputencoding_outputencoding" id="crypto_diffiehellman_computesecret_otherpublickey_inputencoding_outputencoding">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.5.0</span>
 </div>
@@ -857,7 +857,7 @@ provided, <code>otherPublicKey</code> is expected to be a <a href="buffer.html">
 <code>TypedArray</code>, or <code>DataView</code>.</p>
 <p>If <code>outputEncoding</code> is given a string is returned; otherwise, a
 <a href="buffer.html"><code>Buffer</code></a> is returned.</p>
-<h3>diffieHellman.generateKeys(<a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a>)<span><a class="mark" href="#crypto_diffiehellman_generatekeys_encoding" id="crypto_diffiehellman_generatekeys_encoding">#</a></span></h3>
+<h3>diffieHellman.generateKeys([encoding])<span><a class="mark" href="#crypto_diffiehellman_generatekeys_encoding" id="crypto_diffiehellman_generatekeys_encoding">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.5.0</span>
 </div>
@@ -870,7 +870,7 @@ the public key in the specified <code>encoding</code>. This key should be
 transferred to the other party.
 If <code>encoding</code> is provided a string is returned; otherwise a
 <a href="buffer.html"><code>Buffer</code></a> is returned.</p>
-<h3>diffieHellman.getGenerator(<a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a>)<span><a class="mark" href="#crypto_diffiehellman_getgenerator_encoding" id="crypto_diffiehellman_getgenerator_encoding">#</a></span></h3>
+<h3>diffieHellman.getGenerator([encoding])<span><a class="mark" href="#crypto_diffiehellman_getgenerator_encoding" id="crypto_diffiehellman_getgenerator_encoding">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.5.0</span>
 </div>
@@ -881,7 +881,7 @@ If <code>encoding</code> is provided a string is returned; otherwise a
 <p>Returns the Diffie-Hellman generator in the specified <code>encoding</code>.
 If <code>encoding</code> is provided a string is
 returned; otherwise a <a href="buffer.html"><code>Buffer</code></a> is returned.</p>
-<h3>diffieHellman.getPrime(<a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a>)<span><a class="mark" href="#crypto_diffiehellman_getprime_encoding" id="crypto_diffiehellman_getprime_encoding">#</a></span></h3>
+<h3>diffieHellman.getPrime([encoding])<span><a class="mark" href="#crypto_diffiehellman_getprime_encoding" id="crypto_diffiehellman_getprime_encoding">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.5.0</span>
 </div>
@@ -892,7 +892,7 @@ returned; otherwise a <a href="buffer.html"><code>Buffer</code></a> is returned.
 <p>Returns the Diffie-Hellman prime in the specified <code>encoding</code>.
 If <code>encoding</code> is provided a string is
 returned; otherwise a <a href="buffer.html"><code>Buffer</code></a> is returned.</p>
-<h3>diffieHellman.getPrivateKey(<a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a>)<span><a class="mark" href="#crypto_diffiehellman_getprivatekey_encoding" id="crypto_diffiehellman_getprivatekey_encoding">#</a></span></h3>
+<h3>diffieHellman.getPrivateKey([encoding])<span><a class="mark" href="#crypto_diffiehellman_getprivatekey_encoding" id="crypto_diffiehellman_getprivatekey_encoding">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.5.0</span>
 </div>
@@ -903,7 +903,7 @@ returned; otherwise a <a href="buffer.html"><code>Buffer</code></a> is returned.
 <p>Returns the Diffie-Hellman private key in the specified <code>encoding</code>.
 If <code>encoding</code> is provided a
 string is returned; otherwise a <a href="buffer.html"><code>Buffer</code></a> is returned.</p>
-<h3>diffieHellman.getPublicKey(<a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a>)<span><a class="mark" href="#crypto_diffiehellman_getpublickey_encoding" id="crypto_diffiehellman_getpublickey_encoding">#</a></span></h3>
+<h3>diffieHellman.getPublicKey([encoding])<span><a class="mark" href="#crypto_diffiehellman_getpublickey_encoding" id="crypto_diffiehellman_getpublickey_encoding">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.5.0</span>
 </div>
@@ -1039,7 +1039,7 @@ const uncompressedKey = ECDH.convertKey(compressedKey,
 // The converted key and the uncompressed public key should be the same
 console.log(uncompressedKey === ecdh.getPublicKey('hex'));
 </code></pre>
-<h3>ecdh.computeSecret(otherPublicKey[, inputEncoding][, outputencoding])<span><a class="mark" href="#crypto_ecdh_computesecret_otherpublickey_inputencoding_outputencoding" id="crypto_ecdh_computesecret_otherpublickey_inputencoding_outputencoding">#</a></span></h3>
+<h3>ecdh.computeSecret(otherPublicKey[, inputEncoding][, outputEncoding])<span><a class="mark" href="#crypto_ecdh_computesecret_otherpublickey_inputencoding_outputencoding" id="crypto_ecdh_computesecret_otherpublickey_inputencoding_outputencoding">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1090,7 +1090,7 @@ transferred to the other party.</p>
 <code>'uncompressed'</code> format.</p>
 <p>If <code>encoding</code> is provided a string is returned; otherwise a <a href="buffer.html"><code>Buffer</code></a>
 is returned.</p>
-<h3>ecdh.getPrivateKey(<a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a>)<span><a class="mark" href="#crypto_ecdh_getprivatekey_encoding" id="crypto_ecdh_getprivatekey_encoding">#</a></span></h3>
+<h3>ecdh.getPrivateKey([encoding])<span><a class="mark" href="#crypto_ecdh_getprivatekey_encoding" id="crypto_ecdh_getprivatekey_encoding">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.14</span>
 </div>
@@ -1222,7 +1222,7 @@ console.log(hash.digest('hex'));
 // Prints:
 //   6a2da20943931e9834fc12cfe5bb47bbd9ae43489a30726962b576f4e3993e50
 </code></pre>
-<h3>hash.digest(<a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a>)<span><a class="mark" href="#crypto_hash_digest_encoding" id="crypto_hash_digest_encoding">#</a></span></h3>
+<h3>hash.digest([encoding])<span><a class="mark" href="#crypto_hash_digest_encoding" id="crypto_hash_digest_encoding">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.92</span>
 </div>
@@ -1310,7 +1310,7 @@ console.log(hmac.digest('hex'));
 // Prints:
 //   7fd04df92f636fd450bc841c9418e5825c17f33ad9c87c518115a45971f7f77e
 </code></pre>
-<h3>hmac.digest(<a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a>)<span><a class="mark" href="#crypto_hmac_digest_encoding" id="crypto_hmac_digest_encoding">#</a></span></h3>
+<h3>hmac.digest([encoding])<span><a class="mark" href="#crypto_hmac_digest_encoding" id="crypto_hmac_digest_encoding">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.94</span>
 </div>
@@ -1776,7 +1776,7 @@ to create the <code>Cipher</code> object. Users should not use ciphers with coun
 they are used in order to avoid the risk of IV reuse that causes
 vulnerabilities. For the case when IV is reused in GCM, see <a href="https://github.com/nonce-disrespect/nonce-disrespect">Nonce-Disrespecting
 Adversaries</a> for details.</p>
-<h3>crypto.createCipheriv(algorithm, key, iv[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/crypto.js#L114">[src]</a><span><a class="mark" href="#crypto_crypto_createcipheriv_algorithm_key_iv_options" id="crypto_crypto_createcipheriv_algorithm_key_iv_options">#</a></span></h3>
+<h3>crypto.createCipheriv(algorithm, key, iv[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/crypto.js#L114">[src]</a><span><a class="mark" href="#crypto_crypto_createcipheriv_algorithm_key_iv_options" id="crypto_crypto_createcipheriv_algorithm_key_iv_options">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1863,7 +1863,7 @@ rapidly.</p>
 <a href="https://www.openssl.org/docs/man1.1.0/crypto/EVP_BytesToKey.html"><code>EVP_BytesToKey</code></a> it is recommended that developers derive a key and IV on
 their own using <a href="#crypto_crypto_scrypt_password_salt_keylen_options_callback"><code>crypto.scrypt()</code></a> and to use <a href="#crypto_crypto_createdecipheriv_algorithm_key_iv_options"><code>crypto.createDecipheriv()</code></a>
 to create the <code>Decipher</code> object.</p>
-<h3>crypto.createDecipheriv(algorithm, key, iv[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/crypto.js#L122">[src]</a><span><a class="mark" href="#crypto_crypto_createdecipheriv_algorithm_key_iv_options" id="crypto_crypto_createdecipheriv_algorithm_key_iv_options">#</a></span></h3>
+<h3>crypto.createDecipheriv(algorithm, key, iv[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/crypto.js#L122">[src]</a><span><a class="mark" href="#crypto_crypto_createdecipheriv_algorithm_key_iv_options" id="crypto_crypto_createdecipheriv_algorithm_key_iv_options">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1913,7 +1913,7 @@ added to ciphertext messages unencrypted. It may sound contradictory that
 something has to be unpredictable and unique, but does not have to be secret;
 it is important to remember that an attacker must not be able to predict ahead
 of time what a given IV will be.</p>
-<h3>crypto.createDiffieHellman(prime[, primeEncoding][, generator][, generatorEncoding])<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/crypto.js#L126">[src]</a><span><a class="mark" href="#crypto_crypto_creatediffiehellman_prime_primeencoding_generator_generatorencoding" id="crypto_crypto_creatediffiehellman_prime_primeencoding_generator_generatorencoding">#</a></span></h3>
+<h3>crypto.createDiffieHellman(prime[, primeEncoding][, generator][, generatorEncoding])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/crypto.js#L126">[src]</a><span><a class="mark" href="#crypto_crypto_creatediffiehellman_prime_primeencoding_generator_generatorencoding" id="crypto_crypto_creatediffiehellman_prime_primeencoding_generator_generatorencoding">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1945,7 +1945,7 @@ optional specific <code>generator</code>.</p>
 a <a href="buffer.html"><code>Buffer</code></a>, <code>TypedArray</code>, or <code>DataView</code> is expected.</p>
 <p>If <code>generatorEncoding</code> is specified, <code>generator</code> is expected to be a string;
 otherwise a number, <a href="buffer.html"><code>Buffer</code></a>, <code>TypedArray</code>, or <code>DataView</code> is expected.</p>
-<h3>crypto.createDiffieHellman(primeLength[, generator])<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/crypto.js#L126">[src]</a><span><a class="mark" href="#crypto_crypto_creatediffiehellman_primelength_generator" id="crypto_crypto_creatediffiehellman_primelength_generator">#</a></span></h3>
+<h3>crypto.createDiffieHellman(primeLength[, generator])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/crypto.js#L126">[src]</a><span><a class="mark" href="#crypto_crypto_creatediffiehellman_primelength_generator" id="crypto_crypto_creatediffiehellman_primelength_generator">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.5.0</span>
 </div>
@@ -1958,7 +1958,7 @@ otherwise a number, <a href="buffer.html"><code>Buffer</code></a>, <code>TypedAr
 <p>Creates a <code>DiffieHellman</code> key exchange object and generates a prime of
 <code>primeLength</code> bits using an optional specific numeric <code>generator</code>.
 If <code>generator</code> is not specified, the value <code>2</code> is used.</p>
-<h3>crypto.createDiffieHellmanGroup(name)<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/crypto.js#L130">[src]</a><span><a class="mark" href="#crypto_crypto_creatediffiehellmangroup_name" id="crypto_crypto_creatediffiehellmangroup_name">#</a></span></h3>
+<h3>crypto.createDiffieHellmanGroup(name)<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/crypto.js#L130">[src]</a><span><a class="mark" href="#crypto_crypto_creatediffiehellmangroup_name" id="crypto_crypto_creatediffiehellmangroup_name">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.9.3</span>
 </div>
@@ -1967,7 +1967,7 @@ If <code>generator</code> is not specified, the value <code>2</code> is used.</p
 <li>Returns: <a href="crypto.html#crypto_class_diffiehellmangroup" class="type">&#x3C;DiffieHellmanGroup></a></li>
 </ul>
 <p>An alias for <a href="#crypto_crypto_getdiffiehellman_groupname"><code>crypto.getDiffieHellman()</code></a></p>
-<h3>crypto.createECDH(curveName)<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/crypto.js#L134">[src]</a><span><a class="mark" href="#crypto_crypto_createecdh_curvename" id="crypto_crypto_createecdh_curvename">#</a></span></h3>
+<h3>crypto.createECDH(curveName)<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/crypto.js#L134">[src]</a><span><a class="mark" href="#crypto_crypto_createecdh_curvename" id="crypto_crypto_createecdh_curvename">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.14</span>
 </div>
@@ -1980,7 +1980,7 @@ predefined curve specified by the <code>curveName</code> string. Use
 <a href="#crypto_crypto_getcurves"><code>crypto.getCurves()</code></a> to obtain a list of available curve names. On recent
 OpenSSL releases, <code>openssl ecparam -list_curves</code> will also display the name
 and description of each available elliptic curve.</p>
-<h3>crypto.createHash(algorithm[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/crypto.js#L106">[src]</a><span><a class="mark" href="#crypto_crypto_createhash_algorithm_options" id="crypto_crypto_createhash_algorithm_options">#</a></span></h3>
+<h3>crypto.createHash(algorithm[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/crypto.js#L106">[src]</a><span><a class="mark" href="#crypto_crypto_createhash_algorithm_options" id="crypto_crypto_createhash_algorithm_options">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2025,7 +2025,7 @@ input.on('readable', () => {
   }
 });
 </code></pre>
-<h3>crypto.createHmac(algorithm, key[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/crypto.js#L138">[src]</a><span><a class="mark" href="#crypto_crypto_createhmac_algorithm_key_options" id="crypto_crypto_createhmac_algorithm_key_options">#</a></span></h3>
+<h3>crypto.createHmac(algorithm, key[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/crypto.js#L138">[src]</a><span><a class="mark" href="#crypto_crypto_createhmac_algorithm_key_options" id="crypto_crypto_createhmac_algorithm_key_options">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -2141,7 +2141,7 @@ and it will be impossible to extract the private key from the returned object.</
 </ul>
 <p>Creates and returns a new key object containing a secret key for symmetric
 encryption or <code>Hmac</code>.</p>
-<h3>crypto.createSign(algorithm[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/crypto.js#L142">[src]</a><span><a class="mark" href="#crypto_crypto_createsign_algorithm_options" id="crypto_crypto_createsign_algorithm_options">#</a></span></h3>
+<h3>crypto.createSign(algorithm[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/crypto.js#L142">[src]</a><span><a class="mark" href="#crypto_crypto_createsign_algorithm_options" id="crypto_crypto_createsign_algorithm_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.92</span>
 </div>
@@ -2158,7 +2158,7 @@ algorithm, such as <code>'RSA-SHA256'</code>, instead of a digest algorithm. Thi
 the corresponding digest algorithm. This does not work for all signature
 algorithms, such as <code>'ecdsa-with-SHA256'</code>, so it is best to always use digest
 algorithm names.</p>
-<h3>crypto.createVerify(algorithm[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/crypto.js#L146">[src]</a><span><a class="mark" href="#crypto_crypto_createverify_algorithm_options" id="crypto_crypto_createverify_algorithm_options">#</a></span></h3>
+<h3>crypto.createVerify(algorithm[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/crypto.js#L146">[src]</a><span><a class="mark" href="#crypto_crypto_createverify_algorithm_options" id="crypto_crypto_createverify_algorithm_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.92</span>
 </div>

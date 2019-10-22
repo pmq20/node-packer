@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Async Hooks | Node.js v12.12.0 Documentation</title>
+  <title>Async Hooks | Node.js v12.13.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -81,7 +81,7 @@
 
     <div id="column1" data-id="async_hooks" class="interior">
       <header>
-        <h1>Node.js v12.12.0 Documentation</h1>
+        <h1>Node.js v12.13.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -243,7 +243,7 @@ function destroy(asyncId) { }
 // (either directly or through other means of resolving a promise).
 function promiseResolve(asyncId) { }
 </code></pre>
-<h4>async_hooks.createHook(callbacks)<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/async_hooks.js#L124">[src]</a><span><a class="mark" href="#async_hooks_async_hooks_createhook_callbacks" id="async_hooks_async_hooks_createhook_callbacks">#</a></span></h4>
+<h4>async_hooks.createHook(callbacks)<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/async_hooks.js#L124">[src]</a><span><a class="mark" href="#async_hooks_async_hooks_createhook_callbacks" id="async_hooks_async_hooks_createhook_callbacks">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.1.0</span>
 </div>
@@ -649,7 +649,7 @@ see the details of the V8 <a href="https://docs.google.com/document/d/1rda3yKGHi
 <p>Library developers that handle their own asynchronous resources performing tasks
 like I/O, connection pooling, or managing callback queues may use the
 <code>AsyncWrap</code> JavaScript API so that all the appropriate callbacks are called.</p>
-<h3>Class: AsyncResource<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/async_hooks.js#L133">[src]</a><span><a class="mark" href="#async_hooks_class_asyncresource" id="async_hooks_class_asyncresource">#</a></span></h3>
+<h3>Class: AsyncResource<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/async_hooks.js#L133">[src]</a><span><a class="mark" href="#async_hooks_class_asyncresource" id="async_hooks_class_asyncresource">#</a></span></h3>
 <p>The class <code>AsyncResource</code> is designed to be extended by the embedder's async
 resources. Using this, users can easily trigger the lifetime events of their
 own resources.</p>
@@ -681,7 +681,7 @@ asyncResource.asyncId();
 // Return the trigger ID for the AsyncResource instance.
 asyncResource.triggerAsyncId();
 </code></pre>
-<h4>new AsyncResource(type[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/async_hooks.js#L134">[src]</a><span><a class="mark" href="#async_hooks_new_asyncresource_type_options" id="async_hooks_new_asyncresource_type_options">#</a></span></h4>
+<h4>new AsyncResource(type[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/async_hooks.js#L134">[src]</a><span><a class="mark" href="#async_hooks_new_asyncresource_type_options" id="async_hooks_new_asyncresource_type_options">#</a></span></h4>
 <ul>
 <li><code>type</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The type of async event.</li>
 <li>
@@ -716,7 +716,7 @@ retrieved and the sensitive API's <code>emitDestroy</code> is called with it.
   }
 }
 </code></pre>
-<h4>asyncResource.runInAsyncScope(fn[, thisArg, ...args])<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/async_hooks.js#L167">[src]</a><span><a class="mark" href="#async_hooks_asyncresource_runinasyncscope_fn_thisarg_args" id="async_hooks_asyncresource_runinasyncscope_fn_thisarg_args">#</a></span></h4>
+<h4>asyncResource.runInAsyncScope(fn[, thisArg, ...args])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/async_hooks.js#L167">[src]</a><span><a class="mark" href="#async_hooks_asyncresource_runinasyncscope_fn_thisarg_args" id="async_hooks_asyncresource_runinasyncscope_fn_thisarg_args">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v9.6.0</span>
 </div>
@@ -730,7 +730,7 @@ resource.</li>
 of the async resource. This will establish the context, trigger the AsyncHooks
 before callbacks, call the function, trigger the AsyncHooks after callbacks, and
 then restore the original execution context.</p>
-<h4>asyncResource.emitDestroy()<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/async_hooks.js#L179">[src]</a><span><a class="mark" href="#async_hooks_asyncresource_emitdestroy" id="async_hooks_asyncresource_emitdestroy">#</a></span></h4>
+<h4>asyncResource.emitDestroy()<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/async_hooks.js#L179">[src]</a><span><a class="mark" href="#async_hooks_asyncresource_emitdestroy" id="async_hooks_asyncresource_emitdestroy">#</a></span></h4>
 <ul>
 <li>Returns: <a href="async_hooks.html#async_hooks_class_asyncresource" class="type">&#x3C;AsyncResource></a> A reference to <code>asyncResource</code>.</li>
 </ul>
@@ -738,11 +738,11 @@ then restore the original execution context.</p>
 be thrown if it is called more than once. This <strong>must</strong> be manually called. If
 the resource is left to be collected by the GC then the <code>destroy</code> hooks will
 never be called.</p>
-<h4>asyncResource.asyncId()<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/async_hooks.js#L187">[src]</a><span><a class="mark" href="#async_hooks_asyncresource_asyncid" id="async_hooks_asyncresource_asyncid">#</a></span></h4>
+<h4>asyncResource.asyncId()<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/async_hooks.js#L187">[src]</a><span><a class="mark" href="#async_hooks_asyncresource_asyncid" id="async_hooks_asyncresource_asyncid">#</a></span></h4>
 <ul>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> The unique <code>asyncId</code> assigned to the resource.</li>
 </ul>
-<h4>asyncResource.triggerAsyncId()<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/async_hooks.js#L191">[src]</a><span><a class="mark" href="#async_hooks_asyncresource_triggerasyncid" id="async_hooks_asyncresource_triggerasyncid">#</a></span></h4>
+<h4>asyncResource.triggerAsyncId()<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/async_hooks.js#L191">[src]</a><span><a class="mark" href="#async_hooks_asyncresource_triggerasyncid" id="async_hooks_asyncresource_triggerasyncid">#</a></span></h4>
 <ul>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> The same <code>triggerAsyncId</code> that is passed to the
 <code>AsyncResource</code> constructor.</li>

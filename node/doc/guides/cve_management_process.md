@@ -39,7 +39,7 @@ advance. These CVEs are managed in a repository within the Node.js
 private organization called
 [cve-management](https://github.com/nodejs-private/cve-management).
 For each year there will be a markdown file titled "cve-management-XXXX"
-where where XXXX is the year (for example 'cve-management-2017.md').
+where XXXX is the year (for example 'cve-management-2017.md').
 
 This file will have the following sections:
 
@@ -123,15 +123,15 @@ following steps are used to assign, announce and report a CVE.
 
     For each CVE listed, the additional data must include the following fields
     updated with appropriate data for the CVE
-```text
-     [CVEID]: CVE-XXXX-XXXX
-     [PRODUCT]: Node.js
-     [VERSION]: 8.x+, 9.x+, 10.x+
-     [PROBLEMTYPE]: Denial of Service
-     [REFERENCES]: Link to the blog for the final announce
-     [DESCRIPTION]: Description from final announce
-     [ASSIGNINGCNA]: Node.js Foundation
-```
+    ```text
+    [CVEID]: CVE-XXXX-XXXX
+    [PRODUCT]: Node.js
+    [VERSION]: 8.x+, 9.x+, 10.x+
+    [PROBLEMTYPE]: Denial of Service
+    [REFERENCES]: Link to the blog for the final announce
+    [DESCRIPTION]: Description from final announce
+    [ASSIGNINGCNA]: Node.js Foundation
+    ```
 * Move the CVE from the Pending section to the Announced section along
   with a link to the Node.js blog post announcing that releases
   are available.

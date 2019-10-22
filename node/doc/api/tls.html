@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>TLS (SSL) | Node.js v12.12.0 Documentation</title>
+  <title>TLS (SSL) | Node.js v12.13.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -81,7 +81,7 @@
 
     <div id="column1" data-id="tls" class="interior">
       <header>
-        <h1>Node.js v12.12.0 Documentation</h1>
+        <h1>Node.js v12.13.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -645,7 +645,7 @@ from the <a href="#tls_tls_createsecurecontext_options"><code>tls.createSecureCo
 </ul>
 <p>The <code>server.addContext()</code> method adds a secure context that will be used if
 the client request's SNI name matches the supplied <code>hostname</code> (or wildcard).</p>
-<h3>server.address()<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/net.js#L1501">[src]</a><span><a class="mark" href="#tls_server_address" id="tls_server_address">#</a></span></h3>
+<h3>server.address()<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/net.js#L1501">[src]</a><span><a class="mark" href="#tls_server_address" id="tls_server_address">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.6.0</span>
 </div>
@@ -655,7 +655,7 @@ the client request's SNI name matches the supplied <code>hostname</code> (or wil
 <p>Returns the bound address, the address family name, and port of the
 server as reported by the operating system. See <a href="net.html#net_server_address"><code>net.Server.address()</code></a> for
 more information.</p>
-<h3>server.close([callback])<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/net.js#L1587">[src]</a><span><a class="mark" href="#tls_server_close_callback" id="tls_server_close_callback">#</a></span></h3>
+<h3>server.close([callback])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/net.js#L1587">[src]</a><span><a class="mark" href="#tls_server_close_callback" id="tls_server_close_callback">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.3.2</span>
 </div>
@@ -685,7 +685,7 @@ when the server has no more open connections.</p>
 </ul>
 <p>Returns the session ticket keys.</p>
 <p>See <a href="#tls_session_resumption">Session Resumption</a> for more information.</p>
-<h3>server.listen()<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/net.js#L1380">[src]</a><span><a class="mark" href="#tls_server_listen" id="tls_server_listen">#</a></span></h3>
+<h3>server.listen()<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/net.js#L1380">[src]</a><span><a class="mark" href="#tls_server_listen" id="tls_server_listen">#</a></span></h3>
 <p>Starts the server listening for encrypted connections.
 This method is identical to <a href="net.html#net_server_listen"><code>server.listen()</code></a> from <a href="net.html#net_class_net_server"><code>net.Server</code></a>.</p>
 <h3>server.setSecureContext(options)<span><a class="mark" href="#tls_server_setsecurecontext_options" id="tls_server_setsecurecontext_options">#</a></span></h3>
@@ -1235,7 +1235,7 @@ and its integrity is verified; large fragments can span multiple roundtrips
 and their processing can be delayed due to packet loss or reordering. However,
 smaller fragments add extra TLS framing bytes and CPU overhead, which may
 decrease overall server throughput.</p>
-<h2>tls.checkServerIdentity(hostname, cert)<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/tls.js#L207">[src]</a><span><a class="mark" href="#tls_tls_checkserveridentity_hostname_cert" id="tls_tls_checkserveridentity_hostname_cert">#</a></span></h2>
+<h2>tls.checkServerIdentity(hostname, cert)<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/tls.js#L207">[src]</a><span><a class="mark" href="#tls_tls_checkserveridentity_hostname_cert" id="tls_tls_checkserveridentity_hostname_cert">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.8.4</span>
 </div>
@@ -1514,11 +1514,11 @@ an OpenSSL engine. Should be used together with <code>privateKeyEngine</code>.
 Should not be set together with <code>key</code>, because both options define a
 private key in different ways.</li>
 <li><code>maxVersion</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Optionally set the maximum TLS version to allow. One
-of <code>TLSv1.3</code>, <code>TLSv1.2'</code>, <code>'TLSv1.1'</code>, or <code>'TLSv1'</code>. Cannot be specified
+of <code>'TLSv1.3'</code>, <code>'TLSv1.2'</code>, <code>'TLSv1.1'</code>, or <code>'TLSv1'</code>. Cannot be specified
 along with the <code>secureProtocol</code> option, use one or the other.
 <strong>Default:</strong> <a href="#tls_tls_default_max_version"><code>tls.DEFAULT_MAX_VERSION</code></a>.</li>
 <li><code>minVersion</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Optionally set the minimum TLS version to allow. One
-of <code>TLSv1.3</code>, <code>TLSv1.2'</code>, <code>'TLSv1.1'</code>, or <code>'TLSv1'</code>. Cannot be specified
+of <code>'TLSv1.3'</code>, <code>'TLSv1.2'</code>, <code>'TLSv1.1'</code>, or <code>'TLSv1'</code>. Cannot be specified
 along with the <code>secureProtocol</code> option, use one or the other. It is not
 recommended to use less than TLSv1.2, but it may be required for
 interoperability.
@@ -1564,7 +1564,7 @@ and <a href="#tls_server_addcontext_hostname_context"><code>server.addContext()<
 <code>pfx</code> can be used to provide it.</p>
 <p>If the <code>ca</code> option is not given, then Node.js will default to using
 <a href="https://hg.mozilla.org/mozilla-central/raw-file/tip/security/nss/lib/ckfw/builtins/certdata.txt">Mozilla's publicly trusted list of CAs</a>.</p>
-<h2>tls.createServer([options][, secureconnectionlistener])<span><a class="mark" href="#tls_tls_createserver_options_secureconnectionlistener" id="tls_tls_createserver_options_secureconnectionlistener">#</a></span></h2>
+<h2>tls.createServer([options][, secureConnectionListener])<span><a class="mark" href="#tls_tls_createserver_options_secureconnectionlistener" id="tls_tls_createserver_options_secureconnectionlistener">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1706,7 +1706,7 @@ information.</p>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The default value of the <code>maxVersion</code> option of
 <a href="#tls_tls_createsecurecontext_options"><code>tls.createSecureContext()</code></a>. It can be assigned any of the supported TLS
-protocol versions, <code>TLSv1.3</code>, <code>TLSv1.2'</code>, <code>'TLSv1.1'</code>, or <code>'TLSv1'</code>.
+protocol versions, <code>'TLSv1.3'</code>, <code>'TLSv1.2'</code>, <code>'TLSv1.1'</code>, or <code>'TLSv1'</code>.
 <strong>Default:</strong> <code>'TLSv1.3'</code>, unless changed using CLI options. Using
 <code>--tls-max-v1.2</code> sets the default to <code>'TLSv1.2</code>'.  Using <code>--tls-max-v1.3</code> sets
 the default to <code>'TLSv1.3'</code>. If multiple of the options are provided, the
@@ -1757,7 +1757,7 @@ connection has been established.</p>
 <a href="#tls_event_secureconnection"><code>'secureConnection'</code></a>
 event, <code>pair.cleartext.authorized</code> should be inspected to confirm whether the
 certificate used is properly authorized.</p>
-<h3>tls.createSecurePair([context][, isserver][, requestCert][, rejectunauthorized][, options])<span><a class="mark" href="#tls_tls_createsecurepair_context_isserver_requestcert_rejectunauthorized_options" id="tls_tls_createsecurepair_context_isserver_requestcert_rejectunauthorized_options">#</a></span></h3>
+<h3>tls.createSecurePair([context][, isServer][, requestCert][, rejectUnauthorized][, options])<span><a class="mark" href="#tls_tls_createsecurepair_context_isserver_requestcert_rejectunauthorized_options" id="tls_tls_createsecurepair_context_isserver_requestcert_rejectunauthorized_options">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>

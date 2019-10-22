@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Stream | Node.js v12.12.0 Documentation</title>
+  <title>Stream | Node.js v12.13.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -81,7 +81,7 @@
 
     <div id="column1" data-id="stream" class="interior">
       <header>
-        <h1>Node.js v12.12.0 Documentation</h1>
+        <h1>Node.js v12.13.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -288,7 +288,7 @@
       </div>
 
       <div id="apicontent">
-        <h1>Stream<a class="srclink" href="https://github.com/nodejs/node/blob/v12.12.0^0/lib/stream.js#L30">[src]</a><span><a class="mark" href="#stream_stream" id="stream_stream">#</a></span></h1>
+        <h1>Stream<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/stream.js#L30">[src]</a><span><a class="mark" href="#stream_stream" id="stream_stream">#</a></span></h1>
 
 <p></p><div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><p></p>
 <p>A stream is an abstract interface for working with streaming data in Node.js.
@@ -1724,12 +1724,22 @@ parent class constructor:</p>
 <pre><code class="language-js">const { Writable } = require('stream');
 
 class MyWritable extends Writable {
-  constructor(options) {
-    super(options);
+  constructor({ highWaterMark, ...options }) {
+    super({
+      highWaterMark,
+      autoDestroy: true,
+      emitClose: true
+    });
     // ...
   }
 }
 </code></pre>
+<p>When extending streams, it is important to keep in mind what options the user
+can and should provide before forwarding these to the base constructor. For
+example, if the implementation makes assumptions in regard to e.g. the
+<code>autoDestroy</code> and <code>emitClose</code> options, it becomes important to not allow the
+user to override these. It is therefore recommended to be explicit about what
+options are forwarded instead of implicitly forwarding all options.</p>
 <p>The new stream class must then implement one or more specific methods, depending
 on the type of stream being created, as detailed in the chart below:</p>
 

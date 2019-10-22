@@ -19,7 +19,7 @@ a security release.
 * [ ] Co-ordinate with the Release team members to line up one or more releasers
   to do the releases on the agreed date.
 
-* [ ] Prep for the pre-security announcement and final security annoucement by
+* [ ] Prep for the pre-security announcement and final security announcement by
   getting agreement on drafts following the
   [security_announcement_process](https://github.com/nodejs/security-wg/blob/master/processes/security_annoucement_process.md).
 
@@ -50,7 +50,7 @@ a security release.
 
 * [ ] Co-ordinate with the Release team members and keep up to date on progress.
   Get an guesstimate of when releases may be ready and send an FYI to the docker
-  offical image
+  official image
   [maintainers](https://github.com/docker-library/official-images/blob/master/MAINTAINERS).
 
 * [ ] When the releases are promoted, ensure the final announce goes out as per
@@ -70,9 +70,9 @@ a security release.
   * In the docker-node repository run the
     [generate-stackbrew-library.sh]( https://github.com/nodejs/docker-node/blob/master/generate-stackbrew-library.sh)
     script and replace official-images/library/node with the output generated.
-```shell
-$ ./generate-stackbrew-library.sh > .../official-images/library/node
-```
+    ```console
+    $ ./generate-stackbrew-library.sh > .../official-images/library/node
+    ```
   * Open a PR with the changes to official-images/library/node making sure to
     @mention the official images.
     [maintainers](https://github.com/docker-library/official-images/blob/master/MAINTAINERS).
@@ -85,7 +85,7 @@ $ ./generate-stackbrew-library.sh > .../official-images/library/node
   [cve_management_process](https://github.com/nodejs/security-wg/blob/master/processes/cve_management_process.md).
 
 * [ ] Ensure that the announced CVEs are updated in the cve-management
-  repository as per the the
+  repository as per the
   [cve_management_process](https://github.com/nodejs/security-wg/blob/master/processes/cve_management_process.md)
   so that they are listed under Announced.
 

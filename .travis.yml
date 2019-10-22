@@ -1,7 +1,7 @@
 language: node_js
 env:
     global:
-        - NODEVER=12.12.0
+        - NODEVER=12.13.0
         - RUBY_VER=2.6.5
         - arch=x64
         - mode=release

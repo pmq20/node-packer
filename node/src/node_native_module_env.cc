@@ -1,6 +1,4 @@
-#define NODE_WANT_INTERNALS 1
 #include "node_native_module_env.h"
-#include <set>
 #include "env-inl.h"
 
 namespace node {

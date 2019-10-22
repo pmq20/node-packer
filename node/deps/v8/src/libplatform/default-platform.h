@@ -92,4 +92,5 @@ class V8_PLATFORM_EXPORT DefaultPlatform : public NON_EXPORTED_BASE(Platform) {
 }  // namespace platform
 }  // namespace v8
 
+
 #endif  // V8_LIBPLATFORM_DEFAULT_PLATFORM_H_

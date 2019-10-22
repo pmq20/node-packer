@@ -1,4 +1,3 @@
-#define NODE_WANT_INTERNALS 1
 #include "node.h"
 #include "node_context_data.h"
 #include "node_errors.h"
@@ -36,25 +35,28 @@ static bool AllowWasmCodeGenerationCallback(Local<Context> context,
 static bool ShouldAbortOnUncaughtException(Isolate* isolate) {
   DebugSealHandleScope scope(isolate);
   Environment* env = Environment::GetCurrent(isolate);
-  return env != nullptr && (env->is_main_thread() || !env->is_stopping()) &&
+  return env != nullptr &&
+         (env->is_main_thread() || !env->is_stopping()) &&
          env->should_abort_on_uncaught_toggle()[0] &&
          !env->inside_should_not_abort_on_uncaught_scope();
 }
 
 static MaybeLocal<Value> PrepareStackTraceCallback(Local<Context> context,
-                                                   Local<Value> exception,
-                                                   Local<Array> trace) {
+                                      Local<Value> exception,
+                                      Local<Array> trace) {
   Environment* env = Environment::GetCurrent(context);
   if (env == nullptr) {
     MaybeLocal<String> s = exception->ToString(context);
-    return s.IsEmpty() ? MaybeLocal<Value>()
-                       : MaybeLocal<Value>(s.ToLocalChecked());
+    return s.IsEmpty() ?
+      MaybeLocal<Value>() :
+      MaybeLocal<Value>(s.ToLocalChecked());
   }
   Local<Function> prepare = env->prepare_stack_trace_callback();
   if (prepare.IsEmpty()) {
     MaybeLocal<String> s = exception->ToString(context);
-    return s.IsEmpty() ? MaybeLocal<Value>()
-                       : MaybeLocal<Value>(s.ToLocalChecked());
+    return s.IsEmpty() ?
+      MaybeLocal<Value>() :
+      MaybeLocal<Value>(s.ToLocalChecked());
   }
   Local<Value> args[] = {
       context->Global(),
@@ -66,8 +68,8 @@ static MaybeLocal<Value> PrepareStackTraceCallback(Local<Context> context,
   // is what ReThrow gives us). Just returning the empty MaybeLocal would leave
   // us with a pending exception.
   TryCatchScope try_catch(env);
-  MaybeLocal<Value> result =
-      prepare->Call(context, Undefined(env->isolate()), arraysize(args), args);
+  MaybeLocal<Value> result = prepare->Call(
+      context, Undefined(env->isolate()), arraysize(args), args);
   if (try_catch.HasCaught() && !try_catch.HasTerminated()) {
     try_catch.ReThrow();
   }
@@ -173,10 +175,9 @@ void FreeArrayBufferAllocator(ArrayBufferAllocator* allocator) {
 
 void SetIsolateCreateParamsForNode(Isolate::CreateParams* params) {
   const uint64_t constrained_memory = uv_get_constrained_memory();
-  const uint64_t total_memory =
-      constrained_memory > 0
-          ? std::min(uv_get_total_memory(), constrained_memory)
-          : uv_get_total_memory();
+  const uint64_t total_memory = constrained_memory > 0 ?
+      std::min(uv_get_total_memory(), constrained_memory) :
+      uv_get_total_memory();
   if (total_memory > 0) {
     // V8 defaults to 700MB or 1.4GB on 32 and 64 bit platforms respectively.
     // This default is based on browser use-cases. Tell V8 to configure the
@@ -333,8 +334,7 @@ MaybeLocal<Object> GetPerContextExports(Local<Context> context) {
   EscapableHandleScope handle_scope(isolate);
 
   Local<Object> global = context->Global();
-  Local<Private> key = Private::ForApi(
-      isolate,
+  Local<Private> key = Private::ForApi(isolate,
       FIXED_ONE_BYTE_STRING(isolate, "node:per_context_binding_exports"));
 
   Local<Value> existing_value;
@@ -373,7 +373,7 @@ void InitializeContextRuntime(Local<Context> context) {
   // https://github.com/nodejs/node/issues/14909
   Local<String> intl_string = FIXED_ONE_BYTE_STRING(isolate, "Intl");
   Local<String> break_iter_string =
-      FIXED_ONE_BYTE_STRING(isolate, "v8BreakIterator");
+    FIXED_ONE_BYTE_STRING(isolate, "v8BreakIterator");
   Local<Value> intl_v;
   if (context->Global()->Get(context, intl_string).ToLocal(&intl_v) &&
       intl_v->IsObject()) {
@@ -433,8 +433,9 @@ bool InitializeContext(Local<Context> context) {
         return false;
       }
       Local<Function> fn = maybe_fn.ToLocalChecked();
-      MaybeLocal<Value> result = fn->Call(
-          context, Undefined(isolate), arraysize(arguments), arguments);
+      MaybeLocal<Value> result =
+          fn->Call(context, Undefined(isolate),
+                   arraysize(arguments), arguments);
       // Execution failed during context creation.
       // TODO(joyeecheung): deprecate this signature and return a MaybeLocal.
       if (result.IsEmpty()) {

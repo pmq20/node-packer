@@ -401,7 +401,9 @@ class Platform {
   /**
    * Returns true if idle tasks are enabled for the given |isolate|.
    */
-  virtual bool IdleTasksEnabled(Isolate* isolate) { return false; }
+  virtual bool IdleTasksEnabled(Isolate* isolate) {
+    return false;
+  }
 
   /**
    * Monotonically increasing time in seconds from an arbitrary fixed point in

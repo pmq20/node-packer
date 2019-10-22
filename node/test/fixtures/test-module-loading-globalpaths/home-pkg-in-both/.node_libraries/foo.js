@@ -1,1 +1,1 @@
-exports.string = '$HOME/.node_modules';
+exports.string = '$HOME/.node_libraries';

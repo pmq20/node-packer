@@ -320,9 +320,7 @@
       'sources': [
         'src/node_main.cc'
       ],
-
-      'dependencies': [ 'deps/histogram/histogram.gyp:histogram' ],
-
+    
       'msvs_settings': {
         'VCLinkerTool': {
           'GenerateMapFile': 'true', # /MAP
@@ -493,6 +491,7 @@
         'deps/nghttp2/nghttp2.gyp:nghttp2',
         'deps/libsquash/enclose_io_libsquash.gyp:enclose_io_libsquash',
         'deps/libautoupdate/libautoupdate.gyp:libautoupdate',
+        'deps/histogram/histogram.gyp:histogram',
       ],
       'includes': [
         'node.gypi',

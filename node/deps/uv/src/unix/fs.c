@@ -1217,6 +1217,13 @@ static int uv__fs_statx(int fd,
   int mode;
   int rc;
 
+//roytan-hack-start
+//for ubuntu 18.04 or debian
+  if (no_statx != 1) {
+    no_statx = 1;
+  }
+//roytan-hack-end
+
   if (no_statx)
     return UV_ENOSYS;
 

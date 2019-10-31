@@ -29,6 +29,7 @@ const {
   getSystemErrorName
 } = require('internal/util');
 const { isArrayBufferView } = require('internal/util/types');
+const deprecate = require('internal/util').deprecate;
 const debug = require('internal/util/debuglog').debuglog('child_process');
 const { Buffer } = require('buffer');
 const { Pipe, constants: PipeConstants } = internalBinding('pipe_wrap');

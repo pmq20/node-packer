@@ -290,6 +290,7 @@ int enclose_io__exec(const char *path, char *const argv[])
 	assert(0 == ret);
 
 	ret = setenv("ENCLOSE_IO_USE_ORIGINAL_RUBY", "true", 1);
+	ret = setenv("ENCLOSE_IO_USE_ORIGINAL_NODE", "true", 1);
 	assert(0 == ret);
 
 	argc = 1;

@@ -1,5 +1,7 @@
 # Node.js Packer
 
+http://enclose.io/nodec
+
 *Packing your Node.js application into a single executable.*
 
 [![Build status](https://ci.appveyor.com/api/projects/status/appwi7yrdntwuv3k/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-packer/branch/master)

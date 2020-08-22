@@ -1,0 +1,67 @@
+name: macOS
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+jobs:
+  make:
+    strategy:
+      matrix:
+        os: [macos-10.15]
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: "[Enclose.IO] Install dependencies"
+        run: |
+          brew upgrade
+          brew install squashfs
+      - name: "[Enclose.IO] Set up rubyc"
+        run: |
+          curl -OL https://github.com/pmq20/ruby-packer/releases/download/darwin-x64/rubyc
+          chmod +x rubyc
+          mv rubyc /usr/local/bin
+      - name: "[Enclose.IO] Set up Ruby"
+        uses: ruby/setup-ruby@v1
+      - name: "[Enclose.IO] Check dependencies"
+        run: |
+          sw_vers
+          uname -a
+          uname -p
+          uname -m
+          sysctl -n machdep.cpu.brand_string
+          which mksquashfs
+          mksquashfs -version
+          which ruby
+          ruby -v
+          which rubyc
+          rubyc --version
+      - name: "[Enclose.IO] Install dependencies"
+        run: bundle install
+      - name: "[Enclose.IO] Run rubocop"
+        run: bundle exec rubocop
+      - name: "[Enclose.IO] Rake"
+        run: bundle exec rake
+      - name: "[Enclose.IO] Create macOS Release"
+        if: ${{ github.ref == 'refs/heads/master' && success() }}
+        id: create_macos_release
+        uses: pmq20/create-release@delete-old-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: darwin-x64
+          release_name: Latest macOS Build
+          draft: false
+          prerelease: false
+          replace_old_tag: true
+      - name: "[Enclose.IO] Upload macOS Release"
+        if: ${{ github.ref == 'refs/heads/master' && success() }}
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_macos_release.outputs.upload_url }}
+          asset_path: ./nodec
+          asset_name: nodec
+          asset_content_type: application/octet-stream

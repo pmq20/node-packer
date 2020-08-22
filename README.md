@@ -4,11 +4,9 @@ http://enclose.io/nodec
 
 *Packing your Node.js application into a single executable.*
 
-[![Build status](https://ci.appveyor.com/api/projects/status/appwi7yrdntwuv3k/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-packer/branch/master)
-[![Status](https://travis-ci.org/pmq20/node-packer.svg?branch=master)](https://travis-ci.org/pmq20/node-packer)
-[![GitHub version](https://badge.fury.io/gh/pmq20%2Fnode-packer.svg)](https://badge.fury.io/gh/pmq20%2Fnode-packer)
-
-![Terminal simulation of a simple compilation](https://github.com/pmq20/node-packer/raw/master/doc/nodec.gif)
+[![Windows](https://github.com/pmq20/node-packer/workflows/Windows/badge.svg)](https://github.com/pmq20/node-packer/actions?query=workflow%3A"Windows")
+[![macOS](https://github.com/pmq20/node-packer/workflows/macOS/badge.svg)](https://github.com/pmq20/node-packer/actions?query=workflow%3A"macOS")
+[![Linux](https://github.com/pmq20/node-packer/workflows/Linux/badge.svg)](https://github.com/pmq20/node-packer/actions?query=workflow%3A"Linux")
 
 ## Features
 
@@ -26,13 +24,11 @@ It takes less than 5 minutes to compile any project with `node-packer`.
 
 You won't need to modify a single line of code in your application, no matter how you developed it as long as it works in plain node.js!
 
-|    Operating System   | Architecture |           Latest&#160;Stable                 |
-|:---------------------:|:------------:|----------------------------------------------|
-|        Windows        |    x86-64    | http://enclose.io/nodec/nodec-x64.zip        |
-|         macOS         |    x86-64    | http://enclose.io/nodec/nodec-darwin-x64.gz  |
-|         Linux         |    x86-64    | http://enclose.io/nodec/nodec-linux-x64.gz   |
-
-For previous releases, cf. http://enclose.io/nodec
+|    Operating System   | Architecture |                                          Latest&#160;Stable                                                  |
+|:---------------------:|:------------:|--------------------------------------------------------------------------------------------------------------|
+|        Windows        |    x86-64    | https://gw.alipayobjects.com/os/enclose-prod/0d0ec8fd-dc9c-4b0a-85df-8bf4af0e8b8d/nodec-v1.5.0-x64.zip       |
+|         macOS         |    x86-64    | https://gw.alipayobjects.com/os/enclose-prod/bc2022ef-4b88-4c12-9980-394945c9c198/nodec-v1.5.0-darwin-x64.gz |
+|         Linux         |    x86-64    | https://gw.alipayobjects.com/os/enclose-prod/b6aa41a6-f6b5-4542-b777-06e4bc292c5e/nodec-v1.5.0-linux-x64.gz  |
 
 ### Install on Windows
 

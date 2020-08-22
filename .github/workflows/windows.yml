@@ -1,0 +1,88 @@
+name: Windows
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+jobs:
+  make:
+    strategy:
+      matrix:
+        include:
+          - os: windows-2019
+            vs: 2019
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
+    env:
+      ENCLOSE_IO_RUBYC_ADDTIONAL_ARGS: --tmpdir=C:\rubyc_tmp
+    steps:
+      - uses: ilammy/setup-nasm@v1
+      - uses: actions/checkout@v2
+      - name: "[Enclose.IO] Set up Perl"
+        run: |
+          choco install strawberryperl
+          echo "##[add-path]C:\strawberry\c\bin;C:\strawberry\perl\site\bin;C:\strawberry\perl\bin"
+      - name: "[Enclose.IO] Install libraries"
+        run: |
+          choco install --no-progress squashfs
+      - name: "[Enclose.IO] Set up rubyc"
+        run: |
+          wget https://github.com/pmq20/ruby-packer/releases/download/windows-x64/rubyc.exe
+          mkdir C:\rubyc
+          move rubyc.exe C:\rubyc
+          echo "##[add-path]C:\rubyc"
+        shell: cmd
+      - name: "[Enclose.IO] Set up Ruby"
+        uses: ruby/setup-ruby@v1
+      - name: "[Enclose.IO] Install dependencies"
+        run: bundle install
+      - name: "[Enclose.IO] Run rubocop"
+        run: bundle exec rubocop
+      - name: "[Enclose.IO] Inspect Windows Environment"
+        run: |
+          call "C:\Program Files (x86)\Microsoft Visual Studio\${{ matrix.vs }}\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+          echo on
+          wmic OS get OSArchitecture
+          echo %PROCESSOR_ARCHITECTURE%
+          set
+          systeminfo
+          where perl
+          perl -V
+          where nmake
+          where mksquashfs
+          mksquashfs -version
+          where ruby
+          ruby -v
+          where rubyc
+          rubyc --version
+          where bundle
+          bundle -v
+        shell: cmd
+      - name: "[Enclose.IO] Rake"
+        run: |
+          call "C:\Program Files (x86)\Microsoft Visual Studio\${{ matrix.vs }}\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+          mkdir C:\rubyc_tmp
+          bundle exec rake
+        shell: cmd
+      - name: "[Enclose.IO] Create Windows Release"
+        if: ${{ github.ref == 'refs/heads/master' && success() }}
+        id: create_windows_release
+        uses: pmq20/create-release@delete-old-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: windows-x64
+          release_name: Latest Windows Build
+          draft: false
+          prerelease: false
+          replace_old_tag: true
+      - name: "[Enclose.IO] Upload Windows Release"
+        if: ${{ github.ref == 'refs/heads/master' && success() }}
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_windows_release.outputs.upload_url }}
+          asset_path: ./nodec.exe
+          asset_name: nodec.exe
+          asset_content_type: application/octet-stream

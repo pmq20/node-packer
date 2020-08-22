@@ -91,7 +91,7 @@ exports.createSecureContext = function createSecureContext(options, context) {
   }
 
   // NOTE: It is important to set the key after the cert.
-  // `ssl_set_pkey` returns `0` when the key does not much the cert, but
+  // `ssl_set_pkey` returns `0` when the key does not match the cert, but
   // `ssl_set_cert` returns `1` and nullifies the key in the SSL structure
   // which leads to the crash later on.
   if (options.key) {
@@ -169,12 +169,12 @@ exports.translatePeerCertificate = function translatePeerCertificate(c) {
   if (!c)
     return null;
 
-  if (c.issuer) c.issuer = tls.parseCertString(c.issuer);
-  if (c.issuerCertificate && c.issuerCertificate !== c) {
+  if (c.issuer != null) c.issuer = tls.parseCertString(c.issuer);
+  if (c.issuerCertificate != null && c.issuerCertificate !== c) {
     c.issuerCertificate = translatePeerCertificate(c.issuerCertificate);
   }
-  if (c.subject) c.subject = tls.parseCertString(c.subject);
-  if (c.infoAccess) {
+  if (c.subject != null) c.subject = tls.parseCertString(c.subject);
+  if (c.infoAccess != null) {
     var info = c.infoAccess;
     c.infoAccess = {};
 

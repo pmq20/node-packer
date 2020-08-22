@@ -78,9 +78,16 @@ const qsTestCases = [
   ['a=b&=c&d=e', 'a=b&=c&d=e', { a: 'b', '': 'c', d: 'e' }],
   ['a=b&=&c=d', 'a=b&=&c=d', { a: 'b', '': '', c: 'd' }],
   ['&&foo=bar&&', 'foo=bar', { foo: 'bar' }],
+  ['&', '', {}],
   ['&&&&', '', {}],
   ['&=&', '=', { '': '' }],
   ['&=&=', '=&=', { '': [ '', '' ]}],
+  ['=', '=', { '': '' }],
+  ['+', '%20=', { ' ': '' }],
+  ['+=', '%20=', { ' ': '' }],
+  ['+&', '%20=', { ' ': '' }],
+  ['=+', '=%20', { '': ' ' }],
+  ['+=&', '%20=', { ' ': '' }],
   ['a&&b', 'a=&b=', { 'a': '', 'b': '' }],
   ['a=a&&b=b', 'a=a&b=b', { 'a': 'a', 'b': 'b' }],
   ['&a', 'a=', { 'a': '' }],
@@ -91,6 +98,14 @@ const qsTestCases = [
   ['a=&a=value&a=', 'a=&a=value&a=', { a: [ '', 'value', '' ] }],
   ['foo+bar=baz+quux', 'foo%20bar=baz%20quux', { 'foo bar': 'baz quux' }],
   ['+foo=+bar', '%20foo=%20bar', { ' foo': ' bar' }],
+  ['a+', 'a%20=', { 'a ': '' }],
+  ['=a+', '=a%20', { '': 'a ' }],
+  ['a+&', 'a%20=', { 'a ': '' }],
+  ['=a+&', '=a%20', { '': 'a ' }],
+  ['%20+', '%20%20=', { '  ': '' }],
+  ['=%20+', '=%20%20', { '': '  ' }],
+  ['%20+&', '%20%20=', { '  ': '' }],
+  ['=%20+&', '=%20%20', { '': '  ' }],
   [null, '', {}],
   [undefined, '', {}]
 ];
@@ -309,13 +324,13 @@ check(qs.parse('a', null, []), { '': 'a' });
 
 // Test limiting
 assert.strictEqual(
-    Object.keys(qs.parse('a=1&b=1&c=1', null, null, { maxKeys: 1 })).length,
-    1);
+  Object.keys(qs.parse('a=1&b=1&c=1', null, null, { maxKeys: 1 })).length,
+  1);
 
 // Test limiting with a case that starts from `&`
 assert.strictEqual(
-    Object.keys(qs.parse('&a', null, null, { maxKeys: 1 })).length,
-    0);
+  Object.keys(qs.parse('&a', null, null, { maxKeys: 1 })).length,
+  0);
 
 // Test removing limit
 {
@@ -337,7 +352,7 @@ assert.strictEqual(
 {
   const b = qs.unescapeBuffer('%d3%f2Ug%1f6v%24%5e%98%cb' +
     '%0d%ac%a2%2f%9d%eb%d8%a2%e6');
-// <Buffer d3 f2 55 67 1f 36 76 24 5e 98 cb 0d ac a2 2f 9d eb d8 a2 e6>
+  // <Buffer d3 f2 55 67 1f 36 76 24 5e 98 cb 0d ac a2 2f 9d eb d8 a2 e6>
   assert.strictEqual(0xd3, b[0]);
   assert.strictEqual(0xf2, b[1]);
   assert.strictEqual(0x55, b[2]);
@@ -378,9 +393,9 @@ check(qs.parse('%\u0100=%\u0101'), { '%Ā': '%ā' });
   }
 
   check(qs.parse('a=a&b=b&c=c', null, null, {decodeURIComponent: demoDecode}),
-    {aa: 'aa', bb: 'bb', cc: 'cc'});
+        {aa: 'aa', bb: 'bb', cc: 'cc'});
   check(qs.parse('a=a&b=b&c=c', null, '==', {decodeURIComponent: (str) => str}),
-    {'a=a': '', 'b=b': '', 'c=c': ''});
+        {'a=a': '', 'b=b': '', 'c=c': ''});
 }
 
 // Test QueryString.unescape
@@ -390,7 +405,7 @@ check(qs.parse('%\u0100=%\u0101'), { '%Ā': '%ā' });
   }
 
   check(qs.parse('a=a', null, null, {decodeURIComponent: errDecode}),
-    {a: 'a'});
+        {a: 'a'});
 }
 
 // Test custom encode

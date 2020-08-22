@@ -29,7 +29,7 @@ void Execute(napi_env env, void* data) {
   carrier* c = static_cast<carrier*>(data);
 
   if (c != &the_carrier) {
-    napi_throw_type_error(env, "Wrong data parameter to Execute.");
+    napi_throw_type_error(env, nullptr, "Wrong data parameter to Execute.");
     return;
   }
 
@@ -40,19 +40,19 @@ void Complete(napi_env env, napi_status status, void* data) {
   carrier* c = static_cast<carrier*>(data);
 
   if (c != &the_carrier) {
-    napi_throw_type_error(env, "Wrong data parameter to Complete.");
+    napi_throw_type_error(env, nullptr, "Wrong data parameter to Complete.");
     return;
   }
 
   if (status != napi_ok) {
-    napi_throw_type_error(env, "Execute callback failed.");
+    napi_throw_type_error(env, nullptr, "Execute callback failed.");
     return;
   }
 
   napi_value argv[2];
 
   NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &argv[0]));
-  NAPI_CALL_RETURN_VOID(env, napi_create_number(env, c->_output, &argv[1]));
+  NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, c->_output, &argv[1]));
   napi_value callback;
   NAPI_CALL_RETURN_VOID(env,
     napi_get_reference_value(env, c->_callback, &callback));

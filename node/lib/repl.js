@@ -85,7 +85,7 @@ try {
 }
 
 // hack for repl require to work properly with node_modules folders
-module.paths = require('module')._nodeModulePaths(module.filename);
+module.paths = Module._nodeModulePaths(module.filename);
 
 // If obj.hasOwnProperty has been overridden, then calling
 // obj.hasOwnProperty(prop) will break.
@@ -137,7 +137,7 @@ function REPLServer(prompt,
 
   if (breakEvalOnSigint && eval_) {
     // Allowing this would not reflect user expectations.
-    // breakEvalOnSigint affects only the behaviour of the default eval().
+    // breakEvalOnSigint affects only the behavior of the default eval().
     throw new Error('Cannot specify both breakEvalOnSigint and eval for REPL');
   }
 
@@ -282,17 +282,23 @@ function REPLServer(prompt,
   self._domain.on('error', function debugDomainError(e) {
     debug('domain error');
     const top = replMap.get(self);
+
     internalUtil.decorateErrorStack(e);
+    const isError = internalUtil.isError(e);
     if (e instanceof SyntaxError && e.stack) {
       // remove repl:line-number and stack trace
       e.stack = e.stack
                  .replace(/^repl:\d+\r?\n/, '')
                  .replace(/^\s+at\s.*\n?/gm, '');
-    } else if (e.stack && self.replMode === exports.REPL_MODE_STRICT) {
+    } else if (isError && self.replMode === exports.REPL_MODE_STRICT) {
       e.stack = e.stack.replace(/(\s+at\s+repl:)(\d+)/,
                                 (_, pre, line) => pre + (line - 1));
     }
-    top.outputStream.write((e.stack || e) + '\n');
+    if (isError && e.stack) {
+      top.outputStream.write(`${e.stack}\n`);
+    } else {
+      top.outputStream.write(`Thrown: ${String(e)}\n`);
+    }
     top.bufferedCommand = '';
     top.lines.level = [];
     top.displayPrompt();
@@ -412,7 +418,8 @@ function REPLServer(prompt,
     // Check to see if a REPL keyword was used. If it returns true,
     // display next prompt and return.
     if (trimmedCmd) {
-      if (trimmedCmd.charAt(0) === '.' && isNaN(parseFloat(trimmedCmd))) {
+      if (trimmedCmd.charAt(0) === '.' && trimmedCmd.charAt(1) !== '.' &&
+          isNaN(parseFloat(trimmedCmd))) {
         const matches = trimmedCmd.match(/^\.([^\s]+)\s*(.*)$/);
         const keyword = matches && matches[1];
         const rest = matches && matches[2];
@@ -679,17 +686,42 @@ ArrayStream.prototype.writable = true;
 ArrayStream.prototype.resume = function() {};
 ArrayStream.prototype.write = function() {};
 
-const requireRE = /\brequire\s*\(['"](([\w@./-]+\/)?([\w@./-]*))/;
+const requireRE = /\brequire\s*\(['"](([\w@./-]+\/)?(?:[\w@./-]*))/;
 const simpleExpressionRE =
-    /(([a-zA-Z_$](?:\w|\$)*)\.)*([a-zA-Z_$](?:\w|\$)*)\.?$/;
+    /(?:[a-zA-Z_$](?:\w|\$)*\.)*[a-zA-Z_$](?:\w|\$)*\.?$/;
 
 function intFilter(item) {
   // filters out anything not starting with A-Z, a-z, $ or _
   return /^[A-Za-z_$]/.test(item);
 }
 
+const ARRAY_LENGTH_THRESHOLD = 1e6;
+
+function mayBeLargeObject(obj) {
+  if (Array.isArray(obj)) {
+    return obj.length > ARRAY_LENGTH_THRESHOLD ? ['length'] : null;
+  } else if (utilBinding.isTypedArray(obj)) {
+    return obj.length > ARRAY_LENGTH_THRESHOLD ? [] : null;
+  }
+
+  return null;
+}
+
 function filteredOwnPropertyNames(obj) {
   if (!obj) return [];
+  const fakeProperties = mayBeLargeObject(obj);
+  if (fakeProperties !== null) {
+    this.outputStream.write('\r\n');
+    process.emitWarning(
+      'The current array, Buffer or TypedArray has too many entries. ' +
+      'Certain properties may be missing from completion output.',
+      'REPLWarning',
+      undefined,
+      undefined,
+      true);
+
+    return fakeProperties;
+  }
   return Object.getOwnPropertyNames(obj).filter(intFilter);
 }
 
@@ -710,7 +742,7 @@ REPLServer.prototype.complete = function() {
 function complete(line, callback) {
   // There may be local variables to evaluate, try a nested REPL
   if (this.bufferedCommand !== undefined && this.bufferedCommand.length) {
-    // Get a new array of inputed lines
+    // Get a new array of inputted lines
     var tmp = this.lines.slice();
     // Kill off all function declarations to push all local variables into
     // global scope
@@ -739,6 +771,7 @@ function complete(line, callback) {
   var completeOn, i, group, c;
 
   // REPL commands (e.g. ".break").
+  var filter;
   var match = null;
   match = line.match(/^\s*\.(\w*)$/);
   if (match) {
@@ -752,16 +785,27 @@ function complete(line, callback) {
   } else if (match = line.match(requireRE)) {
     // require('...<Tab>')
     const exts = Object.keys(this.context.require.extensions);
-    var indexRe = new RegExp('^index(' + exts.map(regexpEscape).join('|') +
+    var indexRe = new RegExp('^index(?:' + exts.map(regexpEscape).join('|') +
                              ')$');
     var versionedFileNamesRe = /-\d+\.\d+/;
 
     completeOn = match[1];
     var subdir = match[2] || '';
-    var filter = match[1];
-    var dir, files, f, name, base, ext, abs, subfiles, s;
+    filter = match[1];
+    var dir, files, f, name, base, ext, abs, subfiles, s, isDirectory;
     group = [];
-    var paths = module.paths.concat(require('module').globalPaths);
+    let paths = [];
+
+    if (completeOn === '.') {
+      group = ['./', '../'];
+    } else if (completeOn === '..') {
+      group = ['../'];
+    } else if (/^\.\.?\//.test(completeOn)) {
+      paths = [process.cwd()];
+    } else {
+      paths = module.paths.concat(Module.globalPaths);
+    }
+
     for (i = 0; i < paths.length; i++) {
       dir = path.resolve(paths[i], subdir);
       try {
@@ -777,23 +821,26 @@ function complete(line, callback) {
           // Exclude versioned names that 'npm' installs.
           continue;
         }
-        if (exts.indexOf(ext) !== -1) {
-          if (!subdir || base !== 'index') {
-            group.push(subdir + base);
-          }
-        } else {
-          abs = path.resolve(dir, name);
+        abs = path.resolve(dir, name);
+        try {
+          isDirectory = fs.statSync(abs).isDirectory();
+        } catch (e) {
+          continue;
+        }
+        if (isDirectory) {
+          group.push(subdir + name + '/');
           try {
-            if (fs.statSync(abs).isDirectory()) {
-              group.push(subdir + name + '/');
-              subfiles = fs.readdirSync(abs);
-              for (s = 0; s < subfiles.length; s++) {
-                if (indexRe.test(subfiles[s])) {
-                  group.push(subdir + name);
-                }
-              }
+            subfiles = fs.readdirSync(abs);
+          } catch (e) {
+            continue;
+          }
+          for (s = 0; s < subfiles.length; s++) {
+            if (indexRe.test(subfiles[s])) {
+              group.push(subdir + name);
             }
-          } catch (e) {}
+          }
+        } else if (exts.includes(ext) && (!subdir || base !== 'index')) {
+          group.push(subdir + base);
         }
       }
     }
@@ -842,9 +889,11 @@ function complete(line, callback) {
         if (this.useGlobal || vm.isContext(this.context)) {
           var contextProto = this.context;
           while (contextProto = Object.getPrototypeOf(contextProto)) {
-            completionGroups.push(filteredOwnPropertyNames(contextProto));
+            completionGroups.push(
+              filteredOwnPropertyNames.call(this, contextProto));
           }
-          completionGroups.push(filteredOwnPropertyNames(this.context));
+          completionGroups.push(
+            filteredOwnPropertyNames.call(this, this.context));
           addStandardGlobals(completionGroups, filter);
           completionGroupsLoaded();
         } else {
@@ -864,13 +913,13 @@ function complete(line, callback) {
         }
       } else {
         const evalExpr = `try { ${expr} } catch (e) {}`;
-        this.eval(evalExpr, this.context, 'repl', function doEval(e, obj) {
+        this.eval(evalExpr, this.context, 'repl', (e, obj) => {
           // if (e) console.log(e);
 
           if (obj != null) {
             if (typeof obj === 'object' || typeof obj === 'function') {
               try {
-                memberGroups.push(filteredOwnPropertyNames(obj));
+                memberGroups.push(filteredOwnPropertyNames.call(this, obj));
               } catch (ex) {
                 // Probably a Proxy object without `getOwnPropertyNames` trap.
                 // We simply ignore it here, as we don't want to break the
@@ -888,7 +937,7 @@ function complete(line, callback) {
                 p = obj.constructor ? obj.constructor.prototype : null;
               }
               while (p !== null) {
-                memberGroups.push(filteredOwnPropertyNames(p));
+                memberGroups.push(filteredOwnPropertyNames.call(this, p));
                 p = Object.getPrototypeOf(p);
                 // Circular refs possible? Let's guard against that.
                 sentinel--;

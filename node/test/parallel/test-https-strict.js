@@ -21,17 +21,14 @@
 
 'use strict';
 const common = require('../common');
+if (!common.hasCrypto)
+  common.skip('missing crypto');
+
 // disable strict server certificate validation by the client
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 const assert = require('assert');
-
-if (!common.hasCrypto) {
-  common.skip('missing crypto');
-  return;
-}
 const https = require('https');
-
 const fs = require('fs');
 const path = require('path');
 
@@ -146,9 +143,9 @@ function makeReq(path, port, error, host, ca) {
   }
   const req = https.get(options);
   const server = port === server1.address().port ? server1 :
-      port === server2.address().port ? server2 :
+    port === server2.address().port ? server2 :
       port === server3.address().port ? server3 :
-      null;
+        null;
   if (!server) throw new Error(`invalid port: ${port}`);
   server.expectCount++;
 

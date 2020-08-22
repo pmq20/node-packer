@@ -259,6 +259,9 @@ inline void Environment::TickInfo::set_index(uint32_t value) {
 
 inline void Environment::AssignToContext(v8::Local<v8::Context> context) {
   context->SetAlignedPointerInEmbedderData(kContextEmbedderDataIndex, this);
+#if HAVE_INSPECTOR
+  inspector_agent()->ContextCreated(context);
+#endif  // HAVE_INSPECTOR
 }
 
 inline Environment* Environment::GetCurrent(v8::Isolate* isolate) {
@@ -272,18 +275,16 @@ inline Environment* Environment::GetCurrent(v8::Local<v8::Context> context) {
 
 inline Environment* Environment::GetCurrent(
     const v8::FunctionCallbackInfo<v8::Value>& info) {
-  ASSERT(info.Data()->IsExternal());
+  CHECK(info.Data()->IsExternal());
   return static_cast<Environment*>(info.Data().As<v8::External>()->Value());
 }
 
 template <typename T>
 inline Environment* Environment::GetCurrent(
     const v8::PropertyCallbackInfo<T>& info) {
-  ASSERT(info.Data()->IsExternal());
-  // XXX(bnoordhuis) Work around a g++ 4.9.2 template type inferrer bug
-  // when the expression is written as info.Data().As<v8::External>().
-  v8::Local<v8::Value> data = info.Data();
-  return static_cast<Environment*>(data.As<v8::External>()->Value());
+  CHECK(info.Data()->IsExternal());
+  return static_cast<Environment*>(
+      info.Data().template As<v8::External>()->Value());
 }
 
 inline Environment::Environment(IsolateData* isolate_data,
@@ -292,8 +293,6 @@ inline Environment::Environment(IsolateData* isolate_data,
       isolate_data_(isolate_data),
       async_hooks_(context->GetIsolate()),
       timer_base_(uv_now(isolate_data->event_loop())),
-      cares_query_last_ok_(true),
-      cares_is_servers_default_(true),
       using_domains_(false),
       printed_error_(false),
       trace_sync_io_(false),
@@ -313,7 +312,6 @@ inline Environment::Environment(IsolateData* isolate_data,
   set_binding_cache_object(v8::Object::New(isolate()));
   set_module_load_list_array(v8::Array::New(isolate()));
 
-  RB_INIT(&cares_task_list_);
   AssignToContext(context);
 
   destroy_ids_list_.reserve(512);
@@ -331,6 +329,7 @@ inline Environment::~Environment() {
   delete[] heap_statistics_buffer_;
   delete[] heap_space_statistics_buffer_;
   delete[] http_parser_buffer_;
+  free(http2_state_buffer_);
 }
 
 inline v8::Isolate* Environment::isolate() const {
@@ -471,7 +470,6 @@ inline void Environment::set_heap_space_statistics_buffer(double* pointer) {
   heap_space_statistics_buffer_ = pointer;
 }
 
-
 inline char* Environment::http_parser_buffer() const {
   return http_parser_buffer_;
 }
@@ -481,6 +479,15 @@ inline void Environment::set_http_parser_buffer(char* buffer) {
   http_parser_buffer_ = buffer;
 }
 
+inline http2::http2_state* Environment::http2_state_buffer() const {
+  return http2_state_buffer_;
+}
+
+inline void Environment::set_http2_state_buffer(http2::http2_state* buffer) {
+  CHECK_EQ(http2_state_buffer_, nullptr);  // Should be set only once.
+  http2_state_buffer_ = buffer;
+}
+
 inline double* Environment::fs_stats_field_array() const {
   return fs_stats_field_array_;
 }
@@ -488,43 +495,6 @@ inline double* Environment::fs_stats_field_array() const {
 inline void Environment::set_fs_stats_field_array(double* fields) {
   CHECK_EQ(fs_stats_field_array_, nullptr);  // Should be set only once.
   fs_stats_field_array_ = fields;
-}
-
-inline Environment* Environment::from_cares_timer_handle(uv_timer_t* handle) {
-  return ContainerOf(&Environment::cares_timer_handle_, handle);
-}
-
-inline uv_timer_t* Environment::cares_timer_handle() {
-  return &cares_timer_handle_;
-}
-
-inline ares_channel Environment::cares_channel() {
-  return cares_channel_;
-}
-
-// Only used in the call to ares_init_options().
-inline ares_channel* Environment::cares_channel_ptr() {
-  return &cares_channel_;
-}
-
-inline bool Environment::cares_query_last_ok() {
-  return cares_query_last_ok_;
-}
-
-inline void Environment::set_cares_query_last_ok(bool ok) {
-  cares_query_last_ok_ = ok;
-}
-
-inline bool Environment::cares_is_servers_default() {
-  return cares_is_servers_default_;
-}
-
-inline void Environment::set_cares_is_servers_default(bool is_default) {
-  cares_is_servers_default_ = is_default;
-}
-
-inline node_ares_task_list* Environment::cares_task_list() {
-  return &cares_task_list_;
 }
 
 inline IsolateData* Environment::isolate_data() const {

@@ -91,7 +91,7 @@
                 "changes": []
               },
               "params": [],
-              "desc": "<p>Similar to the <code>cluster.on(&#39;message&#39;)</code> event, but specific to this worker.</p>\n<p>Within a worker, <code>process.on(&#39;message)</code> may also be used.</p>\n<p>See <a href=\"process.html#process_event_message\"><code>process</code> event: <code>&#39;message&#39;</code></a>.</p>\n<p>As an example, here is a cluster that keeps count of the number of requests\nin the master process using the message system:</p>\n<pre><code class=\"lang-js\">const cluster = require(&#39;cluster&#39;);\nconst http = require(&#39;http&#39;);\n\nif (cluster.isMaster) {\n\n  // Keep track of http requests\n  let numReqs = 0;\n  setInterval(() =&gt; {\n    console.log(`numReqs = ${numReqs}`);\n  }, 1000);\n\n  // Count requests\n  function messageHandler(msg) {\n    if (msg.cmd &amp;&amp; msg.cmd === &#39;notifyRequest&#39;) {\n      numReqs += 1;\n    }\n  }\n\n  // Start workers and listen for messages containing notifyRequest\n  const numCPUs = require(&#39;os&#39;).cpus().length;\n  for (let i = 0; i &lt; numCPUs; i++) {\n    cluster.fork();\n  }\n\n  for (const id in cluster.workers) {\n    cluster.workers[id].on(&#39;message&#39;, messageHandler);\n  }\n\n} else {\n\n  // Worker processes have a http server.\n  http.Server((req, res) =&gt; {\n    res.writeHead(200);\n    res.end(&#39;hello world\\n&#39;);\n\n    // notify master about the request\n    process.send({ cmd: &#39;notifyRequest&#39; });\n  }).listen(8000);\n}\n</code></pre>\n"
+              "desc": "<p>Similar to the <code>cluster.on(&#39;message&#39;)</code> event, but specific to this worker.</p>\n<p>Within a worker, <code>process.on(&#39;message&#39;)</code> may also be used.</p>\n<p>See <a href=\"process.html#process_event_message\"><code>process</code> event: <code>&#39;message&#39;</code></a>.</p>\n<p>As an example, here is a cluster that keeps count of the number of requests\nin the master process using the message system:</p>\n<pre><code class=\"lang-js\">const cluster = require(&#39;cluster&#39;);\nconst http = require(&#39;http&#39;);\n\nif (cluster.isMaster) {\n\n  // Keep track of http requests\n  let numReqs = 0;\n  setInterval(() =&gt; {\n    console.log(`numReqs = ${numReqs}`);\n  }, 1000);\n\n  // Count requests\n  function messageHandler(msg) {\n    if (msg.cmd &amp;&amp; msg.cmd === &#39;notifyRequest&#39;) {\n      numReqs += 1;\n    }\n  }\n\n  // Start workers and listen for messages containing notifyRequest\n  const numCPUs = require(&#39;os&#39;).cpus().length;\n  for (let i = 0; i &lt; numCPUs; i++) {\n    cluster.fork();\n  }\n\n  for (const id in cluster.workers) {\n    cluster.workers[id].on(&#39;message&#39;, messageHandler);\n  }\n\n} else {\n\n  // Worker processes have a http server.\n  http.Server((req, res) =&gt; {\n    res.writeHead(200);\n    res.end(&#39;hello world\\n&#39;);\n\n    // notify master about the request\n    process.send({ cmd: &#39;notifyRequest&#39; });\n  }).listen(8000);\n}\n</code></pre>\n"
             },
             {
               "textRaw": "Event: 'online'",
@@ -524,38 +524,10 @@
             {
               "params": [
                 {
-                  "textRaw": "`settings` {Object} ",
-                  "options": [
-                    {
-                      "textRaw": "`exec` {string} file path to worker file.  (Default=`process.argv[1]`) ",
-                      "name": "exec",
-                      "default": "process.argv[1]",
-                      "type": "string",
-                      "desc": "file path to worker file."
-                    },
-                    {
-                      "textRaw": "`args` {Array} string arguments passed to worker. (Default=`process.argv.slice(2)`) ",
-                      "name": "args",
-                      "default": "process.argv.slice(2)",
-                      "type": "Array",
-                      "desc": "string arguments passed to worker."
-                    },
-                    {
-                      "textRaw": "`silent` {boolean} whether or not to send output to parent's stdio. (Default=`false`) ",
-                      "name": "silent",
-                      "default": "false",
-                      "type": "boolean",
-                      "desc": "whether or not to send output to parent's stdio."
-                    },
-                    {
-                      "textRaw": "`stdio` {Array} Configures the stdio of forked processes. When this option is provided, it overrides `silent`. ",
-                      "name": "stdio",
-                      "type": "Array",
-                      "desc": "Configures the stdio of forked processes. When this option is provided, it overrides `silent`."
-                    }
-                  ],
+                  "textRaw": "`settings` {Object} see [`cluster.settings`][] ",
                   "name": "settings",
                   "type": "Object",
+                  "desc": "see [`cluster.settings`][]",
                   "optional": true
                 }
               ]
@@ -569,7 +541,7 @@
               ]
             }
           ],
-          "desc": "<p><code>setupMaster</code> is used to change the default &#39;fork&#39; behavior. Once called,\nthe settings will be present in <code>cluster.settings</code>.</p>\n<p>Note that:</p>\n<ul>\n<li>any settings changes only affect future calls to <code>.fork()</code> and have no\neffect on workers that are already running</li>\n<li>The <em>only</em> attribute of a worker that cannot be set via <code>.setupMaster()</code> is\nthe <code>env</code> passed to <code>.fork()</code></li>\n<li>the defaults above apply to the first call only, the defaults for later\ncalls is the current value at the time of <code>cluster.setupMaster()</code> is called</li>\n</ul>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const cluster = require(&#39;cluster&#39;);\ncluster.setupMaster({\n  exec: &#39;worker.js&#39;,\n  args: [&#39;--use&#39;, &#39;https&#39;],\n  silent: true\n});\ncluster.fork(); // https worker\ncluster.setupMaster({\n  exec: &#39;worker.js&#39;,\n  args: [&#39;--use&#39;, &#39;http&#39;]\n});\ncluster.fork(); // http worker\n</code></pre>\n<p>This can only be called from the master process.</p>\n"
+          "desc": "<p><code>setupMaster</code> is used to change the default &#39;fork&#39; behavior. Once called,\nthe settings will be present in <code>cluster.settings</code>.</p>\n<p>Note that:</p>\n<ul>\n<li>Any settings changes only affect future calls to <code>.fork()</code> and have no\neffect on workers that are already running.</li>\n<li>The <em>only</em> attribute of a worker that cannot be set via <code>.setupMaster()</code> is\nthe <code>env</code> passed to <code>.fork()</code>.</li>\n<li>The defaults above apply to the first call only, the defaults for later\ncalls is the current value at the time of <code>cluster.setupMaster()</code> is called.</li>\n</ul>\n<p>Example:</p>\n<pre><code class=\"lang-js\">const cluster = require(&#39;cluster&#39;);\ncluster.setupMaster({\n  exec: &#39;worker.js&#39;,\n  args: [&#39;--use&#39;, &#39;https&#39;],\n  silent: true\n});\ncluster.fork(); // https worker\ncluster.setupMaster({\n  exec: &#39;worker.js&#39;,\n  args: [&#39;--use&#39;, &#39;http&#39;]\n});\ncluster.fork(); // http worker\n</code></pre>\n<p>This can only be called from the master process.</p>\n"
         }
       ],
       "properties": [
@@ -618,6 +590,11 @@
             ],
             "changes": [
               {
+                "version": "8.2.0",
+                "pr-url": "https://github.com/nodejs/node/pull/14140",
+                "description": "The `inspectPort` option is supported now."
+              },
+              {
                 "version": "v6.4.0",
                 "pr-url": "https://github.com/nodejs/node/pull/7838",
                 "description": "The `stdio` option is supported now."
@@ -626,32 +603,32 @@
           },
           "options": [
             {
-              "textRaw": "`execArgv` {Array} list of string arguments passed to the Node.js executable. (Default=`process.execArgv`) ",
+              "textRaw": "`execArgv` {Array} List of string arguments passed to the Node.js executable. (Default=`process.execArgv`) ",
               "name": "execArgv",
               "default": "process.execArgv",
               "type": "Array",
-              "desc": "list of string arguments passed to the Node.js executable."
+              "desc": "List of string arguments passed to the Node.js executable."
             },
             {
-              "textRaw": "`exec` {string} file path to worker file.  (Default=`process.argv[1]`) ",
+              "textRaw": "`exec` {string} File path to worker file.  (Default=`process.argv[1]`) ",
               "name": "exec",
               "default": "process.argv[1]",
               "type": "string",
-              "desc": "file path to worker file."
+              "desc": "File path to worker file."
             },
             {
-              "textRaw": "`args` {Array} string arguments passed to worker. (Default=`process.argv.slice(2)`) ",
+              "textRaw": "`args` {Array} String arguments passed to worker. (Default=`process.argv.slice(2)`) ",
               "name": "args",
               "default": "process.argv.slice(2)",
               "type": "Array",
-              "desc": "string arguments passed to worker."
+              "desc": "String arguments passed to worker."
             },
             {
-              "textRaw": "`silent` {boolean} whether or not to send output to parent's stdio. (Default=`false`) ",
+              "textRaw": "`silent` {boolean} Whether or not to send output to parent's stdio. (Default=`false`) ",
               "name": "silent",
               "default": "false",
               "type": "boolean",
-              "desc": "whether or not to send output to parent's stdio."
+              "desc": "Whether or not to send output to parent's stdio."
             },
             {
               "textRaw": "`stdio` {Array} Configures the stdio of forked processes. Because the cluster module relies on IPC to function, this configuration must contain an `'ipc'` entry. When this option is provided, it overrides `silent`. ",
@@ -670,6 +647,12 @@
               "name": "gid",
               "type": "number",
               "desc": "Sets the group identity of the process. (See setgid(2).)"
+            },
+            {
+              "textRaw": "`inspectPort` {number|function} Sets inspector port of worker. This can be a number, or a function that takes no arguments and returns a number. By default each worker gets its own port, incremented from the master's `process.debugPort`. ",
+              "name": "inspectPort",
+              "type": "number|function",
+              "desc": "Sets inspector port of worker. This can be a number, or a function that takes no arguments and returns a number. By default each worker gets its own port, incremented from the master's `process.debugPort`."
             }
           ],
           "desc": "<p>After calling <code>.setupMaster()</code> (or <code>.fork()</code>) this settings object will contain\nthe settings, including the default values.</p>\n<p>This object is not intended to be changed or set manually.</p>\n"

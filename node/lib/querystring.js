@@ -285,7 +285,6 @@ function parse(qs, sep, eq, options) {
   }
   const customDecode = (decode !== qsUnescape);
 
-  const keys = [];
   var lastPos = 0;
   var sepIdx = 0;
   var eqIdx = 0;
@@ -308,9 +307,7 @@ function parse(qs, sep, eq, options) {
           if (lastPos < end) {
             // Treat the substring as part of the key instead of the value
             key += qs.slice(lastPos, end);
-            if (keyEncoded)
-              key = decodeStr(key, decode);
-          } else {
+          } else if (key.length === 0) {
             // We saw an empty substring between separators
             if (--pairs === 0)
               return obj;
@@ -319,20 +316,17 @@ function parse(qs, sep, eq, options) {
             continue;
           }
         } else {
-          if (lastPos < end) {
+          if (lastPos < end)
             value += qs.slice(lastPos, end);
-            if (valEncoded)
-              value = decodeStr(value, decode);
-          }
-          if (keyEncoded)
-            key = decodeStr(key, decode);
         }
 
-        // Use a key array lookup instead of using hasOwnProperty(), which is
-        // slower
-        if (keys.indexOf(key) === -1) {
+        if (key.length > 0 && keyEncoded)
+          key = decodeStr(key, decode);
+        if (value.length > 0 && valEncoded)
+          value = decodeStr(value, decode);
+
+        if (obj[key] === undefined) {
           obj[key] = value;
-          keys[keys.length] = key;
         } else {
           const curValue = obj[key];
           // A simple Array-specific property check is enough here to
@@ -422,18 +416,16 @@ function parse(qs, sep, eq, options) {
       key += qs.slice(lastPos);
     else if (sepIdx < sepLen)
       value += qs.slice(lastPos);
-  } else if (eqIdx === 0) {
+  } else if (eqIdx === 0 && key.length === 0) {
     // We ended on an empty substring
     return obj;
   }
-  if (keyEncoded)
+  if (key.length > 0 && keyEncoded)
     key = decodeStr(key, decode);
-  if (valEncoded)
+  if (value.length > 0 && valEncoded)
     value = decodeStr(value, decode);
-  // Use a key array lookup instead of using hasOwnProperty(), which is slower
-  if (keys.indexOf(key) === -1) {
+  if (obj[key] === undefined) {
     obj[key] = value;
-    keys[keys.length] = key;
   } else {
     const curValue = obj[key];
     // A simple Array-specific property check is enough here to

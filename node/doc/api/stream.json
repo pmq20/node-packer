@@ -50,7 +50,7 @@
             {
               "textRaw": "Writable Streams",
               "name": "writable_streams",
-              "desc": "<p>Writable streams are an abstraction for a <em>destination</em> to which data is\nwritten.</p>\n<p>Examples of <a href=\"#stream_class_stream_writable\">Writable</a> streams include:</p>\n<ul>\n<li><a href=\"http.html#http_class_http_clientrequest\">HTTP requests, on the client</a></li>\n<li><a href=\"http.html#http_class_http_serverresponse\">HTTP responses, on the server</a></li>\n<li><a href=\"fs.html#fs_class_fs_writestream\">fs write streams</a></li>\n<li>[zlib streams][zlib]</li>\n<li><a href=\"crypto.html\">crypto streams</a></li>\n<li><a href=\"net.html#net_class_net_socket\">TCP sockets</a></li>\n<li><a href=\"child_process.html#child_process_child_stdin\">child process stdin</a></li>\n<li><a href=\"process.html#process_process_stdout\"><code>process.stdout</code></a>, <a href=\"process.html#process_process_stderr\"><code>process.stderr</code></a></li>\n</ul>\n<p><em>Note</em>: Some of these examples are actually <a href=\"#stream_class_stream_duplex\">Duplex</a> streams that implement\nthe <a href=\"#stream_class_stream_writable\">Writable</a> interface.</p>\n<p>All <a href=\"#stream_class_stream_writable\">Writable</a> streams implement the interface defined by the\n<code>stream.Writable</code> class.</p>\n<p>While specific instances of <a href=\"#stream_class_stream_writable\">Writable</a> streams may differ in various ways,\nall Writable streams follow the same fundamental usage pattern as illustrated\nin the example below:</p>\n<pre><code class=\"lang-js\">const myStream = getWritableStreamSomehow();\nmyStream.write(&#39;some data&#39;);\nmyStream.write(&#39;some more data&#39;);\nmyStream.end(&#39;done writing data&#39;);\n</code></pre>\n",
+              "desc": "<p>Writable streams are an abstraction for a <em>destination</em> to which data is\nwritten.</p>\n<p>Examples of <a href=\"#stream_class_stream_writable\">Writable</a> streams include:</p>\n<ul>\n<li><a href=\"http.html#http_class_http_clientrequest\">HTTP requests, on the client</a></li>\n<li><a href=\"http.html#http_class_http_serverresponse\">HTTP responses, on the server</a></li>\n<li><a href=\"fs.html#fs_class_fs_writestream\">fs write streams</a></li>\n<li><a href=\"zlib.html\">zlib streams</a></li>\n<li><a href=\"crypto.html\">crypto streams</a></li>\n<li><a href=\"net.html#net_class_net_socket\">TCP sockets</a></li>\n<li><a href=\"child_process.html#child_process_child_stdin\">child process stdin</a></li>\n<li><a href=\"process.html#process_process_stdout\"><code>process.stdout</code></a>, <a href=\"process.html#process_process_stderr\"><code>process.stderr</code></a></li>\n</ul>\n<p><em>Note</em>: Some of these examples are actually <a href=\"#stream_class_stream_duplex\">Duplex</a> streams that implement\nthe <a href=\"#stream_class_stream_writable\">Writable</a> interface.</p>\n<p>All <a href=\"#stream_class_stream_writable\">Writable</a> streams implement the interface defined by the\n<code>stream.Writable</code> class.</p>\n<p>While specific instances of <a href=\"#stream_class_stream_writable\">Writable</a> streams may differ in various ways,\nall Writable streams follow the same fundamental usage pattern as illustrated\nin the example below:</p>\n<pre><code class=\"lang-js\">const myStream = getWritableStreamSomehow();\nmyStream.write(&#39;some data&#39;);\nmyStream.write(&#39;some more data&#39;);\nmyStream.end(&#39;done writing data&#39;);\n</code></pre>\n",
               "classes": [
                 {
                   "textRaw": "Class: stream.Writable",
@@ -360,8 +360,20 @@
                         ],
                         "changes": []
                       },
-                      "desc": "<p>Destroy the stream, and emit the passed error. After this call, the\nwritible stream has ended. Implementors should not override this method,\nbut instead implement <a href=\"#stream_writable_destroy_err_callback\"><code>writable._destroy</code></a>.</p>\n",
                       "signatures": [
+                        {
+                          "return": {
+                            "textRaw": "Returns: `this` ",
+                            "name": "return",
+                            "desc": "`this`"
+                          },
+                          "params": [
+                            {
+                              "name": "error",
+                              "optional": true
+                            }
+                          ]
+                        },
                         {
                           "params": [
                             {
@@ -370,7 +382,8 @@
                             }
                           ]
                         }
-                      ]
+                      ],
+                      "desc": "<p>Destroy the stream, and emit the passed error. After this call, the\nwritable stream has ended. Implementors should not override this method,\nbut instead implement <a href=\"#stream_writable_destroy_err_callback\"><code>writable._destroy</code></a>.</p>\n"
                     }
                   ]
                 }
@@ -381,7 +394,7 @@
             {
               "textRaw": "Readable Streams",
               "name": "readable_streams",
-              "desc": "<p>Readable streams are an abstraction for a <em>source</em> from which data is\nconsumed.</p>\n<p>Examples of Readable streams include:</p>\n<ul>\n<li><a href=\"http.html#http_class_http_incomingmessage\">HTTP responses, on the client</a></li>\n<li><a href=\"http.html#http_class_http_incomingmessage\">HTTP requests, on the server</a></li>\n<li><a href=\"fs.html#fs_class_fs_readstream\">fs read streams</a></li>\n<li>[zlib streams][zlib]</li>\n<li><a href=\"crypto.html\">crypto streams</a></li>\n<li><a href=\"net.html#net_class_net_socket\">TCP sockets</a></li>\n<li><a href=\"child_process.html#child_process_child_stdout\">child process stdout and stderr</a></li>\n<li><a href=\"process.html#process_process_stdin\"><code>process.stdin</code></a></li>\n</ul>\n<p>All <a href=\"#stream_class_stream_readable\">Readable</a> streams implement the interface defined by the\n<code>stream.Readable</code> class.</p>\n",
+              "desc": "<p>Readable streams are an abstraction for a <em>source</em> from which data is\nconsumed.</p>\n<p>Examples of Readable streams include:</p>\n<ul>\n<li><a href=\"http.html#http_class_http_incomingmessage\">HTTP responses, on the client</a></li>\n<li><a href=\"http.html#http_class_http_incomingmessage\">HTTP requests, on the server</a></li>\n<li><a href=\"fs.html#fs_class_fs_readstream\">fs read streams</a></li>\n<li><a href=\"zlib.html\">zlib streams</a></li>\n<li><a href=\"crypto.html\">crypto streams</a></li>\n<li><a href=\"net.html#net_class_net_socket\">TCP sockets</a></li>\n<li><a href=\"child_process.html#child_process_child_stdout\">child process stdout and stderr</a></li>\n<li><a href=\"process.html#process_process_stdin\"><code>process.stdin</code></a></li>\n</ul>\n<p>All <a href=\"#stream_class_stream_readable\">Readable</a> streams implement the interface defined by the\n<code>stream.Readable</code> class.</p>\n",
               "modules": [
                 {
                   "textRaw": "Two Modes",
@@ -832,7 +845,7 @@
                       }
                     ]
                   },
-                  "desc": "<p>Duplex streams are streams that implement both the <a href=\"#stream_class_stream_readable\">Readable</a> and\n<a href=\"#stream_class_stream_writable\">Writable</a> interfaces.</p>\n<p>Examples of Duplex streams include:</p>\n<ul>\n<li><a href=\"net.html#net_class_net_socket\">TCP sockets</a></li>\n<li>[zlib streams][zlib]</li>\n<li><a href=\"crypto.html\">crypto streams</a></li>\n</ul>\n"
+                  "desc": "<p>Duplex streams are streams that implement both the <a href=\"#stream_class_stream_readable\">Readable</a> and\n<a href=\"#stream_class_stream_writable\">Writable</a> interfaces.</p>\n<p>Examples of Duplex streams include:</p>\n<ul>\n<li><a href=\"net.html#net_class_net_socket\">TCP sockets</a></li>\n<li><a href=\"zlib.html\">zlib streams</a></li>\n<li><a href=\"crypto.html\">crypto streams</a></li>\n</ul>\n"
                 },
                 {
                   "textRaw": "Class: stream.Transform",
@@ -844,7 +857,7 @@
                     ],
                     "changes": []
                   },
-                  "desc": "<p>Transform streams are <a href=\"#stream_class_stream_duplex\">Duplex</a> streams where the output is in some way\nrelated to the input. Like all <a href=\"#stream_class_stream_duplex\">Duplex</a> streams, Transform streams\nimplement both the <a href=\"#stream_class_stream_readable\">Readable</a> and <a href=\"#stream_class_stream_writable\">Writable</a> interfaces.</p>\n<p>Examples of Transform streams include:</p>\n<ul>\n<li>[zlib streams][zlib]</li>\n<li><a href=\"crypto.html\">crypto streams</a></li>\n</ul>\n",
+                  "desc": "<p>Transform streams are <a href=\"#stream_class_stream_duplex\">Duplex</a> streams where the output is in some way\nrelated to the input. Like all <a href=\"#stream_class_stream_duplex\">Duplex</a> streams, Transform streams\nimplement both the <a href=\"#stream_class_stream_readable\">Readable</a> and <a href=\"#stream_class_stream_writable\">Writable</a> interfaces.</p>\n<p>Examples of Transform streams include:</p>\n<ul>\n<li><a href=\"zlib.html\">zlib streams</a></li>\n<li><a href=\"crypto.html\">crypto streams</a></li>\n</ul>\n",
                   "methods": [
                     {
                       "textRaw": "transform.destroy([error])",
@@ -1307,6 +1320,15 @@
                   "textRaw": "new stream.Duplex(options)",
                   "type": "method",
                   "name": "Duplex",
+                  "meta": {
+                    "changes": [
+                      {
+                        "version": "v8.4.0",
+                        "pr-url": "https://github.com/nodejs/node/pull/14636",
+                        "description": "The `readableHighWaterMark` and `writableHighWaterMark` options are supported now."
+                      }
+                    ]
+                  },
                   "signatures": [
                     {
                       "params": [
@@ -1314,10 +1336,10 @@
                           "textRaw": "`options` {Object} Passed to both Writable and Readable constructors. Also has the following fields: ",
                           "options": [
                             {
-                              "textRaw": "`allowHalfOpen` {boolean} Defaults to `true`. If set to `false`, then the stream will automatically end the readable side when the writable side ends and vice versa. ",
+                              "textRaw": "`allowHalfOpen` {boolean} Defaults to `true`. If set to `false`, then the stream will automatically end the writable side when the readable side ends. ",
                               "name": "allowHalfOpen",
                               "type": "boolean",
-                              "desc": "Defaults to `true`. If set to `false`, then the stream will automatically end the readable side when the writable side ends and vice versa."
+                              "desc": "Defaults to `true`. If set to `false`, then the stream will automatically end the writable side when the readable side ends."
                             },
                             {
                               "textRaw": "`readableObjectMode` {boolean} Defaults to `false`. Sets `objectMode` for readable side of the stream. Has no effect if `objectMode` is `true`. ",
@@ -1330,6 +1352,18 @@
                               "name": "writableObjectMode",
                               "type": "boolean",
                               "desc": "Defaults to `false`. Sets `objectMode` for writable side of the stream. Has no effect if `objectMode` is `true`."
+                            },
+                            {
+                              "textRaw": "`readableHighWaterMark` {number} Sets `highWaterMark` for the readable side of the stream. Has no effect if `highWaterMark` is provided. ",
+                              "name": "readableHighWaterMark",
+                              "type": "number",
+                              "desc": "Sets `highWaterMark` for the readable side of the stream. Has no effect if `highWaterMark` is provided."
+                            },
+                            {
+                              "textRaw": "`writableHighWaterMark` {number} Sets `highWaterMark` for the writable side of the stream. Has no effect if `highWaterMark` is provided. ",
+                              "name": "writableHighWaterMark",
+                              "type": "number",
+                              "desc": "Sets `highWaterMark` for the writable side of the stream. Has no effect if `highWaterMark` is provided."
                             }
                           ],
                           "name": "options",
@@ -1371,7 +1405,7 @@
             {
               "textRaw": "Implementing a Transform Stream",
               "name": "implementing_a_transform_stream",
-              "desc": "<p>A <a href=\"#stream_class_stream_transform\">Transform</a> stream is a <a href=\"#stream_class_stream_duplex\">Duplex</a> stream where the output is computed\nin some way from the input. Examples include [zlib][] streams or <a href=\"crypto.html\">crypto</a>\nstreams that compress, encrypt, or decrypt data.</p>\n<p><em>Note</em>: There is no requirement that the output be the same size as the input,\nthe same number of chunks, or arrive at the same time. For example, a\nHash stream will only ever have a single chunk of output which is\nprovided when the input is ended. A <code>zlib</code> stream will produce output\nthat is either much smaller or much larger than its input.</p>\n<p>The <code>stream.Transform</code> class is extended to implement a <a href=\"#stream_class_stream_transform\">Transform</a> stream.</p>\n<p>The <code>stream.Transform</code> class prototypically inherits from <code>stream.Duplex</code> and\nimplements its own versions of the <code>writable._write()</code> and <code>readable._read()</code>\nmethods. Custom Transform implementations <em>must</em> implement the\n<a href=\"#stream_transform_transform_chunk_encoding_callback\"><code>transform._transform()</code></a> method and <em>may</em> also implement\nthe <a href=\"#stream_transform_flush_callback\"><code>transform._flush()</code></a> method.</p>\n<p><em>Note</em>: Care must be taken when using Transform streams in that data written\nto the stream can cause the Writable side of the stream to become paused if\nthe output on the Readable side is not consumed.</p>\n",
+              "desc": "<p>A <a href=\"#stream_class_stream_transform\">Transform</a> stream is a <a href=\"#stream_class_stream_duplex\">Duplex</a> stream where the output is computed\nin some way from the input. Examples include <a href=\"zlib.html\">zlib</a> streams or <a href=\"crypto.html\">crypto</a>\nstreams that compress, encrypt, or decrypt data.</p>\n<p><em>Note</em>: There is no requirement that the output be the same size as the input,\nthe same number of chunks, or arrive at the same time. For example, a\nHash stream will only ever have a single chunk of output which is\nprovided when the input is ended. A <code>zlib</code> stream will produce output\nthat is either much smaller or much larger than its input.</p>\n<p>The <code>stream.Transform</code> class is extended to implement a <a href=\"#stream_class_stream_transform\">Transform</a> stream.</p>\n<p>The <code>stream.Transform</code> class prototypically inherits from <code>stream.Duplex</code> and\nimplements its own versions of the <code>writable._write()</code> and <code>readable._read()</code>\nmethods. Custom Transform implementations <em>must</em> implement the\n<a href=\"#stream_transform_transform_chunk_encoding_callback\"><code>transform._transform()</code></a> method and <em>may</em> also implement\nthe <a href=\"#stream_transform_flush_callback\"><code>transform._flush()</code></a> method.</p>\n<p><em>Note</em>: Care must be taken when using Transform streams in that data written\nto the stream can cause the Writable side of the stream to become paused if\nthe output on the Readable side is not consumed.</p>\n",
               "methods": [
                 {
                   "textRaw": "new stream.Transform([options])",
@@ -1480,7 +1514,7 @@
                       ]
                     }
                   ],
-                  "desc": "<p><em>Note</em>: This function MUST NOT be called by application code directly. It\nshould be implemented by child classes, and called only by the internal Readable\nclass methods only.</p>\n<p>All Transform stream implementations must provide a <code>_transform()</code>\nmethod to accept input and produce output. The <code>transform._transform()</code>\nimplementation handles the bytes being written, computes an output, then passes\nthat output off to the readable portion using the <code>readable.push()</code> method.</p>\n<p>The <code>transform.push()</code> method may be called zero or more times to generate\noutput from a single input chunk, depending on how much is to be output\nas a result of the chunk.</p>\n<p>It is possible that no output is generated from any given chunk of input data.</p>\n<p>The <code>callback</code> function must be called only when the current chunk is completely\nconsumed. The first argument passed to the <code>callback</code> must be an <code>Error</code> object\nif an error occurred while processing the input or <code>null</code> otherwise. If a second\nargument is passed to the <code>callback</code>, it will be forwarded on to the\n<code>readable.push()</code> method. In other words the following are equivalent:</p>\n<pre><code class=\"lang-js\">transform.prototype._transform = function(data, encoding, callback) {\n  this.push(data);\n  callback();\n};\n\ntransform.prototype._transform = function(data, encoding, callback) {\n  callback(null, data);\n};\n</code></pre>\n<p>The <code>transform._transform()</code> method is prefixed with an underscore because it\nis internal to the class that defines it, and should never be called directly by\nuser programs.</p>\n"
+                  "desc": "<p><em>Note</em>: This function MUST NOT be called by application code directly. It\nshould be implemented by child classes, and called only by the internal Readable\nclass methods only.</p>\n<p>All Transform stream implementations must provide a <code>_transform()</code>\nmethod to accept input and produce output. The <code>transform._transform()</code>\nimplementation handles the bytes being written, computes an output, then passes\nthat output off to the readable portion using the <code>readable.push()</code> method.</p>\n<p>The <code>transform.push()</code> method may be called zero or more times to generate\noutput from a single input chunk, depending on how much is to be output\nas a result of the chunk.</p>\n<p>It is possible that no output is generated from any given chunk of input data.</p>\n<p>The <code>callback</code> function must be called only when the current chunk is completely\nconsumed. The first argument passed to the <code>callback</code> must be an <code>Error</code> object\nif an error occurred while processing the input or <code>null</code> otherwise. If a second\nargument is passed to the <code>callback</code>, it will be forwarded on to the\n<code>readable.push()</code> method. In other words the following are equivalent:</p>\n<pre><code class=\"lang-js\">transform.prototype._transform = function(data, encoding, callback) {\n  this.push(data);\n  callback();\n};\n\ntransform.prototype._transform = function(data, encoding, callback) {\n  callback(null, data);\n};\n</code></pre>\n<p>The <code>transform._transform()</code> method is prefixed with an underscore because it\nis internal to the class that defines it, and should never be called directly by\nuser programs.</p>\n<p><code>transform._transform()</code> is never called in  parallel; streams implement a\nqueue mechanism, and to receive the next chunk, <code>callback</code> must be\ncalled, either synchronously or asynchronously.</p>\n"
                 }
               ],
               "modules": [

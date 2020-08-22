@@ -542,8 +542,13 @@
                 "added": [
                   "v0.3.2"
                 ],
+                "deprecated": [
+                  "v0.9.7"
+                ],
                 "changes": []
               },
+              "stability": 0,
+              "stabilityText": "Deprecated: Use [`server.getConnections()`][] instead.",
               "desc": "<p>Returns the current number of concurrent connections on the server.</p>\n"
             }
           ]
@@ -685,6 +690,23 @@
               ]
             },
             {
+              "textRaw": "tlsSocket.disableRenegotiation()",
+              "type": "method",
+              "name": "disableRenegotiation",
+              "meta": {
+                "added": [
+                  "v8.4.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Disables TLS renegotiation for this <code>TLSSocket</code> instance. Once called, attempts\nto renegotiate will trigger an <code>&#39;error&#39;</code> event on the <code>TLSSocket</code>.</p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
               "textRaw": "tlsSocket.getCipher()",
               "type": "method",
               "name": "getCipher",
@@ -719,7 +741,7 @@
               ]
             },
             {
-              "textRaw": "tlsSocket.getPeerCertificate([ detailed ])",
+              "textRaw": "tlsSocket.getPeerCertificate([detailed])",
               "type": "method",
               "name": "getPeerCertificate",
               "meta": {

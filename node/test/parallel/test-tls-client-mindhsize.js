@@ -1,14 +1,12 @@
 'use strict';
 const common = require('../common');
-const assert = require('assert');
-
-if (!common.hasCrypto) {
+if (!common.hasCrypto)
   common.skip('missing crypto');
-  process.exit();
-}
-const tls = require('tls');
 
+const assert = require('assert');
+const tls = require('tls');
 const fs = require('fs');
+
 const key = fs.readFileSync(`${common.fixturesDir}/keys/agent2-key.pem`);
 const cert = fs.readFileSync(`${common.fixturesDir}/keys/agent2-cert.pem`);
 
@@ -78,13 +76,15 @@ testDHE1024();
 assert.throws(() => test(512, true, common.mustNotCall()),
               /DH parameter is less than 1024 bits/);
 
+let errMessage = /minDHSize is not a positive number/;
 [0, -1, -Infinity, NaN].forEach((minDHSize) => {
   assert.throws(() => tls.connect({ minDHSize }),
-                /minDHSize is not a positive number/);
+                errMessage);
 });
 
+errMessage = /minDHSize is not a number/;
 [true, false, null, undefined, {}, [], '', '1'].forEach((minDHSize) => {
-  assert.throws(() => tls.connect({ minDHSize }), /minDHSize is not a number/);
+  assert.throws(() => tls.connect({ minDHSize }), errMessage);
 });
 
 process.on('exit', function() {

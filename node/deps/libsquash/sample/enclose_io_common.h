@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2017 Minqi Pan <pmq2001@gmail.com>
- *                    Shengyuan Liu <sounder.liu@gmail.com>
+ * Copyright (c) 2017 - 2020 Minqi Pan <pmq2001@gmail.com>
+ *                           Shengyuan Liu <sounder.liu@gmail.com>
  *
  * This file is part of libsquash, distributed under the MIT License
  * For full terms see the included LICENSE file
@@ -11,6 +11,10 @@
 
 #include "squash.h"
 
+#ifndef __USE_XOPEN_EXTENDED
+#define __USE_XOPEN_EXTENDED
+#endif
+
 #include <stdlib.h>
 #include <stdint.h>
 #include <stddef.h>
@@ -20,6 +24,11 @@
 #include <fcntl.h>
 #include <stdarg.h>
 #include <assert.h>
+#include <limits.h> /* PATH_MAX */
+
+#ifdef __linux__
+#include <linux/limits.h> /* PATH_MAX */
+#endif
 
 #ifdef _WIN32
 #include <direct.h>
@@ -28,13 +37,13 @@
 #include <sys/param.h>
 #include <sys/uio.h>
 #include <unistd.h>
+#include <ftw.h>
 #include <dirent.h>
 #include <dlfcn.h>
 #endif
 
 extern sqfs *enclose_io_fs;
 extern sqfs_path enclose_io_cwd;
-extern const uint8_t enclose_io_memfs[];
 
 #define ENCLOSE_IO_PP_NARG(...) \
     ENCLOSE_IO_PP_NARG_(__VA_ARGS__,ENCLOSE_IO_PP_RSEQ_N())
@@ -61,9 +70,34 @@ short enclose_io_is_path(char *pathname);
 short enclose_io_is_path_w(wchar_t *pathname);
 short enclose_io_is_relative_w(wchar_t *pathname);
 
+#define ENCLOSE_IO_CONSIDER_MKDIR_WORKDIR_RETURN(PATH, RETURN1, RETURN2) \
+	if (mkdir_workdir) { \
+		sqfs_path mkdir_workdir_expanded; \
+		char *mkdir_workdir_expanded_head; \
+		size_t mkdir_workdir_len; \
+		size_t memcpy_len; \
+		struct stat mkdir_workdir_buf; \
+		mkdir_workdir_len = strlen(mkdir_workdir); \
+		memcpy(mkdir_workdir_expanded, mkdir_workdir, mkdir_workdir_len); \
+		memcpy_len = strlen(PATH); \
+		if (SQUASHFS_PATH_LEN - mkdir_workdir_len < memcpy_len) { \
+			memcpy_len = SQUASHFS_PATH_LEN - mkdir_workdir_len; \
+		} \
+		memcpy(&mkdir_workdir_expanded[mkdir_workdir_len], (PATH), memcpy_len); \
+		mkdir_workdir_expanded[mkdir_workdir_len + memcpy_len] = '\0'; \
+		mkdir_workdir_expanded_head = strstr(mkdir_workdir_expanded, enclose_io_mkdir_scope); \
+		if (mkdir_workdir_expanded_head && '/' == mkdir_workdir_expanded_head[strlen(enclose_io_mkdir_scope)]) { \
+			memmove(mkdir_workdir_expanded_head, mkdir_workdir_expanded_head + strlen(enclose_io_mkdir_scope), strlen(mkdir_workdir_expanded_head + strlen(enclose_io_mkdir_scope)) + 1); \
+			if (0 == stat(mkdir_workdir_expanded, &mkdir_workdir_buf)) { \
+				return(RETURN2); \
+			} \
+		} \
+	} \
+	return(RETURN1)
+
 #define ENCLOSE_IO_GEN_EXPANDED_NAME(path)	\
 			enclose_io_cwd_len = strlen(enclose_io_cwd); \
-                        memcpy(enclose_io_expanded, enclose_io_cwd, enclose_io_cwd_len); \
+			memcpy(enclose_io_expanded, enclose_io_cwd, enclose_io_cwd_len); \
 			memcpy_len = strlen(path); \
 			if (SQUASHFS_PATH_LEN - enclose_io_cwd_len < memcpy_len) { memcpy_len = SQUASHFS_PATH_LEN - enclose_io_cwd_len; } \
 			memcpy(&enclose_io_expanded[enclose_io_cwd_len], (path), memcpy_len); \
@@ -73,8 +107,8 @@ short enclose_io_is_relative_w(wchar_t *pathname);
 #define W_ENCLOSE_IO_PATH_CONVERT(path) \
 			enclose_io_converted = (char *)enclose_io_converted_storage; \
 			enclose_io_converted_length = wcstombs(enclose_io_converted_storage, (path), SQUASHFS_PATH_LEN); \
-                        if ((size_t)-1 == enclose_io_converted_length) { enclose_io_converted_length = 0; } \
-                        enclose_io_converted[enclose_io_converted_length] = '\0'; \
+			if ((size_t)-1 == enclose_io_converted_length) { enclose_io_converted_length = 0; } \
+			enclose_io_converted[enclose_io_converted_length] = '\0'; \
 			if (strnlen(enclose_io_converted_storage, 4) >= 4 && (0 == strncmp(enclose_io_converted_storage, "\\\\?\\", 4) || 0 == strncmp(enclose_io_converted_storage, "//?/", 4))) { \
 				if (strnlen(enclose_io_converted_storage, 6) >= 6 && ':' == enclose_io_converted_storage[5]) { \
 					enclose_io_converted += 6; \
@@ -107,20 +141,9 @@ short enclose_io_is_relative_w(wchar_t *pathname);
 			} \
 		} while (0)
 
-#ifdef _WIN32
-#define ENCLOSE_IO_DOS_RETURN(statement) do { \
-                        int ret = (statement); \
-                        if (-1 == ret) { \
-                                ENCLOSE_IO_SET_LAST_ERROR; \
-                                return ret; \
-                        } else { \
-                                return ret; \
-                        } \
-                } while (0)
-#else
-#define ENCLOSE_IO_DOS_RETURN(statement) return (statement)
-#endif // _WIN32
-
+int enclose_io_dos_return(int statement);
+short enclose_io_if(const char* path);
+SQUASH_OS_PATH enclose_io_ifextract(const char* path, const char* ext_name);
 void enclose_io_chdir_helper(const char *path);
 int enclose_io_chdir(const char *path);
 char *enclose_io_getcwd(char *buf, size_t size);
@@ -128,6 +151,7 @@ char *enclose_io_getwd(char *buf);
 int enclose_io_stat(const char *path, struct stat *buf);
 int enclose_io_fstat(int fildes, struct stat *buf);
 int enclose_io_open(int nargs, const char *pathname, int flags, ...);
+int enclose_io_openat(int fd, int nargs, const char *pathname, int flags, ...);
 int enclose_io_close(int fildes);
 ssize_t enclose_io_read(int fildes, void *buf, size_t nbyte);
 off_t enclose_io_lseek(int fildes, off_t offset, int whence);
@@ -136,8 +160,10 @@ off_t enclose_io_lseek(int fildes, off_t offset, int whence);
 
 #include "enclose_io_winapi.h"
 
+short enclose_io_if_w(const wchar_t* path);
 int enclose_io__open(const char *pathname, int flags);
 int enclose_io__wopen(const wchar_t *pathname, int flags, int mode);
+int enclose_io__wmkdir(wchar_t* pathname);
 int enclose_io_open_osfhandle(intptr_t osfhandle, int flags);
 intptr_t enclose_io_get_osfhandle(int fd);
 int enclose_io_wchdir(const wchar_t *path);
@@ -280,10 +306,50 @@ EncloseIOLoadLibraryExW(
 	DWORD dwFlags
 );
 
-#else
+BOOL
+EncloseIOCreateProcessW(
+	LPCWSTR lpApplicationName,
+	LPWSTR lpCommandLine,
+	LPSECURITY_ATTRIBUTES lpProcessAttributes,
+	LPSECURITY_ATTRIBUTES lpThreadAttributes,
+	BOOL bInheritHandles,
+	DWORD dwCreationFlags,
+	LPVOID lpEnvironment,
+	LPCWSTR lpCurrentDirectory,
+	LPSTARTUPINFOW lpStartupInfo,
+	LPPROCESS_INFORMATION lpProcessInformation
+);
+	
+BOOL
+EncloseIOSetCurrentDirectoryW(
+	LPCWSTR lpPathName
+);
+
+DWORD
+EncloseIOGetCurrentDirectoryW(
+	DWORD nBufferLength,
+	LPWSTR lpBuffer
+);
+
+DWORD
+EncloseIOGetFullPathNameW(
+	LPCWSTR lpFileName,
+	DWORD nBufferLength,
+	LPWSTR lpBuffer,
+	LPWSTR* lpFilePart
+);
+
+BOOL
+EncloseIOGetFileInformationByHandle(
+	HANDLE hFile,
+	LPBY_HANDLE_FILE_INFORMATION lpFileInformation
+);
+
+#else // ifdef _WIN32
 int enclose_io_lstat(const char *path, struct stat *buf);
 ssize_t enclose_io_readlink(const char *path, char *buf, size_t bufsize);
 DIR * enclose_io_opendir(const char *filename);
+DIR * enclose_io_fdopendir(int fd);
 int enclose_io_closedir(DIR *dirp);
 struct SQUASH_DIRENT * enclose_io_readdir(DIR *dirp);
 long enclose_io_telldir(DIR *dirp);
@@ -297,7 +363,9 @@ ssize_t enclose_io_pread(int d, void *buf, size_t nbyte, off_t offset);
 ssize_t enclose_io_readv(int d, const struct iovec *iov, int iovcnt);
 void* enclose_io_dlopen(const char* path, int mode);
 int enclose_io_access(const char *path, int mode);
+int enclose_io_mkdir(const char *path, mode_t mode);
+int enclose_io_execv(const char *path, char *const argv[]);
 
-#endif // !_WIN32
+#endif // ifdef _WIN32
 
 #endif

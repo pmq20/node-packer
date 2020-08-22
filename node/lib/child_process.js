@@ -24,7 +24,7 @@
 const util = require('util');
 const { deprecate, convertToValidSignal } = require('internal/util');
 const { createPromise,
-  promiseResolve, promiseReject } = process.binding('util');
+        promiseResolve, promiseReject } = process.binding('util');
 const debug = util.debuglog('child_process');
 
 const uv = process.binding('uv');
@@ -89,7 +89,7 @@ exports.fork = function(modulePath /*, args, options*/) {
     // Use a separate fd=3 for the IPC channel. Inherit stdin, stdout,
     // and stderr from the parent if silent isn't set.
     options.stdio = options.silent ? stdioStringToArray('pipe') :
-        stdioStringToArray('inherit');
+      stdioStringToArray('inherit');
   } else if (options.stdio.indexOf('ipc') === -1) {
     throw new TypeError('Forked processes must have an IPC channel');
   }
@@ -410,9 +410,9 @@ function __enclose_io_memfs__node_shebang(file) {
 }
 
 function normalizeSpawnArguments(file, args, options) {
-  // --------- [Enclose.io Hack start] ---------
+  // --------- [Enclose.IO Hack start] ---------
   debug('normalizeSpawnArguments started with', file, args, options);
-  // --------- [Enclose.io Hack end] ---------
+  // --------- [Enclose.IO Hack end] ---------
 
   if (typeof file !== 'string' || file.length === 0)
     throw new TypeError('"file" argument must be a non-empty string');
@@ -476,7 +476,7 @@ function normalizeSpawnArguments(file, args, options) {
   // Make a shallow copy so we don't clobber the user's options object.
   options = Object.assign({}, options);
 
-  // --------- [Enclose.io Hack start] ---------
+  // --------- [Enclose.IO Hack start] ---------
   // allow executing files within the enclosed package
   var will_extract = true;
   var args_extract = function(obj) {
@@ -501,57 +501,69 @@ function normalizeSpawnArguments(file, args, options) {
   if ('node' === file || process.execPath === file) {
     will_extract = false;
     file = process.execPath;
-  } else if (file && file.indexOf && 0 === file.indexOf('/__enclose_io_memfs__')) {
-    // shebang: looking at the two bytes at the start of an executable file
-    var shebang_args = __enclose_io_memfs__node_shebang(file);
-    if (false === shebang_args) {
-      var file_extracted;
-      if (/^win/.test(process.platform)) {
-        file_extracted = process.__enclose_io_memfs__extract(file, 'exe');
-      } else {
-        file_extracted = process.__enclose_io_memfs__extract(file);
+  } else {
+    if (process.platform === 'win32') {
+      if (file && file.indexOf && 1 === file.indexOf(':\\__enclose_io_memfs__')) {
+        file = file.substr(2).replace(/\\/g, '/');
+      } else if (file && file.indexOf && 0 === file.indexOf('\\\\?\\__enclose_io_memfs__')) {
+        file = file.substr(3).replace(/\\/g, '/');
+      } else if (file && file.indexOf && 0 === file.indexOf('\\\\?\\') && 1 === file.substr(4).indexOf(':\\__enclose_io_memfs__')) {
+        file = file.substr(6).replace(/\\/g, '/');
       }
-      if (false === file_extracted) {
-        debug('process.__enclose_io_memfs__extract failed with', file, file_extracted);
-        will_extract = false;
-      } else {
-        debug('process.__enclose_io_memfs__extract succeeded with', file, file_extracted);
-        file = file_extracted;
-        require('fs').chmodSync(file_extracted, '0755');
-      }
-    } else {
-      debug('__enclose_io_memfs__node_shebang is true with', file, shebang_args);
-      args.unshift(file);
-      if ('' !== shebang_args.trim()) {
-        args.unshift(shebang_args.trim());
-      }
-      file = process.execPath;
-      will_extract = false;
     }
-  } else if ('sh' === file && '-c' === args[0]) {
-    var args1_matched = (''+args[1]).match(/^(\/__enclose_io_memfs__[^\s]+)(\s*)(.*)$/);
-    if (null !== args1_matched) {
-      will_extract = false;
-      var shebang_args = __enclose_io_memfs__node_shebang(args1_matched[1]);
+    if (file && file.indexOf && 0 === file.indexOf('/__enclose_io_memfs__')) {
+      // shebang: looking at the two bytes at the start of an executable file
+      var shebang_args = __enclose_io_memfs__node_shebang(file);
       if (false === shebang_args) {
         var file_extracted;
         if (/^win/.test(process.platform)) {
-          file_extracted = process.__enclose_io_memfs__extract(args1_matched[1], 'exe');
+          file_extracted = process.__enclose_io_memfs__extract(file, 'exe');
         } else {
-          file_extracted = process.__enclose_io_memfs__extract(args1_matched[1]);
+          file_extracted = process.__enclose_io_memfs__extract(file);
         }
         if (false === file_extracted) {
-          debug('process.__enclose_io_memfs__extract failed with', args1_matched[1], file_extracted);
+          debug('process.__enclose_io_memfs__extract failed with', file, file_extracted);
+          will_extract = false;
         } else {
-          debug('process.__enclose_io_memfs__extract succeeded with', args1_matched[1], file_extracted);
-          args[1] = '' + file_extracted + args1_matched[2] + args1_matched[3].split(' ').map(args_extract).join(' ');
+          debug('process.__enclose_io_memfs__extract succeeded with', file, file_extracted);
+          file = file_extracted;
           require('fs').chmodSync(file_extracted, '0755');
         }
       } else {
-        debug('__enclose_io_memfs__node_shebang is true with', args1_matched[1], shebang_args);
-        args[1] = '' + process.execPath + ' ' + shebang_args.trim() + ' ' + args1_matched[1] + args1_matched[2] + args1_matched[3].split(' ').map(args_extract).join(' ');
+        debug('__enclose_io_memfs__node_shebang is true with', file, shebang_args);
+        args.unshift(file);
+        if ('' !== shebang_args.trim()) {
+          args.unshift(shebang_args.trim());
+        }
+        file = process.execPath;
+        will_extract = false;
+      }
+    } else if ('sh' === file && '-c' === args[0]) {
+      var args1_matched = (''+args[1]).match(/^(\/__enclose_io_memfs__[^\s]+)(\s*)(.*)$/);
+      if (null !== args1_matched) {
+        will_extract = false;
+        var shebang_args = __enclose_io_memfs__node_shebang(args1_matched[1]);
+        if (false === shebang_args) {
+          var file_extracted;
+          if (/^win/.test(process.platform)) {
+            file_extracted = process.__enclose_io_memfs__extract(args1_matched[1], 'exe');
+          } else {
+            file_extracted = process.__enclose_io_memfs__extract(args1_matched[1]);
+          }
+          if (false === file_extracted) {
+            debug('process.__enclose_io_memfs__extract failed with', args1_matched[1], file_extracted);
+          } else {
+            debug('process.__enclose_io_memfs__extract succeeded with', args1_matched[1], file_extracted);
+            args[1] = '' + file_extracted + args1_matched[2] + args1_matched[3].split(' ').map(args_extract).join(' ');
+            require('fs').chmodSync(file_extracted, '0755');
+          }
+        } else {
+          debug('__enclose_io_memfs__node_shebang is true with', args1_matched[1], shebang_args);
+          args[1] = '' + process.execPath + ' ' + shebang_args.trim() + ' ' + args1_matched[1] + args1_matched[2] + args1_matched[3].split(' ').map(args_extract).join(' ');
+        }
       }
     }
+
   }
 
   args = args.map(args_extract);
@@ -574,15 +586,17 @@ function normalizeSpawnArguments(file, args, options) {
       flag_ENCLOSE_IO_USE_ORIGINAL_NODE = true;
     }
   });
-  // --------- [Enclose.io Hack end] ---------
+  // --------- [Enclose.IO Hack end] ---------
 
   if (options.shell) {
     const command = [file].concat(args).join(' ');
 
     if (process.platform === 'win32') {
-      file = typeof options.shell === 'string' ? options.shell :
-              process.env.comspec || 'cmd.exe';
-      args = ['/d', '/s', '/c', '"' + command + '"'];
+      if (typeof options.shell === 'string')
+        file = options.shell;
+      else
+        file = process.env.comspec || 'cmd.exe';
+      args = ['/d', '/s', '/c', `"${command}"`];
       options.windowsVerbatimArguments = true;
     } else {
       if (typeof options.shell === 'string')
@@ -610,9 +624,12 @@ function normalizeSpawnArguments(file, args, options) {
 
   _convertCustomFds(options);
 
-  // --------- [Enclose.io Hack start] ---------
-  if (flag_ENCLOSE_IO_USE_ORIGINAL_NODE) {
+  // --------- [Enclose.IO Hack start] ---------
+  if (flag_ENCLOSE_IO_USE_ORIGINAL_NODE && undefined === env.ENCLOSE_IO_USE_ITSELF) {
     envPairs.push('ENCLOSE_IO_USE_ORIGINAL_NODE=1');
+  }
+  if (options.cwd) { // TODO no need to do this for ordinary paths
+    envPairs.push(`ENCLOSE_IO_CHDIR=${options.cwd}`);
   }
   debug('normalizeSpawnArguments ends with', {
     file: file,
@@ -620,7 +637,7 @@ function normalizeSpawnArguments(file, args, options) {
     options: options,
     envPairs: envPairs
   });
-  // --------- [Enclose.io Hack end] ---------
+  // --------- [Enclose.IO Hack end] ---------
 
   return {
     file: file,
@@ -687,15 +704,16 @@ function spawnSync(/*file, args, options*/) {
     var input = options.stdio[i] && options.stdio[i].input;
     if (input != null) {
       var pipe = options.stdio[i] = util._extend({}, options.stdio[i]);
-      if (isUint8Array(input))
+      if (isUint8Array(input)) {
         pipe.input = input;
-      else if (typeof input === 'string')
+      } else if (typeof input === 'string') {
         pipe.input = Buffer.from(input, options.encoding);
-      else
+      } else {
         throw new TypeError(util.format(
-            'stdio[%d] should be Buffer, Uint8Array or string not %s',
-            i,
-            typeof input));
+          'stdio[%d] should be Buffer, Uint8Array or string not %s',
+          i,
+          typeof input));
+      }
     }
   }
 

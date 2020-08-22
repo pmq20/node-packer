@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2017 Minqi Pan <pmq2001@gmail.com>
- *                    Shengyuan Liu <sounder.liu@gmail.com>
+ * Copyright (c) 2017 - 2020 Minqi Pan <pmq2001@gmail.com>
+ *                           Shengyuan Liu <sounder.liu@gmail.com>
  *
  * This file is part of libsquash, distributed under the MIT License
  * For full terms see the included LICENSE file
@@ -10,6 +10,9 @@
 
 #ifdef _WIN32
 
+extern char *mkdir_workdir;
+extern char *enclose_io_mkdir_scope;
+
 int enclose_io__open(const char *pathname, int flags)
 {
 	if (enclose_io_cwd[0] && '/' != *pathname) {
@@ -17,9 +20,17 @@ int enclose_io__open(const char *pathname, int flags)
 		size_t enclose_io_cwd_len;
 		size_t memcpy_len;
 		ENCLOSE_IO_GEN_EXPANDED_NAME(pathname);
-		ENCLOSE_IO_DOS_RETURN(squash_open(enclose_io_fs, enclose_io_expanded));
+		ENCLOSE_IO_CONSIDER_MKDIR_WORKDIR_RETURN(
+			enclose_io_expanded,
+			enclose_io_dos_return(squash_open(enclose_io_fs, enclose_io_expanded)),
+			_open(mkdir_workdir_expanded, flags)
+		);
 	} else if (enclose_io_is_path(pathname)) {
-		ENCLOSE_IO_DOS_RETURN(squash_open(enclose_io_fs, pathname));
+		ENCLOSE_IO_CONSIDER_MKDIR_WORKDIR_RETURN(
+			pathname,
+			enclose_io_dos_return(squash_open(enclose_io_fs, pathname)),
+			_open(mkdir_workdir_expanded, flags)
+		);
 	} else {
                 return _open(pathname, flags);
 	}
@@ -38,7 +49,11 @@ int enclose_io__wopen(const wchar_t *pathname, int flags, int mode)
 
 		W_ENCLOSE_IO_PATH_CONVERT(pathname);
 		ENCLOSE_IO_GEN_EXPANDED_NAME(enclose_io_converted);
-		ENCLOSE_IO_DOS_RETURN(squash_open(enclose_io_fs, enclose_io_expanded));
+		ENCLOSE_IO_CONSIDER_MKDIR_WORKDIR_RETURN(
+			enclose_io_expanded,
+			enclose_io_dos_return(squash_open(enclose_io_fs, enclose_io_expanded)),
+			_open(mkdir_workdir_expanded, flags, mode)
+		);
 	} else if (enclose_io_is_path_w(pathname)) {
 		sqfs_path enclose_io_converted_storage;
 		char *enclose_io_converted;
@@ -46,7 +61,11 @@ int enclose_io__wopen(const wchar_t *pathname, int flags, int mode)
 		size_t enclose_io_converted_length;
 
 		W_ENCLOSE_IO_PATH_CONVERT(pathname);
-		ENCLOSE_IO_DOS_RETURN(squash_open(enclose_io_fs, enclose_io_converted));
+		ENCLOSE_IO_CONSIDER_MKDIR_WORKDIR_RETURN(
+			enclose_io_converted,
+			enclose_io_dos_return(squash_open(enclose_io_fs, enclose_io_converted)),
+			_open(mkdir_workdir_expanded, flags, mode)
+		);
 	} else {
 		return _wopen(pathname, flags, mode);
 	}
@@ -65,7 +84,7 @@ int enclose_io_open_osfhandle(intptr_t osfhandle, int flags)
 intptr_t enclose_io_get_osfhandle(int fd)
 {
 	if (SQUASH_VALID_VFD(fd)) {
-                assert(!(S_ISDIR(squash_global_fdtable.fds[fd]->st.st_mode)));
+		assert(!(S_ISDIR(squash_global_fdtable.fds[fd]->st.st_mode)));
 		return (intptr_t)(squash_global_fdtable.fds[fd]->payload);
 	}
 	else {
@@ -80,23 +99,55 @@ int enclose_io_wchdir(const wchar_t *path)
 		char *enclose_io_converted;
 		char *enclose_io_i;
 		size_t enclose_io_converted_length;
-                struct stat st;
-                int ret;
+		struct stat st;
+		int ret;
 
 		W_ENCLOSE_IO_PATH_CONVERT(path);
-                ret = squash_stat(enclose_io_fs, enclose_io_converted, &st);
-                if (-1 == ret) {
-        		ENCLOSE_IO_SET_LAST_ERROR;
-                        return -1;
-                }
-                if (S_ISDIR(st.st_mode)) {
-                        enclose_io_chdir_helper(enclose_io_converted);
-                        return 0;
-                } else {
-                        errno = ENOENT;
-        		ENCLOSE_IO_SET_LAST_ERROR;
-                        return -1;
-                }
+
+		if (mkdir_workdir) {
+			sqfs_path mkdir_workdir_expanded;
+			char *mkdir_workdir_expanded_head;
+			size_t mkdir_workdir_len;
+			size_t memcpy_len;
+			struct stat mkdir_workdir_buf;
+			mkdir_workdir_len = strlen(mkdir_workdir);
+			memcpy(mkdir_workdir_expanded, mkdir_workdir, mkdir_workdir_len);
+			memcpy_len = strlen(enclose_io_converted);
+			if (SQUASHFS_PATH_LEN - mkdir_workdir_len < memcpy_len) {
+				memcpy_len = SQUASHFS_PATH_LEN - mkdir_workdir_len;
+			}
+			memcpy(&mkdir_workdir_expanded[mkdir_workdir_len], (enclose_io_converted), memcpy_len);
+			mkdir_workdir_expanded[mkdir_workdir_len + memcpy_len] = '\0';
+			mkdir_workdir_expanded_head = strstr(mkdir_workdir_expanded, enclose_io_mkdir_scope);
+			if (mkdir_workdir_expanded_head && '/' == mkdir_workdir_expanded_head[strlen(enclose_io_mkdir_scope)]) {
+				memmove(
+					mkdir_workdir_expanded_head,
+					mkdir_workdir_expanded_head + strlen(enclose_io_mkdir_scope),
+					strlen(mkdir_workdir_expanded_head + strlen(enclose_io_mkdir_scope)) + 1
+				);
+				if (0 == stat(mkdir_workdir_expanded, &mkdir_workdir_buf)) {
+					int ret = _chdir(mkdir_workdir_expanded);
+					if (0 == ret) {
+						enclose_io_chdir_helper(enclose_io_converted);
+					}
+					return ret;
+				}
+			}
+		}
+
+		ret = squash_stat(enclose_io_fs, enclose_io_converted, &st);
+		if (-1 == ret) {
+			ENCLOSE_IO_SET_LAST_ERROR;
+			return -1;
+		}
+		if (S_ISDIR(st.st_mode)) {
+			enclose_io_chdir_helper(enclose_io_converted);
+			return 0;
+		} else {
+			errno = ENOENT;
+			ENCLOSE_IO_SET_LAST_ERROR;
+			return -1;
+		}
 	} else {
 		int ret = _wchdir(path);
 		if (0 == ret) {
@@ -167,29 +218,28 @@ int enclose_io_fstati64(int fildes, struct _stati64 *buf)
 __int64 enclose_io_lseeki64(int fildes, __int64 offset, int whence)
 {
 	if (SQUASH_VALID_VFD(fildes)) {
-		ENCLOSE_IO_DOS_RETURN(squash_lseek(fildes, offset, whence));
+		return enclose_io_dos_return(squash_lseek(fildes, offset, whence));
 	} else {
 		return _lseeki64(fildes, offset, whence);
 	}
 }
 
 static HANDLE EncloseIOCreateFileWHelper(
-        char * incoming,
-        DWORD dwFlagsAndAttributes
-)
+	char * incoming,
+	DWORD dwFlagsAndAttributes)
 {
 	int ret;
 	struct stat buf;
-        SQUASH_DIR *dirp;
-        int follow_link;
+	SQUASH_DIR *dirp;
+	int follow_link;
 
-        if (dwFlagsAndAttributes & FILE_FLAG_OPEN_REPARSE_POINT) {
-        	ret = squash_lstat(enclose_io_fs, incoming, &buf);
-                follow_link = 0;
-        } else {
-        	ret = squash_stat(enclose_io_fs, incoming, &buf);
-                follow_link = 1;
-        }
+	if (dwFlagsAndAttributes & FILE_FLAG_OPEN_REPARSE_POINT) {
+		ret = squash_lstat(enclose_io_fs, incoming, &buf);
+		follow_link = 0;
+	} else {
+		ret = squash_stat(enclose_io_fs, incoming, &buf);
+		follow_link = 1;
+	}
 
 	if (-1 == ret) {
 		ENCLOSE_IO_SET_LAST_ERROR;
@@ -198,19 +248,19 @@ static HANDLE EncloseIOCreateFileWHelper(
 	if (S_ISDIR(buf.st_mode)) {
 		dirp = squash_opendir_inner(enclose_io_fs, incoming, follow_link);
 		if (NULL != dirp) {
-                        return (HANDLE)(dirp);
-                } else {
-                        ENCLOSE_IO_SET_LAST_ERROR;
-                        return INVALID_HANDLE_VALUE;
-                }
+			return (HANDLE)(dirp);
+		} else {
+			ENCLOSE_IO_SET_LAST_ERROR;
+			return INVALID_HANDLE_VALUE;
+		}
 	} else {
 		ret = squash_open_inner(enclose_io_fs, incoming, follow_link);
 		if (ret >= 0) {
-                        return (HANDLE)(squash_global_fdtable.fds[ret]->payload);
-                } else {
-                        ENCLOSE_IO_SET_LAST_ERROR;
-                        return INVALID_HANDLE_VALUE;
-                }
+			return (HANDLE)(squash_global_fdtable.fds[ret]->payload);
+		} else {
+			ENCLOSE_IO_SET_LAST_ERROR;
+			return INVALID_HANDLE_VALUE;
+		}
 	}
 }
 
@@ -236,10 +286,71 @@ EncloseIOCreateFileW(
 
 		W_ENCLOSE_IO_PATH_CONVERT(lpFileName);
 		ENCLOSE_IO_GEN_EXPANDED_NAME(enclose_io_converted);
-		return EncloseIOCreateFileWHelper(
-                        enclose_io_expanded,
-                        dwFlagsAndAttributes
-                );
+		if (OPEN_EXISTING == dwCreationDisposition) {
+			ENCLOSE_IO_CONSIDER_MKDIR_WORKDIR_RETURN(
+				enclose_io_expanded,
+				EncloseIOCreateFileWHelper(
+					enclose_io_expanded,
+					dwFlagsAndAttributes
+				),
+				CreateFile(
+					mkdir_workdir_expanded,
+					dwDesiredAccess,
+					dwShareMode,
+					lpSecurityAttributes,
+					dwCreationDisposition,
+					dwFlagsAndAttributes,
+					hTemplateFile
+				)
+			);
+		} else {
+			char *dir_thereof_ptr = strrchr(enclose_io_expanded, '/');
+			if (dir_thereof_ptr) {
+				*dir_thereof_ptr = 0;
+				enclose_io_mkdir(enclose_io_expanded, 0777);
+				*dir_thereof_ptr = '/';
+			}
+			if (mkdir_workdir) {
+				sqfs_path mkdir_workdir_expanded;
+				char *mkdir_workdir_expanded_head;
+				size_t mkdir_workdir_len;
+				size_t memcpy_len;
+				struct stat mkdir_workdir_buf;
+				mkdir_workdir_len = strlen(mkdir_workdir);
+				memcpy(mkdir_workdir_expanded, mkdir_workdir, mkdir_workdir_len);
+				memcpy_len = strlen(enclose_io_expanded);
+				if (SQUASHFS_PATH_LEN - mkdir_workdir_len < memcpy_len) {
+					memcpy_len = SQUASHFS_PATH_LEN - mkdir_workdir_len;
+				}
+				memcpy(&mkdir_workdir_expanded[mkdir_workdir_len], enclose_io_expanded, memcpy_len);
+				mkdir_workdir_expanded[mkdir_workdir_len + memcpy_len] = '\0';
+				mkdir_workdir_expanded_head = strstr(mkdir_workdir_expanded, enclose_io_mkdir_scope);
+				if (mkdir_workdir_expanded_head && '/' == mkdir_workdir_expanded_head[strlen(enclose_io_mkdir_scope)]) {
+					memmove(
+						mkdir_workdir_expanded_head,
+						mkdir_workdir_expanded_head + strlen(enclose_io_mkdir_scope),
+						strlen(mkdir_workdir_expanded_head + strlen(enclose_io_mkdir_scope)) + 1
+					);
+					return CreateFile(
+						mkdir_workdir_expanded,
+						dwDesiredAccess,
+						dwShareMode,
+						lpSecurityAttributes,
+						dwCreationDisposition,
+						dwFlagsAndAttributes,
+						hTemplateFile
+					);
+				} else {
+					errno = ENOENT;
+                                        ENCLOSE_IO_SET_LAST_ERROR;
+                                        return INVALID_HANDLE_VALUE;
+				}
+			} else {
+				errno = ENOENT;
+                                ENCLOSE_IO_SET_LAST_ERROR;
+                                return INVALID_HANDLE_VALUE;
+			}
+		}
 	} else if (enclose_io_is_path_w(lpFileName)) {
 		sqfs_path enclose_io_converted_storage;
 		char *enclose_io_converted;
@@ -247,10 +358,72 @@ EncloseIOCreateFileW(
 		size_t enclose_io_converted_length;
 
 		W_ENCLOSE_IO_PATH_CONVERT(lpFileName);
-		return EncloseIOCreateFileWHelper(
-                        enclose_io_converted,
-                        dwFlagsAndAttributes
-                );
+		
+		if (OPEN_EXISTING == dwCreationDisposition) {
+			ENCLOSE_IO_CONSIDER_MKDIR_WORKDIR_RETURN(
+				enclose_io_converted,
+				EncloseIOCreateFileWHelper(
+					enclose_io_converted,
+					dwFlagsAndAttributes
+				),
+				CreateFile(
+					mkdir_workdir_expanded,
+					dwDesiredAccess,
+					dwShareMode,
+					lpSecurityAttributes,
+					dwCreationDisposition,
+					dwFlagsAndAttributes,
+					hTemplateFile
+				)
+			);
+		} else {
+			char *dir_thereof_ptr = strrchr(enclose_io_converted, '/');
+			if (dir_thereof_ptr) {
+				*dir_thereof_ptr = 0;
+				enclose_io_mkdir(enclose_io_converted, 0777);
+				*dir_thereof_ptr = '/';
+			}
+			if (mkdir_workdir) {
+				sqfs_path mkdir_workdir_expanded;
+				char *mkdir_workdir_expanded_head;
+				size_t mkdir_workdir_len;
+				size_t memcpy_len;
+				struct stat mkdir_workdir_buf;
+				mkdir_workdir_len = strlen(mkdir_workdir);
+				memcpy(mkdir_workdir_expanded, mkdir_workdir, mkdir_workdir_len);
+				memcpy_len = strlen(enclose_io_converted);
+				if (SQUASHFS_PATH_LEN - mkdir_workdir_len < memcpy_len) {
+					memcpy_len = SQUASHFS_PATH_LEN - mkdir_workdir_len;
+				}
+				memcpy(&mkdir_workdir_expanded[mkdir_workdir_len], enclose_io_converted, memcpy_len);
+				mkdir_workdir_expanded[mkdir_workdir_len + memcpy_len] = '\0';
+				mkdir_workdir_expanded_head = strstr(mkdir_workdir_expanded, enclose_io_mkdir_scope);
+				if (mkdir_workdir_expanded_head && '/' == mkdir_workdir_expanded_head[strlen(enclose_io_mkdir_scope)]) {
+					memmove(
+						mkdir_workdir_expanded_head,
+						mkdir_workdir_expanded_head + strlen(enclose_io_mkdir_scope),
+						strlen(mkdir_workdir_expanded_head + strlen(enclose_io_mkdir_scope)) + 1
+					);
+					return CreateFile(
+						mkdir_workdir_expanded,
+						dwDesiredAccess,
+						dwShareMode,
+						lpSecurityAttributes,
+						dwCreationDisposition,
+						dwFlagsAndAttributes,
+						hTemplateFile
+					);
+				} else {
+					errno = ENOENT;
+                                        ENCLOSE_IO_SET_LAST_ERROR;
+                                        return INVALID_HANDLE_VALUE;
+				}
+			} else {
+				errno = ENOENT;
+                                ENCLOSE_IO_SET_LAST_ERROR;
+                                return INVALID_HANDLE_VALUE;
+			}
+		}
 	} else {
 		return CreateFileW(
 			lpFileName,
@@ -345,6 +518,21 @@ static DWORD EncloseIOGetFileAttributesHelper(struct stat *st)
 }
 
 DWORD
+EncloseIOGetFileAttributesWHelper(
+	const char *path
+)
+{
+	int ret;
+	struct stat buf;
+	ret = squash_stat(enclose_io_fs, path, &buf);
+	if (-1 == ret) {
+		ENCLOSE_IO_SET_LAST_ERROR;
+		return INVALID_FILE_ATTRIBUTES;
+	}
+	return EncloseIOGetFileAttributesHelper(&buf);
+}
+
+DWORD
 EncloseIOGetFileAttributesW(
     LPCWSTR lpFileName
 )
@@ -357,32 +545,32 @@ EncloseIOGetFileAttributesW(
 		char *enclose_io_converted;
 		char *enclose_io_i;
 		size_t enclose_io_converted_length;
-		int ret;
-		struct stat buf;
 
 		W_ENCLOSE_IO_PATH_CONVERT(lpFileName);
 		ENCLOSE_IO_GEN_EXPANDED_NAME(enclose_io_converted);
-		ret = squash_stat(enclose_io_fs, enclose_io_expanded, &buf);
-		if (-1 == ret) {
-			ENCLOSE_IO_SET_LAST_ERROR;
-			return INVALID_FILE_ATTRIBUTES;
-		}
-		return EncloseIOGetFileAttributesHelper(&buf);
+		
+		ENCLOSE_IO_CONSIDER_MKDIR_WORKDIR_RETURN(
+			enclose_io_expanded,
+			EncloseIOGetFileAttributesWHelper(enclose_io_expanded),
+			GetFileAttributes(
+				mkdir_workdir_expanded
+			)
+		);
 	} else if (enclose_io_is_path_w(lpFileName)) {
 		sqfs_path enclose_io_converted_storage;
 		char *enclose_io_converted;
 		char *enclose_io_i;
 		size_t enclose_io_converted_length;
-		int ret;
-		struct stat buf;
 
 		W_ENCLOSE_IO_PATH_CONVERT(lpFileName);
-		ret = squash_stat(enclose_io_fs, enclose_io_converted, &buf);
-		if (-1 == ret) {
-			ENCLOSE_IO_SET_LAST_ERROR;
-			return INVALID_FILE_ATTRIBUTES;
-		}		
-		return EncloseIOGetFileAttributesHelper(&buf);
+		
+		ENCLOSE_IO_CONSIDER_MKDIR_WORKDIR_RETURN(
+			enclose_io_converted,
+			EncloseIOGetFileAttributesWHelper(enclose_io_converted),
+			GetFileAttributes(
+				mkdir_workdir_expanded
+			)
+		);
 	} else {
 		return GetFileAttributesW(
 			lpFileName
@@ -410,6 +598,26 @@ static void EncloseIOFillWin32FileAttributeDataHelper(WIN32_FILE_ATTRIBUTE_DATA 
 }
 
 BOOL
+EncloseIOGetFileAttributesExWHelper(
+	const char *path,
+	LPVOID lpFileInformation
+)
+{
+	int ret;
+	struct stat buf;
+	WIN32_FILE_ATTRIBUTE_DATA *fa;
+
+	ret = squash_stat(enclose_io_fs, path, &buf);
+	if (-1 == ret) {
+		ENCLOSE_IO_SET_LAST_ERROR;
+		return 0;
+	}
+	fa = (WIN32_FILE_ATTRIBUTE_DATA *)lpFileInformation;
+	EncloseIOFillWin32FileAttributeDataHelper(fa, &buf);
+	return 1;
+}
+
+BOOL
 EncloseIOGetFileAttributesExW(
     LPCWSTR lpFileName,
     GET_FILEEX_INFO_LEVELS fInfoLevelId,
@@ -424,40 +632,38 @@ EncloseIOGetFileAttributesExW(
 		char *enclose_io_converted;
 		char *enclose_io_i;
 		size_t enclose_io_converted_length;
-		int ret;
-		struct stat buf;
-		WIN32_FILE_ATTRIBUTE_DATA *fa;
 
 		W_ENCLOSE_IO_PATH_CONVERT(lpFileName);
 		ENCLOSE_IO_GEN_EXPANDED_NAME(enclose_io_converted);
 		assert(GetFileExInfoStandard == fInfoLevelId);
-		ret = squash_stat(enclose_io_fs, enclose_io_expanded, &buf);
-		if (-1 == ret) {
-			ENCLOSE_IO_SET_LAST_ERROR;
-			return 0;
-		}
-		fa = (WIN32_FILE_ATTRIBUTE_DATA *)lpFileInformation;
-                EncloseIOFillWin32FileAttributeDataHelper(fa, &buf);
-		return 1;
+		
+		ENCLOSE_IO_CONSIDER_MKDIR_WORKDIR_RETURN(
+			enclose_io_expanded,
+			EncloseIOGetFileAttributesExWHelper(enclose_io_expanded, lpFileInformation),
+			GetFileAttributesEx(
+				mkdir_workdir_expanded,
+				fInfoLevelId,
+				lpFileInformation
+			),
+		);
 	} else if (enclose_io_is_path_w(lpFileName)) {
 		sqfs_path enclose_io_converted_storage;
 		char *enclose_io_converted;
 		char *enclose_io_i;
 		size_t enclose_io_converted_length;
-		int ret;
-		struct stat buf;
-		WIN32_FILE_ATTRIBUTE_DATA *fa;
 
 		W_ENCLOSE_IO_PATH_CONVERT(lpFileName);
 		assert(GetFileExInfoStandard == fInfoLevelId);
-		ret = squash_stat(enclose_io_fs, enclose_io_converted, &buf);
-		if (-1 == ret) {
-			ENCLOSE_IO_SET_LAST_ERROR;
-			return 0;
-		}
-		fa = (WIN32_FILE_ATTRIBUTE_DATA *)lpFileInformation;
-                EncloseIOFillWin32FileAttributeDataHelper(fa, &buf);
-		return 1;
+
+		ENCLOSE_IO_CONSIDER_MKDIR_WORKDIR_RETURN(
+			enclose_io_converted,
+			EncloseIOGetFileAttributesExWHelper(enclose_io_converted, lpFileInformation),
+			GetFileAttributesEx(
+				mkdir_workdir_expanded,
+				fInfoLevelId,
+				lpFileInformation
+			)
+		);
 	} else {
 		return GetFileAttributesExW(
 			lpFileName,
@@ -535,6 +741,7 @@ EncloseIOFindFirstFileHelper(
         char *parent = incoming + strlen(incoming);
         SQUASH_DIR *dirp;
         struct SQUASH_DIRENT *mydirent;
+				struct SQUASH_DIRENT dummy_dirent;
         char *current_path_tail;
         char *current_path;
         size_t mbstowcs_size;
@@ -547,11 +754,11 @@ EncloseIOFindFirstFileHelper(
         }
         *parent = '\0';
         dirp = squash_opendir(enclose_io_fs, incoming);
-        dirp->payload = dup_incoming;
         if (NULL == dirp) {
                 ENCLOSE_IO_SET_LAST_ERROR;
                 return INVALID_HANDLE_VALUE;
         }
+        dirp->payload = dup_incoming;
         current_path = (char *)malloc(strlen(dup_incoming) + SQUASHFS_PATH_LEN + 1);
         if (NULL == current_path) {
                 SetLastError(ERROR_NOT_ENOUGH_MEMORY);
@@ -563,7 +770,22 @@ EncloseIOFindFirstFileHelper(
         do {
         	mydirent = squash_readdir(dirp);
                 if (NULL == mydirent) {
-                        break;
+									// try to determine
+									// either this dir is empty
+									// or the dir is not empty and we run out of possible matches
+									if (dirp->actual_nr == 0) {
+										// this dir is empty
+										// so just return a "." to match the original Windows behavior
+										current_path_tail[0] = '.';
+										current_path_tail[1] = 0; // we are sure that this will make true==PathMatchSpecA(current_path, dup_incoming)
+										dummy_dirent.d_namlen = 1;
+										dummy_dirent.d_ino = dirp->node.base.inode_number;
+										dummy_dirent.d_name[0] = '.';
+										dummy_dirent.d_name[1] = 0;
+										dummy_dirent.d_type = DT_DIR;
+										mydirent = &dummy_dirent;
+									}
+									break;
                 }
                 memcpy(current_path_tail, mydirent->d_name, strlen(mydirent->d_name) + 1);
         } while (!PathMatchSpecA(current_path, dup_incoming));
@@ -603,7 +825,15 @@ EncloseIOFindFirstFileW(
 
 		W_ENCLOSE_IO_PATH_CONVERT(lpFileName);
 		ENCLOSE_IO_GEN_EXPANDED_NAME(enclose_io_converted);
-		return EncloseIOFindFirstFileHelper(enclose_io_expanded, lpFindFileData);
+		
+		ENCLOSE_IO_CONSIDER_MKDIR_WORKDIR_RETURN(
+			enclose_io_expanded,
+			EncloseIOFindFirstFileHelper(enclose_io_expanded, lpFindFileData),
+			FindFirstFile(
+				mkdir_workdir_expanded,
+				lpFindFileData
+			)
+		);
 	} else if (enclose_io_is_path_w(lpFileName)) {
 		sqfs_path enclose_io_converted_storage;
 		char *enclose_io_converted;
@@ -611,7 +841,15 @@ EncloseIOFindFirstFileW(
 		size_t enclose_io_converted_length;
 
 		W_ENCLOSE_IO_PATH_CONVERT(lpFileName);
-		return EncloseIOFindFirstFileHelper(enclose_io_converted, lpFindFileData);
+		
+		ENCLOSE_IO_CONSIDER_MKDIR_WORKDIR_RETURN(
+			enclose_io_converted,
+			EncloseIOFindFirstFileHelper(enclose_io_converted, lpFindFileData),
+			FindFirstFile(
+				mkdir_workdir_expanded,
+				lpFindFileData
+			)
+		);
 	} else {
 		return FindFirstFileW(
 			lpFileName,
@@ -857,10 +1095,19 @@ EncloseIOLoadLibraryExW(
 
 		W_ENCLOSE_IO_PATH_CONVERT(lpLibFileName);
 		ENCLOSE_IO_GEN_EXPANDED_NAME(enclose_io_converted);
-		return LoadLibraryExW(
-			squash_extract(enclose_io_fs, enclose_io_expanded, "dll"),
-			hFile,
-			dwFlags
+		
+		ENCLOSE_IO_CONSIDER_MKDIR_WORKDIR_RETURN(
+			enclose_io_expanded,
+			LoadLibraryExW(
+				squash_extract(enclose_io_fs, enclose_io_expanded, "dll"),
+				hFile,
+				dwFlags
+			),
+			LoadLibraryEx(
+				mkdir_workdir_expanded,
+				hFile,
+				dwFlags
+			)
 		);
 	}
 	else if (enclose_io_is_path_w(lpLibFileName)) {
@@ -870,10 +1117,19 @@ EncloseIOLoadLibraryExW(
 		size_t enclose_io_converted_length;
 
 		W_ENCLOSE_IO_PATH_CONVERT(lpLibFileName);
-		return LoadLibraryExW(
-			squash_extract(enclose_io_fs, enclose_io_converted, "dll"),
-			hFile,
-			dwFlags
+		
+		ENCLOSE_IO_CONSIDER_MKDIR_WORKDIR_RETURN(
+			enclose_io_converted,
+			LoadLibraryExW(
+				squash_extract(enclose_io_fs, enclose_io_converted, "dll"),
+				hFile,
+				dwFlags
+			),
+			LoadLibraryEx(
+				mkdir_workdir_expanded,
+				hFile,
+				dwFlags
+			)
 		);
 	}
 	else {
@@ -881,6 +1137,66 @@ EncloseIOLoadLibraryExW(
 			lpLibFileName,
 			hFile,
 			dwFlags
+		);
+	}
+}
+
+BOOL
+EncloseIOCreateProcessW(
+	LPCWSTR lpApplicationName,
+	LPWSTR lpCommandLine,
+	LPSECURITY_ATTRIBUTES lpProcessAttributes,
+	LPSECURITY_ATTRIBUTES lpThreadAttributes,
+	BOOL bInheritHandles,
+	DWORD dwCreationFlags,
+	LPVOID lpEnvironment,
+	LPCWSTR lpCurrentDirectory,
+	LPSTARTUPINFOW lpStartupInfo,
+	LPPROCESS_INFORMATION lpProcessInformation
+)
+{
+	if (NULL != lpCurrentDirectory && enclose_io_is_path_w(lpCurrentDirectory)) {
+		lpCurrentDirectory = NULL;
+	}
+	return CreateProcessW(
+		lpApplicationName,
+		lpCommandLine,
+		lpProcessAttributes,
+		lpThreadAttributes,
+		bInheritHandles,
+		dwCreationFlags,
+		lpEnvironment,
+		lpCurrentDirectory,
+		lpStartupInfo,
+		lpProcessInformation
+	);
+}
+
+BOOL
+EncloseIOGetFileInformationByHandle(
+	HANDLE hFile,
+	LPBY_HANDLE_FILE_INFORMATION lpFileInformation
+)
+{
+	struct squash_file *sqf = squash_find_entry((void *)hFile);
+	struct stat st;
+	if (sqf) {
+		st = sqf->st;
+		lpFileInformation->dwFileAttributes = EncloseIOGetFileAttributesHelper(&st);
+		EncloseIOUnixtimeToFiletime(st.st_ctime, &lpFileInformation->ftCreationTime);
+		EncloseIOUnixtimeToFiletime(st.st_atime, &lpFileInformation->ftLastAccessTime);
+		EncloseIOUnixtimeToFiletime(st.st_mtime, &lpFileInformation->ftLastWriteTime);
+		lpFileInformation->dwVolumeSerialNumber = 0; // TODO
+		lpFileInformation->nFileSizeHigh = 0;
+		lpFileInformation->nFileSizeLow = st.st_size;
+		lpFileInformation->nNumberOfLinks = st.st_nlink;
+		lpFileInformation->nFileIndexHigh = 0;
+		lpFileInformation->nFileIndexLow = st.st_ino;
+		return 1;
+	} else {
+		return GetFileInformationByHandle(
+			hFile,
+			lpFileInformation
 		);
 	}
 }
@@ -895,7 +1211,7 @@ EncloseIOpNtQueryInformationFile(
 	FILE_INFORMATION_CLASS FileInformationClass)
 {
 	struct squash_file *sqf = squash_find_entry((void *)FileHandle);
-        struct stat st;
+	struct stat st;
 	if (sqf) {
 		st = sqf->st;
 		IoStatusBlock->Status = STATUS_NOT_IMPLEMENTED;

@@ -8,7 +8,7 @@ static napi_ref test_reference = NULL;
 
 napi_value GetFinalizeCount(napi_env env, napi_callback_info info) {
   napi_value result;
-  NAPI_CALL(env, napi_create_number(env, finalize_count, &result));
+  NAPI_CALL(env, napi_create_int32(env, finalize_count, &result));
   return result;
 }
 
@@ -58,13 +58,13 @@ napi_value CheckExternal(napi_env env, napi_callback_info info) {
   napi_valuetype argtype;
   NAPI_CALL(env, napi_typeof(env, arg, &argtype));
 
-  NAPI_ASSERT(env, argtype == napi_external, "Expected an external value.")
+  NAPI_ASSERT(env, argtype == napi_external, "Expected an external value.");
 
   void* data;
   NAPI_CALL(env, napi_get_value_external(env, arg, &data));
 
   NAPI_ASSERT(env, data != NULL && *(int*)data == test_value,
-    "An external data value of 1 was expected.")
+    "An external data value of 1 was expected.");
 
   return NULL;
 }
@@ -107,7 +107,7 @@ napi_value IncrementRefcount(napi_env env, napi_callback_info info) {
   NAPI_CALL(env, napi_reference_ref(env, test_reference, &refcount));
 
   napi_value result;
-  NAPI_CALL(env, napi_create_number(env, refcount, &result));
+  NAPI_CALL(env, napi_create_uint32(env, refcount, &result));
   return result;
 }
 
@@ -119,7 +119,7 @@ napi_value DecrementRefcount(napi_env env, napi_callback_info info) {
   NAPI_CALL(env, napi_reference_unref(env, test_reference, &refcount));
 
   napi_value result;
-  NAPI_CALL(env, napi_create_number(env, refcount, &result));
+  NAPI_CALL(env, napi_create_uint32(env, refcount, &result));
   return result;
 }
 

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Stream | Node.js v8.1.1 Documentation</title>
+  <title>Stream | Node.js v8.4.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -42,8 +42,10 @@
 <li><a class="nav-fs" href="fs.html">File System</a></li>
 <li><a class="nav-globals" href="globals.html">Globals</a></li>
 <li><a class="nav-http" href="http.html">HTTP</a></li>
+<li><a class="nav-http2" href="http2.html">HTTP/2</a></li>
 <li><a class="nav-https" href="https.html">HTTPS</a></li>
 <li><a class="nav-inspector" href="inspector.html">Inspector</a></li>
+<li><a class="nav-intl" href="intl.html">Internationalization</a></li>
 <li><a class="nav-modules" href="modules.html">Modules</a></li>
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
@@ -77,7 +79,7 @@
 
     <div id="column1" data-id="stream" class="interior">
       <header>
-        <h1>Node.js v8.1.1 Documentation</h1>
+        <h1>Node.js v8.4.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -344,7 +346,7 @@ written.</p>
 <li><a href="http.html#http_class_http_clientrequest">HTTP requests, on the client</a></li>
 <li><a href="http.html#http_class_http_serverresponse">HTTP responses, on the server</a></li>
 <li><a href="fs.html#fs_class_fs_writestream">fs write streams</a></li>
-<li>[zlib streams][zlib]</li>
+<li><a href="zlib.html">zlib streams</a></li>
 <li><a href="crypto.html">crypto streams</a></li>
 <li><a href="net.html#net_class_net_socket">TCP sockets</a></li>
 <li><a href="child_process.html#child_process_child_stdin">child process stdin</a></li>
@@ -630,8 +632,11 @@ write(&#39;hello&#39;, () =&gt; {
 <h5>writable.destroy([error])<span><a class="mark" href="#stream_writable_destroy_error" id="stream_writable_destroy_error">#</a></span></h5>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
-</div><p>Destroy the stream, and emit the passed error. After this call, the
-writible stream has ended. Implementors should not override this method,
+</div><ul>
+<li>Returns: <code>this</code></li>
+</ul>
+<p>Destroy the stream, and emit the passed error. After this call, the
+writable stream has ended. Implementors should not override this method,
 but instead implement <a href="#stream_writable_destroy_err_callback"><code>writable._destroy</code></a>.</p>
 <h3>Readable Streams<span><a class="mark" href="#stream_readable_streams" id="stream_readable_streams">#</a></span></h3>
 <p>Readable streams are an abstraction for a <em>source</em> from which data is
@@ -641,7 +646,7 @@ consumed.</p>
 <li><a href="http.html#http_class_http_incomingmessage">HTTP responses, on the client</a></li>
 <li><a href="http.html#http_class_http_incomingmessage">HTTP requests, on the server</a></li>
 <li><a href="fs.html#fs_class_fs_readstream">fs read streams</a></li>
-<li>[zlib streams][zlib]</li>
+<li><a href="zlib.html">zlib streams</a></li>
 <li><a href="crypto.html">crypto streams</a></li>
 <li><a href="net.html#net_class_net_socket">TCP sockets</a></li>
 <li><a href="child_process.html#child_process_child_stdout">child process stdout and stderr</a></li>
@@ -1144,7 +1149,7 @@ Implementors should not override this method, but instead implement
 <p>Examples of Duplex streams include:</p>
 <ul>
 <li><a href="net.html#net_class_net_socket">TCP sockets</a></li>
-<li>[zlib streams][zlib]</li>
+<li><a href="zlib.html">zlib streams</a></li>
 <li><a href="crypto.html">crypto streams</a></li>
 </ul>
 <h4>Class: stream.Transform<span><a class="mark" href="#stream_class_stream_transform" id="stream_class_stream_transform">#</a></span></h4>
@@ -1156,7 +1161,7 @@ related to the input. Like all <a href="#stream_class_stream_duplex">Duplex</a> 
 implement both the <a href="#stream_class_stream_readable">Readable</a> and <a href="#stream_class_stream_writable">Writable</a> interfaces.</p>
 <p>Examples of Transform streams include:</p>
 <ul>
-<li>[zlib streams][zlib]</li>
+<li><a href="zlib.html">zlib streams</a></li>
 <li><a href="crypto.html">crypto streams</a></li>
 </ul>
 <h5>transform.destroy([error])<span><a class="mark" href="#stream_transform_destroy_error" id="stream_transform_destroy_error">#</a></span></h5>
@@ -1654,22 +1659,35 @@ will work properly for both base classes due to overriding
 constructor and implement <em>both</em> the <code>readable._read()</code> and
 <code>writable._write()</code> methods.</p>
 <h4>new stream.Duplex(options)<span><a class="mark" href="#stream_new_stream_duplex_options" id="stream_new_stream_duplex_options">#</a></span></h4>
-<div class="signature"><ul>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v8.4.0</td>
+<td><p>The <code>readableHighWaterMark</code> and <code>writableHighWaterMark</code> options are supported now.</p>
+</td></tr>
+</table>
+</details>
+</div><ul>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> Passed to both Writable and Readable
 constructors. Also has the following fields:<ul>
 <li><code>allowHalfOpen</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Defaults to <code>true</code>. If set to <code>false</code>, then
-the stream will automatically end the readable side when the
-writable side ends and vice versa.</li>
+the stream will automatically end the writable side when the
+readable side ends.</li>
 <li><code>readableObjectMode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Defaults to <code>false</code>. Sets <code>objectMode</code>
 for readable side of the stream. Has no effect if <code>objectMode</code>
 is <code>true</code>.</li>
 <li><code>writableObjectMode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Defaults to <code>false</code>. Sets <code>objectMode</code>
 for writable side of the stream. Has no effect if <code>objectMode</code>
 is <code>true</code>.</li>
+<li><code>readableHighWaterMark</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Sets <code>highWaterMark</code> for the readable side
+of the stream. Has no effect if <code>highWaterMark</code> is provided.</li>
+<li><code>writableHighWaterMark</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Sets <code>highWaterMark</code> for the writable side
+of the stream. Has no effect if <code>highWaterMark</code> is provided.</li>
 </ul>
 </li>
 </ul>
-</div><p>For example:</p>
+<p>For example:</p>
 <pre><code class="lang-js">const { Duplex } = require(&#39;stream&#39;);
 
 class MyDuplex extends Duplex {
@@ -1775,7 +1793,7 @@ myTransform.write(100);
 </code></pre>
 <h3>Implementing a Transform Stream<span><a class="mark" href="#stream_implementing_a_transform_stream" id="stream_implementing_a_transform_stream">#</a></span></h3>
 <p>A <a href="#stream_class_stream_transform">Transform</a> stream is a <a href="#stream_class_stream_duplex">Duplex</a> stream where the output is computed
-in some way from the input. Examples include [zlib][] streams or <a href="crypto.html">crypto</a>
+in some way from the input. Examples include <a href="zlib.html">zlib</a> streams or <a href="crypto.html">crypto</a>
 streams that compress, encrypt, or decrypt data.</p>
 <p><em>Note</em>: There is no requirement that the output be the same size as the input,
 the same number of chunks, or arrive at the same time. For example, a
@@ -1902,6 +1920,9 @@ transform.prototype._transform = function(data, encoding, callback) {
 <p>The <code>transform._transform()</code> method is prefixed with an underscore because it
 is internal to the class that defines it, and should never be called directly by
 user programs.</p>
+<p><code>transform._transform()</code> is never called in  parallel; streams implement a
+queue mechanism, and to receive the next chunk, <code>callback</code> must be
+called, either synchronously or asynchronously.</p>
 <h4>Class: stream.PassThrough<span><a class="mark" href="#stream_class_stream_passthrough" id="stream_class_stream_passthrough">#</a></span></h4>
 <p>The <code>stream.PassThrough</code> class is a trivial implementation of a <a href="#stream_class_stream_transform">Transform</a>
 stream that simply passes the input bytes across to the output. Its purpose is

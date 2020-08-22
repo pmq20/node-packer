@@ -46,9 +46,10 @@ const {
   kClearScreenDown
 } = CSI;
 
+const now = process.binding('timer_wrap').Timer.now;
+
 const kHistorySize = 30;
 const kMincrlfDelay = 100;
-const kMaxcrlfDelay = 2000;
 // \r\n, \n, or \r followed by something other than \n
 const lineEnding = /\r?\n|\r(?!\n)/;
 
@@ -120,8 +121,8 @@ function Interface(input, output, completer, terminal) {
   this.input = input;
   this.historySize = historySize;
   this.removeHistoryDuplicates = !!removeHistoryDuplicates;
-  this.crlfDelay = Math.max(kMincrlfDelay,
-                            Math.min(kMaxcrlfDelay, crlfDelay >>> 0));
+  this.crlfDelay = crlfDelay ?
+    Math.max(kMincrlfDelay, crlfDelay) : kMincrlfDelay;
 
   // Check arity, 2 - for async, 1 for sync
   if (typeof completer === 'function') {
@@ -283,8 +284,9 @@ Interface.prototype._writeToOutput = function _writeToOutput(stringToWrite) {
   if (typeof stringToWrite !== 'string')
     throw new TypeError('"stringToWrite" argument must be a string');
 
-  if (this.output !== null && this.output !== undefined)
+  if (this.output !== null && this.output !== undefined) {
     this.output.write(stringToWrite);
+  }
 };
 
 Interface.prototype._addHistory = function() {
@@ -395,7 +397,7 @@ Interface.prototype._normalWrite = function(b) {
   }
   var string = this._decoder.write(b);
   if (this._sawReturnAt &&
-      Date.now() - this._sawReturnAt <= this.crlfDelay) {
+      now() - this._sawReturnAt <= this.crlfDelay) {
     string = string.replace(/^\n/, '');
     this._sawReturnAt = 0;
   }
@@ -408,7 +410,7 @@ Interface.prototype._normalWrite = function(b) {
     this._line_buffer = null;
   }
   if (newPartContainsEnding) {
-    this._sawReturnAt = string.endsWith('\r') ? Date.now() : 0;
+    this._sawReturnAt = string.endsWith('\r') ? now() : 0;
 
     // got one or more newlines; process into "line" events
     var lines = string.split(lineEnding);
@@ -471,7 +473,7 @@ Interface.prototype._tabComplete = function(lastKeypressWasTab) {
           maxColumns = 1;
         }
         var group = [];
-        for (var i = 0, compLen = completions.length; i < compLen; i++) {
+        for (var i = 0; i < completions.length; i++) {
           var c = completions[i];
           if (c === '') {
             handleGroup(self, group, width, maxColumns);
@@ -510,8 +512,7 @@ function handleGroup(self, group, width, maxColumns) {
       var item = group[idx];
       self._writeToOutput(item);
       if (col < maxColumns - 1) {
-        for (var s = 0, itemLen = item.length; s < width - itemLen;
-             s++) {
+        for (var s = 0; s < width - item.length; s++) {
           self._writeToOutput(' ');
         }
       }
@@ -541,7 +542,7 @@ function commonPrefix(strings) {
 Interface.prototype._wordLeft = function() {
   if (this.cursor > 0) {
     var leading = this.line.slice(0, this.cursor);
-    var match = leading.match(/([^\w\s]+|\w+|)\s*$/);
+    var match = leading.match(/(?:[^\w\s]+|\w+|)\s*$/);
     this._moveCursor(-match[0].length);
   }
 };
@@ -550,7 +551,7 @@ Interface.prototype._wordLeft = function() {
 Interface.prototype._wordRight = function() {
   if (this.cursor < this.line.length) {
     var trailing = this.line.slice(this.cursor);
-    var match = trailing.match(/^(\s+|\W+|\w+)\s*/);
+    var match = trailing.match(/^(?:\s+|\W+|\w+)\s*/);
     this._moveCursor(match[0].length);
   }
 };
@@ -577,7 +578,7 @@ Interface.prototype._deleteRight = function() {
 Interface.prototype._deleteWordLeft = function() {
   if (this.cursor > 0) {
     var leading = this.line.slice(0, this.cursor);
-    var match = leading.match(/([^\w\s]+|\w+|)\s*$/);
+    var match = leading.match(/(?:[^\w\s]+|\w+|)\s*$/);
     leading = leading.slice(0, leading.length - match[0].length);
     this.line = leading + this.line.slice(this.cursor, this.line.length);
     this.cursor = leading.length;
@@ -589,7 +590,7 @@ Interface.prototype._deleteWordLeft = function() {
 Interface.prototype._deleteWordRight = function() {
   if (this.cursor < this.line.length) {
     var trailing = this.line.slice(this.cursor);
-    var match = trailing.match(/^(\s+|\W+|\w+)\s*/);
+    var match = trailing.match(/^(?:\s+|\W+|\w+)\s*/);
     this.line = this.line.slice(0, this.cursor) +
                 trailing.slice(match[0].length);
     this._refreshLine();
@@ -670,13 +671,14 @@ Interface.prototype._getDisplayPos = function(str) {
       row += 1;
       continue;
     }
-    if (isFullWidthCodePoint(code)) {
+    const width = getStringWidth(code);
+    if (width === 0 || width === 1) {
+      offset += width;
+    } else { // width === 2
       if ((offset + 1) % col === 0) {
         offset++;
       }
       offset += 2;
-    } else {
-      offset++;
     }
   }
   var cols = offset % col;
@@ -723,12 +725,12 @@ Interface.prototype._moveCursor = function(dx) {
     var diffWidth;
     if (diffCursor < 0) {
       diffWidth = -getStringWidth(
-          this.line.substring(this.cursor, oldcursor)
-          );
+        this.line.substring(this.cursor, oldcursor)
+      );
     } else if (diffCursor > 0) {
       diffWidth = getStringWidth(
-          this.line.substring(this.cursor, oldcursor)
-          );
+        this.line.substring(this.cursor, oldcursor)
+      );
     }
     moveCursor(this.output, diffWidth, 0);
     this.prevRows = newPos.rows;
@@ -900,14 +902,14 @@ Interface.prototype._ttyWrite = function(s, key) {
 
     switch (key.name) {
       case 'return':  // carriage return, i.e. \r
-        this._sawReturnAt = Date.now();
+        this._sawReturnAt = now();
         this._line();
         break;
 
       case 'enter':
         // When key interval > crlfDelay
         if (this._sawReturnAt === 0 ||
-            Date.now() - this._sawReturnAt > this.crlfDelay) {
+            now() - this._sawReturnAt > this.crlfDelay) {
           this._line();
         }
         this._sawReturnAt = 0;

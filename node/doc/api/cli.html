@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Command Line Options | Node.js v8.1.1 Documentation</title>
+  <title>Command Line Options | Node.js v8.4.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -42,8 +42,10 @@
 <li><a class="nav-fs" href="fs.html">File System</a></li>
 <li><a class="nav-globals" href="globals.html">Globals</a></li>
 <li><a class="nav-http" href="http.html">HTTP</a></li>
+<li><a class="nav-http2" href="http2.html">HTTP/2</a></li>
 <li><a class="nav-https" href="https.html">HTTPS</a></li>
 <li><a class="nav-inspector" href="inspector.html">Inspector</a></li>
+<li><a class="nav-intl" href="intl.html">Internationalization</a></li>
 <li><a class="nav-modules" href="modules.html">Modules</a></li>
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
@@ -77,7 +79,7 @@
 
     <div id="column1" data-id="cli" class="interior">
       <header>
-        <h1>Node.js v8.1.1 Documentation</h1>
+        <h1>Node.js v8.4.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -109,7 +111,9 @@
 <li><span class="stability_undefined"><a href="#cli_throw_deprecation"><code>--throw-deprecation</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_pending_deprecation"><code>--pending-deprecation</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_no_warnings"><code>--no-warnings</code></a></span></li>
+<li><span class="stability_undefined"><a href="#cli_expose_http2"><code>--expose-http2</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_napi_modules"><code>--napi-modules</code></a></span></li>
+<li><span class="stability_undefined"><a href="#cli_abort_on_uncaught_exception"><code>--abort-on-uncaught-exception</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_trace_warnings"><code>--trace-warnings</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_redirect_warnings_file"><code>--redirect-warnings=file</code></a></span></li>
 <li><span class="stability_undefined"><a href="#cli_trace_sync_io"><code>--trace-sync-io</code></a></span></li>
@@ -262,11 +266,20 @@ developers may leverage to detect deprecated API usage.</p>
 <div class="api_metadata">
 <span>Added in: v6.0.0</span>
 </div><p>Silence all process warnings (including deprecations).</p>
+<h3><code>--expose-http2</code><span><a class="mark" href="#cli_expose_http2" id="cli_expose_http2">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.4.0</span>
+</div><p>Enable the experimental <code>&#39;http2&#39;</code> module.</p>
 <h3><code>--napi-modules</code><span><a class="mark" href="#cli_napi_modules" id="cli_napi_modules">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
 </div><p>Enable loading native modules compiled with the ABI-stable Node.js API (N-API)
 (experimental).</p>
+<h3><code>--abort-on-uncaught-exception</code><span><a class="mark" href="#cli_abort_on_uncaught_exception" id="cli_abort_on_uncaught_exception">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.10</span>
+</div><p>Aborting instead of exiting causes a core file to be generated for post-mortem
+analysis using a debugger (such as <code>lldb</code>, <code>gdb</code>, and <code>mdb</code>).</p>
 <h3><code>--trace-warnings</code><span><a class="mark" href="#cli_trace_warnings" id="cli_trace_warnings">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v6.0.0</span>
@@ -420,10 +433,10 @@ with small-icu support.</p>
 <h3><code>NODE_OPTIONS=options...</code><span><a class="mark" href="#cli_node_options_options" id="cli_node_options_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
-</div><p><code>options...</code> are interpreted as if they had been specified on the command line
-before the actual command line (so they can be overriden).  Node will exit with
-an error if an option that is not allowed in the environment is used, such as
-<code>-p</code> or a script file.</p>
+</div><p>A space-separated list of command line options. <code>options...</code> are interpreted as
+if they had been specified on the command line before the actual command line
+(so they can be overridden).  Node will exit with an error if an option that is
+not allowed in the environment is used, such as <code>-p</code> or a script file.</p>
 <p>Node options that are allowed are:</p>
 <ul>
 <li><code>--enable-fips</code></li>
@@ -453,7 +466,8 @@ an error if an option that is not allowed in the environment is used, such as
 </ul>
 <p>V8 options that are allowed are:</p>
 <ul>
-<li><code>--max_old_space_size</code></li>
+<li><code>--abort-on-uncaught-exception</code></li>
+<li><code>--max-old-space-size</code></li>
 </ul>
 <h3><code>NODE_PENDING_DEPRECATION=1</code><span><a class="mark" href="#cli_node_pending_deprecation_1" id="cli_node_pending_deprecation_1">#</a></span></h3>
 <div class="api_metadata">
@@ -482,7 +496,7 @@ to an empty string (<code>&quot;&quot;</code> or <code>&quot; &quot;</code>) dis
 </div><p>When set, the well known &quot;root&quot; CAs (like VeriSign) will be extended with the
 extra certificates in <code>file</code>. The file should consist of one or more trusted
 certificates in PEM format. A message will be emitted (once) with
-<a href="process.html#process_process_emitwarning_warning_name_ctor"><code>process.emitWarning()</code></a> if the file is missing or
+<a href="process.html#process_process_emitwarning_warning_type_code_ctor"><code>process.emitWarning()</code></a> if the file is missing or
 malformed, but any errors are otherwise ignored.</p>
 <p>Note that neither the well known nor extra certificates are used when the <code>ca</code>
 options property is explicitly specified for a TLS or HTTPS client or server.</p>
@@ -491,7 +505,7 @@ options property is explicitly specified for a TLS or HTTPS client or server.</p
 <span>Added in: v7.7.0</span>
 </div><p>Load an OpenSSL configuration file on startup. Among other uses, this can be
 used to enable FIPS-compliant crypto if Node.js is built with <code>./configure
-\-\-openssl\-fips</code>.</p>
+--openssl-fips</code>.</p>
 <p>If the <a href="#cli_openssl_config_file"><code>--openssl-config</code></a> command line option is used, the environment
 variable is ignored.</p>
 <h3><code>SSL_CERT_DIR=dir</code><span><a class="mark" href="#cli_ssl_cert_dir_dir" id="cli_ssl_cert_dir_dir">#</a></span></h3>

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>N-API | Node.js v8.1.1 Documentation</title>
+  <title>N-API | Node.js v8.4.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -42,8 +42,10 @@
 <li><a class="nav-fs" href="fs.html">File System</a></li>
 <li><a class="nav-globals" href="globals.html">Globals</a></li>
 <li><a class="nav-http" href="http.html">HTTP</a></li>
+<li><a class="nav-http2" href="http2.html">HTTP/2</a></li>
 <li><a class="nav-https" href="https.html">HTTPS</a></li>
 <li><a class="nav-inspector" href="inspector.html">Inspector</a></li>
+<li><a class="nav-intl" href="intl.html">Internationalization</a></li>
 <li><a class="nav-modules" href="modules.html">Modules</a></li>
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
@@ -77,7 +79,7 @@
 
     <div id="column1" data-id="n-api" class="interior">
       <header>
-        <h1>Node.js v8.1.1 Documentation</h1>
+        <h1>Node.js v8.4.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -131,6 +133,10 @@
 <li><span class="stability_undefined"><a href="#n_api_napi_is_exception_pending">napi_is_exception_pending</a></span></li>
 </ul>
 </li>
+<li><span class="stability_undefined"><a href="#n_api_fatal_errors">Fatal Errors</a></span><ul>
+<li><span class="stability_undefined"><a href="#n_api_napi_fatal_error">napi_fatal_error</a></span></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><span class="stability_undefined"><a href="#n_api_object_lifetime_management">Object Lifetime management</a></span><ul>
@@ -172,11 +178,16 @@
 <li><span class="stability_undefined"><a href="#n_api_napi_create_object"><em>napi_create_object</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_create_symbol"><em>napi_create_symbol</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_create_typedarray"><em>napi_create_typedarray</em></a></span></li>
+<li><span class="stability_undefined"><a href="#n_api_napi_create_dataview"><em>napi_create_dataview</em></a></span></li>
 </ul>
 </li>
 <li><span class="stability_undefined"><a href="#n_api_functions_to_convert_from_c_types_to_n_api">Functions to convert from C types to N-API</a></span><ul>
-<li><span class="stability_undefined"><a href="#n_api_napi_create_number"><em>napi_create_number</em></a></span></li>
+<li><span class="stability_undefined"><a href="#n_api_napi_create_int32"><em>napi_create_int32</em></a></span></li>
+<li><span class="stability_undefined"><a href="#n_api_napi_create_uint32"><em>napi_create_uint32</em></a></span></li>
+<li><span class="stability_undefined"><a href="#n_api_napi_create_int64"><em>napi_create_int64</em></a></span></li>
+<li><span class="stability_undefined"><a href="#n_api_napi_create_double"><em>napi_create_double</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_create_string_utf16"><em>napi_create_string_utf16</em></a></span></li>
+<li><span class="stability_undefined"><a href="#n_api_napi_create_string_latin1"><em>napi_create_string_latin1</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_create_string_utf8"><em>napi_create_string_utf8</em></a></span></li>
 </ul>
 </li>
@@ -186,6 +197,7 @@
 <li><span class="stability_undefined"><a href="#n_api_napi_get_buffer_info"><em>napi_get_buffer_info</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_get_prototype"><em>napi_get_prototype</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_get_typedarray_info"><em>napi_get_typedarray_info</em></a></span></li>
+<li><span class="stability_undefined"><a href="#n_api_napi_get_dataview_info"><em>napi_get_dataview_info</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_get_value_bool"><em>napi_get_value_bool</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_get_value_double"><em>napi_get_value_double</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_get_value_external"><em>napi_get_value_external</em></a></span></li>
@@ -217,6 +229,7 @@
 <li><span class="stability_undefined"><a href="#n_api_napi_is_buffer"><em>napi_is_buffer</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_is_error_1"><em>napi_is_error</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_is_typedarray"><em>napi_is_typedarray</em></a></span></li>
+<li><span class="stability_undefined"><a href="#n_api_napi_is_dataview"><em>napi_is_dataview</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_strict_equals"><em>napi_strict_equals</em></a></span></li>
 </ul>
 </li>
@@ -231,12 +244,15 @@
 <li><span class="stability_undefined"><a href="#n_api_napi_set_property"><em>napi_set_property</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_get_property"><em>napi_get_property</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_has_property"><em>napi_has_property</em></a></span></li>
+<li><span class="stability_undefined"><a href="#n_api_napi_delete_property"><em>napi_delete_property</em></a></span></li>
+<li><span class="stability_undefined"><a href="#n_api_napi_has_own_property"><em>napi_has_own_property</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_set_named_property"><em>napi_set_named_property</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_get_named_property"><em>napi_get_named_property</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_has_named_property"><em>napi_has_named_property</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_set_element"><em>napi_set_element</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_get_element"><em>napi_get_element</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_has_element"><em>napi_has_element</em></a></span></li>
+<li><span class="stability_undefined"><a href="#n_api_napi_delete_element"><em>napi_delete_element</em></a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_define_properties"><em>napi_define_properties</em></a></span></li>
 </ul>
 </li>
@@ -265,6 +281,7 @@
 </ul>
 </li>
 <li><span class="stability_undefined"><a href="#n_api_version_management">Version Management</a></span><ul>
+<li><span class="stability_undefined"><a href="#n_api_napi_get_node_version">napi_get_node_version</a></span></li>
 <li><span class="stability_undefined"><a href="#n_api_napi_get_version">napi_get_version</a></span></li>
 </ul>
 </li>
@@ -314,7 +331,7 @@ handling section <a href="#n_api_error_handling">Error Handling</a>.</li>
 <li><a href="#n_api_working_with_javascript_properties">Working with JavaScript Properties</a></li>
 <li><a href="#n_api_working_with_javascript_functions">Working with JavaScript Functions</a></li>
 <li><a href="#n_api_object_wrap">Object Wrap</a></li>
-<li>[Aynchronous Operations][]</li>
+<li><a href="#n_api_asynchronous_operations">Asynchronous Operations</a></li>
 </ul>
 <p>The N-API is a C API that ensures ABI stability across Node.js versions
 and different compiler levels. However, we also understand that a C++
@@ -414,18 +431,14 @@ minimum lifetimes explicitly.</p>
 <p>For more details, review the <a href="#n_api_object_lifetime_management">Object Lifetime Management</a>.</p>
 <h3>N-API Callback types<span><a class="mark" href="#n_api_n_api_callback_types" id="n_api_n_api_callback_types">#</a></span></h3>
 <h4><em>napi_callback_info</em><span><a class="mark" href="#n_api_napi_callback_info" id="n_api_napi_callback_info">#</a></span></h4>
-<p>Opaque datatype that is passed to a callback function. It can be used for two
-purposes:</p>
-<ul>
-<li>Get additional information about the context in which the callback was
-invoked.</li>
-<li>Set the return value of the callback.</li>
-</ul>
+<p>Opaque datatype that is passed to a callback function. It can be used for
+getting additional information about the context in which the callback was
+invoked.</p>
 <h4><em>napi_callback</em><span><a class="mark" href="#n_api_napi_callback" id="n_api_napi_callback">#</a></span></h4>
 <p>Function pointer type for user-provided native functions which are to be
 exposed to JavaScript via N-API. Callback functions should satisfy the
 following signature:</p>
-<pre><code class="lang-C">typedef void (*napi_callback)(napi_env, napi_callback_info);
+<pre><code class="lang-C">typedef napi_value (*napi_callback)(napi_env, napi_callback_info);
 </code></pre>
 <h4><em>napi_finalize</em><span><a class="mark" href="#n_api_napi_finalize" id="n_api_napi_finalize">#</a></span></h4>
 <p>Function pointer type for add-on provided functions that allow the user to be
@@ -434,6 +447,10 @@ object with which it was associated with, has been garbage-collected. The user
 must provide a function satisfying the following signature which would get
 called upon the object&#39;s collection. Currently, <code>napi_finalize</code> can be used for
 finding out when objects that have external data are collected.</p>
+<pre><code class="lang-C">typedef void (*napi_finalize)(napi_env env,
+                              void* finalize_data,
+                              void* finalize_hint);
+</code></pre>
 <h4>napi_async_execute_callback<span><a class="mark" href="#n_api_napi_async_execute_callback" id="n_api_napi_async_execute_callback">#</a></span></h4>
 <p>Function pointer used with functions that support asynchronous
 operations. Callback functions must statisfy the following signature:</p>
@@ -478,7 +495,7 @@ The format of the <code>napi_extended_error_info</code> structure is as follows:
 };
 </code></pre>
 <ul>
-<li><code>error_message</code>: Textual representation of the error that occured.</li>
+<li><code>error_message</code>: Textual representation of the error that occurred.</li>
 <li><code>engine_reserved</code>: Opaque handle reserved for engine use only.</li>
 <li><code>engine_error_code</code>: VM specific error code.</li>
 <li><code>error_code</code>: n-api status code for the last error.</li>
@@ -502,7 +519,9 @@ information about the error.</li>
 </ul>
 <p>Returns <code>napi_ok</code> if the API succeeded.</p>
 <p>This API retrieves a <code>napi_extended_error_info</code> structure with information
-about the last error that occured.</p>
+about the last error that occurred.</p>
+<p><em>Note</em>: The content of the <code>napi_extended_error_info</code> returned is only
+valid up until an n-api function is called on the same <code>env</code>.</p>
 <p><em>Note</em>: Do not rely on the content or format of any of the extended
 information as it is not subject to SemVer and may change at any time.
 It is intended only for logging purposes.</p>
@@ -533,7 +552,7 @@ cases <a href="#n_api_napi_get_and_clear_last_exception"><code>napi_get_and_clea
 clear the exception.  On success, result will contain the handle to
 the last JavaScript Object thrown. If it is determined, after
 retrieving the exception, the exception cannot be handled after all
-it can be re-thrown it with [<code>napi_throw</code>][] where error is the
+it can be re-thrown it with <a href="#n_api_napi_throw"><code>napi_throw</code></a> where error is the
 JavaScript Error object to be thrown.</p>
 <p>The following utility functions are also available in case native code
 needs to throw an exception or determine if a <code>napi_value</code> is an instance
@@ -545,6 +564,25 @@ code needs to create an Error object: <a href="#n_api_napi_create_error"><code>n
 <a href="#n_api_napi_create_type_error"><code>napi_create_type_error</code></a>, and <a href="#n_api_napi_create_range_error"><code>napi_create_range_error</code></a>.
 where result is the napi_value that refers to the newly created
 JavaScript Error object.</p>
+<p>The Node.js project is adding error codes to all of the errors
+generated internally.  The goal is for applications to use these
+error codes for all error checking. The associated error messages
+will remain, but will only be meant to be used for logging and
+display with the expectation that the message can change without
+SemVer applying. In order to support this model with N-API, both
+in internal functionality and for module specific functionality
+(as its good practice), the <code>throw_</code> and <code>create_</code> functions
+take an optional code parameter which is the string for the code
+to be added to the error object.  If the optional parameter is NULL
+then no code will be associated with the error. If a code is provided,
+the name associated with the error is also updated to be:</p>
+<pre><code class="lang-text">originalName [code]
+</code></pre>
+<p>where originalName is the original name associated with the error
+and code is the code that was provided.  For example if the code
+is &#39;ERR_ERROR_1&#39; and a TypeError is being created the name will be:</p>
+<pre><code class="lang-text">TypeError [ERR_ERROR_1]
+</code></pre>
 <h4>napi_throw<span><a class="mark" href="#n_api_napi_throw" id="n_api_napi_throw">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
@@ -559,10 +597,13 @@ JavaScript Error object.</p>
 <h4>napi_throw_error<span><a class="mark" href="#n_api_napi_throw_error" id="n_api_napi_throw_error">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
-</div><pre><code class="lang-C">NODE_EXTERN napi_status napi_throw_error(napi_env env, const char* msg);
+</div><pre><code class="lang-C">NODE_EXTERN napi_status napi_throw_error(napi_env env,
+                                         const char* code,
+                                         const char* msg);
 </code></pre>
 <ul>
 <li><code>[in] env</code>: The environment that the API is invoked under.</li>
+<li><code>[in] code</code>: Optional error code to be set on the error.</li>
 <li><code>[in] msg</code>: C string representing the text to be associated with
 the error.</li>
 </ul>
@@ -571,10 +612,13 @@ the error.</li>
 <h4>napi_throw_type_error<span><a class="mark" href="#n_api_napi_throw_type_error" id="n_api_napi_throw_type_error">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
-</div><pre><code class="lang-C">NODE_EXTERN napi_status napi_throw_type_error(napi_env env, const char* msg);
+</div><pre><code class="lang-C">NODE_EXTERN napi_status napi_throw_type_error(napi_env env,
+                                              const char* code,
+                                              const char* msg);
 </code></pre>
 <ul>
 <li><code>[in] env</code>: The environment that the API is invoked under.</li>
+<li><code>[in] code</code>: Optional error code to be set on the error.</li>
 <li><code>[in] msg</code>: C string representing the text to be associated with
 the error.</li>
 </ul>
@@ -583,10 +627,13 @@ the error.</li>
 <h4>napi_throw_range_error<span><a class="mark" href="#n_api_napi_throw_range_error" id="n_api_napi_throw_range_error">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
-</div><pre><code class="lang-C">NODE_EXTERN napi_status napi_throw_range_error(napi_env env, const char* msg);
+</div><pre><code class="lang-C">NODE_EXTERN napi_status napi_throw_range_error(napi_env env,
+                                               const char* code,
+                                               const char* msg);
 </code></pre>
 <ul>
 <li><code>[in] env</code>: The environment that the API is invoked under.</li>
+<li><code>[in] code</code>: Optional error code to be set on the error.</li>
 <li><code>[in] msg</code>: C string representing the text to be associated with
 the error.</li>
 </ul>
@@ -611,12 +658,16 @@ an error, false otherwise.</li>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
 </div><pre><code class="lang-C">NODE_EXTERN napi_status napi_create_error(napi_env env,
-                                          const char* msg,
+                                          napi_value code,
+                                          napi_value msg,
                                           napi_value* result);
 </code></pre>
 <ul>
 <li><code>[in] env</code>: The environment that the API is invoked under.</li>
-<li><code>[in] msg</code>: C string representing the text to be associated with.</li>
+<li><code>[in] code</code>: Optional <code>napi_value</code> with the string for the error code to<pre><code>         be associated with the error.
+</code></pre></li>
+<li><code>[in] msg</code>: napi_value that references a JavaScript String to be
+used as the message for the Error.</li>
 <li><code>[out] result</code>: <code>napi_value</code> representing the error created.</li>
 </ul>
 <p>Returns <code>napi_ok</code> if the API succeeded.</p>
@@ -625,12 +676,16 @@ an error, false otherwise.</li>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
 </div><pre><code class="lang-C">NODE_EXTERN napi_status napi_create_type_error(napi_env env,
-                                               const char* msg,
+                                               napi_value code,
+                                               napi_value msg,
                                                napi_value* result);
 </code></pre>
 <ul>
 <li><code>[in] env</code>: The environment that the API is invoked under.</li>
-<li><code>[in] msg</code>: C string representing the text to be associated with.</li>
+<li><code>[in] code</code>: Optional <code>napi_value</code> with the string for the error code to<pre><code>         be associated with the error.
+</code></pre></li>
+<li><code>[in] msg</code>: napi_value that references a JavaScript String to be
+used as the message for the Error.</li>
 <li><code>[out] result</code>: <code>napi_value</code> representing the error created.</li>
 </ul>
 <p>Returns <code>napi_ok</code> if the API succeeded.</p>
@@ -639,12 +694,16 @@ an error, false otherwise.</li>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
 </div><pre><code class="lang-C">NODE_EXTERN napi_status napi_create_range_error(napi_env env,
+                                                napi_value code,
                                                 const char* msg,
                                                 napi_value* result);
 </code></pre>
 <ul>
 <li><code>[in] env</code>: The environment that the API is invoked under.</li>
-<li><code>[in] msg</code>: C string representing the text to be associated with.</li>
+<li><code>[in] code</code>: Optional <code>napi_value</code> with the string for the error code to<pre><code>         be associated with the error.
+</code></pre></li>
+<li><code>[in] msg</code>: napi_value that references a JavaScript String to be
+used as the message for the Error.</li>
 <li><code>[out] result</code>: <code>napi_value</code> representing the error created.</li>
 </ul>
 <p>Returns <code>napi_ok</code> if the API succeeded.</p>
@@ -672,6 +731,19 @@ an error, false otherwise.</li>
 </ul>
 <p>Returns <code>napi_ok</code> if the API succeeded.</p>
 <p>This API returns true if an exception is pending.</p>
+<h3>Fatal Errors<span><a class="mark" href="#n_api_fatal_errors" id="n_api_fatal_errors">#</a></span></h3>
+<p>In the event of an unrecoverable error in a native module, a fatal error can be
+thrown to immediately terminate the process.</p>
+<h4>napi_fatal_error<span><a class="mark" href="#n_api_napi_fatal_error" id="n_api_napi_fatal_error">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v8.2.0</span>
+</div><pre><code class="lang-C">NAPI_EXTERN NAPI_NO_RETURN void napi_fatal_error(const char* location, const char* message);
+</code></pre>
+<ul>
+<li><code>[in] location</code>: Optional location at which the error occurred.</li>
+<li><code>[in] message</code>: The message associated with the error.</li>
+</ul>
+<p>The function call does not return, the process will be terminated.</p>
 <h2>Object Lifetime management<span><a class="mark" href="#n_api_object_lifetime_management" id="n_api_object_lifetime_management">#</a></span></h2>
 <p>As N-API calls are made, handles to objects in the heap for the underlying
 VM may be returned as <code>napi_values</code>. These handles must hold the
@@ -736,14 +808,15 @@ is valid throughout the execution of the loop:</p>
 }
 </code></pre>
 <p>When nesting scopes, there are cases where a handle from an
-inner scope needs  to live beyond the lifespan of that scope. N-API supports an
+inner scope needs to live beyond the lifespan of that scope. N-API supports an
 &#39;escapable scope&#39; in order to support this case. An escapable scope
-allows one or more handles to be &#39;promoted&#39; so that they &#39;escape&#39; the
-current scope and the lifespan of the handle(s) changes from the current
+allows one handle to be &#39;promoted&#39; so that it &#39;escapes&#39; the
+current scope and the lifespan of the handle changes from the current
 scope to that of the outer scope.</p>
 <p>The methods available to open/close escapable scopes are
 <a href="#n_api_napi_open_escapable_handle_scope"><code>napi_open_escapable_handle_scope</code></a> and <a href="#n_api_napi_close_escapable_handle_scope"><code>napi_close_escapable_handle_scope</code></a>.</p>
-<p>The request to promote a handle is made through the <a href="#n_api_napi_escape_handle"><code>napi_escape_handle</code></a>.</p>
+<p>The request to promote a handle is made through <a href="#n_api_napi_escape_handle"><code>napi_escape_handle</code></a> which
+can only be called once.</p>
 <h4>napi_open_handle_scope<span><a class="mark" href="#n_api_napi_open_handle_scope" id="n_api_napi_open_handle_scope">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
@@ -781,7 +854,7 @@ reverse order from which they were created.</p>
 <li><code>[out] result</code>: <code>napi_value</code> representing the new scope.</li>
 </ul>
 <p>Returns <code>napi_ok</code> if the API succeeded.</p>
-<p>This API open a new scope from which objects can be promoted
+<p>This API open a new scope from which one object can be promoted
 to the outer scope.</p>
 <h4>napi_close_escapable_handle_scope<span><a class="mark" href="#n_api_napi_close_escapable_handle_scope" id="n_api_napi_close_escapable_handle_scope">#</a></span></h4>
 <div class="api_metadata">
@@ -813,8 +886,9 @@ reverse order from which they were created.</p>
 Object in the outer scope.</li>
 </ul>
 <p>Returns <code>napi_ok</code> if the API succeeded.</p>
-<p>This API promotes the handle to the JavaScript object so that it valid
-for the lifetime of the outer scope.</p>
+<p>This API promotes the handle to the JavaScript object so that it is valid
+for the lifetime of the outer scope. It can only be called once per scope.
+If it is called more than once an error will be returned.</p>
 <h3>References to objects with a lifespan longer than that of the native method<span><a class="mark" href="#n_api_references_to_objects_with_a_lifespan_longer_than_that_of_the_native_method" id="n_api_references_to_objects_with_a_lifespan_longer_than_that_of_the_native_method">#</a></span></h3>
 <p>In some cases an addon will need to be able to create and reference objects
 with a lifespan longer than that of a single native method invocation. For
@@ -1267,13 +1341,13 @@ ECMAScript Language Specification.</p>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
 </div><pre><code class="lang-C">napi_status napi_create_symbol(napi_env env,
-                               const char* description,
+                               napi_value description,
                                napi_value* result)
 </code></pre>
 <ul>
 <li><code>[in] env</code>: The environment that the API is invoked under.</li>
-<li><code>[in] description</code>: Null-terminated character buffer representing a
-UTF8-encoded string to describe the symbol.</li>
+<li><code>[in] description</code>: Optional napi_value which refers to a JavaScript
+String to be set as the description for the symbol.</li>
 <li><code>[out] result</code>: A <code>napi_value</code> representing a JavaScript Symbol.</li>
 </ul>
 <p>Returns <code>napi_ok</code> if the API succeeded.</p>
@@ -1310,11 +1384,90 @@ raised.</p>
 <p>JavaScript TypedArray Objects are described in
 <a href="https://tc39.github.io/ecma262/#sec-typedarray-objects">Section 22.2</a>
 of the ECMAScript Language Specification.</p>
-<h3>Functions to convert from C types to N-API<span><a class="mark" href="#n_api_functions_to_convert_from_c_types_to_n_api" id="n_api_functions_to_convert_from_c_types_to_n_api">#</a></span></h3>
-<h4><em>napi_create_number</em><span><a class="mark" href="#n_api_napi_create_number" id="n_api_napi_create_number">#</a></span></h4>
+<h4><em>napi_create_dataview</em><span><a class="mark" href="#n_api_napi_create_dataview" id="n_api_napi_create_dataview">#</a></span></h4>
 <div class="api_metadata">
-<span>Added in: v8.0.0</span>
-</div><pre><code class="lang-C">napi_status napi_create_number(napi_env env, double value, napi_value* result)
+<span>Added in: v8.3.0</span>
+</div><pre><code class="lang-C">napi_status napi_create_dataview(napi_env env,
+                                 size_t byte_length,
+                                 napi_value arraybuffer,
+                                 size_t byte_offset,
+                                 napi_value* result)
+</code></pre>
+<ul>
+<li><code>[in] env</code>: The environment that the API is invoked under.</li>
+<li><code>[in] length</code>: Number of elements in the DataView.</li>
+<li><code>[in] arraybuffer</code>: ArrayBuffer underlying the DataView.</li>
+<li><code>[in] byte_offset</code>: The byte offset within the ArrayBuffer from which to
+start projecting the DataView.</li>
+<li><code>[out] result</code>: A <code>napi_value</code> representing a JavaScript DataView.</li>
+</ul>
+<p>Returns <code>napi_ok</code> if the API succeeded.</p>
+<p>This API creates a JavaScript DataView object over an existing ArrayBuffer.
+DataView objects provide an array-like view over an underlying data buffer,
+but one which allows items of different size and type in the ArrayBuffer.</p>
+<p>It is required that <code>byte_length + byte_offset</code> is less than or equal to the
+size in bytes of the array passed in. If not, a RangeError exception is raised.</p>
+<p>JavaScript DataView Objects are described in
+<a href="https://tc39.github.io/ecma262/#sec-dataview-objects">Section 24.3</a> of the ECMAScript Language Specification.</p>
+<h3>Functions to convert from C types to N-API<span><a class="mark" href="#n_api_functions_to_convert_from_c_types_to_n_api" id="n_api_functions_to_convert_from_c_types_to_n_api">#</a></span></h3>
+<h4><em>napi_create_int32</em><span><a class="mark" href="#n_api_napi_create_int32" id="n_api_napi_create_int32">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v8.4.0</span>
+</div><pre><code class="lang-C">napi_status napi_create_int32(napi_env env, int32_t value, napi_value* result)
+</code></pre>
+<ul>
+<li><code>[in] env</code>: The environment that the API is invoked under.</li>
+<li><code>[in] value</code>: Integer value to be represented in JavaScript.</li>
+<li><code>[out] result</code>: A <code>napi_value</code> representing a JavaScript Number.</li>
+</ul>
+<p>Returns <code>napi_ok</code> if the API succeeded.</p>
+<p>This API is used to convert from the C <code>int32_t</code> type to the JavaScript
+Number type.</p>
+<p>The JavaScript Number type is described in
+<a href="https://tc39.github.io/ecma262/#sec-ecmascript-language-types-number-type">Section 6.1.6</a>
+of the ECMAScript Language Specification.</p>
+<h4><em>napi_create_uint32</em><span><a class="mark" href="#n_api_napi_create_uint32" id="n_api_napi_create_uint32">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v8.4.0</span>
+</div><pre><code class="lang-C">napi_status napi_create_uint32(napi_env env, uint32_t value, napi_value* result)
+</code></pre>
+<ul>
+<li><code>[in] env</code>: The environment that the API is invoked under.</li>
+<li><code>[in] value</code>: Unsigned integer value to be represented in JavaScript.</li>
+<li><code>[out] result</code>: A <code>napi_value</code> representing a JavaScript Number.</li>
+</ul>
+<p>Returns <code>napi_ok</code> if the API succeeded.</p>
+<p>This API is used to convert from the C <code>uint32_t</code> type to the JavaScript
+Number type.</p>
+<p>The JavaScript Number type is described in
+<a href="https://tc39.github.io/ecma262/#sec-ecmascript-language-types-number-type">Section 6.1.6</a>
+of the ECMAScript Language Specification.</p>
+<h4><em>napi_create_int64</em><span><a class="mark" href="#n_api_napi_create_int64" id="n_api_napi_create_int64">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v8.4.0</span>
+</div><pre><code class="lang-C">napi_status napi_create_int64(napi_env env, int64_t value, napi_value* result)
+</code></pre>
+<ul>
+<li><code>[in] env</code>: The environment that the API is invoked under.</li>
+<li><code>[in] value</code>: Integer value to be represented in JavaScript.</li>
+<li><code>[out] result</code>: A <code>napi_value</code> representing a JavaScript Number.</li>
+</ul>
+<p>Returns <code>napi_ok</code> if the API succeeded.</p>
+<p>This API is used to convert from the C <code>int64_t</code> type to the JavaScript
+Number type.</p>
+<p>The JavaScript Number type is described in
+<a href="https://tc39.github.io/ecma262/#sec-ecmascript-language-types-number-type">Section 6.1.6</a>
+of the ECMAScript Language Specification. Note the complete range of <code>int64_t</code>
+cannot be represented with full precision in JavaScript. Integer values
+outside the range of
+<a href="https://tc39.github.io/ecma262/#sec-number.min_safe_integer"><code>Number.MIN_SAFE_INTEGER</code></a>
+-(2^53 - 1) -
+<a href="https://tc39.github.io/ecma262/#sec-number.max_safe_integer"><code>Number.MAX_SAFE_INTEGER</code></a>
+(2^53 - 1) will lose precision.</p>
+<h4><em>napi_create_double</em><span><a class="mark" href="#n_api_napi_create_double" id="n_api_napi_create_double">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v8.4.0</span>
+</div><pre><code class="lang-C">napi_status napi_create_double(napi_env env, double value, napi_value* result)
 </code></pre>
 <ul>
 <li><code>[in] env</code>: The environment that the API is invoked under.</li>
@@ -1322,7 +1475,7 @@ of the ECMAScript Language Specification.</p>
 <li><code>[out] result</code>: A <code>napi_value</code> representing a JavaScript Number.</li>
 </ul>
 <p>Returns <code>napi_ok</code> if the API succeeded.</p>
-<p>This API is used to convert from the C double type to the JavaScript
+<p>This API is used to convert from the C <code>double</code> type to the JavaScript
 Number type.</p>
 <p>The JavaScript Number type is described in
 <a href="https://tc39.github.io/ecma262/#sec-ecmascript-language-types-number-type">Section 6.1.6</a>
@@ -1338,12 +1491,32 @@ of the ECMAScript Language Specification.</p>
 <ul>
 <li><code>[in] env</code>: The environment that the API is invoked under.</li>
 <li><code>[in] str</code>: Character buffer representing a UTF16-LE-encoded string.</li>
-<li><code>[in] length</code>: The length of the string in characters, or -1 if it is
-null-terminated.</li>
+<li><code>[in] length</code>: The length of the string in two-byte code units, or -1 if
+it is null-terminated.</li>
 <li><code>[out] result</code>: A <code>napi_value</code> representing a JavaScript String.</li>
 </ul>
 <p>Returns <code>napi_ok</code> if the API succeeded.</p>
 <p>This API creates a JavaScript String object from a UTF16-LE-encoded C string</p>
+<p>The JavaScript String type is described in
+<a href="https://tc39.github.io/ecma262/#sec-ecmascript-language-types-string-type">Section 6.1.4</a>
+of the ECMAScript Language Specification.</p>
+<h4><em>napi_create_string_latin1</em><span><a class="mark" href="#n_api_napi_create_string_latin1" id="n_api_napi_create_string_latin1">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v8.0.0</span>
+</div><pre><code class="lang-C">NAPI_EXTERN napi_status napi_create_string_latin1(napi_env env,
+                                                  const char* str,
+                                                  size_t length,
+                                                  napi_value* result);
+</code></pre>
+<ul>
+<li><code>[in] env</code>: The environment that the API is invoked under.</li>
+<li><code>[in] str</code>: Character buffer representing a latin1-encoded string.</li>
+<li><code>[in] length</code>: The length of the string in bytes, or -1 if it is
+null-terminated.</li>
+<li><code>[out] result</code>: A <code>napi_value</code> representing a JavaScript String.</li>
+</ul>
+<p>Returns <code>napi_ok</code> if the API succeeded.</p>
+<p>This API creates a JavaScript String object from a latin1-encoded C string.</p>
 <p>The JavaScript String type is described in
 <a href="https://tc39.github.io/ecma262/#sec-ecmascript-language-types-string-type">Section 6.1.4</a>
 of the ECMAScript Language Specification.</p>
@@ -1357,8 +1530,8 @@ of the ECMAScript Language Specification.</p>
 </code></pre>
 <ul>
 <li><code>[in] env</code>: The environment that the API is invoked under.</li>
-<li><code>[in] s</code>: Character buffer representing a UTF8-encoded string.</li>
-<li><code>[in] length</code>: The length of the string in characters, or -1 if it is
+<li><code>[in] str</code>: Character buffer representing a UTF8-encoded string.</li>
+<li><code>[in] length</code>: The length of the string in bytes, or -1 if it is
 null-terminated.</li>
 <li><code>[out] result</code>: A <code>napi_value</code> representing a JavaScript String.</li>
 </ul>
@@ -1468,6 +1641,28 @@ to start projecting the TypedArray.</li>
 <p>This API returns various properties of a typed array.</p>
 <p><em>Warning</em>: Use caution while using this API since the underlying data buffer
 is managed by the VM</p>
+<h4><em>napi_get_dataview_info</em><span><a class="mark" href="#n_api_napi_get_dataview_info" id="n_api_napi_get_dataview_info">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v8.3.0</span>
+</div><pre><code class="lang-C">napi_status napi_get_dataview_info(napi_env env,
+                                   napi_value dataview,
+                                   size_t* byte_length,
+                                   void** data,
+                                   napi_value* arraybuffer,
+                                   size_t* byte_offset)
+</code></pre>
+<ul>
+<li><code>[in] env</code>: The environment that the API is invoked under.</li>
+<li><code>[in] dataview</code>: <code>napi_value</code> representing the DataView whose
+properties to query.</li>
+<li><code>[out] byte_length</code>: Number of bytes in the DataView.</li>
+<li><code>[out] data</code>: The data buffer underlying the DataView.</li>
+<li><code>[out] arraybuffer</code>: ArrayBuffer underlying the DataView.</li>
+<li><code>[out] byte_offset</code>: The byte offset within the data buffer from which
+to start projecting the DataView.</li>
+</ul>
+<p>Returns <code>napi_ok</code> if the API succeeded.</p>
+<p>This API returns various properties of a DataView.</p>
 <h4><em>napi_get_value_bool</em><span><a class="mark" href="#n_api_napi_get_value_bool" id="n_api_napi_get_value_bool">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
@@ -1843,6 +2038,18 @@ object.</li>
 </ul>
 <p>Returns <code>napi_ok</code> if the API succeeded.</p>
 <p>This API checks if the Object passsed in is a typed array.</p>
+<h3><em>napi_is_dataview</em><span><a class="mark" href="#n_api_napi_is_dataview" id="n_api_napi_is_dataview">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.3.0</span>
+</div><pre><code class="lang-C">napi_status napi_is_dataview(napi_env env, napi_value value, bool* result)
+</code></pre>
+<ul>
+<li><code>[in] env</code>: The environment that the API is invoked under.</li>
+<li><code>[in] value</code>: The JavaScript value to check.</li>
+<li><code>[out] result</code>: Whether the given <code>napi_value</code> represents a DataView.</li>
+</ul>
+<p>Returns <code>napi_ok</code> if the API succeeded.</p>
+<p>This API checks if the Object passed in is a DataView.</p>
 <h3><em>napi_strict_equals</em><span><a class="mark" href="#n_api_napi_strict_equals" id="n_api_napi_strict_equals">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
@@ -1896,7 +2103,7 @@ status = napi_create_object(env, &amp;obj);
 if (status != napi_ok) return status;
 
 // Create a napi_value for 123
-status = napi_create_number(env, 123, &amp;value);
+status = napi_create_int32(env, 123, &amp;value);
 if (status != napi_ok) return status;
 
 // obj.myProp = 123
@@ -1959,9 +2166,9 @@ if (status != napi_ok) return status;
 
 // Create napi_values for 123 and 456
 napi_value fooValue, barValue;
-status = napi_create_number(env, 123, &amp;fooValue);
+status = napi_create_int32(env, 123, &amp;fooValue);
 if (status != napi_ok) return status;
-status = napi_create_number(env, 456, &amp;barValue);
+status = napi_create_int32(env, 456, &amp;barValue);
 if (status != napi_ok) return status;
 
 // Set the properties
@@ -2050,7 +2257,7 @@ won&#39;t be used).</li>
 <li><code>data</code>: The callback data passed into <code>method</code>, <code>getter</code> and <code>setter</code> if
 this function is invoked.</li>
 <li><code>attributes</code>: The attributes associated with the particular property.
-See <a href="#napi_property_attributes"><code>napi_property_attributes</code></a>.</li>
+See <a href="#n_api_napi_property_attributes"><code>napi_property_attributes</code></a>.</li>
 </ul>
 <h3>Functions<span><a class="mark" href="#n_api_functions" id="n_api_functions">#</a></span></h3>
 <h4><em>napi_get_property_names</em><span><a class="mark" href="#n_api_napi_get_property_names" id="n_api_napi_get_property_names">#</a></span></h4>
@@ -2118,6 +2325,41 @@ and <a href="#n_api_napi_get_element"><code>napi_get_element</code></a>.</li>
 </ul>
 <p>Returns <code>napi_ok</code> if the API succeeded.</p>
 <p>This API checks if the Object passed in has the named property.</p>
+<h4><em>napi_delete_property</em><span><a class="mark" href="#n_api_napi_delete_property" id="n_api_napi_delete_property">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v8.2.0</span>
+</div><pre><code class="lang-C">napi_status napi_delete_property(napi_env env,
+                                 napi_value object,
+                                 napi_value key,
+                                 bool* result);
+</code></pre>
+<ul>
+<li><code>[in] env</code>: The environment that the N-API call is invoked under.</li>
+<li><code>[in] object</code>: The object to query.</li>
+<li><code>[in] key</code>: The name of the property to delete.</li>
+<li><code>[out] result</code>: Whether the property deletion succeeded or not. <code>result</code> can
+optionally be ignored by passing <code>NULL</code>.</li>
+</ul>
+<p>Returns <code>napi_ok</code> if the API succeeded.</p>
+<p>This API attempts to delete the <code>key</code> own property from <code>object</code>.</p>
+<h4><em>napi_has_own_property</em><span><a class="mark" href="#n_api_napi_has_own_property" id="n_api_napi_has_own_property">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v8.2.0</span>
+</div><pre><code class="lang-C">napi_status napi_has_own_property(napi_env env,
+                                  napi_value object,
+                                  napi_value key,
+                                  bool* result);
+</code></pre>
+<ul>
+<li><code>[in] env</code>: The environment that the N-API call is invoked under.</li>
+<li><code>[in] object</code>: The object to query.</li>
+<li><code>[in] key</code>: The name of the own property whose existence to check.</li>
+<li><code>[out] result</code>: Whether the own property exists on the object or not.</li>
+</ul>
+<p>Returns <code>napi_ok</code> if the API succeeded.</p>
+<p>This API checks if the Object passed in has the named own property. <code>key</code> must
+be a string or a Symbol, or an error will be thrown. N-API will not perform any
+conversion between data types.</p>
 <h4><em>napi_set_named_property</em><span><a class="mark" href="#n_api_napi_set_named_property" id="n_api_napi_set_named_property">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
@@ -2218,6 +2460,23 @@ created from the string passed in as <code>utf8Name</code></p>
 <p>Returns <code>napi_ok</code> if the API succeeded.</p>
 <p>This API returns if the Object passed in has an element at the
 requested index.</p>
+<h4><em>napi_delete_element</em><span><a class="mark" href="#n_api_napi_delete_element" id="n_api_napi_delete_element">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v8.2.0</span>
+</div><pre><code class="lang-C">napi_status napi_delete_element(napi_env env,
+                                napi_value object,
+                                uint32_t index,
+                                bool* result);
+</code></pre>
+<ul>
+<li><code>[in] env</code>: The environment that the N-API call is invoked under.</li>
+<li><code>[in] object</code>: The object to query.</li>
+<li><code>[in] index</code>: The index of the property to delete.</li>
+<li><code>[out] result</code>: Whether the element deletion succeeded or not. <code>result</code> can
+optionally be ignored by passing <code>NULL</code>.</li>
+</ul>
+<p>Returns <code>napi_ok</code> if the API succeeded.</p>
+<p>This API attempts to delete the specified <code>index</code> from <code>object</code>.</p>
 <h4><em>napi_define_properties</em><span><a class="mark" href="#n_api_napi_define_properties" id="n_api_napi_define_properties">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
@@ -2297,7 +2556,7 @@ status = napi_get_named_property(env, global, &quot;AddTwo&quot;, &amp;add_two);
 if (status != napi_ok) return;
 
 // const arg = 1337
-status = napi_create_number(env, 1337, &amp;arg);
+status = napi_create_int32(env, 1337, &amp;arg);
 if (status != napi_ok) return;
 
 napi_value* argv = &amp;arg;
@@ -2344,8 +2603,9 @@ from script.</p>
 <p>In order to expose a function as part of the
 add-on&#39;s module exports, set the newly created function on the exports
 object. A sample module might look as follows:</p>
-<pre><code class="lang-C">void SayHello(napi_env env, napi_callback_info info) {
+<pre><code class="lang-C">napi_value SayHello(napi_env env, napi_callback_info info) {
   printf(&quot;Hello\n&quot;);
+  return nullptr;
 }
 
 void Init(napi_env env, napi_value exports, napi_value module, void* priv) {
@@ -2575,8 +2835,8 @@ finalize callback.</li>
 <li><code>[out] result</code>: Optional reference to the wrapped object.</li>
 </ul>
 <p>Returns <code>napi_ok</code> if the API succeeded.</p>
-<p>Wraps a native instance in JavaScript object of the corresponding type.
-The native instance can be retrieved later using <code>napi_unwrap()</code>.</p>
+<p>Wraps a native instance in a JavaScript object. The native instance can be
+retrieved later using <code>napi_unwrap()</code>.</p>
 <p>When JavaScript code invokes a constructor for a class that was defined using
 <code>napi_define_class()</code>, the <code>napi_callback</code> for the constructor is invoked.
 After constructing an instance of the native class, the callback must then call
@@ -2598,6 +2858,9 @@ required in order to enable correct proper of the reference.</p>
 <p><em>Note</em>: This API may modify the prototype chain of the wrapper object.
 Afterward, additional manipulation of the wrapper&#39;s prototype chain may cause
 <code>napi_unwrap()</code> to fail.</p>
+<p><em>Note</em>: Calling <code>napi_wrap()</code> a second time on an object that already has a
+native instance associated with it by virtue of a previous call to
+<code>napi_wrap()</code> will cause an error to be returned.</p>
 <h3><em>napi_unwrap</em><span><a class="mark" href="#n_api_napi_unwrap" id="n_api_napi_unwrap">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
@@ -2720,6 +2983,29 @@ the <code>complete</code> callback will be invoked with a status value of
 <code>napi_cancelled</code>. The work should not be deleted before the <code>complete</code>
 callback invocation, even if it has been successfully cancelled.</p>
 <h2>Version Management<span><a class="mark" href="#n_api_version_management" id="n_api_version_management">#</a></span></h2>
+<h3>napi_get_node_version<span><a class="mark" href="#n_api_napi_get_node_version" id="n_api_napi_get_node_version">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.4.0</span>
+</div><pre><code class="lang-C">typedef struct {
+  uint32_t major;
+  uint32_t minor;
+  uint32_t patch;
+  const char* release;
+} napi_node_version;
+
+NAPI_EXTERN
+napi_status napi_get_node_version(napi_env env,
+                                  const napi_node_version** version);
+</code></pre>
+<ul>
+<li><code>[in] env</code>: The environment that the API is invoked under.</li>
+<li><code>[out] version</code>: A pointer to version information for Node itself.</li>
+</ul>
+<p>Returns <code>napi_ok</code> if the API succeeded.</p>
+<p>This function fills the <code>version</code> struct with the major, minor and patch version
+of Node that is currently running, and the <code>release</code> field with the
+value of <a href="process.html#process_process_release"><code>process.release.name</code></a>.</p>
+<p>The returned buffer is statically allocated and does not need to be freed.</p>
 <h3>napi_get_version<span><a class="mark" href="#n_api_napi_get_version" id="n_api_napi_get_version">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
@@ -2745,6 +3031,8 @@ support it:</p>
 <li>If the function is not available, provide an alternate implementation
 that does not use the function.</li>
 </ul>
+<!-- it's very convenient to have all the anchors indexed -->
+<!--lint disable no-unused-definitions remark-lint-->
 
       </div>
     </div>

@@ -1,28 +1,28 @@
 'use strict';
 
 const common = require('../common');
+if (!common.hasIntl) {
+  // A handful of the tests fail when ICU is not included.
+  common.skip('missing Intl');
+}
+
 const assert = require('assert');
 const path = require('path');
 const URL = require('url').URL;
 const { test, assert_equals } = require('../common/wpt');
 const additionalTestCases = require(
-    path.join(common.fixturesDir, 'url-setter-tests-additional.js'));
-
-if (!common.hasIntl) {
-  // A handful of the tests fail when ICU is not included.
-  common.skip('missing Intl');
-  return;
-}
+  path.join(common.fixturesDir, 'url-setter-tests-additional.js'));
 
 const request = {
   response: require(path.join(common.fixturesDir, 'url-setter-tests'))
 };
 
-/* eslint-disable */
-/* WPT Refs:
+/* The following tests are copied from WPT. Modifications to them should be
+   upstreamed first. Refs:
    https://github.com/w3c/web-platform-tests/blob/8791bed/url/url-setters.html
    License: http://www.w3.org/Consortium/Legal/2008/04-testsuite-copyright.html
 */
+/* eslint-disable */
 function startURLSettersTests() {
 //   var setup = async_test("Loading data…")
 //   setup.step(function() {

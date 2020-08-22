@@ -1,15 +1,13 @@
 'use strict';
 
 const common = require('../common');
+// Refs: https://github.com/nodejs/node/pull/2253
+if (common.isSunOS)
+  common.skip('unreliable on SunOS');
+
 const assert = require('assert');
 const path = require('path');
 const childProcess = require('child_process');
-
-// Refs: https://github.com/nodejs/node/pull/2253
-if (common.isSunOS) {
-  common.skip('unreliable on SunOS');
-  return;
-}
 
 const nodeBinary = process.argv[0];
 
@@ -106,7 +104,7 @@ replProc.on('close', function(code) {
 // also test that duplicated preload only gets loaded once
 childProcess.exec(
   `"${nodeBinary}" ${preloadOption([fixtureA])}-e "console.log('hello');" ${
-  preloadOption([fixtureA, fixtureB])}`,
+    preloadOption([fixtureA, fixtureB])}`,
   function(err, stdout, stderr) {
     assert.ifError(err);
     assert.strictEqual(stdout, 'A\nB\nhello\n');
@@ -127,7 +125,7 @@ interactive.stdin.write('process.exit()\n');
 
 childProcess.exec(
   `"${nodeBinary}" --require "${fixture('cluster-preload.js')}" "${
-  fixture('cluster-preload-test.js')}"`,
+    fixture('cluster-preload-test.js')}"`,
   function(err, stdout, stderr) {
     assert.ifError(err);
     assert.ok(/worker terminated with code 43/.test(stdout));

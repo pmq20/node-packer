@@ -11,6 +11,7 @@
 #endif
 
 #include <stdio.h>
+#include <algorithm>
 
 namespace node {
 
@@ -75,6 +76,10 @@ void Environment::Start(int argc,
       reinterpret_cast<uv_handle_t*>(&idle_check_handle_),
       close_and_finish,
       nullptr);
+  RegisterHandleCleanup(
+      reinterpret_cast<uv_handle_t*>(&destroy_ids_timer_handle_),
+      close_and_finish,
+      nullptr);
 
   if (start_profiler_idle_notifier) {
     StartProfilerIdleNotifier();
@@ -97,9 +102,6 @@ void Environment::CleanupHandles() {
     hc->cb_(this, hc->handle_, hc->arg_);
     delete hc;
   }
-
-  while (handle_cleanup_waiting_ != 0)
-    uv_run(event_loop(), UV_RUN_ONCE);
 
   while (handle_cleanup_waiting_ != 0)
     uv_run(event_loop(), UV_RUN_ONCE);
@@ -178,10 +180,39 @@ void Environment::AtExit(void (*cb)(void* arg), void* arg) {
 }
 
 void Environment::AddPromiseHook(promise_hook_func fn, void* arg) {
-  promise_hooks_.push_back(PromiseHookCallback{fn, arg});
+  auto it = std::find_if(
+      promise_hooks_.begin(), promise_hooks_.end(),
+      [&](const PromiseHookCallback& hook) {
+        return hook.cb_ == fn && hook.arg_ == arg;
+      });
+  if (it != promise_hooks_.end()) {
+    it->enable_count_++;
+    return;
+  }
+  promise_hooks_.push_back(PromiseHookCallback{fn, arg, 1});
+
   if (promise_hooks_.size() == 1) {
     isolate_->SetPromiseHook(EnvPromiseHook);
   }
+}
+
+bool Environment::RemovePromiseHook(promise_hook_func fn, void* arg) {
+  auto it = std::find_if(
+      promise_hooks_.begin(), promise_hooks_.end(),
+      [&](const PromiseHookCallback& hook) {
+        return hook.cb_ == fn && hook.arg_ == arg;
+      });
+
+  if (it == promise_hooks_.end()) return false;
+
+  if (--it->enable_count_ > 0) return true;
+
+  promise_hooks_.erase(it);
+  if (promise_hooks_.empty()) {
+    isolate_->SetPromiseHook(nullptr);
+  }
+
+  return true;
 }
 
 void Environment::EnvPromiseHook(v8::PromiseHookType type,

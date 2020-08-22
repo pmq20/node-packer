@@ -1,10 +1,8 @@
 'use strict';
 const common = require('../common');
 
-if (!common.hasIntl) {
+if (!common.hasIntl)
   common.skip('missing Intl');
-  return;
-}
 
 const icu = process.binding('icu');
 const assert = require('assert');
@@ -24,6 +22,8 @@ const wptToASCIITests = require('../fixtures/url-toascii.js');
 }
 
 {
+  const errMessage = /^Error: Cannot convert name to ASCII$/;
+
   for (const [i, test] of wptToASCIITests.entries()) {
     if (typeof test === 'string')
       continue; // skip comments
@@ -33,8 +33,7 @@ const wptToASCIITests = require('../fixtures/url-toascii.js');
       caseComment += ` (${comment})`;
     if (output === null) {
       assert.throws(() => icu.toASCII(input),
-                    /^Error: Cannot convert name to ASCII$/,
-                    `ToASCII ${caseComment}`);
+                    errMessage, `ToASCII ${caseComment}`);
       assert.doesNotThrow(() => icu.toASCII(input, true),
                           `ToASCII ${caseComment} in lenient mode`);
     } else {

@@ -28,7 +28,6 @@ function makeNodeError(Base) {
     constructor(key, ...args) {
       super(message(key, args));
       this[kCode] = key;
-      Error.captureStackTrace(this, NodeError);
     }
 
     get name() {
@@ -47,7 +46,6 @@ class AssertionError extends Error {
       throw new exports.TypeError('ERR_INVALID_ARG_TYPE', 'options', 'object');
     }
     const util = lazyUtil();
-    const assert = lazyAssert();
     const message = options.message ||
                     `${util.inspect(options.actual).slice(0, 128)} ` +
                     `${options.operator} ` +
@@ -60,8 +58,7 @@ class AssertionError extends Error {
     this.actual = options.actual;
     this.expected = options.expected;
     this.operator = options.operator;
-    const stackStartFunction = options.stackStartFunction || assert.fail;
-    Error.captureStackTrace(this, stackStartFunction);
+    Error.captureStackTrace(this, options.stackStartFunction);
   }
 }
 
@@ -112,6 +109,80 @@ module.exports = exports = {
 // Note: Please try to keep these in alphabetical order
 E('ERR_ARG_NOT_ITERABLE', '%s must be iterable');
 E('ERR_ASSERTION', (msg) => msg);
+E('ERR_ENCODING_INVALID_ENCODED_DATA',
+  (enc) => `The encoded data was not valid for encoding ${enc}`);
+E('ERR_ENCODING_NOT_SUPPORTED',
+  (enc) => `The "${enc}" encoding is not supported`);
+E('ERR_FALSY_VALUE_REJECTION', 'Promise was rejected with falsy value');
+E('ERR_HTTP_HEADERS_SENT',
+  'Cannot render headers after they are sent to the client');
+E('ERR_HTTP_INVALID_STATUS_CODE', 'Invalid status code: %s');
+E('ERR_HTTP_TRAILER_INVALID',
+  'Trailers are invalid with this transfer encoding');
+E('ERR_HTTP_INVALID_CHAR', 'Invalid character in statusMessage.');
+E('ERR_HTTP_INVALID_STATUS_CODE',
+  (originalStatusCode) => `Invalid status code: ${originalStatusCode}`);
+E('ERR_HTTP2_CONNECT_AUTHORITY',
+  ':authority header is required for CONNECT requests');
+E('ERR_HTTP2_CONNECT_PATH',
+  'The :path header is forbidden for CONNECT requests');
+E('ERR_HTTP2_CONNECT_SCHEME',
+  'The :scheme header is forbidden for CONNECT requests');
+E('ERR_HTTP2_FRAME_ERROR',
+  (type, code, id) => {
+    let msg = `Error sending frame type ${type}`;
+    if (id !== undefined)
+      msg += ` for stream ${id}`;
+    msg += ` with code ${code}`;
+    return msg;
+  });
+E('ERR_HTTP2_HEADER_REQUIRED',
+  (name) => `The ${name} header is required`);
+E('ERR_HTTP2_HEADER_SINGLE_VALUE',
+  (name) => `Header field "${name}" must have only a single value`);
+E('ERR_HTTP2_HEADERS_OBJECT', 'Headers must be an object');
+E('ERR_HTTP2_HEADERS_SENT', 'Response has already been initiated.');
+E('ERR_HTTP2_HEADERS_AFTER_RESPOND',
+  'Cannot specify additional headers after response initiated');
+E('ERR_HTTP2_INFO_HEADERS_AFTER_RESPOND',
+  'Cannot send informational headers after the HTTP message has been sent');
+E('ERR_HTTP2_INFO_STATUS_NOT_ALLOWED',
+  'Informational status codes cannot be used');
+E('ERR_HTTP2_INVALID_CONNECTION_HEADERS',
+  'HTTP/1 Connection specific headers are forbidden');
+E('ERR_HTTP2_INVALID_HEADER_VALUE', 'Value must not be undefined or null');
+E('ERR_HTTP2_INVALID_INFO_STATUS',
+  (code) => `Invalid informational status code: ${code}`);
+E('ERR_HTTP2_INVALID_PACKED_SETTINGS_LENGTH',
+  'Packed settings length must be a multiple of six');
+E('ERR_HTTP2_INVALID_PSEUDOHEADER',
+  (name) => `"${name}" is an invalid pseudoheader or is used incorrectly`);
+E('ERR_HTTP2_INVALID_SESSION', 'The session has been destroyed');
+E('ERR_HTTP2_INVALID_STREAM', 'The stream has been destroyed');
+E('ERR_HTTP2_INVALID_SETTING_VALUE',
+  (name, value) => `Invalid value for setting "${name}": ${value}`);
+E('ERR_HTTP2_MAX_PENDING_SETTINGS_ACK',
+  (max) => `Maximum number of pending settings acknowledgements (${max})`);
+E('ERR_HTTP2_PAYLOAD_FORBIDDEN',
+  (code) => `Responses with ${code} status must not have a payload`);
+E('ERR_HTTP2_OUT_OF_STREAMS',
+  'No stream ID is available because maximum stream ID has been reached');
+E('ERR_HTTP2_PSEUDOHEADER_NOT_ALLOWED', 'Cannot set HTTP/2 pseudo-headers');
+E('ERR_HTTP2_PUSH_DISABLED', 'HTTP/2 client has disabled push streams');
+E('ERR_HTTP2_SEND_FILE', 'Only regular files can be sent');
+E('ERR_HTTP2_SOCKET_BOUND',
+  'The socket is already bound to an Http2Session');
+E('ERR_HTTP2_STATUS_INVALID',
+  (code) => `Invalid status code: ${code}`);
+E('ERR_HTTP2_STATUS_101',
+  'HTTP status code 101 (Switching Protocols) is forbidden in HTTP/2');
+E('ERR_HTTP2_STREAM_CLOSED', 'The stream is already closed');
+E('ERR_HTTP2_STREAM_ERROR',
+  (code) => `Stream closed with error code ${code}`);
+E('ERR_HTTP2_STREAM_SELF_DEPENDENCY', 'A stream cannot depend on itself');
+E('ERR_HTTP2_UNSUPPORTED_PROTOCOL',
+  (protocol) => `protocol "${protocol}" is unsupported.`);
+E('ERR_INDEX_OUT_OF_RANGE', 'Index out of range');
 E('ERR_INVALID_ARG_TYPE', invalidArgType);
 E('ERR_INVALID_CALLBACK', 'callback must be a function');
 E('ERR_INVALID_FD', (fd) => `"fd" must be a positive integer: ${fd}`);
@@ -137,18 +208,24 @@ E('ERR_IPC_DISCONNECTED', 'IPC channel is already disconnected');
 E('ERR_IPC_ONE_PIPE', 'Child process can have only one IPC pipe');
 E('ERR_IPC_SYNC_FORK', 'IPC cannot be used with synchronous forks');
 E('ERR_MISSING_ARGS', missingArgs);
-E('ERR_STDERR_CLOSE', 'process.stderr cannot be closed');
-E('ERR_STDOUT_CLOSE', 'process.stdout cannot be closed');
-E('ERR_UNKNOWN_BUILTIN_MODULE', (id) => `No such built-in module: ${id}`);
-E('ERR_UNKNOWN_SIGNAL', (signal) => `Unknown signal: ${signal}`);
-E('ERR_UNKNOWN_STDIN_TYPE', 'Unknown stdin file type');
-E('ERR_UNKNOWN_STREAM_TYPE', 'Unknown stream file type');
+E('ERR_NAPI_CONS_FUNCTION', 'Constructor must be a function');
+E('ERR_NAPI_CONS_PROTOTYPE_OBJECT', 'Constructor.prototype must be an object');
+E('ERR_NO_CRYPTO', 'Node.js is not compiled with OpenSSL crypto support');
+E('ERR_NO_ICU', '%s is not supported on Node.js compiled without ICU');
+E('ERR_PARSE_HISTORY_DATA', 'Could not parse history data in %s');
 E('ERR_SOCKET_ALREADY_BOUND', 'Socket is already bound');
 E('ERR_SOCKET_BAD_TYPE',
   'Bad socket type specified. Valid types are: udp4, udp6');
 E('ERR_SOCKET_CANNOT_SEND', 'Unable to send data');
 E('ERR_SOCKET_BAD_PORT', 'Port should be > 0 and < 65536');
 E('ERR_SOCKET_DGRAM_NOT_RUNNING', 'Not running');
+E('ERR_OUTOFMEMORY', 'Out of memory');
+E('ERR_STDERR_CLOSE', 'process.stderr cannot be closed');
+E('ERR_STDOUT_CLOSE', 'process.stdout cannot be closed');
+E('ERR_UNKNOWN_BUILTIN_MODULE', (id) => `No such built-in module: ${id}`);
+E('ERR_UNKNOWN_SIGNAL', (signal) => `Unknown signal: ${signal}`);
+E('ERR_UNKNOWN_STDIN_TYPE', 'Unknown stdin file type');
+E('ERR_UNKNOWN_STREAM_TYPE', 'Unknown stream file type');
 // Add new errors from here...
 
 function invalidArgType(name, expected, actual) {

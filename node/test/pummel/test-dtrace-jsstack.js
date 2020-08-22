@@ -21,13 +21,11 @@
 
 'use strict';
 const common = require('../common');
+if (!common.isSunOS)
+  common.skip('no DTRACE support');
+
 const assert = require('assert');
 const os = require('os');
-
-if (!common.isSunOS) {
-  common.skip('no DTRACE support');
-  return;
-}
 
 /*
  * Some functions to create a recognizable stack.
@@ -60,7 +58,7 @@ const spawn = require('child_process').spawn;
  * deepest function is the only caller of os.loadavg().
  */
 const dtrace = spawn('dtrace', [ '-qwn', `syscall::getloadavg:entry/pid == ${
-                                process.pid}/{ustack(100, 8192); exit(0); }` ]);
+  process.pid}/{ustack(100, 8192); exit(0); }` ]);
 
 let output = '';
 
@@ -86,14 +84,14 @@ dtrace.on('exit', function(code) {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
 
-    if (line.indexOf(sentinel) === -1 || frames.length === 0)
+    if (!line.includes(sentinel) || frames.length === 0)
       continue;
 
     const frame = line.substr(line.indexOf(sentinel) + sentinel.length);
     const top = frames.shift();
 
-    assert.strictEqual(frame.indexOf(top), 0,
-                       `unexpected frame where ${top} was expected`);
+    assert(frame.startsWith(top),
+           `unexpected frame where ${top} was expected`);
   }
 
   assert.strictEqual(frames.length, 0,

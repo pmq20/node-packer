@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Errors | Node.js v8.1.1 Documentation</title>
+  <title>Errors | Node.js v8.4.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -42,8 +42,10 @@
 <li><a class="nav-fs" href="fs.html">File System</a></li>
 <li><a class="nav-globals" href="globals.html">Globals</a></li>
 <li><a class="nav-http" href="http.html">HTTP</a></li>
+<li><a class="nav-http2" href="http2.html">HTTP/2</a></li>
 <li><a class="nav-https" href="https.html">HTTPS</a></li>
 <li><a class="nav-inspector" href="inspector.html">Inspector</a></li>
+<li><a class="nav-intl" href="intl.html">Internationalization</a></li>
 <li><a class="nav-modules" href="modules.html">Modules</a></li>
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
@@ -77,7 +79,7 @@
 
     <div id="column1" data-id="errors" class="interior">
       <header>
-        <h1>Node.js v8.1.1 Documentation</h1>
+        <h1>Node.js v8.4.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -107,6 +109,7 @@
 <li><span class="stability_undefined"><a href="#errors_error_stack">error.stack</a></span></li>
 </ul>
 </li>
+<li><span class="stability_undefined"><a href="#errors_class_assertionerror">Class: AssertionError</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_class_rangeerror">Class: RangeError</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_class_referenceerror">Class: ReferenceError</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_class_syntaxerror">Class: SyntaxError</a></span></li>
@@ -127,6 +130,41 @@
 </li>
 <li><span class="stability_undefined"><a href="#errors_node_js_error_codes">Node.js Error Codes</a></span><ul>
 <li><span class="stability_undefined"><a href="#errors_err_arg_not_iterable">ERR_ARG_NOT_ITERABLE</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_falsy_value_rejection">ERR_FALSY_VALUE_REJECTION</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http_headers_sent">ERR_HTTP_HEADERS_SENT</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http_invalid_status_code">ERR_HTTP_INVALID_STATUS_CODE</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http_trailer_invalid">ERR_HTTP_TRAILER_INVALID</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_connect_authority">ERR_HTTP2_CONNECT_AUTHORITY</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_connect_path">ERR_HTTP2_CONNECT_PATH</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_connect_scheme">ERR_HTTP2_CONNECT_SCHEME</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_error">ERR_HTTP2_ERROR</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_frame_error">ERR_HTTP2_FRAME_ERROR</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_headers_object">ERR_HTTP2_HEADERS_OBJECT</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_headers_sent">ERR_HTTP2_HEADERS_SENT</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_header_single_value">ERR_HTTP2_HEADER_SINGLE_VALUE</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_info_headers_after_respond">ERR_HTTP2_INFO_HEADERS_AFTER_RESPOND</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_info_status_not_allowed">ERR_HTTP2_INFO_STATUS_NOT_ALLOWED</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_invalid_connection_headers">ERR_HTTP2_INVALID_CONNECTION_HEADERS</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_invalid_header_value">ERR_HTTP2_INVALID_HEADER_VALUE</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_invalid_info_status">ERR_HTTP2_INVALID_INFO_STATUS</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_invalid_pseudoheader">ERR_HTTP2_INVALID_PSEUDOHEADER</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_invalid_session">ERR_HTTP2_INVALID_SESSION</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_invalid_setting_value">ERR_HTTP2_INVALID_SETTING_VALUE</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_invalid_stream">ERR_HTTP2_INVALID_STREAM</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_max_pending_settings_ack">ERR_HTTP2_MAX_PENDING_SETTINGS_ACK</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_out_of_streams">ERR_HTTP2_OUT_OF_STREAMS</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_payload_forbidden">ERR_HTTP2_PAYLOAD_FORBIDDEN</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_pseudoheader_not_allowed">ERR_HTTP2_PSEUDOHEADER_NOT_ALLOWED</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_push_disabled">ERR_HTTP2_PUSH_DISABLED</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_send_file">ERR_HTTP2_SEND_FILE</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_socket_bound">ERR_HTTP2_SOCKET_BOUND</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_status_101">ERR_HTTP2_STATUS_101</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_status_invalid">ERR_HTTP2_STATUS_INVALID</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_stream_closed">ERR_HTTP2_STREAM_CLOSED</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_stream_error">ERR_HTTP2_STREAM_ERROR</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_stream_self_dependency">ERR_HTTP2_STREAM_SELF_DEPENDENCY</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_http2_unsupported_protocol">ERR_HTTP2_UNSUPPORTED_PROTOCOL</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_index_out_of_range">ERR_INDEX_OUT_OF_RANGE</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_invalid_arg_type">ERR_INVALID_ARG_TYPE</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_invalid_callback">ERR_INVALID_CALLBACK</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_invalid_file_url_host">ERR_INVALID_FILE_URL_HOST</a></span></li>
@@ -143,6 +181,7 @@
 <li><span class="stability_undefined"><a href="#errors_err_ipc_one_pipe">ERR_IPC_ONE_PIPE</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_ipc_sync_fork">ERR_IPC_SYNC_FORK</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_missing_args">ERR_MISSING_ARGS</a></span></li>
+<li><span class="stability_undefined"><a href="#errors_err_no_icu">ERR_NO_ICU</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_socket_already_bound">ERR_SOCKET_ALREADY_BOUND</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_socket_bad_port">ERR_SOCKET_BAD_PORT</a></span></li>
 <li><span class="stability_undefined"><a href="#errors_err_socket_bad_type">ERR_SOCKET_BAD_TYPE</a></span></li>
@@ -211,7 +250,7 @@ try {
 <em>must</em> be handled using <code>try / catch</code> or the Node.js process will exit
 immediately.</p>
 <p>With few exceptions, <em>Synchronous</em> APIs (any blocking method that does not
-accept a <code>callback</code> function, such as <a href="fs.html#fs_fs_readfilesync_file_options"><code>fs.readFileSync</code></a>), will use <code>throw</code>
+accept a <code>callback</code> function, such as <a href="fs.html#fs_fs_readfilesync_path_options"><code>fs.readFileSync</code></a>), will use <code>throw</code>
 to report errors.</p>
 <p>Errors that occur within <em>Asynchronous APIs</em> may be reported in multiple ways:</p>
 <ul>
@@ -353,8 +392,7 @@ a string representing the location in the code at which
 Error.captureStackTrace(myObject);
 myObject.stack;  // similar to `new Error().stack`
 </code></pre>
-<p>The first line of the trace, instead of being prefixed with <code>ErrorType:
-message</code>, will be the result of calling <code>targetObject.toString()</code>.</p>
+<p>The first line of the trace will be prefixed with <code>${myObject.name}: ${myObject.message}</code>.</p>
 <p>The optional <code>constructorOpt</code> argument accepts a function. If given, all frames
 above <code>constructorOpt</code>, including <code>constructorOpt</code>, will be omitted from the
 generated stack trace.</p>
@@ -436,21 +474,22 @@ function makeFaster() {
   });
 }
 
-makeFaster(); // will throw:
-  // /home/gbusey/file.js:6
-  //     throw new Error(&#39;oh no!&#39;);
-  //           ^
-  // Error: oh no!
-  //     at speedy (/home/gbusey/file.js:6:11)
-  //     at makeFaster (/home/gbusey/file.js:5:3)
-  //     at Object.&lt;anonymous&gt; (/home/gbusey/file.js:10:1)
-  //     at Module._compile (module.js:456:26)
-  //     at Object.Module._extensions..js (module.js:474:10)
-  //     at Module.load (module.js:356:32)
-  //     at Function.Module._load (module.js:312:12)
-  //     at Function.Module.runMain (module.js:497:10)
-  //     at startup (node.js:119:16)
-  //     at node.js:906:3
+makeFaster();
+// will throw:
+//   /home/gbusey/file.js:6
+//       throw new Error(&#39;oh no!&#39;);
+//           ^
+//   Error: oh no!
+//       at speedy (/home/gbusey/file.js:6:11)
+//       at makeFaster (/home/gbusey/file.js:5:3)
+//       at Object.&lt;anonymous&gt; (/home/gbusey/file.js:10:1)
+//       at Module._compile (module.js:456:26)
+//       at Object.Module._extensions..js (module.js:474:10)
+//       at Module.load (module.js:356:32)
+//       at Function.Module._load (module.js:312:12)
+//       at Function.Module.runMain (module.js:497:10)
+//       at startup (node.js:119:16)
+//       at node.js:906:3
 </code></pre>
 <p>The location information will be one of:</p>
 <ul>
@@ -467,13 +506,20 @@ a user program, or its dependencies.</li>
 loop tick.</p>
 <p>System-level errors are generated as augmented <code>Error</code> instances, which are
 detailed <a href="#errors_system_errors">here</a>.</p>
+<h2>Class: AssertionError<span><a class="mark" href="#errors_class_assertionerror" id="errors_class_assertionerror">#</a></span></h2>
+<p>A subclass of <code>Error</code> that indicates the failure of an assertion. Such errors
+commonly indicate inequality of actual and expected value.</p>
+<p>For example:</p>
+<pre><code class="lang-js">assert.strictEqual(1, 2);
+// AssertionError [ERR_ASSERTION]: 1 === 2
+</code></pre>
 <h2>Class: RangeError<span><a class="mark" href="#errors_class_rangeerror" id="errors_class_rangeerror">#</a></span></h2>
 <p>A subclass of <code>Error</code> that indicates that a provided argument was not within the
 set or range of acceptable values for a function; whether that is a numeric
 range, or outside the set of options for a given function parameter.</p>
 <p>For example:</p>
 <pre><code class="lang-js">require(&#39;net&#39;).connect(-1);
-  // throws &quot;RangeError: &quot;port&quot; option should be &gt;= 0 and &lt; 65536: -1&quot;
+// throws &quot;RangeError: &quot;port&quot; option should be &gt;= 0 and &lt; 65536: -1&quot;
 </code></pre>
 <p>Node.js will generate and throw <code>RangeError</code> instances <em>immediately</em> as a form
 of argument validation.</p>
@@ -484,7 +530,7 @@ an otherwise broken program.</p>
 <p>While client code may generate and propagate these errors, in practice, only V8
 will do so.</p>
 <pre><code class="lang-js">doesNotExist;
-  // throws ReferenceError, doesNotExist is not a variable in this program.
+// throws ReferenceError, doesNotExist is not a variable in this program.
 </code></pre>
 <p>Unless an application is dynamically generating and running code,
 <code>ReferenceError</code> instances should always be considered a bug in the code
@@ -508,7 +554,7 @@ they may only be caught by other contexts.</p>
 allowable type. For example, passing a function to a parameter which expects a
 string would be considered a TypeError.</p>
 <pre><code class="lang-js">require(&#39;url&#39;).parse(() =&gt; { });
-  // throws TypeError, since it expected a string
+// throws TypeError, since it expected a string
 </code></pre>
 <p>Node.js will generate and throw <code>TypeError</code> instances <em>immediately</em> as a form
 of argument validation.</p>
@@ -635,162 +681,287 @@ was not properly called.</p>
 <h2>Node.js Error Codes<span><a class="mark" href="#errors_node_js_error_codes" id="errors_node_js_error_codes">#</a></span></h2>
 <p><a id="ERR_ARG_NOT_ITERABLE"></a></p>
 <h3>ERR_ARG_NOT_ITERABLE<span><a class="mark" href="#errors_err_arg_not_iterable" id="errors_err_arg_not_iterable">#</a></span></h3>
-<p>The <code>&#39;ERR_ARG_NOT_ITERABLE&#39;</code> error code is used generically to identify that an
-iterable argument (i.e. a value that works with <code>for...of</code> loops) is required,
-but not provided to a Node.js API.</p>
+<p>Used generically to identify that an iterable argument (i.e. a value that works
+with <code>for...of</code> loops) is required, but not provided to a Node.js API.</p>
+<p><a id="ERR_FALSY_VALUE_REJECTION"></a></p>
+<h3>ERR_FALSY_VALUE_REJECTION<span><a class="mark" href="#errors_err_falsy_value_rejection" id="errors_err_falsy_value_rejection">#</a></span></h3>
+<p>Used by the <code>util.callbackify()</code> API when a callbackified <code>Promise</code> is rejected
+with a falsy value (e.g. <code>null</code>).</p>
+<p><a id="ERR_HTTP_HEADERS_SENT"></a></p>
+<h3>ERR_HTTP_HEADERS_SENT<span><a class="mark" href="#errors_err_http_headers_sent" id="errors_err_http_headers_sent">#</a></span></h3>
+<p>Used when headers have already been sent and another attempt is made to add
+more headers.</p>
+<p><a id="ERR_HTTP_INVALID_STATUS_CODE"></a></p>
+<h3>ERR_HTTP_INVALID_STATUS_CODE<span><a class="mark" href="#errors_err_http_invalid_status_code" id="errors_err_http_invalid_status_code">#</a></span></h3>
+<p>Used for status codes outside the regular status code ranges (100-999).</p>
+<p><a id="ERR_HTTP_TRAILER_INVALID"></a></p>
+<h3>ERR_HTTP_TRAILER_INVALID<span><a class="mark" href="#errors_err_http_trailer_invalid" id="errors_err_http_trailer_invalid">#</a></span></h3>
+<p>Used when the <code>Trailer</code> header is set even though the transfer encoding does not
+support that.</p>
+<p><a id="ERR_HTTP2_CONNECT_AUTHORITY"></a></p>
+<h3>ERR_HTTP2_CONNECT_AUTHORITY<span><a class="mark" href="#errors_err_http2_connect_authority" id="errors_err_http2_connect_authority">#</a></span></h3>
+<p>For HTTP/2 requests using the <code>CONNECT</code> method, the <code>:authority</code> pseudo-header
+is required.</p>
+<p><a id="ERR_HTTP2_CONNECT_PATH"></a></p>
+<h3>ERR_HTTP2_CONNECT_PATH<span><a class="mark" href="#errors_err_http2_connect_path" id="errors_err_http2_connect_path">#</a></span></h3>
+<p>For HTTP/2 requests using the <code>CONNECT</code> method, the <code>:path</code> pseudo-header is
+forbidden.</p>
+<p><a id="ERR_HTTP2_CONNECT_SCHEME"></a></p>
+<h3>ERR_HTTP2_CONNECT_SCHEME<span><a class="mark" href="#errors_err_http2_connect_scheme" id="errors_err_http2_connect_scheme">#</a></span></h3>
+<p>The HTTP/2 requests using the <code>CONNECT</code> method, the <code>:scheme</code> pseudo-header is
+forbidden.</p>
+<p><a id="ERR_HTTP2_ERROR"></a></p>
+<h3>ERR_HTTP2_ERROR<span><a class="mark" href="#errors_err_http2_error" id="errors_err_http2_error">#</a></span></h3>
+<p>A non-specific HTTP/2 error has occurred.</p>
+<p><a id="ERR_HTTP2_FRAME_ERROR"></a></p>
+<h3>ERR_HTTP2_FRAME_ERROR<span><a class="mark" href="#errors_err_http2_frame_error" id="errors_err_http2_frame_error">#</a></span></h3>
+<p>Used when a failure occurs sending an individual frame on the HTTP/2
+session.</p>
+<p><a id="ERR_HTTP2_HEADERS_OBJECT"></a></p>
+<h3>ERR_HTTP2_HEADERS_OBJECT<span><a class="mark" href="#errors_err_http2_headers_object" id="errors_err_http2_headers_object">#</a></span></h3>
+<p>Used when an HTTP/2 Headers Object is expected.</p>
+<p><a id="ERR_HTTP2_HEADERS_SENT"></a></p>
+<h3>ERR_HTTP2_HEADERS_SENT<span><a class="mark" href="#errors_err_http2_headers_sent" id="errors_err_http2_headers_sent">#</a></span></h3>
+<p>Used when an attempt is made to send multiple response headers.</p>
+<p><a id="ERR_HTTP2_HEADER_SINGLE_VALUE"></a></p>
+<h3>ERR_HTTP2_HEADER_SINGLE_VALUE<span><a class="mark" href="#errors_err_http2_header_single_value" id="errors_err_http2_header_single_value">#</a></span></h3>
+<p>Used when multiple values have been provided for an HTTP header field that
+required to have only a single value.</p>
+<p><a id="ERR_HTTP2_INFO_HEADERS_AFTER_RESPOND"></a></p>
+<h3>ERR_HTTP2_INFO_HEADERS_AFTER_RESPOND<span><a class="mark" href="#errors_err_http2_info_headers_after_respond" id="errors_err_http2_info_headers_after_respond">#</a></span></h3>
+<p>HTTP/2 Informational headers must only be sent <em>prior</em> to calling the
+<code>Http2Stream.prototype.respond()</code> method.</p>
+<p><a id="ERR_HTTP2_INFO_STATUS_NOT_ALLOWED"></a></p>
+<h3>ERR_HTTP2_INFO_STATUS_NOT_ALLOWED<span><a class="mark" href="#errors_err_http2_info_status_not_allowed" id="errors_err_http2_info_status_not_allowed">#</a></span></h3>
+<p>Informational HTTP status codes (<code>1xx</code>) may not be set as the response status
+code on HTTP/2 responses.</p>
+<p><a id="ERR_HTTP2_INVALID_CONNECTION_HEADERS"></a></p>
+<h3>ERR_HTTP2_INVALID_CONNECTION_HEADERS<span><a class="mark" href="#errors_err_http2_invalid_connection_headers" id="errors_err_http2_invalid_connection_headers">#</a></span></h3>
+<p>HTTP/1 connection specific headers are forbidden to be used in HTTP/2
+requests and responses.</p>
+<p><a id="ERR_HTTP2_INVALID_HEADER_VALUE"></a></p>
+<h3>ERR_HTTP2_INVALID_HEADER_VALUE<span><a class="mark" href="#errors_err_http2_invalid_header_value" id="errors_err_http2_invalid_header_value">#</a></span></h3>
+<p>Used to indicate that an invalid HTTP/2 header value has been specified.</p>
+<p><a id="ERR_HTTP2_INVALID_INFO_STATUS"></a></p>
+<h3>ERR_HTTP2_INVALID_INFO_STATUS<span><a class="mark" href="#errors_err_http2_invalid_info_status" id="errors_err_http2_invalid_info_status">#</a></span></h3>
+<p>An invalid HTTP informational status code has been specified. Informational
+status codes must be an integer between <code>100</code> and <code>199</code> (inclusive).</p>
+<p><a id="ERR_HTTP2_INVALID_PACKED_SETTINGS_LENGTH"></a></p>
+<p>Input <code>Buffer</code> and <code>Uint8Array</code> instances passed to the
+<code>http2.getUnpackedSettings()</code> API must have a length that is a multiple of
+six.</p>
+<p><a id="ERR_HTTP2_INVALID_PSEUDOHEADER"></a></p>
+<h3>ERR_HTTP2_INVALID_PSEUDOHEADER<span><a class="mark" href="#errors_err_http2_invalid_pseudoheader" id="errors_err_http2_invalid_pseudoheader">#</a></span></h3>
+<p>Only valid HTTP/2 pseudoheaders (<code>:status</code>, <code>:path</code>, <code>:authority</code>, <code>:scheme</code>,
+and <code>:method</code>) may be used.</p>
+<p><a id="ERR_HTTP2_INVALID_SESSION"></a></p>
+<h3>ERR_HTTP2_INVALID_SESSION<span><a class="mark" href="#errors_err_http2_invalid_session" id="errors_err_http2_invalid_session">#</a></span></h3>
+<p>Used when any action is performed on an <code>Http2Session</code> object that has already
+been destroyed.</p>
+<p><a id="ERR_HTTP2_INVALID_SETTING_VALUE"></a></p>
+<h3>ERR_HTTP2_INVALID_SETTING_VALUE<span><a class="mark" href="#errors_err_http2_invalid_setting_value" id="errors_err_http2_invalid_setting_value">#</a></span></h3>
+<p>An invalid value has been specified for an HTTP/2 setting.</p>
+<p><a id="ERR_HTTP2_INVALID_STREAM"></a></p>
+<h3>ERR_HTTP2_INVALID_STREAM<span><a class="mark" href="#errors_err_http2_invalid_stream" id="errors_err_http2_invalid_stream">#</a></span></h3>
+<p>Used when an operation has been performed on a stream that has already been
+destroyed.</p>
+<p><a id="ERR_HTTP2_MAX_PENDING_SETTINGS_ACK"></a></p>
+<h3>ERR_HTTP2_MAX_PENDING_SETTINGS_ACK<span><a class="mark" href="#errors_err_http2_max_pending_settings_ack" id="errors_err_http2_max_pending_settings_ack">#</a></span></h3>
+<p>Whenever an HTTP/2 <code>SETTINGS</code> frame is sent to a connected peer, the peer is
+required to send an acknowledgement that it has received and applied the new
+SETTINGS. By default, a maximum number of un-acknowledged <code>SETTINGS</code> frame may
+be sent at any given time. This error code is used when that limit has been
+reached.</p>
+<p><a id="ERR_HTTP2_OUT_OF_STREAMS"></a></p>
+<h3>ERR_HTTP2_OUT_OF_STREAMS<span><a class="mark" href="#errors_err_http2_out_of_streams" id="errors_err_http2_out_of_streams">#</a></span></h3>
+<p>Used when the maximum number of streams on a single HTTP/2 session have been
+created.</p>
+<p><a id="ERR_HTTP2_PAYLOAD_FORBIDDEN"></a></p>
+<h3>ERR_HTTP2_PAYLOAD_FORBIDDEN<span><a class="mark" href="#errors_err_http2_payload_forbidden" id="errors_err_http2_payload_forbidden">#</a></span></h3>
+<p>Used when a message payload is specified for an HTTP response code for which
+a payload is forbidden.</p>
+<p><a id="ERR_HTTP2_PSEUDOHEADER_NOT_ALLOWED"></a></p>
+<h3>ERR_HTTP2_PSEUDOHEADER_NOT_ALLOWED<span><a class="mark" href="#errors_err_http2_pseudoheader_not_allowed" id="errors_err_http2_pseudoheader_not_allowed">#</a></span></h3>
+<p>Used to indicate that an HTTP/2 pseudo-header has been used inappropriately.
+Pseudo-headers are header key names that begin with the <code>:</code> prefix.</p>
+<p><a id="ERR_HTTP2_PUSH_DISABLED"></a></p>
+<h3>ERR_HTTP2_PUSH_DISABLED<span><a class="mark" href="#errors_err_http2_push_disabled" id="errors_err_http2_push_disabled">#</a></span></h3>
+<p>Used when push streams have been disabled by the client but an attempt to
+create a push stream is made.</p>
+<p><a id="ERR_HTTP2_SEND_FILE"></a></p>
+<h3>ERR_HTTP2_SEND_FILE<span><a class="mark" href="#errors_err_http2_send_file" id="errors_err_http2_send_file">#</a></span></h3>
+<p>Used when an attempt is made to use the
+<code>Http2Stream.prototype.responseWithFile()</code> API to send a non-regular file.</p>
+<p><a id="ERR_HTTP2_SOCKET_BOUND"></a></p>
+<h3>ERR_HTTP2_SOCKET_BOUND<span><a class="mark" href="#errors_err_http2_socket_bound" id="errors_err_http2_socket_bound">#</a></span></h3>
+<p>Used when an attempt is made to connect a <code>Http2Session</code> object to a
+<code>net.Socket</code> or <code>tls.TLSSocket</code> that has already been bound to another
+<code>Http2Session</code> object.</p>
+<p><a id="ERR_HTTP2_STATUS_101"></a></p>
+<h3>ERR_HTTP2_STATUS_101<span><a class="mark" href="#errors_err_http2_status_101" id="errors_err_http2_status_101">#</a></span></h3>
+<p>Use of the <code>101</code> Informational status code is forbidden in HTTP/2.</p>
+<p><a id="ERR_HTTP2_STATUS_INVALID"></a></p>
+<h3>ERR_HTTP2_STATUS_INVALID<span><a class="mark" href="#errors_err_http2_status_invalid" id="errors_err_http2_status_invalid">#</a></span></h3>
+<p>An invalid HTTP status code has been specified. Status codes must be an integer
+between <code>100</code> and <code>599</code> (inclusive).</p>
+<p><a id="ERR_HTTP2_STREAM_CLOSED"></a></p>
+<h3>ERR_HTTP2_STREAM_CLOSED<span><a class="mark" href="#errors_err_http2_stream_closed" id="errors_err_http2_stream_closed">#</a></span></h3>
+<p>Used when an action has been performed on an HTTP/2 Stream that has already
+been closed.</p>
+<p><a id="ERR_HTTP2_STREAM_ERROR"></a></p>
+<h3>ERR_HTTP2_STREAM_ERROR<span><a class="mark" href="#errors_err_http2_stream_error" id="errors_err_http2_stream_error">#</a></span></h3>
+<p>Used when a non-zero error code has been specified in an <code>RST_STREAM</code> frame.</p>
+<p><a id="ERR_HTTP2_STREAM_SELF_DEPENDENCY"></a></p>
+<h3>ERR_HTTP2_STREAM_SELF_DEPENDENCY<span><a class="mark" href="#errors_err_http2_stream_self_dependency" id="errors_err_http2_stream_self_dependency">#</a></span></h3>
+<p>When setting the priority for an HTTP/2 stream, the stream may be marked as
+a dependency for a parent stream. This error code is used when an attempt is
+made to mark a stream and dependent of itself.</p>
+<p><a id="ERR_HTTP2_UNSUPPORTED_PROTOCOL"></a></p>
+<h3>ERR_HTTP2_UNSUPPORTED_PROTOCOL<span><a class="mark" href="#errors_err_http2_unsupported_protocol" id="errors_err_http2_unsupported_protocol">#</a></span></h3>
+<p>Used when <code>http2.connect()</code> is passed a URL that uses any protocol other than
+<code>http:</code> or <code>https:</code>.</p>
+<p><a id="ERR_INDEX_OUT_OF_RANGE"></a></p>
+<h3>ERR_INDEX_OUT_OF_RANGE<span><a class="mark" href="#errors_err_index_out_of_range" id="errors_err_index_out_of_range">#</a></span></h3>
+<p>Used when a given index is out of the accepted range (e.g. negative offsets).</p>
 <p><a id="ERR_INVALID_ARG_TYPE"></a></p>
 <h3>ERR_INVALID_ARG_TYPE<span><a class="mark" href="#errors_err_invalid_arg_type" id="errors_err_invalid_arg_type">#</a></span></h3>
-<p>The <code>&#39;ERR_INVALID_ARG_TYPE&#39;</code> error code is used generically to identify that
-an argument of the wrong type has been passed to a Node.js API.</p>
+<p>Used generically to identify that an argument of the wrong type has been passed
+to a Node.js API.</p>
 <p><a id="ERR_INVALID_CALLBACK"></a></p>
 <h3>ERR_INVALID_CALLBACK<span><a class="mark" href="#errors_err_invalid_callback" id="errors_err_invalid_callback">#</a></span></h3>
-<p>The <code>&#39;ERR_INVALID_CALLBACK&#39;</code> error code is used generically to identify that
-a callback function is required and has not been provided to a Node.js API.</p>
+<p>Used generically to identify that a callback function is required and has not
+been provided to a Node.js API.</p>
 <p><a id="ERR_INVALID_FILE_URL_HOST"></a></p>
 <h3>ERR_INVALID_FILE_URL_HOST<span><a class="mark" href="#errors_err_invalid_file_url_host" id="errors_err_invalid_file_url_host">#</a></span></h3>
-<p>An error with the <code>&#39;ERR_INVALID_FILE_URL_HOST&#39;</code> code may be thrown when a
-Node.js API that consumes <code>file:</code> URLs (such as certain functions in the
-<a href="fs.html"><code>fs</code></a> module) encounters a file URL with an incompatible host. Currently,
-this situation can only occur on Unix-like systems, where only <code>localhost</code> or
-an empty host is supported.</p>
+<p>Used when a Node.js API that consumes <code>file:</code> URLs (such as certain functions in
+the <a href="fs.html"><code>fs</code></a> module) encounters a file URL with an incompatible host. Currently,
+this situation can only occur on Unix-like systems, where only <code>localhost</code> or an
+empty host is supported.</p>
 <p><a id="ERR_INVALID_FILE_URL_PATH"></a></p>
 <h3>ERR_INVALID_FILE_URL_PATH<span><a class="mark" href="#errors_err_invalid_file_url_path" id="errors_err_invalid_file_url_path">#</a></span></h3>
-<p>An error with the <code>&#39;ERR_INVALID_FILE_URL_PATH&#39;</code> code may be thrown when a
-Node.js API that consumes <code>file:</code> URLs (such as certain functions in the
-<a href="fs.html"><code>fs</code></a> module) encounters a file URL with an incompatible path. The exact
-semantics for determining whether a path can be used is platform-dependent.</p>
+<p>Used when a Node.js API that consumes <code>file:</code> URLs (such as certain
+functions in the <a href="fs.html"><code>fs</code></a> module) encounters a file URL with an incompatible
+path. The exact semantics for determining whether a path can be used is
+platform-dependent.</p>
 <p><a id="ERR_INVALID_HANDLE_TYPE"></a></p>
 <h3>ERR_INVALID_HANDLE_TYPE<span><a class="mark" href="#errors_err_invalid_handle_type" id="errors_err_invalid_handle_type">#</a></span></h3>
-<p>The &#39;<code>ERR_INVALID_HANDLE_TYPE</code>&#39; error code is used when an attempt is made to
-send an unsupported &quot;handle&quot; over an IPC communication channel to a child
-process. See <a href="child_process.html#child_process_child_send_message_sendhandle_options_callback"><code>child.send()</code></a> and <a href="process.html#process_process_send_message_sendhandle_options_callback"><code>process.send()</code></a> for more information.</p>
+<p>Used when an attempt is made to send an unsupported &quot;handle&quot; over an IPC
+communication channel to a child process. See <a href="child_process.html#child_process_subprocess_send_message_sendhandle_options_callback"><code>subprocess.send()</code></a> and
+<a href="process.html#process_process_send_message_sendhandle_options_callback"><code>process.send()</code></a> for more information.</p>
 <p><a id="ERR_INVALID_OPT_VALUE"></a></p>
 <h3>ERR_INVALID_OPT_VALUE<span><a class="mark" href="#errors_err_invalid_opt_value" id="errors_err_invalid_opt_value">#</a></span></h3>
-<p>The <code>&#39;ERR_INVALID_OPT_VALUE&#39;</code> error code is used generically to identify when
-an invalid or unexpected value has been passed in an options object.</p>
+<p>Used generically to identify when an invalid or unexpected value has been
+passed in an options object.</p>
 <p><a id="ERR_INVALID_SYNC_FORK_INPUT"></a></p>
 <h3>ERR_INVALID_SYNC_FORK_INPUT<span><a class="mark" href="#errors_err_invalid_sync_fork_input" id="errors_err_invalid_sync_fork_input">#</a></span></h3>
-<p>The <code>&#39;ERR_INVALID_SYNC_FORK_INPUT&#39;</code> error code is used when a <code>Buffer</code>,
-<code>Uint8Array</code> or <code>string</code> is provided as stdio input to a synchronous
-fork. See the documentation for the <a href="child_process.html"><code>child_process</code></a>
-module for more information.</p>
+<p>Used when a <code>Buffer</code>, <code>Uint8Array</code> or <code>string</code> is provided as stdio input to a
+synchronous fork. See the documentation for the
+<a href="child_process.html"><code>child_process</code></a> module for more information.</p>
 <p><a id="ERR_INVALID_THIS"></a></p>
 <h3>ERR_INVALID_THIS<span><a class="mark" href="#errors_err_invalid_this" id="errors_err_invalid_this">#</a></span></h3>
-<p>The <code>&#39;ERR_INVALID_THIS&#39;</code> error code is used generically to identify that a
-Node.js API function is called with an incompatible <code>this</code> value.</p>
+<p>Used generically to identify that a Node.js API function is called with an
+incompatible <code>this</code> value.</p>
 <p>Example:</p>
 <pre><code class="lang-js">const { URLSearchParams } = require(&#39;url&#39;);
 const urlSearchParams = new URLSearchParams(&#39;foo=bar&amp;baz=new&#39;);
 
 const buf = Buffer.alloc(1);
 urlSearchParams.has.call(buf, &#39;foo&#39;);
-  // Throws a TypeError with code &#39;ERR_INVALID_THIS&#39;
+// Throws a TypeError with code &#39;ERR_INVALID_THIS&#39;
 </code></pre>
 <p><a id="ERR_INVALID_TUPLE"></a></p>
 <h3>ERR_INVALID_TUPLE<span><a class="mark" href="#errors_err_invalid_tuple" id="errors_err_invalid_tuple">#</a></span></h3>
-<p>An error with code <code>&#39;ERR_INVALID_TUPLE&#39;</code> is thrown when an element in the
-<code>iterable</code> provided to the <a href="url.html#url_the_whatwg_url_api">WHATWG</a> <a href="url.html#url_constructor_new_urlsearchparams_iterable"><code>URLSearchParams</code>
-constructor</a> does not represent a <code>[name,
-value]</code> tuple – that is, if an element is not iterable, or does not consist of
-exactly two elements.</p>
+<p>Used when an element in the <code>iterable</code> provided to the <a href="url.html#url_the_whatwg_url_api">WHATWG</a> <a href="url.html#url_constructor_new_urlsearchparams_iterable"><code>URLSearchParams</code> constructor</a> does not
+represent a <code>[name, value]</code> tuple – that is, if an element is not iterable, or
+does not consist of exactly two elements.</p>
 <p><a id="ERR_INVALID_URL"></a></p>
 <h3>ERR_INVALID_URL<span><a class="mark" href="#errors_err_invalid_url" id="errors_err_invalid_url">#</a></span></h3>
-<p>An error using the <code>&#39;ERR_INVALID_URL&#39;</code> code is thrown when an invalid URL is
-passed to the <a href="url.html#url_the_whatwg_url_api">WHATWG</a> <a href="url.html#url_constructor_new_url_input_base"><code>URL</code> constructor</a> to
-be parsed. The thrown error object typically has an additional property
-<code>&#39;input&#39;</code> that contains the URL that failed to parse.</p>
+<p>Used when an invalid URL is passed to the <a href="url.html#url_the_whatwg_url_api">WHATWG</a>
+<a href="url.html#url_constructor_new_url_input_base"><code>URL</code> constructor</a> to be parsed. The thrown error object
+typically has an additional property <code>&#39;input&#39;</code> that contains the URL that failed
+to parse.</p>
 <p><a id="ERR_INVALID_URL_SCHEME"></a></p>
 <h3>ERR_INVALID_URL_SCHEME<span><a class="mark" href="#errors_err_invalid_url_scheme" id="errors_err_invalid_url_scheme">#</a></span></h3>
-<p>The code <code>&#39;ERR_INVALID_URL_SCHEME&#39;</code> is used generically to signify an attempt
-to use a URL of an incompatible scheme (aka protocol) for a specific purpose.
-It is currently only used in the <a href="url.html#url_the_whatwg_url_api">WHATWG URL API</a> support in the <a href="fs.html"><code>fs</code></a>
-module (which only accepts URLs with <code>&#39;file&#39;</code> scheme), but may be used in other
-Node.js APIs as well in the future.</p>
+<p>Used generically to signify an attempt to use a URL of an incompatible scheme
+(aka protocol) for a specific purpose. It is currently only used in the
+<a href="url.html#url_the_whatwg_url_api">WHATWG URL API</a> support in the <a href="fs.html"><code>fs</code></a> module (which only accepts URLs with
+<code>&#39;file&#39;</code> scheme), but may be used in other Node.js APIs as well in the future.</p>
 <p><a id="ERR_IPC_CHANNEL_CLOSED"></a></p>
 <h3>ERR_IPC_CHANNEL_CLOSED<span><a class="mark" href="#errors_err_ipc_channel_closed" id="errors_err_ipc_channel_closed">#</a></span></h3>
-<p>The <code>&#39;ERR_IPC_CHANNEL_CLOSED&#39;</code> error code is used when an attempt is made to use
-an IPC communication channel that has already been closed.</p>
+<p>Used when an attempt is made to use an IPC communication channel that has
+already been closed.</p>
 <p><a id="ERR_IPC_DISCONNECTED"></a></p>
 <h3>ERR_IPC_DISCONNECTED<span><a class="mark" href="#errors_err_ipc_disconnected" id="errors_err_ipc_disconnected">#</a></span></h3>
-<p>The <code>&#39;ERR_IPC_DISCONNECTED&#39;</code> error code is used when an attempt is made to
-disconnect an already disconnected IPC communication channel between two
-Node.js processes. See the documentation for the
-<a href="child_process.html"><code>child_process</code></a> module for more information.</p>
+<p>Used when an attempt is made to disconnect an already disconnected IPC
+communication channel between two Node.js processes. See the documentation for
+the <a href="child_process.html"><code>child_process</code></a> module for more information.</p>
 <p><a id="ERR_IPC_ONE_PIPE"></a></p>
 <h3>ERR_IPC_ONE_PIPE<span><a class="mark" href="#errors_err_ipc_one_pipe" id="errors_err_ipc_one_pipe">#</a></span></h3>
-<p>The <code>&#39;ERR_IPC_ONE_PIPE&#39;</code> error code is used when an attempt is made to create
-a child Node.js process using more than one IPC communication channel.
-See the documentation for the <a href="child_process.html"><code>child_process</code></a>
-module for more information.</p>
+<p>Used when an attempt is made to create a child Node.js process using more than
+one IPC communication channel. See the documentation for the
+<a href="child_process.html"><code>child_process</code></a> module for more information.</p>
 <p><a id="ERR_IPC_SYNC_FORK"></a></p>
 <h3>ERR_IPC_SYNC_FORK<span><a class="mark" href="#errors_err_ipc_sync_fork" id="errors_err_ipc_sync_fork">#</a></span></h3>
-<p>The <code>&#39;ERR_IPC_SYNC_FORK&#39;</code> error code is used when an attempt is made to open
-an IPC communication channel with a synchronous forked Node.js process.
-See the documentation for the <a href="child_process.html"><code>child_process</code></a>
-module for more information.</p>
+<p>Used when an attempt is made to open an IPC communication channel with a
+synchronous forked Node.js process. See the documentation for the
+<a href="child_process.html"><code>child_process</code></a> module for more information.</p>
 <p><a id="ERR_MISSING_ARGS"></a></p>
 <h3>ERR_MISSING_ARGS<span><a class="mark" href="#errors_err_missing_args" id="errors_err_missing_args">#</a></span></h3>
-<p>The <code>&#39;ERR_MISSING_ARGS&#39;</code> error code is a generic error code for instances where
-a required argument of a Node.js API is not passed. This is currently only used
-in the <a href="url.html#url_the_whatwg_url_api">WHATWG URL API</a> for strict compliance with the specification (which
-in some cases may accept <code>func(undefined)</code> but not <code>func()</code>). In most native
-Node.js APIs, <code>func(undefined)</code> and <code>func()</code> are treated identically, and the
-<a href="#ERR_INVALID_ARG_TYPE"><code>ERR_INVALID_ARG_TYPE</code></a> error code may be used instead.</p>
+<p>Used when a required argument of a Node.js API is not passed. This is currently
+only used in the <a href="url.html#url_the_whatwg_url_api">WHATWG URL API</a> for strict compliance with the specification
+(which in some cases may accept <code>func(undefined)</code> but not <code>func()</code>). In most
+native Node.js APIs, <code>func(undefined)</code> and <code>func()</code> are treated identically, and
+the <a href="#ERR_INVALID_ARG_TYPE"><code>ERR_INVALID_ARG_TYPE</code></a> error code may be used instead.</p>
+<p><a id="ERR_NO_ICU"></a></p>
+<h3>ERR_NO_ICU<span><a class="mark" href="#errors_err_no_icu" id="errors_err_no_icu">#</a></span></h3>
+<p>Used when an attempt is made to use features that require <a href="intl.html#intl_internationalization_support">ICU</a>, while
+Node.js is not compiled with ICU support.</p>
 <p><a id="ERR_SOCKET_ALREADY_BOUND"></a></p>
 <h3>ERR_SOCKET_ALREADY_BOUND<span><a class="mark" href="#errors_err_socket_already_bound" id="errors_err_socket_already_bound">#</a></span></h3>
-<p>An error using the <code>&#39;ERR_SOCKET_ALREADY_BOUND&#39;</code> code is thrown when an attempt
-is made to bind a socket that has already been bound.</p>
+<p>Used when an attempt is made to bind a socket that has already been bound.</p>
 <p><a id="ERR_SOCKET_BAD_PORT"></a></p>
 <h3>ERR_SOCKET_BAD_PORT<span><a class="mark" href="#errors_err_socket_bad_port" id="errors_err_socket_bad_port">#</a></span></h3>
-<p>An error using the <code>&#39;ERR_SOCKET_BAD_PORT&#39;</code> code is thrown when an API
-function expecting a port &gt; 0 and &lt; 65536 receives an invalid value.</p>
+<p>Used when an API function expecting a port &gt; 0 and &lt; 65536 receives an invalid
+value.</p>
 <p><a id="ERR_SOCKET_BAD_TYPE"></a></p>
 <h3>ERR_SOCKET_BAD_TYPE<span><a class="mark" href="#errors_err_socket_bad_type" id="errors_err_socket_bad_type">#</a></span></h3>
-<p>An error using the <code>&#39;ERR_SOCKET_BAD_TYPE&#39;</code> code is thrown when an API
-function expecting a socket type (<code>udp4</code> or <code>udp6</code>) receives an invalid value.</p>
+<p>Used when an API function expecting a socket type (<code>udp4</code> or <code>udp6</code>) receives an
+invalid value.</p>
 <p><a id="ERR_SOCKET_CANNOT_SEND"></a></p>
 <h3>ERR_SOCKET_CANNOT_SEND<span><a class="mark" href="#errors_err_socket_cannot_send" id="errors_err_socket_cannot_send">#</a></span></h3>
-<p>An error using the <code>&#39;ERR_SOCKET_CANNOT_SEND&#39;</code> code is thrown when data
-cannot be sent on a socket.</p>
+<p>Used when data cannot be sent on a socket.</p>
 <p><a id="ERR_SOCKET_DGRAM_NOT_RUNNING"></a></p>
 <h3>ERR_SOCKET_DGRAM_NOT_RUNNING<span><a class="mark" href="#errors_err_socket_dgram_not_running" id="errors_err_socket_dgram_not_running">#</a></span></h3>
-<p>An error using the <code>&#39;ERR_SOCKET_DGRAM_NOT_RUNNING&#39;</code> code is thrown
-when a call is made and the UDP subsystem is not running.</p>
+<p>Used when a call is made and the UDP subsystem is not running.</p>
 <p><a id="ERR_STDERR_CLOSE"></a></p>
 <h3>ERR_STDERR_CLOSE<span><a class="mark" href="#errors_err_stderr_close" id="errors_err_stderr_close">#</a></span></h3>
-<p>An error using the <code>&#39;ERR_STDERR_CLOSE&#39;</code> code is thrown specifically when an
-attempt is made to close the <code>process.stderr</code> stream. By design, Node.js does
-not allow <code>stdout</code> or <code>stderr</code> Streams to be closed by user code.</p>
+<p>Used when an attempt is made to close the <code>process.stderr</code> stream. By design,
+Node.js does not allow <code>stdout</code> or <code>stderr</code> Streams to be closed by user code.</p>
 <p><a id="ERR_STDOUT_CLOSE"></a></p>
 <h3>ERR_STDOUT_CLOSE<span><a class="mark" href="#errors_err_stdout_close" id="errors_err_stdout_close">#</a></span></h3>
-<p>An error using the <code>&#39;ERR_STDOUT_CLOSE&#39;</code> code is thrown specifically when an
-attempt is made to close the <code>process.stdout</code> stream. By design, Node.js does
-not allow <code>stdout</code> or <code>stderr</code> Streams to be closed by user code.</p>
+<p>Used when an attempt is made to close the <code>process.stdout</code> stream. By design,
+Node.js does not allow <code>stdout</code> or <code>stderr</code> Streams to be closed by user code.</p>
 <p><a id="ERR_UNKNOWN_BUILTIN_MODULE"></a></p>
 <h3>ERR_UNKNOWN_BUILTIN_MODULE<span><a class="mark" href="#errors_err_unknown_builtin_module" id="errors_err_unknown_builtin_module">#</a></span></h3>
-<p>The <code>&#39;ERR_UNKNOWN_BUILTIN_MODULE&#39;</code> error code is used to identify a specific
-kind of internal Node.js error that should not typically be triggered by user
-code. Instances of this error point to an internal bug within the Node.js
-binary itself.</p>
+<p>Used to identify a specific kind of internal Node.js error that should not
+typically be triggered by user code. Instances of this error point to an
+internal bug within the Node.js binary itself.</p>
 <p><a id="ERR_UNKNOWN_SIGNAL"></a></p>
 <h3>ERR_UNKNOWN_SIGNAL<span><a class="mark" href="#errors_err_unknown_signal" id="errors_err_unknown_signal">#</a></span></h3>
-<p>The <code>&#39;ERR_UNKNOWN_SIGNAL</code>&#39; error code is used when an invalid or unknown
-process signal is passed to an API expecting a valid signal (such as
-<a href="child_process.html#child_process_child_kill_signal"><code>child.kill()</code></a>).</p>
+<p>Used when an invalid or unknown process signal is passed to an API expecting a
+valid signal (such as <a href="child_process.html#child_process_subprocess_kill_signal"><code>subprocess.kill()</code></a>).</p>
 <p><a id="ERR_UNKNOWN_STDIN_TYPE"></a></p>
 <h3>ERR_UNKNOWN_STDIN_TYPE<span><a class="mark" href="#errors_err_unknown_stdin_type" id="errors_err_unknown_stdin_type">#</a></span></h3>
-<p>An error using the <code>&#39;ERR_UNKNOWN_STDIN_TYPE&#39;</code> code is thrown specifically when
-an attempt is made to launch a Node.js process with an unknown <code>stdin</code> file
-type. Errors of this kind cannot <em>typically</em> be caused by errors in user code,
-although it is not impossible. Occurrences of this error are most likely an
-indication of a bug within Node.js itself.</p>
+<p>Used when an attempt is made to launch a Node.js process with an unknown <code>stdin</code>
+file type. Errors of this kind cannot <em>typically</em> be caused by errors in user
+code, although it is not impossible. Occurrences of this error are most likely
+an indication of a bug within Node.js itself.</p>
 <p><a id="ERR_UNKNOWN_STREAM_TYPE"></a></p>
 <h3>ERR_UNKNOWN_STREAM_TYPE<span><a class="mark" href="#errors_err_unknown_stream_type" id="errors_err_unknown_stream_type">#</a></span></h3>
-<p>An error using the <code>&#39;ERR_UNKNOWN_STREAM_TYPE&#39;</code> code is thrown specifically when
-an attempt is made to launch a Node.js process with an unknown <code>stdout</code> or
-<code>stderr</code> file type. Errors of this kind cannot <em>typically</em> be caused by errors
-in user code, although it is not impossible. Occurrences of this error are most
-likely an indication of a bug within Node.js itself.</p>
+<p>Used when an attempt is made to launch a Node.js process with an unknown
+<code>stdout</code> or <code>stderr</code> file type. Errors of this kind cannot <em>typically</em> be caused
+by errors in user code, although it is not impossible. Occurrences of this error
+are most likely an indication of a bug within Node.js itself.</p>
 
       </div>
     </div>

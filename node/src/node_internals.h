@@ -30,6 +30,7 @@
 #include "uv.h"
 #include "v8.h"
 #include "tracing/trace_event.h"
+#include "node_debug_options.h"
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -65,6 +66,9 @@ extern std::string openssl_config;
 // that is used by lib/module.js
 extern bool config_preserve_symlinks;
 
+// Set in node.cc by ParseArgs when --expose-http2 is used.
+extern bool config_expose_http2;
+
 // Set in node.cc by ParseArgs when --expose-internals or --expose_internals is
 // used.
 // Used in node_config.cc to set a constant on process.binding('config')
@@ -82,6 +86,11 @@ extern bool config_pending_deprecation;
 
 // Tells whether it is safe to call v8::Isolate::GetCurrent().
 extern bool v8_initialized;
+
+// Contains initial debug options.
+// Set in node.cc.
+// Used in node_config.cc.
+extern node::DebugOptions debug_options;
 
 // Forward declaration
 class Environment;

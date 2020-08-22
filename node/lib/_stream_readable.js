@@ -61,18 +61,32 @@ function prependListener(emitter, event, fn) {
 function ReadableState(options, stream) {
   options = options || {};
 
+  // Duplex streams are both readable and writable, but share
+  // the same options object.
+  // However, some cases require setting options to different
+  // values for the readable and the writable sides of the duplex stream.
+  // These options can be provided separately as readableXXX and writableXXX.
+  var isDuplex = stream instanceof Stream.Duplex;
+
   // object stream flag. Used to make read(n) ignore n and to
   // make all the buffer merging and length checks go away
   this.objectMode = !!options.objectMode;
 
-  if (stream instanceof Stream.Duplex)
+  if (isDuplex)
     this.objectMode = this.objectMode || !!options.readableObjectMode;
 
   // the point at which it stops calling _read() to fill the buffer
   // Note: 0 is a valid value, means "don't call _read preemptively ever"
   var hwm = options.highWaterMark;
+  var readableHwm = options.readableHighWaterMark;
   var defaultHwm = this.objectMode ? 16 : 16 * 1024;
-  this.highWaterMark = (hwm || hwm === 0) ? hwm : defaultHwm;
+
+  if (hwm || hwm === 0)
+    this.highWaterMark = hwm;
+  else if (isDuplex && (readableHwm || readableHwm === 0))
+    this.highWaterMark = readableHwm;
+  else
+    this.highWaterMark = defaultHwm;
 
   // cast to ints.
   this.highWaterMark = Math.floor(this.highWaterMark);
@@ -215,8 +229,8 @@ function readableAddChunk(stream, chunk, encoding, addToFront, skipChunkCheck) {
       stream.emit('error', er);
     } else if (state.objectMode || chunk && chunk.length > 0) {
       if (typeof chunk !== 'string' &&
-          Object.getPrototypeOf(chunk) !== Buffer.prototype &&
-          !state.objectMode) {
+          !state.objectMode &&
+          Object.getPrototypeOf(chunk) !== Buffer.prototype) {
         chunk = Stream._uint8ArrayToBuffer(chunk);
       }
 
@@ -949,9 +963,7 @@ function fromListPartial(n, list, hasStrings) {
     ret = list.shift();
   } else {
     // result spans more than one buffer
-    ret = (hasStrings ?
-           copyFromBufferString(n, list) :
-           copyFromBuffer(n, list));
+    ret = hasStrings ? copyFromBufferString(n, list) : copyFromBuffer(n, list);
   }
   return ret;
 }

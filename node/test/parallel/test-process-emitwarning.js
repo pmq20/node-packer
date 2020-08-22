@@ -12,7 +12,7 @@ const testType = 'CustomWarning';
 
 process.on('warning', common.mustCall((warning) => {
   assert(warning);
-  assert(/^(Warning|CustomWarning)/.test(warning.name));
+  assert(/^(?:Warning|CustomWarning)/.test(warning.name));
   assert.strictEqual(warning.message, testMsg);
   if (warning.code) assert.strictEqual(warning.code, testCode);
   if (warning.detail) assert.strictEqual(warning.detail, testDetail);
@@ -58,7 +58,7 @@ warningThrowToString.toString = function() {
 process.emitWarning(warningThrowToString);
 
 const expectedError =
-  common.expectsError({code: 'ERR_INVALID_ARG_TYPE', type: TypeError});
+  common.expectsError({ code: 'ERR_INVALID_ARG_TYPE', type: TypeError }, 11);
 
 // TypeError is thrown on invalid input
 assert.throws(() => process.emitWarning(1), expectedError);

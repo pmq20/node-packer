@@ -23,9 +23,9 @@
 
 const assert = require('assert').ok;
 const Stream = require('stream');
-const timers = require('timers');
 const util = require('util');
 const internalUtil = require('internal/util');
+const internalHttp = require('internal/http');
 const Buffer = require('buffer').Buffer;
 const common = require('_http_common');
 const checkIsHttpToken = common._checkIsHttpToken;
@@ -36,6 +36,7 @@ const nextTick = require('internal/process/next_tick').nextTick;
 
 const CRLF = common.CRLF;
 const debug = common.debug;
+const utcDate = internalHttp.utcDate;
 
 var RE_FIELDS =
   /^(?:Connection|Transfer-Encoding|Content-Length|Date|Expect|Trailer|Upgrade)$/i;
@@ -63,23 +64,7 @@ function isCookieField(s) {
   return true;
 }
 
-var dateCache;
-function utcDate() {
-  if (!dateCache) {
-    var d = new Date();
-    dateCache = d.toUTCString();
-    timers.enroll(utcDate, 1000 - d.getMilliseconds());
-    timers._unrefActive(utcDate);
-  }
-  return dateCache;
-}
-utcDate._onTimeout = function _onTimeout() {
-  dateCache = undefined;
-};
-
-
 function noopPendingOutput(amount) {}
-
 
 function OutgoingMessage() {
   Stream.call(this);
@@ -218,12 +203,13 @@ OutgoingMessage.prototype.setTimeout = function setTimeout(msecs, callback) {
 // any messages, before ever calling this.  In that case, just skip
 // it, since something else is destroying this connection anyway.
 OutgoingMessage.prototype.destroy = function destroy(error) {
-  if (this.socket)
+  if (this.socket) {
     this.socket.destroy(error);
-  else
+  } else {
     this.once('socket', function(socket) {
       socket.destroy(error);
     });
+  }
 };
 
 
@@ -496,8 +482,7 @@ function matchHeader(self, state, field, value) {
 
 function validateHeader(msg, name, value) {
   if (typeof name !== 'string' || !name || !checkIsHttpToken(name))
-    throw new TypeError(
-      'Header name must be a valid HTTP Token ["' + name + '"]');
+    throw new TypeError(`Header name must be a valid HTTP Token ["${name}"]`);
   if (value === undefined)
     throw new Error('"value" required in setHeader("' + name + '", value)');
   if (msg._header)
@@ -633,7 +618,7 @@ OutgoingMessage.prototype.write = function write(chunk, encoding, callback) {
 function write_(msg, chunk, encoding, callback, fromEnd) {
   if (msg.finished) {
     var err = new Error('write after end');
-    nextTick(msg.socket[async_id_symbol],
+    nextTick(msg.socket && msg.socket[async_id_symbol],
              writeAfterEndNT.bind(msg),
              err,
              callback);
@@ -660,17 +645,17 @@ function write_(msg, chunk, encoding, callback, fromEnd) {
   // signal the user to keep writing.
   if (chunk.length === 0) return true;
 
+  if (!fromEnd && msg.connection && !msg.connection.corked) {
+    msg.connection.cork();
+    process.nextTick(connectionCorkNT, msg.connection);
+  }
+
   var len, ret;
   if (msg.chunkedEncoding) {
     if (typeof chunk === 'string')
       len = Buffer.byteLength(chunk, encoding);
     else
       len = chunk.length;
-
-    if (msg.connection && !msg.connection.corked) {
-      msg.connection.cork();
-      process.nextTick(connectionCorkNT, msg.connection);
-    }
 
     msg._send(len.toString(16), 'latin1', null);
     msg._send(crlf_buf, null, null);
@@ -784,6 +769,7 @@ OutgoingMessage.prototype.end = function end(chunk, encoding, callback) {
     this.connection.uncork();
 
   this.finished = true;
+  this.writable = false;
 
   // There is the first message on the outgoing queue, and we've sent
   // everything to the socket.

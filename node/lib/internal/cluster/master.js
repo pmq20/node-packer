@@ -12,6 +12,7 @@ const cluster = new EventEmitter();
 const intercom = new EventEmitter();
 const SCHED_NONE = 1;
 const SCHED_RR = 2;
+const {isLegalPort} = require('internal/net');
 
 module.exports = cluster;
 
@@ -96,26 +97,31 @@ function setupSettingsNT(settings) {
 }
 
 function createWorkerProcess(id, env) {
-  var workerEnv = util._extend({}, process.env);
-  var execArgv = cluster.settings.execArgv.slice();
-  var debugPort = 0;
-  var debugArgvRE =
-    /^(--inspect|--inspect-(brk|port)|--debug|--debug-(brk|port))(=\d+)?$/;
+  const workerEnv = util._extend({}, process.env);
+  const execArgv = cluster.settings.execArgv.slice();
+  const debugArgRegex = /--inspect(?:-brk|-port)?|--debug-port/;
 
   util._extend(workerEnv, env);
   workerEnv.NODE_UNIQUE_ID = '' + id;
 
-  for (var i = 0; i < execArgv.length; i++) {
-    const match = execArgv[i].match(debugArgvRE);
+  if (execArgv.some((arg) => arg.match(debugArgRegex))) {
+    let inspectPort;
+    if ('inspectPort' in cluster.settings) {
+      if (typeof cluster.settings.inspectPort === 'function')
+        inspectPort = cluster.settings.inspectPort();
+      else
+        inspectPort = cluster.settings.inspectPort;
 
-    if (match) {
-      if (debugPort === 0) {
-        debugPort = process.debugPort + debugPortOffset;
-        ++debugPortOffset;
+      if (!isLegalPort(inspectPort)) {
+        throw new TypeError('cluster.settings.inspectPort' +
+          ' is invalid');
       }
-
-      execArgv[i] = match[1] + '=' + debugPort;
+    } else {
+      inspectPort = process.debugPort + debugPortOffset;
+      debugPortOffset++;
     }
+
+    execArgv.push(`--inspect-port=${inspectPort}`);
   }
 
   return fork(cluster.settings.exec, cluster.settings.args, {

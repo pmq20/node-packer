@@ -1,14 +1,12 @@
 'use strict';
 const common = require('../common');
+if (!common.hasCrypto)
+  common.skip('missing crypto');
+
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 const exec = require('child_process').exec;
-
-if (!common.hasCrypto) {
-  common.skip('missing crypto');
-  return;
-}
 const crypto = require('crypto');
 
 // Test certificates
@@ -105,6 +103,7 @@ const modSize = 1024;
       getEffectiveSaltLength(crypto.constants.RSA_PSS_SALTLEN_MAX_SIGN),
       0, 16, 32, 64, 128
     ];
+    const errMessage = /^Error:.*data too large for key size$/;
 
     signSaltLengths.forEach((signSaltLength) => {
       if (signSaltLength > max) {
@@ -117,7 +116,7 @@ const modSize = 1024;
               padding: crypto.constants.RSA_PKCS1_PSS_PADDING,
               saltLength: signSaltLength
             });
-        }, /^Error:.*data too large for key size$/);
+        }, errMessage);
       } else {
         // Otherwise, a valid signature should be generated
         const s4 = crypto.createSign(algo)
@@ -200,6 +199,9 @@ const modSize = 1024;
 
 // Test exceptions for invalid `padding` and `saltLength` values
 {
+  const paddingNotInteger = /^TypeError: padding must be an integer$/;
+  const saltLengthNotInteger = /^TypeError: saltLength must be an integer$/;
+
   [null, undefined, NaN, 'boom', {}, [], true, false]
     .forEach((invalidValue) => {
       assert.throws(() => {
@@ -209,7 +211,7 @@ const modSize = 1024;
             key: keyPem,
             padding: invalidValue
           });
-      }, /^TypeError: padding must be an integer$/);
+      }, paddingNotInteger);
 
       assert.throws(() => {
         crypto.createSign('RSA-SHA256')
@@ -219,7 +221,7 @@ const modSize = 1024;
             padding: crypto.constants.RSA_PKCS1_PSS_PADDING,
             saltLength: invalidValue
           });
-      }, /^TypeError: saltLength must be an integer$/);
+      }, saltLengthNotInteger);
     });
 
   assert.throws(() => {
@@ -241,10 +243,8 @@ const modSize = 1024;
 
 // RSA-PSS Sign test by verifying with 'openssl dgst -verify'
 {
-  if (!common.opensslCli) {
+  if (!common.opensslCli)
     common.skip('node compiled without OpenSSL CLI.');
-    return;
-  }
 
   const pubfile = path.join(common.fixturesDir, 'keys/rsa_public_2048.pem');
   const privfile = path.join(common.fixturesDir, 'keys/rsa_private_2048.pem');
@@ -267,8 +267,8 @@ const modSize = 1024;
 
   const cmd =
     `"${common.opensslCli}" dgst -sha256 -verify "${pubfile}" -signature "${
-    sigfile}" -sigopt rsa_padding_mode:pss -sigopt rsa_pss_saltlen:-2 "${
-    msgfile}"`;
+      sigfile}" -sigopt rsa_padding_mode:pss -sigopt rsa_pss_saltlen:-2 "${
+      msgfile}"`;
 
   exec(cmd, common.mustCall((err, stdout, stderr) => {
     assert(stdout.includes('Verified OK'));

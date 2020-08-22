@@ -1,7 +1,8 @@
 'use strict';
 
-/* WPT Refs:
-   https://github.com/w3c/web-platform-tests/blob/3eff1bd/url/setters_tests.json
+/* The following tests are copied from WPT. Modifications to them should be
+   upstreamed first. Refs:
+   https://github.com/w3c/web-platform-tests/blob/b30abaecf4/url/setters_tests.json
    License: http://www.w3.org/Consortium/Legal/2008/04-testsuite-copyright.html
 */
 module.exports =
@@ -265,6 +266,16 @@ module.exports =
             "expected": {
                 "href": "view-source+data:text/html,<p>Test",
                 "protocol": "view-source+data:"
+            }
+        },
+        {
+            "comment": "Port is set to null if it is the default for new scheme.",
+            "href": "http://foo.com:443/",
+            "new_value": "https",
+            "expected": {
+                "href": "https://foo.com/",
+                "protocol": "https:",
+                "port": ""
             }
         }
     ],

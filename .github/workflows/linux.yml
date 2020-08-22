@@ -1,0 +1,67 @@
+name: Linux
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+jobs:
+  make:
+    strategy:
+      matrix:
+        os: [ubuntu-20.04]
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: "[Enclose.IO] Install dependencies"
+        run: |
+          sudo apt update
+          sudo apt install -y build-essential squashfs-tools
+      - uses: actions/checkout@v2
+      - name: "[Enclose.IO] Set up rubyc"
+        run: |
+          curl -OL https://github.com/pmq20/ruby-packer/releases/download/linux-x64/rubyc
+          chmod +x rubyc
+          mv rubyc /usr/local/bin
+      - name: "[Enclose.IO] Set up Ruby"
+        uses: ruby/setup-ruby@v1
+      - name: "[Enclose.IO] Check dependencies"
+        run: |
+          cat /etc/issue
+          uname -a
+          uname -p
+          uname -m
+          lscpu
+          which mksquashfs
+          mksquashfs -version
+          which ruby
+          ruby -v
+          which rubyc
+          rubyc --version
+      - name: "[Enclose.IO] Bundle install"
+        run: bundle install
+      - name: "[Enclose.IO] Run rubocop"
+        run: bundle exec rubocop
+      - name: "[Enclose.IO] Rake"
+        run: bundle exec rake
+      - name: "[Enclose.IO] Create Linux Release"
+        if: ${{ github.ref == 'refs/heads/master' && success() }}
+        id: create_linux_release
+        uses: pmq20/create-release@delete-old-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: linux-x64
+          release_name: Latest Linux Build
+          draft: false
+          prerelease: false
+          replace_old_tag: true
+      - name: "[Enclose.IO] Upload Linux Release"
+        if: ${{ github.ref == 'refs/heads/master' && success() }}
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_linux_release.outputs.upload_url }}
+          asset_path: ./nodec
+          asset_name: nodec
+          asset_content_type: application/octet-stream

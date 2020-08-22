@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Cluster | Node.js v8.1.1 Documentation</title>
+  <title>Cluster | Node.js v8.4.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -42,8 +42,10 @@
 <li><a class="nav-fs" href="fs.html">File System</a></li>
 <li><a class="nav-globals" href="globals.html">Globals</a></li>
 <li><a class="nav-http" href="http.html">HTTP</a></li>
+<li><a class="nav-http2" href="http2.html">HTTP/2</a></li>
 <li><a class="nav-https" href="https.html">HTTPS</a></li>
 <li><a class="nav-inspector" href="inspector.html">Inspector</a></li>
+<li><a class="nav-intl" href="intl.html">Internationalization</a></li>
 <li><a class="nav-modules" href="modules.html">Modules</a></li>
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
@@ -77,7 +79,7 @@
 
     <div id="column1" data-id="cluster" class="interior">
       <header>
-        <h1>Node.js v8.1.1 Documentation</h1>
+        <h1>Node.js v8.4.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -282,7 +284,7 @@ worker.on(&#39;exit&#39;, (code, signal) =&gt; {
 <li><code>handle</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Undefined_type" class="type">&lt;undefined&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
 </ul>
 <p>Similar to the <code>cluster.on(&#39;message&#39;)</code> event, but specific to this worker.</p>
-<p>Within a worker, <code>process.on(&#39;message)</code> may also be used.</p>
+<p>Within a worker, <code>process.on(&#39;message&#39;)</code> may also be used.</p>
 <p>See <a href="process.html#process_event_message"><code>process</code> event: <code>&#39;message&#39;</code></a>.</p>
 <p>As an example, here is a cluster that keeps count of the number of requests
 in the master process using the message system:</p>
@@ -733,6 +735,9 @@ values are <code>&quot;rr&quot;</code> and <code>&quot;none&quot;</code>.</p>
 <details class="changelog"><summary>History</summary>
 <table>
 <tr><th>Version</th><th>Changes</th></tr>
+<tr><td>8.2.0</td>
+<td><p>The <code>inspectPort</code> option is supported now.</p>
+</td></tr>
 <tr><td>v6.4.0</td>
 <td><p>The <code>stdio</code> option is supported now.</p>
 </td></tr>
@@ -743,18 +748,22 @@ values are <code>&quot;rr&quot;</code> and <code>&quot;none&quot;</code>.</p>
 </details>
 </div><ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
-<li><code>execArgv</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a> list of string arguments passed to the Node.js
+<li><code>execArgv</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a> List of string arguments passed to the Node.js
 executable. (Default=<code>process.execArgv</code>)</li>
-<li><code>exec</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> file path to worker file.  (Default=<code>process.argv[1]</code>)</li>
-<li><code>args</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a> string arguments passed to worker.
+<li><code>exec</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> File path to worker file.  (Default=<code>process.argv[1]</code>)</li>
+<li><code>args</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a> String arguments passed to worker.
 (Default=<code>process.argv.slice(2)</code>)</li>
-<li><code>silent</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> whether or not to send output to parent&#39;s stdio.
+<li><code>silent</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> Whether or not to send output to parent&#39;s stdio.
 (Default=<code>false</code>)</li>
 <li><code>stdio</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a> Configures the stdio of forked processes. Because the
 cluster module relies on IPC to function, this configuration must contain an
 <code>&#39;ipc&#39;</code> entry. When this option is provided, it overrides <code>silent</code>.</li>
 <li><code>uid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Sets the user identity of the process. (See <a href="http://man7.org/linux/man-pages/man2/setuid.2.html">setuid(2)</a>.)</li>
 <li><code>gid</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> Sets the group identity of the process. (See <a href="http://man7.org/linux/man-pages/man2/setgid.2.html">setgid(2)</a>.)</li>
+<li><code>inspectPort</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> | <span class="type">&lt;function&gt;</span> Sets inspector port of worker.
+This can be a number, or a function that takes no arguments and returns a
+number. By default each worker gets its own port, incremented from the
+master&#39;s <code>process.debugPort</code>.</li>
 </ul>
 </li>
 </ul>
@@ -775,27 +784,18 @@ the settings, including the default values.</p>
 </table>
 </details>
 </div><ul>
-<li><code>settings</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a><ul>
-<li><code>exec</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> file path to worker file.  (Default=<code>process.argv[1]</code>)</li>
-<li><code>args</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a> string arguments passed to worker.
-(Default=<code>process.argv.slice(2)</code>)</li>
-<li><code>silent</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a> whether or not to send output to parent&#39;s stdio.
-(Default=<code>false</code>)</li>
-<li><code>stdio</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" class="type">&lt;Array&gt;</a> Configures the stdio of forked processes. When this option
-is provided, it overrides <code>silent</code>.</li>
-</ul>
-</li>
+<li><code>settings</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> see <a href="#clustersettings"><code>cluster.settings</code></a></li>
 </ul>
 <p><code>setupMaster</code> is used to change the default &#39;fork&#39; behavior. Once called,
 the settings will be present in <code>cluster.settings</code>.</p>
 <p>Note that:</p>
 <ul>
-<li>any settings changes only affect future calls to <code>.fork()</code> and have no
-effect on workers that are already running</li>
+<li>Any settings changes only affect future calls to <code>.fork()</code> and have no
+effect on workers that are already running.</li>
 <li>The <em>only</em> attribute of a worker that cannot be set via <code>.setupMaster()</code> is
-the <code>env</code> passed to <code>.fork()</code></li>
-<li>the defaults above apply to the first call only, the defaults for later
-calls is the current value at the time of <code>cluster.setupMaster()</code> is called</li>
+the <code>env</code> passed to <code>.fork()</code>.</li>
+<li>The defaults above apply to the first call only, the defaults for later
+calls is the current value at the time of <code>cluster.setupMaster()</code> is called.</li>
 </ul>
 <p>Example:</p>
 <pre><code class="lang-js">const cluster = require(&#39;cluster&#39;);

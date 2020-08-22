@@ -1,8 +1,6 @@
 'use strict';
-const common = require('../common');
+require('../common');
 const assert = require('assert');
-
-const Buffer = require('buffer').Buffer;
 
 const b = Buffer.from('abcdef');
 const buf_a = Buffer.from('a');
@@ -156,11 +154,11 @@ assert(mixedByteStringUcs2.includes('\u03a3', 0, 'ucs2'));
 assert(!mixedByteStringUcs2.includes('\u0396', 0, 'ucs2'));
 
 assert.ok(
-    mixedByteStringUcs2.includes(Buffer.from('bc', 'ucs2'), 0, 'ucs2'));
+  mixedByteStringUcs2.includes(Buffer.from('bc', 'ucs2'), 0, 'ucs2'));
 assert.ok(
-    mixedByteStringUcs2.includes(Buffer.from('\u03a3', 'ucs2'), 0, 'ucs2'));
+  mixedByteStringUcs2.includes(Buffer.from('\u03a3', 'ucs2'), 0, 'ucs2'));
 assert.ok(
-    !mixedByteStringUcs2.includes(Buffer.from('\u0396', 'ucs2'), 0, 'ucs2'));
+  !mixedByteStringUcs2.includes(Buffer.from('\u0396', 'ucs2'), 0, 'ucs2'));
 
 twoByteString = Buffer.from('\u039a\u0391\u03a3\u03a3\u0395', 'ucs2');
 
@@ -210,7 +208,7 @@ assert(longBufferString.includes(pattern, 512), 'Long JABACABA..., Second J');
 
 // Search for a non-ASCII string in a pure ASCII string.
 const asciiString = Buffer.from(
-    'arglebargleglopglyfarglebargleglopglyfarglebargleglopglyf');
+  'arglebargleglopglyfarglebargleglopglyfarglebargleglopglyf');
 assert(!asciiString.includes('\x2061'));
 assert(asciiString.includes('leb', 0));
 
@@ -265,18 +263,18 @@ for (let lengthIndex = 0; lengthIndex < lengths.length; lengthIndex++) {
     const patternBufferUcs2 =
         allCharsBufferUcs2.slice(index, index + length);
     assert.ok(
-        allCharsBufferUcs2.includes(patternBufferUcs2, 0, 'ucs2'));
+      allCharsBufferUcs2.includes(patternBufferUcs2, 0, 'ucs2'));
 
     const patternStringUcs2 = patternBufferUcs2.toString('ucs2');
     assert.ok(
-        allCharsBufferUcs2.includes(patternStringUcs2, 0, 'ucs2'));
+      allCharsBufferUcs2.includes(patternStringUcs2, 0, 'ucs2'));
   }
 }
 
 const expectedError =
   /^TypeError: "val" argument must be string, number, Buffer or Uint8Array$/;
 assert.throws(() => {
-  b.includes(common.noop);
+  b.includes(() => {});
 }, expectedError);
 assert.throws(() => {
   b.includes({});

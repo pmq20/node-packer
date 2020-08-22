@@ -67,7 +67,7 @@ typedef enum {
   napi_generic_failure,
   napi_pending_exception,
   napi_cancelled,
-  napi_status_last
+  napi_escape_called_twice
 } napi_status;
 
 typedef napi_value (*napi_callback)(napi_env env,
@@ -101,5 +101,12 @@ typedef struct {
   uint32_t engine_error_code;
   napi_status error_code;
 } napi_extended_error_info;
+
+typedef struct {
+  uint32_t major;
+  uint32_t minor;
+  uint32_t patch;
+  const char* release;
+} napi_node_version;
 
 #endif  // SRC_NODE_API_TYPES_H_

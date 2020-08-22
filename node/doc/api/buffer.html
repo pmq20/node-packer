@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Buffer | Node.js v8.1.1 Documentation</title>
+  <title>Buffer | Node.js v8.4.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -42,8 +42,10 @@
 <li><a class="nav-fs" href="fs.html">File System</a></li>
 <li><a class="nav-globals" href="globals.html">Globals</a></li>
 <li><a class="nav-http" href="http.html">HTTP</a></li>
+<li><a class="nav-http2" href="http2.html">HTTP/2</a></li>
 <li><a class="nav-https" href="https.html">HTTPS</a></li>
 <li><a class="nav-inspector" href="inspector.html">Inspector</a></li>
+<li><a class="nav-intl" href="intl.html">Internationalization</a></li>
 <li><a class="nav-modules" href="modules.html">Modules</a></li>
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
@@ -77,7 +79,7 @@
 
     <div id="column1" data-id="buffer" class="interior">
       <header>
-        <h1>Node.js v8.1.1 Documentation</h1>
+        <h1>Node.js v8.4.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -116,6 +118,7 @@
 <li><span class="stability_undefined"><a href="#buffer_class_method_buffer_from_arraybuffer_byteoffset_length">Class Method: Buffer.from(arrayBuffer[, byteOffset[, length]])</a></span></li>
 <li><span class="stability_undefined"><a href="#buffer_class_method_buffer_from_buffer">Class Method: Buffer.from(buffer)</a></span></li>
 <li><span class="stability_undefined"><a href="#buffer_class_method_buffer_from_string_encoding">Class Method: Buffer.from(string[, encoding])</a></span></li>
+<li><span class="stability_undefined"><a href="#buffer_class_method_buffer_from_object_offsetorencoding_length">Class Method: Buffer.from(object[, offsetOrEncoding[, length]])</a></span></li>
 <li><span class="stability_undefined"><a href="#buffer_class_method_buffer_isbuffer_obj">Class Method: Buffer.isBuffer(obj)</a></span></li>
 <li><span class="stability_undefined"><a href="#buffer_class_method_buffer_isencoding_encoding">Class Method: Buffer.isEncoding(encoding)</a></span></li>
 <li><span class="stability_undefined"><a href="#buffer_class_property_buffer_poolsize">Class Property: Buffer.poolSize</a></span></li>
@@ -183,6 +186,11 @@
 <li><span class="stability_undefined"><a href="#buffer_buffer_transcode_source_fromenc_toenc">buffer.transcode(source, fromEnc, toEnc)</a></span></li>
 <li><span class="stability_0"><a href="#buffer_class_slowbuffer">Class: SlowBuffer</a></span><ul>
 <li><span class="stability_0"><a href="#buffer_new_slowbuffer_size">new SlowBuffer(size)</a></span></li>
+</ul>
+</li>
+<li><span class="stability_undefined"><a href="#buffer_buffer_constants">Buffer Constants</a></span><ul>
+<li><span class="stability_undefined"><a href="#buffer_buffer_constants_max_length">buffer.constants.MAX_LENGTH</a></span></li>
+<li><span class="stability_undefined"><a href="#buffer_buffer_constants_max_string_length">buffer.constants.MAX_STRING_LENGTH</a></span></li>
 </ul>
 </li>
 </ul>
@@ -363,11 +371,12 @@ page 63, to be the Latin-1 supplement block and C0/C1 control codes).</p>
 <li><p><code>&#39;hex&#39;</code> - Encode each byte as two hexadecimal characters.</p>
 </li>
 </ul>
-<p><em>Note</em>: Today&#39;s browsers follow the <a href="https://encoding.spec.whatwg.org/">WHATWG spec</a> which aliases both &#39;latin1&#39;
-and ISO-8859-1 to win-1252. This means that while doing something like
-<code>http.get()</code>, if the returned charset is one of those listed in the WHATWG spec
-it&#39;s possible that the server actually returned win-1252-encoded data, and
-using <code>&#39;latin1&#39;</code> encoding may incorrectly decode the characters.</p>
+<p><em>Note</em>: Today&#39;s browsers follow the <a href="https://encoding.spec.whatwg.org/">WHATWG Encoding Standard</a> which aliases
+both &#39;latin1&#39; and ISO-8859-1 to win-1252. This means that while doing something
+like <code>http.get()</code>, if the returned charset is one of those listed in the WHATWG
+specification it is possible that the server actually returned
+win-1252-encoded data, and using <code>&#39;latin1&#39;</code> encoding may incorrectly decode the
+characters.</p>
 <h2>Buffers and TypedArray<span><a class="mark" href="#buffer_buffers_and_typedarray" id="buffer_buffers_and_typedarray">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -600,8 +609,8 @@ console.log(buf2.toString());
 <li><code>size</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> The desired length of the new <code>Buffer</code></li>
 </ul>
 <p>Allocates a new <code>Buffer</code> of <code>size</code> bytes.  If the <code>size</code> is larger than
-<a href="#buffer_buffer_kmaxlength"><code>buffer.kMaxLength</code></a> or smaller than 0, a <a href="errors.html#errors_class_rangeerror"><code>RangeError</code></a> will be thrown.
-A zero-length <code>Buffer</code> will be created if <code>size</code> is 0.</p>
+<a href="#buffer_buffer_constants_max_length"><code>buffer.constants.MAX_LENGTH</code></a> or smaller than 0, a <a href="errors.html#errors_class_rangeerror"><code>RangeError</code></a> will be
+thrown. A zero-length <code>Buffer</code> will be created if <code>size</code> is 0.</p>
 <p>Prior to Node.js 8.0.0, the underlying memory for <code>Buffer</code> instances
 created in this way is <em>not initialized</em>. The contents of a newly created
 <code>Buffer</code> are unknown and <em>may contain sensitive data</em>. Use
@@ -669,8 +678,8 @@ console.log(buf2.toString());
 console.log(buf);
 </code></pre>
 <p>Allocates a new <code>Buffer</code> of <code>size</code> bytes.  If the <code>size</code> is larger than
-<a href="#buffer_buffer_kmaxlength"><code>buffer.kMaxLength</code></a> or smaller than 0, a <a href="errors.html#errors_class_rangeerror"><code>RangeError</code></a> will be thrown.
-A zero-length <code>Buffer</code> will be created if <code>size</code> is 0.</p>
+<a href="#buffer_buffer_constants_max_length"><code>buffer.constants.MAX_LENGTH</code></a> or smaller than 0, a <a href="errors.html#errors_class_rangeerror"><code>RangeError</code></a> will be
+thrown. A zero-length <code>Buffer</code> will be created if <code>size</code> is 0.</p>
 <p>If <code>fill</code> is specified, the allocated <code>Buffer</code> will be initialized by calling
 <a href="#buffer_buf_fill_value_offset_end_encoding"><code>buf.fill(fill)</code></a>.</p>
 <p>Example:</p>
@@ -708,8 +717,8 @@ contents will <em>never contain sensitive data</em>.</p>
 <li><code>size</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> The desired length of the new <code>Buffer</code></li>
 </ul>
 <p>Allocates a new <code>Buffer</code> of <code>size</code> bytes.  If the <code>size</code> is larger than
-<a href="#buffer_buffer_kmaxlength"><code>buffer.kMaxLength</code></a> or smaller than 0, a <a href="errors.html#errors_class_rangeerror"><code>RangeError</code></a> will be thrown.
-A zero-length <code>Buffer</code> will be created if <code>size</code> is 0.</p>
+<a href="#buffer_buffer_constants_max_length"><code>buffer.constants.MAX_LENGTH</code></a> or smaller than 0, a <a href="errors.html#errors_class_rangeerror"><code>RangeError</code></a> will be
+thrown. A zero-length <code>Buffer</code> will be created if <code>size</code> is 0.</p>
 <p>The underlying memory for <code>Buffer</code> instances created in this way is <em>not
 initialized</em>. The contents of the newly created <code>Buffer</code> are unknown and
 <em>may contain sensitive data</em>. Use <a href="#buffer_class_method_buffer_alloc_size_fill_encoding"><code>Buffer.alloc()</code></a> instead to initialize
@@ -745,8 +754,8 @@ additional performance that <a href="#buffer_class_method_buffer_allocunsafe_siz
 <li><code>size</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> The desired length of the new <code>Buffer</code></li>
 </ul>
 <p>Allocates a new <code>Buffer</code> of <code>size</code> bytes.  If the <code>size</code> is larger than
-<a href="#buffer_buffer_kmaxlength"><code>buffer.kMaxLength</code></a> or smaller than 0, a <a href="errors.html#errors_class_rangeerror"><code>RangeError</code></a> will be thrown.
-A zero-length <code>Buffer</code> will be created if <code>size</code> is 0.</p>
+<a href="#buffer_buffer_constants_max_length"><code>buffer.constants.MAX_LENGTH</code></a> or smaller than 0, a <a href="errors.html#errors_class_rangeerror"><code>RangeError</code></a> will be
+thrown. A zero-length <code>Buffer</code> will be created if <code>size</code> is 0.</p>
 <p>The underlying memory for <code>Buffer</code> instances created in this way is <em>not
 initialized</em>. The contents of the newly created <code>Buffer</code> are unknown and
 <em>may contain sensitive data</em>. Use <a href="#buffer_buf_fill_value_offset_end_encoding"><code>buf.fill(0)</code></a> to initialize such
@@ -994,6 +1003,35 @@ const buf2 = Buffer.from(&#39;7468697320697320612074c3a97374&#39;, &#39;hex&#39;
 console.log(buf2.toString());
 </code></pre>
 <p>A <code>TypeError</code> will be thrown if <code>str</code> is not a string.</p>
+<h3>Class Method: Buffer.from(object[, offsetOrEncoding[, length]])<span><a class="mark" href="#buffer_class_method_buffer_from_object_offsetorencoding_length" id="buffer_class_method_buffer_from_object_offsetorencoding_length">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.2.0</span>
+</div><ul>
+<li><code>object</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> An object supporting <code>Symbol.toPrimitive</code> or <code>valueOf()</code></li>
+<li><code>offsetOrEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> A byte-offset or encoding, depending on
+the value returned either by <code>object.valueOf()</code> or
+<code>object[Symbol.toPrimitive]()</code>.</li>
+<li><code>length</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> A length, depending on the value returned either by
+<code>object.valueOf()</code> or <code>object[Symbol.toPrimitive]()</code>.</li>
+</ul>
+<p>For objects whose <code>valueOf()</code> function returns a value not strictly equal to
+<code>object</code>, returns <code>Buffer.from(object.valueOf(), offsetOrEncoding, length)</code>.</p>
+<p>For example:</p>
+<pre><code class="lang-js">const buf = Buffer.from(new String(&#39;this is a test&#39;));
+// &lt;Buffer 74 68 69 73 20 69 73 20 61 20 74 65 73 74&gt;
+</code></pre>
+<p>For objects that support <code>Symbol.toPrimitive</code>, returns
+<code>Buffer.from(object[Symbol.toPrimitive](), offsetOrEncoding, length)</code>.</p>
+<p>For example:</p>
+<pre><code class="lang-js">class Foo {
+  [Symbol.toPrimitive]() {
+    return &#39;this is a test&#39;;
+  }
+}
+
+const buf = Buffer.from(new Foo(), &#39;utf8&#39;);
+// &lt;Buffer 74 68 69 73 20 69 73 20 61 20 74 65 73 74&gt;
+</code></pre>
 <h3>Class Method: Buffer.isBuffer(obj)<span><a class="mark" href="#buffer_class_method_buffer_isbuffer_obj" id="buffer_class_method_buffer_isbuffer_obj">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.101</span>
@@ -1824,6 +1862,8 @@ console.log(buf.readUIntBE(1, 6).toString(16));
 </ul>
 <p>Returns a new <code>Buffer</code> that references the same memory as the original, but
 offset and cropped by the <code>start</code> and <code>end</code> indices.</p>
+<p>Specifying <code>end</code> greater than <a href="#buffer_buf_length"><code>buf.length</code></a> will return the same result as
+that of <code>end</code> equal to <a href="#buffer_buf_length"><code>buf.length</code></a>.</p>
 <p><em>Note</em>: Modifying the new <code>Buffer</code> slice will modify the memory in the
 original <code>Buffer</code> because the allocated memory of the two objects overlap.</p>
 <p>Example: Create a <code>Buffer</code> with the ASCII alphabet, take a slice, and then modify
@@ -1975,6 +2015,8 @@ console.log(copy);
 </ul>
 <p>Decodes <code>buf</code> to a string according to the specified character encoding in
 <code>encoding</code>. <code>start</code> and <code>end</code> may be passed to decode only a subset of <code>buf</code>.</p>
+<p>The maximum length of a string instance (in UTF-16 code units) is available
+as <a href="#buffer_buffer_constants_max_string_length"><code>buffer.constants.MAX_STRING_LENGTH</code></a>.</p>
 <p>Examples:</p>
 <pre><code class="lang-js">const buf1 = Buffer.allocUnsafe(26);
 
@@ -2352,8 +2394,7 @@ console.log(buf);
 </div><ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> The largest size allowed for a single <code>Buffer</code> instance</li>
 </ul>
-<p>On 32-bit architectures, this value is <code>(2^30)-1</code> (~1GB).
-On 64-bit architectures, this value is <code>(2^31)-1</code> (~2GB).</p>
+<p>An alias for <a href="#buffer_buffer_constants_max_length"><code>buffer.constants.MAX_LENGTH</code></a></p>
 <p>Note that this is a property on the <code>buffer</code> module returned by
 <code>require(&#39;buffer&#39;)</code>, not on the <code>Buffer</code> global or a <code>Buffer</code> instance.</p>
 <h2>buffer.transcode(source, fromEnc, toEnc)<span><a class="mark" href="#buffer_buffer_transcode_source_fromenc_toenc" id="buffer_buffer_transcode_source_fromenc_toenc">#</a></span></h2>
@@ -2426,8 +2467,8 @@ has observed undue memory retention in their applications.</p>
 <li><code>size</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> The desired length of the new <code>SlowBuffer</code></li>
 </ul>
 <p>Allocates a new <code>Buffer</code> of <code>size</code> bytes.  If the <code>size</code> is larger than
-<a href="#buffer_buffer_kmaxlength"><code>buffer.kMaxLength</code></a> or smaller than 0, a <a href="errors.html#errors_class_rangeerror"><code>RangeError</code></a> will be thrown.
-A zero-length <code>Buffer</code> will be created if <code>size</code> is 0.</p>
+<a href="#buffer_buffer_constants_max_length"><code>buffer.constants.MAX_LENGTH</code></a> or smaller than 0, a <a href="errors.html#errors_class_rangeerror"><code>RangeError</code></a> will be
+thrown. A zero-length <code>Buffer</code> will be created if <code>size</code> is 0.</p>
 <p>The underlying memory for <code>SlowBuffer</code> instances is <em>not initialized</em>. The
 contents of a newly created <code>SlowBuffer</code> are unknown and may contain
 sensitive data. Use <a href="#buffer_buf_fill_value_offset_end_encoding"><code>buf.fill(0)</code></a> to initialize a <code>SlowBuffer</code> to zeroes.</p>
@@ -2444,6 +2485,29 @@ buf.fill(0);
 // Prints: &lt;Buffer 00 00 00 00 00&gt;
 console.log(buf);
 </code></pre>
+<h2>Buffer Constants<span><a class="mark" href="#buffer_buffer_constants" id="buffer_buffer_constants">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: 8.2.0</span>
+</div><p>Note that <code>buffer.constants</code> is a property on the <code>buffer</code> module returned by
+<code>require(&#39;buffer&#39;)</code>, not on the <code>Buffer</code> global or a <code>Buffer</code> instance.</p>
+<h3>buffer.constants.MAX_LENGTH<span><a class="mark" href="#buffer_buffer_constants_max_length" id="buffer_buffer_constants_max_length">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: 8.2.0</span>
+</div><ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> The largest size allowed for a single <code>Buffer</code> instance</li>
+</ul>
+<p>On 32-bit architectures, this value is <code>(2^30)-1</code> (~1GB).
+On 64-bit architectures, this value is <code>(2^31)-1</code> (~2GB).</p>
+<p>This value is also available as <a href="#buffer_buffer_kmaxlength"><code>buffer.kMaxLength</code></a>.</p>
+<h3>buffer.constants.MAX_STRING_LENGTH<span><a class="mark" href="#buffer_buffer_constants_max_string_length" id="buffer_buffer_constants_max_string_length">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: 8.2.0</span>
+</div><ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;integer&gt;</a> The largest length allowed for a single <code>string</code> instance</li>
+</ul>
+<p>Represents the largest <code>length</code> that a <code>string</code> primitive can have, counted
+in UTF-16 code units.</p>
+<p>This value may depend on the JS engine that is being used.</p>
 
       </div>
     </div>

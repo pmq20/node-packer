@@ -243,6 +243,16 @@
     },
     {
       "type": "text",
+      "text": "[HTTP/2](http2.html)"
+    },
+    {
+      "type": "list_item_end"
+    },
+    {
+      "type": "list_item_start"
+    },
+    {
+      "type": "text",
       "text": "[HTTPS](https.html)"
     },
     {
@@ -254,6 +264,16 @@
     {
       "type": "text",
       "text": "[Inspector](inspector.html)"
+    },
+    {
+      "type": "list_item_end"
+    },
+    {
+      "type": "list_item_start"
+    },
+    {
+      "type": "text",
+      "text": "[Internationalization](intl.html)"
     },
     {
       "type": "list_item_end"

@@ -44,8 +44,8 @@ function send(socket, message, id, callback) {
   for (let i = 0; i < messageBuf.length; i++)
     messageBuf[i] = messageBuf[i] ^ (1 << (i % 4));
   socket.write(
-      Buffer.concat([wsHeaderBuf.slice(0, maskOffset + 4), messageBuf]),
-      callback);
+    Buffer.concat([wsHeaderBuf.slice(0, maskOffset + 4), messageBuf]),
+    callback);
 }
 
 function sendEnd(socket) {
@@ -53,6 +53,7 @@ function sendEnd(socket) {
 }
 
 function parseWSFrame(buffer, handler) {
+  // Protocol described in https://tools.ietf.org/html/rfc6455#section-5
   if (buffer.length < 2)
     return 0;
   if (buffer[0] === 0x88 && buffer[1] === 0x00) {
@@ -68,13 +69,21 @@ function parseWSFrame(buffer, handler) {
     dataLen = buffer.readUInt16BE(2);
     bodyOffset = 4;
   } else if (dataLen === 127) {
-    dataLen = buffer.readUInt32BE(2);
+    assert(buffer[2] === 0 && buffer[3] === 0, 'Inspector message too big');
+    dataLen = buffer.readUIntBE(4, 6);
     bodyOffset = 10;
   }
   if (buffer.length < bodyOffset + dataLen)
     return 0;
-  const message = JSON.parse(
-      buffer.slice(bodyOffset, bodyOffset + dataLen).toString('utf8'));
+  const jsonPayload =
+    buffer.slice(bodyOffset, bodyOffset + dataLen).toString('utf8');
+  let message;
+  try {
+    message = JSON.parse(jsonPayload);
+  } catch (e) {
+    console.error(`JSON.parse() failed for: ${jsonPayload}`);
+    throw e;
+  }
   if (DEBUG)
     console.log('[received]', JSON.stringify(message));
   handler(message);
@@ -238,7 +247,7 @@ TestSession.prototype.sendInspectorCommands = function(commands) {
     this.sendAll_(commands, () => {
       timeoutId = setTimeout(() => {
         assert.fail(`Messages without response: ${
-                    Object.keys(this.messages_).join(', ')}`);
+          Object.keys(this.messages_).join(', ')}`);
       }, TIMEOUT);
     });
   });
@@ -282,7 +291,7 @@ TestSession.prototype.expectMessages = function(expects) {
   if (!(expects instanceof Array)) expects = [ expects ];
 
   const callback = this.createCallbackWithTimeout_(
-      `Matching response was not received:\n${expects[0]}`);
+    `Matching response was not received:\n${expects[0]}`);
   this.messagefilter_ = (message) => {
     if (expects[0](message))
       expects.shift();
@@ -296,8 +305,8 @@ TestSession.prototype.expectMessages = function(expects) {
 
 TestSession.prototype.expectStderrOutput = function(regexp) {
   this.harness_.addStderrFilter(
-      regexp,
-      this.createCallbackWithTimeout_(`Timed out waiting for ${regexp}`));
+    regexp,
+    this.createCallbackWithTimeout_(`Timed out waiting for ${regexp}`));
   return this;
 };
 
@@ -350,10 +359,10 @@ TestSession.prototype.assertClosed = function() {
 
 TestSession.prototype.testHttpResponse = function(path, check) {
   return this.enqueue((callback) =>
-      checkHttpResponse(null, this.harness_.port, path, (err, response) => {
-        check.call(this, err, response);
-        callback();
-      }));
+    checkHttpResponse(null, this.harness_.port, path, (err, response) => {
+      check.call(this, err, response);
+      callback();
+    }));
 };
 
 
@@ -366,7 +375,7 @@ function Harness(port, childProcess) {
   this.running_ = true;
 
   childProcess.stdout.on('data', makeBufferingDataCallback(
-      (line) => console.log('[out]', line)));
+    (line) => console.log('[out]', line)));
 
 
   childProcess.stderr.on('data', makeBufferingDataCallback((message) => {
@@ -393,7 +402,7 @@ Harness.prototype.addStderrFilter = function(regexp, callback) {
 
 Harness.prototype.assertStillAlive = function() {
   assert.strictEqual(this.running_, true,
-                     'Child died: ' + JSON.stringify(this.result_));
+                     `Child died: ${JSON.stringify(this.result_)}`);
 };
 
 Harness.prototype.run_ = function() {
@@ -521,11 +530,11 @@ exports.startNodeForInspectorTest = function(callback,
     clearTimeout(timeoutId);
     console.log('[err]', text);
     if (found) return;
-    const match = text.match(/Debugger listening on ws:\/\/(.+):(\d+)\/(.+)/);
+    const match = text.match(/Debugger listening on ws:\/\/.+:(\d+)\/.+/);
     found = true;
     child.stderr.removeListener('data', dataCallback);
     assert.ok(match, text);
-    callback(new Harness(match[2], child));
+    callback(new Harness(match[1], child));
   });
 
   child.stderr.on('data', dataCallback);

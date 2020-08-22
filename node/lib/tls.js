@@ -32,7 +32,7 @@ const { isUint8Array } = process.binding('util');
 
 // Allow {CLIENT_RENEG_LIMIT} client-initiated session renegotiations
 // every {CLIENT_RENEG_WINDOW} seconds. An error event is emitted if more
-// renegotations are seen. The settings are applied to all remote client
+// renegotiations are seen. The settings are applied to all remote client
 // connections.
 exports.CLIENT_RENEG_LIMIT = 3;
 exports.CLIENT_RENEG_WINDOW = 600;
@@ -122,9 +122,10 @@ function check(hostParts, pattern, wildcards) {
     return false;
 
   // Check host parts from right to left first.
-  for (var i = hostParts.length - 1; i > 0; i -= 1)
+  for (var i = hostParts.length - 1; i > 0; i -= 1) {
     if (hostParts[i] !== patternParts[i])
       return false;
+  }
 
   const hostSubdomain = hostParts[0];
   const patternSubdomain = patternParts[0];
@@ -219,7 +220,7 @@ exports.checkServerIdentity = function checkServerIdentity(host, cert) {
 
   if (!valid) {
     const err = new Error(
-        `Hostname/IP doesn't match certificate's altnames: "${reason}"`);
+      `Hostname/IP doesn't match certificate's altnames: "${reason}"`);
     err.reason = reason;
     err.host = host;
     err.cert = cert;

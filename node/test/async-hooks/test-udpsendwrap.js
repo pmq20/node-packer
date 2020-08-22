@@ -21,7 +21,7 @@ function onlistening() {
     new Buffer(2), 0, 2, sock.address().port,
     undefined, common.mustCall(onsent));
 
-  // init not called synchronously because dns lookup alwasy wraps
+  // init not called synchronously because dns lookup always wraps
   // callback in a next tick even if no lookup is needed
   // TODO (trevnorris) submit patch to fix creation of tick objects and instead
   // create the send wrap synchronously.
@@ -35,7 +35,7 @@ function onsent() {
   assert.strictEqual(as.length, 1);
   assert.strictEqual(send.type, 'UDPSENDWRAP');
   assert.strictEqual(typeof send.uid, 'number');
-  assert.strictEqual(typeof send.triggerId, 'number');
+  assert.strictEqual(typeof send.triggerAsyncId, 'number');
   checkInvocations(send, { init: 1, before: 1 }, 'when message sent');
 
   sock.close(common.mustCall(onsockClosed));

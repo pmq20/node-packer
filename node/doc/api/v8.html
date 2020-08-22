@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>V8 | Node.js v8.1.1 Documentation</title>
+  <title>V8 | Node.js v8.4.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -42,8 +42,10 @@
 <li><a class="nav-fs" href="fs.html">File System</a></li>
 <li><a class="nav-globals" href="globals.html">Globals</a></li>
 <li><a class="nav-http" href="http.html">HTTP</a></li>
+<li><a class="nav-http2" href="http2.html">HTTP/2</a></li>
 <li><a class="nav-https" href="https.html">HTTPS</a></li>
 <li><a class="nav-inspector" href="inspector.html">Inspector</a></li>
+<li><a class="nav-intl" href="intl.html">Internationalization</a></li>
 <li><a class="nav-modules" href="modules.html">Modules</a></li>
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
@@ -77,7 +79,7 @@
 
     <div id="column1" data-id="v8" class="interior">
       <header>
-        <h1>Node.js v8.1.1 Documentation</h1>
+        <h1>Node.js v8.4.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -168,7 +170,7 @@ of V8.</p>
 </div><p>Returns statistics about the V8 heap spaces, i.e. the segments which make up
 the V8 heap. Neither the ordering of heap spaces, nor the availability of a
 heap space can be guaranteed as the statistics are provided via the V8
-<a href="https://v8docs.nodesource.com/node-5.0/d5/dda/classv8_1_1_isolate.html#ac673576f24fdc7a33378f8f57e1d13a4"><code>GetHeapSpaceStatistics</code></a> function and may change from one V8 version to the
+<a href="https://v8docs.nodesource.com/node-8.0/d5/dda/classv8_1_1_isolate.html#ac673576f24fdc7a33378f8f57e1d13a4"><code>GetHeapSpaceStatistics</code></a> function and may change from one V8 version to the
 next.</p>
 <p>The value returned is an array of objects containing the following properties:</p>
 <ul>
@@ -251,7 +253,7 @@ pattern. The RSS footprint (resident memory set) gets bigger because it
 continuously touches all heap pages and that makes them less likely to get
 swapped out by the operating system.</p>
 <p>For example:</p>
-<!-- eslint-disable -->
+<!-- eslint-skip -->
 <pre><code class="lang-js">{
   total_heap_size: 7326976,
   total_heap_size_executable: 4194304,
@@ -387,7 +389,7 @@ by subclasses.</p>
 <li><code>flag</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&lt;boolean&gt;</a></li>
 </ul>
 </div><p>Indicate whether to treat <code>TypedArray</code> and <code>DataView</code> objects as
-host objects, i.e. pass them to [<code>serializer._writeHostObject</code>][].</p>
+host objects, i.e. pass them to <a href="#v8_serializer_writehostobject_object"><code>serializer._writeHostObject()</code></a>.</p>
 <p>The default is not to treat those objects as host objects.</p>
 <h3>class: v8.Deserializer<span><a class="mark" href="#v8_class_v8_deserializer" id="v8_class_v8_deserializer">#</a></span></h3>
 <!--

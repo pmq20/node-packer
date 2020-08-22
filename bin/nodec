@@ -1,8 +1,8 @@
 #!/usr/bin/env ruby
 
-# Copyright (c) 2017 Minqi Pan <pmq2001@gmail.com>
+# Copyright (c) 2017 - 2020 Minqi Pan et al.
 # 
-# This file is part of Node.js Compiler, distributed under the MIT License
+# This file is part of Node.js Packer, distributed under the MIT License
 # For full terms see the included LICENSE file
 
 $LOAD_PATH.unshift File.expand_path("../../lib", __FILE__)
@@ -22,28 +22,37 @@ USAGE = %Q{
 Node.js Compiler (nodec) v#{::Compiler::VERSION}
 
 Usage
-  nodec [OPTION]... ENTRANCE
+  nodec [OPTION]... [ENTRANCE]
 
 }.strip
 
 EXAMPLES = %Q{
 
+Note
+
+  If `ENTRANCE` was not provided, then a single Node.js interpreter executable will be produced.
+
 Examples
 
-Compile a CLI tool:
+  Compile a CLI tool:
+  
+    git clone --depth 1 https://github.com/jashkenas/coffeescript.git
+    cd coffeescript
+    nodec bin/coffee
+    ./a.out (or a.exe on Windows)
+  
+  Compile a web application:
+  
+    git clone --depth 1 https://github.com/eggjs/examples.git
+    cd examples/helloworld
+    npm install
+    nodec node_modules/egg-bin/bin/egg-bin.js
+    ./a.out dev (or a.exe dev on Windows)
+  
+  Compile a npm package:
 
-  git clone --depth 1 https://github.com/jashkenas/coffeescript.git
-  cd coffeescript
-  nodec bin/coffee
-  ./a.out (or a.exe on Windows)
-
-Compile a web application:
-
-  git clone --depth 1 https://github.com/eggjs/examples.git
-  cd examples/helloworld
-  npm install
-  nodec node_modules/.bin/egg-bin
-  ./a.out dev (or a.exe dev on Windows)
+    nodec --npm-package=coffee-script coffee
+    ./a.out (or a.exe on Windows)
 
 }.strip
 
@@ -90,6 +99,10 @@ OptionParser.new do |opts|
     options[:npm] = file
   end
 
+  opts.on("--skip-npm-install", "Skips the npm install process") do
+    options[:skip_npm_install] = true
+  end
+
   opts.on("--npm-package=NAME", "Downloads and compiles the specified npm package") do |name|
     options[:npm_package] = name
   end
@@ -104,6 +117,14 @@ OptionParser.new do |opts|
 
   opts.on("--auto-update-base=STRING", "Enables auto-update and specifies the base version string") do |string|
     options[:auto_update_base] = string
+  end
+  
+  opts.on("--msi", "Generates a .msi installer for Windows") do
+    options[:msi] = true
+  end
+  
+  opts.on("--pkg", "Generates a .pkg installer for macOS") do
+    options[:pkg] = true
   end
 
   opts.on("--debug", "Enable debug mode") do
@@ -127,18 +148,24 @@ OptionParser.new do |opts|
 
     options[:arch] = arch
   end
+  
+  opts.on("--quiet", "Enable quiet mode") do
+    options[:quiet] = true
+  end
 
   opts.on("-v", "--version", "Prints the version of nodec and exit") do
     puts ::Compiler::VERSION
     exit 0
   end
 
-  opts.on("-h", "--help", "Prints this help and exit") do
-    usage.call(STDOUT)
+  opts.on('-V', "--node-version", "Prints the version of the Node.js runtime and exit") do
+    puts ::Compiler.new(nil, quiet: true).node_version
     exit 0
   end
 
-  opts.on("--examples", "Prints usage examples") do
+  opts.on("-h", "--help", "Prints this help and exit") do
+    usage.call(STDOUT)
+    STDOUT.puts
     STDOUT.puts EXAMPLES
     exit 0
   end
@@ -147,10 +174,6 @@ OptionParser.new do |opts|
 end.parse!
 
 entrance = ARGV[-1]
-unless entrance.kind_of?(String) && entrance.length > 0
-  usage.call(STDERR)
-  exit 1
-end
 
 begin
   instance = ::Compiler.new entrance, options

@@ -1,6 +1,6 @@
 'use strict';
-
 require('../common');
+
 const assert = require('assert');
 const initHooks = require('./init-hooks');
 const tick = require('./tick');
@@ -10,7 +10,7 @@ const fs = require('fs');
 const hooks = initHooks();
 
 hooks.enable();
-const watcher = fs.watch(__dirname, onwatcherChanged);
+const watcher = fs.watch(__filename, onwatcherChanged);
 function onwatcherChanged() { }
 
 watcher.close();
@@ -28,6 +28,6 @@ function onexit() {
   const a = as[0];
   assert.strictEqual(a.type, 'FSEVENTWRAP');
   assert.strictEqual(typeof a.uid, 'number');
-  assert.strictEqual(a.triggerId, 1);
+  assert.strictEqual(a.triggerAsyncId, 1);
   checkInvocations(a, { init: 1, destroy: 1 }, 'when process exits');
 }

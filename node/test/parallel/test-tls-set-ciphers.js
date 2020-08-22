@@ -22,15 +22,11 @@
 'use strict';
 const common = require('../common');
 
-if (!common.opensslCli) {
+if (!common.opensslCli)
   common.skip('node compiled without OpenSSL CLI.');
-  return;
-}
 
-if (!common.hasCrypto) {
+if (!common.hasCrypto)
   common.skip('missing crypto');
-  return;
-}
 
 const assert = require('assert');
 const exec = require('child_process').exec;
@@ -40,7 +36,7 @@ const fs = require('fs');
 const options = {
   key: fs.readFileSync(`${common.fixturesDir}/keys/agent2-key.pem`),
   cert: fs.readFileSync(`${common.fixturesDir}/keys/agent2-cert.pem`),
-  ciphers: 'DES-CBC3-SHA'
+  ciphers: 'AES256-SHA'
 };
 
 const reply = 'I AM THE WALRUS'; // something recognizable
@@ -56,7 +52,7 @@ const server = tls.createServer(options, common.mustCall(function(conn) {
 
 server.listen(0, '127.0.0.1', function() {
   let cmd = `"${common.opensslCli}" s_client -cipher ${
-            options.ciphers} -connect 127.0.0.1:${this.address().port}`;
+    options.ciphers} -connect 127.0.0.1:${this.address().port}`;
 
   // for the performance and stability issue in s_client on Windows
   if (common.isWindows)

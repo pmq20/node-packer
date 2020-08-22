@@ -140,7 +140,7 @@ static void check_data_cb(read_expects* expectation, ssize_t nread,
   EXPECT_TRUE(nread >= 0 && nread != UV_EOF);
   ssize_t i;
   char c, actual;
-  ASSERT_GT(expectation->expected_len, 0);
+  CHECK_GT(expectation->expected_len, 0);
   for (i = 0; i < nread && expectation->pos <= expectation->expected_len; i++) {
     c = expectation->expected[expectation->pos++];
     actual = buf->base[i];
@@ -370,7 +370,7 @@ class InspectorSocketTest : public ::testing::Test {
     sockaddr_in addr;
     uv_tcp_init(&loop, &server);
     uv_tcp_init(&loop, &client_socket);
-    uv_ip4_addr("127.0.0.1", PORT, &addr);
+    GTEST_ASSERT_EQ(0, uv_ip4_addr("127.0.0.1", PORT, &addr));
     uv_tcp_bind(&server, reinterpret_cast<const struct sockaddr*>(&addr), 0);
     GTEST_ASSERT_EQ(0, uv_listen(reinterpret_cast<uv_stream_t*>(&server),
                                  1, on_new_connection));

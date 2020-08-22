@@ -50,6 +50,8 @@
 #include "env-inl.h"
 #include "util.h"
 #include "util-inl.h"
+#include "base-object.h"
+#include "base-object-inl.h"
 #include "v8.h"
 
 #include <unicode/utypes.h>
@@ -86,10 +88,12 @@ namespace node {
 
 using v8::Context;
 using v8::FunctionCallbackInfo;
+using v8::HandleScope;
 using v8::Isolate;
 using v8::Local;
 using v8::MaybeLocal;
 using v8::Object;
+using v8::ObjectTemplate;
 using v8::String;
 using v8::Value;
 
@@ -123,11 +127,157 @@ struct Converter {
     }
   }
 
+  explicit Converter(UConverter* converter,
+                     const char* sub = NULL) : conv(converter) {
+    CHECK_NE(conv, nullptr);
+    UErrorCode status = U_ZERO_ERROR;
+    if (sub != NULL) {
+      ucnv_setSubstChars(conv, sub, strlen(sub), &status);
+    }
+  }
+
   ~Converter() {
     ucnv_close(conv);
   }
 
   UConverter* conv;
+};
+
+class ConverterObject : public BaseObject, Converter {
+ public:
+  enum ConverterFlags {
+    CONVERTER_FLAGS_FLUSH      = 0x1,
+    CONVERTER_FLAGS_FATAL      = 0x2,
+    CONVERTER_FLAGS_IGNORE_BOM = 0x4
+  };
+
+  ~ConverterObject() override {}
+
+  static void Has(const FunctionCallbackInfo<Value>& args) {
+    Environment* env = Environment::GetCurrent(args);
+    HandleScope scope(env->isolate());
+
+    CHECK_GE(args.Length(), 1);
+    Utf8Value label(env->isolate(), args[0]);
+
+    UErrorCode status = U_ZERO_ERROR;
+    UConverter* conv = ucnv_open(*label, &status);
+    args.GetReturnValue().Set(!!U_SUCCESS(status));
+    ucnv_close(conv);
+  }
+
+  static void Create(const FunctionCallbackInfo<Value>& args) {
+    Environment* env = Environment::GetCurrent(args);
+    HandleScope scope(env->isolate());
+
+    CHECK_GE(args.Length(), 2);
+    Utf8Value label(env->isolate(), args[0]);
+    int flags = args[1]->Uint32Value(env->context()).ToChecked();
+    bool fatal =
+        (flags & CONVERTER_FLAGS_FATAL) == CONVERTER_FLAGS_FATAL;
+    bool ignoreBOM =
+        (flags & CONVERTER_FLAGS_IGNORE_BOM) == CONVERTER_FLAGS_IGNORE_BOM;
+
+    UErrorCode status = U_ZERO_ERROR;
+    UConverter* conv = ucnv_open(*label, &status);
+    if (U_FAILURE(status))
+      return;
+
+    if (fatal) {
+      status = U_ZERO_ERROR;
+      ucnv_setToUCallBack(conv, UCNV_TO_U_CALLBACK_STOP,
+                          nullptr, nullptr, nullptr, &status);
+    }
+
+    Local<ObjectTemplate> t = ObjectTemplate::New(env->isolate());
+    t->SetInternalFieldCount(1);
+    Local<Object> obj = t->NewInstance(env->context()).ToLocalChecked();
+    new ConverterObject(env, obj, conv, ignoreBOM);
+    args.GetReturnValue().Set(obj);
+  }
+
+  static void Decode(const FunctionCallbackInfo<Value>& args) {
+    Environment* env = Environment::GetCurrent(args);
+
+    CHECK_GE(args.Length(), 3);  // Converter, Buffer, Flags
+
+    Converter utf8("utf8");
+    ConverterObject* converter;
+    ASSIGN_OR_RETURN_UNWRAP(&converter, args[0].As<Object>());
+    SPREAD_BUFFER_ARG(args[1], input_obj);
+    int flags = args[2]->Uint32Value(env->context()).ToChecked();
+
+    UErrorCode status = U_ZERO_ERROR;
+    MaybeStackBuffer<UChar> result;
+    MaybeLocal<Object> ret;
+    size_t limit = ucnv_getMinCharSize(converter->conv) *
+                   input_obj_length;
+    if (limit > 0)
+      result.AllocateSufficientStorage(limit);
+
+    UBool flush = (flags & CONVERTER_FLAGS_FLUSH) == CONVERTER_FLAGS_FLUSH;
+
+    const char* source = input_obj_data;
+    size_t source_length = input_obj_length;
+
+    if (converter->unicode_ && !converter->ignoreBOM_ && !converter->bomSeen_) {
+      int32_t bomOffset = 0;
+      ucnv_detectUnicodeSignature(source, source_length, &bomOffset, &status);
+      source += bomOffset;
+      source_length -= bomOffset;
+      converter->bomSeen_ = true;
+    }
+
+    UChar* target = *result;
+    ucnv_toUnicode(converter->conv,
+                   &target, target + (limit * sizeof(UChar)),
+                   &source, source + source_length,
+                   NULL, flush, &status);
+
+    if (U_SUCCESS(status)) {
+      if (limit > 0)
+        result.SetLength(target - &result[0]);
+      ret = ToBufferEndian(env, &result);
+      args.GetReturnValue().Set(ret.ToLocalChecked());
+      goto reset;
+    }
+
+    args.GetReturnValue().Set(status);
+
+   reset:
+    if (flush) {
+      // Reset the converter state
+      converter->bomSeen_ = false;
+      ucnv_reset(converter->conv);
+    }
+  }
+
+ protected:
+  ConverterObject(Environment* env,
+                  v8::Local<v8::Object> wrap,
+                  UConverter* converter,
+                  bool ignoreBOM,
+                  const char* sub = NULL) :
+                  BaseObject(env, wrap),
+                  Converter(converter, sub),
+                  ignoreBOM_(ignoreBOM) {
+    MakeWeak<ConverterObject>(this);
+
+    switch (ucnv_getType(converter)) {
+      case UCNV_UTF8:
+      case UCNV_UTF16_BigEndian:
+      case UCNV_UTF16_LittleEndian:
+        unicode_ = true;
+        break;
+      default:
+        unicode_ = false;
+    }
+  }
+
+ private:
+  bool unicode_ = false;     // True if this is a Unicode converter
+  bool ignoreBOM_ = false;   // True if the BOM should be ignored on Unicode
+  bool bomSeen_ = false;     // True if the BOM has been seen
 };
 
 // One-Shot Converters
@@ -515,7 +665,7 @@ int32_t ToASCII(MaybeStackBuffer<char>* buf,
 
   // In UTS #46 which specifies ToASCII, certain error conditions are
   // configurable through options, and the WHATWG URL Standard promptly elects
-  // to disable some of them to accomodate for real-world use cases.
+  // to disable some of them to accommodate for real-world use cases.
   // Unfortunately, ICU4C's IDNA module does not support disabling some of
   // these options through `options` above, and thus continues throwing
   // unnecessary errors. To counter this situation, we just filter out the
@@ -601,14 +751,33 @@ static void ToASCII(const FunctionCallbackInfo<Value>& args) {
 // newer wide characters. wcwidth, on the other hand, uses a fixed
 // algorithm that does not take things like emoji into proper
 // consideration.
+//
+// TODO(TimothyGu): Investigate Cc (C0/C1 control codes). Both VTE (used by
+// GNOME Terminal) and Konsole don't consider them to be zero-width (see refs
+// below), and when printed in VTE it is Narrow. However GNOME Terminal doesn't
+// allow it to be input. Linux's PTY terminal prints control characters as
+// Narrow rhombi.
+//
+// TODO(TimothyGu): Investigate Hangul jamo characters. Medial vowels and final
+// consonants are 0-width when combined with initial consonants; otherwise they
+// are technically Wide. But many terminals (including Konsole and
+// VTE/GLib-based) implement all medials and finals as 0-width.
+//
+// Refs: https://eev.ee/blog/2015/09/12/dark-corners-of-unicode/#combining-characters-and-character-width
+// Refs: https://github.com/GNOME/glib/blob/79e4d4c6be/glib/guniprop.c#L388-L420
+// Refs: https://github.com/KDE/konsole/blob/8c6a5d13c0/src/konsole_wcwidth.cpp#L101-L223
 static int GetColumnWidth(UChar32 codepoint,
                           bool ambiguous_as_full_width = false) {
-  if (!u_isdefined(codepoint) ||
-      u_iscntrl(codepoint) ||
-      u_getCombiningClass(codepoint) > 0 ||
-      u_hasBinaryProperty(codepoint, UCHAR_EMOJI_MODIFIER)) {
+  const auto zero_width_mask = U_GC_CC_MASK |  // C0/C1 control code
+                               U_GC_CF_MASK |  // Format control character
+                               U_GC_ME_MASK |  // Enclosing mark
+                               U_GC_MN_MASK;   // Nonspacing mark
+  if (codepoint != 0x00AD &&  // SOFT HYPHEN is Cf but not zero-width
+      ((U_MASK(u_charType(codepoint)) & zero_width_mask) ||
+       u_hasBinaryProperty(codepoint, UCHAR_EMOJI_MODIFIER))) {
     return 0;
   }
+
   // UCHAR_EAST_ASIAN_WIDTH is the Unicode property that identifies a
   // codepoint as being full width, wide, ambiguous, neutral, narrow,
   // or halfwidth.
@@ -698,6 +867,11 @@ void Init(Local<Object> target,
   // One-shot converters
   env->SetMethod(target, "icuErrName", ICUErrorName);
   env->SetMethod(target, "transcode", Transcode);
+
+  // ConverterObject
+  env->SetMethod(target, "getConverter", ConverterObject::Create);
+  env->SetMethod(target, "decode", ConverterObject::Decode);
+  env->SetMethod(target, "hasConverter", ConverterObject::Has);
 }
 
 }  // namespace i18n

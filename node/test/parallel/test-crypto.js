@@ -22,10 +22,8 @@
 'use strict';
 const common = require('../common');
 
-if (!common.hasCrypto) {
+if (!common.hasCrypto)
   common.skip('missing crypto');
-  return;
-}
 
 const assert = require('assert');
 const crypto = require('crypto');
@@ -99,7 +97,8 @@ validateList(cryptoCiphers);
 const tlsCiphers = tls.getCiphers();
 assert(tls.getCiphers().includes('aes256-sha'));
 // There should be no capital letters in any element.
-assert(tlsCiphers.every((value) => /^[^A-Z]+$/.test(value)));
+const noCapitals = /^[^A-Z]+$/;
+assert(tlsCiphers.every((value) => noCapitals.test(value)));
 validateList(tlsCiphers);
 
 // Assert that we have sha and sha1 but not SHA and SHA1.

@@ -41,6 +41,14 @@ benchmarker to be used should be specified by providing it as an argument:
 
 `node benchmark/http/simple.js benchmarker=autocannon`
 
+#### HTTP/2 Benchmark Requirements
+
+To run the `http2` benchmarks, the `h2load` benchmarker must be used. The
+`h2load` tool is a component of the `nghttp2` project and may be installed
+from [nghttp2.org][] or built from source.
+
+`node benchmark/http2/simple.js benchmarker=autocannon`
+
 ### Benchmark Analysis Requirements
 
 To analyze the results, `R` should be installed. Use one of the available
@@ -153,7 +161,7 @@ an example. This pull request _claims_ to improve the performance of the
 
 First build two versions of Node.js, one from the master branch (here called
 `./node-master`) and another with the pull request applied (here called
-`./node-pr-5135`).
+`./node-pr-5134`).
 
 The `compare.js` tool will then produce a csv file with the benchmark results.
 
@@ -423,3 +431,4 @@ Supported options keys are:
 [wrk]: https://github.com/wg/wrk
 [t-test]: https://en.wikipedia.org/wiki/Student%27s_t-test#Equal_or_unequal_sample_sizes.2C_unequal_variances
 [git-for-windows]: http://git-scm.com/download/win
+[nghttp2.org]: http://nghttp2.org

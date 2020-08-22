@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Async Hooks | Node.js v8.1.1 Documentation</title>
+  <title>Async Hooks | Node.js v8.4.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -42,8 +42,10 @@
 <li><a class="nav-fs" href="fs.html">File System</a></li>
 <li><a class="nav-globals" href="globals.html">Globals</a></li>
 <li><a class="nav-http" href="http.html">HTTP</a></li>
+<li><a class="nav-http2" href="http2.html">HTTP/2</a></li>
 <li><a class="nav-https" href="https.html">HTTPS</a></li>
 <li><a class="nav-inspector" href="inspector.html">Inspector</a></li>
+<li><a class="nav-intl" href="intl.html">Internationalization</a></li>
 <li><a class="nav-modules" href="modules.html">Modules</a></li>
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
@@ -77,7 +79,7 @@
 
     <div id="column1" data-id="async_hooks" class="interior">
       <header>
-        <h1>Node.js v8.1.1 Documentation</h1>
+        <h1>Node.js v8.4.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -103,9 +105,9 @@
 <li><span class="stability_undefined"><a href="#async_hooks_asynchook_enable"><code>asyncHook.enable()</code></a></span></li>
 <li><span class="stability_undefined"><a href="#async_hooks_asynchook_disable"><code>asyncHook.disable()</code></a></span></li>
 <li><span class="stability_undefined"><a href="#async_hooks_hook_callbacks">Hook Callbacks</a></span><ul>
-<li><span class="stability_undefined"><a href="#async_hooks_init_asyncid_type_triggerid_resource"><code>init(asyncId, type, triggerId, resource)</code></a></span><ul>
+<li><span class="stability_undefined"><a href="#async_hooks_init_asyncid_type_triggerasyncid_resource"><code>init(asyncId, type, triggerAsyncId, resource)</code></a></span><ul>
 <li><span class="stability_undefined"><a href="#async_hooks_type"><code>type</code></a></span></li>
-<li><span class="stability_undefined"><a href="#async_hooks_triggerid"><code>triggerid</code></a></span></li>
+<li><span class="stability_undefined"><a href="#async_hooks_triggerid"><code>triggerId</code></a></span></li>
 <li><span class="stability_undefined"><a href="#async_hooks_resource"><code>resource</code></a></span></li>
 <li><span class="stability_undefined"><a href="#async_hooks_asynchronous_context_example">asynchronous context example</a></span></li>
 </ul>
@@ -115,20 +117,20 @@
 <li><span class="stability_undefined"><a href="#async_hooks_destroy_asyncid"><code>destroy(asyncId)</code></a></span></li>
 </ul>
 </li>
-<li><span class="stability_undefined"><a href="#async_hooks_async_hooks_currentid"><code>async_hooks.currentId()</code></a></span></li>
-<li><span class="stability_undefined"><a href="#async_hooks_async_hooks_triggerid"><code>async_hooks.triggerId()</code></a></span></li>
+<li><span class="stability_undefined"><a href="#async_hooks_async_hooks_executionasyncid"><code>async_hooks.executionAsyncId()</code></a></span></li>
+<li><span class="stability_undefined"><a href="#async_hooks_async_hooks_triggerasyncid"><code>async_hooks.triggerAsyncId()</code></a></span></li>
 </ul>
 </li>
 </ul>
 </li>
 <li><span class="stability_undefined"><a href="#async_hooks_javascript_embedder_api">JavaScript Embedder API</a></span><ul>
 <li><span class="stability_undefined"><a href="#async_hooks_class_asyncresource"><code>class AsyncResource()</code></a></span><ul>
-<li><span class="stability_undefined"><a href="#async_hooks_asyncresource_type_triggerid"><code>AsyncResource(type[, triggerId])</code></a></span></li>
+<li><span class="stability_undefined"><a href="#async_hooks_asyncresource_type_triggerasyncid"><code>AsyncResource(type[, triggerAsyncId])</code></a></span></li>
 <li><span class="stability_undefined"><a href="#async_hooks_asyncresource_emitbefore"><code>asyncResource.emitBefore()</code></a></span></li>
 <li><span class="stability_undefined"><a href="#async_hooks_asyncresource_emitafter"><code>asyncResource.emitAfter()</code></a></span></li>
 <li><span class="stability_undefined"><a href="#async_hooks_asyncresource_emitdestroy"><code>asyncResource.emitDestroy()</code></a></span></li>
 <li><span class="stability_undefined"><a href="#async_hooks_asyncresource_asyncid"><code>asyncResource.asyncId()</code></a></span></li>
-<li><span class="stability_undefined"><a href="#async_hooks_asyncresource_triggerid"><code>asyncResource.triggerId()</code></a></span></li>
+<li><span class="stability_undefined"><a href="#async_hooks_asyncresource_triggerasyncid"><code>asyncResource.triggerAsyncId()</code></a></span></li>
 </ul>
 </li>
 </ul>
@@ -159,11 +161,11 @@ as the abstract concept that is a resource.</p>
 <pre><code class="lang-js">const async_hooks = require(&#39;async_hooks&#39;);
 
 // Return the ID of the current execution context.
-const cid = async_hooks.currentId();
+const eid = async_hooks.executionAsyncId();
 
 // Return the ID of the handle responsible for triggering the callback of the
 // current execution scope to call.
-const tid = async_hooks.triggerId();
+const tid = async_hooks.triggerAsyncId();
 
 // Create a new AsyncHook instance. All of these callbacks are optional.
 const asyncHook = async_hooks.createHook({ init, before, after, destroy });
@@ -183,7 +185,7 @@ asyncHook.disable();
 // init is called during object construction. The resource may not have
 // completed construction when this callback runs, therefore all fields of the
 // resource referenced by &quot;asyncId&quot; may not have been populated.
-function init(asyncId, type, triggerId, resource) { }
+function init(asyncId, type, triggerAsyncId, resource) { }
 
 // before is called just before the resource&#39;s callback is called. It can be
 // called 0-N times for handles (e.g. TCPWrap), and will be called exactly 1
@@ -210,7 +212,7 @@ respective asynchronous event during a resource&#39;s lifetime.</p>
 <p>All callbacks are optional. So, for example, if only resource cleanup needs to
 be tracked then only the <code>destroy</code> callback needs to be passed. The
 specifics of all functions that can be passed to <code>callbacks</code> is in the section
-<a href="#hook-callbacks"><code>Hook Callbacks</code></a>.</p>
+<a href="#async_hooks_hook_callbacks"><code>Hook Callbacks</code></a>.</p>
 <h5>Error Handling<span><a class="mark" href="#async_hooks_error_handling" id="async_hooks_error_handling">#</a></span></h5>
 <p>If any <code>AsyncHook</code> callbacks throw, the application will print the stack trace
 and exit. The exit path does follow that of an uncaught exception but
@@ -270,11 +272,11 @@ be called again until enabled.</p>
 <p>Key events in the lifetime of asynchronous events have been categorized into
 four areas: instantiation, before/after the callback is called, and when the
 instance is destructed.</p>
-<h5><code>init(asyncId, type, triggerId, resource)</code><span><a class="mark" href="#async_hooks_init_asyncid_type_triggerid_resource" id="async_hooks_init_asyncid_type_triggerid_resource">#</a></span></h5>
+<h5><code>init(asyncId, type, triggerAsyncId, resource)</code><span><a class="mark" href="#async_hooks_init_asyncid_type_triggerasyncid_resource" id="async_hooks_init_asyncid_type_triggerasyncid_resource">#</a></span></h5>
 <div class="signature"><ul>
 <li><code>asyncId</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> a unique ID for the async resource</li>
 <li><code>type</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> the type of the async resource</li>
-<li><code>triggerId</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> the unique ID of the async resource in whose
+<li><code>triggerAsyncId</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> the unique ID of the async resource in whose
 execution context this async resource was created</li>
 <li><code>resource</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> reference to the resource representing the async operation,
 needs to be released during <em>destroy</em></li>
@@ -293,43 +295,47 @@ clearTimeout(setTimeout(() =&gt; {}, 10));
 <p>Every new resource is assigned a unique ID.</p>
 <h6><code>type</code><span><a class="mark" href="#async_hooks_type" id="async_hooks_type">#</a></span></h6>
 <p>The <code>type</code> is a string that represents the type of resource that caused
-<code>init</code> to call. Generally it will be the name of the resource&#39;s constructor.
-The resource types provided by the built-in Node.js modules are:</p>
-<pre><code>FSEVENTWRAP, FSREQWRAP, GETADDRINFOREQWRAP, GETNAMEINFOREQWRAP, HTTPPARSER,
+<code>init</code> to be called. Generally, it will correspond to the name of the
+resource&#39;s constructor.</p>
+<pre><code class="lang-text">FSEVENTWRAP, FSREQWRAP, GETADDRINFOREQWRAP, GETNAMEINFOREQWRAP, HTTPPARSER,
 JSSTREAM, PIPECONNECTWRAP, PIPEWRAP, PROCESSWRAP, QUERYWRAP, SHUTDOWNWRAP,
 SIGNALWRAP, STATWATCHER, TCPCONNECTWRAP, TCPWRAP, TIMERWRAP, TTYWRAP,
 UDPSENDWRAP, UDPWRAP, WRITEWRAP, ZLIB, SSLCONNECTION, PBKDF2REQUEST,
-RANDOMBYTESREQUEST, TLSWRAP
-</code></pre><p>Users are be able to define their own <code>type</code> when using the public embedder API.</p>
+RANDOMBYTESREQUEST, TLSWRAP, Timeout, Immediate, TickObject
+</code></pre>
+<p>There is also the <code>PROMISE</code> resource type, which is used to track <code>Promise</code>
+instances and asynchronous work scheduled by them.</p>
+<p>Users are be able to define their own <code>type</code> when using the public embedder API.</p>
 <p><em>Note:</em> It is possible to have type name collisions. Embedders are encouraged
 to use a unique prefixes, such as the npm package name, to prevent collisions
 when listening to the hooks.</p>
-<h6><code>triggerid</code><span><a class="mark" href="#async_hooks_triggerid" id="async_hooks_triggerid">#</a></span></h6>
-<p><code>triggerId</code> is the <code>asyncId</code> of the resource that caused (or &quot;triggered&quot;) the
+<h6><code>triggerId</code><span><a class="mark" href="#async_hooks_triggerid" id="async_hooks_triggerid">#</a></span></h6>
+<p><code>triggerAsyncId</code> is the <code>asyncId</code> of the resource that caused (or &quot;triggered&quot;) the
 new resource to initialize and that caused <code>init</code> to call. This is different
-from <code>async_hooks.currentId()</code> that only shows <em>when</em> a resource was created,
-while <code>triggerId</code> shows <em>why</em> a resource was created.</p>
-<p>The following is a simple demonstration of <code>triggerId</code>:</p>
+from <code>async_hooks.executionAsyncId()</code> that only shows <em>when</em> a resource was
+created, while <code>triggerAsyncId</code> shows <em>why</em> a resource was created.</p>
+<p>The following is a simple demonstration of <code>triggerAsyncId</code>:</p>
 <pre><code class="lang-js">async_hooks.createHook({
-  init(asyncId, type, triggerId) {
-    const cId = async_hooks.currentId();
+  init(asyncId, type, triggerAsyncId) {
+    const eid = async_hooks.executionAsyncId();
     fs.writeSync(
-      1, `${type}(${asyncId}): trigger: ${triggerId} scope: ${cId}\n`);
+      1, `${type}(${asyncId}): trigger: ${triggerAsyncId} execution: ${eid}\n`);
   }
 }).enable();
 
 require(&#39;net&#39;).createServer((conn) =&gt; {}).listen(8080);
 </code></pre>
 <p>Output when hitting the server with <code>nc localhost 8080</code>:</p>
-<pre><code>TCPWRAP(2): trigger: 1 scope: 1
-TCPWRAP(4): trigger: 2 scope: 0
-</code></pre><p>The first <code>TCPWRAP</code> is the server which receives the connections.</p>
+<pre><code class="lang-console">TCPWRAP(2): trigger: 1 execution: 1
+TCPWRAP(4): trigger: 2 execution: 0
+</code></pre>
+<p>The first <code>TCPWRAP</code> is the server which receives the connections.</p>
 <p>The second <code>TCPWRAP</code> is the new connection from the client. When a new
 connection is made the <code>TCPWrap</code> instance is immediately constructed. This
-happens outside of any JavaScript stack (side note: a <code>currentId()</code> of <code>0</code>
+happens outside of any JavaScript stack (side note: a <code>executionAsyncId()</code> of <code>0</code>
 means it&#39;s being executed from C++, with no JavaScript stack above it).
 With only that information it would be impossible to link resources together in
-terms of what caused them to be created, so <code>triggerId</code> is given the task of
+terms of what caused them to be created, so <code>triggerAsyncId</code> is given the task of
 propagating what resource is responsible for the new resource&#39;s existence.</p>
 <h6><code>resource</code><span><a class="mark" href="#async_hooks_resource" id="async_hooks_resource">#</a></span></h6>
 <p><code>resource</code> is an object that represents the actual resource. This can contain
@@ -339,7 +345,12 @@ type, which will be used when looking up the ip for the hostname in
 considered public, but using the Embedder API users can provide and document
 their own resource objects. Such as resource object could for example contain
 the SQL query being executed.</p>
-<p><em>Note:</em> In some cases the resource object is reused for performance reasons,
+<p>In the case of Promises, the <code>resource</code> object will have <code>promise</code> property
+that refers to the Promise that is being initialized, and a <code>parentId</code> property
+that equals the <code>asyncId</code> of a parent Promise, if there is one, and
+<code>undefined</code> otherwise. For example, in the case of <code>b = a.then(handler)</code>,
+<code>a</code> is considered a parent Promise of <code>b</code>.</p>
+<p><em>Note</em>: In some cases the resource object is reused for performance reasons,
 it is thus not safe to use it as a key in a <code>WeakMap</code> or add properties to it.</p>
 <h6>asynchronous context example<span><a class="mark" href="#async_hooks_asynchronous_context_example" id="async_hooks_asynchronous_context_example">#</a></span></h6>
 <p>Below is another example with additional information about the calls to
@@ -348,12 +359,13 @@ callback to <code>listen()</code> will look like. The output formatting is sligh
 elaborate to make calling context easier to see.</p>
 <pre><code class="lang-js">let indent = 0;
 async_hooks.createHook({
-  init(asyncId, type, triggerId) {
-    const cId = async_hooks.currentId();
+  init(asyncId, type, triggerAsyncId) {
+    const eid = async_hooks.executionAsyncId();
     const indentStr = &#39; &#39;.repeat(indent);
     fs.writeSync(
       1,
-      `${indentStr}${type}(${asyncId}): trigger: ${triggerId} scope: ${cId}\n`);
+      `${indentStr}${type}(${asyncId}):` +
+      ` trigger: ${triggerAsyncId} execution: ${eid}\n`);
   },
   before(asyncId) {
     const indentStr = &#39; &#39;.repeat(indent);
@@ -374,25 +386,25 @@ async_hooks.createHook({
 require(&#39;net&#39;).createServer(() =&gt; {}).listen(8080, () =&gt; {
   // Let&#39;s wait 10ms before logging the server started.
   setTimeout(() =&gt; {
-    console.log(&#39;&gt;&gt;&gt;&#39;, async_hooks.currentId());
+    console.log(&#39;&gt;&gt;&gt;&#39;, async_hooks.executionAsyncId());
   }, 10);
 });
 </code></pre>
 <p>Output from only starting the server:</p>
-<pre><code>TCPWRAP(2): trigger: 1 scope: 1
-TickObject(3): trigger: 2 scope: 1
+<pre><code class="lang-console">TCPWRAP(2): trigger: 1 execution: 1
+TickObject(3): trigger: 2 execution: 1
 before:  3
-  Timeout(4): trigger: 3 scope: 3
-  TIMERWRAP(5): trigger: 3 scope: 3
+  Timeout(4): trigger: 3 execution: 3
+  TIMERWRAP(5): trigger: 3 execution: 3
 after:   3
 destroy: 3
 before:  5
   before:  4
-    TTYWRAP(6): trigger: 4 scope: 4
-    SIGNALWRAP(7): trigger: 4 scope: 4
-    TTYWRAP(8): trigger: 4 scope: 4
+    TTYWRAP(6): trigger: 4 execution: 4
+    SIGNALWRAP(7): trigger: 4 execution: 4
+    TTYWRAP(8): trigger: 4 execution: 4
 &gt;&gt;&gt; 4
-    TickObject(9): trigger: 4 scope: 4
+    TickObject(9): trigger: 4 execution: 4
   after:   4
 after:   5
 before:  9
@@ -400,17 +412,19 @@ after:   9
 destroy: 4
 destroy: 9
 destroy: 5
-</code></pre><p><em>Note</em>: As illustrated in the example, <code>currentId()</code> and <code>scope</code> each specify
-the value of the current execution context; which is delineated by calls to
-<code>before</code> and <code>after</code>.</p>
-<p>Only using <code>scope</code> to graph resource allocation results in the following:</p>
-<pre><code>TTYWRAP(6) -&gt; Timeout(4) -&gt; TIMERWRAP(5) -&gt; TickObject(3) -&gt; root(1)
-</code></pre><p>The <code>TCPWRAP</code> isn&#39;t part of this graph; even though it was the reason for
+</code></pre>
+<p><em>Note</em>: As illustrated in the example, <code>executionAsyncId()</code> and <code>execution</code>
+each specify the value of the current execution context; which is delineated by
+calls to <code>before</code> and <code>after</code>.</p>
+<p>Only using <code>execution</code> to graph resource allocation results in the following:</p>
+<pre><code class="lang-console">TTYWRAP(6) -&gt; Timeout(4) -&gt; TIMERWRAP(5) -&gt; TickObject(3) -&gt; root(1)
+</code></pre>
+<p>The <code>TCPWRAP</code> isn&#39;t part of this graph; even though it was the reason for
 <code>console.log()</code> being called. This is because binding to a port without a
 hostname is actually synchronous, but to maintain a completely asynchronous API
 the user&#39;s callback is placed in a <code>process.nextTick()</code>.</p>
 <p>The graph only shows <em>when</em> a resource was created, not <em>why</em>, so to track
-the <em>why</em> use <code>triggerId</code>.</p>
+the <em>why</em> use <code>triggerAsyncId</code>.</p>
 <h5><code>before(asyncId)</code><span><a class="mark" href="#async_hooks_before_asyncid" id="async_hooks_before_asyncid">#</a></span></h5>
 <div class="signature"><ul>
 <li><code>asyncId</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
@@ -443,33 +457,33 @@ asynchronously from the embedder API <code>emitDestroy()</code>.</p>
 the <code>resource</code> object passed to <code>init</code> it&#39;s possible that <code>destroy</code> is
 never called, causing a memory leak in the application. Of course if
 the resource doesn&#39;t depend on GC then this isn&#39;t an issue.</p>
-<h4><code>async_hooks.currentId()</code><span><a class="mark" href="#async_hooks_async_hooks_currentid" id="async_hooks_async_hooks_currentid">#</a></span></h4>
+<h4><code>async_hooks.executionAsyncId()</code><span><a class="mark" href="#async_hooks_async_hooks_executionasyncid" id="async_hooks_async_hooks_executionasyncid">#</a></span></h4>
 <div class="signature"><ul>
 <li>Returns <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> the <code>asyncId</code> of the current execution context. Useful to track
 when something calls.</li>
 </ul>
 </div><p>For example:</p>
-<pre><code class="lang-js">console.log(async_hooks.currentId());  // 1 - bootstrap
+<pre><code class="lang-js">console.log(async_hooks.executionAsyncId());  // 1 - bootstrap
 fs.open(path, &#39;r&#39;, (err, fd) =&gt; {
-  console.log(async_hooks.currentId());  // 6 - open()
+  console.log(async_hooks.executionAsyncId());  // 6 - open()
 });
 </code></pre>
-<p>It is important to note that the ID returned fom <code>currentId()</code> is related to
-execution timing, not causality (which is covered by <code>triggerId()</code>). For
+<p>It is important to note that the ID returned fom <code>executionAsyncId()</code> is related
+to execution timing, not causality (which is covered by <code>triggerAsyncId()</code>). For
 example:</p>
 <pre><code class="lang-js">const server = net.createServer(function onConnection(conn) {
   // Returns the ID of the server, not of the new connection, because the
   // onConnection callback runs in the execution scope of the server&#39;s
   // MakeCallback().
-  async_hooks.currentId();
+  async_hooks.executionAsyncId();
 
 }).listen(port, function onListening() {
   // Returns the ID of a TickObject (i.e. process.nextTick()) because all
   // callbacks passed to .listen() are wrapped in a nextTick().
-  async_hooks.currentId();
+  async_hooks.executionAsyncId();
 });
 </code></pre>
-<h4><code>async_hooks.triggerId()</code><span><a class="mark" href="#async_hooks_async_hooks_triggerid" id="async_hooks_async_hooks_triggerid">#</a></span></h4>
+<h4><code>async_hooks.triggerAsyncId()</code><span><a class="mark" href="#async_hooks_async_hooks_triggerasyncid" id="async_hooks_async_hooks_triggerasyncid">#</a></span></h4>
 <div class="signature"><ul>
 <li>Returns <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> the ID of the resource responsible for calling the callback
 that is currently being executed.</li>
@@ -477,15 +491,15 @@ that is currently being executed.</li>
 </div><p>For example:</p>
 <pre><code class="lang-js">const server = net.createServer((conn) =&gt; {
   // The resource that caused (or triggered) this callback to be called
-  // was that of the new connection. Thus the return value of triggerId()
+  // was that of the new connection. Thus the return value of triggerAsyncId()
   // is the asyncId of &quot;conn&quot;.
-  async_hooks.triggerId();
+  async_hooks.triggerAsyncId();
 
 }).listen(port, () =&gt; {
   // Even though all callbacks passed to .listen() are wrapped in a nextTick()
   // the callback itself exists because the call to the server&#39;s .listen()
   // was made. So the return value would be the ID of the server.
-  async_hooks.triggerId();
+  async_hooks.triggerAsyncId();
 });
 </code></pre>
 <h2>JavaScript Embedder API<span><a class="mark" href="#async_hooks_javascript_embedder_api" id="async_hooks_javascript_embedder_api">#</a></span></h2>
@@ -505,9 +519,9 @@ will occur and node will abort.</p>
 <pre><code class="lang-js">const { AsyncResource } = require(&#39;async_hooks&#39;);
 
 // AsyncResource() is meant to be extended. Instantiating a
-// new AsyncResource() also triggers init. If triggerId is omitted then
-// async_hook.currentId() is used.
-const asyncResource = new AsyncResource(type, triggerId);
+// new AsyncResource() also triggers init. If triggerAsyncId is omitted then
+// async_hook.executionAsyncId() is used.
+const asyncResource = new AsyncResource(type, triggerAsyncId);
 
 // Call AsyncHooks before callbacks.
 asyncResource.emitBefore();
@@ -522,13 +536,13 @@ asyncResource.emitDestroy();
 asyncResource.asyncId();
 
 // Return the trigger ID for the AsyncResource instance.
-asyncResource.triggerId();
+asyncResource.triggerAsyncId();
 </code></pre>
-<h4><code>AsyncResource(type[, triggerId])</code><span><a class="mark" href="#async_hooks_asyncresource_type_triggerid" id="async_hooks_asyncresource_type_triggerid">#</a></span></h4>
+<h4><code>AsyncResource(type[, triggerAsyncId])</code><span><a class="mark" href="#async_hooks_asyncresource_type_triggerasyncid" id="async_hooks_asyncresource_type_triggerasyncid">#</a></span></h4>
 <div class="signature"><ul>
 <li>arguments<ul>
 <li><code>type</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> the type of ascyc event</li>
-<li><code>triggerId</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> the ID of the execution context that created this async
+<li><code>triggerAsyncId</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> the ID of the execution context that created this async
 event</li>
 </ul>
 </li>
@@ -582,9 +596,9 @@ never be called.</p>
 <div class="signature"><ul>
 <li>Returns <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> the unique <code>asyncId</code> assigned to the resource.</li>
 </ul>
-</div><h4><code>asyncResource.triggerId()</code><span><a class="mark" href="#async_hooks_asyncresource_triggerid" id="async_hooks_asyncresource_triggerid">#</a></span></h4>
+</div><h4><code>asyncResource.triggerAsyncId()</code><span><a class="mark" href="#async_hooks_asyncresource_triggerasyncid" id="async_hooks_asyncresource_triggerasyncid">#</a></span></h4>
 <div class="signature"><ul>
-<li>Returns <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> the same <code>triggerId</code> that is passed to the <code>AsyncResource</code>
+<li>Returns <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a> the same <code>triggerAsyncId</code> that is passed to the <code>AsyncResource</code>
 constructor.</li>
 </ul>
 </div>

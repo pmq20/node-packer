@@ -51,7 +51,7 @@ const IteratorPrototype = Object.getPrototypeOf(
 );
 
 const unpairedSurrogateRe =
-    /([^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])/;
+    /(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])/;
 function toUSVString(val) {
   const str = `${val}`;
   // As of V8 5.5, `str.search()` (and `unpairedSurrogateRe[@@search]()`) are
@@ -87,6 +87,112 @@ class URLContext {
     this.path = [];
     this.query = null;
     this.fragment = null;
+  }
+}
+
+class URLSearchParams {
+  // URL Standard says the default value is '', but as undefined and '' have
+  // the same result, undefined is used to prevent unnecessary parsing.
+  // Default parameter is necessary to keep URLSearchParams.length === 0 in
+  // accordance with Web IDL spec.
+  constructor(init = undefined) {
+    if (init === null || init === undefined) {
+      this[searchParams] = [];
+    } else if ((typeof init === 'object' && init !== null) ||
+               typeof init === 'function') {
+      const method = init[Symbol.iterator];
+      if (method === this[Symbol.iterator]) {
+        // While the spec does not have this branch, we can use it as a
+        // shortcut to avoid having to go through the costly generic iterator.
+        const childParams = init[searchParams];
+        this[searchParams] = childParams.slice();
+      } else if (method !== null && method !== undefined) {
+        if (typeof method !== 'function') {
+          throw new errors.TypeError('ERR_ARG_NOT_ITERABLE', 'Query pairs');
+        }
+
+        // sequence<sequence<USVString>>
+        // Note: per spec we have to first exhaust the lists then process them
+        const pairs = [];
+        for (const pair of init) {
+          if ((typeof pair !== 'object' && typeof pair !== 'function') ||
+              pair === null ||
+              typeof pair[Symbol.iterator] !== 'function') {
+            throw new errors.TypeError('ERR_INVALID_TUPLE', 'Each query pair',
+                                       '[name, value]');
+          }
+          const convertedPair = [];
+          for (const element of pair)
+            convertedPair.push(toUSVString(element));
+          pairs.push(convertedPair);
+        }
+
+        this[searchParams] = [];
+        for (const pair of pairs) {
+          if (pair.length !== 2) {
+            throw new errors.TypeError('ERR_INVALID_TUPLE', 'Each query pair',
+                                       '[name, value]');
+          }
+          this[searchParams].push(pair[0], pair[1]);
+        }
+      } else {
+        // record<USVString, USVString>
+        // Need to use reflection APIs for full spec compliance.
+        this[searchParams] = [];
+        const keys = Reflect.ownKeys(init);
+        for (var i = 0; i < keys.length; i++) {
+          const key = keys[i];
+          const desc = Reflect.getOwnPropertyDescriptor(init, key);
+          if (desc !== undefined && desc.enumerable) {
+            const typedKey = toUSVString(key);
+            const typedValue = toUSVString(init[key]);
+            this[searchParams].push(typedKey, typedValue);
+          }
+        }
+      }
+    } else {
+      // USVString
+      init = toUSVString(init);
+      if (init[0] === '?') init = init.slice(1);
+      initSearchParams(this, init);
+    }
+
+    // "associated url object"
+    this[context] = null;
+  }
+
+  [util.inspect.custom](recurseTimes, ctx) {
+    if (!this || !this[searchParams] || this[searchParams][searchParams]) {
+      throw new errors.TypeError('ERR_INVALID_THIS', 'URLSearchParams');
+    }
+
+    if (typeof recurseTimes === 'number' && recurseTimes < 0)
+      return ctx.stylize('[Object]', 'special');
+
+    var separator = ', ';
+    var innerOpts = Object.assign({}, ctx);
+    if (recurseTimes !== null) {
+      innerOpts.depth = recurseTimes - 1;
+    }
+    var innerInspect = (v) => util.inspect(v, innerOpts);
+
+    var list = this[searchParams];
+    var output = [];
+    for (var i = 0; i < list.length; i += 2)
+      output.push(`${innerInspect(list[i])} => ${innerInspect(list[i + 1])}`);
+
+    var colorRe = /\u001b\[\d\d?m/g;
+    var length = output.reduce(
+      (prev, cur) => prev + cur.replace(colorRe, '').length + separator.length,
+      -separator.length
+    );
+    if (length > ctx.breakLength) {
+      return `${this.constructor.name} {\n  ${output.join(',\n  ')} }`;
+    } else if (output.length) {
+      return `${this.constructor.name} { ${output.join(separator)} }`;
+    } else {
+      return `${this.constructor.name} {}`;
+    }
   }
 }
 
@@ -132,6 +238,7 @@ function onParseProtocolComplete(flags, protocol, username, password,
     ctx.flags &= ~URL_FLAGS_SPECIAL;
   }
   ctx.scheme = protocol;
+  ctx.port = port;
 }
 
 function onParseHostComplete(flags, protocol, username, password,
@@ -806,112 +913,6 @@ function defineIDLClass(proto, classStr, obj) {
   }
 }
 
-class URLSearchParams {
-  // URL Standard says the default value is '', but as undefined and '' have
-  // the same result, undefined is used to prevent unnecessary parsing.
-  // Default parameter is necessary to keep URLSearchParams.length === 0 in
-  // accordance with Web IDL spec.
-  constructor(init = undefined) {
-    if (init === null || init === undefined) {
-      this[searchParams] = [];
-    } else if ((typeof init === 'object' && init !== null) ||
-               typeof init === 'function') {
-      const method = init[Symbol.iterator];
-      if (method === this[Symbol.iterator]) {
-        // While the spec does not have this branch, we can use it as a
-        // shortcut to avoid having to go through the costly generic iterator.
-        const childParams = init[searchParams];
-        this[searchParams] = childParams.slice();
-      } else if (method !== null && method !== undefined) {
-        if (typeof method !== 'function') {
-          throw new errors.TypeError('ERR_ARG_NOT_ITERABLE', 'Query pairs');
-        }
-
-        // sequence<sequence<USVString>>
-        // Note: per spec we have to first exhaust the lists then process them
-        const pairs = [];
-        for (const pair of init) {
-          if ((typeof pair !== 'object' && typeof pair !== 'function') ||
-              pair === null ||
-              typeof pair[Symbol.iterator] !== 'function') {
-            throw new errors.TypeError('ERR_INVALID_TUPLE', 'Each query pair',
-                                       '[name, value]');
-          }
-          const convertedPair = [];
-          for (const element of pair)
-            convertedPair.push(toUSVString(element));
-          pairs.push(convertedPair);
-        }
-
-        this[searchParams] = [];
-        for (const pair of pairs) {
-          if (pair.length !== 2) {
-            throw new errors.TypeError('ERR_INVALID_TUPLE', 'Each query pair',
-                                       '[name, value]');
-          }
-          this[searchParams].push(pair[0], pair[1]);
-        }
-      } else {
-        // record<USVString, USVString>
-        // Need to use reflection APIs for full spec compliance.
-        this[searchParams] = [];
-        const keys = Reflect.ownKeys(init);
-        for (var i = 0; i < keys.length; i++) {
-          const key = keys[i];
-          const desc = Reflect.getOwnPropertyDescriptor(init, key);
-          if (desc !== undefined && desc.enumerable) {
-            const typedKey = toUSVString(key);
-            const typedValue = toUSVString(init[key]);
-            this[searchParams].push(typedKey, typedValue);
-          }
-        }
-      }
-    } else {
-      // USVString
-      init = toUSVString(init);
-      if (init[0] === '?') init = init.slice(1);
-      initSearchParams(this, init);
-    }
-
-    // "associated url object"
-    this[context] = null;
-  }
-
-  [util.inspect.custom](recurseTimes, ctx) {
-    if (!this || !this[searchParams] || this[searchParams][searchParams]) {
-      throw new errors.TypeError('ERR_INVALID_THIS', 'URLSearchParams');
-    }
-
-    if (typeof recurseTimes === 'number' && recurseTimes < 0)
-      return ctx.stylize('[Object]', 'special');
-
-    var separator = ', ';
-    var innerOpts = Object.assign({}, ctx);
-    if (recurseTimes !== null) {
-      innerOpts.depth = recurseTimes - 1;
-    }
-    var innerInspect = (v) => util.inspect(v, innerOpts);
-
-    var list = this[searchParams];
-    var output = [];
-    for (var i = 0; i < list.length; i += 2)
-      output.push(`${innerInspect(list[i])} => ${innerInspect(list[i + 1])}`);
-
-    var colorRe = /\u001b\[\d\d?m/g;
-    var length = output.reduce(
-      (prev, cur) => prev + cur.replace(colorRe, '').length + separator.length,
-      -separator.length
-    );
-    if (length > ctx.breakLength) {
-      return `${this.constructor.name} {\n  ${output.join(',\n  ')} }`;
-    } else if (output.length) {
-      return `${this.constructor.name} { ${output.join(separator)} }`;
-    } else {
-      return `${this.constructor.name} {}`;
-    }
-  }
-}
-
 // for merge sort
 function merge(out, start, mid, end, lBuffer, rBuffer) {
   const sizeLeft = mid - start;
@@ -1075,12 +1076,11 @@ defineIDLClass(URLSearchParams.prototype, 'URLSearchParams', {
   sort() {
     const a = this[searchParams];
     const len = a.length;
-    if (len <= 2) {
-      return;
-    }
 
-    // arbitrary number found through testing
-    if (len < 100) {
+    if (len <= 2) {
+      // Nothing needs to be done.
+    } else if (len < 100) {
+      // 100 is found through testing.
       // Simple stable in-place insertion sort
       // Derived from v8/src/js/array.js
       for (var i = 2; i < len; i += 2) {

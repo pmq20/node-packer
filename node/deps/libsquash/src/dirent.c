@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2017 Minqi Pan <pmq2001@gmail.com>
- *                    Shengyuan Liu <sounder.liu@gmail.com>
+ * Copyright (c) 2017 - 2020 Minqi Pan <pmq2001@gmail.com>
+ *                           Shengyuan Liu <sounder.liu@gmail.com>
  *
  * This file is part of libsquash, distributed under the MIT License
  * For full terms see the included LICENSE file
@@ -34,10 +34,10 @@ SQUASH_DIR *squash_opendir_inner(sqfs *fs, const char *filename, short follow_li
 	}
 	handle = (int *)(squash_global_fdtable.fds[dir->fd]->payload);
 
-	MUTEX_LOCK(&squash_global_fdtable_mutex);
+	MUTEX_LOCK(&squash_global_mutex);
 	free(handle);
 	squash_global_fdtable.fds[dir->fd]->payload = (void *)dir;
-	MUTEX_UNLOCK(&squash_global_fdtable_mutex);
+	MUTEX_UNLOCK(&squash_global_mutex);
 
 	dir->actual_nr = 0;
 	dir->loc = 0;

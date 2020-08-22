@@ -1,11 +1,9 @@
 'use strict';
 const common = require('../common');
-const assert = require('assert');
-
-if (!common.hasCrypto) {
+if (!common.hasCrypto)
   common.skip('missing crypto');
-  return;
-}
+
+const assert = require('assert');
 const crypto = require('crypto');
 
 function testCipher1(key, iv) {
@@ -66,12 +64,14 @@ testCipher2(Buffer.from('0123456789abcd0123456789'), Buffer.from('12345678'));
 // Zero-sized IV should be accepted in ECB mode.
 crypto.createCipheriv('aes-128-ecb', Buffer.alloc(16), Buffer.alloc(0));
 
+const errMessage = /Invalid IV length/;
+
 // But non-empty IVs should be rejected.
 for (let n = 1; n < 256; n += 1) {
   assert.throws(
-      () => crypto.createCipheriv('aes-128-ecb', Buffer.alloc(16),
-                                  Buffer.alloc(n)),
-      /Invalid IV length/);
+    () => crypto.createCipheriv('aes-128-ecb', Buffer.alloc(16),
+                                Buffer.alloc(n)),
+    errMessage);
 }
 
 // Correctly sized IV should be accepted in CBC mode.
@@ -81,16 +81,16 @@ crypto.createCipheriv('aes-128-cbc', Buffer.alloc(16), Buffer.alloc(16));
 for (let n = 0; n < 256; n += 1) {
   if (n === 16) continue;
   assert.throws(
-      () => crypto.createCipheriv('aes-128-cbc', Buffer.alloc(16),
-                                  Buffer.alloc(n)),
-      /Invalid IV length/);
+    () => crypto.createCipheriv('aes-128-cbc', Buffer.alloc(16),
+                                Buffer.alloc(n)),
+    errMessage);
 }
 
 // Zero-sized IV should be rejected in GCM mode.
 assert.throws(
-    () => crypto.createCipheriv('aes-128-gcm', Buffer.alloc(16),
-                                Buffer.alloc(0)),
-    /Invalid IV length/);
+  () => crypto.createCipheriv('aes-128-gcm', Buffer.alloc(16),
+                              Buffer.alloc(0)),
+  errMessage);
 
 // But all other IV lengths should be accepted.
 for (let n = 1; n < 256; n += 1) {

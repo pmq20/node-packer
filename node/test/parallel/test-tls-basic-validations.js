@@ -1,10 +1,8 @@
 'use strict';
 
 const common = require('../common');
-if (!common.hasCrypto) {
+if (!common.hasCrypto)
   common.skip('missing crypto');
-  return;
-}
 
 const assert = require('assert');
 const tls = require('tls');
@@ -33,7 +31,7 @@ assert.throws(() => tls.createServer({sessionTimeout: 'abcd'}),
 assert.throws(() => tls.createServer({ticketKeys: 'abcd'}),
               /TypeError: Ticket keys must be a buffer/);
 
-assert.throws(() => tls.createServer({ticketKeys: new Buffer(0)}),
+assert.throws(() => tls.createServer({ticketKeys: Buffer.alloc(0)}),
               /TypeError: Ticket keys length must be 48 bytes/);
 
 assert.throws(() => tls.createSecurePair({}),

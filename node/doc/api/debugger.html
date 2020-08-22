@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Debugger | Node.js v8.1.1 Documentation</title>
+  <title>Debugger | Node.js v8.4.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -42,8 +42,10 @@
 <li><a class="nav-fs" href="fs.html">File System</a></li>
 <li><a class="nav-globals" href="globals.html">Globals</a></li>
 <li><a class="nav-http" href="http.html">HTTP</a></li>
+<li><a class="nav-http2" href="http2.html">HTTP/2</a></li>
 <li><a class="nav-https" href="https.html">HTTPS</a></li>
 <li><a class="nav-inspector" href="inspector.html">Inspector</a></li>
+<li><a class="nav-intl" href="intl.html">Internationalization</a></li>
 <li><a class="nav-modules" href="modules.html">Modules</a></li>
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
@@ -77,7 +79,7 @@
 
     <div id="column1" data-id="debugger" class="interior">
       <header>
-        <h1>Node.js v8.1.1 Documentation</h1>
+        <h1>Node.js v8.4.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -116,15 +118,16 @@
 <pre class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</pre><!-- type=misc -->
 <p>Node.js includes an out-of-process debugging utility accessible via a
 <a href="#debugger_tcp_based_protocol">TCP-based protocol</a> and built-in debugging client. To use it, start Node.js
-with the <code>debug</code> argument followed by the path to the script to debug; a prompt
+with the <code>inspect</code> argument followed by the path to the script to debug; a prompt
 will be displayed indicating successful launch of the debugger:</p>
-<pre><code class="lang-txt">$ node debug myscript.js
-&lt; Debugger listening on 127.0.0.1:5858
-connecting to 127.0.0.1:5858 ... ok
-break in /home/indutny/Code/git/indutny/myscript.js:1
-&gt; 1 global.x = 5;
+<pre><code class="lang-txt">$ node inspect myscript.js
+&lt; Debugger listening on ws://127.0.0.1:9229/80e7a814-7cd3-49fb-921a-2e02228cd5ba
+&lt; For help see https://nodejs.org/en/docs/inspector
+&lt; Debugger attached.
+Break on start in myscript.js:1
+&gt; 1 (function (exports, require, module, __filename, __dirname) { global.x = 5;
   2 setTimeout(() =&gt; {
-  3   debugger;
+  3   console.log(&#39;world&#39;);
 debug&gt;
 </code></pre>
 <p>Node.js&#39;s debugger client is not a full-featured debugger, but simple step and
@@ -141,23 +144,24 @@ setTimeout(() =&gt; {
 console.log(&#39;hello&#39;);
 </code></pre>
 <p>Once the debugger is run, a breakpoint will occur at line 3:</p>
-<pre><code class="lang-txt">$ node debug myscript.js
-&lt; Debugger listening on 127.0.0.1:5858
-connecting to 127.0.0.1:5858 ... ok
-break in /home/indutny/Code/git/indutny/myscript.js:1
-&gt; 1 global.x = 5;
+<pre><code class="lang-txt">$ node inspect myscript.js
+&lt; Debugger listening on ws://127.0.0.1:9229/80e7a814-7cd3-49fb-921a-2e02228cd5ba
+&lt; For help see https://nodejs.org/en/docs/inspector
+&lt; Debugger attached.
+Break on start in myscript.js:1
+&gt; 1 (function (exports, require, module, __filename, __dirname) { global.x = 5;
   2 setTimeout(() =&gt; {
   3   debugger;
 debug&gt; cont
 &lt; hello
-break in /home/indutny/Code/git/indutny/myscript.js:3
-  1 global.x = 5;
+break in myscript.js:3
+  1 (function (exports, require, module, __filename, __dirname) { global.x = 5;
   2 setTimeout(() =&gt; {
 &gt; 3   debugger;
   4   console.log(&#39;world&#39;);
   5 }, 1000);
 debug&gt; next
-break in /home/indutny/Code/git/indutny/myscript.js:4
+break in myscript.js:4
   2 setTimeout(() =&gt; {
   3   debugger;
 &gt; 4   console.log(&#39;world&#39;);
@@ -170,14 +174,14 @@ Press Ctrl + C to leave debug repl
 &gt; 2+2
 4
 debug&gt; next
-break in /home/indutny/Code/git/indutny/myscript.js:5
 &lt; world
+break in myscript.js:5
   3   debugger;
   4   console.log(&#39;world&#39;);
 &gt; 5 }, 1000);
   6 console.log(&#39;hello&#39;);
   7
-debug&gt; quit
+debug&gt; .exit
 </code></pre>
 <p>The <code>repl</code> command allows code to be evaluated remotely. The <code>next</code> command
 steps to the next line. Type <code>help</code> to see what other commands are available.</p>
@@ -213,27 +217,23 @@ on line 1</li>
 </ul>
 </div><p>It is also possible to set a breakpoint in a file (module) that
 is not loaded yet:</p>
-<pre><code class="lang-txt">$ node debug test/fixtures/break-in-module/main.js
-&lt; Debugger listening on 127.0.0.1:5858
-connecting to 127.0.0.1:5858 ... ok
-break in test/fixtures/break-in-module/main.js:1
-&gt; 1 const mod = require(&#39;./mod.js&#39;);
+<pre><code class="lang-txt">$ node inspect test/fixtures/break-in-module/main.js
+&lt; Debugger listening on ws://127.0.0.1:9229/4e3db158-9791-4274-8909-914f7facf3bd
+&lt; For help see https://nodejs.org/en/docs/inspector
+&lt; Debugger attached.
+Break on start in test/fixtures/break-in-module/main.js:1
+&gt; 1 (function (exports, require, module, __filename, __dirname) { const mod = require(&#39;./mod.js&#39;);
   2 mod.hello();
   3 mod.hello();
-debug&gt; setBreakpoint(&#39;mod.js&#39;, 2)
+debug&gt; setBreakpoint(&#39;mod.js&#39;, 22)
 Warning: script &#39;mod.js&#39; was not loaded yet.
-&gt; 1 const mod = require(&#39;./mod.js&#39;);
-  2 mod.hello();
-  3 mod.hello();
-  4 debugger;
-  5
-  6 });
 debug&gt; c
-break in test/fixtures/break-in-module/mod.js:2
-  1 exports.hello = function() {
-&gt; 2   return &#39;hello from module&#39;;
-  3 };
-  4
+break in test/fixtures/break-in-module/mod.js:22
+ 20 // USE OR OTHER DEALINGS IN THE SOFTWARE.
+ 21
+&gt;22 exports.hello = function() {
+ 23   return &#39;hello from module&#39;;
+ 24 };
 debug&gt;
 </code></pre>
 <h3>Information<span><a class="mark" href="#debugger_information" id="debugger_information">#</a></span></h3>

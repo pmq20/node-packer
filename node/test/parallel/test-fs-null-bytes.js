@@ -29,17 +29,19 @@ function check(async, sync) {
   const expected = /Path must be a string without null bytes/;
   const argsSync = Array.prototype.slice.call(arguments, 2);
   const argsAsync = argsSync.concat((er) => {
-    assert(er && er.message.match(expected));
+    assert(er && expected.test(er.message));
     assert.strictEqual(er.code, 'ENOENT');
   });
 
-  if (sync)
+  if (sync) {
     assert.throws(() => {
       sync.apply(null, argsSync);
     }, expected);
+  }
 
-  if (async)
+  if (async) {
     async.apply(null, argsAsync);
+  }
 }
 
 check(fs.access, fs.accessSync, 'foo\u0000bar');

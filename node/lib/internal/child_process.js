@@ -23,6 +23,8 @@ const errnoException = util._errnoException;
 const SocketListSend = SocketList.SocketListSend;
 const SocketListReceive = SocketList.SocketListReceive;
 
+const MAX_HANDLE_RETRANSMISSIONS = 3;
+
 // this object contain function to convert TCP objects to native handle objects
 // and back again.
 const handleConversion = {
@@ -88,17 +90,18 @@ const handleConversion = {
       return handle;
     },
 
-    postSend: function(handle, options, target) {
+    postSend: function(message, handle, options, callback, target) {
       // Store the handle after successfully sending it, so it can be closed
       // when the NODE_HANDLE_ACK is received. If the handle could not be sent,
       // just close it.
       if (handle && !options.keepOpen) {
         if (target) {
-          // There can only be one _pendingHandle as passing handles are
+          // There can only be one _pendingMessage as passing handles are
           // processed one at a time: handles are stored in _handleQueue while
           // waiting for the NODE_HANDLE_ACK of the current passing handle.
-          assert(!target._pendingHandle);
-          target._pendingHandle = handle;
+          assert(!target._pendingMessage);
+          target._pendingMessage =
+              { callback, message, handle, options, retransmissions: 0 };
         } else {
           handle.close();
         }
@@ -249,6 +252,11 @@ function getHandleWrapType(stream) {
   return false;
 }
 
+function closePendingHandle(target) {
+  target._pendingMessage.handle.close();
+  target._pendingMessage = null;
+}
+
 
 ChildProcess.prototype.spawn = function(options) {
   var ipc;
@@ -332,7 +340,7 @@ ChildProcess.prototype.spawn = function(options) {
       // when i === 0 - we're dealing with stdin
       // (which is the only one writable pipe)
       stream.socket = createSocket(this.pid !== 0 ?
-          stream.handle : null, i > 0);
+        stream.handle : null, i > 0);
 
       if (i > 0 && this.pid !== 0) {
         this._closesNeeded++;
@@ -344,11 +352,11 @@ ChildProcess.prototype.spawn = function(options) {
   }
 
   this.stdin = stdio.length >= 1 && stdio[0].socket !== undefined ?
-      stdio[0].socket : null;
+    stdio[0].socket : null;
   this.stdout = stdio.length >= 2 && stdio[1].socket !== undefined ?
-      stdio[1].socket : null;
+    stdio[1].socket : null;
   this.stderr = stdio.length >= 3 && stdio[2].socket !== undefined ?
-      stdio[2].socket : null;
+    stdio[2].socket : null;
 
   this.stdio = [];
 
@@ -434,16 +442,20 @@ function setupChannel(target, channel) {
   });
 
   target._handleQueue = null;
-  target._pendingHandle = null;
+  target._pendingMessage = null;
 
   const control = new Control(channel);
 
   var decoder = new StringDecoder('utf8');
   var jsonBuffer = '';
+  var pendingHandle = null;
   channel.buffering = false;
   channel.onread = function(nread, pool, recvHandle) {
     // TODO(bnoordhuis) Check that nread > 0.
     if (pool) {
+      if (recvHandle)
+        pendingHandle = recvHandle;
+
       // Linebreak is used as a message end sign
       var chunks = decoder.write(pool).split('\n');
       var numCompleteChunks = chunks.length - 1;
@@ -456,7 +468,6 @@ function setupChannel(target, channel) {
       }
       chunks[0] = jsonBuffer + chunks[0];
 
-      var nextTick = false;
       for (var i = 0; i < numCompleteChunks; i++) {
         var message = JSON.parse(chunks[i]);
 
@@ -464,13 +475,14 @@ function setupChannel(target, channel) {
         // read because SCM_RIGHTS messages don't get coalesced. Make sure
         // that we deliver the handle with the right message however.
         if (isInternal(message)) {
-          if (message.cmd === 'NODE_HANDLE')
-            handleMessage(message, recvHandle, true, false);
-          else
-            handleMessage(message, undefined, true, false);
+          if (message.cmd === 'NODE_HANDLE') {
+            handleMessage(message, pendingHandle, true);
+            pendingHandle = null;
+          } else {
+            handleMessage(message, undefined, true);
+          }
         } else {
-          handleMessage(message, undefined, false, nextTick);
-          nextTick = true;
+          handleMessage(message, undefined, false);
         }
       }
       jsonBuffer = incompleteChunk;
@@ -492,15 +504,30 @@ function setupChannel(target, channel) {
   // handlers will go through this
   target.on('internalMessage', function(message, handle) {
     // Once acknowledged - continue sending handles.
-    if (message.cmd === 'NODE_HANDLE_ACK') {
-      if (target._pendingHandle) {
-        target._pendingHandle.close();
-        target._pendingHandle = null;
+    if (message.cmd === 'NODE_HANDLE_ACK' ||
+        message.cmd === 'NODE_HANDLE_NACK') {
+
+      if (target._pendingMessage) {
+        if (message.cmd === 'NODE_HANDLE_ACK') {
+          closePendingHandle(target);
+        } else if (target._pendingMessage.retransmissions++ ===
+                   MAX_HANDLE_RETRANSMISSIONS) {
+          closePendingHandle(target);
+          process.emitWarning('Handle did not reach the receiving process ' +
+                              'correctly', 'SentHandleNotReceivedWarning');
+        }
       }
 
       assert(Array.isArray(target._handleQueue));
       var queue = target._handleQueue;
       target._handleQueue = null;
+
+      if (target._pendingMessage) {
+        target._send(target._pendingMessage.message,
+                     target._pendingMessage.handle,
+                     target._pendingMessage.options,
+                     target._pendingMessage.callback);
+      }
 
       for (var i = 0; i < queue.length; i++) {
         var args = queue[i];
@@ -515,6 +542,12 @@ function setupChannel(target, channel) {
     }
 
     if (message.cmd !== 'NODE_HANDLE') return;
+
+    // It is possible that the handle is not received because of some error on
+    // ancillary data reception such as MSG_CTRUNC. In this case, report the
+    // sender about it by sending a NODE_HANDLE_NACK message.
+    if (!handle)
+      return target._send({ cmd: 'NODE_HANDLE_NACK' }, null, true);
 
     // Acknowledge handle receival. Don't emit error events (for example if
     // the other side has disconnected) because this call to send() is not
@@ -532,7 +565,7 @@ function setupChannel(target, channel) {
 
     // Convert handle object
     obj.got.call(this, message, handle, function(handle) {
-      handleMessage(message.msg, handle, isInternal(message.msg), false);
+      handleMessage(message.msg, handle, isInternal(message.msg));
     });
   });
 
@@ -626,7 +659,8 @@ function setupChannel(target, channel) {
         net._setSimultaneousAccepts(handle);
       }
     } else if (this._handleQueue &&
-               !(message && message.cmd === 'NODE_HANDLE_ACK')) {
+               !(message && (message.cmd === 'NODE_HANDLE_ACK' ||
+                             message.cmd === 'NODE_HANDLE_NACK'))) {
       // Queue request anyway to avoid out-of-order messages.
       this._handleQueue.push({
         callback: callback,
@@ -648,7 +682,7 @@ function setupChannel(target, channel) {
         if (!this._handleQueue)
           this._handleQueue = [];
         if (obj && obj.postSend)
-          obj.postSend(handle, options, target);
+          obj.postSend(message, handle, options, callback, target);
       }
 
       if (req.async) {
@@ -664,7 +698,7 @@ function setupChannel(target, channel) {
     } else {
       // Cleanup handle on error
       if (obj && obj.postSend)
-        obj.postSend(handle, options);
+        obj.postSend(message, handle, options, callback);
 
       if (!options.swallowErrors) {
         const ex = errnoException(err, 'write');
@@ -713,10 +747,8 @@ function setupChannel(target, channel) {
     // This marks the fact that the channel is actually disconnected.
     this.channel = null;
 
-    if (this._pendingHandle) {
-      this._pendingHandle.close();
-      this._pendingHandle = null;
-    }
+    if (this._pendingMessage)
+      closePendingHandle(this);
 
     var fired = false;
     function finish() {
@@ -742,15 +774,13 @@ function setupChannel(target, channel) {
     target.emit(event, message, handle);
   }
 
-  function handleMessage(message, handle, internal, nextTick) {
+  function handleMessage(message, handle, internal) {
     if (!target.channel)
       return;
 
     var eventName = (internal ? 'internalMessage' : 'message');
-    if (nextTick)
-      process.nextTick(emit, eventName, message, handle);
-    else
-      target.emit(eventName, message, handle);
+
+    process.nextTick(emit, eventName, message, handle);
   }
 
   channel.readStart();
@@ -851,8 +881,8 @@ function _validateStdio(stdio, sync) {
     } else if (getHandleWrapType(stdio) || getHandleWrapType(stdio.handle) ||
                getHandleWrapType(stdio._handle)) {
       var handle = getHandleWrapType(stdio) ?
-          stdio :
-          getHandleWrapType(stdio.handle) ? stdio.handle : stdio._handle;
+        stdio :
+        getHandleWrapType(stdio.handle) ? stdio.handle : stdio._handle;
 
       acc.push({
         type: 'wrap',

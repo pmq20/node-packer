@@ -12,17 +12,20 @@
       const char* error_message = error_info->error_message != NULL ?    \
         error_info->error_message :                                      \
         "empty error message";                                           \
-      napi_throw_error((env), error_message);                            \
+      napi_throw_error((env), NULL, error_message);                      \
     }                                                                    \
-  } while(0);
+  } while (0)
 
 #define NAPI_ASSERT_BASE(env, assertion, message, ret_val)               \
-  if (!(assertion)) {                                                    \
-    napi_throw_error(                                                    \
-        (env),                                                           \
-        "assertion (" #assertion ") failed: " message);                  \
-    return ret_val;                                                      \
-  }
+  do {                                                                   \
+    if (!(assertion)) {                                                  \
+      napi_throw_error(                                                  \
+          (env),                                                         \
+        NULL,                                                            \
+          "assertion (" #assertion ") failed: " message);                \
+      return ret_val;                                                    \
+    }                                                                    \
+  } while (0)
 
 // Returns NULL on failed assertion.
 // This is meant to be used inside napi_callback methods.
@@ -35,10 +38,12 @@
   NAPI_ASSERT_BASE(env, assertion, message, NAPI_RETVAL_NOTHING)
 
 #define NAPI_CALL_BASE(env, the_call, ret_val)                           \
-  if ((the_call) != napi_ok) {                                           \
-    GET_AND_THROW_LAST_ERROR((env));                                     \
-    return ret_val;                                                      \
-  }
+  do {                                                                   \
+    if ((the_call) != napi_ok) {                                         \
+      GET_AND_THROW_LAST_ERROR((env));                                   \
+      return ret_val;                                                    \
+    }                                                                    \
+  } while (0)
 
 // Returns NULL if the_call doesn't return napi_ok.
 #define NAPI_CALL(env, the_call)                                         \

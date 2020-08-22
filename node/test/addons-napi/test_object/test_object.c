@@ -53,7 +53,7 @@ napi_value Set(napi_env env, napi_callback_info info) {
   NAPI_CALL(env, napi_set_property(env, args[0], args[1], args[2]));
 
   napi_value valuetrue;
-  NAPI_CALL(env, napi_get_boolean(env, true, &valuetrue))
+  NAPI_CALL(env, napi_get_boolean(env, true, &valuetrue));
 
   return valuetrue;
 }
@@ -86,12 +86,65 @@ napi_value Has(napi_env env, napi_callback_info info) {
   return ret;
 }
 
+napi_value HasOwn(napi_env env, napi_callback_info info) {
+  size_t argc = 2;
+  napi_value args[2];
+  NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, NULL, NULL));
+
+  NAPI_ASSERT(env, argc == 2, "Wrong number of arguments");
+
+  napi_valuetype valuetype0;
+  NAPI_CALL(env, napi_typeof(env, args[0], &valuetype0));
+
+  NAPI_ASSERT(env, valuetype0 == napi_object,
+    "Wrong type of arguments. Expects an object as first argument.");
+
+  // napi_valuetype valuetype1;
+  // NAPI_CALL(env, napi_typeof(env, args[1], &valuetype1));
+  //
+  // NAPI_ASSERT(env, valuetype1 == napi_string || valuetype1 == napi_symbol,
+  //   "Wrong type of arguments. Expects a string or symbol as second.");
+
+  bool has_property;
+  NAPI_CALL(env, napi_has_own_property(env, args[0], args[1], &has_property));
+
+  napi_value ret;
+  NAPI_CALL(env, napi_get_boolean(env, has_property, &ret));
+
+  return ret;
+}
+
+napi_value Delete(napi_env env, napi_callback_info info) {
+  size_t argc = 2;
+  napi_value args[2];
+
+  NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, NULL, NULL));
+  NAPI_ASSERT(env, argc == 2, "Wrong number of arguments");
+
+  napi_valuetype valuetype0;
+  NAPI_CALL(env, napi_typeof(env, args[0], &valuetype0));
+  NAPI_ASSERT(env, valuetype0 == napi_object,
+    "Wrong type of arguments. Expects an object as first argument.");
+
+  napi_valuetype valuetype1;
+  NAPI_CALL(env, napi_typeof(env, args[1], &valuetype1));
+  NAPI_ASSERT(env, valuetype1 == napi_string || valuetype1 == napi_symbol,
+    "Wrong type of arguments. Expects a string or symbol as second.");
+
+  bool result;
+  napi_value ret;
+  NAPI_CALL(env, napi_delete_property(env, args[0], args[1], &result));
+  NAPI_CALL(env, napi_get_boolean(env, result, &ret));
+
+  return ret;
+}
+
 napi_value New(napi_env env, napi_callback_info info) {
   napi_value ret;
   NAPI_CALL(env, napi_create_object(env, &ret));
 
   napi_value num;
-  NAPI_CALL(env, napi_create_number(env, 987654321, &num));
+  NAPI_CALL(env, napi_create_int32(env, 987654321, &num));
 
   NAPI_CALL(env, napi_set_named_property(env, ret, "test_number", num));
 
@@ -134,7 +187,7 @@ napi_value Inflate(napi_env env, napi_callback_info info) {
 
     double double_val;
     NAPI_CALL(env, napi_get_value_double(env, value, &double_val));
-    NAPI_CALL(env, napi_create_number(env, double_val + 1, &value));
+    NAPI_CALL(env, napi_create_double(env, double_val + 1, &value));
     NAPI_CALL(env, napi_set_property(env, obj, property_str, value));
   }
 
@@ -171,6 +224,8 @@ void Init(napi_env env, napi_value exports, napi_value module, void* priv) {
     DECLARE_NAPI_PROPERTY("Get", Get),
     DECLARE_NAPI_PROPERTY("Set", Set),
     DECLARE_NAPI_PROPERTY("Has", Has),
+    DECLARE_NAPI_PROPERTY("HasOwn", HasOwn),
+    DECLARE_NAPI_PROPERTY("Delete", Delete),
     DECLARE_NAPI_PROPERTY("New", New),
     DECLARE_NAPI_PROPERTY("Inflate", Inflate),
     DECLARE_NAPI_PROPERTY("Wrap", Wrap),

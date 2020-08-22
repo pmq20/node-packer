@@ -221,8 +221,7 @@ Error.captureStackTrace(myObject);
 myObject.stack;  // similar to `new Error().stack`
 ```
 
-The first line of the trace, instead of being prefixed with `ErrorType:
-message`, will be the result of calling `targetObject.toString()`.
+The first line of the trace will be prefixed with `${myObject.name}: ${myObject.message}`.
 
 The optional `constructorOpt` argument accepts a function. If given, all frames
 above `constructorOpt`, including `constructorOpt`, will be omitted from the
@@ -323,21 +322,22 @@ function makeFaster() {
   });
 }
 
-makeFaster(); // will throw:
-  // /home/gbusey/file.js:6
-  //     throw new Error('oh no!');
-  //           ^
-  // Error: oh no!
-  //     at speedy (/home/gbusey/file.js:6:11)
-  //     at makeFaster (/home/gbusey/file.js:5:3)
-  //     at Object.<anonymous> (/home/gbusey/file.js:10:1)
-  //     at Module._compile (module.js:456:26)
-  //     at Object.Module._extensions..js (module.js:474:10)
-  //     at Module.load (module.js:356:32)
-  //     at Function.Module._load (module.js:312:12)
-  //     at Function.Module.runMain (module.js:497:10)
-  //     at startup (node.js:119:16)
-  //     at node.js:906:3
+makeFaster();
+// will throw:
+//   /home/gbusey/file.js:6
+//       throw new Error('oh no!');
+//           ^
+//   Error: oh no!
+//       at speedy (/home/gbusey/file.js:6:11)
+//       at makeFaster (/home/gbusey/file.js:5:3)
+//       at Object.<anonymous> (/home/gbusey/file.js:10:1)
+//       at Module._compile (module.js:456:26)
+//       at Object.Module._extensions..js (module.js:474:10)
+//       at Module.load (module.js:356:32)
+//       at Function.Module._load (module.js:312:12)
+//       at Function.Module.runMain (module.js:497:10)
+//       at startup (node.js:119:16)
+//       at node.js:906:3
 ```
 
 The location information will be one of:
@@ -358,6 +358,18 @@ loop tick.
 System-level errors are generated as augmented `Error` instances, which are
 detailed [here](#errors_system_errors).
 
+## Class: AssertionError
+
+A subclass of `Error` that indicates the failure of an assertion. Such errors
+commonly indicate inequality of actual and expected value.
+
+For example:
+
+```js
+assert.strictEqual(1, 2);
+// AssertionError [ERR_ASSERTION]: 1 === 2
+```
+
 ## Class: RangeError
 
 A subclass of `Error` that indicates that a provided argument was not within the
@@ -368,7 +380,7 @@ For example:
 
 ```js
 require('net').connect(-1);
-  // throws "RangeError: "port" option should be >= 0 and < 65536: -1"
+// throws "RangeError: "port" option should be >= 0 and < 65536: -1"
 ```
 
 Node.js will generate and throw `RangeError` instances *immediately* as a form
@@ -385,7 +397,7 @@ will do so.
 
 ```js
 doesNotExist;
-  // throws ReferenceError, doesNotExist is not a variable in this program.
+// throws ReferenceError, doesNotExist is not a variable in this program.
 ```
 
 Unless an application is dynamically generating and running code,
@@ -419,7 +431,7 @@ string would be considered a TypeError.
 
 ```js
 require('url').parse(() => { });
-  // throws TypeError, since it expected a string
+// throws TypeError, since it expected a string
 ```
 
 Node.js will generate and throw `TypeError` instances *immediately* as a form
@@ -566,65 +578,274 @@ found [here][online].
 <a id="ERR_ARG_NOT_ITERABLE"></a>
 ### ERR_ARG_NOT_ITERABLE
 
-The `'ERR_ARG_NOT_ITERABLE'` error code is used generically to identify that an
-iterable argument (i.e. a value that works with `for...of` loops) is required,
-but not provided to a Node.js API.
+Used generically to identify that an iterable argument (i.e. a value that works
+with `for...of` loops) is required, but not provided to a Node.js API.
+
+<a id="ERR_FALSY_VALUE_REJECTION"></a>
+### ERR_FALSY_VALUE_REJECTION
+
+Used by the `util.callbackify()` API when a callbackified `Promise` is rejected
+with a falsy value (e.g. `null`).
+
+<a id="ERR_HTTP_HEADERS_SENT"></a>
+### ERR_HTTP_HEADERS_SENT
+
+Used when headers have already been sent and another attempt is made to add
+more headers.
+
+<a id="ERR_HTTP_INVALID_STATUS_CODE"></a>
+### ERR_HTTP_INVALID_STATUS_CODE
+
+Used for status codes outside the regular status code ranges (100-999).
+
+<a id="ERR_HTTP_TRAILER_INVALID"></a>
+### ERR_HTTP_TRAILER_INVALID
+
+Used when the `Trailer` header is set even though the transfer encoding does not
+support that.
+
+<a id="ERR_HTTP2_CONNECT_AUTHORITY"></a>
+### ERR_HTTP2_CONNECT_AUTHORITY
+
+For HTTP/2 requests using the `CONNECT` method, the `:authority` pseudo-header
+is required.
+
+<a id="ERR_HTTP2_CONNECT_PATH"></a>
+### ERR_HTTP2_CONNECT_PATH
+
+For HTTP/2 requests using the `CONNECT` method, the `:path` pseudo-header is
+forbidden.
+
+<a id="ERR_HTTP2_CONNECT_SCHEME"></a>
+### ERR_HTTP2_CONNECT_SCHEME
+
+The HTTP/2 requests using the `CONNECT` method, the `:scheme` pseudo-header is
+forbidden.
+
+<a id="ERR_HTTP2_ERROR"></a>
+### ERR_HTTP2_ERROR
+
+A non-specific HTTP/2 error has occurred.
+
+<a id="ERR_HTTP2_FRAME_ERROR"></a>
+### ERR_HTTP2_FRAME_ERROR
+
+Used when a failure occurs sending an individual frame on the HTTP/2
+session.
+
+<a id="ERR_HTTP2_HEADERS_OBJECT"></a>
+### ERR_HTTP2_HEADERS_OBJECT
+
+Used when an HTTP/2 Headers Object is expected.
+
+<a id="ERR_HTTP2_HEADERS_SENT"></a>
+### ERR_HTTP2_HEADERS_SENT
+
+Used when an attempt is made to send multiple response headers.
+
+<a id="ERR_HTTP2_HEADER_SINGLE_VALUE"></a>
+### ERR_HTTP2_HEADER_SINGLE_VALUE
+
+Used when multiple values have been provided for an HTTP header field that
+required to have only a single value.
+
+<a id="ERR_HTTP2_INFO_HEADERS_AFTER_RESPOND"></a>
+### ERR_HTTP2_INFO_HEADERS_AFTER_RESPOND
+
+HTTP/2 Informational headers must only be sent *prior* to calling the
+`Http2Stream.prototype.respond()` method.
+
+<a id="ERR_HTTP2_INFO_STATUS_NOT_ALLOWED"></a>
+### ERR_HTTP2_INFO_STATUS_NOT_ALLOWED
+
+Informational HTTP status codes (`1xx`) may not be set as the response status
+code on HTTP/2 responses.
+
+<a id="ERR_HTTP2_INVALID_CONNECTION_HEADERS"></a>
+### ERR_HTTP2_INVALID_CONNECTION_HEADERS
+
+HTTP/1 connection specific headers are forbidden to be used in HTTP/2
+requests and responses.
+
+<a id="ERR_HTTP2_INVALID_HEADER_VALUE"></a>
+### ERR_HTTP2_INVALID_HEADER_VALUE
+
+Used to indicate that an invalid HTTP/2 header value has been specified.
+
+<a id="ERR_HTTP2_INVALID_INFO_STATUS"></a>
+### ERR_HTTP2_INVALID_INFO_STATUS
+
+An invalid HTTP informational status code has been specified. Informational
+status codes must be an integer between `100` and `199` (inclusive).
+
+<a id="ERR_HTTP2_INVALID_PACKED_SETTINGS_LENGTH"></a>
+
+Input `Buffer` and `Uint8Array` instances passed to the
+`http2.getUnpackedSettings()` API must have a length that is a multiple of
+six.
+
+<a id="ERR_HTTP2_INVALID_PSEUDOHEADER"></a>
+### ERR_HTTP2_INVALID_PSEUDOHEADER
+
+Only valid HTTP/2 pseudoheaders (`:status`, `:path`, `:authority`, `:scheme`,
+and `:method`) may be used.
+
+<a id="ERR_HTTP2_INVALID_SESSION"></a>
+### ERR_HTTP2_INVALID_SESSION
+
+Used when any action is performed on an `Http2Session` object that has already
+been destroyed.
+
+<a id="ERR_HTTP2_INVALID_SETTING_VALUE"></a>
+### ERR_HTTP2_INVALID_SETTING_VALUE
+
+An invalid value has been specified for an HTTP/2 setting.
+
+<a id="ERR_HTTP2_INVALID_STREAM"></a>
+### ERR_HTTP2_INVALID_STREAM
+
+Used when an operation has been performed on a stream that has already been
+destroyed.
+
+<a id="ERR_HTTP2_MAX_PENDING_SETTINGS_ACK"></a>
+### ERR_HTTP2_MAX_PENDING_SETTINGS_ACK
+
+Whenever an HTTP/2 `SETTINGS` frame is sent to a connected peer, the peer is
+required to send an acknowledgement that it has received and applied the new
+SETTINGS. By default, a maximum number of un-acknowledged `SETTINGS` frame may
+be sent at any given time. This error code is used when that limit has been
+reached.
+
+<a id="ERR_HTTP2_OUT_OF_STREAMS"></a>
+### ERR_HTTP2_OUT_OF_STREAMS
+
+Used when the maximum number of streams on a single HTTP/2 session have been
+created.
+
+<a id="ERR_HTTP2_PAYLOAD_FORBIDDEN"></a>
+### ERR_HTTP2_PAYLOAD_FORBIDDEN
+
+Used when a message payload is specified for an HTTP response code for which
+a payload is forbidden.
+
+<a id="ERR_HTTP2_PSEUDOHEADER_NOT_ALLOWED"></a>
+### ERR_HTTP2_PSEUDOHEADER_NOT_ALLOWED
+
+Used to indicate that an HTTP/2 pseudo-header has been used inappropriately.
+Pseudo-headers are header key names that begin with the `:` prefix.
+
+<a id="ERR_HTTP2_PUSH_DISABLED"></a>
+### ERR_HTTP2_PUSH_DISABLED
+
+Used when push streams have been disabled by the client but an attempt to
+create a push stream is made.
+
+<a id="ERR_HTTP2_SEND_FILE"></a>
+### ERR_HTTP2_SEND_FILE
+
+Used when an attempt is made to use the
+`Http2Stream.prototype.responseWithFile()` API to send a non-regular file.
+
+<a id="ERR_HTTP2_SOCKET_BOUND"></a>
+### ERR_HTTP2_SOCKET_BOUND
+
+Used when an attempt is made to connect a `Http2Session` object to a
+`net.Socket` or `tls.TLSSocket` that has already been bound to another
+`Http2Session` object.
+
+<a id="ERR_HTTP2_STATUS_101"></a>
+### ERR_HTTP2_STATUS_101
+
+Use of the `101` Informational status code is forbidden in HTTP/2.
+
+<a id="ERR_HTTP2_STATUS_INVALID"></a>
+### ERR_HTTP2_STATUS_INVALID
+
+An invalid HTTP status code has been specified. Status codes must be an integer
+between `100` and `599` (inclusive).
+
+<a id="ERR_HTTP2_STREAM_CLOSED"></a>
+### ERR_HTTP2_STREAM_CLOSED
+
+Used when an action has been performed on an HTTP/2 Stream that has already
+been closed.
+
+<a id="ERR_HTTP2_STREAM_ERROR"></a>
+### ERR_HTTP2_STREAM_ERROR
+
+Used when a non-zero error code has been specified in an `RST_STREAM` frame.
+
+<a id="ERR_HTTP2_STREAM_SELF_DEPENDENCY"></a>
+### ERR_HTTP2_STREAM_SELF_DEPENDENCY
+
+When setting the priority for an HTTP/2 stream, the stream may be marked as
+a dependency for a parent stream. This error code is used when an attempt is
+made to mark a stream and dependent of itself.
+
+<a id="ERR_HTTP2_UNSUPPORTED_PROTOCOL"></a>
+### ERR_HTTP2_UNSUPPORTED_PROTOCOL
+
+Used when `http2.connect()` is passed a URL that uses any protocol other than
+`http:` or `https:`.
+
+<a id="ERR_INDEX_OUT_OF_RANGE"></a>
+### ERR_INDEX_OUT_OF_RANGE
+
+Used when a given index is out of the accepted range (e.g. negative offsets).
 
 <a id="ERR_INVALID_ARG_TYPE"></a>
 ### ERR_INVALID_ARG_TYPE
 
-The `'ERR_INVALID_ARG_TYPE'` error code is used generically to identify that
-an argument of the wrong type has been passed to a Node.js API.
+Used generically to identify that an argument of the wrong type has been passed
+to a Node.js API.
 
 <a id="ERR_INVALID_CALLBACK"></a>
 ### ERR_INVALID_CALLBACK
 
-The `'ERR_INVALID_CALLBACK'` error code is used generically to identify that
-a callback function is required and has not been provided to a Node.js API.
+Used generically to identify that a callback function is required and has not
+been provided to a Node.js API.
 
 <a id="ERR_INVALID_FILE_URL_HOST"></a>
 ### ERR_INVALID_FILE_URL_HOST
 
-An error with the `'ERR_INVALID_FILE_URL_HOST'` code may be thrown when a
-Node.js API that consumes `file:` URLs (such as certain functions in the
-[`fs`][] module) encounters a file URL with an incompatible host. Currently,
-this situation can only occur on Unix-like systems, where only `localhost` or
-an empty host is supported.
+Used when a Node.js API that consumes `file:` URLs (such as certain functions in
+the [`fs`][] module) encounters a file URL with an incompatible host. Currently,
+this situation can only occur on Unix-like systems, where only `localhost` or an
+empty host is supported.
 
 <a id="ERR_INVALID_FILE_URL_PATH"></a>
 ### ERR_INVALID_FILE_URL_PATH
 
-An error with the `'ERR_INVALID_FILE_URL_PATH'` code may be thrown when a
-Node.js API that consumes `file:` URLs (such as certain functions in the
-[`fs`][] module) encounters a file URL with an incompatible path. The exact
-semantics for determining whether a path can be used is platform-dependent.
+Used when a Node.js API that consumes `file:` URLs (such as certain
+functions in the [`fs`][] module) encounters a file URL with an incompatible
+path. The exact semantics for determining whether a path can be used is
+platform-dependent.
 
 <a id="ERR_INVALID_HANDLE_TYPE"></a>
 ### ERR_INVALID_HANDLE_TYPE
 
-The '`ERR_INVALID_HANDLE_TYPE`' error code is used when an attempt is made to
-send an unsupported "handle" over an IPC communication channel to a child
-process. See [`child.send()`] and [`process.send()`] for more information.
+Used when an attempt is made to send an unsupported "handle" over an IPC
+communication channel to a child process. See [`subprocess.send()`] and
+[`process.send()`] for more information.
 
 <a id="ERR_INVALID_OPT_VALUE"></a>
 ### ERR_INVALID_OPT_VALUE
 
-The `'ERR_INVALID_OPT_VALUE'` error code is used generically to identify when
-an invalid or unexpected value has been passed in an options object.
+Used generically to identify when an invalid or unexpected value has been
+passed in an options object.
 
 <a id="ERR_INVALID_SYNC_FORK_INPUT"></a>
 ### ERR_INVALID_SYNC_FORK_INPUT
 
-The `'ERR_INVALID_SYNC_FORK_INPUT'` error code is used when a `Buffer`,
-`Uint8Array` or `string` is provided as stdio input to a synchronous
-fork. See the documentation for the [`child_process`](child_process.html)
-module for more information.
+Used when a `Buffer`, `Uint8Array` or `string` is provided as stdio input to a
+synchronous fork. See the documentation for the
+[`child_process`](child_process.html) module for more information.
 
 <a id="ERR_INVALID_THIS"></a>
 ### ERR_INVALID_THIS
 
-The `'ERR_INVALID_THIS'` error code is used generically to identify that a
-Node.js API function is called with an incompatible `this` value.
+Used generically to identify that a Node.js API function is called with an
+incompatible `this` value.
 
 Example:
 
@@ -634,156 +855,147 @@ const urlSearchParams = new URLSearchParams('foo=bar&baz=new');
 
 const buf = Buffer.alloc(1);
 urlSearchParams.has.call(buf, 'foo');
-  // Throws a TypeError with code 'ERR_INVALID_THIS'
+// Throws a TypeError with code 'ERR_INVALID_THIS'
 ```
 
 <a id="ERR_INVALID_TUPLE"></a>
 ### ERR_INVALID_TUPLE
 
-An error with code `'ERR_INVALID_TUPLE'` is thrown when an element in the
-`iterable` provided to the [WHATWG][WHATWG URL API] [`URLSearchParams`
-constructor][`new URLSearchParams(iterable)`] does not represent a `[name,
-value]` tuple – that is, if an element is not iterable, or does not consist of
-exactly two elements.
+Used when an element in the `iterable` provided to the [WHATWG][WHATWG URL
+API] [`URLSearchParams` constructor][`new URLSearchParams(iterable)`] does not
+represent a `[name, value]` tuple – that is, if an element is not iterable, or
+does not consist of exactly two elements.
 
 <a id="ERR_INVALID_URL"></a>
 ### ERR_INVALID_URL
 
-An error using the `'ERR_INVALID_URL'` code is thrown when an invalid URL is
-passed to the [WHATWG][WHATWG URL API] [`URL` constructor][`new URL(input)`] to
-be parsed. The thrown error object typically has an additional property
-`'input'` that contains the URL that failed to parse.
+Used when an invalid URL is passed to the [WHATWG][WHATWG URL API]
+[`URL` constructor][`new URL(input)`] to be parsed. The thrown error object
+typically has an additional property `'input'` that contains the URL that failed
+to parse.
 
 <a id="ERR_INVALID_URL_SCHEME"></a>
 ### ERR_INVALID_URL_SCHEME
 
-The code `'ERR_INVALID_URL_SCHEME'` is used generically to signify an attempt
-to use a URL of an incompatible scheme (aka protocol) for a specific purpose.
-It is currently only used in the [WHATWG URL API][] support in the [`fs`][]
-module (which only accepts URLs with `'file'` scheme), but may be used in other
-Node.js APIs as well in the future.
+Used generically to signify an attempt to use a URL of an incompatible scheme
+(aka protocol) for a specific purpose. It is currently only used in the
+[WHATWG URL API][] support in the [`fs`][] module (which only accepts URLs with
+`'file'` scheme), but may be used in other Node.js APIs as well in the future.
 
 <a id="ERR_IPC_CHANNEL_CLOSED"></a>
 ### ERR_IPC_CHANNEL_CLOSED
 
-The `'ERR_IPC_CHANNEL_CLOSED'` error code is used when an attempt is made to use
-an IPC communication channel that has already been closed.
+Used when an attempt is made to use an IPC communication channel that has
+already been closed.
 
 <a id="ERR_IPC_DISCONNECTED"></a>
 ### ERR_IPC_DISCONNECTED
 
-The `'ERR_IPC_DISCONNECTED'` error code is used when an attempt is made to
-disconnect an already disconnected IPC communication channel between two
-Node.js processes. See the documentation for the
-[`child_process`](child_process.html) module for more information.
+Used when an attempt is made to disconnect an already disconnected IPC
+communication channel between two Node.js processes. See the documentation for
+the [`child_process`](child_process.html) module for more information.
 
 <a id="ERR_IPC_ONE_PIPE"></a>
 ### ERR_IPC_ONE_PIPE
 
-The `'ERR_IPC_ONE_PIPE'` error code is used when an attempt is made to create
-a child Node.js process using more than one IPC communication channel.
-See the documentation for the [`child_process`](child_process.html)
-module for more information.
+Used when an attempt is made to create a child Node.js process using more than
+one IPC communication channel. See the documentation for the
+[`child_process`](child_process.html) module for more information.
 
 <a id="ERR_IPC_SYNC_FORK"></a>
 ### ERR_IPC_SYNC_FORK
 
-The `'ERR_IPC_SYNC_FORK'` error code is used when an attempt is made to open
-an IPC communication channel with a synchronous forked Node.js process.
-See the documentation for the [`child_process`](child_process.html)
-module for more information.
+Used when an attempt is made to open an IPC communication channel with a
+synchronous forked Node.js process. See the documentation for the
+[`child_process`](child_process.html) module for more information.
 
 <a id="ERR_MISSING_ARGS"></a>
 ### ERR_MISSING_ARGS
 
-The `'ERR_MISSING_ARGS'` error code is a generic error code for instances where
-a required argument of a Node.js API is not passed. This is currently only used
-in the [WHATWG URL API][] for strict compliance with the specification (which
-in some cases may accept `func(undefined)` but not `func()`). In most native
-Node.js APIs, `func(undefined)` and `func()` are treated identically, and the
-[`ERR_INVALID_ARG_TYPE`][] error code may be used instead.
+Used when a required argument of a Node.js API is not passed. This is currently
+only used in the [WHATWG URL API][] for strict compliance with the specification
+(which in some cases may accept `func(undefined)` but not `func()`). In most
+native Node.js APIs, `func(undefined)` and `func()` are treated identically, and
+the [`ERR_INVALID_ARG_TYPE`][] error code may be used instead.
+
+<a id="ERR_NO_ICU"></a>
+### ERR_NO_ICU
+
+Used when an attempt is made to use features that require [ICU][], while
+Node.js is not compiled with ICU support.
 
 <a id="ERR_SOCKET_ALREADY_BOUND"></a>
 ### ERR_SOCKET_ALREADY_BOUND
-An error using the `'ERR_SOCKET_ALREADY_BOUND'` code is thrown when an attempt
-is made to bind a socket that has already been bound.
+Used when an attempt is made to bind a socket that has already been bound.
 
 <a id="ERR_SOCKET_BAD_PORT"></a>
 ### ERR_SOCKET_BAD_PORT
 
-An error using the `'ERR_SOCKET_BAD_PORT'` code is thrown when an API
-function expecting a port > 0 and < 65536 receives an invalid value.
+Used when an API function expecting a port > 0 and < 65536 receives an invalid
+value.
 
 <a id="ERR_SOCKET_BAD_TYPE"></a>
 ### ERR_SOCKET_BAD_TYPE
 
-An error using the `'ERR_SOCKET_BAD_TYPE'` code is thrown when an API
-function expecting a socket type (`udp4` or `udp6`) receives an invalid value.
+Used when an API function expecting a socket type (`udp4` or `udp6`) receives an
+invalid value.
 
 <a id="ERR_SOCKET_CANNOT_SEND"></a>
 ### ERR_SOCKET_CANNOT_SEND
 
-An error using the `'ERR_SOCKET_CANNOT_SEND'` code is thrown when data
-cannot be sent on a socket.
+Used when data cannot be sent on a socket.
 
 <a id="ERR_SOCKET_DGRAM_NOT_RUNNING"></a>
 ### ERR_SOCKET_DGRAM_NOT_RUNNING
 
-An error using the `'ERR_SOCKET_DGRAM_NOT_RUNNING'` code is thrown
-when a call is made and the UDP subsystem is not running.
+Used when a call is made and the UDP subsystem is not running.
 
 <a id="ERR_STDERR_CLOSE"></a>
 ### ERR_STDERR_CLOSE
 
-An error using the `'ERR_STDERR_CLOSE'` code is thrown specifically when an
-attempt is made to close the `process.stderr` stream. By design, Node.js does
-not allow `stdout` or `stderr` Streams to be closed by user code.
+Used when an attempt is made to close the `process.stderr` stream. By design,
+Node.js does not allow `stdout` or `stderr` Streams to be closed by user code.
 
 <a id="ERR_STDOUT_CLOSE"></a>
 ### ERR_STDOUT_CLOSE
 
-An error using the `'ERR_STDOUT_CLOSE'` code is thrown specifically when an
-attempt is made to close the `process.stdout` stream. By design, Node.js does
-not allow `stdout` or `stderr` Streams to be closed by user code.
+Used when an attempt is made to close the `process.stdout` stream. By design,
+Node.js does not allow `stdout` or `stderr` Streams to be closed by user code.
 
 <a id="ERR_UNKNOWN_BUILTIN_MODULE"></a>
 ### ERR_UNKNOWN_BUILTIN_MODULE
 
-The `'ERR_UNKNOWN_BUILTIN_MODULE'` error code is used to identify a specific
-kind of internal Node.js error that should not typically be triggered by user
-code. Instances of this error point to an internal bug within the Node.js
-binary itself.
+Used to identify a specific kind of internal Node.js error that should not
+typically be triggered by user code. Instances of this error point to an
+internal bug within the Node.js binary itself.
 
 <a id="ERR_UNKNOWN_SIGNAL"></a>
 ### ERR_UNKNOWN_SIGNAL
 
-The `'ERR_UNKNOWN_SIGNAL`' error code is used when an invalid or unknown
-process signal is passed to an API expecting a valid signal (such as
-[`child.kill()`][]).
+Used when an invalid or unknown process signal is passed to an API expecting a
+valid signal (such as [`subprocess.kill()`][]).
 
 <a id="ERR_UNKNOWN_STDIN_TYPE"></a>
 ### ERR_UNKNOWN_STDIN_TYPE
 
-An error using the `'ERR_UNKNOWN_STDIN_TYPE'` code is thrown specifically when
-an attempt is made to launch a Node.js process with an unknown `stdin` file
-type. Errors of this kind cannot *typically* be caused by errors in user code,
-although it is not impossible. Occurrences of this error are most likely an
-indication of a bug within Node.js itself.
+Used when an attempt is made to launch a Node.js process with an unknown `stdin`
+file type. Errors of this kind cannot *typically* be caused by errors in user
+code, although it is not impossible. Occurrences of this error are most likely
+an indication of a bug within Node.js itself.
 
 <a id="ERR_UNKNOWN_STREAM_TYPE"></a>
 ### ERR_UNKNOWN_STREAM_TYPE
 
-An error using the `'ERR_UNKNOWN_STREAM_TYPE'` code is thrown specifically when
-an attempt is made to launch a Node.js process with an unknown `stdout` or
-`stderr` file type. Errors of this kind cannot *typically* be caused by errors
-in user code, although it is not impossible. Occurrences of this error are most
-likely an indication of a bug within Node.js itself.
+Used when an attempt is made to launch a Node.js process with an unknown
+`stdout` or `stderr` file type. Errors of this kind cannot *typically* be caused
+by errors in user code, although it is not impossible. Occurrences of this error
+are most likely an indication of a bug within Node.js itself.
 
 
 [`ERR_INVALID_ARG_TYPE`]: #ERR_INVALID_ARG_TYPE
-[`child.kill()`]: child_process.html#child_process_child_kill_signal
-[`child.send()`]: child_process.html#child_process_child_send_message_sendhandle_options_callback
-[`fs.readFileSync`]: fs.html#fs_fs_readfilesync_file_options
+[`subprocess.kill()`]: child_process.html#child_process_subprocess_kill_signal
+[`subprocess.send()`]: child_process.html#child_process_subprocess_send_message_sendhandle_options_callback
+[`fs.readFileSync`]: fs.html#fs_fs_readfilesync_path_options
 [`fs.readdir`]: fs.html#fs_fs_readdir_path_options_callback
 [`fs.unlink`]: fs.html#fs_fs_unlink_path_callback
 [`fs`]: fs.html
@@ -795,6 +1007,7 @@ likely an indication of a bug within Node.js itself.
 [`new URLSearchParams(iterable)`]: url.html#url_constructor_new_urlsearchparams_iterable
 [`process.on('uncaughtException')`]: process.html#process_event_uncaughtexception
 [`process.send()`]: process.html#process_process_send_message_sendhandle_options_callback
+[ICU]: intl.html#intl_internationalization_support
 [Node.js Error Codes]: #nodejs-error-codes
 [V8's stack trace API]: https://github.com/v8/v8/wiki/Stack-Trace-API
 [WHATWG URL API]: url.html#url_the_whatwg_url_api

@@ -9,7 +9,6 @@ const { checkInvocations } = require('./hook-checks');
 const binding = process.binding('http_parser');
 const HTTPParser = binding.HTTPParser;
 
-const CRLF = '\r\n';
 const RESPONSE = HTTPParser.RESPONSE;
 const kOnHeadersComplete = HTTPParser.kOnHeadersComplete | 0;
 const kOnBody = HTTPParser.kOnBody | 0;
@@ -19,10 +18,10 @@ const hooks = initHooks();
 hooks.enable();
 
 const request = Buffer.from(
-  'HTTP/1.1 200 OK' + CRLF +
-  'Content-types: text/plain' + CRLF +
-  'Content-Length: 4' + CRLF +
-  CRLF +
+  'HTTP/1.1 200 OK\r\n' +
+  'Content-Type: text/plain\r\n' +
+  'Content-Length: 4\r\n' +
+  '\r\n' +
   'pong'
 );
 
@@ -32,7 +31,7 @@ const httpparser = as[0];
 
 assert.strictEqual(as.length, 1);
 assert.strictEqual(typeof httpparser.uid, 'number');
-assert.strictEqual(typeof httpparser.triggerId, 'number');
+assert.strictEqual(typeof httpparser.triggerAsyncId, 'number');
 checkInvocations(httpparser, { init: 1 }, 'when created new Httphttpparser');
 
 parser[kOnHeadersComplete] = common.mustCall(onheadersComplete);

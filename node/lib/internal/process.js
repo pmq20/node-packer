@@ -1,5 +1,7 @@
 'use strict';
 
+const util = require('util');
+
 var _lazyConstants = null;
 
 function lazyConstants() {
@@ -43,10 +45,12 @@ function setup_cpuUsage() {
     }
 
     // If a previous value was passed in, return diff of current from previous.
-    if (prevValue) return {
-      user: cpuValues[0] - prevValue.user,
-      system: cpuValues[1] - prevValue.system
-    };
+    if (prevValue) {
+      return {
+        user: cpuValues[0] - prevValue.user,
+        system: cpuValues[1] - prevValue.system
+      };
+    }
 
     // If no previous value passed in, return current value.
     return {
@@ -176,10 +180,8 @@ function setupKillAndExit() {
       }
     }
 
-    if (err) {
-      const errnoException = require('util')._errnoException;
-      throw errnoException(err, 'kill');
-    }
+    if (err)
+      throw util._errnoException(err, 'kill');
 
     return true;
   };
@@ -210,8 +212,7 @@ function setupSignalHandlers() {
       const err = wrap.start(signum);
       if (err) {
         wrap.close();
-        const errnoException = require('util')._errnoException;
-        throw errnoException(err, 'uv_signal_start');
+        throw util._errnoException(err, 'uv_signal_start');
       }
 
       signalWraps[type] = wrap;
@@ -251,10 +252,9 @@ function setupChannel() {
 
 
 function setupRawDebug() {
-  const format = require('util').format;
   const rawDebug = process._rawDebug;
   process._rawDebug = function() {
-    rawDebug(format.apply(null, arguments));
+    rawDebug(util.format.apply(null, arguments));
   };
 }
 

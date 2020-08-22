@@ -21,12 +21,36 @@
 
 'use strict';
 
-const uv = process.binding('uv');
-const Buffer = require('buffer').Buffer;
-const internalUtil = require('internal/util');
-const binding = process.binding('util');
+const errors = require('internal/errors');
+const { TextDecoder, TextEncoder } = require('internal/encoding');
 
-const isError = internalUtil.isError;
+const { errname } = process.binding('uv');
+
+const {
+  getPromiseDetails,
+  getProxyDetails,
+  isAnyArrayBuffer,
+  isDataView,
+  isExternal,
+  isMap,
+  isMapIterator,
+  isPromise,
+  isSet,
+  isSetIterator,
+  isTypedArray,
+  isRegExp: _isRegExp,
+  isDate: _isDate,
+  kPending,
+  kRejected,
+} = process.binding('util');
+
+const {
+  customInspectSymbol,
+  deprecate,
+  getConstructorOf,
+  isError,
+  promisify
+} = require('internal/util');
 
 const inspectDefaultOptions = Object.seal({
   showHidden: false,
@@ -39,6 +63,11 @@ const inspectDefaultOptions = Object.seal({
 });
 
 const numbersOnlyRE = /^\d+$/;
+
+const propertyIsEnumerable = Object.prototype.propertyIsEnumerable;
+const regExpToString = RegExp.prototype.toString;
+const dateToISOString = Date.prototype.toISOString;
+const errorToString = Error.prototype.toString;
 
 var CIRCULAR_ERROR_MESSAGE;
 var Debug;
@@ -61,7 +90,7 @@ function tryStringify(arg) {
   }
 }
 
-exports.format = function(f) {
+function format(f) {
   if (typeof f !== 'string') {
     const objects = new Array(arguments.length);
     for (var index = 0; index < arguments.length; index++) {
@@ -107,11 +136,28 @@ exports.format = function(f) {
             str += f.slice(lastPos, i);
           str += String(arguments[a++]);
           break;
+        case 79: // 'O'
+          if (lastPos < i)
+            str += f.slice(lastPos, i);
+          str += inspect(arguments[a++]);
+          break;
+        case 111: // 'o'
+          if (lastPos < i)
+            str += f.slice(lastPos, i);
+          str += inspect(arguments[a++],
+                         { showHidden: true, depth: 4, showProxy: true });
+          break;
         case 37: // '%'
           if (lastPos < i)
             str += f.slice(lastPos, i);
           str += '%';
           break;
+        default: // any other character is not a correct placeholder
+          if (lastPos < i)
+            str += f.slice(lastPos, i);
+          str += '%';
+          lastPos = i = i + 1;
+          continue;
       }
       lastPos = i = i + 2;
       continue;
@@ -125,26 +171,26 @@ exports.format = function(f) {
   while (a < arguments.length) {
     const x = arguments[a++];
     if (x === null || (typeof x !== 'object' && typeof x !== 'symbol')) {
-      str += ' ' + x;
+      str += ` ${x}`;
     } else {
-      str += ' ' + inspect(x);
+      str += ` ${inspect(x)}`;
     }
   }
   return str;
-};
-
-
-exports.deprecate = internalUtil.deprecate;
+}
 
 
 var debugs = {};
 var debugEnviron;
-exports.debuglog = function(set) {
-  if (debugEnviron === undefined)
-    debugEnviron = process.env.NODE_DEBUG || '';
+
+function debuglog(set) {
+  if (debugEnviron === undefined) {
+    debugEnviron = new Set(
+      (process.env.NODE_DEBUG || '').split(',').map((s) => s.toUpperCase()));
+  }
   set = set.toUpperCase();
   if (!debugs[set]) {
-    if (new RegExp(`\\b${set}\\b`, 'i').test(debugEnviron)) {
+    if (debugEnviron.has(set)) {
       var pid = process.pid;
       debugs[set] = function() {
         var msg = exports.format.apply(exports, arguments);
@@ -155,7 +201,7 @@ exports.debuglog = function(set) {
     }
   }
   return debugs[set];
-};
+}
 
 
 /**
@@ -189,6 +235,7 @@ function inspect(obj, opts) {
   if (ctx.maxArrayLength === null) ctx.maxArrayLength = Infinity;
   return formatValue(ctx, obj, ctx.depth);
 }
+inspect.custom = customInspectSymbol;
 
 Object.defineProperty(inspect, 'defaultOptions', {
   get: function() {
@@ -233,11 +280,6 @@ inspect.styles = Object.assign(Object.create(null), {
   // "name": intentionally not styling
   'regexp': 'red'
 });
-
-const customInspectSymbol = internalUtil.customInspectSymbol;
-
-exports.inspect = inspect;
-exports.inspect.custom = customInspectSymbol;
 
 function stylizeWithColor(str, styleType) {
   var style = inspect.styles[styleType];
@@ -295,7 +337,7 @@ function formatValue(ctx, value, recurseTimes) {
       // Otherwise, it'll return an array. The first item
       // is the target, the second item is the handler.
       // We ignore (and do not return) the Proxy isRevoked property.
-      proxy = binding.getProxyDetails(value);
+      proxy = getProxyDetails(value);
       if (proxy) {
         // We know for a fact that this isn't a Proxy.
         // Mark it as having already been evaluated.
@@ -313,7 +355,7 @@ function formatValue(ctx, value, recurseTimes) {
       proxyCache.set(value, proxy);
     }
     if (proxy) {
-      return 'Proxy ' + formatValue(ctx, proxy, recurseTimes);
+      return `Proxy ${formatValue(ctx, proxy, recurseTimes)}`;
     }
   }
 
@@ -351,7 +393,7 @@ function formatValue(ctx, value, recurseTimes) {
   var visibleKeys = arrayToHash(keys);
   const symbolKeys = Object.getOwnPropertySymbols(value);
   const enumSymbolKeys = symbolKeys
-      .filter((key) => Object.prototype.propertyIsEnumerable.call(value, key));
+      .filter((key) => propertyIsEnumerable.call(value, key));
   keys = keys.concat(enumSymbolKeys);
 
   if (ctx.showHidden) {
@@ -384,23 +426,23 @@ function formatValue(ctx, value, recurseTimes) {
     });
   }
 
-  var constructor = internalUtil.getConstructorOf(value);
+  var constructor = getConstructorOf(value);
 
   // Some type of object without properties can be shortcutted.
   if (keys.length === 0) {
     if (typeof value === 'function') {
       const ctorName = constructor ? constructor.name : 'Function';
       return ctx.stylize(
-          `[${ctorName}${value.name ? `: ${value.name}` : ''}]`, 'special');
+        `[${ctorName}${value.name ? `: ${value.name}` : ''}]`, 'special');
     }
     if (isRegExp(value)) {
-      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
+      return ctx.stylize(regExpToString.call(value), 'regexp');
     }
     if (isDate(value)) {
       if (Number.isNaN(value.getTime())) {
         return ctx.stylize(value.toString(), 'date');
       } else {
-        return ctx.stylize(Date.prototype.toISOString.call(value), 'date');
+        return ctx.stylize(dateToISOString.call(value), 'date');
       }
     }
     if (isError(value)) {
@@ -426,11 +468,11 @@ function formatValue(ctx, value, recurseTimes) {
     // Fast path for ArrayBuffer and SharedArrayBuffer.
     // Can't do the same for DataView because it has a non-primitive
     // .buffer property that we need to recurse for.
-    if (binding.isAnyArrayBuffer(value)) {
+    if (isAnyArrayBuffer(value)) {
       return `${constructor.name}` +
              ` { byteLength: ${formatNumber(ctx, value.byteLength)} }`;
     }
-    if (binding.isExternal(value)) {
+    if (isExternal(value)) {
       return ctx.stylize('[External]', 'special');
     }
   }
@@ -452,7 +494,7 @@ function formatValue(ctx, value, recurseTimes) {
     braces = ['[', ']'];
     empty = value.length === 0;
     formatter = formatArray;
-  } else if (binding.isSet(value)) {
+  } else if (isSet(value)) {
     braces = ['{', '}'];
     // With `showHidden`, `length` will display as a hidden property for
     // arrays. For consistency's sake, do the same for `size`, even though this
@@ -461,25 +503,25 @@ function formatValue(ctx, value, recurseTimes) {
       keys.unshift('size');
     empty = value.size === 0;
     formatter = formatSet;
-  } else if (binding.isMap(value)) {
+  } else if (isMap(value)) {
     braces = ['{', '}'];
     // Ditto.
     if (ctx.showHidden)
       keys.unshift('size');
     empty = value.size === 0;
     formatter = formatMap;
-  } else if (binding.isAnyArrayBuffer(value)) {
+  } else if (isAnyArrayBuffer(value)) {
     braces = ['{', '}'];
     keys.unshift('byteLength');
     visibleKeys.byteLength = true;
-  } else if (binding.isDataView(value)) {
+  } else if (isDataView(value)) {
     braces = ['{', '}'];
     // .buffer goes last, it's not a primitive like the others.
     keys.unshift('byteLength', 'byteOffset', 'buffer');
     visibleKeys.byteLength = true;
     visibleKeys.byteOffset = true;
     visibleKeys.buffer = true;
-  } else if (binding.isTypedArray(value)) {
+  } else if (isTypedArray(value)) {
     braces = ['[', ']'];
     formatter = formatTypedArray;
     if (ctx.showHidden) {
@@ -490,15 +532,15 @@ function formatValue(ctx, value, recurseTimes) {
                    'byteOffset',
                    'buffer');
     }
-  } else if (binding.isPromise(value)) {
+  } else if (isPromise(value)) {
     braces = ['{', '}'];
     formatter = formatPromise;
-  } else if (binding.isMapIterator(value)) {
+  } else if (isMapIterator(value)) {
     constructor = { name: 'MapIterator' };
     braces = ['{', '}'];
     empty = false;
     formatter = formatCollectionIterator;
-  } else if (binding.isSetIterator(value)) {
+  } else if (isSetIterator(value)) {
     constructor = { name: 'SetIterator' };
     braces = ['{', '}'];
     empty = false;
@@ -521,17 +563,17 @@ function formatValue(ctx, value, recurseTimes) {
 
   // Make RegExps say that they are RegExps
   if (isRegExp(value)) {
-    base = ' ' + RegExp.prototype.toString.call(value);
+    base = ` ${regExpToString.call(value)}`;
   }
 
   // Make dates with properties first say the date
   if (isDate(value)) {
-    base = ' ' + Date.prototype.toISOString.call(value);
+    base = ` ${dateToISOString.call(value)}`;
   }
 
   // Make error with message first say the error
   if (isError(value)) {
-    base = ' ' + formatError(value);
+    base = ` ${formatError(value)}`;
   }
 
   // Make boxed primitive Strings look like such
@@ -557,12 +599,12 @@ function formatValue(ctx, value, recurseTimes) {
     braces[0] = `${constructor.name} ${braces[0]}`;
 
   if (empty === true) {
-    return braces[0] + base + braces[1];
+    return `${braces[0]}${base}${braces[1]}`;
   }
 
   if (recurseTimes < 0) {
     if (isRegExp(value)) {
-      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
+      return ctx.stylize(regExpToString.call(value), 'regexp');
     } else if (Array.isArray(value)) {
       return ctx.stylize('[Array]', 'special');
     } else {
@@ -584,7 +626,7 @@ function formatNumber(ctx, value) {
   // Format -0 as '-0'. Strict equality won't distinguish 0 from -0.
   if (Object.is(value, -0))
     return ctx.stylize('-0', 'number');
-  return ctx.stylize('' + value, 'number');
+  return ctx.stylize(`${value}`, 'number');
 }
 
 
@@ -599,18 +641,16 @@ function formatPrimitive(ctx, value) {
   var type = typeof value;
 
   if (type === 'string') {
-    var simple = '\'' +
-                 JSON.stringify(value)
+    var simple = JSON.stringify(value)
                      .replace(/^"|"$/g, '')
                      .replace(/'/g, "\\'")
-                     .replace(/\\"/g, '"') +
-                 '\'';
-    return ctx.stylize(simple, 'string');
+                     .replace(/\\"/g, '"');
+    return ctx.stylize(`'${simple}'`, 'string');
   }
   if (type === 'number')
     return formatNumber(ctx, value);
   if (type === 'boolean')
-    return ctx.stylize('' + value, 'boolean');
+    return ctx.stylize(`${value}`, 'boolean');
   // es6 symbol primitive
   if (type === 'symbol')
     return ctx.stylize(value.toString(), 'symbol');
@@ -627,7 +667,7 @@ function formatPrimitiveNoColor(ctx, value) {
 
 
 function formatError(value) {
-  return value.stack || `[${Error.prototype.toString.call(value)}]`;
+  return value.stack || `[${errorToString.call(value)}]`;
 }
 
 
@@ -642,22 +682,36 @@ function formatArray(ctx, value, recurseTimes, visibleKeys, keys) {
   var output = [];
   let visibleLength = 0;
   let index = 0;
-  while (index < value.length && visibleLength < ctx.maxArrayLength) {
-    let emptyItems = 0;
-    while (index < value.length && !hasOwnProperty(value, String(index))) {
-      emptyItems++;
-      index++;
-    }
-    if (emptyItems > 0) {
+  for (const elem of keys) {
+    if (visibleLength === ctx.maxArrayLength)
+      break;
+    // Symbols might have been added to the keys
+    if (typeof elem !== 'string')
+      continue;
+    const i = +elem;
+    if (index !== i) {
+      // Skip zero and negative numbers as well as non numbers
+      if (i > 0 === false)
+        continue;
+      const emptyItems = i - index;
       const ending = emptyItems > 1 ? 's' : '';
       const message = `<${emptyItems} empty item${ending}>`;
       output.push(ctx.stylize(message, 'undefined'));
-    } else {
-      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
-                                 String(index), true));
-      index++;
+      index = i;
+      if (++visibleLength === ctx.maxArrayLength)
+        break;
     }
+    output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
+                               elem, true));
     visibleLength++;
+    index++;
+  }
+  if (index < value.length && visibleLength !== ctx.maxArrayLength) {
+    const len = value.length - index;
+    const ending = len > 1 ? 's' : '';
+    const message = `<${len} empty item${ending}>`;
+    output.push(ctx.stylize(message, 'undefined'));
+    index = value.length;
   }
   var remaining = value.length - index;
   if (remaining > 0) {
@@ -686,7 +740,7 @@ function formatTypedArray(ctx, value, recurseTimes, visibleKeys, keys) {
   for (const key of keys) {
     if (typeof key === 'symbol' || !numbersOnlyRE.test(key)) {
       output.push(
-          formatProperty(ctx, value, recurseTimes, visibleKeys, key, true));
+        formatProperty(ctx, value, recurseTimes, visibleKeys, key, true));
     }
   }
   return output;
@@ -738,15 +792,15 @@ function formatCollectionIterator(ctx, value, recurseTimes, visibleKeys, keys) {
 
 function formatPromise(ctx, value, recurseTimes, visibleKeys, keys) {
   const output = [];
-  const [state, result] = binding.getPromiseDetails(value);
+  const [state, result] = getPromiseDetails(value);
 
-  if (state === binding.kPending) {
+  if (state === kPending) {
     output.push('<pending>');
   } else {
     var nextRecurseTimes = recurseTimes === null ? null : recurseTimes - 1;
     var str = formatValue(ctx, result, nextRecurseTimes);
-    if (state === binding.kRejected) {
-      output.push('<rejected> ' + str);
+    if (state === kRejected) {
+      output.push(`<rejected> ${str}`);
     } else {
       output.push(str);
     }
@@ -773,7 +827,7 @@ function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array) {
       str = ctx.stylize('[Setter]', 'special');
     }
   }
-  if (!hasOwnProperty(visibleKeys, key)) {
+  if (visibleKeys[key] === undefined) {
     if (typeof key === 'symbol') {
       name = `[${ctx.stylize(key.toString(), 'symbol')}]`;
     } else {
@@ -791,7 +845,7 @@ function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array) {
         if (array) {
           str = str.replace(/\n/g, '\n  ');
         } else {
-          str = str.replace(/(^|\n)/g, '\n   ');
+          str = str.replace(/^|\n/g, '\n   ');
         }
       }
     } else {
@@ -802,14 +856,14 @@ function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array) {
     if (array && numbersOnlyRE.test(key)) {
       return str;
     }
-    name = JSON.stringify('' + key);
-    if (/^"([a-zA-Z_][a-zA-Z_0-9]*)"$/.test(name)) {
+    name = JSON.stringify(`${key}`);
+    if (/^"[a-zA-Z_][a-zA-Z_0-9]*"$/.test(name)) {
       name = name.substr(1, name.length - 2);
       name = ctx.stylize(name, 'name');
     } else {
       name = name.replace(/'/g, "\\'")
                  .replace(/\\"/g, '"')
-                 .replace(/(^"|"$)/g, "'")
+                 .replace(/^"|"$/g, "'")
                  .replace(/\\\\/g, '\\');
       name = ctx.stylize(name, 'string');
     }
@@ -829,85 +883,64 @@ function reduceToSingleString(output, base, braces, breakLength) {
            // If the opening "brace" is too large, like in the case of "Set {",
            // we need to force the first item to be on the next line or the
            // items will not line up correctly.
-           (base === '' && braces[0].length === 1 ? '' : base + '\n ') +
+           (base === '' && braces[0].length === 1 ? '' : `${base}\n `) +
            ` ${output.join(',\n  ')} ${braces[1]}`;
   }
 
   return `${braces[0]}${base} ${output.join(', ')} ${braces[1]}`;
 }
 
-
-// NOTE: These type checking functions intentionally don't use `instanceof`
-// because it is fragile and can be easily faked with `Object.create()`.
-exports.isArray = Array.isArray;
-
 function isBoolean(arg) {
   return typeof arg === 'boolean';
 }
-exports.isBoolean = isBoolean;
 
 function isNull(arg) {
   return arg === null;
 }
-exports.isNull = isNull;
 
 function isNullOrUndefined(arg) {
   return arg === null || arg === undefined;
 }
-exports.isNullOrUndefined = isNullOrUndefined;
 
 function isNumber(arg) {
   return typeof arg === 'number';
 }
-exports.isNumber = isNumber;
 
 function isString(arg) {
   return typeof arg === 'string';
 }
-exports.isString = isString;
 
 function isSymbol(arg) {
   return typeof arg === 'symbol';
 }
-exports.isSymbol = isSymbol;
 
 function isUndefined(arg) {
   return arg === undefined;
 }
-exports.isUndefined = isUndefined;
 
 function isRegExp(re) {
-  return binding.isRegExp(re);
+  return _isRegExp(re);
 }
-exports.isRegExp = isRegExp;
 
 function isObject(arg) {
   return arg !== null && typeof arg === 'object';
 }
-exports.isObject = isObject;
 
 function isDate(d) {
-  return binding.isDate(d);
+  return _isDate(d);
 }
-exports.isDate = isDate;
-
-exports.isError = isError;
 
 function isFunction(arg) {
   return typeof arg === 'function';
 }
-exports.isFunction = isFunction;
 
 function isPrimitive(arg) {
   return arg === null ||
          typeof arg !== 'object' && typeof arg !== 'function';
 }
-exports.isPrimitive = isPrimitive;
-
-exports.isBuffer = Buffer.isBuffer;
 
 function pad(n) {
-  return n < 10 ? '0' + n.toString(10) : n.toString(10);
+  return n < 10 ? `0${n.toString(10)}` : n.toString(10);
 }
 
 
@@ -925,9 +958,9 @@ function timestamp() {
 
 
 // log is just a thin wrapper to console.log that prepends a timestamp
-exports.log = function() {
+function log() {
   console.log('%s - %s', timestamp(), exports.format.apply(exports, arguments));
-};
+}
 
 
 /**
@@ -945,7 +978,7 @@ exports.log = function() {
  * @throws {TypeError} Will error if either constructor is null, or if
  *     the super constructor lacks a prototype.
  */
-exports.inherits = function(ctor, superCtor) {
+function inherits(ctor, superCtor) {
 
   if (ctor === undefined || ctor === null)
     throw new TypeError('The constructor to "inherits" must not be ' +
@@ -955,15 +988,16 @@ exports.inherits = function(ctor, superCtor) {
     throw new TypeError('The super constructor to "inherits" must not ' +
                         'be null or undefined');
 
-  if (superCtor.prototype === undefined)
+  if (superCtor.prototype === undefined) {
     throw new TypeError('The super constructor to "inherits" must ' +
                         'have a prototype');
+  }
 
   ctor.super_ = superCtor;
   Object.setPrototypeOf(ctor.prototype, superCtor.prototype);
-};
+}
 
-exports._extend = function(target, source) {
+function _extend(target, source) {
   // Don't do anything if source isn't an object
   if (source === null || typeof source !== 'object') return target;
 
@@ -973,59 +1007,50 @@ exports._extend = function(target, source) {
     target[keys[i]] = source[keys[i]];
   }
   return target;
-};
-
-function hasOwnProperty(obj, prop) {
-  return Object.prototype.hasOwnProperty.call(obj, prop);
 }
-
 
 // Deprecated old stuff.
 
-exports.print = internalUtil.deprecate(function() {
-  for (var i = 0, len = arguments.length; i < len; ++i) {
-    process.stdout.write(String(arguments[i]));
+function print(...args) {
+  for (var i = 0, len = args.length; i < len; ++i) {
+    process.stdout.write(String(args[i]));
   }
-}, 'util.print is deprecated. Use console.log instead.', 'DEP0026');
+}
 
-
-exports.puts = internalUtil.deprecate(function() {
-  for (var i = 0, len = arguments.length; i < len; ++i) {
-    process.stdout.write(arguments[i] + '\n');
+function puts(...args) {
+  for (var i = 0, len = args.length; i < len; ++i) {
+    process.stdout.write(`${args[i]}\n`);
   }
-}, 'util.puts is deprecated. Use console.log instead.', 'DEP0027');
+}
 
-
-exports.debug = internalUtil.deprecate(function(x) {
+function debug(x) {
   process.stderr.write(`DEBUG: ${x}\n`);
-}, 'util.debug is deprecated. Use console.error instead.', 'DEP0028');
+}
 
-
-exports.error = internalUtil.deprecate(function(x) {
-  for (var i = 0, len = arguments.length; i < len; ++i) {
-    process.stderr.write(arguments[i] + '\n');
+function error(...args) {
+  for (var i = 0, len = args.length; i < len; ++i) {
+    process.stderr.write(`${args[i]}\n`);
   }
-}, 'util.error is deprecated. Use console.error instead.', 'DEP0029');
+}
 
-
-exports._errnoException = function(err, syscall, original) {
-  var errname = uv.errname(err);
-  var message = `${syscall} ${errname}`;
+function _errnoException(err, syscall, original) {
+  var name = errname(err);
+  var message = `${syscall} ${name}`;
   if (original)
-    message += ' ' + original;
+    message += ` ${original}`;
   var e = new Error(message);
-  e.code = errname;
-  e.errno = errname;
+  e.code = name;
+  e.errno = name;
   e.syscall = syscall;
   return e;
-};
+}
 
 
-exports._exceptionWithHostPort = function(err,
-                                          syscall,
-                                          address,
-                                          port,
-                                          additional) {
+function _exceptionWithHostPort(err,
+                                syscall,
+                                address,
+                                port,
+                                additional) {
   var details;
   if (port && port > 0) {
     details = `${address}:${port}`;
@@ -1042,10 +1067,116 @@ exports._exceptionWithHostPort = function(err,
     ex.port = port;
   }
   return ex;
-};
+}
 
 // process.versions needs a custom function as some values are lazy-evaluated.
-process.versions[exports.inspect.custom] =
-  (depth) => exports.format(JSON.parse(JSON.stringify(process.versions)));
+process.versions[inspect.custom] =
+  () => exports.format(JSON.parse(JSON.stringify(process.versions)));
 
-exports.promisify = internalUtil.promisify;
+function callbackifyOnRejected(reason, cb) {
+  // `!reason` guard inspired by bluebird (Ref: https://goo.gl/t5IS6M).
+  // Because `null` is a special error value in callbacks which means "no error
+  // occurred", we error-wrap so the callback consumer can distinguish between
+  // "the promise rejected with null" or "the promise fulfilled with undefined".
+  if (!reason) {
+    const newReason = new errors.Error('ERR_FALSY_VALUE_REJECTION');
+    newReason.reason = reason;
+    reason = newReason;
+    Error.captureStackTrace(reason, callbackifyOnRejected);
+  }
+  return cb(reason);
+}
+
+
+function callbackify(original) {
+  if (typeof original !== 'function') {
+    throw new errors.TypeError(
+      'ERR_INVALID_ARG_TYPE',
+      'original',
+      'function');
+  }
+
+  // We DO NOT return the promise as it gives the user a false sense that
+  // the promise is actually somehow related to the callback's execution
+  // and that the callback throwing will reject the promise.
+  function callbackified(...args) {
+    const maybeCb = args.pop();
+    if (typeof maybeCb !== 'function') {
+      throw new errors.TypeError(
+        'ERR_INVALID_ARG_TYPE',
+        'last argument',
+        'function');
+    }
+    const cb = (...args) => { Reflect.apply(maybeCb, this, args); };
+    // In true node style we process the callback on `nextTick` with all the
+    // implications (stack, `uncaughtException`, `async_hooks`)
+    Reflect.apply(original, this, args)
+      .then((ret) => process.nextTick(cb, null, ret),
+            (rej) => process.nextTick(callbackifyOnRejected, rej, cb));
+  }
+
+  Object.setPrototypeOf(callbackified, Object.getPrototypeOf(original));
+  Object.defineProperties(callbackified,
+                          Object.getOwnPropertyDescriptors(original));
+  return callbackified;
+}
+
+// Keep the `exports =` so that various functions can still be monkeypatched
+module.exports = exports = {
+  _errnoException,
+  _exceptionWithHostPort,
+  _extend,
+  callbackify,
+  debuglog,
+  deprecate,
+  format,
+  inherits,
+  inspect,
+  isArray: Array.isArray,
+  isBoolean,
+  isNull,
+  isNullOrUndefined,
+  isNumber,
+  isString,
+  isSymbol,
+  isUndefined,
+  isRegExp,
+  isObject,
+  isDate,
+  isError,
+  isFunction,
+  isPrimitive,
+  log,
+  promisify,
+  TextDecoder,
+  TextEncoder,
+
+  // Deprecated Old Stuff
+  debug: deprecate(debug,
+                   'util.debug is deprecated. Use console.error instead.',
+                   'DEP0028'),
+  error: deprecate(error,
+                   'util.error is deprecated. Use console.error instead.',
+                   'DEP0029'),
+  print: deprecate(print,
+                   'util.print is deprecated. Use console.log instead.',
+                   'DEP0026'),
+  puts: deprecate(puts,
+                  'util.puts is deprecated. Use console.log instead.',
+                  'DEP0027')
+};
+
+// Avoid a circular dependency
+var isBuffer;
+Object.defineProperty(exports, 'isBuffer', {
+  configurable: true,
+  enumerable: true,
+  get() {
+    if (!isBuffer)
+      isBuffer = require('buffer').Buffer.isBuffer;
+    return isBuffer;
+  },
+  set(val) {
+    isBuffer = val;
+  }
+});

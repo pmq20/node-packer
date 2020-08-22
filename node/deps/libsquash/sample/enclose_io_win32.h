@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2017 Minqi Pan <pmq2001@gmail.com>
- *                    Shengyuan Liu <sounder.liu@gmail.com>
+ * Copyright (c) 2017 - 2020 Minqi Pan <pmq2001@gmail.com>
+ *                           Shengyuan Liu <sounder.liu@gmail.com>
  *
  * This file is part of libsquash, distributed under the MIT License
  * For full terms see the included LICENSE file
@@ -41,6 +41,7 @@
 #define _fstati64(...)	enclose_io_fstati64(__VA_ARGS__)
 #define _open(...)	enclose_io__open(__VA_ARGS__)
 #define _wopen(...)	enclose_io__wopen(__VA_ARGS__)
+#define _wmkdir(...) enclose_io__wmkdir(__VA_ARGS__)
 #define _close(...)	enclose_io_close(__VA_ARGS__)
 #define _open_osfhandle(...) enclose_io_open_osfhandle(__VA_ARGS__)
 #define _get_osfhandle(...) enclose_io_get_osfhandle(__VA_ARGS__)
@@ -62,6 +63,11 @@
 #define CreateIoCompletionPort(...) EncloseIOCreateIoCompletionPort(__VA_ARGS__)
 #define ReadDirectoryChangesW(...) EncloseIOReadDirectoryChangesW(__VA_ARGS__)
 #define LoadLibraryExW(...) EncloseIOLoadLibraryExW(__VA_ARGS__)
+#define CreateProcessW(...) EncloseIOCreateProcessW(__VA_ARGS__)
+#define SetCurrentDirectoryW(...) EncloseIOSetCurrentDirectoryW(__VA_ARGS__)
+#define GetCurrentDirectoryW(...) EncloseIOGetCurrentDirectoryW(__VA_ARGS__)
+#define GetFullPathNameW(...) EncloseIOGetFullPathNameW(__VA_ARGS__)
+#define GetFileInformationByHandle(...) EncloseIOGetFileInformationByHandle(__VA_ARGS__)
 
 #endif //_WIN32
 #endif //!__cplusplus

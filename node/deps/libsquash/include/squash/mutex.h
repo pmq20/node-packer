@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2017 Minqi Pan <pmq2001@gmail.com>
- *                    Shengyuan Liu <sounder.liu@gmail.com>
+ * Copyright (c) 2017 - 2020 Minqi Pan <pmq2001@gmail.com>
+ *                           Shengyuan Liu <sounder.liu@gmail.com>
  *
  * This file is part of libsquash, distributed under the MIT License
  * For full terms see the included LICENSE file
@@ -22,7 +22,7 @@
    #define MUTEX pthread_mutex_t
 #endif
 
-extern MUTEX squash_global_fdtable_mutex;
+extern MUTEX squash_global_mutex;
 
 int MUTEX_INIT(MUTEX *mutex);
 int MUTEX_LOCK(MUTEX *mutex);

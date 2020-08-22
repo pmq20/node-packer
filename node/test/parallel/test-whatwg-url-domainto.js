@@ -1,10 +1,8 @@
 'use strict';
 const common = require('../common');
 
-if (!common.hasIntl) {
+if (!common.hasIntl)
   common.skip('missing Intl');
-  return;
-}
 
 const assert = require('assert');
 const { domainToASCII, domainToUnicode } = require('url');
@@ -15,7 +13,7 @@ const wptToASCIITests = require('../fixtures/url-toascii.js');
 
 {
   const expectedError = common.expectsError(
-      { code: 'ERR_MISSING_ARGS', type: TypeError });
+    { code: 'ERR_MISSING_ARGS', type: TypeError }, 2);
   assert.throws(() => domainToASCII(), expectedError);
   assert.throws(() => domainToUnicode(), expectedError);
   assert.strictEqual(domainToASCII(undefined), 'undefined');

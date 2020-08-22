@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>TLS (SSL) | Node.js v8.1.1 Documentation</title>
+  <title>TLS (SSL) | Node.js v8.4.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -42,8 +42,10 @@
 <li><a class="nav-fs" href="fs.html">File System</a></li>
 <li><a class="nav-globals" href="globals.html">Globals</a></li>
 <li><a class="nav-http" href="http.html">HTTP</a></li>
+<li><a class="nav-http2" href="http2.html">HTTP/2</a></li>
 <li><a class="nav-https" href="https.html">HTTPS</a></li>
 <li><a class="nav-inspector" href="inspector.html">Inspector</a></li>
+<li><a class="nav-intl" href="intl.html">Internationalization</a></li>
 <li><a class="nav-modules" href="modules.html">Modules</a></li>
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
@@ -77,7 +79,7 @@
 
     <div id="column1" data-id="tls" class="interior">
       <header>
-        <h1>Node.js v8.1.1 Documentation</h1>
+        <h1>Node.js v8.4.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -108,7 +110,7 @@
 <li><span class="stability_undefined"><a href="#tls_server_addcontext_hostname_context">server.addContext(hostname, context)</a></span></li>
 <li><span class="stability_undefined"><a href="#tls_server_address">server.address()</a></span></li>
 <li><span class="stability_undefined"><a href="#tls_server_close_callback">server.close([callback])</a></span></li>
-<li><span class="stability_undefined"><a href="#tls_server_connections">server.connections</a></span></li>
+<li><span class="stability_0"><a href="#tls_server_connections">server.connections</a></span></li>
 <li><span class="stability_undefined"><a href="#tls_server_getticketkeys">server.getTicketKeys()</a></span></li>
 <li><span class="stability_undefined"><a href="#tls_server_listen_port_hostname_callback">server.listen(port[, hostname][, callback])</a></span></li>
 <li><span class="stability_undefined"><a href="#tls_server_setticketkeys_keys">server.setTicketKeys(keys)</a></span></li>
@@ -121,10 +123,11 @@
 <li><span class="stability_undefined"><a href="#tls_tlssocket_address">tlsSocket.address()</a></span></li>
 <li><span class="stability_undefined"><a href="#tls_tlssocket_authorizationerror">tlsSocket.authorizationError</a></span></li>
 <li><span class="stability_undefined"><a href="#tls_tlssocket_authorized">tlsSocket.authorized</a></span></li>
+<li><span class="stability_undefined"><a href="#tls_tlssocket_disablerenegotiation">tlsSocket.disableRenegotiation()</a></span></li>
 <li><span class="stability_undefined"><a href="#tls_tlssocket_encrypted">tlsSocket.encrypted</a></span></li>
 <li><span class="stability_undefined"><a href="#tls_tlssocket_getcipher">tlsSocket.getCipher()</a></span></li>
 <li><span class="stability_undefined"><a href="#tls_tlssocket_getephemeralkeyinfo">tlsSocket.getEphemeralKeyInfo()</a></span></li>
-<li><span class="stability_undefined"><a href="#tls_tlssocket_getpeercertificate_detailed">tlsSocket.getPeerCertificate([ detailed ])</a></span></li>
+<li><span class="stability_undefined"><a href="#tls_tlssocket_getpeercertificate_detailed">tlsSocket.getPeerCertificate([detailed])</a></span></li>
 <li><span class="stability_undefined"><a href="#tls_tlssocket_getprotocol">tlsSocket.getProtocol()</a></span></li>
 <li><span class="stability_undefined"><a href="#tls_tlssocket_getsession">tlsSocket.getSession()</a></span></li>
 <li><span class="stability_undefined"><a href="#tls_tlssocket_gettlsticket">tlsSocket.getTLSTicket()</a></span></li>
@@ -466,8 +469,8 @@ listen for the server instance&#39;s <code>&#39;close&#39;</code> event.</li>
 when the server has no more open connections.</p>
 <h3>server.connections<span><a class="mark" href="#tls_server_connections" id="tls_server_connections">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.3.2</span>
-</div><p>Returns the current number of concurrent connections on the server.</p>
+<span>Added in: v0.3.2</span><span>Deprecated since: v0.9.7</span>
+</div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="net.html#net_server_getconnections_callback"><code>server.getConnections()</code></a> instead.</pre><p>Returns the current number of concurrent connections on the server.</p>
 <h3>server.getTicketKeys()<span><a class="mark" href="#tls_server_getticketkeys" id="tls_server_getticketkeys">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v3.0.0</span>
@@ -596,6 +599,11 @@ property is set only when <code>tlsSocket.authorized === false</code>.</p>
 <span>Added in: v0.11.4</span>
 </div><p>Returns <code>true</code> if the peer certificate was signed by one of the CAs specified
 when creating the <code>tls.TLSSocket</code> instance, otherwise <code>false</code>.</p>
+<h3>tlsSocket.disableRenegotiation()<span><a class="mark" href="#tls_tlssocket_disablerenegotiation" id="tls_tlssocket_disablerenegotiation">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v8.4.0</span>
+</div><p>Disables TLS renegotiation for this <code>TLSSocket</code> instance. Once called, attempts
+to renegotiate will trigger an <code>&#39;error&#39;</code> event on the <code>TLSSocket</code>.</p>
 <h3>tlsSocket.encrypted<span><a class="mark" href="#tls_tlssocket_encrypted" id="tls_tlssocket_encrypted">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.4</span>
@@ -620,7 +628,7 @@ ephemeral. As this is only supported on a client socket; <code>null</code> is re
 if called on a server socket. The supported types are <code>&#39;DH&#39;</code> and <code>&#39;ECDH&#39;</code>. The
 <code>name</code> property is available only when type is &#39;ECDH&#39;.</p>
 <p>For Example: <code>{ type: &#39;ECDH&#39;, name: &#39;prime256v1&#39;, size: 256 }</code></p>
-<h3>tlsSocket.getPeerCertificate([ detailed ])<span><a class="mark" href="#tls_tlssocket_getpeercertificate_detailed" id="tls_tlssocket_getpeercertificate_detailed">#</a></span></h3>
+<h3>tlsSocket.getPeerCertificate([detailed])<span><a class="mark" href="#tls_tlssocket_getpeercertificate_detailed" id="tls_tlssocket_getpeercertificate_detailed">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.4</span>
 </div><ul>

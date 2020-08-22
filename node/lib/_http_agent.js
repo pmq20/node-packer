@@ -167,9 +167,12 @@ Agent.prototype.addRequest = function addRequest(req, options, port/*legacy*/,
   if (freeLen) {
     // we have a free socket, so use that.
     var socket = this.freeSockets[name].shift();
-    // Assign the handle a new asyncId and run any init() hooks.
-    socket._handle.asyncReset();
-    socket[async_id_symbol] = socket._handle.getAsyncId();
+    // Guard against an uninitialized or user supplied Socket.
+    if (socket._handle && typeof socket._handle.asyncReset === 'function') {
+      // Assign the handle a new asyncId and run any init() hooks.
+      socket._handle.asyncReset();
+      socket[async_id_symbol] = socket._handle.getAsyncId();
+    }
 
     // don't leak
     if (!this.freeSockets[name].length)
@@ -181,15 +184,7 @@ Agent.prototype.addRequest = function addRequest(req, options, port/*legacy*/,
   } else if (sockLen < this.maxSockets) {
     debug('call onSocket', sockLen, freeLen);
     // If we are under maxSockets create a new one.
-    this.createSocket(req, options, function(err, newSocket) {
-      if (err) {
-        nextTick(newSocket._handle.getAsyncId(), function() {
-          req.emit('error', err);
-        });
-        return;
-      }
-      req.onSocket(newSocket);
-    });
+    this.createSocket(req, options, handleSocketCreation(req, true));
   } else {
     debug('wait for socket');
     // We are over limit so we'll add it to the queue.
@@ -222,6 +217,7 @@ Agent.prototype.createSocket = function createSocket(req, options, cb) {
   const newSocket = self.createConnection(options, oncreate);
   if (newSocket)
     oncreate(null, newSocket);
+
   function oncreate(err, s) {
     if (called)
       return;
@@ -294,15 +290,7 @@ Agent.prototype.removeSocket = function removeSocket(s, options) {
     debug('removeSocket, have a request, make a socket');
     var req = this.requests[name][0];
     // If we have pending requests and a socket gets closed make a new one
-    this.createSocket(req, options, function(err, newSocket) {
-      if (err) {
-        nextTick(newSocket._handle.getAsyncId(), function() {
-          req.emit('error', err);
-        });
-        return;
-      }
-      newSocket.emit('free');
-    });
+    this.createSocket(req, options, handleSocketCreation(req, false));
   }
 };
 
@@ -331,6 +319,22 @@ Agent.prototype.destroy = function destroy() {
     }
   }
 };
+
+function handleSocketCreation(request, informRequest) {
+  return function handleSocketCreation_Inner(err, socket) {
+    if (err) {
+      const asyncId = (socket && socket._handle && socket._handle.getAsyncId) ?
+        socket._handle.getAsyncId() :
+        null;
+      nextTick(asyncId, () => request.emit('error', err));
+      return;
+    }
+    if (informRequest)
+      request.onSocket(socket);
+    else
+      socket.emit('free');
+  };
+}
 
 module.exports = {
   Agent,

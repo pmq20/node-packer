@@ -83,6 +83,126 @@
           "desc": "<p>Before a module&#39;s code is executed, Node.js will wrap it with a function\nwrapper that looks like the following:</p>\n<pre><code class=\"lang-js\">(function(exports, require, module, __filename, __dirname) {\n// Module code actually lives in here\n});\n</code></pre>\n<p>By doing this, Node.js achieves a few things:</p>\n<ul>\n<li>It keeps top-level variables (defined with <code>var</code>, <code>const</code> or <code>let</code>) scoped to\nthe module rather than the global object.</li>\n<li>It helps to provide some global-looking variables that are actually specific\nto the module, such as:<ul>\n<li>The <code>module</code> and <code>exports</code> objects that the implementor can use to export\nvalues from the module.</li>\n<li>The convenience variables <code>__filename</code> and <code>__dirname</code>, containing the\nmodule&#39;s absolute filename and directory path.</li>\n</ul>\n</li>\n</ul>\n"
         }
       ],
+      "modules": [
+        {
+          "textRaw": "The module scope",
+          "name": "the_module_scope",
+          "vars": [
+            {
+              "textRaw": "\\_\\_dirname",
+              "name": "\\_\\_dirname",
+              "meta": {
+                "added": [
+                  "v0.1.27"
+                ],
+                "changes": []
+              },
+              "type": "var",
+              "desc": "<ul>\n<li>{string}</li>\n</ul>\n<p>The directory name of the current module. This the same as the\n<a href=\"path.html#path_path_dirname_path\"><code>path.dirname()</code></a> of the <a href=\"#modules_filename\"><code>__filename</code></a>.</p>\n<p>Example: running <code>node example.js</code> from <code>/Users/mjr</code></p>\n<pre><code class=\"lang-js\">console.log(__dirname);\n// Prints: /Users/mjr\nconsole.log(path.dirname(__filename));\n// Prints: /Users/mjr\n</code></pre>\n"
+            },
+            {
+              "textRaw": "\\_\\_filename",
+              "name": "\\_\\_filename",
+              "meta": {
+                "added": [
+                  "v0.0.1"
+                ],
+                "changes": []
+              },
+              "type": "var",
+              "desc": "<ul>\n<li>{string}</li>\n</ul>\n<p>The file name of the current module. This is the resolved absolute path of the\ncurrent module file.</p>\n<p>For a main program this is not necessarily the same as the file name used in the\ncommand line.</p>\n<p>See <a href=\"#modules_dirname\"><code>__dirname</code></a> for the directory name of the current module.</p>\n<p>Examples:</p>\n<p>Running <code>node example.js</code> from <code>/Users/mjr</code></p>\n<pre><code class=\"lang-js\">console.log(__filename);\n// Prints: /Users/mjr/example.js\nconsole.log(__dirname);\n// Prints: /Users/mjr\n</code></pre>\n<p>Given two modules: <code>a</code> and <code>b</code>, where <code>b</code> is a dependency of\n<code>a</code> and there is a directory structure of:</p>\n<ul>\n<li><code>/Users/mjr/app/a.js</code></li>\n<li><code>/Users/mjr/app/node_modules/b/b.js</code></li>\n</ul>\n<p>References to <code>__filename</code> within <code>b.js</code> will return\n<code>/Users/mjr/app/node_modules/b/b.js</code> while references to <code>__filename</code> within\n<code>a.js</code> will return <code>/Users/mjr/app/a.js</code>.</p>\n"
+            },
+            {
+              "textRaw": "exports",
+              "name": "exports",
+              "meta": {
+                "added": [
+                  "v0.1.12"
+                ],
+                "changes": []
+              },
+              "type": "var",
+              "desc": "<p>A reference to the <code>module.exports</code> that is shorter to type.\nSee the section about the <a href=\"#modules_exports_shortcut\">exports shortcut</a> for details on when to use\n<code>exports</code> and when to use <code>module.exports</code>.</p>\n"
+            },
+            {
+              "textRaw": "module",
+              "name": "module",
+              "meta": {
+                "added": [
+                  "v0.1.16"
+                ],
+                "changes": []
+              },
+              "type": "var",
+              "desc": "<ul>\n<li>{Object}</li>\n</ul>\n<p>A reference to the current module, see the section about the\n<a href=\"#modules_the_module_object\"><code>module</code> object</a>. In particular, <code>module.exports</code> is used for defining what\na module exports and makes available through <code>require()</code>.</p>\n"
+            },
+            {
+              "textRaw": "require()",
+              "type": "var",
+              "name": "require",
+              "meta": {
+                "added": [
+                  "v0.1.13"
+                ],
+                "changes": []
+              },
+              "desc": "<ul>\n<li>{Function}</li>\n</ul>\n<p>To require modules.</p>\n",
+              "properties": [
+                {
+                  "textRaw": "`cache` {Object} ",
+                  "type": "Object",
+                  "name": "cache",
+                  "meta": {
+                    "added": [
+                      "v0.3.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<p>Modules are cached in this object when they are required. By deleting a key\nvalue from this object, the next <code>require</code> will reload the module. Note that\nthis does not apply to <a href=\"addons.html\">native addons</a>, for which reloading will result in an\nError.</p>\n"
+                },
+                {
+                  "textRaw": "`extensions` {Object} ",
+                  "type": "Object",
+                  "name": "extensions",
+                  "meta": {
+                    "added": [
+                      "v0.3.0"
+                    ],
+                    "deprecated": [
+                      "v0.10.6"
+                    ],
+                    "changes": []
+                  },
+                  "stability": 0,
+                  "stabilityText": "Deprecated",
+                  "desc": "<p>Instruct <code>require</code> on how to handle certain file extensions.</p>\n<p>Process files with the extension <code>.sjs</code> as <code>.js</code>:</p>\n<pre><code class=\"lang-js\">require.extensions[&#39;.sjs&#39;] = require.extensions[&#39;.js&#39;];\n</code></pre>\n<p><strong>Deprecated</strong>  In the past, this list has been used to load\nnon-JavaScript modules into Node.js by compiling them on-demand.\nHowever, in practice, there are much better ways to do this, such as\nloading modules via some other Node.js program, or compiling them to\nJavaScript ahead of time.</p>\n<p>Since the module system is locked, this feature will probably never go\naway.  However, it may have subtle bugs and complexities that are best\nleft untouched.</p>\n<p>Note that the number of file system operations that the module system\nhas to perform in order to resolve a <code>require(...)</code> statement to a\nfilename scales linearly with the number of registered extensions.</p>\n<p>In other words, adding extensions slows down the module loader and\nshould be discouraged.</p>\n"
+                }
+              ],
+              "methods": [
+                {
+                  "textRaw": "require.resolve()",
+                  "type": "method",
+                  "name": "resolve",
+                  "meta": {
+                    "added": [
+                      "v0.3.0"
+                    ],
+                    "changes": []
+                  },
+                  "desc": "<p>Use the internal <code>require()</code> machinery to look up the location of a module,\nbut rather than loading the module, just return the resolved filename.</p>\n",
+                  "signatures": [
+                    {
+                      "params": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "type": "module",
+          "displayName": "The module scope"
+        }
+      ],
       "vars": [
         {
           "textRaw": "The `module` Object",
@@ -183,6 +303,18 @@
               },
               "desc": "<p>The module that first required this one.</p>\n",
               "shortDesc": "Module object"
+            },
+            {
+              "textRaw": "`paths` {string[]} ",
+              "type": "string[]",
+              "name": "paths",
+              "meta": {
+                "added": [
+                  "v0.4.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>The search paths for the module.</p>\n"
             }
           ],
           "methods": [

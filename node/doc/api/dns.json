@@ -7,6 +7,38 @@
       "stability": 2,
       "stabilityText": "Stable",
       "desc": "<p>The <code>dns</code> module contains functions belonging to two different categories:</p>\n<p>1) Functions that use the underlying operating system facilities to perform\nname resolution, and that do not necessarily perform any network communication.\nThis category contains only one function: <a href=\"#dns_dns_lookup_hostname_options_callback\"><code>dns.lookup()</code></a>. <strong>Developers\nlooking to perform name resolution in the same way that other applications on\nthe same operating system behave should use <a href=\"#dns_dns_lookup_hostname_options_callback\"><code>dns.lookup()</code></a>.</strong></p>\n<p>For example, looking up <code>iana.org</code>.</p>\n<pre><code class=\"lang-js\">const dns = require(&#39;dns&#39;);\n\ndns.lookup(&#39;iana.org&#39;, (err, address, family) =&gt; {\n  console.log(&#39;address: %j family: IPv%s&#39;, address, family);\n});\n// address: &quot;192.0.43.8&quot; family: IPv4\n</code></pre>\n<p>2) Functions that connect to an actual DNS server to perform name resolution,\nand that <em>always</em> use the network to perform DNS queries. This category\ncontains all functions in the <code>dns</code> module <em>except</em> <a href=\"#dns_dns_lookup_hostname_options_callback\"><code>dns.lookup()</code></a>. These\nfunctions do not use the same set of configuration files used by\n<a href=\"#dns_dns_lookup_hostname_options_callback\"><code>dns.lookup()</code></a> (e.g. <code>/etc/hosts</code>). These functions should be used by\ndevelopers who do not want to use the underlying operating system&#39;s facilities\nfor name resolution, and instead want to <em>always</em> perform DNS queries.</p>\n<p>Below is an example that resolves <code>&#39;archive.org&#39;</code> then reverse resolves the IP\naddresses that are returned.</p>\n<pre><code class=\"lang-js\">const dns = require(&#39;dns&#39;);\n\ndns.resolve4(&#39;archive.org&#39;, (err, addresses) =&gt; {\n  if (err) throw err;\n\n  console.log(`addresses: ${JSON.stringify(addresses)}`);\n\n  addresses.forEach((a) =&gt; {\n    dns.reverse(a, (err, hostnames) =&gt; {\n      if (err) {\n        throw err;\n      }\n      console.log(`reverse for ${a}: ${JSON.stringify(hostnames)}`);\n    });\n  });\n});\n</code></pre>\n<p>There are subtle consequences in choosing one over the other, please consult\nthe <a href=\"#dns_implementation_considerations\">Implementation considerations section</a> for more information.</p>\n",
+      "properties": [
+        {
+          "textRaw": "Class dns.Resolver",
+          "name": "Resolver",
+          "meta": {
+            "added": [
+              "v8.3.0"
+            ],
+            "changes": []
+          },
+          "desc": "<p>An independent resolver for DNS requests.</p>\n<p>Note that creating a new resolver uses the default server settings. Setting\nthe servers used for a resolver using\n<a href=\"#dns_dns_setservers_servers\"><code>resolver.setServers()</code></a> does not affect\nother resolver:</p>\n<pre><code class=\"lang-js\">const { Resolver } = require(&#39;dns&#39;);\nconst resolver = new Resolver();\nresolver.setServers([&#39;4.4.4.4&#39;]);\n\n// This request will use the server at 4.4.4.4, independent of global settings.\nresolver.resolve4(&#39;example.org&#39;, (err, addresses) =&gt; {\n  // ...\n});\n</code></pre>\n<p>The following methods from the <code>dns</code> module are available:</p>\n<ul>\n<li><a href=\"#dns_dns_getservers\"><code>resolver.getServers()</code></a></li>\n<li><a href=\"#dns_dns_setservers_servers\"><code>resolver.setServers()</code></a></li>\n<li><a href=\"#dns_dns_resolve_hostname_rrtype_callback\"><code>resolver.resolve()</code></a></li>\n<li><a href=\"#dns_dns_resolve4_hostname_options_callback\"><code>resolver.resolve4()</code></a></li>\n<li><a href=\"#dns_dns_resolve6_hostname_options_callback\"><code>resolver.resolve6()</code></a></li>\n<li><a href=\"#dns_dns_resolveany_hostname_callback\"><code>resolver.resolveAny()</code></a></li>\n<li><a href=\"#dns_dns_resolvecname_hostname_callback\"><code>resolver.resolveCname()</code></a></li>\n<li><a href=\"#dns_dns_resolvemx_hostname_callback\"><code>resolver.resolveMx()</code></a></li>\n<li><a href=\"#dns_dns_resolvenaptr_hostname_callback\"><code>resolver.resolveNaptr()</code></a></li>\n<li><a href=\"#dns_dns_resolvens_hostname_callback\"><code>resolver.resolveNs()</code></a></li>\n<li><a href=\"#dns_dns_resolveptr_hostname_callback\"><code>resolver.resolvePtr()</code></a></li>\n<li><a href=\"#dns_dns_resolvesoa_hostname_callback\"><code>resolver.resolveSoa()</code></a></li>\n<li><a href=\"#dns_dns_resolvesrv_hostname_callback\"><code>resolver.resolveSrv()</code></a></li>\n<li><a href=\"#dns_dns_resolvetxt_hostname_callback\"><code>resolver.resolveTxt()</code></a></li>\n<li><a href=\"#dns_dns_reverse_ip_callback\"><code>resolver.reverse()</code></a></li>\n</ul>\n",
+          "methods": [
+            {
+              "textRaw": "resolver.cancel()",
+              "type": "method",
+              "name": "cancel",
+              "meta": {
+                "added": [
+                  "v8.3.0"
+                ],
+                "changes": []
+              },
+              "desc": "<p>Cancel all outstanding DNS queries made by this resolver. The corresponding\ncallbacks will be called with an error with code <code>ECANCELLED</code>.</p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            }
+          ]
+        }
+      ],
       "methods": [
         {
           "textRaw": "dns.getServers()",
@@ -18,7 +50,7 @@
             ],
             "changes": []
           },
-          "desc": "<p>Returns an array of IP address strings that are being used for name\nresolution.</p>\n",
+          "desc": "<p>Returns an array of IP address strings, formatted according to <a href=\"https://tools.ietf.org/html/rfc5952#section-6\">rfc5952</a>,\nthat are currently configured for DNS resolution. A string will include a port\nsection if a custom port is used.</p>\n<p>For example:</p>\n<!-- eslint-disable semi-->\n<pre><code class=\"lang-js\">[\n  &#39;4.4.4.4&#39;,\n  &#39;2001:4860:4860::8888&#39;,\n  &#39;4.4.4.4:1053&#39;,\n  &#39;[2001:4860:4860::8888]:1053&#39;\n]\n</code></pre>\n",
           "signatures": [
             {
               "params": []
@@ -227,9 +259,9 @@
                       "type": "Error"
                     },
                     {
-                      "textRaw": "`records` {string[] | Object[] | string[][] | Object} ",
+                      "textRaw": "`records` {string[] | Object[] | Object} ",
                       "name": "records",
-                      "type": "string[] | Object[] | string[][] | Object"
+                      "type": "string[] | Object[] | Object"
                     }
                   ],
                   "name": "callback",
@@ -252,7 +284,7 @@
               ]
             }
           ],
-          "desc": "<p>Uses the DNS protocol to resolve a hostname (e.g. <code>&#39;nodejs.org&#39;</code>) into an array\nof the resource records. The <code>callback</code> function has arguments\n<code>(err, records)</code>. When successful, <code>records</code> will be an array of resource\nrecords. The type and structure of individual results varies based on <code>rrtype</code>:</p>\n<table>\n<thead>\n<tr>\n<th><code>rrtype</code></th>\n<th><code>records</code> contains</th>\n<th>Result type</th>\n<th>Shorthand method</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><code>&#39;A&#39;</code></td>\n<td>IPv4 addresses (default)</td>\n<td>{string}</td>\n<td><a href=\"#dns_dns_resolve4_hostname_options_callback\"><code>dns.resolve4()</code></a></td>\n</tr>\n<tr>\n<td><code>&#39;AAAA&#39;</code></td>\n<td>IPv6 addresses</td>\n<td>{string}</td>\n<td><a href=\"#dns_dns_resolve6_hostname_options_callback\"><code>dns.resolve6()</code></a></td>\n</tr>\n<tr>\n<td><code>&#39;CNAME&#39;</code></td>\n<td>canonical name records</td>\n<td>{string}</td>\n<td><a href=\"#dns_dns_resolvecname_hostname_callback\"><code>dns.resolveCname()</code></a></td>\n</tr>\n<tr>\n<td><code>&#39;MX&#39;</code></td>\n<td>mail exchange records</td>\n<td>{Object}</td>\n<td><a href=\"#dns_dns_resolvemx_hostname_callback\"><code>dns.resolveMx()</code></a></td>\n</tr>\n<tr>\n<td><code>&#39;NAPTR&#39;</code></td>\n<td>name authority pointer records</td>\n<td>{Object}</td>\n<td><a href=\"#dns_dns_resolvenaptr_hostname_callback\"><code>dns.resolveNaptr()</code></a></td>\n</tr>\n<tr>\n<td><code>&#39;NS&#39;</code></td>\n<td>name server records</td>\n<td>{string}</td>\n<td><a href=\"#dns_dns_resolvens_hostname_callback\"><code>dns.resolveNs()</code></a></td>\n</tr>\n<tr>\n<td><code>&#39;PTR&#39;</code></td>\n<td>pointer records</td>\n<td>{string}</td>\n<td><a href=\"#dns_dns_resolveptr_hostname_callback\"><code>dns.resolvePtr()</code></a></td>\n</tr>\n<tr>\n<td><code>&#39;SOA&#39;</code></td>\n<td>start of authority records</td>\n<td>{Object}</td>\n<td><a href=\"#dns_dns_resolvesoa_hostname_callback\"><code>dns.resolveSoa()</code></a></td>\n</tr>\n<tr>\n<td><code>&#39;SRV&#39;</code></td>\n<td>service records</td>\n<td>{Object}</td>\n<td><a href=\"#dns_dns_resolvesrv_hostname_callback\"><code>dns.resolveSrv()</code></a></td>\n</tr>\n<tr>\n<td><code>&#39;TXT&#39;</code></td>\n<td>text records</td>\n<td>{string}</td>\n<td><a href=\"#dns_dns_resolvetxt_hostname_callback\"><code>dns.resolveTxt()</code></a></td>\n</tr>\n</tbody>\n</table>\n<p>On error, <code>err</code> is an <a href=\"errors.html#errors_class_error\"><code>Error</code></a> object, where <code>err.code</code> is one of the\n<a href=\"#dns_error_codes\">DNS error codes</a>.</p>\n"
+          "desc": "<p>Uses the DNS protocol to resolve a hostname (e.g. <code>&#39;nodejs.org&#39;</code>) into an array\nof the resource records. The <code>callback</code> function has arguments\n<code>(err, records)</code>. When successful, <code>records</code> will be an array of resource\nrecords. The type and structure of individual results varies based on <code>rrtype</code>:</p>\n<table>\n<thead>\n<tr>\n<th><code>rrtype</code></th>\n<th><code>records</code> contains</th>\n<th>Result type</th>\n<th>Shorthand method</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><code>&#39;A&#39;</code></td>\n<td>IPv4 addresses (default)</td>\n<td>{string}</td>\n<td><a href=\"#dns_dns_resolve4_hostname_options_callback\"><code>dns.resolve4()</code></a></td>\n</tr>\n<tr>\n<td><code>&#39;AAAA&#39;</code></td>\n<td>IPv6 addresses</td>\n<td>{string}</td>\n<td><a href=\"#dns_dns_resolve6_hostname_options_callback\"><code>dns.resolve6()</code></a></td>\n</tr>\n<tr>\n<td><code>&#39;CNAME&#39;</code></td>\n<td>canonical name records</td>\n<td>{string}</td>\n<td><a href=\"#dns_dns_resolvecname_hostname_callback\"><code>dns.resolveCname()</code></a></td>\n</tr>\n<tr>\n<td><code>&#39;MX&#39;</code></td>\n<td>mail exchange records</td>\n<td>{Object}</td>\n<td><a href=\"#dns_dns_resolvemx_hostname_callback\"><code>dns.resolveMx()</code></a></td>\n</tr>\n<tr>\n<td><code>&#39;NAPTR&#39;</code></td>\n<td>name authority pointer records</td>\n<td>{Object}</td>\n<td><a href=\"#dns_dns_resolvenaptr_hostname_callback\"><code>dns.resolveNaptr()</code></a></td>\n</tr>\n<tr>\n<td><code>&#39;NS&#39;</code></td>\n<td>name server records</td>\n<td>{string}</td>\n<td><a href=\"#dns_dns_resolvens_hostname_callback\"><code>dns.resolveNs()</code></a></td>\n</tr>\n<tr>\n<td><code>&#39;PTR&#39;</code></td>\n<td>pointer records</td>\n<td>{string}</td>\n<td><a href=\"#dns_dns_resolveptr_hostname_callback\"><code>dns.resolvePtr()</code></a></td>\n</tr>\n<tr>\n<td><code>&#39;SOA&#39;</code></td>\n<td>start of authority records</td>\n<td>{Object}</td>\n<td><a href=\"#dns_dns_resolvesoa_hostname_callback\"><code>dns.resolveSoa()</code></a></td>\n</tr>\n<tr>\n<td><code>&#39;SRV&#39;</code></td>\n<td>service records</td>\n<td>{Object}</td>\n<td><a href=\"#dns_dns_resolvesrv_hostname_callback\"><code>dns.resolveSrv()</code></a></td>\n</tr>\n<tr>\n<td><code>&#39;TXT&#39;</code></td>\n<td>text records</td>\n<td>{string}</td>\n<td><a href=\"#dns_dns_resolvetxt_hostname_callback\"><code>dns.resolveTxt()</code></a></td>\n</tr>\n<tr>\n<td><code>&#39;ANY&#39;</code></td>\n<td>any records</td>\n<td>{Object}</td>\n<td><a href=\"#dns_dns_resolveany_hostname_callback\"><code>dns.resolveAny()</code></a></td>\n</tr>\n</tbody>\n</table>\n<p>On error, <code>err</code> is an <a href=\"errors.html#errors_class_error\"><code>Error</code></a> object, where <code>err.code</code> is one of the\n<a href=\"#dns_error_codes\">DNS error codes</a>.</p>\n"
         },
         {
           "textRaw": "dns.resolve4(hostname[, options], callback)",
@@ -552,7 +584,7 @@
               ]
             }
           ],
-          "desc": "<p>Uses the DNS protocol to resolve regular expression based records (<code>NAPTR</code>\nrecords) for the <code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code>\nfunction will contain an array of objects with the following properties:</p>\n<ul>\n<li><code>flags</code></li>\n<li><code>service</code></li>\n<li><code>regexp</code></li>\n<li><code>replacement</code></li>\n<li><code>order</code></li>\n<li><code>preference</code></li>\n</ul>\n<p>For example:</p>\n<!-- eslint-disable -->\n<pre><code class=\"lang-js\">{\n  flags: &#39;s&#39;,\n  service: &#39;SIP+D2U&#39;,\n  regexp: &#39;&#39;,\n  replacement: &#39;_sip._udp.example.com&#39;,\n  order: 30,\n  preference: 100\n}\n</code></pre>\n"
+          "desc": "<p>Uses the DNS protocol to resolve regular expression based records (<code>NAPTR</code>\nrecords) for the <code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code>\nfunction will contain an array of objects with the following properties:</p>\n<ul>\n<li><code>flags</code></li>\n<li><code>service</code></li>\n<li><code>regexp</code></li>\n<li><code>replacement</code></li>\n<li><code>order</code></li>\n<li><code>preference</code></li>\n</ul>\n<p>For example:</p>\n<!-- eslint-skip -->\n<pre><code class=\"lang-js\">{\n  flags: &#39;s&#39;,\n  service: &#39;SIP+D2U&#39;,\n  regexp: &#39;&#39;,\n  replacement: &#39;_sip._udp.example.com&#39;,\n  order: 30,\n  preference: 100\n}\n</code></pre>\n"
         },
         {
           "textRaw": "dns.resolveNs(hostname, callback)",
@@ -702,7 +734,7 @@
               ]
             }
           ],
-          "desc": "<p>Uses the DNS protocol to resolve a start of authority record (<code>SOA</code> record) for\nthe <code>hostname</code>. The <code>address</code> argument passed to the <code>callback</code> function will\nbe an object with the following properties:</p>\n<ul>\n<li><code>nsname</code></li>\n<li><code>hostmaster</code></li>\n<li><code>serial</code></li>\n<li><code>refresh</code></li>\n<li><code>retry</code></li>\n<li><code>expire</code></li>\n<li><code>minttl</code></li>\n</ul>\n<!-- eslint-disable -->\n<pre><code class=\"lang-js\">{\n  nsname: &#39;ns.example.com&#39;,\n  hostmaster: &#39;root.example.com&#39;,\n  serial: 2013101809,\n  refresh: 10000,\n  retry: 2400,\n  expire: 604800,\n  minttl: 3600\n}\n</code></pre>\n"
+          "desc": "<p>Uses the DNS protocol to resolve a start of authority record (<code>SOA</code> record) for\nthe <code>hostname</code>. The <code>address</code> argument passed to the <code>callback</code> function will\nbe an object with the following properties:</p>\n<ul>\n<li><code>nsname</code></li>\n<li><code>hostmaster</code></li>\n<li><code>serial</code></li>\n<li><code>refresh</code></li>\n<li><code>retry</code></li>\n<li><code>expire</code></li>\n<li><code>minttl</code></li>\n</ul>\n<!-- eslint-skip -->\n<pre><code class=\"lang-js\">{\n  nsname: &#39;ns.example.com&#39;,\n  hostmaster: &#39;root.example.com&#39;,\n  serial: 2013101809,\n  refresh: 10000,\n  retry: 2400,\n  expire: 604800,\n  minttl: 3600\n}\n</code></pre>\n"
         },
         {
           "textRaw": "dns.resolveSrv(hostname, callback)",
@@ -752,7 +784,7 @@
               ]
             }
           ],
-          "desc": "<p>Uses the DNS protocol to resolve service records (<code>SRV</code> records) for the\n<code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function will\nbe an array of objects with the following properties:</p>\n<ul>\n<li><code>priority</code></li>\n<li><code>weight</code></li>\n<li><code>port</code></li>\n<li><code>name</code></li>\n</ul>\n<!-- eslint-disable -->\n<pre><code class=\"lang-js\">{\n  priority: 10,\n  weight: 5,\n  port: 21223,\n  name: &#39;service.example.com&#39;\n}\n</code></pre>\n"
+          "desc": "<p>Uses the DNS protocol to resolve service records (<code>SRV</code> records) for the\n<code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function will\nbe an array of objects with the following properties:</p>\n<ul>\n<li><code>priority</code></li>\n<li><code>weight</code></li>\n<li><code>port</code></li>\n<li><code>name</code></li>\n</ul>\n<!-- eslint-skip -->\n<pre><code class=\"lang-js\">{\n  priority: 10,\n  weight: 5,\n  port: 21223,\n  name: &#39;service.example.com&#39;\n}\n</code></pre>\n"
         },
         {
           "textRaw": "dns.resolveTxt(hostname, callback)",
@@ -781,9 +813,9 @@
                       "type": "Error"
                     },
                     {
-                      "textRaw": "`addresses` {string[][]} ",
+                      "textRaw": "`addresses` {string[]} ",
                       "name": "addresses",
-                      "type": "string[][]"
+                      "type": "string[]"
                     }
                   ],
                   "name": "callback",
@@ -803,6 +835,50 @@
             }
           ],
           "desc": "<p>Uses the DNS protocol to resolve text queries (<code>TXT</code> records) for the\n<code>hostname</code>. The <code>addresses</code> argument passed to the <code>callback</code> function is\nis a two-dimensional array of the text records available for <code>hostname</code> (e.g.,\n<code>[ [&#39;v=spf1 ip4:0.0.0.0 &#39;, &#39;~all&#39; ] ]</code>). Each sub-array contains TXT chunks of\none record. Depending on the use case, these could be either joined together or\ntreated separately.</p>\n"
+        },
+        {
+          "textRaw": "dns.resolveAny(hostname, callback)",
+          "type": "method",
+          "name": "resolveAny",
+          "signatures": [
+            {
+              "params": [
+                {
+                  "textRaw": "`hostname` {string} ",
+                  "name": "hostname",
+                  "type": "string"
+                },
+                {
+                  "textRaw": "`callback` {Function} ",
+                  "options": [
+                    {
+                      "textRaw": "`err` {Error} ",
+                      "name": "err",
+                      "type": "Error"
+                    },
+                    {
+                      "textRaw": "`ret` {Object[]} ",
+                      "name": "ret",
+                      "type": "Object[]"
+                    }
+                  ],
+                  "name": "callback",
+                  "type": "Function"
+                }
+              ]
+            },
+            {
+              "params": [
+                {
+                  "name": "hostname"
+                },
+                {
+                  "name": "callback"
+                }
+              ]
+            }
+          ],
+          "desc": "<p>Uses the DNS protocol to resolve all records (also known as <code>ANY</code> or <code>*</code> query).\nThe <code>ret</code> argument passed to the <code>callback</code> function will be an array containing\nvarious types of records. Each object has a property <code>type</code> that indicates the\ntype of the current record. And depending on the <code>type</code>, additional properties\nwill be present on the object:</p>\n<table>\n<thead>\n<tr>\n<th>Type</th>\n<th>Properties</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><code>&quot;A&quot;</code></td>\n<td><code>address</code> / <code>ttl</code></td>\n</tr>\n<tr>\n<td><code>&quot;AAAA&quot;</code></td>\n<td><code>address</code> / <code>ttl</code></td>\n</tr>\n<tr>\n<td><code>&quot;CNAME&quot;</code></td>\n<td><code>value</code></td>\n</tr>\n<tr>\n<td><code>&quot;MX&quot;</code></td>\n<td>Refer to <a href=\"#dns_dns_resolvemx_hostname_callback\"><code>dns.resolveMx()</code></a></td>\n</tr>\n<tr>\n<td><code>&quot;NAPTR&quot;</code></td>\n<td>Refer to <a href=\"#dns_dns_resolvenaptr_hostname_callback\"><code>dns.resolveNaptr()</code></a></td>\n</tr>\n<tr>\n<td><code>&quot;NS&quot;</code></td>\n<td><code>value</code></td>\n</tr>\n<tr>\n<td><code>&quot;PTR&quot;</code></td>\n<td><code>value</code></td>\n</tr>\n<tr>\n<td><code>&quot;SOA&quot;</code></td>\n<td>Refer to <a href=\"#dns_dns_resolvesoa_hostname_callback\"><code>dns.resolveSoa()</code></a></td>\n</tr>\n<tr>\n<td><code>&quot;SRV&quot;</code></td>\n<td>Refer to <a href=\"#dns_dns_resolvesrv_hostname_callback\"><code>dns.resolveSrv()</code></a></td>\n</tr>\n<tr>\n<td><code>&quot;TXT&quot;</code></td>\n<td>This type of record contains an array property called <code>entries</code> which refers to <a href=\"#dns_dns_resolvetxt_hostname_callback\"><code>dns.resolveTxt()</code></a>, eg. <code>{ entries: [&#39;...&#39;], type: &#39;TXT&#39; }</code></td>\n</tr>\n</tbody>\n</table>\n<p>Here is a example of the <code>ret</code> object passed to the callback:</p>\n<!-- eslint-disable semi -->\n<pre><code class=\"lang-js\">[ { type: &#39;A&#39;, address: &#39;127.0.0.1&#39;, ttl: 299 },\n  { type: &#39;CNAME&#39;, value: &#39;example.com&#39; },\n  { type: &#39;MX&#39;, exchange: &#39;alt4.aspmx.l.example.com&#39;, priority: 50 },\n  { type: &#39;NS&#39;, value: &#39;ns1.example.com&#39; },\n  { type: &#39;TXT&#39;, entries: [ &#39;v=spf1 include:_spf.example.com ~all&#39; ] },\n  { type: &#39;SOA&#39;,\n    nsname: &#39;ns1.example.com&#39;,\n    hostmaster: &#39;admin.example.com&#39;,\n    serial: 156696742,\n    refresh: 900,\n    retry: 900,\n    expire: 1800,\n    minttl: 60 } ]\n</code></pre>\n"
         },
         {
           "textRaw": "dns.reverse(ip, callback)",
@@ -868,9 +944,10 @@
             {
               "params": [
                 {
-                  "textRaw": "`servers` {string[]} ",
+                  "textRaw": "`servers` {string[]} array of [rfc5952][] formatted addresses ",
                   "name": "servers",
-                  "type": "string[]"
+                  "type": "string[]",
+                  "desc": "array of [rfc5952][] formatted addresses"
                 }
               ]
             },
@@ -882,7 +959,7 @@
               ]
             }
           ],
-          "desc": "<p>Sets the IP addresses of the servers to be used when resolving. The <code>servers</code>\nargument is an array of IPv4 or IPv6 addresses.</p>\n<p>If a port is specified on the address, it will be removed.</p>\n<p>An error will be thrown if an invalid address is provided.</p>\n<p>The <code>dns.setServers()</code> method must not be called while a DNS query is in\nprogress.</p>\n"
+          "desc": "<p>Sets the IP address and port of servers to be used when performing DNS\nresolution. The <code>servers</code> argument is an array of <a href=\"https://tools.ietf.org/html/rfc5952#section-6\">rfc5952</a> formatted\naddresses. If the port is the IANA default DNS port (53) it can be omitted.</p>\n<p>For example:</p>\n<pre><code class=\"lang-js\">dns.setServers([\n  &#39;4.4.4.4&#39;,\n  &#39;[2001:4860:4860::8888]&#39;,\n  &#39;4.4.4.4:1053&#39;,\n  &#39;[2001:4860:4860::8888]:1053&#39;\n]);\n</code></pre>\n<p>An error will be thrown if an invalid address is provided.</p>\n<p>The <code>dns.setServers()</code> method must not be called while a DNS query is in\nprogress.</p>\n"
         }
       ],
       "modules": [

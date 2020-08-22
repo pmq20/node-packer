@@ -185,6 +185,13 @@
               "desc": "<p>Type: Runtime</p>\n<p><code>node debug</code> corresponds to the legacy CLI debugger which has been replaced with\na V8-inspector based CLI debugger available through <code>node inspect</code>.</p>\n<p><a id=\"DEP0069\"></a></p>\n",
               "type": "module",
               "displayName": "DEP0068: node debug"
+            },
+            {
+              "textRaw": "DEP0072: async_hooks.AsyncResource.triggerId()",
+              "name": "dep0072:_async_hooks.asyncresource.triggerid()",
+              "desc": "<p>Type: Runtime</p>\n<p><code>async_hooks.AsyncResource.triggerId()</code> was renamed to\n<code>async_hooks.AsyncResource.triggerAsyncId()</code> for clarity.</p>\n<p><em>Note</em>: change was made while <code>async_hooks</code> was an experimental API.</p>\n",
+              "type": "module",
+              "displayName": "DEP0072: async_hooks.AsyncResource.triggerId()"
             }
           ],
           "properties": [
@@ -325,7 +332,7 @@
               "textRaw": "DEP0031: ecdh.setPublicKey()",
               "type": "method",
               "name": "setPublicKey",
-              "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"crypto.html#crypto_ecdh_setpublickey_public_key_encoding\"><code>ecdh.setPublicKey()</code></a> method is now deprecated as its inclusion in the\nAPI is not useful.</p>\n<p><a id=\"DEP0032\"></a></p>\n",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The <a href=\"crypto.html#crypto_ecdh_setpublickey_publickey_encoding\"><code>ecdh.setPublicKey()</code></a> method is now deprecated as its inclusion in the\nAPI is not useful.</p>\n<p><a id=\"DEP0032\"></a></p>\n",
               "signatures": [
                 {
                   "params": []
@@ -647,7 +654,7 @@
               "textRaw": "DEP0069: vm.runInDebugContext(string)",
               "type": "method",
               "name": "runInDebugContext",
-              "desc": "<p>Type: Documentation-only</p>\n<p>The DebugContext will be removed in V8 soon and will not be available in Node\n10+.</p>\n<p><em>Note</em>: DebugContext was an experimental API.</p>\n",
+              "desc": "<p>Type: Documentation-only</p>\n<p>The DebugContext will be removed in V8 soon and will not be available in Node\n10+.</p>\n<p><em>Note</em>: DebugContext was an experimental API.</p>\n<p><a id=\"DEP0070\"></a></p>\n",
               "signatures": [
                 {
                   "params": [
@@ -655,6 +662,28 @@
                       "name": "string"
                     }
                   ]
+                }
+              ]
+            },
+            {
+              "textRaw": "DEP0070: async_hooks.currentId()",
+              "type": "method",
+              "name": "currentId",
+              "desc": "<p>Type: Runtime</p>\n<p><code>async_hooks.currentId()</code> was renamed to <code>async_hooks.executionAsyncId()</code> for\nclarity.</p>\n<p><em>Note</em>: change was made while <code>async_hooks</code> was an experimental API.</p>\n<p><a id=\"DEP0071\"></a></p>\n",
+              "signatures": [
+                {
+                  "params": []
+                }
+              ]
+            },
+            {
+              "textRaw": "DEP0071: async_hooks.triggerId()",
+              "type": "method",
+              "name": "triggerId",
+              "desc": "<p>Type: Runtime</p>\n<p><code>async_hooks.triggerId()</code> was renamed to <code>async_hooks.triggerAsyncId()</code> for\nclarity.</p>\n<p><em>Note</em>: change was made while <code>async_hooks</code> was an experimental API.</p>\n<p><a id=\"DEP0072\"></a></p>\n",
+              "signatures": [
+                {
+                  "params": []
                 }
               ]
             }

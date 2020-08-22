@@ -1104,7 +1104,7 @@
             ],
             "changes": []
           },
-          "desc": "<p>Returns a new <a href=\"#zlib_class_zlib_deflate\">Deflate</a> object with an <a href=\"#zlib_class_options\">options</a>.</p>\n",
+          "desc": "<p>Creates and returns a new <a href=\"#zlib_class_zlib_deflate\">Deflate</a> object with the given <a href=\"#zlib_class_options\">options</a>.</p>\n",
           "signatures": [
             {
               "params": [
@@ -1126,7 +1126,7 @@
             ],
             "changes": []
           },
-          "desc": "<p>Returns a new <a href=\"#zlib_class_zlib_deflateraw\">DeflateRaw</a> object with an <a href=\"#zlib_class_options\">options</a>.</p>\n<p><em>Note</em>: The zlib library rejects requests for 256-byte windows (i.e.,\n<code>{ windowBits: 8 }</code> in <code>options</code>). An <code>Error</code> will be thrown when creating\na <a href=\"#zlib_class_zlib_deflateraw\">DeflateRaw</a> object with this specific value of the <code>windowBits</code> option.</p>\n",
+          "desc": "<p>Creates and returns a new <a href=\"#zlib_class_zlib_deflateraw\">DeflateRaw</a> object with the given <a href=\"#zlib_class_options\">options</a>.</p>\n<p><em>Note</em>: The zlib library rejects requests for 256-byte windows (i.e.,\n<code>{ windowBits: 8 }</code> in <code>options</code>). An <code>Error</code> will be thrown when creating\na <a href=\"#zlib_class_zlib_deflateraw\">DeflateRaw</a> object with this specific value of the <code>windowBits</code> option.</p>\n",
           "signatures": [
             {
               "params": [
@@ -1148,7 +1148,7 @@
             ],
             "changes": []
           },
-          "desc": "<p>Returns a new <a href=\"#zlib_class_zlib_gunzip\">Gunzip</a> object with an <a href=\"#zlib_class_options\">options</a>.</p>\n",
+          "desc": "<p>Creates and returns a new <a href=\"#zlib_class_zlib_gunzip\">Gunzip</a> object with the given <a href=\"#zlib_class_options\">options</a>.</p>\n",
           "signatures": [
             {
               "params": [
@@ -1170,7 +1170,7 @@
             ],
             "changes": []
           },
-          "desc": "<p>Returns a new <a href=\"#zlib_class_zlib_gzip\">Gzip</a> object with an <a href=\"#zlib_class_options\">options</a>.</p>\n",
+          "desc": "<p>Creates and returns a new <a href=\"#zlib_class_zlib_gzip\">Gzip</a> object with the given <a href=\"#zlib_class_options\">options</a>.</p>\n",
           "signatures": [
             {
               "params": [
@@ -1192,7 +1192,7 @@
             ],
             "changes": []
           },
-          "desc": "<p>Returns a new <a href=\"#zlib_class_zlib_inflate\">Inflate</a> object with an <a href=\"#zlib_class_options\">options</a>.</p>\n",
+          "desc": "<p>Creates and returns a new <a href=\"#zlib_class_zlib_inflate\">Inflate</a> object with the given <a href=\"#zlib_class_options\">options</a>.</p>\n",
           "signatures": [
             {
               "params": [
@@ -1214,7 +1214,7 @@
             ],
             "changes": []
           },
-          "desc": "<p>Returns a new <a href=\"#zlib_class_zlib_inflateraw\">InflateRaw</a> object with an <a href=\"#zlib_class_options\">options</a>.</p>\n",
+          "desc": "<p>Creates and returns a new <a href=\"#zlib_class_zlib_inflateraw\">InflateRaw</a> object with the given <a href=\"#zlib_class_options\">options</a>.</p>\n",
           "signatures": [
             {
               "params": [
@@ -1236,7 +1236,7 @@
             ],
             "changes": []
           },
-          "desc": "<p>Returns a new <a href=\"#zlib_class_zlib_unzip\">Unzip</a> object with an <a href=\"#zlib_class_options\">options</a>.</p>\n",
+          "desc": "<p>Creates and returns a new <a href=\"#zlib_class_zlib_unzip\">Unzip</a> object with the given <a href=\"#zlib_class_options\">options</a>.</p>\n",
           "signatures": [
             {
               "params": [

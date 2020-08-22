@@ -47,8 +47,8 @@ parser = optparse.OptionParser()
 
 valid_os = ('win', 'mac', 'solaris', 'freebsd', 'openbsd', 'linux',
             'android', 'aix')
-valid_arch = ('arm', 'arm64', 'ia32', 'mips', 'mipsel', 'ppc', 'ppc64', 'x32',
-              'x64', 'x86', 's390', 's390x')
+valid_arch = ('arm', 'arm64', 'ia32', 'mips', 'mipsel', 'mips64el', 'ppc',
+              'ppc64', 'x32','x64', 'x86', 's390', 's390x')
 valid_arm_float_abi = ('soft', 'softfp', 'hard')
 valid_arm_fpu = ('vfp', 'vfpv3', 'vfpv3-d16', 'neon')
 valid_mips_arch = ('loongson', 'r1', 'r2', 'r6', 'rx')
@@ -64,6 +64,8 @@ shared_optgroup = optparse.OptionGroup(parser, "Shared libraries",
 intl_optgroup = optparse.OptionGroup(parser, "Internationalization",
     "Flags that lets you enable i18n features in Node.js as well as which "
     "library you want to build against.")
+http2_optgroup = optparse.OptionGroup(parser, "HTTP2",
+    "Flags that allows you to control HTTP2 features in Node.js")
 
 # Options should be in alphabetical order but keep --prefix at the top,
 # that's arguably the one people will be looking for most.
@@ -288,6 +290,11 @@ parser.add_option('--enable-d8',
     dest='enable_d8',
     help=optparse.SUPPRESS_HELP)  # Unsupported, undocumented.
 
+parser.add_option('--enable-trace-maps',
+    action='store_true',
+    dest='trace_maps',
+    help='Enable the --trace-maps flag in V8 (use at your own risk)')
+
 parser.add_option('--v8-options',
     action='store',
     dest='v8_options',
@@ -392,6 +399,16 @@ intl_optgroup.add_option('--download-path',
 
 parser.add_option_group(intl_optgroup)
 
+http2_optgroup.add_option('--debug-http2',
+    action='store_true',
+    dest='debug_http2',
+    help='build with http2 debug statements on (default is false)')
+
+http2_optgroup.add_option('--debug-nghttp2',
+    action='store_true',
+    dest='debug_nghttp2',
+    help='build nghttp2 with DEBUGBUILD (default is false)')
+
 parser.add_option('--with-perfctr',
     action='store_true',
     dest='with_perfctr',
@@ -420,12 +437,12 @@ parser.add_option('--without-perfctr',
 # Dummy option for backwards compatibility
 parser.add_option('--with-snapshot',
     action='store_true',
-    dest='unused_with_snapshot',
+    dest='with_snapshot',
     help=optparse.SUPPRESS_HELP)
 
 parser.add_option('--without-snapshot',
     action='store_true',
-    dest='without_snapshot',
+    dest='unused_without_snapshot',
     help=optparse.SUPPRESS_HELP)
 
 parser.add_option('--without-ssl',
@@ -635,12 +652,14 @@ def check_compiler(o):
     # to a version that is not completely ancient.
     warn('C compiler too old, need gcc 4.2 or clang 3.2 (CC=%s)' % CC)
 
-  # Need llvm_version or gas_version when openssl asm files are compiled
+  if is_clang:
+    o['variables']['llvm_version'] = get_llvm_version(CC)
+
+  # Need xcode_version or gas_version when openssl asm files are compiled.
   if options.without_ssl or options.openssl_no_asm or options.shared_openssl:
     return
 
   if is_clang:
-    o['variables']['llvm_version'] = get_llvm_version(CC)
     if sys.platform == 'darwin':
       o['variables']['xcode_version'] = get_xcode_version(CC)
   else:
@@ -808,7 +827,7 @@ def configure_node(o):
   cross_compiling = (options.cross_compiling
                      if options.cross_compiling is not None
                      else target_arch != host_arch)
-  want_snapshots = not options.without_snapshot
+  want_snapshots = 1 if options.with_snapshot else 0
   o['variables']['want_separate_host_toolset'] = int(
       cross_compiling and want_snapshots)
   o['variables']['want_separate_host_toolset_mkpeephole'] = int(
@@ -891,6 +910,16 @@ def configure_node(o):
   if options.enable_static:
     o['variables']['node_target_type'] = 'static_library'
 
+  if options.debug_http2:
+    o['variables']['debug_http2'] = 1
+  else:
+    o['variables']['debug_http2'] = 'false'
+
+  if options.debug_nghttp2:
+    o['variables']['debug_nghttp2'] = 1
+  else:
+    o['variables']['debug_nghttp2'] = 'false'
+
   o['variables']['node_no_browser_globals'] = b(options.no_browser_globals)
   o['variables']['node_shared'] = b(options.shared)
   node_module_version = getmoduleversion.get_version()
@@ -955,7 +984,8 @@ def configure_v8(o):
   o['variables']['v8_optimized_debug'] = 0  # Compile with -O0 in debug builds.
   o['variables']['v8_random_seed'] = 0  # Use a random seed for hash tables.
   o['variables']['v8_promise_internal_field_count'] = 1 # Add internal field to promises for async hooks.
-  o['variables']['v8_use_snapshot'] = 'false' if options.without_snapshot else 'true'
+  o['variables']['v8_use_snapshot'] = b(options.with_snapshot)
+  o['variables']['v8_trace_maps'] = 1 if options.trace_maps else 0
   o['variables']['node_use_v8_platform'] = b(not options.without_v8_platform)
   o['variables']['node_use_bundled_v8'] = b(not options.without_bundled_v8)
   o['variables']['force_dynamic_crt'] = 1 if options.shared else 0
@@ -979,12 +1009,18 @@ def configure_openssl(o):
     o['variables']['openssl_fips'] = options.openssl_fips
     fips_dir = os.path.join(root_dir, 'deps', 'openssl', 'fips')
     fips_ld = os.path.abspath(os.path.join(fips_dir, 'fipsld'))
+    # LINK is for Makefiles, LD/LDXX is for ninja
     o['make_fips_settings'] = [
       ['LINK', fips_ld + ' <(openssl_fips)/bin/fipsld'],
+      ['LD', fips_ld + ' <(openssl_fips)/bin/fipsld'],
+      ['LDXX', fips_ld + ' <(openssl_fips)/bin/fipsld'],
     ]
   else:
     o['variables']['openssl_fips'] = ''
-
+    try:
+      os.remove('config_fips.gypi')
+    except OSError:
+      pass
 
   if options.without_ssl:
     def without_ssl_error(option):
@@ -1281,7 +1317,6 @@ def configure_intl(o):
     'stubdata': 'stubdata',
     'common': 'common',
     'i18n': 'i18n',
-    'io': 'io',
     'tools': 'tools/toolutil',
     'genccode': 'tools/genccode',
     'genrb': 'tools/genrb',

@@ -2,11 +2,11 @@
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
      xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
 
-  <?define ProductName = "Node.js" ?>
-  <?define ProductDescription = "Node.js" ?>
-  <?define ProductAuthor = "Node.js Foundation" ?>
+  <?define ProductName = "<%= @package_json['name'] %>" ?>
+  <?define ProductDescription = "Enclose.IO" ?>
+  <?define ProductAuthor = "Enclose.IO" ?>
 
-  <?define RegistryKeyPath = "SOFTWARE\Node.js" ?>
+  <?define RegistryKeyPath = "SOFTWARE\Enclose.IO\<%= @package_json['name'] %>" ?>
 
   <?define RepoDir="$(var.ProjectDir)..\..\..\" ?>
   <?define SourceDir="$(var.RepoDir)\$(var.Configuration)\" ?>
@@ -14,9 +14,9 @@
   <Product Id="*"
            Name="$(var.ProductName)"
            Language="!(loc.LocaleId)"
-           Version="$(var.ProductVersion)"
+           Version="<%= @package_json['version'] %>"
            Manufacturer="$(var.ProductAuthor)"
-           UpgradeCode="47c07a3a-42ef-4213-a85d-8f5a59077c28">
+           UpgradeCode="e092c419-1d78-4fe0-9de0-9bcdad0b1693">
 
     <Package Languages="!(loc.LocaleId)"
              InstallerVersion="200"
@@ -29,27 +29,15 @@
 
     <Media Id="1" Cabinet="media1.cab" EmbedCab="yes"/>
 
-    <MajorUpgrade AllowSameVersionUpgrades="yes"
-                  DowngradeErrorMessage="!(loc.MajorUpgrade_DowngradeErrorMessage)"/>
-
-    <Upgrade Id="1d60944c-b9ce-4a71-a7c0-0384eb884baa">
-      <UpgradeVersion Maximum="1.0.0"
-                      IncludeMaximum="no"
-                      Property="NODE_0X_DETECTED" />
-      <UpgradeVersion Minimum="1.0.0"
-                      IncludeMinimum="yes"
-                      Property="EARLY_IO_DETECTED" />
-    </Upgrade>
-
     <Icon Id="NodeIcon" SourceFile="$(var.RepoDir)\src\res\node.ico"/>
     <Property Id="ARPPRODUCTICON" Value="NodeIcon"/>
-    <Property Id="ApplicationFolderName" Value="nodejs"/>
+    <Property Id="ApplicationFolderName" Value="<%= @package_json['name'] %>"/>
     <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR"/>
 
     <Property Id="INSTALLDIR" Secure="yes">
       <RegistrySearch Id="InstallPathRegistry"
                       Type="raw"
-                      Root="HKLM"
+                      Root="HKCU"
                       Key="$(var.RegistryKeyPath)"
                       Name="InstallPath"/>
       <!-- Also need to search under HKCU to support upgrading from old
@@ -71,40 +59,7 @@
       <ComponentRef Id="NodeRegistryEntries"/>
       <ComponentRef Id="NodeVarsScript"/>
       <ComponentRef Id="NodeStartMenu"/>
-      <ComponentRef Id="AppData" />
       <ComponentGroupRef Id="Product.Generated"/>
-
-      <Feature Id="NodePerfCtrSupport"
-               Level="1"
-               Title="!(loc.NodePerfCtrSupport_Title)"
-               Description="!(loc.NodePerfCtrSupport_Description)">
-        <ComponentRef Id="NodePerfCtrSupport"/>
-      </Feature>
-
-      <Feature Id="NodeEtwSupport"
-               Level="1"
-               Title="!(loc.NodeEtwSupport_Title)"
-               Description="!(loc.NodeEtwSupport_Description)">
-        <ComponentRef Id="NodeEtwSupport"/>
-      </Feature>
-    </Feature>
-
-    <Feature Id="npm"
-             Level="1"
-             Title="!(loc.npm_Title)"
-             Description="!(loc.npm_Description)">
-      <ComponentRef Id="NpmCmdScript"/>
-      <ComponentRef Id="NpmBashScript"/>
-      <ComponentRef Id="NpmConfigurationFile"/>
-      <ComponentRef Id="AppData" />
-      <ComponentGroupRef Id="NpmSourceFiles"/>
-    </Feature>
-
-    <Feature Level="1"
-             Id="DocumentationShortcuts"
-             Title="!(loc.DocumentationShortcuts_Title)"
-             Description="!(loc.DocumentationShortcuts_Description)">
-      <ComponentRef Id="DocumentationShortcuts"/>
     </Feature>
 
     <Feature Id="EnvironmentPath"
@@ -117,64 +72,53 @@
                Description="!(loc.EnvironmentPathNode_Description)">
         <ComponentRef Id="EnvironmentPathNode"/>
       </Feature>
-
-      <Feature Id="EnvironmentPathNpmModules"
-               Level="1"
-               Title="!(loc.EnvironmentPathNpmModules_Title)"
-               Description="!(loc.EnvironmentPathNpmModules_Description)">
-        <ComponentRef Id="EnvironmentPathNpmModules"/>
-      </Feature>
     </Feature>
 
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="ProgramMenuFolder">
-        <Directory Id="ApplicationProgramsFolder" Name="Node.js"/>
+        <Directory Id="ApplicationProgramsFolder" Name="<%= @package_json['name'] %>"/>
       </Directory>
 
-      <Directory Id="$(var.ProgramFilesFolderId)">
-        <Directory Id="INSTALLDIR" Name="nodejs">
+      <Directory Id="LocalAppDataFolder">
+        <Directory Id="INSTALLDIR" Name="<%= @package_json['name'] %>">
         </Directory>
       </Directory>
     </Directory>
 
     <DirectoryRef Id="INSTALLDIR">
-      <Component Id="NodeExecutable">
-        <File Id="node.exe" KeyPath="yes" Source="$(var.SourceDir)\node.exe"/>
+      <Component Id="NodeExecutable" Guid="1fe9e3b4-61bc-448b-95aa-36ca15b44902">
+        <RegistryValue Root="HKCU"
+                       Key="$(var.RegistryKeyPath)"
+                       Name="InstallFolderNodeExecutable"
+                       Type="string"
+                       Value="[INSTALLFOLDER]"
+                       KeyPath="yes" />
+        <File Id="<%= @package_json['name'] %>.exe" Source="$(var.SourceDir)\<%= @package_json['name'] %>.exe"/>
       </Component>
 
       <Component Id="NodeRegistryEntries">
-        <RegistryValue Root="HKLM"
+        <RegistryValue Root="HKCU"
                        Key="$(var.RegistryKeyPath)"
                        Name="InstallPath"
                        Type="string"
                        Value="[INSTALLDIR]"
                        KeyPath="yes"/>
-        <RegistryValue Root="HKLM"
+        <RegistryValue Root="HKCU"
                        Key="$(var.RegistryKeyPath)"
                        Name="Version"
                        Type="string"
-                       Value="$(var.ProductVersion)"/>
+                       Value="<%= @package_json['version'] %>"/>
       </Component>
 
-      <Component Id="NodeVarsScript">
-        <File Id="nodevars.bat" KeyPath="yes" Source="$(var.RepoDir)\tools\msvs\nodevars.bat"/>
+      <Component Id="NodeVarsScript" Guid="2e150d25-cc98-4a2a-8c30-adf9578f8b6d">
+        <RegistryValue Root="HKCU"
+                       Key="$(var.RegistryKeyPath)"
+                       Name="InstallFolderNodeVarsScript"
+                       Type="string"
+                       Value="[INSTALLFOLDER]"
+                       KeyPath="yes" />
+        <File Id="nodevars.bat" Source="$(var.RepoDir)\tools\msvs\nodevars.bat"/>
       </Component>
-
-      <?if $(var.NoPerfCtr) != 1 ?>
-      <Component Id="NodePerfCtrSupport">
-        <File Id="node_perfctr_provider_man" Name="node_perfctr_provider.man" Source="$(var.RepoDir)\src\res\node_perfctr_provider.man">
-          <util:PerfCounterManifest ResourceFileDirectory="[INSTALLDIR]"/>
-        </File>
-      </Component>
-      <?endif?>
-
-      <?if $(var.NoETW) != 1 ?>
-      <Component Id="NodeEtwSupport">
-        <File Id="node_etw_provider.man" Source="$(var.RepoDir)\src\res\node_etw_provider.man">
-          <util:EventManifest MessageFile="[INSTALLDIR]node.exe" ResourceFile="[INSTALLDIR]node.exe"/>
-        </File>
-      </Component>
-      <?endif?>
     </DirectoryRef>
 
     <DirectoryRef Id="ApplicationProgramsFolder">
@@ -188,74 +132,30 @@
                        Value="1"
                        KeyPath="yes"/>
         <Shortcut Id="NodeVarsScriptShortcut"
-                  Name="Node.js command prompt"
+                  Name="$(var.ProductName) command prompt"
                   Target="[%ComSpec]"
                   Arguments='/k "[INSTALLDIR]nodevars.bat"'
                   Show="normal"
                   WorkingDirectory="INSTALLDIR"/>
         <Shortcut Id="NodeExecutableShortcut"
-                  Name="Node.js"
-                  Target="[INSTALLDIR]node.exe"
+                  Name="$(var.ProductName)"
+                  Target="[INSTALLDIR]<%= @package_json['name'] %>.exe"
                   WorkingDirectory="INSTALLDIR"/>
         <Shortcut Id="UninstallProduct"
-                  Name="Uninstall Node.js"
+                  Name="Uninstall $(var.ProductName)"
                   Target="[SystemFolder]msiexec.exe"
                   Arguments="/x [ProductCode]"/>
+        <RemoveFolder Id="RemoveINSTALLDIR"
+                      Directory="INSTALLDIR"
+                      On="uninstall"/>
         <RemoveFolder Id="RemoveApplicationProgramsFolder"
                       On="uninstall"/>
       </Component>
     </DirectoryRef>
 
     <DirectoryRef Id="INSTALLDIR">
-      <Component Id="NpmCmdScript">
-        <File Id="npm.cmd" KeyPath="yes" Source="$(var.NpmSourceDir)\bin\npm.cmd"/>
-      </Component>
-
-      <Component Id="NpmBashScript">
-        <File Id="npm.sh" KeyPath="yes" Source="$(var.NpmSourceDir)\bin\npm"/>
-      </Component>
-
-      <Directory Id="NodeModulesFolder" Name="node_modules">
-        <Directory Id="NpmFolder" Name="npm">
-          <Component Id="NpmConfigurationFile">
-            <File Id="npm.rc" KeyPath="yes" Source="$(var.RepoDir)\tools\msvs\npm\npmrc"/>
-          </Component>
-        </Directory>
-      </Directory>
-
-      <Directory Id="AppDataFolder">
-        <Directory Id="AppDataDir" Name="npm">
-          <Component Id="AppData" Guid="D3B35D0E-D0F9-4D11-A773-D4608E90E1D1">
-            <CreateFolder />
-            <RemoveFolder Id="AppDataDir" On="uninstall" />
-            <RegistryValue Root="HKCU" Key="$(var.RegistryKeyPath)\Components" Type="string" Value="" />
-          </Component>
-        </Directory>
-      </Directory>
-    </DirectoryRef>
-
-    <DirectoryRef Id="ApplicationProgramsFolder">
-      <Component Id="DocumentationShortcuts">
-        <RegistryValue Root="HKCU"
-                       Key="$(var.RegistryKeyPath)\Components"
-                       Name="DocumentationShortcuts"
-                       Type="integer"
-                       Value="1"
-                       KeyPath="yes"/>
-        <util:InternetShortcut Id="WebsiteShortcut"
-                               Name="Node.js website"
-                               Target="http://nodejs.org"
-                               Type="url"/>
-        <util:InternetShortcut Id="DocsShortcut"
-                               Name="Node.js documentation"
-                               Target="https://nodejs.org/download/$(var.DistTypeDir)/v$(var.FullVersion)/docs/api/"
-                               Type="url"/>
-      </Component>
-    </DirectoryRef>
-
-    <DirectoryRef Id="INSTALLDIR">
       <Component Id="EnvironmentPathNode">
-        <RegistryValue Root="HKLM"
+        <RegistryValue Root="HKCU"
                        Key="$(var.RegistryKeyPath)\Components"
                        Name="EnvironmentPathNode"
                        Type="integer"
@@ -267,21 +167,6 @@
                      Part="last"
                      System="yes"
                      Value="[INSTALLDIR]"/>
-      </Component>
-
-      <Component Id="EnvironmentPathNpmModules">
-        <RegistryValue Root="HKCU"
-                       Key="$(var.RegistryKeyPath)\Components"
-                       Name="EnvironmentPathNpmModules"
-                       Type="integer"
-                       Value="1"
-                       KeyPath="yes"/>
-        <Environment Id="EnvironmentPathNpmModules"
-                     Action="set"
-                     Name="PATH"
-                     Part="last"
-                     System="no"
-                     Value="[AppDataFolder]npm"/>
       </Component>
     </DirectoryRef>
 
@@ -326,16 +211,13 @@
       <DialogRef Id="ResumeDlg"/>
       <DialogRef Id="UserExit"/>
       <DialogRef Id="WelcomeDlg"/>
-      <DialogRef Id="LicenseAgreementDlg"/>
       <DialogRef Id="InstallDirDlg"/>
       <DialogRef Id="BrowseDlg"/>
       <DialogRef Id="InvalidDirDlg"/>
 
-      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="LicenseAgreementDlg">NOT Installed</Publish>
+      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="InstallDirDlg">NOT Installed</Publish>
       <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg">Installed AND PATCH</Publish>
-      <Publish Dialog="LicenseAgreementDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg">1</Publish>
-      <Publish Dialog="LicenseAgreementDlg" Control="Next" Event="NewDialog" Value="InstallDirDlg">LicenseAccepted = "1"</Publish>
-      <Publish Dialog="InstallDirDlg" Control="Back" Event="NewDialog" Value="LicenseAgreementDlg">1</Publish>
+      <Publish Dialog="InstallDirDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg">1</Publish>
       <Publish Dialog="InstallDirDlg" Control="Next" Event="NewDialog" Value="CustomizeDlg" Order="20">1</Publish>
       <Publish Dialog="InstallDirDlg" Control="Next" Event="SetTargetPath" Value="[WIXUI_INSTALLDIR]" Order="10">1</Publish>
       <Publish Dialog="InstallDirDlg" Control="ChangeFolder" Property="_BrowseProperty" Value="[WIXUI_INSTALLDIR]" Order="10">1</Publish>
@@ -360,7 +242,6 @@
     <UIRef Id="WixUI_ErrorProgressText"/>
     <WixVariable Id="WixUIBannerBmp" Value="..\..\..\doc\thin-white-stripe.jpg"/>
     <WixVariable Id="WixUIDialogBmp" Value="..\..\..\doc\full-white-stripe.jpg"/>
-    <WixVariable Id="WixUILicenseRtf" Value="$(var.SourceDir)\LICENSE.rtf"/>
   </Product>
 
 </Wix>

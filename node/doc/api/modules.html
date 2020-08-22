@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Modules | Node.js v8.1.1 Documentation</title>
+  <title>Modules | Node.js v8.4.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -42,8 +42,10 @@
 <li><a class="nav-fs" href="fs.html">File System</a></li>
 <li><a class="nav-globals" href="globals.html">Globals</a></li>
 <li><a class="nav-http" href="http.html">HTTP</a></li>
+<li><a class="nav-http2" href="http2.html">HTTP/2</a></li>
 <li><a class="nav-https" href="https.html">HTTPS</a></li>
 <li><a class="nav-inspector" href="inspector.html">Inspector</a></li>
+<li><a class="nav-intl" href="intl.html">Internationalization</a></li>
 <li><a class="nav-modules active" href="modules.html">Modules</a></li>
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
@@ -77,7 +79,7 @@
 
     <div id="column1" data-id="modules" class="interior">
       <header>
-        <h1>Node.js v8.1.1 Documentation</h1>
+        <h1>Node.js v8.4.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -106,6 +108,19 @@
 <li><span class="stability_undefined"><a href="#modules_loading_from_node_modules_folders">Loading from <code>node_modules</code> Folders</a></span></li>
 <li><span class="stability_undefined"><a href="#modules_loading_from_the_global_folders">Loading from the global folders</a></span></li>
 <li><span class="stability_undefined"><a href="#modules_the_module_wrapper">The module wrapper</a></span></li>
+<li><span class="stability_undefined"><a href="#modules_the_module_scope">The module scope</a></span><ul>
+<li><span class="stability_undefined"><a href="#modules_dirname">__dirname</a></span></li>
+<li><span class="stability_undefined"><a href="#modules_filename">__filename</a></span></li>
+<li><span class="stability_undefined"><a href="#modules_exports">exports</a></span></li>
+<li><span class="stability_undefined"><a href="#modules_module">module</a></span></li>
+<li><span class="stability_undefined"><a href="#modules_require">require()</a></span><ul>
+<li><span class="stability_undefined"><a href="#modules_require_cache">require.cache</a></span></li>
+<li><span class="stability_0"><a href="#modules_require_extensions">require.extensions</a></span></li>
+<li><span class="stability_undefined"><a href="#modules_require_resolve">require.resolve()</a></span></li>
+</ul>
+</li>
+</ul>
+</li>
 <li><span class="stability_undefined"><a href="#modules_the_module_object">The <code>module</code> Object</a></span><ul>
 <li><span class="stability_undefined"><a href="#modules_module_children">module.children</a></span></li>
 <li><span class="stability_undefined"><a href="#modules_module_exports">module.exports</a></span><ul>
@@ -116,6 +131,7 @@
 <li><span class="stability_undefined"><a href="#modules_module_id">module.id</a></span></li>
 <li><span class="stability_undefined"><a href="#modules_module_loaded">module.loaded</a></span></li>
 <li><span class="stability_undefined"><a href="#modules_module_parent">module.parent</a></span></li>
+<li><span class="stability_undefined"><a href="#modules_module_paths">module.paths</a></span></li>
 <li><span class="stability_undefined"><a href="#modules_module_require_id">module.require(id)</a></span></li>
 </ul>
 </li>
@@ -469,6 +485,113 @@ module&#39;s absolute filename and directory path.</li>
 </ul>
 </li>
 </ul>
+<h2>The module scope<span><a class="mark" href="#modules_the_module_scope" id="modules_the_module_scope">#</a></span></h2>
+<h3>__dirname<span><a class="mark" href="#modules_dirname" id="modules_dirname">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.1.27</span>
+</div><!-- type=var -->
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+</ul>
+<p>The directory name of the current module. This the same as the
+<a href="path.html#path_path_dirname_path"><code>path.dirname()</code></a> of the <a href="#modules_filename"><code>__filename</code></a>.</p>
+<p>Example: running <code>node example.js</code> from <code>/Users/mjr</code></p>
+<pre><code class="lang-js">console.log(__dirname);
+// Prints: /Users/mjr
+console.log(path.dirname(__filename));
+// Prints: /Users/mjr
+</code></pre>
+<h3>__filename<span><a class="mark" href="#modules_filename" id="modules_filename">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.0.1</span>
+</div><!-- type=var -->
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
+</ul>
+<p>The file name of the current module. This is the resolved absolute path of the
+current module file.</p>
+<p>For a main program this is not necessarily the same as the file name used in the
+command line.</p>
+<p>See <a href="#modules_dirname"><code>__dirname</code></a> for the directory name of the current module.</p>
+<p>Examples:</p>
+<p>Running <code>node example.js</code> from <code>/Users/mjr</code></p>
+<pre><code class="lang-js">console.log(__filename);
+// Prints: /Users/mjr/example.js
+console.log(__dirname);
+// Prints: /Users/mjr
+</code></pre>
+<p>Given two modules: <code>a</code> and <code>b</code>, where <code>b</code> is a dependency of
+<code>a</code> and there is a directory structure of:</p>
+<ul>
+<li><code>/Users/mjr/app/a.js</code></li>
+<li><code>/Users/mjr/app/node_modules/b/b.js</code></li>
+</ul>
+<p>References to <code>__filename</code> within <code>b.js</code> will return
+<code>/Users/mjr/app/node_modules/b/b.js</code> while references to <code>__filename</code> within
+<code>a.js</code> will return <code>/Users/mjr/app/a.js</code>.</p>
+<h3>exports<span><a class="mark" href="#modules_exports" id="modules_exports">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.1.12</span>
+</div><!-- type=var -->
+<p>A reference to the <code>module.exports</code> that is shorter to type.
+See the section about the <a href="#modules_exports_shortcut">exports shortcut</a> for details on when to use
+<code>exports</code> and when to use <code>module.exports</code>.</p>
+<h3>module<span><a class="mark" href="#modules_module" id="modules_module">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.1.16</span>
+</div><!-- type=var -->
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
+</ul>
+<p>A reference to the current module, see the section about the
+<a href="#modules_the_module_object"><code>module</code> object</a>. In particular, <code>module.exports</code> is used for defining what
+a module exports and makes available through <code>require()</code>.</p>
+<h3>require()<span><a class="mark" href="#modules_require" id="modules_require">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.1.13</span>
+</div><!-- type=var -->
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&lt;Function&gt;</a></li>
+</ul>
+<p>To require modules.</p>
+<h4>require.cache<span><a class="mark" href="#modules_require_cache" id="modules_require_cache">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v0.3.0</span>
+</div><ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
+</ul>
+<p>Modules are cached in this object when they are required. By deleting a key
+value from this object, the next <code>require</code> will reload the module. Note that
+this does not apply to <a href="addons.html">native addons</a>, for which reloading will result in an
+Error.</p>
+<h4>require.extensions<span><a class="mark" href="#modules_require_extensions" id="modules_require_extensions">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v0.3.0</span><span>Deprecated since: v0.10.6</span>
+</div><pre class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated</pre><ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a></li>
+</ul>
+<p>Instruct <code>require</code> on how to handle certain file extensions.</p>
+<p>Process files with the extension <code>.sjs</code> as <code>.js</code>:</p>
+<pre><code class="lang-js">require.extensions[&#39;.sjs&#39;] = require.extensions[&#39;.js&#39;];
+</code></pre>
+<p><strong>Deprecated</strong>  In the past, this list has been used to load
+non-JavaScript modules into Node.js by compiling them on-demand.
+However, in practice, there are much better ways to do this, such as
+loading modules via some other Node.js program, or compiling them to
+JavaScript ahead of time.</p>
+<p>Since the module system is locked, this feature will probably never go
+away.  However, it may have subtle bugs and complexities that are best
+left untouched.</p>
+<p>Note that the number of file system operations that the module system
+has to perform in order to resolve a <code>require(...)</code> statement to a
+filename scales linearly with the number of registered extensions.</p>
+<p>In other words, adding extensions slows down the module loader and
+should be discouraged.</p>
+<h4>require.resolve()<span><a class="mark" href="#modules_require_resolve" id="modules_require_resolve">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v0.3.0</span>
+</div><p>Use the internal <code>require()</code> machinery to look up the location of a module,
+but rather than loading the module, just return the resolved filename.</p>
 <h2>The <code>module</code> Object<span><a class="mark" href="#modules_the_module_object" id="modules_the_module_object">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.16</span>
@@ -592,6 +715,13 @@ loading.</p>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> Module object</li>
 </ul>
 <p>The module that first required this one.</p>
+<h3>module.paths<span><a class="mark" href="#modules_module_paths" id="modules_module_paths">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.4.0</span>
+</div><ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string[]&gt;</a></li>
+</ul>
+<p>The search paths for the module.</p>
 <h3>module.require(id)<span><a class="mark" href="#modules_module_require_id" id="modules_module_require_id">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.5.1</span>

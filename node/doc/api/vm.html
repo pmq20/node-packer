@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>VM (Executing JavaScript) | Node.js v8.1.1 Documentation</title>
+  <title>VM (Executing JavaScript) | Node.js v8.4.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -42,8 +42,10 @@
 <li><a class="nav-fs" href="fs.html">File System</a></li>
 <li><a class="nav-globals" href="globals.html">Globals</a></li>
 <li><a class="nav-http" href="http.html">HTTP</a></li>
+<li><a class="nav-http2" href="http2.html">HTTP/2</a></li>
 <li><a class="nav-https" href="https.html">HTTPS</a></li>
 <li><a class="nav-inspector" href="inspector.html">Inspector</a></li>
+<li><a class="nav-intl" href="intl.html">Internationalization</a></li>
 <li><a class="nav-modules" href="modules.html">Modules</a></li>
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
@@ -77,7 +79,7 @@
 
     <div id="column1" data-id="vm" class="interior">
       <header>
-        <h1>Node.js v8.1.1 Documentation</h1>
+        <h1>Node.js v8.4.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -95,7 +97,7 @@
 <li><span class="stability_undefined"><a href="#vm_class_vm_script">Class: vm.Script</a></span><ul>
 <li><span class="stability_undefined"><a href="#vm_new_vm_script_code_options">new vm.Script(code, options)</a></span></li>
 <li><span class="stability_undefined"><a href="#vm_script_runincontext_contextifiedsandbox_options">script.runInContext(contextifiedSandbox[, options])</a></span></li>
-<li><span class="stability_undefined"><a href="#vm_script_runinnewcontext_sandbox_options">script.runInNewContext([sandbox][, options])</a></span></li>
+<li><span class="stability_undefined"><a href="#vm_script_runinnewcontext_sandbox_options">script.runInNewContext([sandbox[, options]])</a></span></li>
 <li><span class="stability_undefined"><a href="#vm_script_runinthiscontext_options">script.runInThisContext([options])</a></span></li>
 </ul>
 </li>
@@ -239,7 +241,7 @@ console.log(util.inspect(sandbox));
 <p><em>Note</em>: Using the <code>timeout</code> or <code>breakOnSigint</code> options will result in new
 event loops and corresponding threads being started, which have a non-zero
 performance overhead.</p>
-<h3>script.runInNewContext([sandbox][, options])<span><a class="mark" href="#vm_script_runinnewcontext_sandbox_options" id="vm_script_runinnewcontext_sandbox_options">#</a></span></h3>
+<h3>script.runInNewContext([sandbox[, options]])<span><a class="mark" href="#vm_script_runinnewcontext_sandbox_options" id="vm_script_runinnewcontext_sandbox_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.3.1</span>
 </div><ul>
@@ -545,7 +547,7 @@ specify the context in which you want any JavaScript code to be run.</p>
 <p>When the method <code>vm.createContext()</code> is called, the <code>sandbox</code> object that is
 passed in (or a newly created object if <code>sandbox</code> is <code>undefined</code>) is associated
 internally with a new instance of a V8 Context. This V8 Context provides the
-<code>code</code> run using the <code>vm</code> modules methods with an isolated global environment
+<code>code</code> run using the <code>vm</code> module&#39;s methods with an isolated global environment
 within which it can operate. The process of creating the V8 Context and
 associating it with the <code>sandbox</code> object is what this document refers to as
 &quot;contextifying&quot; the <code>sandbox</code>.</p>

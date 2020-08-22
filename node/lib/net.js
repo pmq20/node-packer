@@ -42,6 +42,7 @@ const WriteWrap = process.binding('stream_wrap').WriteWrap;
 const async_id_symbol = process.binding('async_wrap').async_id_symbol;
 const { newUid, setInitTriggerId } = require('async_hooks');
 const nextTick = require('internal/process/next_tick').nextTick;
+const errors = require('internal/errors');
 
 var cluster;
 var dns;
@@ -63,7 +64,7 @@ function createHandle(fd) {
 
 function getNewAsyncId(handle) {
   return (!handle || typeof handle.getAsyncId !== 'function') ?
-      newUid() : handle.getAsyncId();
+    newUid() : handle.getAsyncId();
 }
 
 
@@ -90,11 +91,7 @@ function createServer(options, connectionListener) {
 // connect(port, [host], [cb])
 // connect(path, [cb]);
 //
-function connect() {
-  var args = new Array(arguments.length);
-  for (var i = 0; i < arguments.length; i++)
-    args[i] = arguments[i];
-  // TODO(joyeecheung): use destructuring when V8 is fast enough
+function connect(...args) {
   var normalized = normalizeArgs(args);
   var options = normalized[0];
   debug('createConnection', normalized);
@@ -109,9 +106,9 @@ function connect() {
 
 
 // Returns an array [options, cb], where options is an object,
-// cb is either a funciton or null.
+// cb is either a function or null.
 // Used to normalize arguments of Socket.prototype.connect() and
-// Server.prototype.listen(). Possible combinations of paramters:
+// Server.prototype.listen(). Possible combinations of parameters:
 //   (options[...][, cb])
 //   (path[...][, cb])
 //   ([port][, host][...][, cb])
@@ -824,8 +821,19 @@ protoGetter('bytesWritten', function bytesWritten() {
       bytes += Buffer.byteLength(el.chunk, el.encoding);
   });
 
-  if (data) {
-    if (data instanceof Buffer)
+  if (Array.isArray(data)) {
+    // was a writev, iterate over chunks to get total length
+    for (var i = 0; i < data.length; i++) {
+      const chunk = data[i];
+
+      if (data.allBuffers || chunk instanceof Buffer)
+        bytes += chunk.length;
+      else
+        bytes += Buffer.byteLength(chunk.chunk, chunk.encoding);
+    }
+  } else if (data) {
+    // Writes are either a string or a Buffer.
+    if (typeof data !== 'string')
       bytes += data.length;
     else
       bytes += Buffer.byteLength(data, encoding);
@@ -936,19 +944,15 @@ function internalConnect(
 }
 
 
-Socket.prototype.connect = function() {
+Socket.prototype.connect = function(...args) {
   let normalized;
   // If passed an array, it's treated as an array of arguments that have
   // already been normalized (so we don't normalize more than once). This has
   // been solved before in https://github.com/nodejs/node/pull/12342, but was
   // reverted as it had unintended side effects.
-  if (Array.isArray(arguments[0]) && arguments[0][normalizedArgsSymbol]) {
-    normalized = arguments[0];
+  if (Array.isArray(args[0]) && args[0][normalizedArgsSymbol]) {
+    normalized = args[0];
   } else {
-    var args = new Array(arguments.length);
-    for (var i = 0; i < arguments.length; i++)
-      args[i] = arguments[i];
-    // TODO(joyeecheung): use destructuring when V8 is fast enough
     normalized = normalizeArgs(args);
   }
   var options = normalized[0];
@@ -964,8 +968,9 @@ Socket.prototype.connect = function() {
     this._sockname = null;
   }
 
-  var pipe = !!options.path;
-  debug('pipe', pipe, options.path);
+  const path = options.path;
+  var pipe = !!path;
+  debug('pipe', pipe, path);
 
   if (!this._handle) {
     this._handle = pipe ? new Pipe() : new TCP();
@@ -982,7 +987,13 @@ Socket.prototype.connect = function() {
   this.writable = true;
 
   if (pipe) {
-    internalConnect(this, options.path);
+    if (typeof path !== 'string') {
+      throw new errors.TypeError('ERR_INVALID_ARG_TYPE',
+                                 'options.path',
+                                 'string',
+                                 path);
+    }
+    internalConnect(this, path);
   } else {
     lookupAndConnect(this, options);
   }
@@ -997,19 +1008,23 @@ function lookupAndConnect(self, options) {
   var localAddress = options.localAddress;
   var localPort = options.localPort;
 
-  if (localAddress && !cares.isIP(localAddress))
+  if (localAddress && !cares.isIP(localAddress)) {
     throw new TypeError('"localAddress" option must be a valid IP: ' +
                         localAddress);
+  }
 
-  if (localPort && typeof localPort !== 'number')
+  if (localPort && typeof localPort !== 'number') {
     throw new TypeError('"localPort" option should be a number: ' + localPort);
+  }
 
   if (typeof port !== 'undefined') {
-    if (typeof port !== 'number' && typeof port !== 'string')
+    if (typeof port !== 'number' && typeof port !== 'string') {
       throw new TypeError('"port" option should be a number or string: ' +
                           port);
-    if (!isLegalPort(port))
+    }
+    if (!isLegalPort(port)) {
       throw new RangeError('"port" option should be >= 0 and < 65536: ' + port);
+    }
   }
   port |= 0;
 
@@ -1397,11 +1412,7 @@ function listenInCluster(server, address, port, addressType,
 }
 
 
-Server.prototype.listen = function() {
-  var args = new Array(arguments.length);
-  for (var i = 0; i < arguments.length; i++)
-    args[i] = arguments[i];
-  // TODO(joyeecheung): use destructuring when V8 is fast enough
+Server.prototype.listen = function(...args) {
   var normalized = normalizeArgs(args);
   var options = normalized[0];
   var cb = normalized[1];
@@ -1546,11 +1557,13 @@ Server.prototype.getConnections = function(cb) {
   const self = this;
 
   function end(err, connections) {
-    nextTick(self[async_id_symbol], cb, err, connections);
+    const asyncId = self._handle ? self[async_id_symbol] : null;
+    nextTick(asyncId, cb, err, connections);
   }
 
   if (!this._usingSlaves) {
-    return end(null, this._connections);
+    end(null, this._connections);
+    return this;
   }
 
   // Poll slaves
@@ -1570,6 +1583,8 @@ Server.prototype.getConnections = function(cb) {
   for (var n = 0; n < this._slaves.length; n++) {
     this._slaves[n].getConnections(oncount);
   }
+
+  return this;
 };
 
 

@@ -1,10 +1,9 @@
 'use strict';
 
 const common = require('../common');
-if (!common.hasCrypto) {
+if (!common.hasCrypto)
   common.skip('missing crypto');
-  return;
-}
+
 const assert = require('assert');
 const async_hooks = require('async_hooks');
 const call_log = [0, 0, 0, 0];  // [before, callback, exception, after];
@@ -35,13 +34,13 @@ hooks = async_hooks.createHook({
 
 
 process.on('uncaughtException', common.mustCall(() => {
-  assert.strictEqual(call_id, async_hooks.currentId());
+  assert.strictEqual(call_id, async_hooks.executionAsyncId());
   call_log[2]++;
 }));
 
 
 require('crypto').randomBytes(1, common.mustCall(() => {
-  assert.strictEqual(call_id, async_hooks.currentId());
+  assert.strictEqual(call_id, async_hooks.executionAsyncId());
   call_log[1]++;
   throw new Error('ah crap');
 }));

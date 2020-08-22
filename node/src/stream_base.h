@@ -89,6 +89,17 @@ class WriteWrap: public ReqWrap<uv_write_t>,
 
   static const size_t kAlignSize = 16;
 
+  WriteWrap(Environment* env,
+            v8::Local<v8::Object> obj,
+            StreamBase* wrap,
+            DoneCb cb)
+      : ReqWrap(env, obj, AsyncWrap::PROVIDER_WRITEWRAP),
+        StreamReq<WriteWrap>(cb),
+        wrap_(wrap),
+        storage_size_(0) {
+    Wrap(obj, this);
+  }
+
  protected:
   WriteWrap(Environment* env,
             v8::Local<v8::Object> obj,
@@ -232,6 +243,11 @@ class StreamBase : public StreamResource {
   inline void Consume() {
     CHECK_EQ(consumed_, false);
     consumed_ = true;
+  }
+
+  inline void Unconsume() {
+    CHECK_EQ(consumed_, true);
+    consumed_ = false;
   }
 
   template <class Outer>

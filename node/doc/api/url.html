@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>URL | Node.js v8.1.1 Documentation</title>
+  <title>URL | Node.js v8.4.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -42,8 +42,10 @@
 <li><a class="nav-fs" href="fs.html">File System</a></li>
 <li><a class="nav-globals" href="globals.html">Globals</a></li>
 <li><a class="nav-http" href="http.html">HTTP</a></li>
+<li><a class="nav-http2" href="http2.html">HTTP/2</a></li>
 <li><a class="nav-https" href="https.html">HTTPS</a></li>
 <li><a class="nav-inspector" href="inspector.html">Inspector</a></li>
+<li><a class="nav-intl" href="intl.html">Internationalization</a></li>
 <li><a class="nav-modules" href="modules.html">Modules</a></li>
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
@@ -77,7 +79,7 @@
 
     <div id="column1" data-id="url" class="interior">
       <header>
-        <h1>Node.js v8.1.1 Documentation</h1>
+        <h1>Node.js v8.4.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -226,10 +228,15 @@ const myURL =
 <h2>The WHATWG URL API<span><a class="mark" href="#url_the_whatwg_url_api" id="url_the_whatwg_url_api">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v7.0.0</span>
-</div><p><em>Note</em>: Using the <code>delete</code> keyword on <code>URL</code> objects (e.g.
-<code>delete myURL.protocol</code>, <code>delete myURL.pathname</code>, etc) has no effect but will
-still return <code>true</code>.</p>
-<h3>Class: URL<span><a class="mark" href="#url_class_url" id="url_class_url">#</a></span></h3>
+</div><h3>Class: URL<span><a class="mark" href="#url_class_url" id="url_class_url">#</a></span></h3>
+<p>Browser-compatible <code>URL</code> class, implemented by following the WHATWG URL
+Standard. <a href="https://url.spec.whatwg.org/#example-url-parsing">Examples of parsed URLs</a> may be found in the Standard itself.</p>
+<p><em>Note</em>: In accordance with browser conventions, all properties of <code>URL</code> objects
+are implemented as getters and setters on the class prototype, rather than as
+data properties on the object itself. Thus, unlike <a href="#url_legacy_urlobject">legacy urlObject</a>s, using
+the <code>delete</code> keyword on any properties of <code>URL</code> objects (e.g. <code>delete
+myURL.protocol</code>, <code>delete myURL.pathname</code>, etc) has no effect but will still
+return <code>true</code>.</p>
 <h4>Constructor: new URL(input[, base])<span><a class="mark" href="#url_constructor_new_url_input_base" id="url_constructor_new_url_input_base">#</a></span></h4>
 <div class="signature"><ul>
 <li><code>input</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> The input URL to parse</li>
@@ -240,22 +247,23 @@ absolute.</li>
 <code>base</code> is passed as a string, it will be parsed equivalent to <code>new URL(base)</code>.</p>
 <pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
 const myURL = new URL(&#39;/foo&#39;, &#39;https://example.org/&#39;);
-  // https://example.org/foo
+// https://example.org/foo
 </code></pre>
 <p>A <code>TypeError</code> will be thrown if the <code>input</code> or <code>base</code> are not valid URLs. Note
 that an effort will be made to coerce the given values into strings. For
 instance:</p>
 <pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
 const myURL = new URL({ toString: () =&gt; &#39;https://example.org/&#39; });
-  // https://example.org/
+// https://example.org/
 </code></pre>
 <p>Unicode characters appearing within the hostname of <code>input</code> will be
 automatically converted to ASCII using the <a href="https://tools.ietf.org/html/rfc5891#section-4.4">Punycode</a> algorithm.</p>
 <pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
 const myURL = new URL(&#39;https://你好你好&#39;);
-  // https://xn--6qqa088eba/
+// https://xn--6qqa088eba/
 </code></pre>
-<p>Additional <a href="https://url.spec.whatwg.org/#example-url-parsing">examples of parsed URLs</a> may be found in the WHATWG URL Standard.</p>
+<p><em>Note</em>: This feature is only available if the <code>node</code> executable was compiled
+with <a href="intl.html#intl_options_for_building_node_js">ICU</a> enabled. If not, the domain names are passed through unchanged.</p>
 <h4>url.hash<span><a class="mark" href="#url_url_hash" id="url_url_hash">#</a></span></h4>
 <div class="signature"><ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
@@ -264,11 +272,11 @@ const myURL = new URL(&#39;https://你好你好&#39;);
 <pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
 const myURL = new URL(&#39;https://example.org/foo#bar&#39;);
 console.log(myURL.hash);
-  // Prints #bar
+// Prints #bar
 
 myURL.hash = &#39;baz&#39;;
 console.log(myURL.href);
-  // Prints https://example.org/foo#baz
+// Prints https://example.org/foo#baz
 </code></pre>
 <p>Invalid URL characters included in the value assigned to the <code>hash</code> property
 are <a href="#whatwg-percent-encoding">percent-encoded</a>. Note that the selection of which characters to
@@ -282,11 +290,11 @@ percent-encode may vary somewhat from what the <a href="#url_url_parse_urlstring
 <pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
 const myURL = new URL(&#39;https://example.org:81/foo&#39;);
 console.log(myURL.host);
-  // Prints example.org:81
+// Prints example.org:81
 
 myURL.host = &#39;example.com:82&#39;;
 console.log(myURL.href);
-  // Prints https://example.com:82/foo
+// Prints https://example.com:82/foo
 </code></pre>
 <p>Invalid host values assigned to the <code>host</code> property are ignored.</p>
 <h4>url.hostname<span><a class="mark" href="#url_url_hostname" id="url_url_hostname">#</a></span></h4>
@@ -299,11 +307,11 @@ port.</p>
 <pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
 const myURL = new URL(&#39;https://example.org:81/foo&#39;);
 console.log(myURL.hostname);
-  // Prints example.org
+// Prints example.org
 
 myURL.hostname = &#39;example.com:82&#39;;
 console.log(myURL.href);
-  // Prints https://example.com:81/foo
+// Prints https://example.com:81/foo
 </code></pre>
 <p>Invalid hostname values assigned to the <code>hostname</code> property are ignored.</p>
 <h4>url.href<span><a class="mark" href="#url_url_href" id="url_url_href">#</a></span></h4>
@@ -314,11 +322,11 @@ console.log(myURL.href);
 <pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
 const myURL = new URL(&#39;https://example.org/foo&#39;);
 console.log(myURL.href);
-  // Prints https://example.org/foo
+// Prints https://example.org/foo
 
 myURL.href = &#39;https://example.com/bar&#39;;
 console.log(myURL.href);
-  // Prints https://example.com/bar
+// Prints https://example.com/bar
 </code></pre>
 <p>Getting the value of the <code>href</code> property is equivalent to calling
 <a href="#url_url_tostring"><code>url.toString()</code></a>.</p>
@@ -331,21 +339,19 @@ will be thrown.</p>
 <div class="signature"><ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a></li>
 </ul>
-</div><p>Gets the read-only serialization of the URL&#39;s origin. Unicode characters that
-may be contained within the hostname will be encoded as-is without <a href="https://tools.ietf.org/html/rfc5891#section-4.4">Punycode</a>
-encoding.</p>
+</div><p>Gets the read-only serialization of the URL&#39;s origin.</p>
 <pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
 const myURL = new URL(&#39;https://example.org/foo/bar?baz&#39;);
 console.log(myURL.origin);
-  // Prints https://example.org
+// Prints https://example.org
 </code></pre>
 <pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
 const idnURL = new URL(&#39;https://你好你好&#39;);
 console.log(idnURL.origin);
-  // Prints https://你好你好
+// Prints https://xn--6qqa088eba
 
 console.log(idnURL.hostname);
-  // Prints xn--6qqa088eba
+// Prints xn--6qqa088eba
 </code></pre>
 <h4>url.password<span><a class="mark" href="#url_url_password" id="url_url_password">#</a></span></h4>
 <div class="signature"><ul>
@@ -355,11 +361,11 @@ console.log(idnURL.hostname);
 <pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
 const myURL = new URL(&#39;https://abc:xyz@example.com&#39;);
 console.log(myURL.password);
-  // Prints xyz
+// Prints xyz
 
 myURL.password = &#39;123&#39;;
 console.log(myURL.href);
-  // Prints https://abc:123@example.com
+// Prints https://abc:123@example.com
 </code></pre>
 <p>Invalid URL characters included in the value assigned to the <code>password</code> property
 are <a href="#whatwg-percent-encoding">percent-encoded</a>. Note that the selection of which characters to
@@ -373,11 +379,11 @@ percent-encode may vary somewhat from what the <a href="#url_url_parse_urlstring
 <pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
 const myURL = new URL(&#39;https://example.org/abc/xyz?123&#39;);
 console.log(myURL.pathname);
-  // Prints /abc/xyz
+// Prints /abc/xyz
 
 myURL.pathname = &#39;/abcdef&#39;;
 console.log(myURL.href);
-  // Prints https://example.org/abcdef?123
+// Prints https://example.org/abcdef?123
 </code></pre>
 <p>Invalid URL characters included in the value assigned to the <code>pathname</code>
 property are <a href="#whatwg-percent-encoding">percent-encoded</a>. Note that the selection of which characters
@@ -391,41 +397,41 @@ to percent-encode may vary somewhat from what the <a href="#url_url_parse_urlstr
 <pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
 const myURL = new URL(&#39;https://example.org:8888&#39;);
 console.log(myURL.port);
-  // Prints 8888
+// Prints 8888
 
 // Default ports are automatically transformed to the empty string
 // (HTTPS protocol&#39;s default port is 443)
 myURL.port = &#39;443&#39;;
 console.log(myURL.port);
-  // Prints the empty string
+// Prints the empty string
 console.log(myURL.href);
-  // Prints https://example.org/
+// Prints https://example.org/
 
 myURL.port = 1234;
 console.log(myURL.port);
-  // Prints 1234
+// Prints 1234
 console.log(myURL.href);
-  // Prints https://example.org:1234/
+// Prints https://example.org:1234/
 
 // Completely invalid port strings are ignored
 myURL.port = &#39;abcd&#39;;
 console.log(myURL.port);
-  // Prints 1234
+// Prints 1234
 
 // Leading numbers are treated as a port number
 myURL.port = &#39;5678abcd&#39;;
 console.log(myURL.port);
-  // Prints 5678
+// Prints 5678
 
 // Non-integers are truncated
 myURL.port = 1234.5678;
 console.log(myURL.port);
-  // Prints 1234
+// Prints 1234
 
 // Out-of-range numbers are ignored
 myURL.port = 1e10;
 console.log(myURL.port);
-  // Prints 1234
+// Prints 1234
 </code></pre>
 <p>The port value may be set as either a number or as a String containing a number
 in the range <code>0</code> to <code>65535</code> (inclusive). Setting the value to the default port
@@ -442,11 +448,11 @@ lies outside the range denoted above, it is ignored.</p>
 <pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
 const myURL = new URL(&#39;https://example.org&#39;);
 console.log(myURL.protocol);
-  // Prints https:
+// Prints https:
 
 myURL.protocol = &#39;ftp&#39;;
 console.log(myURL.href);
-  // Prints ftp://example.org/
+// Prints ftp://example.org/
 </code></pre>
 <p>Invalid URL protocol values assigned to the <code>protocol</code> property are ignored.</p>
 <h4>url.search<span><a class="mark" href="#url_url_search" id="url_url_search">#</a></span></h4>
@@ -457,11 +463,11 @@ console.log(myURL.href);
 <pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
 const myURL = new URL(&#39;https://example.org/abc?123&#39;);
 console.log(myURL.search);
-  // Prints ?123
+// Prints ?123
 
 myURL.search = &#39;abc=xyz&#39;;
 console.log(myURL.href);
-  // Prints https://example.org/abc?abc=xyz
+// Prints https://example.org/abc?abc=xyz
 </code></pre>
 <p>Any invalid URL characters appearing in the value assigned the <code>search</code>
 property will be <a href="#whatwg-percent-encoding">percent-encoded</a>. Note that the selection of which
@@ -483,11 +489,11 @@ documentation for details.</p>
 <pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
 const myURL = new URL(&#39;https://abc:xyz@example.com&#39;);
 console.log(myURL.username);
-  // Prints abc
+// Prints abc
 
 myURL.username = &#39;123&#39;;
 console.log(myURL.href);
-  // Prints https://123:xyz@example.com/
+// Prints https://123:xyz@example.com/
 </code></pre>
 <p>Any invalid URL characters appearing in the value assigned the <code>username</code>
 property will be <a href="#whatwg-percent-encoding">percent-encoded</a>. Note that the selection of which
@@ -517,7 +523,7 @@ const myURLs = [
   new URL(&#39;https://test.example.org&#39;)
 ];
 console.log(JSON.stringify(myURLs));
-  // Prints [&quot;https://www.example.com/&quot;,&quot;https://test.example.org/&quot;]
+// Prints [&quot;https://www.example.com/&quot;,&quot;https://test.example.org/&quot;]
 </code></pre>
 <h3>Class: URLSearchParams<span><a class="mark" href="#url_class_urlsearchparams" id="url_class_urlsearchparams">#</a></span></h3>
 <div class="api_metadata">
@@ -533,16 +539,16 @@ On the other hand, this API is designed purely for URL query strings.</p>
 
 const myURL = new URL(&#39;https://example.org/?abc=123&#39;);
 console.log(myURL.searchParams.get(&#39;abc&#39;));
-  // Prints 123
+// Prints 123
 
 myURL.searchParams.append(&#39;abc&#39;, &#39;xyz&#39;);
 console.log(myURL.href);
-  // Prints https://example.org/?abc=123&amp;abc=xyz
+// Prints https://example.org/?abc=123&amp;abc=xyz
 
 myURL.searchParams.delete(&#39;abc&#39;);
 myURL.searchParams.set(&#39;a&#39;, &#39;b&#39;);
 console.log(myURL.href);
-  // Prints https://example.org/?a=b
+// Prints https://example.org/?a=b
 
 const newSearchParams = new URLSearchParams(myURL.searchParams);
 // The above is equivalent to
@@ -550,17 +556,17 @@ const newSearchParams = new URLSearchParams(myURL.searchParams);
 
 newSearchParams.append(&#39;a&#39;, &#39;c&#39;);
 console.log(myURL.href);
-  // Prints https://example.org/?a=b
+// Prints https://example.org/?a=b
 console.log(newSearchParams.toString());
-  // Prints a=b&amp;a=c
+// Prints a=b&amp;a=c
 
 // newSearchParams.toString() is implicitly called
 myURL.search = newSearchParams;
 console.log(myURL.href);
-  // Prints https://example.org/?a=b&amp;a=c
+// Prints https://example.org/?a=b&amp;a=c
 newSearchParams.delete(&#39;a&#39;);
 console.log(myURL.href);
-  // Prints https://example.org/?a=b&amp;a=c
+// Prints https://example.org/?a=b&amp;a=c
 </code></pre>
 <h4>Constructor: new URLSearchParams()<span><a class="mark" href="#url_constructor_new_urlsearchparams" id="url_constructor_new_urlsearchparams">#</a></span></h4>
 <p>Instantiate a new empty <code>URLSearchParams</code> object.</p>
@@ -575,13 +581,13 @@ let params;
 
 params = new URLSearchParams(&#39;user=abc&amp;query=xyz&#39;);
 console.log(params.get(&#39;user&#39;));
-  // Prints &#39;abc&#39;
+// Prints &#39;abc&#39;
 console.log(params.toString());
-  // Prints &#39;user=abc&amp;query=xyz&#39;
+// Prints &#39;user=abc&amp;query=xyz&#39;
 
 params = new URLSearchParams(&#39;?user=abc&amp;query=xyz&#39;);
 console.log(params.toString());
-  // Prints &#39;user=abc&amp;query=xyz&#39;
+// Prints &#39;user=abc&amp;query=xyz&#39;
 </code></pre>
 <h4>Constructor: new URLSearchParams(obj)<span><a class="mark" href="#url_constructor_new_urlsearchparams_obj" id="url_constructor_new_urlsearchparams_obj">#</a></span></h4>
 <div class="api_metadata">
@@ -600,9 +606,9 @@ const params = new URLSearchParams({
   query: [&#39;first&#39;, &#39;second&#39;]
 });
 console.log(params.getAll(&#39;query&#39;));
-  // Prints [ &#39;first,second&#39; ]
+// Prints [ &#39;first,second&#39; ]
 console.log(params.toString());
-  // Prints &#39;user=abc&amp;query=first%2Csecond&#39;
+// Prints &#39;user=abc&amp;query=first%2Csecond&#39;
 </code></pre>
 <h4>Constructor: new URLSearchParams(iterable)<span><a class="mark" href="#url_constructor_new_urlsearchparams_iterable" id="url_constructor_new_urlsearchparams_iterable">#</a></span></h4>
 <div class="api_metadata">
@@ -627,7 +633,7 @@ params = new URLSearchParams([
   [&#39;query&#39;, &#39;second&#39;]
 ]);
 console.log(params.toString());
-  // Prints &#39;user=abc&amp;query=first&amp;query=second&#39;
+// Prints &#39;user=abc&amp;query=first&amp;query=second&#39;
 
 // Using a Map object
 const map = new Map();
@@ -635,7 +641,7 @@ map.set(&#39;user&#39;, &#39;abc&#39;);
 map.set(&#39;query&#39;, &#39;xyz&#39;);
 params = new URLSearchParams(map);
 console.log(params.toString());
-  // Prints &#39;user=abc&amp;query=xyz&#39;
+// Prints &#39;user=abc&amp;query=xyz&#39;
 
 // Using a generator function
 function* getQueryPairs() {
@@ -645,14 +651,14 @@ function* getQueryPairs() {
 }
 params = new URLSearchParams(getQueryPairs());
 console.log(params.toString());
-  // Prints &#39;user=abc&amp;query=first&amp;query=second&#39;
+// Prints &#39;user=abc&amp;query=first&amp;query=second&#39;
 
 // Each key-value pair must have exactly two elements
 new URLSearchParams([
   [&#39;user&#39;, &#39;abc&#39;, &#39;error&#39;]
 ]);
-  // Throws TypeError [ERR_INVALID_TUPLE]:
-  //        Each query pair must be an iterable [name, value] tuple
+// Throws TypeError [ERR_INVALID_TUPLE]:
+//        Each query pair must be an iterable [name, value] tuple
 </code></pre>
 <h4>urlSearchParams.append(name, value)<span><a class="mark" href="#url_urlsearchparams_append_name_value" id="url_urlsearchparams_append_name_value">#</a></span></h4>
 <div class="signature"><ul>
@@ -684,9 +690,9 @@ const myURL = new URL(&#39;https://example.org/?a=b&amp;c=d&#39;);
 myURL.searchParams.forEach((value, name, searchParams) =&gt; {
   console.log(name, value, myURL.searchParams === searchParams);
 });
-  // Prints:
-  // a b true
-  // c d true
+// Prints:
+//   a b true
+//   c d true
 </code></pre>
 <h4>urlSearchParams.get(name)<span><a class="mark" href="#url_urlsearchparams_get_name" id="url_urlsearchparams_get_name">#</a></span></h4>
 <div class="signature"><ul>
@@ -719,9 +725,9 @@ const params = new URLSearchParams(&#39;foo=bar&amp;foo=baz&#39;);
 for (const name of params.keys()) {
   console.log(name);
 }
-  // Prints:
-  // foo
-  // foo
+// Prints:
+//   foo
+//   foo
 </code></pre>
 <h4>urlSearchParams.set(name, value)<span><a class="mark" href="#url_urlsearchparams_set_name_value" id="url_urlsearchparams_set_name_value">#</a></span></h4>
 <div class="signature"><ul>
@@ -739,12 +745,12 @@ params.append(&#39;foo&#39;, &#39;bar&#39;);
 params.append(&#39;foo&#39;, &#39;baz&#39;);
 params.append(&#39;abc&#39;, &#39;def&#39;);
 console.log(params.toString());
-  // Prints foo=bar&amp;foo=baz&amp;abc=def
+// Prints foo=bar&amp;foo=baz&amp;abc=def
 
 params.set(&#39;foo&#39;, &#39;def&#39;);
 params.set(&#39;xyz&#39;, &#39;opq&#39;);
 console.log(params.toString());
-  // Prints foo=def&amp;abc=def&amp;xyz=opq
+// Prints foo=def&amp;abc=def&amp;xyz=opq
 </code></pre>
 <h4>urlSearchParams.sort()<span><a class="mark" href="#url_urlsearchparams_sort" id="url_urlsearchparams_sort">#</a></span></h4>
 <div class="api_metadata">
@@ -757,7 +763,7 @@ with the same name is preserved.</p>
 const params = new URLSearchParams(&#39;query[]=abc&amp;type=search&amp;query[]=123&#39;);
 params.sort();
 console.log(params.toString());
-  // Prints query%5B%5D=abc&amp;query%5B%5D=123&amp;type=search
+// Prints query%5B%5D=abc&amp;query%5B%5D=123&amp;type=search
 </code></pre>
 <h4>urlSearchParams.toString()<span><a class="mark" href="#url_urlsearchparams_tostring" id="url_urlsearchparams_tostring">#</a></span></h4>
 <div class="signature"><ul>
@@ -783,9 +789,9 @@ const params = new URLSearchParams(&#39;foo=bar&amp;xyz=baz&#39;);
 for (const [name, value] of params) {
   console.log(name, value);
 }
-  // Prints:
-  // foo bar
-  // xyz baz
+// Prints:
+//   foo bar
+//   xyz baz
 </code></pre>
 <h3>url.domainToASCII(domain)<span><a class="mark" href="#url_url_domaintoascii_domain" id="url_url_domaintoascii_domain">#</a></span></h3>
 <div class="api_metadata">
@@ -799,11 +805,11 @@ invalid domain, the empty string is returned.</p>
 <p>It performs the inverse operation to <a href="#url_url_domaintounicode_domain"><code>url.domainToUnicode()</code></a>.</p>
 <pre><code class="lang-js">const url = require(&#39;url&#39;);
 console.log(url.domainToASCII(&#39;español.com&#39;));
-  // Prints xn--espaol-zwa.com
+// Prints xn--espaol-zwa.com
 console.log(url.domainToASCII(&#39;中文.com&#39;));
-  // Prints xn--fiq228c.com
+// Prints xn--fiq228c.com
 console.log(url.domainToASCII(&#39;xn--iñvalid.com&#39;));
-  // Prints an empty string
+// Prints an empty string
 </code></pre>
 <h3>url.domainToUnicode(domain)<span><a class="mark" href="#url_url_domaintounicode_domain" id="url_url_domaintounicode_domain">#</a></span></h3>
 <div class="api_metadata">
@@ -817,11 +823,11 @@ domain, the empty string is returned.</p>
 <p>It performs the inverse operation to <a href="#url_url_domaintoascii_domain"><code>url.domainToASCII()</code></a>.</p>
 <pre><code class="lang-js">const url = require(&#39;url&#39;);
 console.log(url.domainToUnicode(&#39;xn--espaol-zwa.com&#39;));
-  // Prints español.com
+// Prints español.com
 console.log(url.domainToUnicode(&#39;xn--fiq228c.com&#39;));
-  // Prints 中文.com
+// Prints 中文.com
 console.log(url.domainToUnicode(&#39;xn--iñvalid.com&#39;));
-  // Prints an empty string
+// Prints an empty string
 </code></pre>
 <h3>url.format(URL[, options])<span><a class="mark" href="#url_url_format_url_options" id="url_url_format_url_options">#</a></span></h3>
 <div class="api_metadata">
@@ -852,13 +858,13 @@ of the output.</p>
 const myURL = new URL(&#39;https://a:b@你好你好?abc#foo&#39;);
 
 console.log(myURL.href);
-  // Prints https://a:b@xn--6qqa088eba/?abc#foo
+// Prints https://a:b@xn--6qqa088eba/?abc#foo
 
 console.log(myURL.toString());
-  // Prints https://a:b@xn--6qqa088eba/?abc#foo
+// Prints https://a:b@xn--6qqa088eba/?abc#foo
 
 console.log(url.format(myURL, { fragment: false, unicode: true, auth: false }));
-  // Prints &#39;https://你好你好/?abc&#39;
+// Prints &#39;https://你好你好/?abc&#39;
 </code></pre>
 <h2>Legacy URL API<span><a class="mark" href="#url_legacy_url_api" id="url_legacy_url_api">#</a></span></h2>
 <h3>Legacy urlObject<span><a class="mark" href="#url_legacy_urlobject" id="url_legacy_urlobject">#</a></span></h3>
@@ -924,7 +930,17 @@ forward-slash characters (<code>/</code>) are required following the colon in th
 <code>protocol</code>.</p>
 <h3>url.format(urlObject)<span><a class="mark" href="#url_url_format_urlobject" id="url_url_format_urlobject">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.1.25</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v7.0.0</td>
+<td><p>URLs with a <code>file:</code> scheme will now always use the correct number of slashes regardless of <code>slashes</code> option. A false-y <code>slashes</code> option with no protocol is now also respected at all times.</p>
+</td></tr>
+<tr><td>v0.1.25</td>
+<td><p><span>Added in: v0.1.25</span></p>
+</td></tr>
+</table>
+</details>
 </div><ul>
 <li><code>urlObject</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&lt;Object&gt;</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&lt;string&gt;</a> A URL object (as returned by <code>url.parse()</code> or
 constructed otherwise). If a string, it is converted to an object by passing
@@ -1090,9 +1106,9 @@ using the <a href="https://tools.ietf.org/html/rfc5891#section-4.4">Punycode</a>
 <pre><code class="lang-js">const { URL } = require(&#39;url&#39;);
 const myURL = new URL(&#39;https://%CF%80.com/foo&#39;);
 console.log(myURL.href);
-  // Prints https://xn--1xa.com/foo
+// Prints https://xn--1xa.com/foo
 console.log(myURL.origin);
-  // Prints https://π.com
+// Prints https://π.com
 </code></pre>
 
       </div>

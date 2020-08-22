@@ -1,5 +1,6 @@
 'use strict';
 const common = require('../common');
+common.skipIfInspectorDisabled();
 
 // Test inspector open()/close()/url() API. It uses ephemeral ports so can be
 // run safely in parallel.
@@ -8,8 +9,6 @@ const assert = require('assert');
 const fork = require('child_process').fork;
 const net = require('net');
 const url = require('url');
-
-common.skipIfInspectorDisabled();
 
 if (process.env.BE_CHILD)
   return beChild();
@@ -69,7 +68,6 @@ function tryToCloseWhenClosed(msg) {
 function reopenAfterClose(msg) {
   assert.strictEqual(msg.cmd, 'url');
   const port = url.parse(msg.url).port;
-  assert.notStrictEqual(port, firstPort);
   ping(port, (err) => {
     assert.ifError(err);
     process.exit();

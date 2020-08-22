@@ -193,11 +193,12 @@ The character encodings currently supported by Node.js include:
 
 * `'hex'` - Encode each byte as two hexadecimal characters.
 
-*Note*: Today's browsers follow the [WHATWG spec] which aliases both 'latin1'
-and ISO-8859-1 to win-1252. This means that while doing something like
-`http.get()`, if the returned charset is one of those listed in the WHATWG spec
-it's possible that the server actually returned win-1252-encoded data, and
-using `'latin1'` encoding may incorrectly decode the characters.
+*Note*: Today's browsers follow the [WHATWG Encoding Standard][] which aliases
+both 'latin1' and ISO-8859-1 to win-1252. This means that while doing something
+like `http.get()`, if the returned charset is one of those listed in the WHATWG
+specification it is possible that the server actually returned
+win-1252-encoded data, and using `'latin1'` encoding may incorrectly decode the
+characters.
 
 ## Buffers and TypedArray
 <!-- YAML
@@ -447,8 +448,8 @@ changes:
 * `size` {integer} The desired length of the new `Buffer`
 
 Allocates a new `Buffer` of `size` bytes.  If the `size` is larger than
-[`buffer.kMaxLength`] or smaller than 0, a [`RangeError`] will be thrown.
-A zero-length `Buffer` will be created if `size` is 0.
+[`buffer.constants.MAX_LENGTH`] or smaller than 0, a [`RangeError`] will be
+thrown. A zero-length `Buffer` will be created if `size` is 0.
 
 Prior to Node.js 8.0.0, the underlying memory for `Buffer` instances
 created in this way is *not initialized*. The contents of a newly created
@@ -528,8 +529,8 @@ console.log(buf);
 ```
 
 Allocates a new `Buffer` of `size` bytes.  If the `size` is larger than
-[`buffer.kMaxLength`] or smaller than 0, a [`RangeError`] will be thrown.
-A zero-length `Buffer` will be created if `size` is 0.
+[`buffer.constants.MAX_LENGTH`] or smaller than 0, a [`RangeError`] will be
+thrown. A zero-length `Buffer` will be created if `size` is 0.
 
 If `fill` is specified, the allocated `Buffer` will be initialized by calling
 [`buf.fill(fill)`][`buf.fill()`].
@@ -573,8 +574,8 @@ changes:
 * `size` {integer} The desired length of the new `Buffer`
 
 Allocates a new `Buffer` of `size` bytes.  If the `size` is larger than
-[`buffer.kMaxLength`] or smaller than 0, a [`RangeError`] will be thrown.
-A zero-length `Buffer` will be created if `size` is 0.
+[`buffer.constants.MAX_LENGTH`] or smaller than 0, a [`RangeError`] will be
+thrown. A zero-length `Buffer` will be created if `size` is 0.
 
 The underlying memory for `Buffer` instances created in this way is *not
 initialized*. The contents of the newly created `Buffer` are unknown and
@@ -619,8 +620,8 @@ added: v5.10.0
 * `size` {integer} The desired length of the new `Buffer`
 
 Allocates a new `Buffer` of `size` bytes.  If the `size` is larger than
-[`buffer.kMaxLength`] or smaller than 0, a [`RangeError`] will be thrown.
-A zero-length `Buffer` will be created if `size` is 0.
+[`buffer.constants.MAX_LENGTH`] or smaller than 0, a [`RangeError`] will be
+thrown. A zero-length `Buffer` will be created if `size` is 0.
 
 The underlying memory for `Buffer` instances created in this way is *not
 initialized*. The contents of the newly created `Buffer` are unknown and
@@ -907,6 +908,44 @@ console.log(buf2.toString());
 ```
 
 A `TypeError` will be thrown if `str` is not a string.
+
+### Class Method: Buffer.from(object[, offsetOrEncoding[, length]])
+<!-- YAML
+added: v8.2.0
+-->
+
+* `object` {Object} An object supporting `Symbol.toPrimitive` or `valueOf()`
+* `offsetOrEncoding` {number|string} A byte-offset or encoding, depending on
+  the value returned either by `object.valueOf()` or
+  `object[Symbol.toPrimitive]()`.
+* `length` {number} A length, depending on the value returned either by
+  `object.valueOf()` or `object[Symbol.toPrimitive]()`.
+
+For objects whose `valueOf()` function returns a value not strictly equal to
+`object`, returns `Buffer.from(object.valueOf(), offsetOrEncoding, length)`.
+
+For example:
+
+```js
+const buf = Buffer.from(new String('this is a test'));
+// <Buffer 74 68 69 73 20 69 73 20 61 20 74 65 73 74>
+```
+
+For objects that support `Symbol.toPrimitive`, returns
+`Buffer.from(object[Symbol.toPrimitive](), offsetOrEncoding, length)`.
+
+For example:
+
+```js
+class Foo {
+  [Symbol.toPrimitive]() {
+    return 'this is a test';
+  }
+}
+
+const buf = Buffer.from(new Foo(), 'utf8');
+// <Buffer 74 68 69 73 20 69 73 20 61 20 74 65 73 74>
+```
 
 ### Class Method: Buffer.isBuffer(obj)
 <!-- YAML
@@ -1868,6 +1907,9 @@ changes:
 Returns a new `Buffer` that references the same memory as the original, but
 offset and cropped by the `start` and `end` indices.
 
+Specifying `end` greater than [`buf.length`] will return the same result as
+that of `end` equal to [`buf.length`].
+
 *Note*: Modifying the new `Buffer` slice will modify the memory in the
 original `Buffer` because the allocated memory of the two objects overlap.
 
@@ -2049,6 +2091,9 @@ added: v0.1.90
 
 Decodes `buf` to a string according to the specified character encoding in
 `encoding`. `start` and `end` may be passed to decode only a subset of `buf`.
+
+The maximum length of a string instance (in UTF-16 code units) is available
+as [`buffer.constants.MAX_STRING_LENGTH`][].
 
 Examples:
 
@@ -2507,8 +2552,7 @@ added: v3.0.0
 
 * {integer} The largest size allowed for a single `Buffer` instance
 
-On 32-bit architectures, this value is `(2^30)-1` (~1GB).
-On 64-bit architectures, this value is `(2^31)-1` (~2GB).
+An alias for [`buffer.constants.MAX_LENGTH`][]
 
 Note that this is a property on the `buffer` module returned by
 `require('buffer')`, not on the `Buffer` global or a `Buffer` instance.
@@ -2599,8 +2643,8 @@ deprecated: v6.0.0
 * `size` {integer} The desired length of the new `SlowBuffer`
 
 Allocates a new `Buffer` of `size` bytes.  If the `size` is larger than
-[`buffer.kMaxLength`] or smaller than 0, a [`RangeError`] will be thrown.
-A zero-length `Buffer` will be created if `size` is 0.
+[`buffer.constants.MAX_LENGTH`] or smaller than 0, a [`RangeError`] will be
+thrown. A zero-length `Buffer` will be created if `size` is 0.
 
 The underlying memory for `SlowBuffer` instances is *not initialized*. The
 contents of a newly created `SlowBuffer` are unknown and may contain
@@ -2621,6 +2665,38 @@ buf.fill(0);
 // Prints: <Buffer 00 00 00 00 00>
 console.log(buf);
 ```
+
+## Buffer Constants
+<!-- YAML
+added: 8.2.0
+-->
+
+Note that `buffer.constants` is a property on the `buffer` module returned by
+`require('buffer')`, not on the `Buffer` global or a `Buffer` instance.
+
+### buffer.constants.MAX_LENGTH
+<!-- YAML
+added: 8.2.0
+-->
+
+* {integer} The largest size allowed for a single `Buffer` instance
+
+On 32-bit architectures, this value is `(2^30)-1` (~1GB).
+On 64-bit architectures, this value is `(2^31)-1` (~2GB).
+
+This value is also available as [`buffer.kMaxLength`][].
+
+### buffer.constants.MAX_STRING_LENGTH
+<!-- YAML
+added: 8.2.0
+-->
+
+* {integer} The largest length allowed for a single `string` instance
+
+Represents the largest `length` that a `string` primitive can have, counted
+in UTF-16 code units.
+
+This value may depend on the JS engine that is being used.
 
 [`ArrayBuffer#slice()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer/slice
 [`ArrayBuffer`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer
@@ -2652,8 +2728,10 @@ console.log(buf);
 [`buf.slice()`]: #buffer_buf_slice_start_end
 [`buf.values()`]: #buffer_buf_values
 [`buffer.kMaxLength`]: #buffer_buffer_kmaxlength
+[`buffer.constants.MAX_LENGTH`]: #buffer_buffer_constants_max_length
+[`buffer.constants.MAX_STRING_LENGTH`]: #buffer_buffer_constants_max_string_length
 [`util.inspect()`]: util.html#util_util_inspect_object_options
 [RFC1345]: https://tools.ietf.org/html/rfc1345
 [RFC4648, Section 5]: https://tools.ietf.org/html/rfc4648#section-5
-[WHATWG spec]: https://encoding.spec.whatwg.org/
+[WHATWG Encoding Standard]: https://encoding.spec.whatwg.org/
 [iterator]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Process | Node.js v8.1.1 Documentation</title>
+  <title>Process | Node.js v8.4.0 Documentation</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
@@ -42,8 +42,10 @@
 <li><a class="nav-fs" href="fs.html">File System</a></li>
 <li><a class="nav-globals" href="globals.html">Globals</a></li>
 <li><a class="nav-http" href="http.html">HTTP</a></li>
+<li><a class="nav-http2" href="http2.html">HTTP/2</a></li>
 <li><a class="nav-https" href="https.html">HTTPS</a></li>
 <li><a class="nav-inspector" href="inspector.html">Inspector</a></li>
+<li><a class="nav-intl" href="intl.html">Internationalization</a></li>
 <li><a class="nav-modules" href="modules.html">Modules</a></li>
 <li><a class="nav-net" href="net.html">Net</a></li>
 <li><a class="nav-os" href="os.html">OS</a></li>
@@ -77,7 +79,7 @@
 
     <div id="column1" data-id="process" class="interior">
       <header>
-        <h1>Node.js v8.1.1 Documentation</h1>
+        <h1>Node.js v8.4.0 Documentation</h1>
         <div id="gtoc">
           <p>
             <a href="index.html" name="toc">Index</a> |
@@ -429,7 +431,7 @@ of the custom deprecation.</p>
 <p>The <code>*-deprecation</code> command line flags only affect warnings that use the name
 <code>DeprecationWarning</code>.</p>
 <h4>Emitting custom warnings<span><a class="mark" href="#process_emitting_custom_warnings" id="process_emitting_custom_warnings">#</a></span></h4>
-<p>See the <a href="#process_process_emitwarning_warning_name_ctor"><code>process.emitWarning()</code></a> method for issuing
+<p>See the <a href="#process_process_emitwarning_warning_type_code_ctor"><code>process.emitWarning()</code></a> method for issuing
 custom or application-specific warnings.</p>
 <h3>Signal Events<span><a class="mark" href="#process_signal_events" id="process_signal_events">#</a></span></h3>
 <!--type=event-->
@@ -581,7 +583,7 @@ representation of the configure options used to compile the current Node.js
 executable. This is the same as the <code>config.gypi</code> file that was produced when
 running the <code>./configure</code> script.</p>
 <p>An example of the possible output looks like:</p>
-<!-- eslint-disable -->
+<!-- eslint-skip -->
 <pre><code class="lang-js">{
   target_defaults:
    { cflags: [],
@@ -798,7 +800,7 @@ emitMyWarning();
 <p>The <code>process.env</code> property returns an object containing the user environment.
 See <a href="http://man7.org/linux/man-pages/man7/environ.7.html">environ(7)</a>.</p>
 <p>An example of this object looks like:</p>
-<!-- eslint-disable -->
+<!-- eslint-skip -->
 <pre><code class="lang-js">{
   TERM: &#39;xterm-256color&#39;,
   SHELL: &#39;/usr/local/bin/bash&#39;,
@@ -1124,7 +1126,7 @@ of the Node.js process measured in bytes.</p>
 <pre><code class="lang-js">console.log(process.memoryUsage());
 </code></pre>
 <p>Will generate:</p>
-<!-- eslint-disable -->
+<!-- eslint-skip -->
 <pre><code class="lang-js">{
   rss: 4935680,
   heapTotal: 1826816,
@@ -1274,7 +1276,7 @@ builds of Node.js and will be missing on all other platforms.</em></li>
 If the Node.js release is not an LTS release, this will be <code>undefined</code>.</li>
 </ul>
 <p>For example:</p>
-<!-- eslint-disable -->
+<!-- eslint-skip -->
 <pre><code class="lang-js">{
   name: &#39;node&#39;,
   lts: &#39;Argon&#39;,
@@ -1518,9 +1520,9 @@ confusing in some (rather obscure) cases.</p>
 <li><code>mask</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&lt;number&gt;</a></li>
 </ul>
 <p>The <code>process.umask()</code> method sets or returns the Node.js process&#39;s file mode
-creation mask. Child processes inherit the mask from the parent process. The old
-mask is return if the <code>mask</code> argument is given, otherwise returns the current
-mask.</p>
+creation mask. Child processes inherit the mask from the parent process. Invoked
+without an argument, the current mask is returned, otherwise the umask is set to
+the argument value and the previous mask is returned.</p>
 <pre><code class="lang-js">const newmask = 0o022;
 const oldmask = process.umask(newmask);
 console.log(
@@ -1569,7 +1571,7 @@ to load modules that were compiled against a different module ABI version.</p>
 <pre><code class="lang-js">console.log(process.versions);
 </code></pre>
 <p>Will generate an object similar to:</p>
-<!-- eslint-disable -->
+<!-- eslint-skip -->
 <pre><code class="lang-js">{
   http_parser: &#39;2.3.0&#39;,
   node: &#39;1.1.1&#39;,

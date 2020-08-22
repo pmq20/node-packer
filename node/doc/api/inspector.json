@@ -99,7 +99,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Create a new instance of the <code>inspector.Session</code> class. The inspector session\nneeds to be connected through <a href=\"#sessionconnect\"><code>session.connect()</code></a> before the messages\ncan be dispatched to the inspector backend.</p>\n<p><code>inspector.Session</code> is an <a href=\"events.html#events_class_eventemitter\"><code>EventEmitter</code></a> with the following events:</p>\n",
+              "desc": "<p>Create a new instance of the <code>inspector.Session</code> class. The inspector session\nneeds to be connected through <a href=\"#inspector_session_connect\"><code>session.connect()</code></a> before the messages\ncan be dispatched to the inspector backend.</p>\n<p><code>inspector.Session</code> is an <a href=\"events.html#events_class_eventemitter\"><code>EventEmitter</code></a> with the following events:</p>\n",
               "signatures": [
                 {
                   "params": []
@@ -183,7 +183,7 @@
                 ],
                 "changes": []
               },
-              "desc": "<p>Immediately close the session. All pending message callbacks will be called\nwith an error. <a href=\"#sessionconnect\"><code>session.connect()</code></a> will need to be called to be able to send\nmessages again. Reconnected session will lose all inspector state, such as\nenabled agents or configured breakpoints.</p>\n",
+              "desc": "<p>Immediately close the session. All pending message callbacks will be called\nwith an error. <a href=\"#inspector_session_connect\"><code>session.connect()</code></a> will need to be called to be able to send\nmessages again. Reconnected session will lose all inspector state, such as\nenabled agents or configured breakpoints.</p>\n",
               "signatures": [
                 {
                   "params": []

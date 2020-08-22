@@ -21,51 +21,49 @@
 
 'use strict';
 const common = require('../common');
-const assert = require('assert');
-
-if (!common.hasCrypto) {
+if (!common.hasCrypto)
   common.skip('missing crypto');
-  return;
-}
+
+const assert = require('assert');
+const fs = require('fs');
+const path = require('path');
 const tls = require('tls');
 
-const fs = require('fs');
-
-const hosterr = /Hostname\/IP doesn't match certificate's altnames/g;
+const hosterr = /Hostname\/IP doesn't match certificate's altnames/;
 const testCases =
   [{ ca: ['ca1-cert'],
      key: 'agent2-key',
      cert: 'agent2-cert',
      servers: [
-         { ok: true, key: 'agent1-key', cert: 'agent1-cert' },
-         { ok: false, key: 'agent2-key', cert: 'agent2-cert' },
-         { ok: false, key: 'agent3-key', cert: 'agent3-cert' }
+      { ok: true, key: 'agent1-key', cert: 'agent1-cert' },
+      { ok: false, key: 'agent2-key', cert: 'agent2-cert' },
+      { ok: false, key: 'agent3-key', cert: 'agent3-cert' }
+    ]
+  },
+
+   { ca: [],
+     key: 'agent2-key',
+     cert: 'agent2-cert',
+     servers: [
+       { ok: false, key: 'agent1-key', cert: 'agent1-cert' },
+       { ok: false, key: 'agent2-key', cert: 'agent2-cert' },
+       { ok: false, key: 'agent3-key', cert: 'agent3-cert' }
      ]
-  },
+   },
 
-  { ca: [],
-    key: 'agent2-key',
-    cert: 'agent2-cert',
-    servers: [
-         { ok: false, key: 'agent1-key', cert: 'agent1-cert' },
-         { ok: false, key: 'agent2-key', cert: 'agent2-cert' },
-         { ok: false, key: 'agent3-key', cert: 'agent3-cert' }
-    ]
-  },
-
-  { ca: ['ca1-cert', 'ca2-cert'],
-    key: 'agent2-key',
-    cert: 'agent2-cert',
-    servers: [
-         { ok: true, key: 'agent1-key', cert: 'agent1-cert' },
-         { ok: false, key: 'agent2-key', cert: 'agent2-cert' },
-         { ok: true, key: 'agent3-key', cert: 'agent3-cert' }
-    ]
-  }
+   { ca: ['ca1-cert', 'ca2-cert'],
+     key: 'agent2-key',
+     cert: 'agent2-cert',
+     servers: [
+       { ok: true, key: 'agent1-key', cert: 'agent1-cert' },
+       { ok: false, key: 'agent2-key', cert: 'agent2-cert' },
+       { ok: true, key: 'agent3-key', cert: 'agent3-cert' }
+     ]
+   }
   ];
 
 function filenamePEM(n) {
-  return require('path').join(common.fixturesDir, 'keys', `${n}.pem`);
+  return path.join(common.fixturesDir, 'keys', `${n}.pem`);
 }
 
 

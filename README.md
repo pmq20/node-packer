@@ -10,7 +10,7 @@ http://enclose.io/nodec
 
 ## Features
 
-- Works on Linux, Mac and Windows
+- Works on ![win](resource/win_sm.png) Windows, ![macOS](resource/apple_sm.png) macOS and ![linux](resource/linux_sm.png) Linux
 - Creates a binary distribution of your application
 - Supports natively any form of `require`, including dynamic ones (e.g. `require(myPath + 'module.js'`)
 - Supports any module, including direct download and compilation from npm
@@ -30,7 +30,7 @@ You won't need to modify a single line of code in your application, no matter ho
 |         macOS         |    x86-64    | https://gw.alipayobjects.com/os/enclose-prod/bc2022ef-4b88-4c12-9980-394945c9c198/nodec-v1.5.0-darwin-x64.gz |
 |         Linux         |    x86-64    | https://gw.alipayobjects.com/os/enclose-prod/b6aa41a6-f6b5-4542-b777-06e4bc292c5e/nodec-v1.5.0-linux-x64.gz  |
 
-### Install on Windows
+### ![win](resource/win_med.png) Install on Windows
 
 First install the prerequisites:
 
@@ -45,25 +45,7 @@ First install the prerequisites:
 
 Then download [nodec-x64.zip](http://enclose.io/nodec/nodec-x64.zip), and this zip file contains only one executable. Unzip it. Optionally, rename it to `nodec.exe` and put it under `C:\Windows` (or any other directory that is part of `PATH`). Execute `nodec` from the command line.
 
-### Install on Linux
-
-First install the prerequisites:
-
-* [SquashFS Tools 4.3](http://squashfs.sourceforge.net/)
-  - `sudo yum install squashfs-tools`
-  - `sudo apt-get install squashfs-tools`
-* `gcc` and `g++` 4.9.4 or newer, or
-* `clang` and `clang++` 3.4.2 or newer
-* Python 2.6 or 2.7
-* GNU Make 3.81 or newer
-
-Then,
-
-    curl -L http://enclose.io/nodec/nodec-linux-x64.gz | gunzip > nodec
-    chmod +x nodec
-    ./nodec
-    
-### Install on macOS
+### ![macOS](resource/apple_med.png) Install on macOS
 
 First install the prerequisites:
 
@@ -81,6 +63,24 @@ Then,
     chmod +x nodec
     ./nodec
 
+### ![linux](resource/linux_med.png) Install on Linux
+
+First install the prerequisites:
+
+* [SquashFS Tools 4.3](http://squashfs.sourceforge.net/)
+  - `sudo yum install squashfs-tools`
+  - `sudo apt-get install squashfs-tools`
+* `gcc` and `g++` 4.9.4 or newer, or
+* `clang` and `clang++` 3.4.2 or newer
+* Python 2.6 or 2.7
+* GNU Make 3.81 or newer
+
+Then,
+
+    curl -L http://enclose.io/nodec/nodec-linux-x64.gz | gunzip > nodec
+    chmod +x nodec
+    ./nodec
+    
 ## Usage
 
     nodec [OPTION]... [ENTRANCE]

@@ -43,7 +43,7 @@ First install the prerequisites:
   - [Visual Studio 2017](https://www.visualstudio.com/downloads/), any edition (including the Build Tools SKU).
   __Required Components:__ "MSbuild", "VC++ 2017 v141 toolset" and one of the Windows SDKs (10 or 8.1).
 
-Then download [nodec-x64.zip](http://enclose.io/nodec/nodec-x64.zip), and this zip file contains only one executable. Unzip it. Optionally, rename it to `nodec.exe` and put it under `C:\Windows` (or any other directory that is part of `PATH`). Execute `nodec` from the command line.
+Then download [nodec-x64.zip](https://gw.alipayobjects.com/os/enclose-prod/0d0ec8fd-dc9c-4b0a-85df-8bf4af0e8b8d/nodec-v1.5.0-x64.zip), and this zip file contains only one executable. Unzip it. Optionally, rename it to `nodec.exe` and put it under `C:\Windows` (or any other directory that is part of `PATH`). Execute `nodec` from the command line.
 
 ### ![macOS](resource/apple_med.png) Install on macOS
 
@@ -59,7 +59,7 @@ First install the prerequisites:
 
 Then,
 
-    curl -L http://enclose.io/nodec/nodec-darwin-x64.gz | gunzip > nodec
+    curl -L https://gw.alipayobjects.com/os/enclose-prod/bc2022ef-4b88-4c12-9980-394945c9c198/nodec-v1.5.0-darwin-x64.gz | gunzip > nodec
     chmod +x nodec
     ./nodec
 
@@ -77,7 +77,7 @@ First install the prerequisites:
 
 Then,
 
-    curl -L http://enclose.io/nodec/nodec-linux-x64.gz | gunzip > nodec
+    curl -L https://gw.alipayobjects.com/os/enclose-prod/b6aa41a6-f6b5-4542-b777-06e4bc292c5e/nodec-v1.5.0-linux-x64.gz | gunzip > nodec
     chmod +x nodec
     ./nodec
     

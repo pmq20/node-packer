@@ -37,6 +37,8 @@ int squash_open_inner(sqfs *fs, const char *path, short follow_link)
 	{
 		goto failure;
 	}
+	file->filename = strdup(path);
+
 	if (!found)
 	{
 		errno = ENOENT;
@@ -113,6 +115,8 @@ int squash_open(sqfs *fs, const char *path)
 int squash_close(int vfd)
 {
 	int ret;
+	struct squash_file *file;
+
         if (!SQUASH_VALID_VFD(vfd)) {
                 errno = EBADF;
                 return -1;
@@ -129,7 +133,11 @@ int squash_close(int vfd)
                 int *handle = (int *) (squash_global_fdtable.fds[vfd]->payload);
                 free(handle);
         }
-        free(squash_global_fdtable.fds[vfd]);
+
+        file = squash_global_fdtable.fds[vfd];
+        free(file->filename);
+        free(file);
+
         squash_global_fdtable.fds[vfd] = NULL;
         if (vfd + 1 == squash_global_fdtable.end) {
                 while (vfd >= 0 && NULL == squash_global_fdtable.fds[vfd]) {

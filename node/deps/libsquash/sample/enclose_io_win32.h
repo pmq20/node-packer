@@ -66,6 +66,8 @@
 #define CreateProcessW(...) EncloseIOCreateProcessW(__VA_ARGS__)
 #define SetCurrentDirectoryW(...) EncloseIOSetCurrentDirectoryW(__VA_ARGS__)
 #define GetCurrentDirectoryW(...) EncloseIOGetCurrentDirectoryW(__VA_ARGS__)
+#define GetFullPathNameW(...) EncloseIOGetFullPathNameW(__VA_ARGS__)
+#define GetFileInformationByHandle(...) EncloseIOGetFileInformationByHandle(__VA_ARGS__)
 
 #endif //_WIN32
 #endif //!__cplusplus

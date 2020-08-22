@@ -89,7 +89,7 @@ static char * enclose_io_mkdir_workdir()
 				mkdir_workdir = NULL;
 				free(generic_mkdir_workdir);
 				generic_mkdir_workdir = NULL;
-				return -1;
+				return NULL;
 			}
 			if (mkdir(mkdir_workdir)) {
 				free(mkdir_workdir);
@@ -278,6 +278,55 @@ int enclose_io__wmkdir(wchar_t* pathname)
 	}
 }
 #else
+int enclose_io__exec(const char *path, char *const argv[])
+{
+	int i, ret, argc;
+	char **new_argv, **argv_memory = NULL;
+	size_t exec_path_len = 2 * PATH_MAX;
+	char* exec_path = (char*)(malloc(exec_path_len));
+	int autoupdate_exepath(char*, size_t*); // from libautoupdate
+
+	ret = autoupdate_exepath(exec_path, &exec_path_len);
+	assert(0 == ret);
+
+	ret = setenv("ENCLOSE_IO_USE_ORIGINAL_RUBY", "true", 1);
+	assert(0 == ret);
+
+	argc = 1;
+	while (argv[argc]) { ++argc; }
+	new_argv = (char **)malloc( (2 + argc) * sizeof(char *));
+	assert(new_argv);
+	new_argv[0] = argv[0];
+	new_argv[1] = path;
+	for (i = 1; i < argc; ++i) {
+		new_argv[2 + i - 1] = argv[i];
+	}
+	new_argv[2 + argc - 1] = NULL;
+
+	ret = execv(exec_path, new_argv);
+
+	free(exec_path);
+	free(new_argv);
+	return ret;
+}
+
+int enclose_io_execv(const char *path, char *const argv[])
+{
+	const char* squash_extracted_path = NULL;
+
+	if (enclose_io_cwd[0] && '/' != *path) {
+		sqfs_path enclose_io_expanded;
+		size_t enclose_io_cwd_len;
+		size_t memcpy_len;
+		ENCLOSE_IO_GEN_EXPANDED_NAME(path);
+		return enclose_io__exec(enclose_io_expanded, argv);
+	} else if (enclose_io_is_path(path)) {
+		return enclose_io__exec(path, argv);
+	} else {
+		return execv(path, argv);
+	}
+}
+
 int enclose_io_lstat(const char *path, struct stat *buf)
 {
 	if (enclose_io_cwd[0] && '/' != *path) {
@@ -349,6 +398,77 @@ DIR * enclose_io_opendir(const char *filename)
 	else {
 		return opendir(filename);
 	}
+}
+
+DIR * enclose_io_fdopendir(int fd)
+{
+	sqfs_err error;
+	short found;
+	SQUASH_DIR *dir;
+	int *handle;
+	struct squash_file *file;
+	sqfs *fs;
+
+	if (!SQUASH_VALID_VFD(fd))
+	{
+		return fdopendir(fd);
+	}
+
+	file = squash_global_fdtable.fds[fd];
+
+	dir = calloc(1, sizeof(SQUASH_DIR));
+
+	if (NULL == dir)
+	{
+		errno = ENOMEM;
+		return NULL;
+	}
+
+	fs = file->fs;
+
+	dir->fs = fs;
+	dir->entries = NULL;
+	dir->nr = 0;
+	dir->filename = strdup(file->filename);
+	dir->fd = fd;
+	dir->actual_nr = 0;
+	dir->loc = 0;
+
+	error = sqfs_inode_get(fs, &dir->node, sqfs_inode_root(fs));
+	if (SQFS_OK != error)
+	{
+		goto failure;
+	}
+	error = sqfs_lookup_path_inner(fs, &dir->node, dir->filename, &found, 1);
+	if (SQFS_OK != error)
+	{
+		goto failure;
+	}
+	if (!found)
+	{
+		errno = ENOENT;
+		goto failure;
+	}
+	error = sqfs_dir_open(fs, &dir->node, &dir->dir, 0);
+	if (SQFS_OK != error)
+	{
+		goto failure;
+	}
+	
+	handle = (int *)(squash_global_fdtable.fds[dir->fd]->payload);
+
+	MUTEX_LOCK(&squash_global_mutex);
+	free(handle);
+	squash_global_fdtable.fds[dir->fd]->payload = (void *)dir;
+	MUTEX_UNLOCK(&squash_global_mutex);
+
+	return dir;
+failure:
+	if (!errno) {
+		errno = ENOENT;
+	}
+	free(dir);
+	return NULL;
 }
 
 int enclose_io_closedir(DIR *dirp)
@@ -671,6 +791,17 @@ char *enclose_io_getwd(char *buf)
 }
 
 #ifdef _WIN32
+short enclose_io_if_w(const wchar_t* path)
+{
+	if (enclose_io_cwd[0] && enclose_io_is_relative_w(path)) {
+		return 1;
+	} else if (enclose_io_is_path_w(path)) {
+		return 1;
+	} else {
+		return 0;
+	}
+}
+
 BOOL
 EncloseIOSetCurrentDirectoryW(
 	LPCWSTR lpPathName
@@ -758,6 +889,62 @@ EncloseIOGetCurrentDirectoryW(
 		);
 	}
 }
+
+DWORD
+EncloseIOGetFullPathNameW(
+	LPCWSTR lpFileName,
+	DWORD nBufferLength,
+	LPWSTR lpBuffer,
+	LPWSTR* lpFilePart
+)
+{
+	DWORD retval = 0;
+
+	if (enclose_io_cwd[0] && enclose_io_is_relative_w(lpFileName)) {
+		sqfs_path enclose_io_expanded;
+		size_t enclose_io_cwd_len;
+		size_t memcpy_len;
+		sqfs_path enclose_io_converted_storage;
+		char *enclose_io_converted;
+		char *enclose_io_i;
+		size_t enclose_io_converted_length;
+
+		wchar_t enclose_io_expanded_w[SQUASHFS_PATH_LEN + 1];
+
+		W_ENCLOSE_IO_PATH_CONVERT(lpFileName);
+		ENCLOSE_IO_GEN_EXPANDED_NAME(enclose_io_converted);
+
+		mbstowcs(enclose_io_expanded_w, enclose_io_expanded, SQUASHFS_PATH_LEN);
+		enclose_io_expanded_w[SQUASHFS_PATH_LEN] = 0;
+
+		retval = GetFullPathNameW(
+			enclose_io_expanded_w,
+			nBufferLength,
+			lpBuffer,
+			lpFilePart
+		);
+	} else {
+		retval = GetFullPathNameW(
+			lpFileName,
+			nBufferLength,
+			lpBuffer,
+			lpFilePart
+		);
+	}
+
+	if (0 == retval || retval > nBufferLength) {
+		return retval;
+	}
+
+	if (0 == wcsncmp(lpBuffer + 1, L":\\__enclose_io_memfs__", 22)) {
+		assert(NULL == lpFilePart); // TODO
+		memmove(lpBuffer, lpBuffer + 2, (retval - 2) * sizeof(wchar_t));
+		return retval - 2;
+	}
+	
+	return retval;
+}
+
 #endif // _WIN32
 
 int enclose_io_stat(const char *path, struct stat *buf)
@@ -1016,6 +1203,9 @@ short enclose_io_is_path_w(wchar_t *pathname)
 
 short enclose_io_is_relative_w(wchar_t *pathname)
 {
+	if (L'N' == pathname[0] && L'U' == pathname[1] && L'L' == pathname[2] && 0 == pathname[3]) {
+		return 0;
+	}
 	if (L'\\' == (pathname)[0] ||
 		L'/' == (pathname)[0]) {
 		return 0;
@@ -1041,5 +1231,50 @@ short enclose_io_is_relative_w(wchar_t *pathname)
 			}
 	}
 	return 1;
+}
+#endif
+
+#ifndef _WIN32
+int enclose_io_openat(int nargs, int dirfd, const char* pathname, int flags, ...)
+{
+    if (3 == nargs) {
+        // If pathname is absolute, then dirfd is ignored.
+        if (enclose_io_is_path(pathname)) {
+            return enclose_io_open(nargs, pathname, flags);
+        }
+
+        // If the pathname given in pathname is relative,
+        // then it is interpreted relative to the directory referred to by the file descriptor dirfd
+        // (rather than relative to the current working directory of the calling process, as is done by open(2) for a relative pathname).
+        // TODO: at dirfd
+        if (dirfd == AT_FDCWD && enclose_io_cwd[0] && '/' != *pathname) {
+            return enclose_io_open(nargs, pathname, flags);
+        }
+
+        return openat(dirfd, pathname, flags);
+    }
+    else {
+        va_list args;
+        mode_t mode;
+        assert(4 == nargs);
+        va_start(args, flags);
+        mode = va_arg(args, mode_t);
+        va_end(args);
+
+        // If pathname is absolute, then dirfd is ignored.
+        if (enclose_io_is_path(pathname)) {
+            return enclose_io_open(nargs, pathname, flags, mode);
+        }
+
+        // If the pathname given in pathname is relative,
+        // then it is interpreted relative to the directory referred to by the file descriptor dirfd
+        // (rather than relative to the current working directory of the calling process, as is done by open(2) for a relative pathname).
+        // TODO: at dirfd
+        if (dirfd == AT_FDCWD && enclose_io_cwd[0] && '/' != *pathname) {
+            return enclose_io_open(nargs, pathname, flags, mode);
+        }
+
+        return openat(dirfd, pathname, flags, mode);
+    }
 }
 #endif

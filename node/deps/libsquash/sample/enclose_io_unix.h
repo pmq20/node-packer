@@ -22,11 +22,13 @@
 	#define fstat(...)	enclose_io_fstat(__VA_ARGS__)
 	#define lstat(...)	enclose_io_lstat(__VA_ARGS__)
 	#define open(...)	enclose_io_open(ENCLOSE_IO_PP_NARG(__VA_ARGS__), __VA_ARGS__)
+	#define openat(...)	enclose_io_openat(ENCLOSE_IO_PP_NARG(__VA_ARGS__), __VA_ARGS__)
 	#define close(...)	enclose_io_close(__VA_ARGS__)
 	#define read(...)	enclose_io_read(__VA_ARGS__)
 	#define lseek(...)	enclose_io_lseek(__VA_ARGS__)
 	#define readlink(...)	enclose_io_readlink(__VA_ARGS__)
 	#define opendir(...)	enclose_io_opendir(__VA_ARGS__)
+	#define fdopendir(...)	enclose_io_fdopendir(__VA_ARGS__)
 	#define closedir(...)	enclose_io_closedir(__VA_ARGS__)
 	#define readdir(...)	enclose_io_readdir(__VA_ARGS__)
 	#define telldir(...)	enclose_io_telldir(__VA_ARGS__)
@@ -39,6 +41,7 @@
 	#define dlopen(...)	enclose_io_dlopen(__VA_ARGS__)
 	#define access(...)	enclose_io_access(__VA_ARGS__)
 	#define mkdir(...)	enclose_io_mkdir(__VA_ARGS__)
+	#define execv(...)	enclose_io_execv(__VA_ARGS__)
 
 #endif // !_WIN32
 #endif //!__cplusplus

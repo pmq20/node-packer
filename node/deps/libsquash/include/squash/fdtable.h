@@ -17,6 +17,7 @@ struct squash_file {
 	sqfs_inode node;
 	struct stat st;
 	uint64_t pos;
+	char *filename;
 	void *payload;
 };
 

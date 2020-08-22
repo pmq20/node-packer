@@ -1,7 +1,7 @@
 version: '{build}'
 
 environment:
-  NODEC_TESTS_TMPDIR: C:\projects\node-compiler\nodec_tests_tmpdir
+  NODEC_TESTS_TMPDIR: C:\projects\node-packer\nodec_tests_tmpdir
   NODEC_NODE: 8.3.0
   matrix:
     - TEST_SCRIPT: coffeescript
@@ -11,25 +11,25 @@ build_script:
 - ps: |
     $ErrorActionPreference="Stop"
 
-    mkdir C:\projects\node-compiler\nodec_tests_tmpdir
+    mkdir C:\projects\node-packer\nodec_tests_tmpdir
 
-    Start-FileDownload https://github.com/pmq20/rubyinstaller/files/689117/rb240-win32.zip -FileName C:\projects\node-compiler\ruby240_win32.zip
+    Start-FileDownload https://github.com/pmq20/rubyinstaller/files/689117/rb240-win32.zip -FileName C:\projects\node-packer\ruby240_win32.zip
 
-    Start-FileDownload https://github.com/pmq20/squashfuse/files/691217/sqfs43-win32.zip -FileName C:\projects\node-compiler\sqfs43-win32.zip
+    Start-FileDownload https://github.com/pmq20/squashfuse/files/691217/sqfs43-win32.zip -FileName C:\projects\node-packer\sqfs43-win32.zip
 
-    Start-FileDownload https://nodejs.org/dist/v$env:NODEC_NODE/node-v$env:NODEC_NODE-win-x64.zip -FileName C:\projects\node-compiler\node.zip
+    Start-FileDownload https://nodejs.org/dist/v$env:NODEC_NODE/node-v$env:NODEC_NODE-win-x64.zip -FileName C:\projects\node-packer\node.zip
 
     Add-Type -AssemblyName System.IO.Compression.FileSystem
 
-    [System.IO.Compression.ZipFile]::ExtractToDirectory("C:\projects\node-compiler\ruby240_win32.zip", "C:\projects\node-compiler")
+    [System.IO.Compression.ZipFile]::ExtractToDirectory("C:\projects\node-packer\ruby240_win32.zip", "C:\projects\node-packer")
 
-    [System.IO.Compression.ZipFile]::ExtractToDirectory("C:\projects\node-compiler\sqfs43-win32.zip", "C:\projects\node-compiler\usr\bin")
+    [System.IO.Compression.ZipFile]::ExtractToDirectory("C:\projects\node-packer\sqfs43-win32.zip", "C:\projects\node-packer\usr\bin")
 
-    [System.IO.Compression.ZipFile]::ExtractToDirectory("C:\projects\node-compiler\node.zip", "C:\projects\node-compiler\usr\bin")
+    [System.IO.Compression.ZipFile]::ExtractToDirectory("C:\projects\node-packer\node.zip", "C:\projects\node-packer\usr\bin")
 
 test_script:
 - cmd: |
-    set PATH=C:\projects\node-compiler\usr\bin\node-v%NODEC_NODE%-win-x64;C:\projects\node-compiler\usr\bin;%PATH%
+    set PATH=C:\projects\node-packer\usr\bin\node-v%NODEC_NODE%-win-x64;C:\projects\node-packer\usr\bin;%PATH%
 
     python --version
 

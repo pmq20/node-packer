@@ -188,5 +188,5 @@ Thank you [Dave Vasilevsky](https://github.com/vasi) for the excellent work of s
 
 ## See Also
 
-- [Node.js Compiler](https://github.com/pmq20/node-compiler): Ahead-of-time (AOT) Compiler designed for Node.js, that just works.
-- [Ruby Compiler](https://github.com/pmq20/ruby-compiler): Ahead-of-time (AOT) Compiler designed for Ruby, that just works.
+- [Node.js Packer](https://github.com/pmq20/node-packer): Packing your Node.js application into a single executable.
+- [Ruby Packer](https://github.com/pmq20/ruby-packer): Packing your Ruby application into a single executable.

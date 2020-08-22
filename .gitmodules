@@ -1,6 +1,0 @@
-[submodule "tests/node-compiler-blbt"]
-	path = tests/node-compiler-blbt
-	url = https://github.com/pmq20/node-compiler-blbt.git
-[submodule "tests/node-compiler-ram"]
-	path = tests/node-compiler-ram
-	url = https://github.com/pmq20/node-compiler-ram.git

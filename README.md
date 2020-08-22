@@ -2,11 +2,11 @@
 
 *Packing your Node.js application into a single executable.*
 
-[![Build status](https://ci.appveyor.com/api/projects/status/appwi7yrdntwuv3k/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-compiler/branch/master)
-[![Status](https://travis-ci.org/pmq20/node-compiler.svg?branch=master)](https://travis-ci.org/pmq20/node-compiler)
-[![GitHub version](https://badge.fury.io/gh/pmq20%2Fnode-compiler.svg)](https://badge.fury.io/gh/pmq20%2Fnode-compiler)
+[![Build status](https://ci.appveyor.com/api/projects/status/appwi7yrdntwuv3k/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/node-packer/branch/master)
+[![Status](https://travis-ci.org/pmq20/node-packer.svg?branch=master)](https://travis-ci.org/pmq20/node-packer)
+[![GitHub version](https://badge.fury.io/gh/pmq20%2Fnode-packer.svg)](https://badge.fury.io/gh/pmq20%2Fnode-packer)
 
-![Terminal simulation of a simple compilation](https://github.com/pmq20/node-compiler/raw/master/doc/nodec.gif)
+![Terminal simulation of a simple compilation](https://github.com/pmq20/node-packer/raw/master/doc/nodec.gif)
 
 ## Features
 
@@ -20,7 +20,7 @@
 
 ## Get Started
 
-It takes less than 5 minutes to compile any project with `node-compiler`.
+It takes less than 5 minutes to compile any project with `node-packer`.
 
 You won't need to modify a single line of code in your application, no matter how you developed it as long as it works in plain node.js!
 
@@ -137,17 +137,60 @@ Note: To compile to 32-bit windows OS compatible programs on a 64-bit machine, y
 
 ### How it works
 
-- [Node.js Compiler: compiling your Node.js application into a single executable](https://speakerdeck.com/pmq20/node-dot-js-compiler-compiling-your-node-dot-js-application-into-a-single-executable).
+- [Node.js Packer: compiling your Node.js application into a single executable](https://speakerdeck.com/pmq20/node-dot-js-compiler-compiling-your-node-dot-js-application-into-a-single-executable).
 
 ### Comparing with Similar Projects
 
 |            Project                       | Differences                                                                                                                                                                                                                                                                                                                                             |
 |:----------------------------------------:|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [pkg](https://github.com/zeit/pkg)       | Pkg hacked `fs.*` API's dynamically in order to access in-package files, whereas Node.js Compiler leaves them alone and instead works on a deeper level via [libsquash](https://github.com/pmq20/libsquash). Pkg uses JSON to store in-package files while Node.js Compiler uses the more sophisticated and widely used SquashFS as its data structure. |
-| [EncloseJS](http://enclosejs.com/)       | EncloseJS restricts access to in-package files to only five `fs.*` API's, whereas Node.js Compiler supports all `fs.*` API's. EncloseJS is proprietary licensed and charges money when used while Node.js Compiler is MIT-licensed and users are both free to use it and free to modify it.                                                             |
-| [Nexe](https://github.com/nexe/nexe)     | Nexe does not support dynamic `require` because of its use of `browserify`, whereas Node.js Compiler supports all kinds of `require` including `require.resolve`.                                                                                                                                                                                       |
-| [asar](https://github.com/electron/asar) | Asar keeps the code archive and the executable separate while Node.js Compiler links all JavaScript source code together with the Node.js virtual machine and generates a single executable as the final product. Asar uses JSON to store files' information while Node.js Compiler uses SquashFS.                                                      |
-| [AppImage](http://appimage.org/)         | AppImage supports only Linux with a kernel that supports SquashFS, while Node.js Compiler supports all three platforms of Linux, macOS and Windows, meanwhile without any special feature requirements from the kernel.                                                                                                                                 |
+| [pkg](https://github.com/zeit/pkg)       | Pkg hacked `fs.*` API's dynamically in order to access in-package files, whereas Node.js Packer leaves them alone and instead works on a deeper level via [libsquash](https://github.com/pmq20/libsquash). Pkg uses JSON to store in-package files while Node.js Packer uses the more sophisticated and widely used SquashFS as its data structure. |
+| [EncloseJS](http://enclosejs.com/)       | EncloseJS restricts access to in-package files to only five `fs.*` API's, whereas Node.js Packer supports all `fs.*` API's. EncloseJS is proprietary licensed and charges money when used while Node.js Packer is MIT-licensed and users are both free to use it and free to modify it.                                                             |
+| [Nexe](https://github.com/nexe/nexe)     | Nexe does not support dynamic `require` because of its use of `browserify`, whereas Node.js Packer supports all kinds of `require` including `require.resolve`.                                                                                                                                                                                       |
+| [asar](https://github.com/electron/asar) | Asar keeps the code archive and the executable separate while Node.js Packer links all JavaScript source code together with the Node.js virtual machine and generates a single executable as the final product. Asar uses JSON to store files' information while Node.js Packer uses SquashFS.                                                      |
+| [AppImage](http://appimage.org/)         | AppImage supports only Linux with a kernel that supports SquashFS, while Node.js Packer supports all three platforms of Linux, macOS and Windows, meanwhile without any special feature requirements from the kernel.                                                                                                                                 |
+
+## To-do
+
+- Eliminate dependending on an outside Node.js and npm when compiling
+- Support writing options down to package.json
+  - Select the correct Node.js version via `engines` of package.json
+    - Support arbitrary Node.js runtime versions
+    - https://github.com/pmq20/node-packer/issues/40
+  - Configure auto-update to enable/disable prompts when new versions were detected
+  - Enable/disable auto-update
+  - A option to exclude directory's and files.
+    - https://github.com/pmq20/node-packer/issues/51
+- Be able to use a custom icon and file description for the executable output. maybe an icon file in the package root directory.
+  - https://github.com/pmq20/node-packer/issues/54
+- Add options to select items to deliver
+  - Ppt out zlib/openssl for system libraries
+  - Incl and ICU
+  - Debug facilities
+- Add options to select compression-method
+  - Optionally xz the final product
+- Detect simultaneous runs of nodec
+  - https://github.com/pmq20/node-packer/issues/31
+- Warn the user that some symbolic link links to the outside of the project
+  - Add a check procedure at compile time
+  - https://github.com/pmq20/node-packer/issues/37
+- Cross-compile
+  - https://github.com/pmq20/node-packer/pull/36
+  - Support ARM architecture
+  - https://github.com/pmq20/node-packer/issues/26
+- Make Docker images for compiler environments
+- Generate Windows-less Cmd-less Windows applications via /subsystem=windows
+- Drop the external dependency of mksquashfs
+  - i.e. Give libsquash the ability to mksquashfs
+- Support library only projects
+  - https://github.com/pmq20/node-packer/issues/39
+
+## Authors
+
+[Minqi Pan et al.](https://raw.githubusercontent.com/pmq20/node-packer/master/AUTHORS)
+
+## License
+
+[MIT](https://raw.githubusercontent.com/pmq20/node-packer/master/LICENSE)
 
 ## See Also
 

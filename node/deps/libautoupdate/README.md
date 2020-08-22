@@ -137,6 +137,7 @@ int main(int argc, char *argv[])
   - The Operating System will delete it when restarted/tmpdir-full
   - Add facility to restore/rollback to the old file once the new version went wrong
 
-## See Also
+## License
 
-- [Enclose.IO](https://github.com/pmq20/enclose-io): cloud-based service that compiles your application into a single executable with auto-update.
+[MIT](https://raw.githubusercontent.com/pmq20/libautoupdate/master/LICENSE)
+

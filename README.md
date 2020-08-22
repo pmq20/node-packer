@@ -100,6 +100,8 @@ Then,
           --msi                        Generates a .msi installer for Windows
           --pkg                        Generates a .pkg installer for macOS
           --debug                      Enable debug mode
+      -o, --dest-os=OS                 Destination operating system (enum: win mac solaris freebsd openbsd linux android aix)
+      -a, --dest-arch=ARCH             Destination CPU architecture (enum: arm arm64 ia32 mips mipsel ppc ppc64 x32 x64 x86 s390 s390x)
           --quiet                      Enable quiet mode
       -v, --version                    Prints the version of nodec and exit
       -V, --node-version               Prints the version of the Node.js runtime and exit
@@ -146,6 +148,59 @@ Note: To compile to 32-bit windows OS compatible programs on a 64-bit machine, y
 | [Nexe](https://github.com/nexe/nexe)     | Nexe does not support dynamic `require` because of its use of `browserify`, whereas Node.js Packer supports all kinds of `require` including `require.resolve`.                                                                                                                                                                                       |
 | [asar](https://github.com/electron/asar) | Asar keeps the code archive and the executable separate while Node.js Packer links all JavaScript source code together with the Node.js virtual machine and generates a single executable as the final product. Asar uses JSON to store files' information while Node.js Packer uses SquashFS.                                                      |
 | [AppImage](http://appimage.org/)         | AppImage supports only Linux with a kernel that supports SquashFS, while Node.js Packer supports all three platforms of Linux, macOS and Windows, meanwhile without any special feature requirements from the kernel.                                                                                                                                 |
+
+## Cross Compilation
+
+`nodec` also support cross-compilation. Since node.js is built from sources you will need to setup properly a toolchain in order
+to get valid compilers to produce binaries for the destination platform.
+
+You can easily do this with by using [crosstool-ng](https://github.com/crosstool-ng/crosstool-ng) or any other tool you like.
+
+Once you're done with the build of a valid toolchain (don't forget to enable c++ if you use crosstool-ng which by default excludes it)
+you will be able to compile properly. Just set-up your environment so that it will know to use your cross-compile toolchain rather than
+your system's default build tools.
+
+An example (you may need to adjust values or specify additional variables):
+
+
+    export AR="x86_64-unknown-linux-gnu-ar"
+    export CC="x86_64-unknown-linux-gnu-gcc"
+    export CXX="x86_64-unknown-linux-gnu-g++"
+    export LINK="x86_64-unknown-linux-gnu-g++"
+    export CPP="x86_64-unknown-linux-gnu-gcc -E"
+    export LD="x86_64-unknown-linux-gnu-ld"
+    export AS="x86_64-unknown-linux-gnu-as"
+    export CCLD="ax86_64-unknown-linux-gnu-gcc ${TARGET_ARCH}"
+    export NM="x86_64-unknown-linux-gnu-nm"
+    export STRIP="x86_64-unknown-linux-gnu-strip"
+    export OBJCOPY="x86_64-unknown-linux-gnu-objcopy"
+    export RANLIB="x86_64-unknown-linux-gnu-ranlib"
+    export F77="x86_64-unknown-linux-gnu-g77 ${TARGET_ARCH}"
+    unset LIBC
+
+    #Define flags
+    #export CXXFLAGS="-march=armv7-a"
+    export LDFLAGS="-L${CSTOOLS_LIB} -Wl,-rpath-link,${CSTOOLS_LIB} -Wl,-O1 -Wl,--hash-style=gnu"
+    export CFLAGS="-isystem${CSTOOLS_INC} -fexpensive-optimizations -frename-registers -fomit-frame-pointer -O2 -ggdb3"
+    export CPPFLAGS="-isystem${CSTOOLS_INC}"
+    # export CCFLAGS="-march=armv7-a"
+
+    #Tools
+    export CSTOOLS=/Volumes/crosstools/x86_64-unknown-linux-gnu
+    export CSTOOLS_INC=${CSTOOLS}/include
+    export CSTOOLS_LIB=${CSTOOLS}/lib
+    #export ARM_TARGET_LIB=$CSTOOLS_LIB
+    # export GYP_DEFINES="armv7=1"
+
+    #Define other things, those are not 'must' to have defined but we added
+    export SHELL="/bin/bash"
+    export TERM="screen"
+    export LANG="en_US.UTF-8"
+    export MAKE="make"
+
+    #Export the path for your system
+    #export HOME="/home/gioyik" #Change this one with the name of your user directory
+    export PATH=${CSTOOLS}/bin:/usr/arm-linux-gnueabi/bin/:$PATH
 
 ## To-do
 

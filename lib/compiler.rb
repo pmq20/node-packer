@@ -388,6 +388,9 @@ class Compiler
 
   def compile_win
     @utils.chdir(@tmpdir_node) do
+      # --without-intl=none fixes: icutrim.py - it tries to run a binary made for linux on mac
+      # --cross-compiling is required require host executables rather than target ones
+      # --without-snapshot avoids mksnapshot to run on host platform after build
       @utils.run("call vcbuild.bat #{@options[:debug] ? 'debug' : ''} #{@options[:vcbuild_args]}")
     end
     src = File.join(@tmpdir_node, (@options[:debug] ? 'Debug\\node.exe' : 'Release\\node.exe'))
@@ -396,7 +399,10 @@ class Compiler
 
   def compile_mac
     @utils.chdir(@tmpdir_node) do
-      @utils.run("./configure #{@options[:debug] ? '--debug --xcode' : ''}")
+      # --without-intl=none fixes: icutrim.py - it tries to run a binary made for linux on mac
+      # --cross-compiling is required require host executables rather than target ones
+      # --without-snapshot avoids mksnapshot to run on host platform after build
+      @utils.run("./configure #{@options[:debug] ? '--debug --xcode' : ''} #{@options[:os] ? '--cross-compiling --without-snapshot  --with-intl=none': ''} #{@options[:os] ? '--dest-os=' + @options[:os]: ''} #{@options[:arch] ? '--dest-cpu=' + @options[:arch]: ''}")
       @utils.run("make #{@options[:make_args]}")
     end
     if @options[:pkg]
@@ -418,7 +424,10 @@ class Compiler
 
   def compile_linux
     @utils.chdir(@tmpdir_node) do
-      @utils.run("./configure #{@options[:debug] ? '--debug' : ''}")
+      # --without-intl=none fixes: icutrim.py - it tries to run a binary made for linux on mac
+      # --cross-compiling is required require host executables rather than target ones
+      # --without-snapshot avoids mksnapshot to run on host platform after build
+      @utils.run("./configure #{@options[:debug] ? '--debug' : ''} #{@options[:os] ? '--cross-compiling --without-snapshot  --with-intl=none': ''} #{@options[:os] ? '--dest-os=' + @options[:os]: ''} #{@options[:arch] ? '--dest-cpu=' + @options[:arch]: ''}")
       @utils.run("make #{@options[:make_args]}")
     end
     src = File.join(@tmpdir_node, "out/#{@options[:debug] ? 'Debug' : 'Release'}/node")

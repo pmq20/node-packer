@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>VM (Executing JavaScript) | Node.js v10.16.3 Documentation</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
+  <title>VM (Executing JavaScript) | Node.js v12.13.0 Documentation</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
   <link rel="canonical" href="https://nodejs.org/api/vm.html">
@@ -52,11 +52,13 @@
 <li><a href="os.html" class="nav-os">OS</a></li>
 <li><a href="path.html" class="nav-path">Path</a></li>
 <li><a href="perf_hooks.html" class="nav-perf_hooks">Performance Hooks</a></li>
+<li><a href="policy.html" class="nav-policy">Policies</a></li>
 <li><a href="process.html" class="nav-process">Process</a></li>
 <li><a href="punycode.html" class="nav-punycode">Punycode</a></li>
 <li><a href="querystring.html" class="nav-querystring">Query Strings</a></li>
 <li><a href="readline.html" class="nav-readline">Readline</a></li>
 <li><a href="repl.html" class="nav-repl">REPL</a></li>
+<li><a href="report.html" class="nav-report">Report</a></li>
 <li><a href="stream.html" class="nav-stream">Stream</a></li>
 <li><a href="string_decoder.html" class="nav-string_decoder">String Decoder</a></li>
 <li><a href="timers.html" class="nav-timers">Timers</a></li>
@@ -79,7 +81,7 @@
 
     <div id="column1" data-id="vm" class="interior">
       <header>
-        <h1>Node.js v10.16.3 Documentation</h1>
+        <h1>Node.js v12.13.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -120,28 +122,26 @@
 <p><span class="stability_2"><a href="#vm_vm_executing_javascript">VM (Executing JavaScript)</a></span></p>
 <ul>
 <li>
+<p><a href="#vm_class_vm_script">Class: vm.Script</a></p>
+<ul>
+<li><a href="#vm_constructor_new_vm_script_code_options">Constructor: new vm.Script(code[, options])</a></li>
+<li><a href="#vm_script_createcacheddata">script.createCachedData()</a></li>
+<li><a href="#vm_script_runincontext_contextifiedsandbox_options">script.runInContext(contextifiedSandbox[, options])</a></li>
+<li><a href="#vm_script_runinnewcontext_sandbox_options">script.runInNewContext([sandbox[, options]])</a></li>
+<li><a href="#vm_script_runinthiscontext_options">script.runInThisContext([options])</a></li>
+</ul>
+</li>
+<li>
 <p><span class="stability_1"><a href="#vm_class_vm_sourcetextmodule">Class: vm.SourceTextModule</a></span></p>
 <ul>
 <li><a href="#vm_constructor_new_vm_sourcetextmodule_code_options">Constructor: new vm.SourceTextModule(code[, options])</a></li>
 <li><a href="#vm_module_dependencyspecifiers">module.dependencySpecifiers</a></li>
 <li><a href="#vm_module_error">module.error</a></li>
 <li><a href="#vm_module_evaluate_options">module.evaluate([options])</a></li>
-<li><a href="#vm_module_instantiate">module.instantiate()</a></li>
 <li><a href="#vm_module_link_linker">module.link(linker)</a></li>
-<li><a href="#vm_module_linkingstatus">module.linkingStatus</a></li>
 <li><a href="#vm_module_namespace">module.namespace</a></li>
 <li><a href="#vm_module_status">module.status</a></li>
-<li><a href="#vm_module_url">module.url</a></li>
-</ul>
-</li>
-<li>
-<p><a href="#vm_class_vm_script">Class: vm.Script</a></p>
-<ul>
-<li><a href="#vm_new_vm_script_code_options">new vm.Script(code, options)</a></li>
-<li><a href="#vm_script_createcacheddata">script.createCachedData()</a></li>
-<li><a href="#vm_script_runincontext_contextifiedsandbox_options">script.runInContext(contextifiedSandbox[, options])</a></li>
-<li><a href="#vm_script_runinnewcontext_sandbox_options">script.runInNewContext([sandbox[, options]])</a></li>
-<li><a href="#vm_script_runinthiscontext_options">script.runInThisContext([options])</a></li>
+<li><a href="#vm_module_identifier">module.identifier</a></li>
 </ul>
 </li>
 <li><a href="#vm_vm_compilefunction_code_params_options">vm.compileFunction(code[, params[, options]])</a></li>
@@ -152,7 +152,7 @@
 <li><a href="#vm_vm_runinthiscontext_code_options">vm.runInThisContext(code[, options])</a></li>
 <li><a href="#vm_example_running_an_http_server_within_a_vm">Example: Running an HTTP Server within a VM</a></li>
 <li><a href="#vm_what_does_it_mean_to_contextify_an_object">What does it mean to "contextify" an object?</a></li>
-<li><a href="#vm_timeout_limitations_when_using_process_nexttick_and_promises">Timeout limitations when using process.nextTick(), and Promises</a></li>
+<li><a href="#vm_timeout_limitations_when_using_process_nexttick_promises_and_queuemicrotask">Timeout limitations when using process.nextTick(), Promises, and queueMicrotask()</a></li>
 </ul>
 </li>
 </ul>
@@ -185,7 +185,7 @@ const sandbox = { x: 2 };
 vm.createContext(sandbox); // Contextify the sandbox.
 
 const code = 'x += 40; var y = 17;';
-// x and y are global variables in the sandboxed environment.
+// `x` and `y` are global variables in the sandboxed environment.
 // Initially, x has the value 2 because that is the value of sandbox.x.
 vm.runInContext(code, sandbox);
 
@@ -193,6 +193,280 @@ console.log(sandbox.x); // 42
 console.log(sandbox.y); // 17
 
 console.log(x); // 1; y is not defined.
+</code></pre>
+<h2>Class: vm.Script<span><a class="mark" href="#vm_class_vm_script" id="vm_class_vm_script">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.3.1</span>
+</div>
+<p>Instances of the <code>vm.Script</code> class contain precompiled scripts that can be
+executed in specific sandboxes (or "contexts").</p>
+<h3>Constructor: new vm.Script(code[, options])<span><a class="mark" href="#vm_constructor_new_vm_script_code_options" id="vm_constructor_new_vm_script_code_options">#</a></span></h3>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v10.6.0</td>
+<td><p>The <code>produceCachedData</code> is deprecated in favour of <code>script.createCachedData()</code></p></td></tr>
+<tr><td>v5.7.0</td>
+<td><p>The <code>cachedData</code> and <code>produceCachedData</code> options are supported now.</p></td></tr>
+<tr><td>v0.3.1</td>
+<td><p><span>Added in: v0.3.1</span></p></td></tr>
+</tbody></table>
+</details>
+</div>
+<ul>
+<li><code>code</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The JavaScript code to compile.</li>
+<li>
+<p><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></p>
+<ul>
+<li><code>filename</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Specifies the filename used in stack traces produced
+by this script. <strong>Default:</strong> <code>'evalmachine.&#x3C;anonymous>'</code>.</li>
+<li><code>lineOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Specifies the line number offset that is displayed
+in stack traces produced by this script. <strong>Default:</strong> <code>0</code>.</li>
+<li><code>columnOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Specifies the column number offset that is displayed
+in stack traces produced by this script. <strong>Default:</strong> <code>0</code>.</li>
+<li><code>cachedData</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a> Provides an optional <code>Buffer</code> or
+<code>TypedArray</code>, or <code>DataView</code> with V8's code cache data for the supplied
+source. When supplied, the <code>cachedDataRejected</code> value will be set to
+either <code>true</code> or <code>false</code> depending on acceptance of the data by V8.</li>
+<li><code>produceCachedData</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> When <code>true</code> and no <code>cachedData</code> is present, V8
+will attempt to produce code cache data for <code>code</code>. Upon success, a
+<code>Buffer</code> with V8's code cache data will be produced and stored in the
+<code>cachedData</code> property of the returned <code>vm.Script</code> instance.
+The <code>cachedDataProduced</code> value will be set to either <code>true</code> or <code>false</code>
+depending on whether code cache data is produced successfully.
+This option is <strong>deprecated</strong> in favor of <code>script.createCachedData()</code>.
+<strong>Default:</strong> <code>false</code>.</li>
+<li>
+<p><code>importModuleDynamically</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> Called during evaluation of this module
+when <code>import()</code> is called. If this option is not specified, calls to
+<code>import()</code> will reject with <a href="errors.html#ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING"><code>ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING</code></a>.
+This option is part of the experimental API for the <code>--experimental-modules</code>
+flag, and should not be considered stable.</p>
+<ul>
+<li><code>specifier</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> specifier passed to <code>import()</code></li>
+<li><code>module</code> <a href="vm.html#vm_class_vm_sourcetextmodule" class="type">&#x3C;vm.SourceTextModule></a></li>
+<li>Returns: <a href="https://tc39.github.io/ecma262/#sec-module-namespace-exotic-objects" class="type">&#x3C;Module Namespace Object></a> | <a href="vm.html#vm_class_vm_sourcetextmodule" class="type">&#x3C;vm.SourceTextModule></a> Returning a
+<code>vm.SourceTextModule</code> is recommended in order to take advantage of error
+tracking, and to avoid issues with namespaces that contain <code>then</code>
+function exports.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>If <code>options</code> is a string, then it specifies the filename.</p>
+<p>Creating a new <code>vm.Script</code> object compiles <code>code</code> but does not run it. The
+compiled <code>vm.Script</code> can be run later multiple times. The <code>code</code> is not bound to
+any global object; rather, it is bound before each run, just for that run.</p>
+<h3>script.createCachedData()<span><a class="mark" href="#vm_script_createcacheddata" id="vm_script_createcacheddata">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v10.6.0</span>
+</div>
+<ul>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a></li>
+</ul>
+<p>Creates a code cache that can be used with the Script constructor's
+<code>cachedData</code> option. Returns a Buffer. This method may be called at any
+time and any number of times.</p>
+<pre><code class="language-js">const script = new vm.Script(`
+function add(a, b) {
+  return a + b;
+}
+
+const x = add(1, 2);
+`);
+
+const cacheWithoutX = script.createCachedData();
+
+script.runInThisContext();
+
+const cacheWithX = script.createCachedData();
+</code></pre>
+<h3>script.runInContext(contextifiedSandbox[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/vm.js#L120">[src]</a><span><a class="mark" href="#vm_script_runincontext_contextifiedsandbox_options" id="vm_script_runincontext_contextifiedsandbox_options">#</a></span></h3>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v6.3.0</td>
+<td><p>The <code>breakOnSigint</code> option is supported now.</p></td></tr>
+<tr><td>v0.3.1</td>
+<td><p><span>Added in: v0.3.1</span></p></td></tr>
+</tbody></table>
+</details>
+</div>
+<ul>
+<li><code>contextifiedSandbox</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> A <a href="#vm_what_does_it_mean_to_contextify_an_object">contextified</a> object as returned by the
+<code>vm.createContext()</code> method.</li>
+<li>
+<p><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></p>
+<ul>
+<li><code>displayErrors</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> When <code>true</code>, if an <a href="errors.html#errors_class_error"><code>Error</code></a> occurs
+while compiling the <code>code</code>, the line of code causing the error is attached
+to the stack trace. <strong>Default:</strong> <code>true</code>.</li>
+<li><code>timeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> Specifies the number of milliseconds to execute <code>code</code>
+before terminating execution. If execution is terminated, an <a href="errors.html#errors_class_error"><code>Error</code></a>
+will be thrown. This value must be a strictly positive integer.</li>
+<li><code>breakOnSigint</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> If <code>true</code>, the execution will be terminated when
+<code>SIGINT</code> (Ctrl+C) is received. Existing handlers for the
+event that have been attached via <code>process.on('SIGINT')</code> will be disabled
+during script execution, but will continue to work after that. If execution
+is terminated, an <a href="errors.html#errors_class_error"><code>Error</code></a> will be thrown. <strong>Default:</strong> <code>false</code>.</li>
+</ul>
+</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Data_types" class="type">&#x3C;any></a> the result of the very last statement executed in the script.</li>
+</ul>
+<p>Runs the compiled code contained by the <code>vm.Script</code> object within the given
+<code>contextifiedSandbox</code> and returns the result. Running code does not have access
+to local scope.</p>
+<p>The following example compiles code that increments a global variable, sets
+the value of another global variable, then execute the code multiple times.
+The globals are contained in the <code>sandbox</code> object.</p>
+<pre><code class="language-js">const util = require('util');
+const vm = require('vm');
+
+const sandbox = {
+  animal: 'cat',
+  count: 2
+};
+
+const script = new vm.Script('count += 1; name = "kitty";');
+
+const context = vm.createContext(sandbox);
+for (let i = 0; i &#x3C; 10; ++i) {
+  script.runInContext(context);
+}
+
+console.log(util.inspect(sandbox));
+
+// { animal: 'cat', count: 12, name: 'kitty' }
+</code></pre>
+<p>Using the <code>timeout</code> or <code>breakOnSigint</code> options will result in new event loops
+and corresponding threads being started, which have a non-zero performance
+overhead.</p>
+<h3>script.runInNewContext([sandbox[, options]])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/vm.js#L131">[src]</a><span><a class="mark" href="#vm_script_runinnewcontext_sandbox_options" id="vm_script_runinnewcontext_sandbox_options">#</a></span></h3>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v10.0.0</td>
+<td><p>The <code>contextCodeGeneration</code> option is supported now.</p></td></tr>
+<tr><td>v6.3.0</td>
+<td><p>The <code>breakOnSigint</code> option is supported now.</p></td></tr>
+<tr><td>v0.3.1</td>
+<td><p><span>Added in: v0.3.1</span></p></td></tr>
+</tbody></table>
+</details>
+</div>
+<ul>
+<li><code>sandbox</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> An object that will be <a href="#vm_what_does_it_mean_to_contextify_an_object">contextified</a>. If <code>undefined</code>, a
+new object will be created.</li>
+<li>
+<p><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></p>
+<ul>
+<li><code>displayErrors</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> When <code>true</code>, if an <a href="errors.html#errors_class_error"><code>Error</code></a> occurs
+while compiling the <code>code</code>, the line of code causing the error is attached
+to the stack trace. <strong>Default:</strong> <code>true</code>.</li>
+<li><code>timeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> Specifies the number of milliseconds to execute <code>code</code>
+before terminating execution. If execution is terminated, an <a href="errors.html#errors_class_error"><code>Error</code></a>
+will be thrown. This value must be a strictly positive integer.</li>
+<li><code>breakOnSigint</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> If <code>true</code>, the execution will be terminated when
+<code>SIGINT</code> (Ctrl+C) is received. Existing handlers for the
+event that have been attached via <code>process.on('SIGINT')</code> will be disabled
+during script execution, but will continue to work after that. If execution
+is terminated, an <a href="errors.html#errors_class_error"><code>Error</code></a> will be thrown. <strong>Default:</strong> <code>false</code>.</li>
+<li><code>contextName</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Human-readable name of the newly created context.
+<strong>Default:</strong> <code>'VM Context i'</code>, where <code>i</code> is an ascending numerical index of
+the created context.</li>
+<li><code>contextOrigin</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> <a href="https://developer.mozilla.org/en-US/docs/Glossary/Origin">Origin</a> corresponding to the newly
+created context for display purposes. The origin should be formatted like a
+URL, but with only the scheme, host, and port (if necessary), like the
+value of the <a href="url.html#url_url_origin"><code>url.origin</code></a> property of a <a href="url.html#url_class_url"><code>URL</code></a> object. Most notably,
+this string should omit the trailing slash, as that denotes a path.
+<strong>Default:</strong> <code>''</code>.</li>
+<li>
+<p><code>contextCodeGeneration</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></p>
+<ul>
+<li><code>strings</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> If set to false any calls to <code>eval</code> or function
+constructors (<code>Function</code>, <code>GeneratorFunction</code>, etc) will throw an
+<code>EvalError</code>. <strong>Default:</strong> <code>true</code>.</li>
+<li><code>wasm</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> If set to false any attempt to compile a WebAssembly
+module will throw a <code>WebAssembly.CompileError</code>. <strong>Default:</strong> <code>true</code>.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Data_types" class="type">&#x3C;any></a> the result of the very last statement executed in the script.</li>
+</ul>
+<p>First contextifies the given <code>sandbox</code>, runs the compiled code contained by
+the <code>vm.Script</code> object within the created sandbox, and returns the result.
+Running code does not have access to local scope.</p>
+<p>The following example compiles code that sets a global variable, then executes
+the code multiple times in different contexts. The globals are set on and
+contained within each individual <code>sandbox</code>.</p>
+<pre><code class="language-js">const util = require('util');
+const vm = require('vm');
+
+const script = new vm.Script('globalVar = "set"');
+
+const sandboxes = [{}, {}, {}];
+sandboxes.forEach((sandbox) => {
+  script.runInNewContext(sandbox);
+});
+
+console.log(util.inspect(sandboxes));
+
+// [{ globalVar: 'set' }, { globalVar: 'set' }, { globalVar: 'set' }]
+</code></pre>
+<h3>script.runInThisContext([options])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/vm.js#L111">[src]</a><span><a class="mark" href="#vm_script_runinthiscontext_options" id="vm_script_runinthiscontext_options">#</a></span></h3>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v6.3.0</td>
+<td><p>The <code>breakOnSigint</code> option is supported now.</p></td></tr>
+<tr><td>v0.3.1</td>
+<td><p><span>Added in: v0.3.1</span></p></td></tr>
+</tbody></table>
+</details>
+</div>
+<ul>
+<li>
+<p><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></p>
+<ul>
+<li><code>displayErrors</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> When <code>true</code>, if an <a href="errors.html#errors_class_error"><code>Error</code></a> occurs
+while compiling the <code>code</code>, the line of code causing the error is attached
+to the stack trace. <strong>Default:</strong> <code>true</code>.</li>
+<li><code>timeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> Specifies the number of milliseconds to execute <code>code</code>
+before terminating execution. If execution is terminated, an <a href="errors.html#errors_class_error"><code>Error</code></a>
+will be thrown. This value must be a strictly positive integer.</li>
+<li><code>breakOnSigint</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> If <code>true</code>, the execution will be terminated when
+<code>SIGINT</code> (Ctrl+C) is received. Existing handlers for the
+event that have been attached via <code>process.on('SIGINT')</code> will be disabled
+during script execution, but will continue to work after that. If execution
+is terminated, an <a href="errors.html#errors_class_error"><code>Error</code></a> will be thrown. <strong>Default:</strong> <code>false</code>.</li>
+</ul>
+</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Data_types" class="type">&#x3C;any></a> the result of the very last statement executed in the script.</li>
+</ul>
+<p>Runs the compiled code contained by the <code>vm.Script</code> within the context of the
+current <code>global</code> object. Running code does not have access to local scope, but
+<em>does</em> have access to the current <code>global</code> object.</p>
+<p>The following example compiles code that increments a <code>global</code> variable then
+executes that code multiple times:</p>
+<pre><code class="language-js">const vm = require('vm');
+
+global.globalVar = 0;
+
+const script = new vm.Script('globalVar += 1', { filename: 'myfile.vm' });
+
+for (let i = 0; i &#x3C; 1000; ++i) {
+  script.runInThisContext();
+}
+
+console.log(globalVar);
+
+// 1000
 </code></pre>
 <h2>Class: vm.SourceTextModule<span><a class="mark" href="#vm_class_vm_sourcetextmodule" id="vm_class_vm_sourcetextmodule">#</a></span></h2>
 <div class="api_metadata">
@@ -203,16 +477,16 @@ console.log(x); // 1; y is not defined.
 flag enabled.</em></p>
 <p>The <code>vm.SourceTextModule</code> class provides a low-level interface for using
 ECMAScript modules in VM contexts. It is the counterpart of the <code>vm.Script</code>
-class that closely mirrors <a href="https://tc39.github.io/ecma262/#sec-source-text-module-records">Source Text Module Record</a>s as defined in the
+class that closely mirrors <a href="https://tc39.es/ecma262/#sec-source-text-module-records">Source Text Module Record</a>s as defined in the
 ECMAScript specification.</p>
 <p>Unlike <code>vm.Script</code> however, every <code>vm.SourceTextModule</code> object is bound to a
 context from its creation. Operations on <code>vm.SourceTextModule</code> objects are
 intrinsically asynchronous, in contrast with the synchronous nature of
 <code>vm.Script</code> objects. With the help of async functions, however, manipulating
 <code>vm.SourceTextModule</code> objects is fairly straightforward.</p>
-<p>Using a <code>vm.SourceTextModule</code> object requires four distinct steps:
-creation/parsing, linking, instantiation, and evaluation. These four steps are
-illustrated in the following example.</p>
+<p>Using a <code>vm.SourceTextModule</code> object requires three distinct steps:
+creation/parsing, linking, and evaluation. These three steps are illustrated in
+the following example.</p>
 <p>This implementation lies at a lower level than the <a href="esm.html#esm_ecmascript_modules">ECMAScript Module
 loader</a>. There is also currently no way to interact with the Loader, though
 support is planned.</p>
@@ -276,15 +550,6 @@ const contextifiedSandbox = vm.createContext({ secret: 42 });
 
   // Step 3
   //
-  // Instantiate the top-level Module.
-  //
-  // Only the top-level Module needs to be explicitly instantiated; its
-  // dependencies will be recursively instantiated by instantiate().
-
-  bar.instantiate();
-
-  // Step 4
-  //
   // Evaluate the Module. The evaluate() method returns a Promise with a single
   // property "result" that contains the result of the very last statement
   // executed in the Module. In the case of `bar`, it is `s;`, which refers to
@@ -303,26 +568,36 @@ const contextifiedSandbox = vm.createContext({ secret: 42 });
 <li>
 <p><code>options</code></p>
 <ul>
-<li><code>url</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> URL used in module resolution and stack traces. <strong>Default:</strong>
-<code>'vm:module(i)'</code> where <code>i</code> is a context-specific ascending index.</li>
+<li><code>identifier</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> String used in stack traces.
+<strong>Default:</strong> <code>'vm:module(i)'</code> where <code>i</code> is a context-specific ascending
+index.</li>
 <li><code>context</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> The <a href="#vm_what_does_it_mean_to_contextify_an_object">contextified</a> object as returned by the
 <code>vm.createContext()</code> method, to compile and evaluate this <code>Module</code> in.</li>
 <li><code>lineOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> Specifies the line number offset that is displayed
-in stack traces produced by this <code>Module</code>.</li>
+in stack traces produced by this <code>Module</code>. <strong>Default:</strong> <code>0</code>.</li>
 <li><code>columnOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> Specifies the column number offset that is
-displayed in stack traces produced by this <code>Module</code>.</li>
-<li><code>initializeImportMeta</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> Called during evaluation of this <code>Module</code>
-to initialize the <code>import.meta</code>. This function has the signature <code>(meta, module)</code>, where <code>meta</code> is the <code>import.meta</code> object in the <code>Module</code>, and
-<code>module</code> is this <code>vm.SourceTextModule</code> object.</li>
-<li><code>importModuleDynamically</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> Called during evaluation of this
-module when <code>import()</code> is called. This function has the signature
-<code>(specifier, module)</code> where <code>specifier</code> is the specifier passed to
-<code>import()</code> and <code>module</code> is this <code>vm.SourceTextModule</code>. If this option is
-not specified, calls to <code>import()</code> will reject with
-<a href="errors.html#ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING"><code>ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING</code></a>. This method can return a
-<a href="https://tc39.github.io/ecma262/#sec-module-namespace-exotic-objects">Module Namespace Object</a>, but returning a <code>vm.SourceTextModule</code> is
-recommended in order to take advantage of error tracking, and to avoid
-issues with namespaces that contain <code>then</code> function exports.</li>
+displayed in stack traces produced by this <code>Module</code>. <strong>Default:</strong> <code>0</code>.</li>
+<li>
+<p><code>initializeImportMeta</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> Called during evaluation of this <code>Module</code>
+to initialize the <code>import.meta</code>.</p>
+<ul>
+<li><code>meta</code> <a href="esm.html#esm_import_meta" class="type">&#x3C;import.meta></a></li>
+<li><code>module</code> <a href="vm.html#vm_class_vm_sourcetextmodule" class="type">&#x3C;vm.SourceTextModule></a></li>
+</ul>
+</li>
+<li>
+<p><code>importModuleDynamically</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> Called during evaluation of this module
+when <code>import()</code> is called. If this option is not specified, calls to
+<code>import()</code> will reject with <a href="errors.html#ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING"><code>ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING</code></a>.</p>
+<ul>
+<li><code>specifier</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> specifier passed to <code>import()</code></li>
+<li><code>module</code> <a href="vm.html#vm_class_vm_sourcetextmodule" class="type">&#x3C;vm.SourceTextModule></a></li>
+<li>Returns: <a href="https://tc39.github.io/ecma262/#sec-module-namespace-exotic-objects" class="type">&#x3C;Module Namespace Object></a> | <a href="vm.html#vm_class_vm_sourcetextmodule" class="type">&#x3C;vm.SourceTextModule></a> Returning a
+<code>vm.SourceTextModule</code> is recommended in order to take advantage of error
+tracking, and to avoid issues with namespaces that contain <code>then</code>
+function exports.</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -349,7 +624,6 @@ const contextifiedSandbox = vm.createContext({ secret: 42 });
     });
   // Since module has no dependencies, the linker function will never be called.
   await module.link(() => {});
-  module.instantiate();
   await module.evaluate();
 
   // Now, Object.prototype.secret will be equal to 42.
@@ -367,7 +641,7 @@ const contextifiedSandbox = vm.createContext({ secret: 42 });
 <p>The specifiers of all dependencies of this module. The returned array is frozen
 to disallow any changes to it.</p>
 <p>Corresponds to the <code>[[RequestedModules]]</code> field of
-<a href="https://tc39.github.io/ecma262/#sec-source-text-module-records">Source Text Module Record</a>s in the ECMAScript specification.</p>
+<a href="https://tc39.es/ecma262/#sec-source-text-module-records">Source Text Module Record</a>s in the ECMAScript specification.</p>
 <h3>module.error<span><a class="mark" href="#vm_module_error" id="vm_module_error">#</a></span></h3>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Data_types" class="type">&#x3C;any></a></li>
@@ -377,7 +651,7 @@ thrown by the module during evaluation. If the status is anything else,
 accessing this property will result in a thrown exception.</p>
 <p>The value <code>undefined</code> cannot be used for cases where there is not a thrown
 exception due to possible ambiguity with <code>throw undefined;</code>.</p>
-<p>Corresponds to the <code>[[EvaluationError]]</code> field of <a href="https://tc39.github.io/ecma262/#sec-source-text-module-records">Source Text Module Record</a>s
+<p>Corresponds to the <code>[[EvaluationError]]</code> field of <a href="https://tc39.es/ecma262/#sec-source-text-module-records">Source Text Module Record</a>s
 in the ECMAScript specification.</p>
 <h3>module.evaluate([options])<span><a class="mark" href="#vm_module_evaluate_options" id="vm_module_evaluate_options">#</a></span></h3>
 <ul>
@@ -391,13 +665,13 @@ will be thrown. This value must be a strictly positive integer.</li>
 <code>SIGINT</code> (Ctrl+C) is received. Existing handlers for the event that have
 been attached via <code>process.on('SIGINT')</code> will be disabled during script
 execution, but will continue to work after that. If execution is
-interrupted, an <a href="errors.html#errors_class_error"><code>Error</code></a> will be thrown.</li>
+interrupted, an <a href="errors.html#errors_class_error"><code>Error</code></a> will be thrown. <strong>Default:</strong> <code>false</code>.</li>
 </ul>
 </li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise" class="type">&#x3C;Promise></a></li>
 </ul>
 <p>Evaluate the module.</p>
-<p>This must be called after the module has been instantiated; otherwise it will
+<p>This must be called after the module has been linked; otherwise it will
 throw an error. It could be called also when the module has already been
 evaluated, in which case it will do one of the following two things:</p>
 <ul>
@@ -408,88 +682,69 @@ evaluation ended in an error (<code>module.status</code> is <code>'errored'</cod
 </ul>
 <p>This method cannot be called while the module is being evaluated
 (<code>module.status</code> is <code>'evaluating'</code>) to prevent infinite recursion.</p>
-<p>Corresponds to the <a href="https://tc39.github.io/ecma262/#sec-moduleevaluation">Evaluate() concrete method</a> field of <a href="https://tc39.github.io/ecma262/#sec-source-text-module-records">Source Text Module
+<p>Corresponds to the <a href="https://tc39.es/ecma262/#sec-moduleevaluation">Evaluate() concrete method</a> field of <a href="https://tc39.es/ecma262/#sec-source-text-module-records">Source Text Module
 Record</a>s in the ECMAScript specification.</p>
-<h3>module.instantiate()<span><a class="mark" href="#vm_module_instantiate" id="vm_module_instantiate">#</a></span></h3>
-<p>Instantiate the module. This must be called after linking has completed
-(<code>linkingStatus</code> is <code>'linked'</code>); otherwise it will throw an error. It may also
-throw an exception if one of the dependencies does not provide an export the
-parent module requires.</p>
-<p>However, if this function succeeded, further calls to this function after the
-initial instantiation will be no-ops, to be consistent with the ECMAScript
-specification.</p>
-<p>Unlike other methods operating on <code>Module</code>, this function completes
-synchronously and returns nothing.</p>
-<p>Corresponds to the <a href="https://tc39.github.io/ecma262/#sec-moduledeclarationinstantiation">Instantiate() concrete method</a> field of <a href="https://tc39.github.io/ecma262/#sec-source-text-module-records">Source Text
-Module Record</a>s in the ECMAScript specification.</p>
 <h3>module.link(linker)<span><a class="mark" href="#vm_module_link_linker" id="vm_module_link_linker">#</a></span></h3>
 <ul>
-<li><code>linker</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise" class="type">&#x3C;Promise></a></li>
-</ul>
-<p>Link module dependencies. This method must be called before instantiation, and
-can only be called once per module.</p>
-<p>Two parameters will be passed to the <code>linker</code> function:</p>
+<li>
+<p><code>linker</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></p>
 <ul>
 <li>
-<p><code>specifier</code> The specifier of the requested module:</p>
+<p><code>specifier</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The specifier of the requested module:</p>
 <!-- eslint-skip -->
 <pre><code class="language-js">import foo from 'foo';
 //              ^^^^^ the module specifier
 </code></pre>
 </li>
-<li><code>referencingModule</code> The <code>Module</code> object <code>link()</code> is called on.</li>
+<li>
+<p><code>referencingModule</code> <a href="vm.html#vm_class_vm_sourcetextmodule" class="type">&#x3C;vm.SourceTextModule></a> The <code>Module</code> object <code>link()</code> is
+called on.</p>
+</li>
+<li>
+<p>Returns: <a href="vm.html#vm_class_vm_sourcetextmodule" class="type">&#x3C;vm.SourceTextModule></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise" class="type">&#x3C;Promise></a></p>
+</li>
 </ul>
+</li>
+<li>
+<p>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise" class="type">&#x3C;Promise></a></p>
+</li>
+</ul>
+<p>Link module dependencies. This method must be called before evaluation, and
+can only be called once per module.</p>
 <p>The function is expected to return a <code>Module</code> object or a <code>Promise</code> that
 eventually resolves to a <code>Module</code> object. The returned <code>Module</code> must satisfy the
 following two invariants:</p>
 <ul>
 <li>It must belong to the same context as the parent <code>Module</code>.</li>
-<li>Its <code>linkingStatus</code> must not be <code>'errored'</code>.</li>
+<li>Its <code>status</code> must not be <code>'errored'</code>.</li>
 </ul>
-<p>If the returned <code>Module</code>'s <code>linkingStatus</code> is <code>'unlinked'</code>, this method will be
+<p>If the returned <code>Module</code>'s <code>status</code> is <code>'unlinked'</code>, this method will be
 recursively called on the returned <code>Module</code> with the same provided <code>linker</code>
 function.</p>
 <p><code>link()</code> returns a <code>Promise</code> that will either get resolved when all linking
 instances resolve to a valid <code>Module</code>, or rejected if the linker function either
 throws an exception or returns an invalid <code>Module</code>.</p>
 <p>The linker function roughly corresponds to the implementation-defined
-<a href="https://tc39.github.io/ecma262/#sec-hostresolveimportedmodule">HostResolveImportedModule</a> abstract operation in the ECMAScript
+<a href="https://tc39.es/ecma262/#sec-hostresolveimportedmodule">HostResolveImportedModule</a> abstract operation in the ECMAScript
 specification, with a few key differences:</p>
 <ul>
 <li>The linker function is allowed to be asynchronous while
-<a href="https://tc39.github.io/ecma262/#sec-hostresolveimportedmodule">HostResolveImportedModule</a> is synchronous.</li>
-<li>The linker function is executed during linking, a Node.js-specific stage
-before instantiation, while <a href="https://tc39.github.io/ecma262/#sec-hostresolveimportedmodule">HostResolveImportedModule</a> is called during
-instantiation.</li>
+<a href="https://tc39.es/ecma262/#sec-hostresolveimportedmodule">HostResolveImportedModule</a> is synchronous.</li>
 </ul>
-<p>The actual <a href="https://tc39.github.io/ecma262/#sec-hostresolveimportedmodule">HostResolveImportedModule</a> implementation used during module
-instantiation is one that returns the modules linked during linking. Since at
+<p>The actual <a href="https://tc39.es/ecma262/#sec-hostresolveimportedmodule">HostResolveImportedModule</a> implementation used during module
+linking is one that returns the modules linked during linking. Since at
 that point all modules would have been fully linked already, the
-<a href="https://tc39.github.io/ecma262/#sec-hostresolveimportedmodule">HostResolveImportedModule</a> implementation is fully synchronous per
+<a href="https://tc39.es/ecma262/#sec-hostresolveimportedmodule">HostResolveImportedModule</a> implementation is fully synchronous per
 specification.</p>
-<h3>module.linkingStatus<span><a class="mark" href="#vm_module_linkingstatus" id="vm_module_linkingstatus">#</a></span></h3>
-<ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
-</ul>
-<p>The current linking status of <code>module</code>. It will be one of the following values:</p>
-<ul>
-<li><code>'unlinked'</code>: <code>module.link()</code> has not yet been called.</li>
-<li><code>'linking'</code>: <code>module.link()</code> has been called, but not all Promises returned by
-the linker function have been resolved yet.</li>
-<li><code>'linked'</code>: <code>module.link()</code> has been called, and all its dependencies have
-been successfully linked.</li>
-<li><code>'errored'</code>: <code>module.link()</code> has been called, but at least one of its
-dependencies failed to link, either because the callback returned a <code>Promise</code>
-that is rejected, or because the <code>Module</code> the callback returned is invalid.</li>
-</ul>
+<p>Corresponds to the <a href="https://tc39.es/ecma262/#sec-moduledeclarationlinking">Link() concrete method</a> field of <a href="https://tc39.es/ecma262/#sec-source-text-module-records">Source Text Module
+Record</a>s in the ECMAScript specification.</p>
 <h3>module.namespace<span><a class="mark" href="#vm_module_namespace" id="vm_module_namespace">#</a></span></h3>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></li>
 </ul>
-<p>The namespace object of the module. This is only available after instantiation
-(<code>module.instantiate()</code>) has completed.</p>
-<p>Corresponds to the <a href="https://tc39.github.io/ecma262/#sec-getmodulenamespace">GetModuleNamespace</a> abstract operation in the ECMAScript
+<p>The namespace object of the module. This is only available after linking
+(<code>module.link()</code>) has completed.</p>
+<p>Corresponds to the <a href="https://tc39.es/ecma262/#sec-getmodulenamespace">GetModuleNamespace</a> abstract operation in the ECMAScript
 specification.</p>
 <h3>module.status<span><a class="mark" href="#vm_module_status" id="vm_module_status">#</a></span></h3>
 <ul>
@@ -498,23 +753,15 @@ specification.</p>
 <p>The current status of the module. Will be one of:</p>
 <ul>
 <li>
-<p><code>'uninstantiated'</code>: The module is not instantiated. It may because of any of
-the following reasons:</p>
-<ul>
-<li>The module was just created.</li>
-<li><code>module.instantiate()</code> has been called on this module, but it failed for
-some reason.</li>
-</ul>
-<p>This status does not convey any information regarding if <code>module.link()</code> has
-been called. See <code>module.linkingStatus</code> for that.</p>
+<p><code>'unlinked'</code>: <code>module.link()</code> has not yet been called.</p>
 </li>
 <li>
-<p><code>'instantiating'</code>: The module is currently being instantiated through a
-<code>module.instantiate()</code> call on itself or a parent module.</p>
+<p><code>'linking'</code>: <code>module.link()</code> has been called, but not all Promises returned
+by the linker function have been resolved yet.</p>
 </li>
 <li>
-<p><code>'instantiated'</code>: The module has been instantiated successfully, but
-<code>module.evaluate()</code> has not yet been called.</p>
+<p><code>'linked'</code>: The module has been linked successfully, and all of its
+dependencies are linked, but <code>module.evaluate()</code> has not yet been called.</p>
 </li>
 <li>
 <p><code>'evaluating'</code>: The module is being evaluated through a <code>module.evaluate()</code> on
@@ -528,276 +775,15 @@ itself or a parent module.</p>
 </li>
 </ul>
 <p>Other than <code>'errored'</code>, this status string corresponds to the specification's
-<a href="https://tc39.github.io/ecma262/#sec-source-text-module-records">Source Text Module Record</a>'s <code>[[Status]]</code> field. <code>'errored'</code> corresponds to
+<a href="https://tc39.es/ecma262/#sec-source-text-module-records">Source Text Module Record</a>'s <code>[[Status]]</code> field. <code>'errored'</code> corresponds to
 <code>'evaluated'</code> in the specification, but with <code>[[EvaluationError]]</code> set to a
 value that is not <code>undefined</code>.</p>
-<h3>module.url<span><a class="mark" href="#vm_module_url" id="vm_module_url">#</a></span></h3>
+<h3>module.identifier<span><a class="mark" href="#vm_module_identifier" id="vm_module_identifier">#</a></span></h3>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
-<p>The URL of the current module, as set in the constructor.</p>
-<h2>Class: vm.Script<span><a class="mark" href="#vm_class_vm_script" id="vm_class_vm_script">#</a></span></h2>
-<div class="api_metadata">
-<span>Added in: v0.3.1</span>
-</div>
-<p>Instances of the <code>vm.Script</code> class contain precompiled scripts that can be
-executed in specific sandboxes (or "contexts").</p>
-<h3>new vm.Script(code, options)<span><a class="mark" href="#vm_new_vm_script_code_options" id="vm_new_vm_script_code_options">#</a></span></h3>
-<div class="api_metadata">
-<details class="changelog"><summary>History</summary>
-<table>
-<tbody><tr><th>Version</th><th>Changes</th></tr>
-<tr><td>v10.6.0</td>
-<td><p>The <code>produceCachedData</code> is deprecated in favour of <code>script.createCachedData()</code></p></td></tr>
-<tr><td>v5.7.0</td>
-<td><p>The <code>cachedData</code> and <code>produceCachedData</code> options are supported now.</p></td></tr>
-<tr><td>v0.3.1</td>
-<td><p><span>Added in: v0.3.1</span></p></td></tr>
-</tbody></table>
-</details>
-</div>
-<ul>
-<li><code>code</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The JavaScript code to compile.</li>
-<li>
-<p><code>options</code></p>
-<ul>
-<li><code>filename</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Specifies the filename used in stack traces produced
-by this script.</li>
-<li><code>lineOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Specifies the line number offset that is displayed
-in stack traces produced by this script.</li>
-<li><code>columnOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Specifies the column number offset that is displayed
-in stack traces produced by this script.</li>
-<li><code>cachedData</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a> Provides an optional <code>Buffer</code> or
-<code>TypedArray</code>, or <code>DataView</code> with V8's code cache data for the supplied
-source. When supplied, the <code>cachedDataRejected</code> value will be set to
-either <code>true</code> or <code>false</code> depending on acceptance of the data by V8.</li>
-<li><code>produceCachedData</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> When <code>true</code> and no <code>cachedData</code> is present, V8
-will attempt to produce code cache data for <code>code</code>. Upon success, a
-<code>Buffer</code> with V8's code cache data will be produced and stored in the
-<code>cachedData</code> property of the returned <code>vm.Script</code> instance.
-The <code>cachedDataProduced</code> value will be set to either <code>true</code> or <code>false</code>
-depending on whether code cache data is produced successfully.
-This option is deprecated in favor of <code>script.createCachedData()</code>.</li>
-<li><code>importModuleDynamically</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> Called during evaluation of this
-module when <code>import()</code> is called. This function has the signature
-<code>(specifier, module)</code> where <code>specifier</code> is the specifier passed to
-<code>import()</code> and <code>module</code> is this <code>vm.SourceTextModule</code>. If this option is
-not specified, calls to <code>import()</code> will reject with
-<a href="errors.html#ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING"><code>ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING</code></a>. This method can return a
-<a href="https://tc39.github.io/ecma262/#sec-module-namespace-exotic-objects">Module Namespace Object</a>, but returning a <code>vm.SourceTextModule</code> is
-recommended in order to take advantage of error tracking, and to avoid
-issues with namespaces that contain <code>then</code> function exports.</li>
-</ul>
-</li>
-</ul>
-<p>Creating a new <code>vm.Script</code> object compiles <code>code</code> but does not run it. The
-compiled <code>vm.Script</code> can be run later multiple times. The <code>code</code> is not bound to
-any global object; rather, it is bound before each run, just for that run.</p>
-<h3>script.createCachedData()<span><a class="mark" href="#vm_script_createcacheddata" id="vm_script_createcacheddata">#</a></span></h3>
-<div class="api_metadata">
-<span>Added in: v10.6.0</span>
-</div>
-<ul>
-<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a></li>
-</ul>
-<p>Creates a code cache that can be used with the Script constructor's
-<code>cachedData</code> option. Returns a Buffer. This method may be called at any
-time and any number of times.</p>
-<pre><code class="language-js">const script = new vm.Script(`
-function add(a, b) {
-  return a + b;
-}
-
-const x = add(1, 2);
-`);
-
-const cacheWithoutX = script.createCachedData();
-
-script.runInThisContext();
-
-const cacheWithX = script.createCachedData();
-</code></pre>
-<h3>script.runInContext(contextifiedSandbox[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/vm.js#L126">[src]</a><span><a class="mark" href="#vm_script_runincontext_contextifiedsandbox_options" id="vm_script_runincontext_contextifiedsandbox_options">#</a></span></h3>
-<div class="api_metadata">
-<details class="changelog"><summary>History</summary>
-<table>
-<tbody><tr><th>Version</th><th>Changes</th></tr>
-<tr><td>v6.3.0</td>
-<td><p>The <code>breakOnSigint</code> option is supported now.</p></td></tr>
-<tr><td>v0.3.1</td>
-<td><p><span>Added in: v0.3.1</span></p></td></tr>
-</tbody></table>
-</details>
-</div>
-<ul>
-<li><code>contextifiedSandbox</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> A <a href="#vm_what_does_it_mean_to_contextify_an_object">contextified</a> object as returned by the
-<code>vm.createContext()</code> method.</li>
-<li>
-<p><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></p>
-<ul>
-<li><code>filename</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Specifies the filename used in stack traces produced
-by this script.</li>
-<li><code>lineOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Specifies the line number offset that is displayed
-in stack traces produced by this script.</li>
-<li><code>columnOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Specifies the column number offset that is displayed
-in stack traces produced by this script.</li>
-<li><code>displayErrors</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> When <code>true</code>, if an <a href="errors.html#errors_class_error"><code>Error</code></a> error occurs
-while compiling the <code>code</code>, the line of code causing the error is attached
-to the stack trace.</li>
-<li><code>timeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> Specifies the number of milliseconds to execute <code>code</code>
-before terminating execution. If execution is terminated, an <a href="errors.html#errors_class_error"><code>Error</code></a>
-will be thrown. This value must be a strictly positive integer.</li>
-<li><code>breakOnSigint</code>: if <code>true</code>, the execution will be terminated when
-<code>SIGINT</code> (Ctrl+C) is received. Existing handlers for the
-event that have been attached via <code>process.on('SIGINT')</code> will be disabled
-during script execution, but will continue to work after that.
-If execution is terminated, an <a href="errors.html#errors_class_error"><code>Error</code></a> will be thrown.</li>
-</ul>
-</li>
-</ul>
-<p>Runs the compiled code contained by the <code>vm.Script</code> object within the given
-<code>contextifiedSandbox</code> and returns the result. Running code does not have access
-to local scope.</p>
-<p>The following example compiles code that increments a global variable, sets
-the value of another global variable, then execute the code multiple times.
-The globals are contained in the <code>sandbox</code> object.</p>
-<pre><code class="language-js">const util = require('util');
-const vm = require('vm');
-
-const sandbox = {
-  animal: 'cat',
-  count: 2
-};
-
-const script = new vm.Script('count += 1; name = "kitty";');
-
-const context = vm.createContext(sandbox);
-for (let i = 0; i &#x3C; 10; ++i) {
-  script.runInContext(context);
-}
-
-console.log(util.inspect(sandbox));
-
-// { animal: 'cat', count: 12, name: 'kitty' }
-</code></pre>
-<p>Using the <code>timeout</code> or <code>breakOnSigint</code> options will result in new event loops
-and corresponding threads being started, which have a non-zero performance
-overhead.</p>
-<h3>script.runInNewContext([sandbox[, options]])<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/vm.js#L137">[src]</a><span><a class="mark" href="#vm_script_runinnewcontext_sandbox_options" id="vm_script_runinnewcontext_sandbox_options">#</a></span></h3>
-<div class="api_metadata">
-<details class="changelog"><summary>History</summary>
-<table>
-<tbody><tr><th>Version</th><th>Changes</th></tr>
-<tr><td>v10.0.0</td>
-<td><p>The <code>contextCodeGeneration</code> option is supported now.</p></td></tr>
-<tr><td>v0.3.1</td>
-<td><p><span>Added in: v0.3.1</span></p></td></tr>
-</tbody></table>
-</details>
-</div>
-<ul>
-<li><code>sandbox</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> An object that will be <a href="#vm_what_does_it_mean_to_contextify_an_object">contextified</a>. If <code>undefined</code>, a
-new object will be created.</li>
-<li>
-<p><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></p>
-<ul>
-<li><code>filename</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Specifies the filename used in stack traces produced
-by this script.</li>
-<li><code>lineOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Specifies the line number offset that is displayed
-in stack traces produced by this script.</li>
-<li><code>columnOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Specifies the column number offset that is displayed
-in stack traces produced by this script.</li>
-<li><code>displayErrors</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> When <code>true</code>, if an <a href="errors.html#errors_class_error"><code>Error</code></a> error occurs
-while compiling the <code>code</code>, the line of code causing the error is attached
-to the stack trace.</li>
-<li><code>timeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> Specifies the number of milliseconds to execute <code>code</code>
-before terminating execution. If execution is terminated, an <a href="errors.html#errors_class_error"><code>Error</code></a>
-will be thrown. This value must be a strictly positive integer.</li>
-<li><code>contextName</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Human-readable name of the newly created context.
-<strong>Default:</strong> <code>'VM Context i'</code>, where <code>i</code> is an ascending numerical index of
-the created context.</li>
-<li><code>contextOrigin</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> <a href="https://developer.mozilla.org/en-US/docs/Glossary/Origin">Origin</a> corresponding to the newly
-created context for display purposes. The origin should be formatted like a
-URL, but with only the scheme, host, and port (if necessary), like the
-value of the <a href="url.html#url_url_origin"><code>url.origin</code></a> property of a <a href="url.html#url_class_url"><code>URL</code></a> object. Most notably,
-this string should omit the trailing slash, as that denotes a path.
-<strong>Default:</strong> <code>''</code>.</li>
-<li>
-<p><code>contextCodeGeneration</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></p>
-<ul>
-<li><code>strings</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> If set to false any calls to <code>eval</code> or function
-constructors (<code>Function</code>, <code>GeneratorFunction</code>, etc) will throw an
-<code>EvalError</code>. <strong>Default:</strong> <code>true</code>.</li>
-<li><code>wasm</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> If set to false any attempt to compile a WebAssembly
-module will throw a <code>WebAssembly.CompileError</code>. <strong>Default:</strong> <code>true</code>.</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<p>First contextifies the given <code>sandbox</code>, runs the compiled code contained by
-the <code>vm.Script</code> object within the created sandbox, and returns the result.
-Running code does not have access to local scope.</p>
-<p>The following example compiles code that sets a global variable, then executes
-the code multiple times in different contexts. The globals are set on and
-contained within each individual <code>sandbox</code>.</p>
-<pre><code class="language-js">const util = require('util');
-const vm = require('vm');
-
-const script = new vm.Script('globalVar = "set"');
-
-const sandboxes = [{}, {}, {}];
-sandboxes.forEach((sandbox) => {
-  script.runInNewContext(sandbox);
-});
-
-console.log(util.inspect(sandboxes));
-
-// [{ globalVar: 'set' }, { globalVar: 'set' }, { globalVar: 'set' }]
-</code></pre>
-<h3>script.runInThisContext([options])<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/vm.js#L117">[src]</a><span><a class="mark" href="#vm_script_runinthiscontext_options" id="vm_script_runinthiscontext_options">#</a></span></h3>
-<div class="api_metadata">
-<span>Added in: v0.3.1</span>
-</div>
-<ul>
-<li>
-<p><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></p>
-<ul>
-<li><code>filename</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Specifies the filename used in stack traces produced
-by this script.</li>
-<li><code>lineOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Specifies the line number offset that is displayed
-in stack traces produced by this script.</li>
-<li><code>columnOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Specifies the column number offset that is displayed
-in stack traces produced by this script.</li>
-<li><code>displayErrors</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> When <code>true</code>, if an <a href="errors.html#errors_class_error"><code>Error</code></a> error occurs
-while compiling the <code>code</code>, the line of code causing the error is attached
-to the stack trace.</li>
-<li><code>timeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> Specifies the number of milliseconds to execute <code>code</code>
-before terminating execution. If execution is terminated, an <a href="errors.html#errors_class_error"><code>Error</code></a>
-will be thrown. This value must be a strictly positive integer.</li>
-</ul>
-</li>
-</ul>
-<p>Runs the compiled code contained by the <code>vm.Script</code> within the context of the
-current <code>global</code> object. Running code does not have access to local scope, but
-<em>does</em> have access to the current <code>global</code> object.</p>
-<p>The following example compiles code that increments a <code>global</code> variable then
-executes that code multiple times:</p>
-<pre><code class="language-js">const vm = require('vm');
-
-global.globalVar = 0;
-
-const script = new vm.Script('globalVar += 1', { filename: 'myfile.vm' });
-
-for (let i = 0; i &#x3C; 1000; ++i) {
-  script.runInThisContext();
-}
-
-console.log(globalVar);
-
-// 1000
-</code></pre>
-<h2>vm.compileFunction(code[, params[, options]])<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/vm.js#L332">[src]</a><span><a class="mark" href="#vm_vm_compilefunction_code_params_options" id="vm_vm_compilefunction_code_params_options">#</a></span></h2>
+<p>The identifier of the current module, as set in the constructor.</p>
+<h2>vm.compileFunction(code[, params[, options]])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/vm.js#L309">[src]</a><span><a class="mark" href="#vm_vm_compilefunction_code_params_options" id="vm_vm_compilefunction_code_params_options">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v10.10.0</span>
 </div>
@@ -826,17 +812,18 @@ extensions (objects wrapping the current scope) to be applied while
 compiling. <strong>Default:</strong> <code>[]</code>.</li>
 </ul>
 </li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
 </ul>
 <p>Compiles the given code into the provided context/sandbox (if no context is
 supplied, the current context is used), and returns it wrapped inside a
 function with the given <code>params</code>.</p>
-<h2>vm.createContext([sandbox[, options]])<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/vm.js#L243">[src]</a><span><a class="mark" href="#vm_vm_createcontext_sandbox_options" id="vm_vm_createcontext_sandbox_options">#</a></span></h2>
+<h2>vm.createContext([sandbox[, options]])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/vm.js#L225">[src]</a><span><a class="mark" href="#vm_vm_createcontext_sandbox_options" id="vm_vm_createcontext_sandbox_options">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
 <tr><td>v10.0.0</td>
-<td><p>The <code>sandbox</code> option can no longer be a function.</p></td></tr>
+<td><p>The <code>sandbox</code> object can no longer be a function.</p></td></tr>
 <tr><td>v10.0.0</td>
 <td><p>The <code>codeGeneration</code> option is supported now.</p></td></tr>
 <tr><td>v0.3.1</td>
@@ -870,6 +857,7 @@ module will throw a <code>WebAssembly.CompileError</code>. <strong>Default:</str
 </li>
 </ul>
 </li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> contextified sandbox.</li>
 </ul>
 <p>If given a <code>sandbox</code> object, the <code>vm.createContext()</code> method will <a href="#vm_what_does_it_mean_to_contextify_an_object">prepare
 that sandbox</a> so that it can be used in calls to
@@ -901,7 +889,7 @@ window's global object, then run all <code>&#x3C;script></code> tags together wi
 of that sandbox.</p>
 <p>The provided <code>name</code> and <code>origin</code> of the context are made visible through the
 Inspector API.</p>
-<h2>vm.isContext(sandbox)<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/vm.js#L235">[src]</a><span><a class="mark" href="#vm_vm_iscontext_sandbox" id="vm_vm_iscontext_sandbox">#</a></span></h2>
+<h2>vm.isContext(sandbox)<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/vm.js#L217">[src]</a><span><a class="mark" href="#vm_vm_iscontext_sandbox" id="vm_vm_iscontext_sandbox">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.11.7</span>
 </div>
@@ -911,7 +899,18 @@ Inspector API.</p>
 </ul>
 <p>Returns <code>true</code> if the given <code>sandbox</code> object has been <a href="#vm_what_does_it_mean_to_contextify_an_object">contextified</a> using
 <a href="#vm_vm_createcontext_sandbox_options"><code>vm.createContext()</code></a>.</p>
-<h2>vm.runInContext(code, contextifiedSandbox[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/vm.js#L298">[src]</a><span><a class="mark" href="#vm_vm_runincontext_code_contextifiedsandbox_options" id="vm_vm_runincontext_code_contextifiedsandbox_options">#</a></span></h2>
+<h2>vm.runInContext(code, contextifiedSandbox[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/vm.js#L279">[src]</a><span><a class="mark" href="#vm_vm_runincontext_code_contextifiedsandbox_options" id="vm_vm_runincontext_code_contextifiedsandbox_options">#</a></span></h2>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v6.3.0</td>
+<td><p>The <code>breakOnSigint</code> option is supported now.</p></td></tr>
+<tr><td>v0.3.1</td>
+<td><p><span>Added in: v0.3.1</span></p></td></tr>
+</tbody></table>
+</details>
+</div>
 <ul>
 <li><code>code</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The JavaScript code to compile and run.</li>
 <li><code>contextifiedSandbox</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> The <a href="#vm_what_does_it_mean_to_contextify_an_object">contextified</a> object that will be used
@@ -920,19 +919,52 @@ as the <code>global</code> when the <code>code</code> is compiled and run.</li>
 <p><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></p>
 <ul>
 <li><code>filename</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Specifies the filename used in stack traces produced
-by this script.</li>
+by this script. <strong>Default:</strong> <code>'evalmachine.&#x3C;anonymous>'</code>.</li>
 <li><code>lineOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Specifies the line number offset that is displayed
-in stack traces produced by this script.</li>
+in stack traces produced by this script. <strong>Default:</strong> <code>0</code>.</li>
 <li><code>columnOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Specifies the column number offset that is displayed
-in stack traces produced by this script.</li>
-<li><code>displayErrors</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> When <code>true</code>, if an <a href="errors.html#errors_class_error"><code>Error</code></a> error occurs
+in stack traces produced by this script. <strong>Default:</strong> <code>0</code>.</li>
+<li><code>displayErrors</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> When <code>true</code>, if an <a href="errors.html#errors_class_error"><code>Error</code></a> occurs
 while compiling the <code>code</code>, the line of code causing the error is attached
-to the stack trace.</li>
+to the stack trace. <strong>Default:</strong> <code>true</code>.</li>
 <li><code>timeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> Specifies the number of milliseconds to execute <code>code</code>
 before terminating execution. If execution is terminated, an <a href="errors.html#errors_class_error"><code>Error</code></a>
 will be thrown. This value must be a strictly positive integer.</li>
+<li><code>breakOnSigint</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> If <code>true</code>, the execution will be terminated when
+<code>SIGINT</code> (Ctrl+C) is received. Existing handlers for the
+event that have been attached via <code>process.on('SIGINT')</code> will be disabled
+during script execution, but will continue to work after that. If execution
+is terminated, an <a href="errors.html#errors_class_error"><code>Error</code></a> will be thrown. <strong>Default:</strong> <code>false</code>.</li>
+<li><code>cachedData</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a> Provides an optional <code>Buffer</code> or
+<code>TypedArray</code>, or <code>DataView</code> with V8's code cache data for the supplied
+source. When supplied, the <code>cachedDataRejected</code> value will be set to
+either <code>true</code> or <code>false</code> depending on acceptance of the data by V8.</li>
+<li><code>produceCachedData</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> When <code>true</code> and no <code>cachedData</code> is present, V8
+will attempt to produce code cache data for <code>code</code>. Upon success, a
+<code>Buffer</code> with V8's code cache data will be produced and stored in the
+<code>cachedData</code> property of the returned <code>vm.Script</code> instance.
+The <code>cachedDataProduced</code> value will be set to either <code>true</code> or <code>false</code>
+depending on whether code cache data is produced successfully.
+This option is <strong>deprecated</strong> in favor of <code>script.createCachedData()</code>.
+<strong>Default:</strong> <code>false</code>.</li>
+<li>
+<p><code>importModuleDynamically</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> Called during evaluation of this module
+when <code>import()</code> is called. If this option is not specified, calls to
+<code>import()</code> will reject with <a href="errors.html#ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING"><code>ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING</code></a>.
+This option is part of the experimental API for the <code>--experimental-modules</code>
+flag, and should not be considered stable.</p>
+<ul>
+<li><code>specifier</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> specifier passed to <code>import()</code></li>
+<li><code>module</code> <a href="vm.html#vm_class_vm_sourcetextmodule" class="type">&#x3C;vm.SourceTextModule></a></li>
+<li>Returns: <a href="https://tc39.github.io/ecma262/#sec-module-namespace-exotic-objects" class="type">&#x3C;Module Namespace Object></a> | <a href="vm.html#vm_class_vm_sourcetextmodule" class="type">&#x3C;vm.SourceTextModule></a> Returning a
+<code>vm.SourceTextModule</code> is recommended in order to take advantage of error
+tracking, and to avoid issues with namespaces that contain <code>then</code>
+function exports.</li>
 </ul>
 </li>
+</ul>
+</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Data_types" class="type">&#x3C;any></a> the result of the very last statement executed in the script.</li>
 </ul>
 <p>The <code>vm.runInContext()</code> method compiles <code>code</code>, runs it within the context of
 the <code>contextifiedSandbox</code>, then returns the result. Running code does not have
@@ -954,9 +986,19 @@ console.log(util.inspect(sandbox));
 
 // { globalVar: 1024 }
 </code></pre>
-<h2>vm.runInNewContext(code[, sandbox[, options]])<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/vm.js#L314">[src]</a><span><a class="mark" href="#vm_vm_runinnewcontext_code_sandbox_options" id="vm_vm_runinnewcontext_code_sandbox_options">#</a></span></h2>
+<h2>vm.runInNewContext(code[, sandbox[, options]])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/vm.js#L293">[src]</a><span><a class="mark" href="#vm_vm_runinnewcontext_code_sandbox_options" id="vm_vm_runinnewcontext_code_sandbox_options">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.3.1</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v10.0.0</td>
+<td><p>The <code>contextCodeGeneration</code> option is supported now.</p></td></tr>
+<tr><td>v6.3.0</td>
+<td><p>The <code>breakOnSigint</code> option is supported now.</p></td></tr>
+<tr><td>v0.3.1</td>
+<td><p><span>Added in: v0.3.1</span></p></td></tr>
+</tbody></table>
+</details>
 </div>
 <ul>
 <li><code>code</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The JavaScript code to compile and run.</li>
@@ -966,17 +1008,22 @@ new object will be created.</li>
 <p><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></p>
 <ul>
 <li><code>filename</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Specifies the filename used in stack traces produced
-by this script.</li>
+by this script. <strong>Default:</strong> <code>'evalmachine.&#x3C;anonymous>'</code>.</li>
 <li><code>lineOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Specifies the line number offset that is displayed
-in stack traces produced by this script.</li>
+in stack traces produced by this script. <strong>Default:</strong> <code>0</code>.</li>
 <li><code>columnOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Specifies the column number offset that is displayed
-in stack traces produced by this script.</li>
-<li><code>displayErrors</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> When <code>true</code>, if an <a href="errors.html#errors_class_error"><code>Error</code></a> error occurs
+in stack traces produced by this script. <strong>Default:</strong> <code>0</code>.</li>
+<li><code>displayErrors</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> When <code>true</code>, if an <a href="errors.html#errors_class_error"><code>Error</code></a> occurs
 while compiling the <code>code</code>, the line of code causing the error is attached
-to the stack trace.</li>
+to the stack trace. <strong>Default:</strong> <code>true</code>.</li>
 <li><code>timeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> Specifies the number of milliseconds to execute <code>code</code>
 before terminating execution. If execution is terminated, an <a href="errors.html#errors_class_error"><code>Error</code></a>
 will be thrown. This value must be a strictly positive integer.</li>
+<li><code>breakOnSigint</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> If <code>true</code>, the execution will be terminated when
+<code>SIGINT</code> (Ctrl+C) is received. Existing handlers for the
+event that have been attached via <code>process.on('SIGINT')</code> will be disabled
+during script execution, but will continue to work after that. If execution
+is terminated, an <a href="errors.html#errors_class_error"><code>Error</code></a> will be thrown. <strong>Default:</strong> <code>false</code>.</li>
 <li><code>contextName</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Human-readable name of the newly created context.
 <strong>Default:</strong> <code>'VM Context i'</code>, where <code>i</code> is an ascending numerical index of
 the created context.</li>
@@ -986,8 +1033,46 @@ URL, but with only the scheme, host, and port (if necessary), like the
 value of the <a href="url.html#url_url_origin"><code>url.origin</code></a> property of a <a href="url.html#url_class_url"><code>URL</code></a> object. Most notably,
 this string should omit the trailing slash, as that denotes a path.
 <strong>Default:</strong> <code>''</code>.</li>
+<li>
+<p><code>contextCodeGeneration</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></p>
+<ul>
+<li><code>strings</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> If set to false any calls to <code>eval</code> or function
+constructors (<code>Function</code>, <code>GeneratorFunction</code>, etc) will throw an
+<code>EvalError</code>. <strong>Default:</strong> <code>true</code>.</li>
+<li><code>wasm</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> If set to false any attempt to compile a WebAssembly
+module will throw a <code>WebAssembly.CompileError</code>. <strong>Default:</strong> <code>true</code>.</li>
 </ul>
 </li>
+<li><code>cachedData</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a> Provides an optional <code>Buffer</code> or
+<code>TypedArray</code>, or <code>DataView</code> with V8's code cache data for the supplied
+source. When supplied, the <code>cachedDataRejected</code> value will be set to
+either <code>true</code> or <code>false</code> depending on acceptance of the data by V8.</li>
+<li><code>produceCachedData</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> When <code>true</code> and no <code>cachedData</code> is present, V8
+will attempt to produce code cache data for <code>code</code>. Upon success, a
+<code>Buffer</code> with V8's code cache data will be produced and stored in the
+<code>cachedData</code> property of the returned <code>vm.Script</code> instance.
+The <code>cachedDataProduced</code> value will be set to either <code>true</code> or <code>false</code>
+depending on whether code cache data is produced successfully.
+This option is <strong>deprecated</strong> in favor of <code>script.createCachedData()</code>.
+<strong>Default:</strong> <code>false</code>.</li>
+<li>
+<p><code>importModuleDynamically</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> Called during evaluation of this module
+when <code>import()</code> is called. If this option is not specified, calls to
+<code>import()</code> will reject with <a href="errors.html#ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING"><code>ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING</code></a>.
+This option is part of the experimental API for the <code>--experimental-modules</code>
+flag, and should not be considered stable.</p>
+<ul>
+<li><code>specifier</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> specifier passed to <code>import()</code></li>
+<li><code>module</code> <a href="vm.html#vm_class_vm_sourcetextmodule" class="type">&#x3C;vm.SourceTextModule></a></li>
+<li>Returns: <a href="https://tc39.github.io/ecma262/#sec-module-namespace-exotic-objects" class="type">&#x3C;Module Namespace Object></a> | <a href="vm.html#vm_class_vm_sourcetextmodule" class="type">&#x3C;vm.SourceTextModule></a> Returning a
+<code>vm.SourceTextModule</code> is recommended in order to take advantage of error
+tracking, and to avoid issues with namespaces that contain <code>then</code>
+function exports.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Data_types" class="type">&#x3C;any></a> the result of the very last statement executed in the script.</li>
 </ul>
 <p>The <code>vm.runInNewContext()</code> first contextifies the given <code>sandbox</code> object (or
 creates a new <code>sandbox</code> if passed as <code>undefined</code>), compiles the <code>code</code>, runs it
@@ -1009,9 +1094,17 @@ console.log(util.inspect(sandbox));
 
 // { animal: 'cat', count: 3, name: 'kitty' }
 </code></pre>
-<h2>vm.runInThisContext(code[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/vm.js#L325">[src]</a><span><a class="mark" href="#vm_vm_runinthiscontext_code_options" id="vm_vm_runinthiscontext_code_options">#</a></span></h2>
+<h2>vm.runInThisContext(code[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/vm.js#L302">[src]</a><span><a class="mark" href="#vm_vm_runinthiscontext_code_options" id="vm_vm_runinthiscontext_code_options">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.3.1</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v6.3.0</td>
+<td><p>The <code>breakOnSigint</code> option is supported now.</p></td></tr>
+<tr><td>v0.3.1</td>
+<td><p><span>Added in: v0.3.1</span></p></td></tr>
+</tbody></table>
+</details>
 </div>
 <ul>
 <li><code>code</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The JavaScript code to compile and run.</li>
@@ -1019,19 +1112,52 @@ console.log(util.inspect(sandbox));
 <p><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></p>
 <ul>
 <li><code>filename</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Specifies the filename used in stack traces produced
-by this script.</li>
+by this script. <strong>Default:</strong> <code>'evalmachine.&#x3C;anonymous>'</code>.</li>
 <li><code>lineOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Specifies the line number offset that is displayed
-in stack traces produced by this script.</li>
+in stack traces produced by this script. <strong>Default:</strong> <code>0</code>.</li>
 <li><code>columnOffset</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Specifies the column number offset that is displayed
-in stack traces produced by this script.</li>
-<li><code>displayErrors</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> When <code>true</code>, if an <a href="errors.html#errors_class_error"><code>Error</code></a> error occurs
+in stack traces produced by this script. <strong>Default:</strong> <code>0</code>.</li>
+<li><code>displayErrors</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> When <code>true</code>, if an <a href="errors.html#errors_class_error"><code>Error</code></a> occurs
 while compiling the <code>code</code>, the line of code causing the error is attached
-to the stack trace.</li>
+to the stack trace. <strong>Default:</strong> <code>true</code>.</li>
 <li><code>timeout</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> Specifies the number of milliseconds to execute <code>code</code>
 before terminating execution. If execution is terminated, an <a href="errors.html#errors_class_error"><code>Error</code></a>
 will be thrown. This value must be a strictly positive integer.</li>
+<li><code>breakOnSigint</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> If <code>true</code>, the execution will be terminated when
+<code>SIGINT</code> (Ctrl+C) is received. Existing handlers for the
+event that have been attached via <code>process.on('SIGINT')</code> will be disabled
+during script execution, but will continue to work after that. If execution
+is terminated, an <a href="errors.html#errors_class_error"><code>Error</code></a> will be thrown. <strong>Default:</strong> <code>false</code>.</li>
+<li><code>cachedData</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a> Provides an optional <code>Buffer</code> or
+<code>TypedArray</code>, or <code>DataView</code> with V8's code cache data for the supplied
+source. When supplied, the <code>cachedDataRejected</code> value will be set to
+either <code>true</code> or <code>false</code> depending on acceptance of the data by V8.</li>
+<li><code>produceCachedData</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> When <code>true</code> and no <code>cachedData</code> is present, V8
+will attempt to produce code cache data for <code>code</code>. Upon success, a
+<code>Buffer</code> with V8's code cache data will be produced and stored in the
+<code>cachedData</code> property of the returned <code>vm.Script</code> instance.
+The <code>cachedDataProduced</code> value will be set to either <code>true</code> or <code>false</code>
+depending on whether code cache data is produced successfully.
+This option is <strong>deprecated</strong> in favor of <code>script.createCachedData()</code>.
+<strong>Default:</strong> <code>false</code>.</li>
+<li>
+<p><code>importModuleDynamically</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> Called during evaluation of this module
+when <code>import()</code> is called. If this option is not specified, calls to
+<code>import()</code> will reject with <a href="errors.html#ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING"><code>ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING</code></a>.
+This option is part of the experimental API for the <code>--experimental-modules</code>
+flag, and should not be considered stable.</p>
+<ul>
+<li><code>specifier</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> specifier passed to <code>import()</code></li>
+<li><code>module</code> <a href="vm.html#vm_class_vm_sourcetextmodule" class="type">&#x3C;vm.SourceTextModule></a></li>
+<li>Returns: <a href="https://tc39.github.io/ecma262/#sec-module-namespace-exotic-objects" class="type">&#x3C;Module Namespace Object></a> | <a href="vm.html#vm_class_vm_sourcetextmodule" class="type">&#x3C;vm.SourceTextModule></a> Returning a
+<code>vm.SourceTextModule</code> is recommended in order to take advantage of error
+tracking, and to avoid issues with namespaces that contain <code>then</code>
+function exports.</li>
 </ul>
 </li>
+</ul>
+</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Data_types" class="type">&#x3C;any></a> the result of the very last statement executed in the script.</li>
 </ul>
 <p><code>vm.runInThisContext()</code> compiles <code>code</code>, runs it within the context of the
 current <code>global</code> and returns the result. Running code does not have access to
@@ -1088,7 +1214,7 @@ passed from. This may introduce risks when untrusted code is executed, e.g.
 altering objects in the context in unwanted ways.</p>
 <h2>What does it mean to "contextify" an object?<span><a class="mark" href="#vm_what_does_it_mean_to_contextify_an_object" id="vm_what_does_it_mean_to_contextify_an_object">#</a></span></h2>
 <p>All JavaScript executed within Node.js runs within the scope of a "context".
-According to the <a href="https://github.com/v8/v8/wiki/Embedder&#x27;s%20Guide#contexts">V8 Embedder's Guide</a>:</p>
+According to the <a href="https://v8.dev/docs/embed#contexts">V8 Embedder's Guide</a>:</p>
 <blockquote>
 <p>In V8, a context is an execution environment that allows separate, unrelated,
 JavaScript applications to run in a single instance of V8. You must explicitly
@@ -1101,7 +1227,7 @@ internally with a new instance of a V8 Context. This V8 Context provides the
 within which it can operate. The process of creating the V8 Context and
 associating it with the <code>sandbox</code> object is what this document refers to as
 "contextifying" the <code>sandbox</code>.</p>
-<h2>Timeout limitations when using process.nextTick(), and Promises<span><a class="mark" href="#vm_timeout_limitations_when_using_process_nexttick_and_promises" id="vm_timeout_limitations_when_using_process_nexttick_and_promises">#</a></span></h2>
+<h2>Timeout limitations when using process.nextTick(), Promises, and queueMicrotask()<span><a class="mark" href="#vm_timeout_limitations_when_using_process_nexttick_promises_and_queuemicrotask" id="vm_timeout_limitations_when_using_process_nexttick_promises_and_queuemicrotask">#</a></span></h2>
 <p>Because of the internal mechanics of how the <code>process.nextTick()</code> queue and
 the microtask queue that underlies Promises are implemented within V8 and
 Node.js, it is possible for code running within a context to "escape" the
@@ -1123,7 +1249,7 @@ vm.runInNewContext(
 );
 </code></pre>
 <p>This issue also occurs when the <code>loop()</code> call is scheduled using
-the <code>process.nextTick()</code> function.</p>
+the <code>process.nextTick()</code> and <code>queueMicrotask()</code> functions.</p>
 <p>This issue occurs because all contexts share the same microtask and nextTick
 queues.</p>
       </div>

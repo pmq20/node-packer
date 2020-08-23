@@ -5,8 +5,9 @@
 
 #include "async_wrap.h"
 #include "env.h"
-#include <string>
+
 #include <sstream>
+#include <string>
 
 // Use FORCE_INLINE on functions that have a debug-category-enabled check first
 // and then ideally only a single function call following it, to maintain
@@ -68,9 +69,7 @@ template <typename... Args>
 inline void FORCE_INLINE Debug(AsyncWrap* async_wrap,
                                const char* format,
                                Args&&... args) {
-#ifdef DEBUG
-  CHECK_NOT_NULL(async_wrap);
-#endif
+  DCHECK_NOT_NULL(async_wrap);
   DebugCategory cat =
       static_cast<DebugCategory>(async_wrap->provider_type());
   if (!UNLIKELY(async_wrap->env()->debug_enabled(cat)))
@@ -101,7 +100,7 @@ class NativeSymbolDebuggingContext {
   };
 
   NativeSymbolDebuggingContext() = default;
-  virtual ~NativeSymbolDebuggingContext() {}
+  virtual ~NativeSymbolDebuggingContext() = default;
 
   virtual SymbolInfo LookupSymbol(void* address) { return {}; }
   virtual bool IsMapped(void* address) { return false; }
@@ -120,6 +119,7 @@ class NativeSymbolDebuggingContext {
 // about giving information on currently existing handles, if there are any,
 // but still aborts the process.
 void CheckedUvLoopClose(uv_loop_t* loop);
+void PrintLibuvHandleInformation(uv_loop_t* loop, FILE* stream);
 
 }  // namespace node
 

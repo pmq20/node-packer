@@ -1,41 +1,49 @@
 'use strict';
 
-const { ModuleWrap, callbackMap } = internalBinding('module_wrap');
-const debug = require('util').debuglog('esm');
-const ArrayJoin = Function.call.bind(Array.prototype.join);
-const ArrayMap = Function.call.bind(Array.prototype.map);
+const { ArrayPrototype, JSON, Object } = primordials;
 
-const createDynamicModule = (exports, url = '', evaluate) => {
-  debug('creating ESM facade for %s with exports: %j', url, exports);
-  const names = ArrayMap(exports, (name) => `${name}`);
+const debug = require('internal/util/debuglog').debuglog('esm');
 
-  const source = `
-${ArrayJoin(ArrayMap(names, (name) =>
-    `let $${name};
+function createImport(impt, index) {
+  const imptPath = JSON.stringify(impt);
+  return `import * as $import_${index} from ${imptPath};
+import.meta.imports[${imptPath}] = $import_${index};`;
+}
+
+function createExport(expt) {
+  const name = `${expt}`;
+  return `let $${name};
 export { $${name} as ${name} };
 import.meta.exports.${name} = {
   get: () => $${name},
   set: (v) => $${name} = v,
-};`), '\n')
+};`;
 }
 
+const createDynamicModule = (imports, exports, url = '', evaluate) => {
+  debug('creating ESM facade for %s with exports: %j', url, exports);
+  const source = `
+${ArrayPrototype.join(ArrayPrototype.map(imports, createImport), '\n')}
+${ArrayPrototype.join(ArrayPrototype.map(exports, createExport), '\n')}
 import.meta.done();
 `;
-
+  const { ModuleWrap, callbackMap } = internalBinding('module_wrap');
   const m = new ModuleWrap(source, `${url}`);
-  m.link(() => 0);
-  m.instantiate();
 
   const readyfns = new Set();
   const reflect = {
-    namespace: m.namespace(),
-    exports: {},
+    exports: Object.create(null),
     onReady: (cb) => { readyfns.add(cb); },
   };
+
+  if (imports.length)
+    reflect.imports = Object.create(null);
 
   callbackMap.set(m, {
     initializeImportMeta: (meta, wrap) => {
       meta.exports = reflect.exports;
+      if (reflect.imports)
+        meta.imports = reflect.imports;
       meta.done = () => {
         evaluate(reflect);
         reflect.onReady = (cb) => cb(reflect);

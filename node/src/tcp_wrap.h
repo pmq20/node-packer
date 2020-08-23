@@ -37,12 +37,13 @@ class TCPWrap : public ConnectionWrap<TCPWrap, uv_tcp_t> {
     SERVER
   };
 
-  static v8::Local<v8::Object> Instantiate(Environment* env,
-                                           AsyncWrap* parent,
-                                           SocketType type);
+  static v8::MaybeLocal<v8::Object> Instantiate(Environment* env,
+                                                AsyncWrap* parent,
+                                                SocketType type);
   static void Initialize(v8::Local<v8::Object> target,
                          v8::Local<v8::Value> unused,
-                         v8::Local<v8::Context> context);
+                         v8::Local<v8::Context> context,
+                         void* priv);
 
   SET_NO_MEMORY_INFO()
   SET_SELF_SIZE(TCPWrap)

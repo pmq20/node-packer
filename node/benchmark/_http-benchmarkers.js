@@ -25,8 +25,11 @@ class AutocannonBenchmarker {
       '-c', options.connections,
       '-j',
       '-n',
-      `http://127.0.0.1:${options.port}${options.path}`
     ];
+    for (const field in options.headers) {
+      args.push('-H', `${field}=${options.headers[field]}`);
+    }
+    args.push(`http://127.0.0.1:${options.port}${options.path}`);
     const child = child_process.spawn(this.executable, args);
     return child;
   }
@@ -59,7 +62,7 @@ class WrkBenchmarker {
       '-d', options.duration,
       '-c', options.connections,
       '-t', 8,
-      `http://127.0.0.1:${options.port}${options.path}`
+      `http://127.0.0.1:${options.port}${options.path}`,
     ];
     const child = child_process.spawn(this.executable, args);
     return child;
@@ -82,10 +85,12 @@ class WrkBenchmarker {
  * works
  */
 class TestDoubleBenchmarker {
-  constructor() {
-    this.name = 'test-double';
+  constructor(type) {
+    // `type` is the type ofbenchmarker. Possible values are 'http' and 'http2'.
+    this.name = `test-double-${type}`;
     this.executable = path.resolve(__dirname, '_test-double-benchmarker.js');
     this.present = fs.existsSync(this.executable);
+    this.type = type;
   }
 
   create(options) {
@@ -94,10 +99,9 @@ class TestDoubleBenchmarker {
       test_url: `http://127.0.0.1:${options.port}${options.path}`,
     }, process.env);
 
-    const child = child_process.fork(this.executable, {
-      silent: true,
-      env
-    });
+    const child = child_process.fork(this.executable,
+                                     [this.type],
+                                     { silent: true, env });
     return child;
   }
 
@@ -167,8 +171,9 @@ class H2LoadBenchmarker {
 const http_benchmarkers = [
   new WrkBenchmarker(),
   new AutocannonBenchmarker(),
-  new TestDoubleBenchmarker(),
-  new H2LoadBenchmarker()
+  new TestDoubleBenchmarker('http'),
+  new TestDoubleBenchmarker('http2'),
+  new H2LoadBenchmarker(),
 ];
 
 const benchmarkers = {};
@@ -186,7 +191,7 @@ exports.run = function(options, callback) {
     path: '/',
     connections: 100,
     duration: 5,
-    benchmarker: exports.default_http_benchmarker
+    benchmarker: exports.default_http_benchmarker,
   }, options);
   if (!options.benchmarker) {
     callback(new Error('Could not locate required http benchmarker. See ' +
@@ -214,7 +219,7 @@ exports.run = function(options, callback) {
   let stdout = '';
   child.stdout.on('data', (chunk) => stdout += chunk.toString());
 
-  child.once('close', function(code) {
+  child.once('close', (code) => {
     const elapsed = process.hrtime(benchmarker_start);
     if (code) {
       let error_message = `${options.benchmarker} failed with ${code}.`;

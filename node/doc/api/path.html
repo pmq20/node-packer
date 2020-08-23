@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Path | Node.js v10.16.3 Documentation</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
+  <title>Path | Node.js v12.13.0 Documentation</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
   <link rel="canonical" href="https://nodejs.org/api/path.html">
@@ -52,11 +52,13 @@
 <li><a href="os.html" class="nav-os">OS</a></li>
 <li><a href="path.html" class="nav-path active">Path</a></li>
 <li><a href="perf_hooks.html" class="nav-perf_hooks">Performance Hooks</a></li>
+<li><a href="policy.html" class="nav-policy">Policies</a></li>
 <li><a href="process.html" class="nav-process">Process</a></li>
 <li><a href="punycode.html" class="nav-punycode">Punycode</a></li>
 <li><a href="querystring.html" class="nav-querystring">Query Strings</a></li>
 <li><a href="readline.html" class="nav-readline">Readline</a></li>
 <li><a href="repl.html" class="nav-repl">REPL</a></li>
+<li><a href="report.html" class="nav-report">Report</a></li>
 <li><a href="stream.html" class="nav-stream">Stream</a></li>
 <li><a href="string_decoder.html" class="nav-string_decoder">String Decoder</a></li>
 <li><a href="timers.html" class="nav-timers">Timers</a></li>
@@ -79,7 +81,7 @@
 
     <div id="column1" data-id="path" class="interior">
       <header>
-        <h1>Node.js v10.16.3 Documentation</h1>
+        <h1>Node.js v12.13.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -274,9 +276,9 @@ the Unix <code>dirname</code> command. Trailing directory separators are ignored
 </ul>
 <p>The <code>path.extname()</code> method returns the extension of the <code>path</code>, from the last
 occurrence of the <code>.</code> (period) character to end of string in the last portion of
-the <code>path</code>. If there is no <code>.</code> in the last portion of the <code>path</code>, or if the
-first character of the basename of <code>path</code> (see <code>path.basename()</code>) is <code>.</code>, then
-an empty string is returned.</p>
+the <code>path</code>. If there is no <code>.</code> in the last portion of the <code>path</code>, or if
+there are no <code>.</code> characters other than the first character of
+the basename of <code>path</code> (see <code>path.basename()</code>) , an empty string is returned.</p>
 <pre><code class="language-js">path.extname('index.html');
 // Returns: '.html'
 
@@ -291,6 +293,9 @@ path.extname('index');
 
 path.extname('.index');
 // Returns: ''
+
+path.extname('.index.md');
+// Returns: '.md'
 </code></pre>
 <p>A <a href="errors.html#errors_class_typeerror"><code>TypeError</code></a> is thrown if <code>path</code> is not a string.</p>
 <h2>path.format(pathObject)<span><a class="mark" href="#path_path_format_pathobject" id="path_path_format_pathobject">#</a></span></h2>
@@ -397,7 +402,7 @@ working directory.</p>
 // Returns: '/foo/bar/baz/asdf'
 
 path.join('foo', {}, 'bar');
-// throws 'TypeError: Path must be a string. Received {}'
+// Throws 'TypeError: Path must be a string. Received {}'
 </code></pre>
 <p>A <a href="errors.html#errors_class_typeerror"><code>TypeError</code></a> is thrown if any of the path segments is not a string.</p>
 <h2>path.normalize(path)<span><a class="mark" href="#path_path_normalize_path" id="path_path_normalize_path">#</a></span></h2>
@@ -552,7 +557,7 @@ path.resolve('/foo/bar', '/tmp/file/');
 // Returns: '/tmp/file'
 
 path.resolve('wwwroot', 'static_files/png/', '../gif/image.gif');
-// if the current working directory is /home/myself/node,
+// If the current working directory is /home/myself/node,
 // this returns '/home/myself/node/wwwroot/static_files/gif/image.gif'
 </code></pre>
 <p>A <a href="errors.html#errors_class_typeerror"><code>TypeError</code></a> is thrown if any of the arguments is not a string.</p>

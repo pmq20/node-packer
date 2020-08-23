@@ -1,18 +1,12 @@
 'use strict';
 
-const inspector = process.binding('inspector');
-
-if (!inspector || !inspector.asyncTaskScheduled) {
-  exports.setup = function() {};
-  return;
-}
-
 let hook;
 let config;
 
 function lazyHookCreation() {
+  const inspector = internalBinding('inspector');
   const { createHook } = require('async_hooks');
-  config = process.binding('config');
+  config = internalBinding('config');
 
   hook = createHook({
     init(asyncId, type, triggerAsyncId, resource) {
@@ -72,6 +66,7 @@ function disable() {
   hook.disable();
 }
 
-exports.setup = function() {
-  inspector.registerAsyncHook(enable, disable);
+module.exports = {
+  enable,
+  disable
 };

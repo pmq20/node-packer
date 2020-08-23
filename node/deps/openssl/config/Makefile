@@ -9,10 +9,10 @@ endif
 PERL    = perl
 
 # Supported architecture list
-ASM_ARCHS = aix-gcc aix64-gcc BSD-x86_64 \
+ASM_ARCHS = aix-gcc aix64-gcc BSD-x86 BSD-x86_64 \
 darwin64-x86_64-cc darwin-i386-cc linux-aarch64 \
 linux-armv4 linux-elf linux-x32 linux-x86_64 linux-ppc \
-linux-ppc64 linux-ppc64le linux32-s390x linux64-s390x \
+linux-ppc64 linux-ppc64le linux32-s390x linux64-s390x linux64-mips64\
 solaris-x86-gcc solaris64-x86_64-gcc VC-WIN64A VC-WIN32
 
 NO_ASM_ARCHS = VC-WIN64-ARM
@@ -24,7 +24,8 @@ CONFIGURE = ./Configure
 # no-comp: against CRIME attack
 # no-shared: openssl-cli needs static link
 # no-afalgeng: old Linux kernel < 4.0 does not support it
-COPTS =  no-comp no-shared no-afalgeng
+# enable-ssl-trace: cause the optional SSL_trace API to be built
+COPTS =  no-comp no-shared no-afalgeng enable-ssl-trace
 
 # disable platform check in Configure
 NO_WARN_ENV = CONFIGURE_CHECKER_WARN=1

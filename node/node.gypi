@@ -24,29 +24,20 @@
     },
     'force_load%': '<(force_load)',
   },
-  # Putting these explicitly here so not to be dependant on common.gypi.
-  'cflags': [ '-Wall', '-Wextra', '-Wno-unused-parameter', ],
-  'xcode_settings': {
-    'WARNING_CFLAGS': [
-      '-Wall',
-      '-Wendif-labels',
-      '-W',
-      '-Wno-unused-parameter',
-      '-Werror=undefined-inline',
-    ],
-  },
+
   'conditions': [
-    ['clang==1', {
+    [ 'clang==1', {
       'cflags': [ '-Werror=undefined-inline', ]
     }],
-    [ 'node_shared=="false"', {
+    [ 'node_shared=="false" and "<(_type)"=="executable"', {
       'msvs_settings': {
         'VCManifestTool': {
           'EmbedManifest': 'true',
           'AdditionalManifestFiles': 'src/res/node.exe.extra.manifest'
         }
       },
-    }, {
+    }],
+    [ 'node_shared=="true"', {
       'defines': [
         'NODE_SHARED_MODE',
       ],
@@ -65,23 +56,22 @@
         'NOMINMAX',
         '_UNICODE=1',
       ],
+      'msvs_precompiled_header': 'tools/msvs/pch/node_pch.h',
+      'msvs_precompiled_source': 'tools/msvs/pch/node_pch.cc',
+      'sources': [
+        '<(_msvs_precompiled_header)',
+        '<(_msvs_precompiled_source)',
+      ],
     }, { # POSIX
       'defines': [ '__POSIX__' ],
     }],
-
     [ 'node_enable_d8=="true"', {
-      'dependencies': [ 'deps/v8/gypfiles/d8.gyp:d8' ],
+      'dependencies': [ 'tools/v8_gypfiles/d8.gyp:d8' ],
     }],
     [ 'node_use_bundled_v8=="true"', {
-      'conditions': [
-        [ 'build_v8_with_gn=="true"', {
-          'dependencies': ['deps/v8/gypfiles/v8-monolithic.gyp:v8_monolith'],
-        }, {
-          'dependencies': [
-            'deps/v8/gypfiles/v8.gyp:v8',
-            'deps/v8/gypfiles/v8.gyp:v8_libplatform',
-          ],
-        }],
+      'dependencies': [
+        'tools/v8_gypfiles/v8.gyp:v8_maybe_snapshot',
+        'tools/v8_gypfiles/v8.gyp:v8_libplatform',
       ],
     }],
     [ 'node_use_v8_platform=="true"', {
@@ -115,32 +105,16 @@
           'defines': [ 'NODE_HAVE_SMALL_ICU=1' ],
       }]],
     }],
-    [ 'node_use_bundled_v8=="true" and \
-       node_enable_v8_vtunejit=="true" and (target_arch=="x64" or \
-       target_arch=="ia32" or target_arch=="x32")', {
-      'defines': [ 'NODE_ENABLE_VTUNE_PROFILING' ],
-      'dependencies': [
-        'deps/v8/gypfiles/v8vtune.gyp:v8_vtune'
-      ],
-    }],
     [ 'node_no_browser_globals=="true"', {
       'defines': [ 'NODE_NO_BROWSER_GLOBALS' ],
     } ],
-    [ 'node_use_bundled_v8=="true" and v8_postmortem_support=="true" and force_load=="true"', {
-      'xcode_settings': {
-        'OTHER_LDFLAGS': [
-          '-Wl,-force_load,<(v8_base)',
-        ],
-      },
-    }],
     [ 'node_shared_zlib=="false"', {
       'dependencies': [ 'deps/zlib/zlib.gyp:zlib' ],
       'conditions': [
         [ 'force_load=="true"', {
           'xcode_settings': {
             'OTHER_LDFLAGS': [
-              '-Wl,-force_load,<(PRODUCT_DIR)/<(STATIC_LIB_PREFIX)'
-                  'zlib<(STATIC_LIB_SUFFIX)',
+              '-Wl,-force_load,<(PRODUCT_DIR)/<(STATIC_LIB_PREFIX)zlib<(STATIC_LIB_SUFFIX)',
             ],
           },
           'msvs_settings': {
@@ -153,8 +127,8 @@
           'conditions': [
             ['OS!="aix" and node_shared=="false"', {
               'ldflags': [
-                '-Wl,--whole-archive,<(obj_dir)/deps/zlib/<(STATIC_LIB_PREFIX)'
-                    'zlib<(STATIC_LIB_SUFFIX)',
+                '-Wl,--whole-archive',
+                '<(obj_dir)/deps/zlib/<(STATIC_LIB_PREFIX)zlib<(STATIC_LIB_SUFFIX)',
                 '-Wl,--no-whole-archive',
               ],
             }],
@@ -164,8 +138,11 @@
     }],
 
     [ 'node_shared_http_parser=="false"', {
-      'dependencies': [ 'deps/http_parser/http_parser.gyp:http_parser' ],
-    }],
+      'dependencies': [
+        'deps/http_parser/http_parser.gyp:http_parser',
+        'deps/llhttp/llhttp.gyp:llhttp'
+      ],
+    } ],
 
     [ 'node_shared_cares=="false"', {
       'dependencies': [ 'deps/cares/cares.gyp:cares' ],
@@ -177,8 +154,7 @@
         [ 'force_load=="true"', {
           'xcode_settings': {
             'OTHER_LDFLAGS': [
-              '-Wl,-force_load,<(PRODUCT_DIR)/<(STATIC_LIB_PREFIX)'
-                  'uv<(STATIC_LIB_SUFFIX)',
+              '-Wl,-force_load,<(PRODUCT_DIR)/libuv<(STATIC_LIB_SUFFIX)',
             ],
           },
           'msvs_settings': {
@@ -191,8 +167,8 @@
           'conditions': [
             ['OS!="aix" and node_shared=="false"', {
               'ldflags': [
-                '-Wl,--whole-archive,<(obj_dir)/deps/uv/<(STATIC_LIB_PREFIX)'
-                    'uv<(STATIC_LIB_SUFFIX)',
+                '-Wl,--whole-archive',
+                '<(obj_dir)/deps/uv/<(STATIC_LIB_PREFIX)uv<(STATIC_LIB_SUFFIX)',
                 '-Wl,--no-whole-archive',
               ],
             }],
@@ -230,26 +206,33 @@
     [ 'OS=="aix"', {
       'defines': [
         '_LINUX_SOURCE_COMPAT',
+        '__STDC_FORMAT_MACROS',
       ],
       'conditions': [
         [ 'force_load=="true"', {
-
+          'variables': {
+            'exp_filename': '<(PRODUCT_DIR)/<(_target_name).exp',
+          },
           'actions': [
             {
               'action_name': 'expfile',
               'inputs': [
-                '<(obj_dir)'
+                '<(obj_dir)',
               ],
               'outputs': [
-                '<(PRODUCT_DIR)/node.exp'
+                '<(exp_filename)',
               ],
               'action': [
                 'sh', 'tools/create_expfile.sh',
-                      '<@(_inputs)', '<@(_outputs)'
+                '<@(_inputs)',
+                '<@(_outputs)',
               ],
             }
           ],
-          'ldflags': ['-Wl,-bE:<(PRODUCT_DIR)/node.exp', '-Wl,-brtl'],
+          'ldflags': [
+            '-Wl,-bE:<(exp_filename)',
+            '-Wl,-brtl',
+          ],
         }],
       ],
     }],
@@ -269,9 +252,18 @@
     }],
     [ '(OS=="freebsd" or OS=="linux") and node_shared=="false"'
         ' and force_load=="true"', {
-      'ldflags': [ '-Wl,-z,noexecstack',
-                   '-Wl,--whole-archive <(v8_base)',
-                   '-Wl,--no-whole-archive' ]
+      'ldflags': [
+        '-Wl,-z,noexecstack',
+        '-Wl,--whole-archive <(v8_base)',
+        '-Wl,--no-whole-archive',
+      ]
+    }],
+    [ 'node_use_bundled_v8=="true" and v8_postmortem_support==1 and force_load=="true"', {
+      'xcode_settings': {
+        'OTHER_LDFLAGS': [
+          '-Wl,-force_load,<(v8_base)',
+        ],
+      },
     }],
     [ 'coverage=="true" and node_shared=="false" and OS in "mac freebsd linux"', {
       'cflags!': [ '-O3' ],
@@ -299,21 +291,37 @@
     [ 'OS=="sunos"', {
       'ldflags': [ '-Wl,-M,/usr/lib/ld/map.noexstk' ],
     }],
-
+    [ 'OS=="linux"', {
+      'libraries!': [
+        '-lrt'
+      ],
+    }],
     [ 'OS in "freebsd linux"', {
       'ldflags': [ '-Wl,-z,relro',
                    '-Wl,-z,now' ]
     }],
-    [ 'OS=="linux" and target_arch=="x64" and node_use_large_pages=="true"', {
+    [ 'OS=="linux" and '
+      'target_arch=="x64" and '
+      'node_use_large_pages=="true" and '
+      'node_use_large_pages_script_lld=="false"', {
       'ldflags': [
         '-Wl,-T',
         '<!(realpath src/large_pages/ld.implicit.script)',
       ]
     }],
+    [ 'OS=="linux" and '
+      'target_arch=="x64" and '
+      'node_use_large_pages=="true" and '
+      'node_use_large_pages_script_lld=="true"', {
+      'ldflags': [
+        '-Wl,-T',
+        '<!(realpath src/large_pages/ld.implicit.script.lld)',
+      ]
+    }],
     [ 'node_use_openssl=="true"', {
       'defines': [ 'HAVE_OPENSSL=1' ],
       'conditions': [
-        ['openssl_fips != ""', {
+        ['openssl_fips != "" or openssl_is_fips=="true"', {
           'defines': [ 'NODE_FIPS_MODE' ],
         }],
         [ 'node_shared_openssl=="false"', {

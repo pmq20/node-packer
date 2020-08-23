@@ -5,39 +5,55 @@
 #ifndef V8_WASM_BASELINE_LIFTOFF_COMPILER_H_
 #define V8_WASM_BASELINE_LIFTOFF_COMPILER_H_
 
-#include "src/source-position-table.h"
-#include "src/trap-handler/trap-handler.h"
-#include "src/wasm/baseline/liftoff-assembler.h"
-#include "src/wasm/function-body-decoder.h"
 #include "src/wasm/function-compiler.h"
 
 namespace v8 {
 namespace internal {
+
+class AccountingAllocator;
+class Counters;
+
 namespace wasm {
 
-class LiftoffCompilationUnit final {
- public:
-  explicit LiftoffCompilationUnit(WasmCompilationUnit* wasm_unit)
-      : wasm_unit_(wasm_unit), asm_(wasm_unit->isolate_) {}
+struct CompilationEnv;
+struct FunctionBody;
+struct WasmFeatures;
 
-  bool ExecuteCompilation();
-  wasm::WasmCode* FinishCompilation(wasm::ErrorThrower*);
-  void AbortCompilation();
-
- private:
-  WasmCompilationUnit* const wasm_unit_;
-  wasm::LiftoffAssembler asm_;
-  int safepoint_table_offset_;
-  SourcePositionTableBuilder source_position_table_builder_;
-  std::unique_ptr<std::vector<trap_handler::ProtectedInstructionData>>
-      protected_instructions_;
-
-  // The {codegen_zone_} needs to survive until FinishCompilation. It's only
-  // rarely used (e.g. for runtime calls), so it's only allocated when needed.
-  std::unique_ptr<Zone> codegen_zone_;
-
-  DISALLOW_COPY_AND_ASSIGN(LiftoffCompilationUnit);
+// Note: If this list changes, also the histogram "V8.LiftoffBailoutReasons"
+// on the chromium side needs to be updated.
+// Deprecating entries is always fine. Repurposing works if you don't care about
+// temporary mix-ups. Increasing the number of reasons {kNumBailoutReasons} is
+// more tricky, and might require introducing a new (updated) histogram.
+enum LiftoffBailoutReason : int8_t {
+  // Nothing actually failed.
+  kSuccess = 0,
+  // Compilation failed, but not because of Liftoff.
+  kDecodeError = 1,
+  // Liftoff is not implemented on that architecture.
+  kUnsupportedArchitecture = 2,
+  // More complex code would be needed because a CPU feature is not present.
+  kMissingCPUFeature = 3,
+  // Liftoff does not implement a complex (and rare) instruction.
+  kComplexOperation = 4,
+  // Unimplemented proposals:
+  kSimd = 5,
+  kAnyRef = 6,
+  kExceptionHandling = 7,
+  kMultiValue = 8,
+  kTailCall = 9,
+  kAtomics = 10,
+  kBulkMemory = 11,
+  kNonTrappingFloatToInt = 12,
+  // A little gap, for forward compatibility.
+  // Any other reason (use rarely; introduce new reasons if this spikes).
+  kOtherReason = 20,
+  // Marker:
+  kNumBailoutReasons
 };
+
+WasmCompilationResult ExecuteLiftoffCompilation(
+    AccountingAllocator*, CompilationEnv*, const FunctionBody&, int func_index,
+    Counters*, WasmFeatures* detected_features);
 
 }  // namespace wasm
 }  // namespace internal

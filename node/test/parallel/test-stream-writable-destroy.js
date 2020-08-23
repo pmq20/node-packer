@@ -69,7 +69,7 @@ const assert = require('assert');
   write.on('finish', common.mustNotCall('no finish event'));
   write.on('close', common.mustCall());
 
-  // error is swallowed by the custom _destroy
+  // Error is swallowed by the custom _destroy
   write.on('error', common.mustNotCall('no error event'));
 
   write.destroy(expected);
@@ -186,7 +186,7 @@ const assert = require('assert');
   write.destroyed = true;
   assert.strictEqual(write.destroyed, true);
 
-  // the internal destroy() mechanism should not be triggered
+  // The internal destroy() mechanism should not be triggered
   write.on('close', common.mustNotCall());
   write.destroy();
 }
@@ -205,7 +205,7 @@ const assert = require('assert');
 }
 
 {
-  // destroy and destroy callback
+  // Destroy and destroy callback
   const write = new Writable({
     write(chunk, enc, cb) { cb(); }
   });

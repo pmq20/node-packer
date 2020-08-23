@@ -21,63 +21,61 @@
 
 'use strict';
 
+const { Object } = primordials;
+
 const { parseCertString } = require('internal/tls');
 const { isArrayBufferView } = require('internal/util/types');
 const tls = require('tls');
 const {
   ERR_CRYPTO_CUSTOM_ENGINE_NOT_SUPPORTED,
   ERR_INVALID_ARG_TYPE,
+  ERR_INVALID_OPT_VALUE,
   ERR_TLS_INVALID_PROTOCOL_VERSION,
   ERR_TLS_PROTOCOL_VERSION_CONFLICT,
 } = require('internal/errors').codes;
-
 const {
   SSL_OP_CIPHER_SERVER_PREFERENCE,
   TLS1_VERSION,
   TLS1_1_VERSION,
   TLS1_2_VERSION,
-} = process.binding('constants').crypto;
+  TLS1_3_VERSION,
+} = internalBinding('constants').crypto;
 
-// Lazily loaded
-var crypto = null;
+// Lazily loaded from internal/crypto/util.
+let toBuf = null;
 
 function toV(which, v, def) {
   if (v == null) v = def;
   if (v === 'TLSv1') return TLS1_VERSION;
   if (v === 'TLSv1.1') return TLS1_1_VERSION;
   if (v === 'TLSv1.2') return TLS1_2_VERSION;
+  if (v === 'TLSv1.3') return TLS1_3_VERSION;
   throw new ERR_TLS_INVALID_PROTOCOL_VERSION(v, which);
 }
 
 const { SecureContext: NativeSecureContext } = internalBinding('crypto');
-function SecureContext(secureProtocol, secureOptions, context,
-                       minVersion, maxVersion) {
+function SecureContext(secureProtocol, secureOptions, minVersion, maxVersion) {
   if (!(this instanceof SecureContext)) {
-    return new SecureContext(secureProtocol, secureOptions, context,
-                             minVersion, maxVersion);
+    return new SecureContext(secureProtocol, secureOptions, minVersion,
+                             maxVersion);
   }
 
-  if (context) {
-    this.context = context;
-  } else {
-    this.context = new NativeSecureContext();
-
-    if (secureProtocol) {
-      if (minVersion != null)
-        throw new ERR_TLS_PROTOCOL_VERSION_CONFLICT(minVersion, secureProtocol);
-      if (maxVersion != null)
-        throw new ERR_TLS_PROTOCOL_VERSION_CONFLICT(maxVersion, secureProtocol);
-    }
-
-    this.context.init(secureProtocol,
-                      toV('minimum', minVersion, tls.DEFAULT_MIN_VERSION),
-                      toV('maximum', maxVersion, tls.DEFAULT_MAX_VERSION));
+  if (secureProtocol) {
+    if (minVersion != null)
+      throw new ERR_TLS_PROTOCOL_VERSION_CONFLICT(minVersion, secureProtocol);
+    if (maxVersion != null)
+      throw new ERR_TLS_PROTOCOL_VERSION_CONFLICT(maxVersion, secureProtocol);
   }
+
+  this.context = new NativeSecureContext();
+  this.context.init(secureProtocol,
+                    toV('minimum', minVersion, tls.DEFAULT_MIN_VERSION),
+                    toV('maximum', maxVersion, tls.DEFAULT_MAX_VERSION));
 
   if (secureOptions) this.context.setOptions(secureOptions);
 }
 
-function validateKeyCert(name, value) {
+function validateKeyOrCertOption(name, value) {
   if (typeof value !== 'string' && !isArrayBufferView(value)) {
     throw new ERR_INVALID_ARG_TYPE(
       `options.${name}`,
@@ -90,19 +88,17 @@ function validateKeyCert(name, value) {
 exports.SecureContext = SecureContext;
 
 
-exports.createSecureContext = function createSecureContext(options, context) {
+exports.createSecureContext = function createSecureContext(options) {
   if (!options) options = {};
 
   var secureOptions = options.secureOptions;
   if (options.honorCipherOrder)
     secureOptions |= SSL_OP_CIPHER_SERVER_PREFERENCE;
 
-  const c = new SecureContext(options.secureProtocol, secureOptions, context,
+  const c = new SecureContext(options.secureProtocol, secureOptions,
                               options.minVersion, options.maxVersion);
   var i;
   var val;
-
-  if (context) return c;
 
   // NOTE: It's important to add CA before the cert to be able to load
   // cert's issuer in C++ code.
@@ -111,11 +107,11 @@ exports.createSecureContext = function createSecureContext(options, context) {
     if (Array.isArray(ca)) {
       for (i = 0; i < ca.length; ++i) {
         val = ca[i];
-        validateKeyCert('ca', val);
+        validateKeyOrCertOption('ca', val);
         c.context.addCACert(val);
       }
     } else {
-      validateKeyCert('ca', ca);
+      validateKeyOrCertOption('ca', ca);
       c.context.addCACert(ca);
     }
   } else {
@@ -127,11 +123,11 @@ exports.createSecureContext = function createSecureContext(options, context) {
     if (Array.isArray(cert)) {
       for (i = 0; i < cert.length; ++i) {
         val = cert[i];
-        validateKeyCert('cert', val);
+        validateKeyOrCertOption('cert', val);
         c.context.setCert(val);
       }
     } else {
-      validateKeyCert('cert', cert);
+      validateKeyOrCertOption('cert', cert);
       c.context.setCert(cert);
     }
   }
@@ -140,27 +136,96 @@ exports.createSecureContext = function createSecureContext(options, context) {
   // `ssl_set_pkey` returns `0` when the key does not match the cert, but
   // `ssl_set_cert` returns `1` and nullifies the key in the SSL structure
   // which leads to the crash later on.
-  var key = options.key;
-  var passphrase = options.passphrase;
+  const key = options.key;
+  const passphrase = options.passphrase;
   if (key) {
     if (Array.isArray(key)) {
       for (i = 0; i < key.length; ++i) {
         val = key[i];
         // eslint-disable-next-line eqeqeq
         const pem = (val != undefined && val.pem !== undefined ? val.pem : val);
-        validateKeyCert('key', pem);
+        validateKeyOrCertOption('key', pem);
         c.context.setKey(pem, val.passphrase || passphrase);
       }
     } else {
-      validateKeyCert('key', key);
+      validateKeyOrCertOption('key', key);
       c.context.setKey(key, passphrase);
     }
   }
 
-  if (options.ciphers)
-    c.context.setCiphers(options.ciphers);
-  else
-    c.context.setCiphers(tls.DEFAULT_CIPHERS);
+  const sigalgs = options.sigalgs;
+  if (sigalgs !== undefined) {
+    if (typeof sigalgs !== 'string') {
+      throw new ERR_INVALID_ARG_TYPE('options.sigalgs', 'string', sigalgs);
+    }
+
+    if (sigalgs === '') {
+      throw new ERR_INVALID_OPT_VALUE('sigalgs', sigalgs);
+    }
+
+    c.context.setSigalgs(sigalgs);
+  }
+
+  const { privateKeyIdentifier, privateKeyEngine } = options;
+  if (privateKeyIdentifier !== undefined) {
+    if (privateKeyEngine === undefined) {
+      // Engine is required when privateKeyIdentifier is present
+      throw new ERR_INVALID_OPT_VALUE('privateKeyEngine',
+                                      privateKeyEngine);
+    }
+    if (key) {
+      // Both data key and engine key can't be set at the same time
+      throw new ERR_INVALID_OPT_VALUE('privateKeyIdentifier',
+                                      privateKeyIdentifier);
+    }
+
+    if (typeof privateKeyIdentifier === 'string' &&
+        typeof privateKeyEngine === 'string') {
+      if (c.context.setEngineKey)
+        c.context.setEngineKey(privateKeyIdentifier, privateKeyEngine);
+      else
+        throw new ERR_CRYPTO_CUSTOM_ENGINE_NOT_SUPPORTED();
+    } else if (typeof privateKeyIdentifier !== 'string') {
+      throw new ERR_INVALID_ARG_TYPE('options.privateKeyIdentifier',
+                                     ['string', 'undefined'],
+                                     privateKeyIdentifier);
+    } else {
+      throw new ERR_INVALID_ARG_TYPE('options.privateKeyEngine',
+                                     ['string', 'undefined'],
+                                     privateKeyEngine);
+    }
+  }
+
+  if (options.ciphers && typeof options.ciphers !== 'string') {
+    throw new ERR_INVALID_ARG_TYPE(
+      'options.ciphers', 'string', options.ciphers);
+  }
+
+  // Work around an OpenSSL API quirk. cipherList is for TLSv1.2 and below,
+  // cipherSuites is for TLSv1.3 (and presumably any later versions). TLSv1.3
+  // cipher suites all have a standard name format beginning with TLS_, so split
+  // the ciphers and pass them to the appropriate API.
+  const ciphers = (options.ciphers || tls.DEFAULT_CIPHERS).split(':');
+  const cipherList = ciphers.filter((_) => !_.match(/^TLS_/) &&
+                                    _.length > 0).join(':');
+  const cipherSuites = ciphers.filter((_) => _.match(/^TLS_/)).join(':');
+
+  if (cipherSuites === '' && cipherList === '') {
+    // Specifying empty cipher suites for both TLS1.2 and TLS1.3 is invalid, its
+    // not possible to handshake with no suites.
+    throw new ERR_INVALID_OPT_VALUE('ciphers', ciphers);
+  }
+
+  c.context.setCipherSuites(cipherSuites);
+  c.context.setCiphers(cipherList);
+
+  if (cipherSuites === '' && c.context.getMaxProto() > TLS1_2_VERSION &&
+      c.context.getMinProto() < TLS1_3_VERSION)
+    c.context.setMaxProto(TLS1_2_VERSION);
+
+  if (cipherList === '' && c.context.getMinProto() < TLS1_3_VERSION &&
+      c.context.getMaxProto() > TLS1_2_VERSION)
+    c.context.setMinProto(TLS1_3_VERSION);
 
   if (options.ecdhCurve === undefined)
     c.context.setECDHCurve(tls.DEFAULT_ECDH_CURVE);
@@ -188,26 +253,26 @@ exports.createSecureContext = function createSecureContext(options, context) {
   }
 
   if (options.pfx) {
-    if (!crypto)
-      crypto = require('crypto');
+    if (!toBuf)
+      toBuf = require('internal/crypto/util').toBuf;
 
     if (Array.isArray(options.pfx)) {
       for (i = 0; i < options.pfx.length; i++) {
         const pfx = options.pfx[i];
         const raw = pfx.buf ? pfx.buf : pfx;
-        const buf = crypto._toBuf(raw);
+        const buf = toBuf(raw);
         const passphrase = pfx.passphrase || options.passphrase;
         if (passphrase) {
-          c.context.loadPKCS12(buf, crypto._toBuf(passphrase));
+          c.context.loadPKCS12(buf, toBuf(passphrase));
         } else {
           c.context.loadPKCS12(buf);
         }
       }
     } else {
-      const buf = crypto._toBuf(options.pfx);
+      const buf = toBuf(options.pfx);
       const passphrase = options.passphrase;
       if (passphrase) {
-        c.context.loadPKCS12(buf, crypto._toBuf(passphrase));
+        c.context.loadPKCS12(buf, toBuf(passphrase));
       } else {
         c.context.loadPKCS12(buf);
       }
@@ -236,6 +301,9 @@ exports.createSecureContext = function createSecureContext(options, context) {
   return c;
 };
 
+// Translate some fields from the handle's C-friendly format into more idiomatic
+// javascript object representations before passing them back to the user.  Can
+// be used on any cert object, but changing the name would be semver-major.
 exports.translatePeerCertificate = function translatePeerCertificate(c) {
   if (!c)
     return null;

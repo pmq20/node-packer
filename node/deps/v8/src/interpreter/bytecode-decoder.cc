@@ -6,9 +6,9 @@
 
 #include <iomanip>
 
-#include "src/contexts.h"
 #include "src/interpreter/interpreter-intrinsics.h"
-#include "src/objects-inl.h"
+#include "src/objects/contexts.h"
+#include "src/objects/objects-inl.h"
 
 namespace v8 {
 namespace internal {
@@ -42,9 +42,11 @@ int32_t BytecodeDecoder::DecodeSignedOperand(Address operand_start,
     case OperandSize::kByte:
       return *reinterpret_cast<const int8_t*>(operand_start);
     case OperandSize::kShort:
-      return static_cast<int16_t>(ReadUnalignedUInt16(operand_start));
+      return static_cast<int16_t>(
+          base::ReadUnalignedValue<uint16_t>(operand_start));
     case OperandSize::kQuad:
-      return static_cast<int32_t>(ReadUnalignedUInt32(operand_start));
+      return static_cast<int32_t>(
+          base::ReadUnalignedValue<uint32_t>(operand_start));
     case OperandSize::kNone:
       UNREACHABLE();
   }
@@ -60,9 +62,9 @@ uint32_t BytecodeDecoder::DecodeUnsignedOperand(Address operand_start,
     case OperandSize::kByte:
       return *reinterpret_cast<const uint8_t*>(operand_start);
     case OperandSize::kShort:
-      return ReadUnalignedUInt16(operand_start);
+      return base::ReadUnalignedValue<uint16_t>(operand_start);
     case OperandSize::kQuad:
-      return ReadUnalignedUInt32(operand_start);
+      return base::ReadUnalignedValue<uint32_t>(operand_start);
     case OperandSize::kNone:
       UNREACHABLE();
   }
@@ -71,18 +73,8 @@ uint32_t BytecodeDecoder::DecodeUnsignedOperand(Address operand_start,
 
 namespace {
 
-const char* NameForRuntimeId(uint32_t idx) {
-  switch (idx) {
-#define CASE(name, nargs, ressize) \
-  case Runtime::k##name:           \
-    return #name;                  \
-  case Runtime::kInline##name:     \
-    return "_" #name;
-    FOR_EACH_INTRINSIC(CASE)
-#undef CASE
-    default:
-      UNREACHABLE();
-  }
+const char* NameForRuntimeId(Runtime::FunctionId idx) {
+  return Runtime::FunctionForId(idx)->name;
 }
 
 const char* NameForNativeContextIndex(uint32_t idx) {
@@ -160,8 +152,9 @@ std::ostream& BytecodeDecoder::Decode(std::ostream& os,
         break;
       }
       case interpreter::OperandType::kRuntimeId:
-        os << "[" << NameForRuntimeId(DecodeUnsignedOperand(
-                         operand_start, op_type, operand_scale))
+        os << "["
+           << NameForRuntimeId(static_cast<Runtime::FunctionId>(
+                  DecodeUnsignedOperand(operand_start, op_type, operand_scale)))
            << "]";
         break;
       case interpreter::OperandType::kImm:

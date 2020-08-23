@@ -9,7 +9,8 @@ prefix known_issues
 [$system==win32]
 
 [$system==linux]
-test-vm-timeout-escape-nexttick: PASS,FLAKY
+# https://github.com/nodejs/node/pull/23743
+# https://github.com/nodejs/node/issues/3020
 test-vm-timeout-escape-promise: PASS,FLAKY
 
 [$system==macos]
@@ -21,5 +22,3 @@ test-vm-timeout-escape-promise: PASS,FLAKY
 [$system==aix]
 
 [$arch==arm]
-# https://github.com/nodejs/node/issues/24120
-test-vm-timeout-escape-nexttick: PASS,FLAKY

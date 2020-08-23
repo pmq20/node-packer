@@ -19,12 +19,13 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+#include "memory_tracker-inl.h"
 #include "node.h"
 #include "node_buffer.h"
-#include "node_internals.h"
 
 #include "async_wrap-inl.h"
 #include "env-inl.h"
+#include "threadpoolwork-inl.h"
 #include "util-inl.h"
 
 #include "v8.h"
@@ -33,10 +34,11 @@
 #include "brotli/decode.h"
 #include "zlib.h"
 
-#include <errno.h>
-#include <stdlib.h>
-#include <string.h>
 #include <sys/types.h>
+
+#include <cerrno>
+#include <cstdlib>
+#include <cstring>
 #include <atomic>
 
 namespace node {
@@ -47,6 +49,7 @@ using v8::Context;
 using v8::Function;
 using v8::FunctionCallbackInfo;
 using v8::FunctionTemplate;
+using v8::Global;
 using v8::HandleScope;
 using v8::Int32;
 using v8::Integer;
@@ -58,6 +61,19 @@ using v8::Uint32Array;
 using v8::Value;
 
 namespace {
+
+// Fewer than 64 bytes per chunk is not recommended.
+// Technically it could work with as few as 8, but even 64 bytes
+// is low.  Usually a MB or more is best.
+#define Z_MIN_CHUNK 64
+#define Z_MAX_CHUNK std::numeric_limits<double>::infinity()
+#define Z_DEFAULT_CHUNK (16 * 1024)
+#define Z_MIN_MEMLEVEL 1
+#define Z_MAX_MEMLEVEL 9
+#define Z_DEFAULT_MEMLEVEL 8
+#define Z_MIN_LEVEL -1
+#define Z_MAX_LEVEL 9
+#define Z_DEFAULT_LEVEL Z_DEFAULT_COMPRESSION
 
 #define ZLIB_ERROR_CODES(V)      \
   V(Z_OK)                        \
@@ -132,6 +148,9 @@ class ZlibContext : public MemoryRetainer {
     tracker->TrackField("dictionary", dictionary_);
   }
 
+  ZlibContext(const ZlibContext&) = delete;
+  ZlibContext& operator=(const ZlibContext&) = delete;
+
  private:
   CompressionError ErrorForMessage(const char* message) const;
   CompressionError SetDictionary();
@@ -147,8 +166,6 @@ class ZlibContext : public MemoryRetainer {
   std::vector<unsigned char> dictionary_;
 
   z_stream strm_;
-
-  DISALLOW_COPY_AND_ASSIGN(ZlibContext);
 };
 
 // Brotli has different data types for compression and decompression streams,
@@ -161,6 +178,9 @@ class BrotliContext : public MemoryRetainer {
   void SetFlush(int flush);
   void GetAfterWriteOffsets(uint32_t* avail_in, uint32_t* avail_out) const;
   inline void SetMode(node_zlib_mode mode) { mode_ = mode; }
+
+  BrotliContext(const BrotliContext&) = delete;
+  BrotliContext& operator=(const BrotliContext&) = delete;
 
  protected:
   node_zlib_mode mode_ = NONE;
@@ -175,9 +195,6 @@ class BrotliContext : public MemoryRetainer {
   brotli_alloc_func alloc_ = nullptr;
   brotli_free_func free_ = nullptr;
   void* alloc_opaque_ = nullptr;
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(BrotliContext);
 };
 
 class BrotliEncoderContext final : public BrotliContext {
@@ -389,8 +406,8 @@ class CompressionStream : public AsyncWrap, public ThreadPoolWork {
     UpdateWriteResult();
 
     // call the write() cb
-    Local<Function> cb = PersistentToLocal(env()->isolate(),
-                                           write_js_callback_);
+    Local<Function> cb = PersistentToLocal::Default(env()->isolate(),
+                                                    write_js_callback_);
     MakeCallback(cb, 0, nullptr);
 
     if (pending_close_)
@@ -512,7 +529,7 @@ class CompressionStream : public AsyncWrap, public ThreadPoolWork {
   bool closed_ = false;
   unsigned int refs_ = 0;
   uint32_t* write_result_ = nullptr;
-  Persistent<Function> write_js_callback_;
+  Global<Function> write_js_callback_;
   std::atomic<ssize_t> unreported_allocations_{0};
   size_t zlib_memory_ = 0;
 
@@ -1211,7 +1228,7 @@ struct MakeClass {
     z->SetClassName(zlibString);
     target->Set(env->context(),
                 zlibString,
-                z->GetFunction(env->context()).ToLocalChecked()).FromJust();
+                z->GetFunction(env->context()).ToLocalChecked()).Check();
   }
 };
 
@@ -1225,8 +1242,9 @@ void Initialize(Local<Object> target,
   MakeClass<BrotliEncoderStream>::Make(env, target, "BrotliEncoder");
   MakeClass<BrotliDecoderStream>::Make(env, target, "BrotliDecoder");
 
-  target->Set(FIXED_ONE_BYTE_STRING(env->isolate(), "ZLIB_VERSION"),
-              FIXED_ONE_BYTE_STRING(env->isolate(), ZLIB_VERSION));
+  target->Set(env->context(),
+              FIXED_ONE_BYTE_STRING(env->isolate(), "ZLIB_VERSION"),
+              FIXED_ONE_BYTE_STRING(env->isolate(), ZLIB_VERSION)).Check();
 }
 
 }  // anonymous namespace
@@ -1353,4 +1371,4 @@ void DefineZlibConstants(Local<Object> target) {
 
 }  // namespace node
 
-NODE_BUILTIN_MODULE_CONTEXT_AWARE(zlib, node::Initialize)
+NODE_MODULE_CONTEXT_AWARE_INTERNAL(zlib, node::Initialize)

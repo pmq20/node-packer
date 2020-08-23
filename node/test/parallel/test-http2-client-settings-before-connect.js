@@ -4,10 +4,11 @@ const common = require('../common');
 if (!common.hasCrypto)
   common.skip('missing crypto');
 const h2 = require('http2');
+const { inspect } = require('util');
 
 const server = h2.createServer();
 
-// we use the lower-level API here
+// We use the lower-level API here
 server.on('stream', common.mustCall((stream, headers, flags) => {
   stream.respond();
   stream.end('ok');
@@ -27,7 +28,7 @@ server.listen(0, common.mustCall(() => {
     ['maxFrameSize', 1, RangeError],
     ['maxFrameSize', 2 ** 24, RangeError],
     ['maxConcurrentStreams', -1, RangeError],
-    ['maxConcurrentStreams', 2 ** 31, RangeError],
+    ['maxConcurrentStreams', 2 ** 32, RangeError],
     ['maxHeaderListSize', -1, RangeError],
     ['maxHeaderListSize', 2 ** 32, RangeError],
     ['enablePush', 'a', TypeError],
@@ -51,7 +52,8 @@ server.listen(0, common.mustCall(() => {
       {
         type: TypeError,
         code: 'ERR_INVALID_CALLBACK',
-        message: 'Callback must be a function'
+        message:
+          `Callback must be a function. Received ${inspect(invalidCallback)}`
       }
     )
   );

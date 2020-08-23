@@ -1,6 +1,8 @@
 'use strict';
-const assert = require('assert');
-const util = require('util');
+
+const { Object } = primordials;
+
+const assert = require('internal/assert');
 const path = require('path');
 const EventEmitter = require('events');
 const { owner_symbol } = require('internal/async_hooks').symbols;
@@ -48,7 +50,7 @@ cluster._setupWorker = function() {
   }
 };
 
-// obj is a net#Server or a dgram#Socket object.
+// `obj` is a net#Server or a dgram#Socket object.
 cluster._getServer = function(obj, options, cb) {
   let address = options.address;
 
@@ -71,11 +73,12 @@ cluster._getServer = function(obj, options, cb) {
 
   indexes.set(indexesKey, index);
 
-  const message = util._extend({
+  const message = {
     act: 'queryServer',
     index,
-    data: null
-  }, options);
+    data: null,
+    ...options
+  };
 
   message.address = address;
 
@@ -97,7 +100,7 @@ cluster._getServer = function(obj, options, cb) {
     cluster.worker.state = 'listening';
     const address = obj.address();
     message.act = 'listening';
-    message.port = address && address.port || options.port;
+    message.port = (address && address.port) || options.port;
     send(message);
   });
 };
@@ -151,7 +154,7 @@ function rr(message, indexesKey, cb) {
 
   function getsockname(out) {
     if (key)
-      util._extend(out, message.sockname);
+      Object.assign(out, message.sockname);
 
     return 0;
   }

@@ -1,13 +1,14 @@
+#define NODE_WANT_INTERNALS 1
 #include "debug_utils.h"
-#include "node_internals.h"
+#include "env-inl.h"
+#include "util-inl.h"
 
 #ifdef __POSIX__
 #if defined(__linux__)
 #include <features.h>
 #endif
 
-#if defined(__linux__) && !defined(__GLIBC__) || \
-    defined(__UCLIBC__) || \
+#if defined(__linux__) && !defined(__GLIBC__) || defined(__UCLIBC__) ||        \
     defined(_AIX)
 #define HAVE_EXECINFO_H 0
 #else
@@ -18,21 +19,18 @@
 #include <cxxabi.h>
 #include <dlfcn.h>
 #include <execinfo.h>
-#include <unistd.h>
 #include <sys/mman.h>
-#include <stdio.h>
+#include <unistd.h>
+#include <cstdio>
 #endif
-
-#else  // __POSIX__
-
-#include <windows.h>
-#include <dbghelp.h>
 
 #endif  // __POSIX__
 
-#if defined(__linux__) || defined(__sun) || defined(__FreeBSD__)
+#if defined(__linux__) || defined(__sun) || defined(__FreeBSD__) ||            \
+    defined(__OpenBSD__)
 #include <link.h>
-#endif  // (__linux__) || defined(__sun) || defined(__FreeBSD__)
+#endif  // (__linux__) || defined(__sun) ||
+        // (__FreeBSD__) || defined(__OpenBSD__)
 
 #ifdef __APPLE__
 #include <mach-o/dyld.h>  // _dyld_get_image_name()
@@ -57,17 +55,17 @@ namespace node {
 #if HAVE_EXECINFO_H
 class PosixSymbolDebuggingContext final : public NativeSymbolDebuggingContext {
  public:
-  PosixSymbolDebuggingContext() : pagesize_(getpagesize()) { }
+  PosixSymbolDebuggingContext() : pagesize_(getpagesize()) {}
 
   SymbolInfo LookupSymbol(void* address) override {
     Dl_info info;
     const bool have_info = dladdr(address, &info);
     SymbolInfo ret;
-    if (!have_info)
-      return ret;
+    if (!have_info) return ret;
 
     if (info.dli_sname != nullptr) {
-      if (char* demangled = abi::__cxa_demangle(info.dli_sname, 0, 0, 0)) {
+      if (char* demangled =
+              abi::__cxa_demangle(info.dli_sname, nullptr, nullptr, nullptr)) {
         ret.name = demangled;
         free(demangled);
       } else {
@@ -121,13 +119,12 @@ class Win32SymbolDebuggingContext final : public NativeSymbolDebuggingContext {
     USE(SymInitialize(current_process_, nullptr, true));
   }
 
-  ~Win32SymbolDebuggingContext() override {
-    USE(SymCleanup(current_process_));
-  }
+  ~Win32SymbolDebuggingContext() override { USE(SymCleanup(current_process_)); }
 
   using NameAndDisplacement = std::pair<std::string, DWORD64>;
   NameAndDisplacement WrappedSymFromAddr(DWORD64 dwAddress) const {
-    // Refs: https://docs.microsoft.com/en-us/windows/desktop/Debug/retrieving-symbol-information-by-address
+    // Refs:
+    // https://docs.microsoft.com/en-us/windows/desktop/Debug/retrieving-symbol-information-by-address
     // Patches:
     // Use `fprintf(stderr, ` instead of `printf`
     // `sym.filename = pSymbol->Name` on success
@@ -159,7 +156,8 @@ class Win32SymbolDebuggingContext final : public NativeSymbolDebuggingContext {
   SymbolInfo WrappedGetLine(DWORD64 dwAddress) const {
     SymbolInfo sym{};
 
-    // Refs: https://docs.microsoft.com/en-us/windows/desktop/Debug/retrieving-symbol-information-by-address
+    // Refs:
+    // https://docs.microsoft.com/en-us/windows/desktop/Debug/retrieving-symbol-information-by-address
     // Patches:
     // Use `fprintf(stderr, ` instead of `printf`.
     // Assign values to `sym` on success.
@@ -174,8 +172,8 @@ class Win32SymbolDebuggingContext final : public NativeSymbolDebuggingContext {
     line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
     // Patch: made into arg - dwAddress = 0x1000000;
 
-    if (SymGetLineFromAddr64(current_process_, dwAddress,
-                             &dwDisplacement, &line)) {
+    if (SymGetLineFromAddr64(
+            current_process_, dwAddress, &dwDisplacement, &line)) {
       // SymGetLineFromAddr64 returned success
       sym.filename = line.FileName;
       sym.line = line.LineNumber;
@@ -193,13 +191,14 @@ class Win32SymbolDebuggingContext final : public NativeSymbolDebuggingContext {
 
   // Fills the SymbolInfo::name of the io/out argument `sym`
   std::string WrappedUnDecorateSymbolName(const char* name) const {
-    // Refs: https://docs.microsoft.com/en-us/windows/desktop/Debug/retrieving-undecorated-symbol-names
+    // Refs:
+    // https://docs.microsoft.com/en-us/windows/desktop/Debug/retrieving-undecorated-symbol-names
     // Patches:
     // Use `fprintf(stderr, ` instead of `printf`.
     // return `szUndName` instead of `printf` on success
     char szUndName[MAX_SYM_NAME];
-    if (UnDecorateSymbolName(name, szUndName, sizeof(szUndName),
-                             UNDNAME_COMPLETE)) {
+    if (UnDecorateSymbolName(
+            name, szUndName, sizeof(szUndName), UNDNAME_COMPLETE)) {
       // UnDecorateSymbolName returned success
       return szUndName;
     } else {
@@ -237,10 +236,9 @@ class Win32SymbolDebuggingContext final : public NativeSymbolDebuggingContext {
 
   Win32SymbolDebuggingContext(const Win32SymbolDebuggingContext&) = delete;
   Win32SymbolDebuggingContext(Win32SymbolDebuggingContext&&) = delete;
-  Win32SymbolDebuggingContext operator=(const Win32SymbolDebuggingContext&)
-    = delete;
-  Win32SymbolDebuggingContext operator=(Win32SymbolDebuggingContext&&)
-    = delete;
+  Win32SymbolDebuggingContext operator=(const Win32SymbolDebuggingContext&) =
+      delete;
+  Win32SymbolDebuggingContext operator=(Win32SymbolDebuggingContext&&) = delete;
 
  private:
   HANDLE current_process_;
@@ -283,46 +281,70 @@ void DumpBacktrace(FILE* fp) {
 void CheckedUvLoopClose(uv_loop_t* loop) {
   if (uv_loop_close(loop) == 0) return;
 
-  auto sym_ctx = NativeSymbolDebuggingContext::New();
-
-  fprintf(stderr, "uv loop at [%p] has active handles\n", loop);
-
-  uv_walk(loop, [](uv_handle_t* handle, void* arg) {
-    auto sym_ctx = static_cast<NativeSymbolDebuggingContext*>(arg);
-
-    fprintf(stderr, "[%p] %s\n", handle, uv_handle_type_name(handle->type));
-
-    void* close_cb = reinterpret_cast<void*>(handle->close_cb);
-    fprintf(stderr, "\tClose callback: %p %s\n",
-        close_cb, sym_ctx->LookupSymbol(close_cb).Display().c_str());
-
-    fprintf(stderr, "\tData: %p %s\n",
-        handle->data, sym_ctx->LookupSymbol(handle->data).Display().c_str());
-
-    // We are also interested in the first field of what `handle->data`
-    // points to, because for C++ code that is usually the virtual table pointer
-    // and gives us information about the exact kind of object we're looking at.
-    void* first_field = nullptr;
-    // `handle->data` might be any value, including `nullptr`, or something
-    // cast from a completely different type; therefore, check that it’s
-    // dereferencable first.
-    if (sym_ctx->IsMapped(handle->data))
-      first_field = *reinterpret_cast<void**>(handle->data);
-
-    if (first_field != nullptr) {
-      fprintf(stderr, "\t(First field): %p %s\n",
-          first_field, sym_ctx->LookupSymbol(first_field).Display().c_str());
-    }
-  }, sym_ctx.get());
+  PrintLibuvHandleInformation(loop, stderr);
 
   fflush(stderr);
   // Finally, abort.
   CHECK(0 && "uv_loop_close() while having open handles");
 }
 
+void PrintLibuvHandleInformation(uv_loop_t* loop, FILE* stream) {
+  struct Info {
+    std::unique_ptr<NativeSymbolDebuggingContext> ctx;
+    FILE* stream;
+  };
+
+  Info info{NativeSymbolDebuggingContext::New(), stream};
+
+  fprintf(stream,
+          "uv loop at [%p] has %d active handles\n",
+          loop,
+          loop->active_handles);
+
+  uv_walk(loop,
+          [](uv_handle_t* handle, void* arg) {
+            Info* info = static_cast<Info*>(arg);
+            NativeSymbolDebuggingContext* sym_ctx = info->ctx.get();
+            FILE* stream = info->stream;
+
+            fprintf(
+                stream, "[%p] %s\n", handle, uv_handle_type_name(handle->type));
+
+            void* close_cb = reinterpret_cast<void*>(handle->close_cb);
+            fprintf(stream,
+                    "\tClose callback: %p %s\n",
+                    close_cb,
+                    sym_ctx->LookupSymbol(close_cb).Display().c_str());
+
+            fprintf(stream,
+                    "\tData: %p %s\n",
+                    handle->data,
+                    sym_ctx->LookupSymbol(handle->data).Display().c_str());
+
+            // We are also interested in the first field of what `handle->data`
+            // points to, because for C++ code that is usually the virtual table
+            // pointer and gives us information about the exact kind of object
+            // we're looking at.
+            void* first_field = nullptr;
+            // `handle->data` might be any value, including `nullptr`, or
+            // something cast from a completely different type; therefore, check
+            // that it’s dereferencable first.
+            if (sym_ctx->IsMapped(handle->data))
+              first_field = *reinterpret_cast<void**>(handle->data);
+
+            if (first_field != nullptr) {
+              fprintf(stream,
+                      "\t(First field): %p %s\n",
+                      first_field,
+                      sym_ctx->LookupSymbol(first_field).Display().c_str());
+            }
+          },
+          &info);
+}
+
 std::vector<std::string> NativeSymbolDebuggingContext::GetLoadedLibraries() {
   std::vector<std::string> list;
-#if defined(__linux__) || defined(__FreeBSD__)
+#if defined(__linux__) || defined(__FreeBSD__) || defined(__OpenBSD__)
   dl_iterate_phdr(
       [](struct dl_phdr_info* info, size_t size, void* data) {
         auto list = static_cast<std::vector<std::string>*>(data);
@@ -357,8 +379,8 @@ std::vector<std::string> NativeSymbolDebuggingContext::GetLoadedLibraries() {
     do {
       std::ostringstream str;
       cur_info = reinterpret_cast<ld_info*>(buf);
-      char* member_name = cur_info->ldinfo_filename +
-          strlen(cur_info->ldinfo_filename) + 1;
+      char* member_name =
+          cur_info->ldinfo_filename + strlen(cur_info->ldinfo_filename) + 1;
       if (*member_name != '\0') {
         str << cur_info->ldinfo_filename << "(" << member_name << ")";
         list.push_back(str.str());
@@ -380,8 +402,10 @@ std::vector<std::string> NativeSymbolDebuggingContext::GetLoadedLibraries() {
 
 #elif _WIN32
   // Windows implementation - get a handle to the process.
-  HANDLE process_handle = OpenProcess(PROCESS_QUERY_INFORMATION|PROCESS_VM_READ,
-                                      FALSE, GetCurrentProcessId());
+  HANDLE process_handle =
+      OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ,
+                  FALSE,
+                  GetCurrentProcessId());
   if (process_handle == nullptr) {
     // Cannot proceed, return an empty list.
     return list;
@@ -420,7 +444,6 @@ std::vector<std::string> NativeSymbolDebuggingContext::GetLoadedLibraries() {
 #endif
   return list;
 }
-
 
 }  // namespace node
 

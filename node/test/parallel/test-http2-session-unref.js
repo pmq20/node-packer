@@ -1,6 +1,4 @@
 'use strict';
-// Flags: --expose-internals
-
 // Tests that calling unref() on Http2Session:
 // (1) Prevents it from keeping the process alive
 // (2) Doesn't crash
@@ -35,7 +33,7 @@ server.listen(0, common.mustCall(() => {
     client.unref();
   }
 
-  // unref destroyed client
+  // Unref destroyed client
   {
     const client = http2.connect(`http://localhost:${port}`);
 
@@ -45,7 +43,7 @@ server.listen(0, common.mustCall(() => {
     }));
   }
 
-  // unref destroyed client
+  // Unref destroyed client
   {
     const client = http2.connect(`http://localhost:${port}`, {
       createConnection: common.mustCall(() => clientSide)

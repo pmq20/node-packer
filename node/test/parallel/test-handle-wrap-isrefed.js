@@ -3,6 +3,7 @@
 
 const common = require('../common');
 const strictEqual = require('assert').strictEqual;
+const { internalBinding } = require('internal/test/binding');
 
 // child_process
 {
@@ -66,7 +67,7 @@ const { kStateSymbol } = require('internal/dgram');
 
 // pipe
 {
-  const { Pipe, constants: PipeConstants } = process.binding('pipe_wrap');
+  const { Pipe, constants: PipeConstants } = internalBinding('pipe_wrap');
   const handle = new Pipe(PipeConstants.SOCKET);
   strictEqual(handle.hasRef(),
               true, 'pipe_wrap: not initially refed');
@@ -106,19 +107,4 @@ const { kStateSymbol } = require('internal/dgram');
 }
 
 
-// timers
-{
-  const timer = setTimeout(() => {}, 500);
-  timer.unref();
-  strictEqual(timer._handle.hasRef(),
-              false, 'timer_wrap: unref() ineffective');
-  timer.ref();
-  strictEqual(timer._handle.hasRef(),
-              true, 'timer_wrap: ref() ineffective');
-  timer._handle.close(common.mustCall(() =>
-    strictEqual(timer._handle.hasRef(),
-                false, 'timer_wrap: not unrefed on close')));
-}
-
-
-// see also test/pseudo-tty/test-handle-wrap-isrefed-tty.js
+// See also test/pseudo-tty/test-handle-wrap-isrefed-tty.js

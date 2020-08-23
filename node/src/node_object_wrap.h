@@ -23,7 +23,7 @@
 #define SRC_NODE_OBJECT_WRAP_H_
 
 #include "v8.h"
-#include <assert.h>
+#include <cassert>
 
 
 namespace node {
@@ -80,7 +80,7 @@ class ObjectWrap {
   }
 
 
-  inline void MakeWeak(void) {
+  inline void MakeWeak() {
     persistent().SetWeak(this, WeakCallback, v8::WeakCallbackType::kParameter);
   }
 

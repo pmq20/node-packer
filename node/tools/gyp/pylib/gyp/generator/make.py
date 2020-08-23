@@ -21,6 +21,8 @@
 # toplevel Makefile.  It may make sense to generate some .mk files on
 # the side to keep the files readable.
 
+from __future__ import print_function
+
 import os
 import re
 import sys
@@ -650,7 +652,7 @@ def _ValidateSourcesForOSX(spec, all_sources):
     basenames.setdefault(basename, []).append(source)
 
   error = ''
-  for basename, files in basenames.iteritems():
+  for basename, files in basenames.items():
     if len(files) > 1:
       error += '  %s: %s\n' % (basename, ' '.join(files))
 
@@ -927,7 +929,7 @@ $(obj).$(TOOLSET)/$(TARGET)/%%.o: $(obj)/%%%s FORCE_DO_CMD
                    '%s%s'
                    % (name, cd_action, command))
       self.WriteLn()
-      outputs = map(self.Absolutify, outputs)
+      outputs = [self.Absolutify(o) for o in outputs]
       # The makefile rules are all relative to the top dir, but the gyp actions
       # are defined relative to their containing dir.  This replaces the obj
       # variable for the action rule with an absolute version so that the output
@@ -1017,7 +1019,7 @@ $(obj).$(TOOLSET)/$(TARGET)/%%.o: $(obj)/%%%s FORCE_DO_CMD
         outputs = [gyp.xcode_emulation.ExpandEnvVars(o, env) for o in outputs]
         inputs = [gyp.xcode_emulation.ExpandEnvVars(i, env) for i in inputs]
 
-        outputs = map(self.Absolutify, outputs)
+        outputs = [self.Absolutify(o) for o in outputs]
         all_outputs += outputs
         # Only write the 'obj' and 'builddir' rules for the "primary" output
         # (:1); it's superfluous for the "extra outputs", and this avoids
@@ -1202,16 +1204,16 @@ $(obj).$(TOOLSET)/$(TARGET)/%%.o: $(obj)/%%%s FORCE_DO_CMD
         cflags_c = config.get('cflags_c')
         cflags_cc = config.get('cflags_cc')
 
-      self.WriteLn("# Flags passed to all source files.");
+      self.WriteLn("# Flags passed to all source files.")
       self.WriteList(cflags, 'CFLAGS_%s' % configname)
-      self.WriteLn("# Flags passed to only C files.");
+      self.WriteLn("# Flags passed to only C files.")
       self.WriteList(cflags_c, 'CFLAGS_C_%s' % configname)
-      self.WriteLn("# Flags passed to only C++ files.");
+      self.WriteLn("# Flags passed to only C++ files.")
       self.WriteList(cflags_cc, 'CFLAGS_CC_%s' % configname)
       if self.flavor == 'mac':
-        self.WriteLn("# Flags passed to only ObjC files.");
+        self.WriteLn("# Flags passed to only ObjC files.")
         self.WriteList(cflags_objc, 'CFLAGS_OBJC_%s' % configname)
-        self.WriteLn("# Flags passed to only ObjC++ files.");
+        self.WriteLn("# Flags passed to only ObjC++ files.")
         self.WriteList(cflags_objcc, 'CFLAGS_OBJCC_%s' % configname)
       includes = config.get('include_dirs')
       if includes:
@@ -1359,8 +1361,8 @@ $(obj).$(TOOLSET)/$(TARGET)/%%.o: $(obj)/%%%s FORCE_DO_CMD
     elif self.type == 'none':
       target = '%s.stamp' % target
     elif self.type != 'executable':
-      print ("ERROR: What output file should be generated?",
-             "type", self.type, "target", target)
+      print("ERROR: What output file should be generated?",
+            "type", self.type, "target", target)
 
     target_prefix = spec.get('product_prefix', target_prefix)
     target = spec.get('product_name', target)
@@ -1524,7 +1526,7 @@ $(obj).$(TOOLSET)/$(TARGET)/%%.o: $(obj)/%%%s FORCE_DO_CMD
       # Postbuilds expect to be run in the gyp file's directory, so insert an
       # implicit postbuild to cd to there.
       postbuilds.insert(0, gyp.common.EncodePOSIXShellList(['cd', self.path]))
-      for i in xrange(len(postbuilds)):
+      for i in range(len(postbuilds)):
         if not postbuilds[i].startswith('$'):
           postbuilds[i] = EscapeShellArgument(postbuilds[i])
       self.WriteLn('%s: builddir := $(abs_builddir)' % QuoteSpaces(self.output))
@@ -1616,7 +1618,7 @@ $(obj).$(TOOLSET)/$(TARGET)/%%.o: $(obj)/%%%s FORCE_DO_CMD
       self.WriteDoCmd([self.output_binary], deps, 'touch', part_of_all,
                       postbuilds=postbuilds)
     else:
-      print "WARNING: no output for", self.type, target
+      print("WARNING: no output for", self.type, self.target)
 
     # Add an alias for each target (if there are any outputs).
     # Installable target aliases are created below.
@@ -1723,8 +1725,8 @@ $(obj).$(TOOLSET)/$(TARGET)/%%.o: $(obj)/%%%s FORCE_DO_CMD
            output is just a name to run the rule
     command: (optional) command name to generate unambiguous labels
     """
-    outputs = map(QuoteSpaces, outputs)
-    inputs = map(QuoteSpaces, inputs)
+    outputs = [QuoteSpaces(o) for o in outputs]
+    inputs = [QuoteSpaces(i) for i in inputs]
 
     if comment:
       self.WriteLn('# ' + comment)
@@ -1753,7 +1755,7 @@ $(obj).$(TOOLSET)/$(TARGET)/%%.o: $(obj)/%%%s FORCE_DO_CMD
       # - The multi-output rule will have an do-nothing recipe.
 
       # Hash the target name to avoid generating overlong filenames.
-      cmddigest = hashlib.sha1(command if command else self.target).hexdigest()
+      cmddigest = hashlib.sha1((command or self.target).encode("utf-8")).hexdigest()
       intermediate = "%s.intermediate" % (cmddigest)
       self.WriteLn('%s: %s' % (' '.join(outputs), intermediate))
       self.WriteLn('\t%s' % '@:')
@@ -1968,7 +1970,7 @@ def PerformBuild(data, configurations, params):
     if options.toplevel_dir and options.toplevel_dir != '.':
       arguments += '-C', options.toplevel_dir
     arguments.append('BUILDTYPE=' + config)
-    print 'Building [%s]: %s' % (config, arguments)
+    print('Building [%s]: %s' % (config, arguments))
     subprocess.check_call(arguments)
 
 

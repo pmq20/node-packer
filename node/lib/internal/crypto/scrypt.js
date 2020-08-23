@@ -2,16 +2,16 @@
 
 const { AsyncWrap, Providers } = internalBinding('async_wrap');
 const { Buffer } = require('buffer');
-const { scrypt: _scrypt } = process.binding('crypto');
-const { validateUint32 } = require('internal/validators');
+const { scrypt: _scrypt } = internalBinding('crypto');
+const { validateInteger, validateUint32 } = require('internal/validators');
 const {
   ERR_CRYPTO_SCRYPT_INVALID_PARAMETER,
   ERR_CRYPTO_SCRYPT_NOT_SUPPORTED,
-  ERR_INVALID_CALLBACK,
+  ERR_INVALID_CALLBACK
 } = require('internal/errors').codes;
 const {
   getDefaultEncoding,
-  validateArrayBufferView,
+  getArrayBufferView,
 } = require('internal/crypto/util');
 
 const defaults = {
@@ -32,7 +32,7 @@ function scrypt(password, salt, keylen, options, callback = defaults) {
   ({ password, salt, keylen } = options);
 
   if (typeof callback !== 'function')
-    throw new ERR_INVALID_CALLBACK();
+    throw new ERR_INVALID_CALLBACK(callback);
 
   const encoding = getDefaultEncoding();
   const keybuf = Buffer.alloc(keylen);
@@ -44,7 +44,7 @@ function scrypt(password, salt, keylen, options, callback = defaults) {
     callback.call(wrap, null, keybuf.toString(encoding));
   };
 
-  handleError(keybuf, password, salt, N, r, p, maxmem, wrap);
+  handleError(_scrypt(keybuf, password, salt, N, r, p, maxmem, wrap));
 }
 
 function scryptSync(password, salt, keylen, options = defaults) {
@@ -52,15 +52,13 @@ function scryptSync(password, salt, keylen, options = defaults) {
   const { N, r, p, maxmem } = options;
   ({ password, salt, keylen } = options);
   const keybuf = Buffer.alloc(keylen);
-  handleError(keybuf, password, salt, N, r, p, maxmem);
+  handleError(_scrypt(keybuf, password, salt, N, r, p, maxmem));
   const encoding = getDefaultEncoding();
   if (encoding === 'buffer') return keybuf;
   return keybuf.toString(encoding);
 }
 
-function handleError(keybuf, password, salt, N, r, p, maxmem, wrap) {
-  const ex = _scrypt(keybuf, password, salt, N, r, p, maxmem, wrap);
-
+function handleError(ex) {
   if (ex === undefined)
     return;
 
@@ -74,33 +72,44 @@ function check(password, salt, keylen, options) {
   if (_scrypt === undefined)
     throw new ERR_CRYPTO_SCRYPT_NOT_SUPPORTED();
 
-  password = validateArrayBufferView(password, 'password');
-  salt = validateArrayBufferView(salt, 'salt');
-  keylen = validateUint32(keylen, 'keylen');
+  password = getArrayBufferView(password, 'password');
+  salt = getArrayBufferView(salt, 'salt');
+  validateUint32(keylen, 'keylen');
 
   let { N, r, p, maxmem } = defaults;
   if (options && options !== defaults) {
     let has_N, has_r, has_p;
-    if (has_N = (options.N !== undefined))
-      N = validateUint32(options.N, 'N');
+    if (has_N = (options.N !== undefined)) {
+      N = options.N;
+      validateUint32(N, 'N');
+    }
     if (options.cost !== undefined) {
       if (has_N) throw new ERR_CRYPTO_SCRYPT_INVALID_PARAMETER();
-      N = validateUint32(options.cost, 'cost');
+      N = options.cost;
+      validateUint32(N, 'cost');
     }
-    if (has_r = (options.r !== undefined))
-      r = validateUint32(options.r, 'r');
+    if (has_r = (options.r !== undefined)) {
+      r = options.r;
+      validateUint32(r, 'r');
+    }
     if (options.blockSize !== undefined) {
       if (has_r) throw new ERR_CRYPTO_SCRYPT_INVALID_PARAMETER();
-      r = validateUint32(options.blockSize, 'blockSize');
+      r = options.blockSize;
+      validateUint32(r, 'blockSize');
     }
-    if (has_p = (options.p !== undefined))
-      p = validateUint32(options.p, 'p');
+    if (has_p = (options.p !== undefined)) {
+      p = options.p;
+      validateUint32(p, 'p');
+    }
     if (options.parallelization !== undefined) {
       if (has_p) throw new ERR_CRYPTO_SCRYPT_INVALID_PARAMETER();
-      p = validateUint32(options.parallelization, 'parallelization');
+      p = options.parallelization;
+      validateUint32(p, 'parallelization');
     }
-    if (options.maxmem !== undefined)
-      maxmem = validateUint32(options.maxmem, 'maxmem');
+    if (options.maxmem !== undefined) {
+      maxmem = options.maxmem;
+      validateInteger(maxmem, 'maxmem', 0);
+    }
     if (N === 0) N = defaults.N;
     if (r === 0) r = defaults.r;
     if (p === 0) p = defaults.p;

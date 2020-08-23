@@ -61,15 +61,15 @@ asyncHook.disable();
 // resource referenced by "asyncId" may not have been populated.
 function init(asyncId, type, triggerAsyncId, resource) { }
 
-// before is called just before the resource's callback is called. It can be
+// Before is called just before the resource's callback is called. It can be
 // called 0-N times for handles (e.g. TCPWrap), and will be called exactly 1
-// time for requests (e.g. FSReqWrap).
+// time for requests (e.g. FSReqCallback).
 function before(asyncId) { }
 
-// after is called just after the resource's callback has finished.
+// After is called just after the resource's callback has finished.
 function after(asyncId) { }
 
-// destroy is called when an AsyncWrap instance is destroyed.
+// Destroy is called when an AsyncWrap instance is destroyed.
 function destroy(asyncId) { }
 
 // promiseResolve is called only for promise resources, when the
@@ -89,6 +89,7 @@ added: v8.1.0
   * `before` {Function} The [`before` callback][].
   * `after` {Function} The [`after` callback][].
   * `destroy` {Function} The [`destroy` callback][].
+  * `promiseResolve` {Function} The [`promiseResolve` callback][].
 * Returns: {AsyncHook} Instance used for disabling and enabling hooks
 
 Registers functions to be called for different lifetime events of each async
@@ -111,7 +112,7 @@ const asyncHook = async_hooks.createHook({
 });
 ```
 
-Note that the callbacks will be inherited via the prototype chain:
+The callbacks will be inherited via the prototype chain:
 
 ```js
 class MyAsyncCallbacks {
@@ -159,7 +160,7 @@ const fs = require('fs');
 const util = require('util');
 
 function debug(...args) {
-  // use a function like this one when debugging inside an AsyncHooks callback
+  // Use a function like this one when debugging inside an AsyncHooks callback
   fs.writeFileSync('log.out', `${util.format(...args)}\n`, { flag: 'a' });
 }
 ```
@@ -236,11 +237,11 @@ The `type` is a string identifying the type of resource that caused
 resource's constructor.
 
 ```text
-FSEVENTWRAP, FSREQWRAP, GETADDRINFOREQWRAP, GETNAMEINFOREQWRAP, HTTPPARSER,
-JSSTREAM, PIPECONNECTWRAP, PIPEWRAP, PROCESSWRAP, QUERYWRAP, SHUTDOWNWRAP,
-SIGNALWRAP, STATWATCHER, TCPCONNECTWRAP, TCPSERVERWRAP, TCPWRAP, TIMERWRAP,
+FSEVENTWRAP, FSREQCALLBACK, GETADDRINFOREQWRAP, GETNAMEINFOREQWRAP, HTTPINCOMINGMESSAGE,
+HTTPCLIENTREQUEST, JSSTREAM, PIPECONNECTWRAP, PIPEWRAP, PROCESSWRAP, QUERYWRAP,
+SHUTDOWNWRAP, SIGNALWRAP, STATWATCHER, TCPCONNECTWRAP, TCPSERVERWRAP, TCPWRAP,
 TTYWRAP, UDPSENDWRAP, UDPWRAP, WRITEWRAP, ZLIB, SSLCONNECTION, PBKDF2REQUEST,
-RANDOMBYTESREQUEST, TLSWRAP, Timeout, Immediate, TickObject
+RANDOMBYTESREQUEST, TLSWRAP, Microtask, Timeout, Immediate, TickObject
 ```
 
 There is also the `PROMISE` resource type, which is used to track `Promise`
@@ -301,8 +302,7 @@ currently not considered public, but using the Embedder API, users can provide
 and document their own resource objects. For example, such a resource object
 could contain the SQL query being executed.
 
-In the case of Promises, the `resource` object will have `promise` property
-that refers to the `Promise` that is being initialized, and an
+In the case of Promises, the `resource` object will have an
 `isChainedPromise` property, set to `true` if the promise has a parent promise,
 and `false` otherwise. For example, in the case of `b = a.then(handler)`, `a` is
 considered a parent `Promise` of `b`. Here, `b` is considered a chained promise.
@@ -431,12 +431,16 @@ does not depend on garbage collection, then this will not be an issue.
 
 ##### promiseResolve(asyncId)
 
+<!-- YAML
+added: v8.6.0
+-->
+
 * `asyncId` {number}
 
 Called when the `resolve` function passed to the `Promise` constructor is
 invoked (either directly or through other means of resolving a promise).
 
-Note that `resolve()` does not do any observable synchronous work.
+`resolve()` does not do any observable synchronous work.
 
 The `Promise` is not necessarily fulfilled or rejected at this point if the
 `Promise` was resolved by assuming the state of another `Promise`.
@@ -494,7 +498,7 @@ const server = net.createServer((conn) => {
 });
 ```
 
-Note that promise contexts may not get precise `executionAsyncIds` by default.
+Promise contexts may not get precise `executionAsyncIds` by default.
 See the section on [promise execution tracking][].
 
 #### async_hooks.triggerAsyncId()
@@ -517,7 +521,7 @@ const server = net.createServer((conn) => {
 });
 ```
 
-Note that promise contexts may not get valid `triggerAsyncId`s by default. See
+Promise contexts may not get valid `triggerAsyncId`s by default. See
 the section on [promise execution tracking][].
 
 ## Promise execution tracking
@@ -537,7 +541,7 @@ Promise.resolve(1729).then(() => {
 ```
 
 Observe that the `then()` callback claims to have executed in the context of the
-outer scope even though there was an asynchronous hop involved. Also note that
+outer scope even though there was an asynchronous hop involved. Also,
 the `triggerAsyncId` value is `0`, which means that we are missing context about
 the resource that caused (triggered) the `then()` callback to be executed.
 
@@ -611,7 +615,7 @@ asyncResource.asyncId();
 asyncResource.triggerAsyncId();
 ```
 
-#### new AsyncResource(type[, options])
+#### new AsyncResource(type\[, options\])
 
 * `type` {string} The type of async event.
 * `options` {Object}
@@ -645,7 +649,7 @@ class DBQuery extends AsyncResource {
 }
 ```
 
-#### asyncResource.runInAsyncScope(fn[, thisArg, ...args])
+#### asyncResource.runInAsyncScope(fn\[, thisArg, ...args\])
 <!-- YAML
 added: v9.6.0
 -->
@@ -659,41 +663,6 @@ Call the provided function with the provided arguments in the execution context
 of the async resource. This will establish the context, trigger the AsyncHooks
 before callbacks, call the function, trigger the AsyncHooks after callbacks, and
 then restore the original execution context.
-
-#### asyncResource.emitBefore()
-<!-- YAML
-deprecated: v9.6.0
--->
-> Stability: 0 - Deprecated: Use [`asyncResource.runInAsyncScope()`][] instead.
-
-Call all `before` callbacks to notify that a new asynchronous execution context
-is being entered. If nested calls to `emitBefore()` are made, the stack of
-`asyncId`s will be tracked and properly unwound.
-
-`before` and `after` calls must be unwound in the same order that they
-are called. Otherwise, an unrecoverable exception will occur and the process
-will abort. For this reason, the `emitBefore` and `emitAfter` APIs are
-considered deprecated. Please use `runInAsyncScope`, as it provides a much safer
-alternative.
-
-#### asyncResource.emitAfter()
-<!-- YAML
-deprecated: v9.6.0
--->
-> Stability: 0 - Deprecated: Use [`asyncResource.runInAsyncScope()`][] instead.
-
-Call all `after` callbacks. If nested calls to `emitBefore()` were made, then
-make sure the stack is unwound properly. Otherwise an error will be thrown.
-
-If the user's callback throws an exception, `emitAfter()` will automatically be
-called for all `asyncId`s on the stack if the error is handled by a domain or
-`'uncaughtException'` handler.
-
-`before` and `after` calls must be unwound in the same order that they
-are called. Otherwise, an unrecoverable exception will occur and the process
-will abort. For this reason, the `emitBefore` and `emitAfter` APIs are
-considered deprecated. Please use `runInAsyncScope`, as it provides a much safer
-alternative.
 
 #### asyncResource.emitDestroy()
 
@@ -713,12 +682,12 @@ never be called.
 * Returns: {number} The same `triggerAsyncId` that is passed to the
 `AsyncResource` constructor.
 
-[`Worker`]: worker_threads.html#worker_threads_class_worker
 [`after` callback]: #async_hooks_after_asyncid
-[`asyncResource.runInAsyncScope()`]: #async_hooks_asyncresource_runinasyncscope_fn_thisarg_args
 [`before` callback]: #async_hooks_before_asyncid
 [`destroy` callback]: #async_hooks_destroy_asyncid
 [`init` callback]: #async_hooks_init_asyncid_type_triggerasyncid_resource
+[`promiseResolve` callback]: #async_hooks_promiseresolve_asyncid
 [Hook Callbacks]: #async_hooks_hook_callbacks
 [PromiseHooks]: https://docs.google.com/document/d/1rda3yKGHimKIhg5YeoAmCOtyURgsbTH_qaYR79FELlk/edit
+[`Worker`]: worker_threads.html#worker_threads_class_worker
 [promise execution tracking]: #async_hooks_promise_execution_tracking

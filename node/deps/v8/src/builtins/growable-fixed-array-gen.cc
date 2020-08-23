@@ -27,7 +27,7 @@ void GrowableFixedArray::Push(TNode<Object> const value) {
   BIND(&store);
   {
     TNode<FixedArray> const array = var_array_.value();
-    StoreFixedArrayElement(array, length, value);
+    UnsafeStoreFixedArrayElement(array, length, value);
 
     var_length_ = IntPtrAdd(length, IntPtrConstant(1));
   }
@@ -57,11 +57,7 @@ TNode<JSArray> GrowableFixedArray::ToJSArray(TNode<Context> const context) {
 
   TNode<Smi> const result_length = SmiTag(length());
   TNode<JSArray> const result =
-      CAST(AllocateUninitializedJSArrayWithoutElements(array_map, result_length,
-                                                       nullptr));
-
-  StoreObjectField(result, JSObject::kElementsOffset, var_array_.value());
-
+      AllocateJSArray(array_map, var_array_.value(), result_length);
   return result;
 }
 
@@ -90,8 +86,8 @@ TNode<FixedArray> GrowableFixedArray::ResizeFixedArray(
 
   CodeStubAssembler::ExtractFixedArrayFlags flags;
   flags |= CodeStubAssembler::ExtractFixedArrayFlag::kFixedArrays;
-  TNode<FixedArray> to_array = ExtractFixedArray(
-      from_array, nullptr, element_count, new_capacity, flags);
+  TNode<FixedArray> to_array = CAST(ExtractFixedArray(
+      from_array, nullptr, element_count, new_capacity, flags));
 
   return to_array;
 }

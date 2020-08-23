@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Modules | Node.js v10.16.3 Documentation</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
+  <title>Modules | Node.js v12.13.0 Documentation</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
   <link rel="canonical" href="https://nodejs.org/api/modules.html">
@@ -52,11 +52,13 @@
 <li><a href="os.html" class="nav-os">OS</a></li>
 <li><a href="path.html" class="nav-path">Path</a></li>
 <li><a href="perf_hooks.html" class="nav-perf_hooks">Performance Hooks</a></li>
+<li><a href="policy.html" class="nav-policy">Policies</a></li>
 <li><a href="process.html" class="nav-process">Process</a></li>
 <li><a href="punycode.html" class="nav-punycode">Punycode</a></li>
 <li><a href="querystring.html" class="nav-querystring">Query Strings</a></li>
 <li><a href="readline.html" class="nav-readline">Readline</a></li>
 <li><a href="repl.html" class="nav-repl">REPL</a></li>
+<li><a href="report.html" class="nav-report">Report</a></li>
 <li><a href="stream.html" class="nav-stream">Stream</a></li>
 <li><a href="string_decoder.html" class="nav-string_decoder">String Decoder</a></li>
 <li><a href="timers.html" class="nav-timers">Timers</a></li>
@@ -79,7 +81,7 @@
 
     <div id="column1" data-id="modules" class="interior">
       <header>
-        <h1>Node.js v10.16.3 Documentation</h1>
+        <h1>Node.js v12.13.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -121,6 +123,7 @@
 <ul>
 <li><a href="#modules_accessing_the_main_module">Accessing the main module</a></li>
 <li><a href="#modules_addenda_package_manager_tips">Addenda: Package Manager Tips</a></li>
+<li><a href="#modules_addenda_the_mjs_extension">Addenda: The .mjs extension</a></li>
 <li><a href="#modules_all_together">All Together...</a></li>
 <li>
 <p><a href="#modules_caching">Caching</a></p>
@@ -143,13 +146,17 @@
 <li><a href="#modules_exports">exports</a></li>
 <li><a href="#modules_module">module</a></li>
 <li>
-<p><a href="#modules_require">require()</a></p>
+<p><a href="#modules_require_id">require(id)</a></p>
 <ul>
 <li><a href="#modules_require_cache">require.cache</a></li>
 <li><span class="stability_0"><a href="#modules_require_extensions">require.extensions</a></span></li>
 <li><a href="#modules_require_main">require.main</a></li>
-<li><a href="#modules_require_resolve_request_options">require.resolve(request[, options])</a></li>
+<li>
+<p><a href="#modules_require_resolve_request_options">require.resolve(request[, options])</a></p>
+<ul>
 <li><a href="#modules_require_resolve_paths_request">require.resolve.paths(request)</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -176,7 +183,9 @@
 <p><a href="#modules_the_module_object_1">The <code>Module</code> Object</a></p>
 <ul>
 <li><a href="#modules_module_builtinmodules">module.builtinModules</a></li>
-<li><a href="#modules_module_createrequirefrompath_filename">module.createRequireFromPath(filename)</a></li>
+<li><a href="#modules_module_createrequire_filename">module.createRequire(filename)</a></li>
+<li><span class="stability_0"><a href="#modules_module_createrequirefrompath_filename">module.createRequireFromPath(filename)</a></span></li>
+<li><a href="#modules_module_syncbuiltinesmexports">module.syncBuiltinESMExports()</a></li>
 </ul>
 </li>
 </ul>
@@ -217,7 +226,7 @@ const mySquare = new Square(2);
 console.log(`The area of mySquare is ${mySquare.area()}`);
 </code></pre>
 <p>The <code>square</code> module is defined in <code>square.js</code>:</p>
-<pre><code class="language-js">// assigning to exports will not modify module, must use module.exports
+<pre><code class="language-js">// Assigning to exports will not modify module, must use module.exports
 module.exports = class Square {
   constructor(width) {
     this.width = width;
@@ -283,12 +292,17 @@ also add the <code>/usr/lib/node_modules</code> folder to the <code>$NODE_PATH</
 variable. Since the module lookups using <code>node_modules</code> folders are all
 relative, and based on the real path of the files making the calls to
 <code>require()</code>, the packages themselves can be anywhere.</p>
+<h2>Addenda: The .mjs extension<span><a class="mark" href="#modules_addenda_the_mjs_extension" id="modules_addenda_the_mjs_extension">#</a></span></h2>
+<p>It is not possible to <code>require()</code> files that have the <code>.mjs</code> extension.
+Attempting to do so will throw <a href="errors.html#errors_err_require_esm">an error</a>. The <code>.mjs</code> extension is
+reserved for <a href="esm.html">ECMAScript Modules</a> which cannot be loaded via <code>require()</code>.
+See <a href="esm.html">ECMAScript Modules</a> for more details.</p>
 <h2>All Together...<span><a class="mark" href="#modules_all_together" id="modules_all_together">#</a></span></h2>
 
 <p>To get the exact filename that will be loaded when <code>require()</code> is called, use
 the <code>require.resolve()</code> function.</p>
 <p>Putting together all of the above, here is the high-level algorithm
-in pseudocode of what <code>require.resolve()</code> does:</p>
+in pseudocode of what <code>require()</code> does:</p>
 <pre><code class="language-txt">require(X) from module at path Y
 1. If X is a core module,
    a. return the core module
@@ -315,9 +329,12 @@ LOAD_INDEX(X)
 LOAD_AS_DIRECTORY(X)
 1. If X/package.json is a file,
    a. Parse X/package.json, and look for "main" field.
-   b. let M = X + (json main field)
-   c. LOAD_AS_FILE(M)
-   d. LOAD_INDEX(M)
+   b. If "main" is a falsy value, GOTO 2.
+   c. let M = X + (json main field)
+   d. LOAD_AS_FILE(M)
+   e. LOAD_INDEX(M)
+   f. LOAD_INDEX(X) DEPRECATED
+   g. THROW "not found"
 2. LOAD_INDEX(X)
 
 LOAD_NODE_MODULES(X, START)
@@ -337,25 +354,52 @@ NODE_MODULES_PATHS(START)
    d. let I = I - 1
 5. return DIRS
 </code></pre>
+<p>If <code>--experimental-exports</code> is enabled, Node.js allows packages loaded via
+<code>LOAD_NODE_MODULES</code> to explicitly declare which file paths to expose and how
+they should be interpreted. This expands on the control packages already had
+using the <code>main</code> field.</p>
+<p>With this feature enabled, the <code>LOAD_NODE_MODULES</code> changes are:</p>
+<pre><code class="language-txt">LOAD_NODE_MODULES(X, START)
+1. let DIRS = NODE_MODULES_PATHS(START)
+2. for each DIR in DIRS:
+   a. let FILE_PATH = RESOLVE_BARE_SPECIFIER(DIR, X)
+   a. LOAD_AS_FILE(FILE_PATH)
+   b. LOAD_AS_DIRECTORY(FILE_PATH)
+
+RESOLVE_BARE_SPECIFIER(DIR, X)
+1. Try to interpret X as a combination of name and subpath where the name
+   may have a @scope/ prefix and the subpath begins with a slash (`/`).
+2. If X matches this pattern and DIR/name/package.json is a file:
+   a. Parse DIR/name/package.json, and look for "exports" field.
+   b. If "exports" is null or undefined, GOTO 3.
+   c. Find the longest key in "exports" that the subpath starts with.
+   d. If no such key can be found, throw "not found".
+   e. let RESOLVED_URL =
+        PACKAGE_EXPORTS_TARGET_RESOLVE(pathToFileURL(DIR/name), exports[key],
+        subpath.slice(key.length)), as defined in the esm resolver.
+   f. return fileURLToPath(RESOLVED_URL)
+3. return DIR/X
+</code></pre>
+<p><code>"exports"</code> is only honored when loading a package "name" as defined above. Any
+<code>"exports"</code> values within nested directories and packages must be declared by
+the <code>package.json</code> responsible for the "name".</p>
 <h2>Caching<span><a class="mark" href="#modules_caching" id="modules_caching">#</a></span></h2>
 
-<p>Modules are cached after the first time they are loaded. This means
-(among other things) that every call to <code>require('foo')</code> will get
-exactly the same object returned, if it would resolve to the same file.</p>
-<p>Provided <code>require.cache</code> is not modified, multiple calls to
-<code>require('foo')</code> will not cause the module code to be executed multiple times.
-This is an important feature. With it, "partially done" objects can be returned,
-thus allowing transitive dependencies to be loaded even when they would cause
-cycles.</p>
-<p>To have a module execute code multiple times, export a function, and call
-that function.</p>
+<p>Modules are cached after the first time they are loaded. This means (among other
+things) that every call to <code>require('foo')</code> will get exactly the same object
+returned, if it would resolve to the same file.</p>
+<p>Provided <code>require.cache</code> is not modified, multiple calls to <code>require('foo')</code>
+will not cause the module code to be executed multiple times. This is an
+important feature. With it, "partially done" objects can be returned, thus
+allowing transitive dependencies to be loaded even when they would cause cycles.</p>
+<p>To have a module execute code multiple times, export a function, and call that
+function.</p>
 <h3>Module Caching Caveats<span><a class="mark" href="#modules_module_caching_caveats" id="modules_module_caching_caveats">#</a></span></h3>
 
-<p>Modules are cached based on their resolved filename. Since modules may
-resolve to a different filename based on the location of the calling
-module (loading from <code>node_modules</code> folders), it is not a <em>guarantee</em>
-that <code>require('foo')</code> will always return the exact same object, if it
-would resolve to different files.</p>
+<p>Modules are cached based on their resolved filename. Since modules may resolve
+to a different filename based on the location of the calling module (loading
+from <code>node_modules</code> folders), it is not a <em>guarantee</em> that <code>require('foo')</code> will
+always return the exact same object, if it would resolve to different files.</p>
 <p>Additionally, on case-insensitive file systems or operating systems, different
 resolved filenames can point to the same file, but the cache will still treat
 them as different modules and will reload the file multiple times. For example,
@@ -404,7 +448,7 @@ loop, an <strong>unfinished copy</strong> of the <code>a.js</code> exports objec
 provided to the <code>a.js</code> module.</p>
 <p>By the time <code>main.js</code> has loaded both modules, they're both finished.
 The output of this program would thus be:</p>
-<pre><code class="language-txt">$ node main.js
+<pre><code class="language-console">$ node main.js
 main starting
 a starting
 b starting
@@ -423,7 +467,7 @@ required filename with the added extensions: <code>.js</code>, <code>.json</code
 <code>.node</code>.</p>
 <p><code>.js</code> files are interpreted as JavaScript text files, and <code>.json</code> files are
 parsed as JSON text files. <code>.node</code> files are interpreted as compiled addon
-modules loaded with <code>dlopen</code>.</p>
+modules loaded with <code>process.dlopen()</code>.</p>
 <p>A required module prefixed with <code>'/'</code> is an absolute path to the file. For
 example, <code>require('/home/marco/foo.js')</code> will load the file at
 <code>/home/marco/foo.js</code>.</p>
@@ -437,7 +481,7 @@ either be a core module or is loaded from a <code>node_modules</code> folder.</p
 <h2>Folders as Modules<span><a class="mark" href="#modules_folders_as_modules" id="modules_folders_as_modules">#</a></span></h2>
 
 <p>It is convenient to organize programs and libraries into self-contained
-directories, and then provide a single entry point to that library.
+directories, and then provide a single entry point to those directories.
 There are three ways in which a folder may be passed to <code>require()</code> as
 an argument.</p>
 <p>The first is to create a <code>package.json</code> file in the root of the folder,
@@ -496,7 +540,7 @@ of absolute paths, then Node.js will search those paths for modules if they
 are not found elsewhere.</p>
 <p>On Windows, <code>NODE_PATH</code> is delimited by semicolons (<code>;</code>) instead of colons.</p>
 <p><code>NODE_PATH</code> was originally created to support loading modules from
-varying paths before the current <a href="#modules_all_together">module resolution</a> algorithm was frozen.</p>
+varying paths before the current <a href="#modules_all_together">module resolution</a> algorithm was defined.</p>
 <p><code>NODE_PATH</code> is still supported, but is less necessary now that the Node.js
 ecosystem has settled on a convention for locating dependent modules.
 Sometimes deployments that rely on <code>NODE_PATH</code> show surprising behavior
@@ -588,6 +632,9 @@ console.log(__dirname);
 <span>Added in: v0.1.12</span>
 </div>
 
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></li>
+</ul>
 <p>A reference to the <code>module.exports</code> that is shorter to type.
 See the section about the <a href="#modules_exports_shortcut">exports shortcut</a> for details on when to use
 <code>exports</code> and when to use <code>module.exports</code>.</p>
@@ -597,18 +644,19 @@ See the section about the <a href="#modules_exports_shortcut">exports shortcut</
 </div>
 
 <ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></li>
+<li><a href="modules.html#modules_the_module_object" class="type">&#x3C;module></a></li>
 </ul>
 <p>A reference to the current module, see the section about the
 <a href="#modules_the_module_object"><code>module</code> object</a>. In particular, <code>module.exports</code> is used for defining what
 a module exports and makes available through <code>require()</code>.</p>
-<h3>require()<span><a class="mark" href="#modules_require" id="modules_require">#</a></span></h3>
+<h3>require(id)<span><a class="mark" href="#modules_require_id" id="modules_require_id">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.13</span>
 </div>
 
 <ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
+<li><code>id</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> module name or path</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Data_types" class="type">&#x3C;any></a> exported module content</li>
 </ul>
 <p>Used to import modules, <code>JSON</code>, and local files. Modules can be imported
 from <code>node_modules</code>. Local modules and JSON files can be imported using
@@ -632,9 +680,13 @@ const crypto = require('crypto');
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></li>
 </ul>
 <p>Modules are cached in this object when they are required. By deleting a key
-value from this object, the next <code>require</code> will reload the module. Note that
-this does not apply to <a href="addons.html">native addons</a>, for which reloading will result in an
+value from this object, the next <code>require</code> will reload the module.
+This does not apply to <a href="addons.html">native addons</a>, for which reloading will result in an
 error.</p>
+<p>Adding or replacing entries is also possible. This cache is checked before
+native modules and if a name matching a native module is added to the cache,
+no require call is
+going to receive the native module anymore. Use with care!</p>
 <h4>require.extensions<span><a class="mark" href="#modules_require_extensions" id="modules_require_extensions">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v0.3.0</span><span>Deprecated since: v0.10.6</span>
@@ -647,25 +699,18 @@ error.</p>
 <p>Process files with the extension <code>.sjs</code> as <code>.js</code>:</p>
 <pre><code class="language-js">require.extensions['.sjs'] = require.extensions['.js'];
 </code></pre>
-<p><strong>Deprecated</strong> In the past, this list has been used to load
-non-JavaScript modules into Node.js by compiling them on-demand.
-However, in practice, there are much better ways to do this, such as
-loading modules via some other Node.js program, or compiling them to
-JavaScript ahead of time.</p>
-<p>Since the module system is locked, this feature will probably never go
-away. However, it may have subtle bugs and complexities that are best
-left untouched.</p>
-<p>Note that the number of file system operations that the module system
-has to perform in order to resolve a <code>require(...)</code> statement to a
-filename scales linearly with the number of registered extensions.</p>
-<p>In other words, adding extensions slows down the module loader and
-should be discouraged.</p>
+<p><strong>Deprecated.</strong> In the past, this list has been used to load non-JavaScript
+modules into Node.js by compiling them on-demand. However, in practice, there
+are much better ways to do this, such as loading modules via some other Node.js
+program, or compiling them to JavaScript ahead of time.</p>
+<p>Avoid using <code>require.extensions</code>. Use could cause subtle bugs and resolving the
+extensions gets slower with each registered extension.</p>
 <h4>require.main<span><a class="mark" href="#modules_require_main" id="modules_require_main">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v0.1.17</span>
 </div>
 <ul>
-<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></li>
+<li><a href="modules.html#modules_the_module_object" class="type">&#x3C;module></a></li>
 </ul>
 <p>The <code>Module</code> object representing the entry script loaded when the Node.js
 process launched.
@@ -709,7 +754,7 @@ See <a href="#modules_accessing_the_main_module">"Accessing the main module"</a>
 <li><code>paths</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string[]></a> Paths to resolve module location from. If present, these
 paths are used instead of the default resolution paths, with the exception
 of <a href="#modules_loading_from_the_global_folders">GLOBAL_FOLDERS</a> like <code>$HOME/.node_modules</code>, which are always
-included. Note that each of these paths is used as a starting point for
+included. Each of these paths is used as a starting point for
 the module resolution algorithm, meaning that the <code>node_modules</code> hierarchy
 is checked from this location.</li>
 </ul>
@@ -718,7 +763,7 @@ is checked from this location.</li>
 </ul>
 <p>Use the internal <code>require()</code> machinery to look up the location of a module,
 but rather than loading the module, just return the resolved filename.</p>
-<h4>require.resolve.paths(request)<span><a class="mark" href="#modules_require_resolve_paths_request" id="modules_require_resolve_paths_request">#</a></span></h4>
+<h5>require.resolve.paths(request)<span><a class="mark" href="#modules_require_resolve_paths_request" id="modules_require_resolve_paths_request">#</a></span></h5>
 <div class="api_metadata">
 <span>Added in: v8.9.0</span>
 </div>
@@ -759,7 +804,7 @@ a global but rather local to each module.</p>
 </ul>
 <p>The <code>module.exports</code> object is created by the <code>Module</code> system. Sometimes this is
 not acceptable; many want their module to be an instance of some class. To do
-this, assign the desired export object to <code>module.exports</code>. Note that assigning
+this, assign the desired export object to <code>module.exports</code>. Assigning
 the desired object to <code>exports</code> will simply rebind the local <code>exports</code> variable,
 which is probably not what is desired.</p>
 <p>For example, suppose we were making a module called <code>a.js</code>:</p>
@@ -779,7 +824,7 @@ a.on('ready', () => {
   console.log('module "a" is ready');
 });
 </code></pre>
-<p>Note that assignment to <code>module.exports</code> must be done immediately. It cannot be
+<p>Assignment to <code>module.exports</code> must be done immediately. It cannot be
 done in any callbacks. This does not work:</p>
 <p><code>x.js</code>:</p>
 <pre><code class="language-js">setTimeout(() => {
@@ -833,7 +878,7 @@ object, it is common to also reassign <code>exports</code>:</p>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
-<p>The fully resolved filename to the module.</p>
+<p>The fully resolved filename of the module.</p>
 <h3>module.id<span><a class="mark" href="#modules_module_id" id="modules_module_id">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.16</span>
@@ -874,9 +919,9 @@ loading.</p>
 </div>
 <ul>
 <li><code>id</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
-<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> <code>module.exports</code> from the resolved module</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Data_types" class="type">&#x3C;any></a> exported module content</li>
 </ul>
-<p>The <code>module.require</code> method provides a way to load a module as if
+<p>The <code>module.require()</code> method provides a way to load a module as if
 <code>require()</code> was called from the original module.</p>
 <p>In order to do this, it is necessary to get a reference to the <code>module</code> object.
 Since <code>require()</code> returns the <code>module.exports</code>, and the <code>module</code> is typically
@@ -901,24 +946,67 @@ via <code>require('module')</code>.</p>
 </ul>
 <p>A list of the names of all modules provided by Node.js. Can be used to verify
 if a module is maintained by a third party or not.</p>
-<p>Note that <code>module</code> in this context isn't the same object that's provided
+<p><code>module</code> in this context isn't the same object that's provided
 by the <a href="#modules_the_module_wrapper">module wrapper</a>. To access it, require the <code>Module</code> module:</p>
 <pre><code class="language-js">const builtin = require('module').builtinModules;
 </code></pre>
+<h3>module.createRequire(filename)<span><a class="mark" href="#modules_module_createrequire_filename" id="modules_module_createrequire_filename">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v12.2.0</span>
+</div>
+<ul>
+<li><code>filename</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="url.html#url_the_whatwg_url_api" class="type">&#x3C;URL></a> Filename to be used to construct the require
+function. Must be a file URL object, file URL string, or absolute path
+string.</li>
+<li>Returns: <a href="modules.html#modules_require_id" class="type">&#x3C;require></a> Require function</li>
+</ul>
+<pre><code class="language-js">import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+
+// sibling-module.js is a CommonJS module.
+const siblingModule = require('./sibling-module');
+</code></pre>
 <h3>module.createRequireFromPath(filename)<span><a class="mark" href="#modules_module_createrequirefrompath_filename" id="modules_module_createrequirefrompath_filename">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v10.12.0</span>
+<span>Added in: v10.12.0</span><span>Deprecated since: v12.2.0</span>
 </div>
+<p></p><div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Please use <a href="#modules_module_createrequire_filename"><code>createRequire()</code></a> instead.</div><p></p>
 <ul>
 <li><code>filename</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Filename to be used to construct the relative require
 function.</li>
-<li>Returns: {<a href="#modules_require"><code>require</code></a>} Require function</li>
+<li>Returns: <a href="modules.html#modules_require_id" class="type">&#x3C;require></a> Require function</li>
 </ul>
 <pre><code class="language-js">const { createRequireFromPath } = require('module');
-const requireUtil = createRequireFromPath('../src/utils');
+const requireUtil = createRequireFromPath('../src/utils/');
 
-// require `../src/utils/some-tool`
+// Require `../src/utils/some-tool`
 requireUtil('./some-tool');
+</code></pre>
+<h3>module.syncBuiltinESMExports()<span><a class="mark" href="#modules_module_syncbuiltinesmexports" id="modules_module_syncbuiltinesmexports">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v12.12.0</span>
+</div>
+<p>The <code>module.syncBuiltinESMExports()</code> method updates all the live bindings for
+builtin ES Modules to match the properties of the CommonJS exports. It does
+not add or remove exported names from the ES Modules.</p>
+<pre><code class="language-js">const fs = require('fs');
+const { syncBuiltinESMExports } = require('module');
+
+fs.readFile = null;
+
+delete fs.readFileSync;
+
+fs.newAPI = function newAPI() {
+  // ...
+};
+
+syncBuiltinESMExports();
+
+import('fs').then((esmFS) => {
+  assert.strictEqual(esmFS.readFile, null);
+  assert.strictEqual('readFileSync' in fs, true);
+  assert.strictEqual(esmFS.newAPI, undefined);
+});
 </code></pre>
       </div>
     </div>

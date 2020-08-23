@@ -352,7 +352,7 @@ The arguments of `createBenchmark` are:
 * `configs` {Object} The benchmark parameters. `createBenchmark` will run all
   possible combinations of these parameters, unless specified otherwise.
   Each configuration is a property with an array of possible values.
-  Note that the configuration values can only be strings or numbers.
+  The configuration values can only be strings or numbers.
 * `options` {Object} The benchmark options. At the moment only the `flags`
   option for specifying command line flags is supported.
 
@@ -397,10 +397,10 @@ const options = {
   flags: ['--zero-fill-buffers']
 };
 
-// main and configs are required, options is optional.
+// `main` and `configs` are required, `options` is optional.
 const bench = common.createBenchmark(main, configs, options);
 
-// Note that any code outside main will be run twice,
+// Any code outside main will be run twice,
 // in different processes, with different command line arguments.
 
 function main(conf) {
@@ -470,6 +470,6 @@ Supported options keys are:
 [autocannon]: https://github.com/mcollina/autocannon
 [wrk]: https://github.com/wg/wrk
 [t-test]: https://en.wikipedia.org/wiki/Student%27s_t-test#Equal_or_unequal_sample_sizes.2C_unequal_variances
-[git-for-windows]: http://git-scm.com/download/win
-[nghttp2.org]: http://nghttp2.org
+[git-for-windows]: https://git-scm.com/download/win
+[nghttp2.org]: https://nghttp2.org
 [benchmark-ci]: https://github.com/nodejs/benchmarking/blob/master/docs/core_benchmarks.md

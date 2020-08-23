@@ -1,9 +1,19 @@
 'use strict';
 
-const { Buffer } = require('buffer');
-const { FSReqWrap, close, read } = process.binding('fs');
+const { Math } = primordials;
 
-const kReadFileBufferLength = 8 * 1024;
+const { Buffer } = require('buffer');
+
+const { FSReqCallback, close, read } = internalBinding('fs');
+
+// Use 64kb in case the file type is not a regular file and thus do not know the
+// actual file size. Increasing the value further results in more frequent over
+// allocation for small files and consumes CPU time and memory that should be
+// used else wise.
+// Use up to 512kb per read otherwise to partition reading big files to prevent
+// blocking other threads in case the available threads are all in use.
+const kReadFileUnknownBufferLength = 64 * 1024;
+const kReadFileBufferLength = 512 * 1024;
 
 function readFileAfterRead(err, bytesRead) {
   const context = this.context;
@@ -11,19 +21,17 @@ function readFileAfterRead(err, bytesRead) {
   if (err)
     return context.close(err);
 
-  if (bytesRead === 0)
-    return context.close();
-
   context.pos += bytesRead;
 
-  if (context.size !== 0) {
-    if (context.pos === context.size)
-      context.close();
-    else
-      context.read();
+  if (context.pos === context.size || bytesRead === 0) {
+    context.close();
   } else {
-    // unknown size, just read until we don't get bytes.
-    context.buffers.push(context.buffer.slice(0, bytesRead));
+    if (context.size === 0) {
+      // Unknown size, just read until we don't get bytes.
+      const buffer = bytesRead === kReadFileUnknownBufferLength ?
+        context.buffer : context.buffer.slice(0, bytesRead);
+      context.buffers.push(buffer);
+    }
     context.read();
   }
 }
@@ -57,7 +65,7 @@ class ReadFileContext {
   constructor(callback, encoding) {
     this.fd = undefined;
     this.isUserFd = undefined;
-    this.size = undefined;
+    this.size = 0;
     this.callback = callback;
     this.buffers = null;
     this.buffer = null;
@@ -72,16 +80,17 @@ class ReadFileContext {
     let length;
 
     if (this.size === 0) {
-      buffer = this.buffer = Buffer.allocUnsafeSlow(kReadFileBufferLength);
+      buffer = Buffer.allocUnsafeSlow(kReadFileUnknownBufferLength);
       offset = 0;
-      length = kReadFileBufferLength;
+      length = kReadFileUnknownBufferLength;
+      this.buffer = buffer;
     } else {
       buffer = this.buffer;
       offset = this.pos;
       length = Math.min(kReadFileBufferLength, this.size - this.pos);
     }
 
-    const req = new FSReqWrap();
+    const req = new FSReqCallback();
     req.oncomplete = readFileAfterRead;
     req.context = this;
 
@@ -89,7 +98,7 @@ class ReadFileContext {
   }
 
   close(err) {
-    const req = new FSReqWrap();
+    const req = new FSReqCallback();
     req.oncomplete = readFileAfterClose;
     req.context = this;
     this.err = err;

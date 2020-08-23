@@ -2,6 +2,7 @@
 
 #include "main_thread_interface.h"
 #include "worker_inspector.h"
+#include "util-inl.h"
 
 namespace node {
 namespace inspector {
@@ -111,6 +112,11 @@ DispatchResponse WorkerAgent::enable(bool waitForDebuggerOnStart) {
 
 DispatchResponse WorkerAgent::disable() {
   event_handle_.reset();
+  return DispatchResponse::OK();
+}
+
+DispatchResponse WorkerAgent::detach(const String& sessionId) {
+  workers_->Detached(sessionId);
   return DispatchResponse::OK();
 }
 

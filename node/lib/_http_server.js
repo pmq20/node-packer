@@ -21,10 +21,10 @@
 
 'use strict';
 
-const util = require('util');
+const { Object } = primordials;
+
 const net = require('net');
-const { HTTPParser } = internalBinding('http_parser');
-const assert = require('assert').ok;
+const assert = require('internal/assert');
 const {
   parsers,
   freeParser,
@@ -32,26 +32,42 @@ const {
   CRLF,
   continueExpression,
   chunkExpression,
-  httpSocketSetup,
   kIncomingMessage,
-  _checkInvalidHeaderChar: checkInvalidHeaderChar
+  HTTPParser,
+  _checkInvalidHeaderChar: checkInvalidHeaderChar,
+  prepareError,
 } = require('_http_common');
 const { OutgoingMessage } = require('_http_outgoing');
-const { outHeadersKey, ondrain, nowDate } = require('internal/http');
+const {
+  kOutHeaders,
+  kNeedDrain,
+  nowDate,
+  emitStatistics
+} = require('internal/http');
 const {
   defaultTriggerAsyncIdScope,
   getOrSetAsyncId
 } = require('internal/async_hooks');
-const is_reused_symbol = require('internal/freelist').symbols.is_reused_symbol;
 const { IncomingMessage } = require('_http_incoming');
 const {
   ERR_HTTP_HEADERS_SENT,
   ERR_HTTP_INVALID_STATUS_CODE,
+  ERR_INVALID_ARG_TYPE,
   ERR_INVALID_CHAR
 } = require('internal/errors').codes;
 const Buffer = require('buffer').Buffer;
+const {
+  DTRACE_HTTP_SERVER_REQUEST,
+  DTRACE_HTTP_SERVER_RESPONSE
+} = require('internal/dtrace');
+const { getOptionValue } = require('internal/options');
+const { observerCounts, constants } = internalBinding('performance');
+const { NODE_PERFORMANCE_ENTRY_TYPE_HTTP } = constants;
 
 const kServerResponse = Symbol('ServerResponse');
+const kServerResponseStatistics = Symbol('ServerResponseStatistics');
+const kDefaultHttpServerTimeout =
+  getOptionValue('--http-server-default-timeout');
 
 const STATUS_CODES = {
   100: 'Continue',
@@ -121,6 +137,12 @@ const STATUS_CODES = {
 
 const kOnExecute = HTTPParser.kOnExecute | 0;
 
+class HTTPServerAsyncResource {
+  constructor(type, socket) {
+    this.type = type;
+    this.socket = socket;
+  }
+}
 
 function ServerResponse(req) {
   OutgoingMessage.call(this);
@@ -135,12 +157,22 @@ function ServerResponse(req) {
     this.useChunkedEncodingByDefault = chunkExpression.test(req.headers.te);
     this.shouldKeepAlive = false;
   }
+
+  const httpObserverCount = observerCounts[NODE_PERFORMANCE_ENTRY_TYPE_HTTP];
+  if (httpObserverCount > 0) {
+    this[kServerResponseStatistics] = {
+      startTime: process.hrtime()
+    };
+  }
 }
-util.inherits(ServerResponse, OutgoingMessage);
+Object.setPrototypeOf(ServerResponse.prototype, OutgoingMessage.prototype);
+Object.setPrototypeOf(ServerResponse, OutgoingMessage);
 
 ServerResponse.prototype._finish = function _finish() {
   DTRACE_HTTP_SERVER_RESPONSE(this.connection);
-  COUNTER_HTTP_SERVER_RESPONSE();
+  if (this[kServerResponseStatistics] !== undefined) {
+    emitStatistics(this[kServerResponseStatistics]);
+  }
   OutgoingMessage.prototype._finish.call(this);
 };
 
@@ -202,7 +234,7 @@ ServerResponse.prototype._implicitHeader = function _implicitHeader() {
 
 ServerResponse.prototype.writeHead = writeHead;
 function writeHead(statusCode, reason, obj) {
-  var originalStatusCode = statusCode;
+  const originalStatusCode = statusCode;
 
   statusCode |= 0;
   if (statusCode < 100 || statusCode > 999) {
@@ -222,7 +254,7 @@ function writeHead(statusCode, reason, obj) {
   this.statusCode = statusCode;
 
   var headers;
-  if (this[outHeadersKey]) {
+  if (this[kOutHeaders]) {
     // Slow-case: when progressive API and header fields are passed.
     var k;
     if (obj) {
@@ -235,17 +267,17 @@ function writeHead(statusCode, reason, obj) {
     if (k === undefined && this._header) {
       throw new ERR_HTTP_HEADERS_SENT('render');
     }
-    // only progressive api is used
-    headers = this[outHeadersKey];
+    // Only progressive api is used
+    headers = this[kOutHeaders];
   } else {
-    // only writeHead() called
+    // Only writeHead() called
     headers = obj;
   }
 
   if (checkInvalidHeaderChar(this.statusMessage))
     throw new ERR_INVALID_CHAR('statusMessage');
 
-  var statusLine = `HTTP/1.1 ${statusCode} ${this.statusMessage}${CRLF}`;
+  const statusLine = `HTTP/1.1 ${statusCode} ${this.statusMessage}${CRLF}`;
 
   if (statusCode === 204 || statusCode === 304 ||
       (statusCode >= 100 && statusCode <= 199)) {
@@ -262,13 +294,15 @@ function writeHead(statusCode, reason, obj) {
     this._hasBody = false;
   }
 
-  // don't keep alive connections where the client expects 100 Continue
+  // Don't keep alive connections where the client expects 100 Continue
   // but we sent a final status; they may put extra bytes on the wire.
   if (this._expect_continue && !this._sent100) {
     this.shouldKeepAlive = false;
   }
 
   this._storeHeader(statusLine, headers);
+
+  return this;
 }
 
 // Docs-only deprecated: DEP0063
@@ -281,7 +315,9 @@ function Server(options, requestListener) {
     requestListener = options;
     options = {};
   } else if (options == null || typeof options === 'object') {
-    options = util._extend({}, options);
+    options = { ...options };
+  } else {
+    throw new ERR_INVALID_ARG_TYPE('options', 'object', options);
   }
 
   this[kIncomingMessage] = options.IncomingMessage || IncomingMessage;
@@ -300,12 +336,13 @@ function Server(options, requestListener) {
 
   this.on('connection', connectionListener);
 
-  this.timeout = 2 * 60 * 1000;
+  this.timeout = kDefaultHttpServerTimeout;
   this.keepAliveTimeout = 5000;
   this.maxHeadersCount = null;
   this.headersTimeout = 40 * 1000; // 40 seconds
 }
-util.inherits(Server, net.Server);
+Object.setPrototypeOf(Server.prototype, net.Server.prototype);
+Object.setPrototypeOf(Server, net.Server);
 
 
 Server.prototype.setTimeout = function setTimeout(msecs, callback) {
@@ -325,8 +362,6 @@ function connectionListener(socket) {
 function connectionListenerInternal(server, socket) {
   debug('SERVER new http connection');
 
-  httpSocketSetup(socket);
-
   // Ensure that the server property of the socket is correctly set.
   // See https://github.com/nodejs/node/issues/13435
   if (socket.server === null)
@@ -339,8 +374,15 @@ function connectionListenerInternal(server, socket) {
     socket.setTimeout(server.timeout);
   socket.on('timeout', socketOnTimeout);
 
-  var parser = parsers.alloc();
-  parser.reinitialize(HTTPParser.REQUEST, parser[is_reused_symbol]);
+  const parser = parsers.alloc();
+
+  // TODO(addaleax): This doesn't play well with the
+  // `async_hooks.currentResource()` proposal, see
+  // https://github.com/nodejs/node/pull/21313
+  parser.initialize(
+    HTTPParser.REQUEST,
+    new HTTPServerAsyncResource('HTTPINCOMINGMESSAGE', socket)
+  );
   parser.socket = socket;
 
   // We are starting to wait for our headers.
@@ -352,7 +394,7 @@ function connectionListenerInternal(server, socket) {
     parser.maxHeaderPairs = server.maxHeadersCount << 1;
   }
 
-  var state = {
+  const state = {
     onData: null,
     onEnd: null,
     onClose: null,
@@ -381,17 +423,17 @@ function connectionListenerInternal(server, socket) {
   socket.on('resume', onSocketResume);
   socket.on('pause', onSocketPause);
 
-  // Override on to unconsume on `data`, `readable` listeners
-  socket.on = socketOnWrap;
+  // Overrides to unconsume on `data`, `readable` listeners
+  socket.on = generateSocketListenerWrapper('on');
+  socket.addListener = generateSocketListenerWrapper('addListener');
+  socket.prependListener = generateSocketListenerWrapper('prependListener');
 
   // We only consume the socket if it has never been consumed before.
-  if (socket._handle) {
-    var external = socket._handle._externalStream;
-    if (!socket._handle._consumed && external) {
-      parser._consumed = true;
-      socket._handle._consumed = true;
-      parser.consume(external);
-    }
+  if (socket._handle && socket._handle.isStreamBase &&
+      !socket._handle._consumed) {
+    parser._consumed = true;
+    socket._handle._consumed = true;
+    parser.consume(socket._handle);
   }
   parser[kOnExecute] =
     onParserExecute.bind(undefined, server, socket, parser, state);
@@ -399,17 +441,13 @@ function connectionListenerInternal(server, socket) {
   socket._paused = false;
 }
 
-
 function updateOutgoingData(socket, state, delta) {
   state.outgoingData += delta;
-  if (socket._paused &&
-      state.outgoingData < socket.writableHighWaterMark) {
-    return socketOnDrain(socket, state);
-  }
+  socketOnDrain(socket, state);
 }
 
 function socketOnDrain(socket, state) {
-  var needPause = state.outgoingData > socket.writableHighWaterMark;
+  const needPause = state.outgoingData > socket.writableHighWaterMark;
 
   // If we previously paused, then start reading again.
   if (socket._paused && !needPause) {
@@ -418,14 +456,20 @@ function socketOnDrain(socket, state) {
       socket.parser.resume();
     socket.resume();
   }
+
+  const msg = socket._httpMessage;
+  if (msg && !msg.finished && msg[kNeedDrain]) {
+    msg[kNeedDrain] = false;
+    msg.emit('drain');
+  }
 }
 
 function socketOnTimeout() {
-  var req = this.parser && this.parser.incoming;
-  var reqTimeout = req && !req.complete && req.emit('timeout', this);
-  var res = this._httpMessage;
-  var resTimeout = res && res.emit('timeout', this);
-  var serverTimeout = this.server.emit('timeout', this);
+  const req = this.parser && this.parser.incoming;
+  const reqTimeout = req && !req.complete && req.emit('timeout', this);
+  const res = this._httpMessage;
+  const resTimeout = res && res.emit('timeout', this);
+  const serverTimeout = this.server.emit('timeout', this);
 
   if (!reqTimeout && !resTimeout && !serverTimeout)
     this.destroy();
@@ -433,7 +477,7 @@ function socketOnTimeout() {
 
 function socketOnClose(socket, state) {
   debug('server socket close');
-  // mark this parser as reusable
+  // Mark this parser as reusable
   if (socket.parser) {
     freeParser(socket.parser, null, socket);
   }
@@ -448,11 +492,11 @@ function abortIncoming(incoming) {
     req.emit('aborted');
     req.emit('close');
   }
-  // abort socket._httpMessage ?
+  // Abort socket._httpMessage ?
 }
 
 function socketOnEnd(server, socket, parser, state) {
-  var ret = parser.finish();
+  const ret = parser.finish();
 
   if (ret instanceof Error) {
     debug('parse error');
@@ -476,7 +520,7 @@ function socketOnData(server, socket, parser, state, d) {
   assert(!socket._paused);
   debug('SERVER socketOnData %d', d.length);
 
-  var ret = parser.execute(d);
+  const ret = parser.execute(d);
   onParserExecuteCommon(server, socket, parser, state, ret, d);
 }
 
@@ -504,6 +548,10 @@ const badRequestResponse = Buffer.from(
   `HTTP/1.1 400 ${STATUS_CODES[400]}${CRLF}` +
   `Connection: close${CRLF}${CRLF}`, 'ascii'
 );
+const requestHeaderFieldsTooLargeResponse = Buffer.from(
+  `HTTP/1.1 431 ${STATUS_CODES[431]}${CRLF}` +
+  `Connection: close${CRLF}${CRLF}`, 'ascii'
+);
 function socketOnError(e) {
   // Ignore further errors
   this.removeListener('error', socketOnError);
@@ -511,7 +559,9 @@ function socketOnError(e) {
 
   if (!this.server.emit('clientError', e, this)) {
     if (this.writable) {
-      this.write(badRequestResponse);
+      const response = e.code === 'HPE_HEADER_OVERFLOW' ?
+        requestHeaderFieldsTooLargeResponse : badRequestResponse;
+      this.write(response);
     }
     this.destroy(e);
   }
@@ -521,6 +571,7 @@ function onParserExecuteCommon(server, socket, parser, state, ret, d) {
   resetSocketTimeout(server, socket, state);
 
   if (ret instanceof Error) {
+    prepareError(ret, parser, d);
     ret.rawPacket = d || parser.getCurrentBuffer();
     debug('parse error', ret);
     socketOnError.call(socket, ret);
@@ -537,7 +588,6 @@ function onParserExecuteCommon(server, socket, parser, state, ret, d) {
     socket.removeListener('end', state.onEnd);
     socket.removeListener('close', state.onClose);
     socket.removeListener('drain', state.onDrain);
-    socket.removeListener('drain', ondrain);
     socket.removeListener('error', socketOnError);
     unconsume(parser, socket);
     parser.finish();
@@ -564,6 +614,19 @@ function onParserExecuteCommon(server, socket, parser, state, ret, d) {
   }
 }
 
+function clearIncoming(req) {
+  req = req || this;
+  const parser = req.socket && req.socket.parser;
+  // Reset the .incoming property so that the request object can be gc'ed.
+  if (parser && parser.incoming === req) {
+    if (req.readableEnded) {
+      parser.incoming = null;
+    } else {
+      req.on('end', clearIncoming);
+    }
+  }
+}
+
 function resOnFinish(req, res, socket, state, server) {
   // Usually the first incoming element should be our request.  it may
   // be that in the case abortIncoming() was called that the incoming
@@ -571,14 +634,17 @@ function resOnFinish(req, res, socket, state, server) {
   assert(state.incoming.length === 0 || state.incoming[0] === req);
 
   state.incoming.shift();
+  clearIncoming(req);
 
-  // if the user never called req.read(), and didn't pipe() or
+  // If the user never called req.read(), and didn't pipe() or
   // .resume() or .on('data'), then we call req._dump() so that the
   // bytes will be pulled off the wire.
   if (!req._consuming && !req._readableState.resumeScheduled)
     req._dump();
 
   res.detachSocket(socket);
+  req.emit('close');
+  process.nextTick(emitCloseNT, res);
 
   if (res._last) {
     if (typeof socket.destroySoon === 'function') {
@@ -588,17 +654,20 @@ function resOnFinish(req, res, socket, state, server) {
     }
   } else if (state.outgoing.length === 0) {
     if (server.keepAliveTimeout && typeof socket.setTimeout === 'function') {
-      socket.setTimeout(0);
       socket.setTimeout(server.keepAliveTimeout);
       state.keepAliveTimeoutSet = true;
     }
   } else {
-    // start sending the next message
+    // Start sending the next message
     var m = state.outgoing.shift();
     if (m) {
       m.assignSocket(socket);
     }
   }
+}
+
+function emitCloseNT(self) {
+  self.emit('close');
 }
 
 // The following callback is issued after the headers have been read on a
@@ -637,12 +706,11 @@ function parserOnIncoming(server, socket, state, req, keepAlive) {
     }
   }
 
-  var res = new server[kServerResponse](req);
+  const res = new server[kServerResponse](req);
   res._onPendingData = updateOutgoingData.bind(undefined, socket, state);
 
   res.shouldKeepAlive = keepAlive;
   DTRACE_HTTP_SERVER_REQUEST(req, socket);
-  COUNTER_HTTP_SERVER_REQUEST();
 
   if (socket._httpMessage) {
     // There are already pending outgoing res, append.
@@ -722,17 +790,21 @@ function unconsume(parser, socket) {
   }
 }
 
-function socketOnWrap(ev, fn) {
-  var res = net.Socket.prototype.on.call(this, ev, fn);
-  if (!this.parser) {
-    this.on = net.Socket.prototype.on;
+function generateSocketListenerWrapper(originalFnName) {
+  return function socketListenerWrap(ev, fn) {
+    const res = net.Socket.prototype[originalFnName].call(this, ev, fn);
+    if (!this.parser) {
+      this.on = net.Socket.prototype.on;
+      this.addListener = net.Socket.prototype.addListener;
+      this.prependListener = net.Socket.prototype.prependListener;
+      return res;
+    }
+
+    if (ev === 'data' || ev === 'readable')
+      unconsume(this.parser, this);
+
     return res;
-  }
-
-  if (ev === 'data' || ev === 'readable')
-    unconsume(this.parser, this);
-
-  return res;
+  };
 }
 
 function resetHeadersTimeoutOnReqEnd() {

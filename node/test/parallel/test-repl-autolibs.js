@@ -37,10 +37,10 @@ function test1() {
     gotWrite = true;
     if (data.length) {
 
-      // inspect output matches repl output
+      // Inspect output matches repl output
       assert.strictEqual(data,
                          `${util.inspect(require('fs'), null, 2, false)}\n`);
-      // globally added lib matches required lib
+      // Globally added lib matches required lib
       assert.strictEqual(global.fs, require('fs'));
       test2();
     }
@@ -55,9 +55,9 @@ function test2() {
   putIn.write = function(data) {
     gotWrite = true;
     if (data.length) {
-      // repl response error message
+      // REPL response error message
       assert.strictEqual(data, '{}\n');
-      // original value wasn't overwritten
+      // Original value wasn't overwritten
       assert.strictEqual(val, global.url);
     }
   };

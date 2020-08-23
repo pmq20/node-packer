@@ -3,6 +3,8 @@
 // An implementation of the WHATWG Encoding Standard
 // https://encoding.spec.whatwg.org
 
+const { Object } = primordials;
+
 const {
   ERR_ENCODING_INVALID_ENCODED_DATA,
   ERR_ENCODING_NOT_SUPPORTED,
@@ -21,15 +23,18 @@ const {
   customInspectSymbol: inspect
 } = require('internal/util');
 
-const { isArrayBufferView } = require('internal/util/types');
+const {
+  isArrayBuffer,
+  isArrayBufferView,
+  isUint8Array
+} = require('internal/util/types');
+
+const { validateString } = require('internal/validators');
 
 const {
-  isArrayBuffer
-} = internalBinding('types');
-
-const {
+  encodeInto,
   encodeUtf8String
-} = process.binding('buffer');
+} = internalBinding('buffer');
 
 var Buffer;
 function lazyBuffer() {
@@ -303,6 +308,8 @@ function getEncodingFromLabel(label) {
   return encodings.get(trimAsciiWhitespace(label.toLowerCase()));
 }
 
+const encodeIntoResults = new Uint32Array(2);
+
 class TextEncoder {
   constructor() {
     this[kEncoder] = true;
@@ -318,23 +325,33 @@ class TextEncoder {
     return encodeUtf8String(`${input}`);
   }
 
+  encodeInto(src, dest) {
+    validateEncoder(this);
+    validateString(src, 'src');
+    if (!dest || !isUint8Array(dest))
+      throw new ERR_INVALID_ARG_TYPE('dest', 'Uint8Array', dest);
+    encodeInto(src, dest, encodeIntoResults);
+    return { read: encodeIntoResults[0], written: encodeIntoResults[1] };
+  }
+
   [inspect](depth, opts) {
     validateEncoder(this);
     if (typeof depth === 'number' && depth < 0)
-      return opts.stylize('[Object]', 'special');
-    var ctor = getConstructorOf(this);
-    var obj = Object.create({
+      return this;
+    const ctor = getConstructorOf(this);
+    const obj = Object.create({
       constructor: ctor === null ? TextEncoder : ctor
     });
     obj.encoding = this.encoding;
     // Lazy to avoid circular dependency
-    return require('util').inspect(obj, opts);
+    return require('internal/util/inspect').inspect(obj, opts);
   }
 }
 
 Object.defineProperties(
   TextEncoder.prototype, {
     'encode': { enumerable: true },
+    'encodeInto': { enumerable: true },
     'encoding': { enumerable: true },
     [Symbol.toStringTag]: {
       configurable: true,
@@ -342,7 +359,7 @@ Object.defineProperties(
     } });
 
 const TextDecoder =
-  process.binding('config').hasIntl ?
+  internalBinding('config').hasIntl ?
     makeTextDecoderICU() :
     makeTextDecoderJS();
 
@@ -395,9 +412,7 @@ function makeTextDecoderICU() {
 
       const ret = _decode(this[kHandle], input, flags);
       if (typeof ret === 'number') {
-        const err = new ERR_ENCODING_INVALID_ENCODED_DATA(this.encoding);
-        err.errno = ret;
-        throw err;
+        throw new ERR_ENCODING_INVALID_ENCODED_DATA(this.encoding, ret);
       }
       return ret.toString('ucs2');
     }
@@ -518,9 +533,9 @@ function makeTextDecoderJS() {
       [inspect](depth, opts) {
         validateDecoder(this);
         if (typeof depth === 'number' && depth < 0)
-          return opts.stylize('[Object]', 'special');
-        var ctor = getConstructorOf(this);
-        var obj = Object.create({
+          return this;
+        const ctor = getConstructorOf(this);
+        const obj = Object.create({
           constructor: ctor === null ? TextDecoder : ctor
         });
         obj.encoding = this.encoding;
@@ -531,7 +546,7 @@ function makeTextDecoderJS() {
           obj[kHandle] = this[kHandle];
         }
         // Lazy to avoid circular dependency
-        return require('util').inspect(obj, opts);
+        return require('internal/util/inspect').inspect(obj, opts);
       }
     }));
   Object.defineProperties(TextDecoder.prototype, {

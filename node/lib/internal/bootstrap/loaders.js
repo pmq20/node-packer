@@ -19,7 +19,7 @@
 //   can be created using NODE_MODULE_CONTEXT_AWARE_CPP() with the flag
 //   NM_F_LINKED.
 // - internalBinding(): the private internal C++ binding loader, inaccessible
-//   from user land because they are only available from NativeModule.require()
+//   from user land unless through `require('internal/test/binding')`.
 //   These C++ bindings are created using NODE_MODULE_CONTEXT_AWARE_INTERNAL()
 //   and have their nm_flags set to NM_F_INTERNAL.
 //
@@ -39,345 +39,259 @@
 
 'use strict';
 
-(function bootstrapInternalLoaders(process, getBinding, getLinkedBinding,
-                                   getInternalBinding, debugBreak) {
-  if (debugBreak)
-    debugger; // eslint-disable-line no-debugger
+// This file is compiled as if it's wrapped in a function with arguments
+// passed by node::RunBootstrapping()
+/* global process, getLinkedBinding, getInternalBinding, primordials */
 
-  const {
-    apply: ReflectApply,
-    deleteProperty: ReflectDeleteProperty,
-    get: ReflectGet,
-    getOwnPropertyDescriptor: ReflectGetOwnPropertyDescriptor,
-    has: ReflectHas,
-    set: ReflectSet,
-  } = Reflect;
-  const {
-    prototype: {
-      hasOwnProperty: ObjectHasOwnProperty,
-    },
-    create: ObjectCreate,
-    defineProperty: ObjectDefineProperty,
-    keys: ObjectKeys,
-  } = Object;
+const {
+  Reflect,
+  Object,
+  ObjectPrototype,
+  SafeSet
+} = primordials;
 
-  // Set up process.moduleLoadList
-  const moduleLoadList = [];
-  ObjectDefineProperty(process, 'moduleLoadList', {
-    value: moduleLoadList,
-    configurable: true,
-    enumerable: true,
-    writable: false
-  });
-
-  // Set up process.binding() and process._linkedBinding()
-  {
-    const bindingObj = ObjectCreate(null);
-
-    process.binding = function binding(module) {
-      module = String(module);
-      let mod = bindingObj[module];
-      if (typeof mod !== 'object') {
-        mod = bindingObj[module] = getBinding(module);
-        moduleLoadList.push(`Binding ${module}`);
-      }
-      return mod;
-    };
-
-    process._linkedBinding = function _linkedBinding(module) {
-      module = String(module);
-      let mod = bindingObj[module];
-      if (typeof mod !== 'object')
-        mod = bindingObj[module] = getLinkedBinding(module);
-      return mod;
-    };
-  }
-
-  // Set up internalBinding() in the closure
-  let internalBinding;
-  {
-    const bindingObj = ObjectCreate(null);
-    internalBinding = function internalBinding(module) {
-      let mod = bindingObj[module];
-      if (typeof mod !== 'object') {
-        try {
-          mod = getInternalBinding(module);
-        } catch {
-          // v10.x only: Fall back to `process.binding()`,
-          // to avoid future merge conflicts when backporting changes that use
-          // `internalBinding()` to v10.x.
-          mod = process.binding(module);
-        }
-        bindingObj[module] = mod;
-        moduleLoadList.push(`Internal Binding ${module}`);
-      }
-      return mod;
-    };
-  }
-
-  // Create this WeakMap in js-land because V8 has no C++ API for WeakMap
-  internalBinding('module_wrap').callbackMap = new WeakMap();
-  const { ContextifyScript } = process.binding('contextify');
-
-  // Set up NativeModule
-  function NativeModule(id) {
-    this.filename = `${id}.js`;
-    this.id = id;
-    this.exports = {};
-    this.reflect = undefined;
-    this.exportKeys = undefined;
-    this.loaded = false;
-    this.loading = false;
-    this.script = null;  // The ContextifyScript of the module
-  }
-
-  NativeModule._source = getBinding('natives');
-  NativeModule._cache = {};
-
-  const config = getBinding('config');
-
-  const codeCache = getInternalBinding('code_cache');
-  const codeCacheHash = getInternalBinding('code_cache_hash');
-  const sourceHash = getInternalBinding('natives_hash');
-  const compiledWithoutCache = NativeModule.compiledWithoutCache = [];
-  const compiledWithCache = NativeModule.compiledWithCache = [];
-
-  // Think of this as module.exports in this file even though it is not
-  // written in CommonJS style.
-  const loaderExports = { internalBinding, NativeModule };
-  const loaderId = 'internal/bootstrap/loaders';
-
-  NativeModule.require = function(id) {
-    if (id === loaderId) {
-      return loaderExports;
-    }
-
-    const cached = NativeModule.getCached(id);
-    if (cached && (cached.loaded || cached.loading)) {
-      return cached.exports;
-    }
-
-    if (!NativeModule.exists(id)) {
-      // Model the error off the internal/errors.js model, but
-      // do not use that module given that it could actually be
-      // the one causing the error if there's a bug in Node.js
-      // eslint-disable-next-line no-restricted-syntax
-      const err = new Error(`No such built-in module: ${id}`);
-      err.code = 'ERR_UNKNOWN_BUILTIN_MODULE';
-      err.name = 'Error [ERR_UNKNOWN_BUILTIN_MODULE]';
-      throw err;
-    }
-
-    moduleLoadList.push(`NativeModule ${id}`);
-
-    const nativeModule = new NativeModule(id);
-
-    nativeModule.cache();
-    nativeModule.compile();
-
-    return nativeModule.exports;
-  };
-
-  NativeModule.isDepsModule = function(id) {
-    return id.startsWith('node-inspect/') || id.startsWith('v8/');
-  };
-
-  NativeModule.requireForDeps = function(id) {
-    if (!NativeModule.exists(id) ||
-        // TODO(TimothyGu): remove when DEP0084 reaches end of life.
-        NativeModule.isDepsModule(id)) {
-      id = `internal/deps/${id}`;
-    }
-    return NativeModule.require(id);
-  };
-
-  NativeModule.getCached = function(id) {
-    return NativeModule._cache[id];
-  };
-
-  NativeModule.exists = function(id) {
-    return NativeModule._source.hasOwnProperty(id);
-  };
-
-  if (config.exposeInternals) {
-    NativeModule.nonInternalExists = function(id) {
-      // Do not expose this to user land even with --expose-internals
-      if (id === loaderId) {
-        return false;
-      }
-      return NativeModule.exists(id);
-    };
-
-    NativeModule.isInternal = function(id) {
-      // Do not expose this to user land even with --expose-internals
-      return id === loaderId;
-    };
-  } else {
-    NativeModule.nonInternalExists = function(id) {
-      return NativeModule.exists(id) && !NativeModule.isInternal(id);
-    };
-
-    NativeModule.isInternal = function(id) {
-      return id.startsWith('internal/') ||
-          (id === 'worker_threads' && !config.experimentalWorker);
-    };
-  }
-
-  NativeModule.getSource = function(id) {
-    return NativeModule._source[id];
-  };
-
-  NativeModule.wrap = function(script) {
-    return NativeModule.wrapper[0] + script + NativeModule.wrapper[1];
-  };
-
-  NativeModule.wrapper = [
-    '(function (exports, require, module, process, internalBinding) {',
-    '\n});'
-  ];
-
-  const getOwn = (target, property, receiver) => {
-    return ReflectApply(ObjectHasOwnProperty, target, [property]) ?
-      ReflectGet(target, property, receiver) :
-      undefined;
-  };
-
-  // Provide named exports for all builtin libraries so that the libraries
-  // may be imported in a nicer way for esm users. The default export is left
-  // as the entire namespace (module.exports) and wrapped in a proxy such
-  // that APMs and other behavior are still left intact.
-  NativeModule.prototype.proxifyExports = function() {
-    this.exportKeys = ObjectKeys(this.exports);
-
-    const update = (property, value) => {
-      if (this.reflect !== undefined &&
-          ReflectApply(ObjectHasOwnProperty,
-                       this.reflect.exports, [property]))
-        this.reflect.exports[property].set(value);
-    };
-
-    const handler = {
-      __proto__: null,
-      defineProperty: (target, prop, descriptor) => {
-        // Use `Object.defineProperty` instead of `Reflect.defineProperty`
-        // to throw the appropriate error if something goes wrong.
-        ObjectDefineProperty(target, prop, descriptor);
-        if (typeof descriptor.get === 'function' &&
-            !ReflectHas(handler, 'get')) {
-          handler.get = (target, prop, receiver) => {
-            const value = ReflectGet(target, prop, receiver);
-            if (ReflectApply(ObjectHasOwnProperty, target, [prop]))
-              update(prop, value);
-            return value;
-          };
-        }
-        update(prop, getOwn(target, prop));
-        return true;
-      },
-      deleteProperty: (target, prop) => {
-        if (ReflectDeleteProperty(target, prop)) {
-          update(prop, undefined);
-          return true;
-        }
-        return false;
-      },
-      set: (target, prop, value, receiver) => {
-        const descriptor = ReflectGetOwnPropertyDescriptor(target, prop);
-        if (ReflectSet(target, prop, value, receiver)) {
-          if (descriptor && typeof descriptor.set === 'function') {
-            for (const key of this.exportKeys) {
-              update(key, getOwn(target, key, receiver));
-            }
-          } else {
-            update(prop, getOwn(target, prop, receiver));
-          }
-          return true;
-        }
-        return false;
-      }
-    };
-
-    this.exports = new Proxy(this.exports, handler);
-  };
-
-  NativeModule.prototype.compile = function() {
-    const id = this.id;
-    let source = NativeModule.getSource(id);
-    source = NativeModule.wrap(source);
-
-    this.loading = true;
-
-    try {
-      // Currently V8 only checks that the length of the source code is the
-      // same as the code used to generate the hash, so we add an additional
-      // check here:
-      // 1. During compile time, when generating node_javascript.cc and
-      //    node_code_cache.cc, we compute and include the hash of the
-      //   (unwrapped) JavaScript source in both.
-      // 2. At runtime, we check that the hash of the code being compiled
-      //   and the hash of the code used to generate the cache
-      //   (inside the wrapper) is the same.
-      // This is based on the assumptions:
-      // 1. `internalBinding('code_cache_hash')` must be in sync with
-      //    `internalBinding('code_cache')` (same C++ file)
-      // 2. `internalBinding('natives_hash')` must be in sync with
-      //    `process.binding('natives')` (same C++ file)
-      // 3. If `internalBinding('natives_hash')` is in sync with
-      //    `internalBinding('natives_hash')`, then the (unwrapped)
-      //    code used to generate `internalBinding('code_cache')`
-      //    should be in sync with the (unwrapped) code in
-      //    `process.binding('natives')`
-      // There will be, however, false positives if the wrapper used
-      // to generate the cache is different from the one used at run time,
-      // and the length of the wrapper somehow stays the same.
-      // But that should be rare and can be eased once we make the
-      // two bootstrappers cached and checked as well.
-      const cache = codeCacheHash[id] &&
-        (codeCacheHash[id] === sourceHash[id]) ? codeCache[id] : undefined;
-
-      // (code, filename, lineOffset, columnOffset
-      // cachedData, produceCachedData, parsingContext)
-      const script = new ContextifyScript(
-        source, this.filename, 0, 0,
-        cache, false, undefined
-      );
-
-      // This will be used to create code cache in tools/generate_code_cache.js
-      this.script = script;
-
-      // One of these conditions may be false when any of the inputs
-      // of the `node_js2c` target in node.gyp is modified.
-      // FIXME(joyeecheung): Figure out how to resolve the dependency issue.
-      // When the code cache was introduced we were at a point where refactoring
-      // node.gyp may not be worth the effort.
-      if (!cache || script.cachedDataRejected) {
-        compiledWithoutCache.push(this.id);
-      } else {
-        compiledWithCache.push(this.id);
-      }
-
-      // Arguments: timeout, displayErrors, breakOnSigint
-      const fn = script.runInThisContext(-1, true, false);
-      const requireFn = this.id.startsWith('internal/deps/') ?
-        NativeModule.requireForDeps :
-        NativeModule.require;
-      fn(this.exports, requireFn, this, process, internalBinding);
-
-      if (config.experimentalModules && !NativeModule.isInternal(this.id)) {
-        this.proxifyExports();
-      }
-
-      this.loaded = true;
-    } finally {
-      this.loading = false;
-    }
-  };
-
-  NativeModule.prototype.cache = function() {
-    NativeModule._cache[this.id] = this;
-  };
-
-  // This will be passed to the bootstrapNodeJSCore function in
-  // bootstrap/node.js.
-  return loaderExports;
+// Set up process.moduleLoadList.
+const moduleLoadList = [];
+Object.defineProperty(process, 'moduleLoadList', {
+  value: moduleLoadList,
+  configurable: true,
+  enumerable: true,
+  writable: false
 });
+
+
+// internalBindingWhitelist contains the name of internalBinding modules
+// that are whitelisted for access via process.binding()... This is used
+// to provide a transition path for modules that are being moved over to
+// internalBinding.
+const internalBindingWhitelist = new SafeSet([
+  'async_wrap',
+  'buffer',
+  'cares_wrap',
+  'config',
+  'constants',
+  'contextify',
+  'crypto',
+  'fs',
+  'fs_event_wrap',
+  'http_parser',
+  'icu',
+  'inspector',
+  'js_stream',
+  'natives',
+  'os',
+  'pipe_wrap',
+  'process_wrap',
+  'signal_wrap',
+  'spawn_sync',
+  'stream_wrap',
+  'tcp_wrap',
+  'tls_wrap',
+  'tty_wrap',
+  'udp_wrap',
+  'url',
+  'util',
+  'uv',
+  'v8',
+  'zlib'
+]);
+
+// Set up process.binding() and process._linkedBinding().
+{
+  const bindingObj = Object.create(null);
+
+  process.binding = function binding(module) {
+    module = String(module);
+    // Deprecated specific process.binding() modules, but not all, allow
+    // selective fallback to internalBinding for the deprecated ones.
+    if (internalBindingWhitelist.has(module)) {
+      return internalBinding(module);
+    }
+    // eslint-disable-next-line no-restricted-syntax
+    throw new Error(`No such module: ${module}`);
+  };
+
+  process._linkedBinding = function _linkedBinding(module) {
+    module = String(module);
+    let mod = bindingObj[module];
+    if (typeof mod !== 'object')
+      mod = bindingObj[module] = getLinkedBinding(module);
+    return mod;
+  };
+}
+
+// Set up internalBinding() in the closure.
+let internalBinding;
+{
+  const bindingObj = Object.create(null);
+  // eslint-disable-next-line no-global-assign
+  internalBinding = function internalBinding(module) {
+    let mod = bindingObj[module];
+    if (typeof mod !== 'object') {
+      mod = bindingObj[module] = getInternalBinding(module);
+      moduleLoadList.push(`Internal Binding ${module}`);
+    }
+    return mod;
+  };
+}
+
+// Think of this as module.exports in this file even though it is not
+// written in CommonJS style.
+const loaderExports = {
+  internalBinding,
+  NativeModule,
+  require: nativeModuleRequire
+};
+
+const loaderId = 'internal/bootstrap/loaders';
+
+// Set up NativeModule.
+function NativeModule(id) {
+  this.filename = `${id}.js`;
+  this.id = id;
+  this.exports = {};
+  this.module = undefined;
+  this.exportKeys = undefined;
+  this.loaded = false;
+  this.loading = false;
+  this.canBeRequiredByUsers = !id.startsWith('internal/');
+}
+
+// To be called during pre-execution when --expose-internals is on.
+// Enables the user-land module loader to access internal modules.
+NativeModule.exposeInternals = function() {
+  for (const [id, mod] of NativeModule.map) {
+    // Do not expose this to user land even with --expose-internals.
+    if (id !== loaderId) {
+      mod.canBeRequiredByUsers = true;
+    }
+  }
+};
+
+const {
+  moduleIds,
+  compileFunction
+} = internalBinding('native_module');
+
+NativeModule.map = new Map();
+for (let i = 0; i < moduleIds.length; ++i) {
+  const id = moduleIds[i];
+  const mod = new NativeModule(id);
+  NativeModule.map.set(id, mod);
+}
+
+function nativeModuleRequire(id) {
+  if (id === loaderId) {
+    return loaderExports;
+  }
+
+  const mod = NativeModule.map.get(id);
+  // Can't load the internal errors module from here, have to use a raw error.
+  // eslint-disable-next-line no-restricted-syntax
+  if (!mod) throw new TypeError(`Missing internal module '${id}'`);
+  return mod.compile();
+}
+
+NativeModule.exists = function(id) {
+  return NativeModule.map.has(id);
+};
+
+NativeModule.canBeRequiredByUsers = function(id) {
+  const mod = NativeModule.map.get(id);
+  return mod && mod.canBeRequiredByUsers;
+};
+
+// Allow internal modules from dependencies to require
+// other modules from dependencies by providing fallbacks.
+function requireWithFallbackInDeps(request) {
+  if (!NativeModule.map.has(request)) {
+    request = `internal/deps/${request}`;
+  }
+  return nativeModuleRequire(request);
+}
+
+// This is exposed for public loaders
+NativeModule.prototype.compileForPublicLoader = function(needToSyncExports) {
+  if (!this.canBeRequiredByUsers) {
+    // No code because this is an assertion against bugs
+    // eslint-disable-next-line no-restricted-syntax
+    throw new Error(`Should not compile ${this.id} for public use`);
+  }
+  this.compile();
+  if (needToSyncExports) {
+    if (!this.exportKeys) {
+      this.exportKeys = Object.keys(this.exports);
+    }
+    this.getESMFacade();
+    this.syncExports();
+  }
+  return this.exports;
+};
+
+const getOwn = (target, property, receiver) => {
+  return ObjectPrototype.hasOwnProperty(target, property) ?
+    Reflect.get(target, property, receiver) :
+    undefined;
+};
+
+NativeModule.prototype.getURL = function() {
+  return `node:${this.id}`;
+};
+
+NativeModule.prototype.getESMFacade = function() {
+  if (this.module) return this.module;
+  const { ModuleWrap } = internalBinding('module_wrap');
+  const url = this.getURL();
+  const nativeModule = this;
+  this.module = new ModuleWrap(function() {
+    nativeModule.syncExports();
+    this.setExport('default', nativeModule.exports);
+  }, [...this.exportKeys, 'default'], url);
+  // Ensure immediate sync execution to capture exports now
+  this.module.instantiate();
+  this.module.evaluate(-1, false);
+  return this.module;
+};
+
+// Provide named exports for all builtin libraries so that the libraries
+// may be imported in a nicer way for ESM users. The default export is left
+// as the entire namespace (module.exports) and updates when this function is
+// called so that APMs and other behavior are supported.
+NativeModule.prototype.syncExports = function() {
+  const names = this.exportKeys;
+  if (this.module) {
+    for (let i = 0; i < names.length; i++) {
+      const exportName = names[i];
+      if (exportName === 'default') continue;
+      this.module.setExport(exportName,
+                            getOwn(this.exports, exportName, this.exports));
+    }
+  }
+};
+
+NativeModule.prototype.compile = function() {
+  if (this.loaded || this.loading) {
+    return this.exports;
+  }
+
+  const id = this.id;
+  this.loading = true;
+
+  try {
+    const requireFn = this.id.startsWith('internal/deps/') ?
+      requireWithFallbackInDeps : nativeModuleRequire;
+
+    const fn = compileFunction(id);
+    fn(this.exports, requireFn, this, process, internalBinding, primordials);
+
+    this.loaded = true;
+  } finally {
+    this.loading = false;
+  }
+
+  moduleLoadList.push(`NativeModule ${id}`);
+  return this.exports;
+};
+
+// This will be passed to internal/bootstrap/node.js.
+return loaderExports;

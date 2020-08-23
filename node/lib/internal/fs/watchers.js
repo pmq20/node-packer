@@ -1,16 +1,18 @@
 'use strict';
 
+const { Object } = primordials;
+
 const errors = require('internal/errors');
 const {
-  kFsStatsFieldsLength,
+  kFsStatsFieldsNumber,
   StatWatcher: _StatWatcher
-} = process.binding('fs');
-const { FSEvent } = process.binding('fs_event_wrap');
-const { UV_ENOSPC } = process.binding('uv');
+} = internalBinding('fs');
+const { FSEvent } = internalBinding('fs_event_wrap');
+const { UV_ENOSPC } = internalBinding('uv');
 const { EventEmitter } = require('events');
 const {
   getStatsFromBinding,
-  validatePath
+  getValidatedPath
 } = require('internal/fs/utils');
 const {
   defaultTriggerAsyncIdScope,
@@ -18,9 +20,7 @@ const {
 } = require('internal/async_hooks');
 const { toNamespacedPath } = require('path');
 const { validateUint32 } = require('internal/validators');
-const { toPathIfFileURL } = require('internal/url');
-const util = require('util');
-const assert = require('assert');
+const assert = require('internal/assert');
 
 const kOldStatus = Symbol('kOldStatus');
 const kUseBigint = Symbol('kUseBigint');
@@ -36,7 +36,8 @@ function StatWatcher(bigint) {
   this[kOldStatus] = -1;
   this[kUseBigint] = bigint;
 }
-util.inherits(StatWatcher, EventEmitter);
+Object.setPrototypeOf(StatWatcher.prototype, EventEmitter.prototype);
+Object.setPrototypeOf(StatWatcher, EventEmitter);
 
 function onchange(newStatus, stats) {
   const self = this[owner_symbol];
@@ -48,7 +49,7 @@ function onchange(newStatus, stats) {
 
   self[kOldStatus] = newStatus;
   self.emit('change', getStatsFromBinding(stats),
-            getStatsFromBinding(stats, kFsStatsFieldsLength));
+            getStatsFromBinding(stats, kFsStatsFieldsNumber));
 }
 
 // FIXME(joyeecheung): this method is not documented.
@@ -71,8 +72,7 @@ StatWatcher.prototype.start = function(filename, persistent, interval) {
   // the sake of backwards compatibility
   this[kOldStatus] = -1;
 
-  filename = toPathIfFileURL(filename);
-  validatePath(filename, 'filename');
+  filename = getValidatedPath(filename, 'filename');
   validateUint32(interval, 'interval');
   const err = this._handle.start(toNamespacedPath(filename), interval);
   if (err) {
@@ -118,7 +118,7 @@ function FSWatcher() {
       if (this._handle !== null) {
         // We don't use this.close() here to avoid firing the close event.
         this._handle.close();
-        this._handle = null;  // make the handle garbage collectable
+        this._handle = null;  // Make the handle garbage collectable
       }
       const error = errors.uvException({
         errno: status,
@@ -132,7 +132,8 @@ function FSWatcher() {
     }
   };
 }
-util.inherits(FSWatcher, EventEmitter);
+Object.setPrototypeOf(FSWatcher.prototype, EventEmitter.prototype);
+Object.setPrototypeOf(FSWatcher, EventEmitter);
 
 
 // FIXME(joyeecheung): this method is not documented.
@@ -154,8 +155,7 @@ FSWatcher.prototype.start = function(filename,
     return;
   }
 
-  filename = toPathIfFileURL(filename);
-  validatePath(filename, 'filename');
+  filename = getValidatedPath(filename, 'filename');
 
   const err = this._handle.start(toNamespacedPath(filename),
                                  persistent,
@@ -185,7 +185,7 @@ FSWatcher.prototype.close = function() {
     return;
   }
   this._handle.close();
-  this._handle = null;  // make the handle garbage collectable
+  this._handle = null;  // Make the handle garbage collectable
   process.nextTick(emitCloseNT, this);
 };
 

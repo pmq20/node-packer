@@ -2,7 +2,13 @@
 
 http://enclose.io/nodec
 
+<<<<<<< HEAD
 *Packing your Node.js application into a single executable.*
+=======
+[![Build status](https://ci.appveyor.com/api/projects/status/fsuhe9x6mamohuym/branch/Series12?svg=true)](https://ci.appveyor.com/project/slee047/node-packer/branch/Series12)
+[![Status](https://travis-ci.org/slee047/node-packer.svg?branch=Series12)](https://travis-ci.org/slee047/node-packer)
+[![GitHub version](https://img.shields.io/badge/version-1.6.0%20(12.13.0)-blue.svg)](https://badge.fury.io/gh/slee047%2Fnode-packer)
+>>>>>>> tmp/TestSeries12
 
 [![Windows](https://github.com/pmq20/node-packer/workflows/Windows/badge.svg)](https://github.com/pmq20/node-packer/actions?query=workflow%3A"Windows")
 [![macOS](https://github.com/pmq20/node-packer/workflows/macOS/badge.svg)](https://github.com/pmq20/node-packer/actions?query=workflow%3A"macOS")
@@ -44,6 +50,7 @@ First install the prerequisites:
   __Required Components:__ "MSbuild", "VC++ 2017 v141 toolset" and one of the Windows SDKs (10 or 8.1).
   
 Please take note that Visual Studio 2019 is NOT supported for now.
+<<<<<<< HEAD
 
 Then download [nodec-x64.zip](https://gw.alipayobjects.com/os/enclose-prod/0d0ec8fd-dc9c-4b0a-85df-8bf4af0e8b8d/nodec-v1.5.0-x64.zip), and this zip file contains only one executable. Unzip it. Optionally, rename it to `nodec.exe` and put it under `C:\Windows` (or any other directory that is part of `PATH`). Execute `nodec` from the command line.
 
@@ -68,10 +75,20 @@ Then,
 #### Additional Notes on Build failure in macOS XCode 11
 
 According to recent Travis Build, the test cases will fail shortly after its launch occurs when the Build Environement is XCode 11. Currently, it is not known whether the issue is caused by XCode 11 or other factors within Travis CI that may not impact on actual macOS deployment.
+=======
+>>>>>>> tmp/TestSeries12
 
 Therefore, the build environment for macOS under Travis is XCode 10.2 so as to ensure the test case can be successfully executed and completed.
 
+<<<<<<< HEAD
 ### ![linux](resource/linux_med.png) Install on Linux
+=======
+NOTE: This zip file ([nodec-x64.zip](http://enclose.io/nodec/nodec-x64.zip)) contains an outdated version of nodec (nodec 1.5.0 with Node.js 8.3.0).
+The original maintainer did not specify how to build this repo into single executable, therefore newer versions can only be run on source code directly.
+
+
+### Install on Linux
+>>>>>>> tmp/TestSeries12
 
 First install the prerequisites:
 
@@ -89,6 +106,11 @@ Then,
     chmod +x nodec
     ./nodec
 
+<<<<<<< HEAD
+=======
+NOTE: This gz file ([nodec-linux-x64.gz](http://enclose.io/nodec/nodec-linux-x64.gz)) contains an outdated version of nodec (nodec 1.5.0 with Node.js 8.3.0).
+The original maintainer did not specify how to build this repo into single executable, therefore newer versions can only be run on source code directly.
+>>>>>>> tmp/TestSeries12
 
 #### Additional Notes on the compatibility between RHEL based (CentOS) / Ubuntu
 
@@ -113,6 +135,9 @@ https://github.com/slee047/node-packer/releases/tag/1.6.0-10.15.3-1
 
 The issue can be found here:
 https://github.com/slee047/node-packer/issues/11
+
+NOTE: This gz file ([nodec-darwin-x64.gz](http://enclose.io/nodec/nodec-darwin-x64.gz)) contains an outdated version of nodec (nodec 1.5.0 with Node.js 8.3.0).
+The original maintainer did not specify how to build this repo into single executable, therefore newer versions can only be run on source code directly.
 
 ## Usage
 

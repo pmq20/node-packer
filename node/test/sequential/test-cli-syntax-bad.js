@@ -7,7 +7,7 @@ const fixtures = require('../common/fixtures');
 
 const node = process.execPath;
 
-// test both sets of arguments that check syntax
+// Test both sets of arguments that check syntax
 const syntaxArgs = [
   ['-c'],
   ['--check']
@@ -17,7 +17,7 @@ const syntaxArgs = [
 // depending on the JavaScript engine.
 const syntaxErrorRE = /^SyntaxError: \b/m;
 
-// test bad syntax with and without shebang
+// Test bad syntax with and without shebang
 [
   'syntax/bad_syntax.js',
   'syntax/bad_syntax',
@@ -26,7 +26,7 @@ const syntaxErrorRE = /^SyntaxError: \b/m;
 ].forEach(function(file) {
   file = fixtures.path(file);
 
-  // loop each possible option, `-c` or `--check`
+  // Loop each possible option, `-c` or `--check`
   syntaxArgs.forEach(function(args) {
     const _args = args.concat(file);
     const cmd = [node, ..._args].join(' ');
@@ -35,10 +35,10 @@ const syntaxErrorRE = /^SyntaxError: \b/m;
       assert.strictEqual(err.code, 1,
                          `code ${err.code} !== 1 for error:\n\n${err}`);
 
-      // no stdout should be produced
+      // No stdout should be produced
       assert.strictEqual(stdout, '');
 
-      // stderr should have a syntax error message
+      // Stderr should have a syntax error message
       assert(syntaxErrorRE.test(stderr), `${syntaxErrorRE} === ${stderr}`);
 
       // stderr should include the filename

@@ -24,8 +24,9 @@
 
 #if defined(NODE_WANT_INTERNALS) && NODE_WANT_INTERNALS
 
-#include "node_internals.h"
 #include "node_buffer.h"
+#include "uv.h"
+#include "v8.h"
 
 namespace node {
 
@@ -40,7 +41,7 @@ class SyncProcessOutputBuffer {
   static const unsigned int kBufferSize = 65536;
 
  public:
-  inline SyncProcessOutputBuffer();
+  inline SyncProcessOutputBuffer() = default;
 
   inline void OnAlloc(size_t suggested_size, uv_buf_t* buf) const;
   inline void OnRead(const uv_buf_t* buf, size_t nread);
@@ -141,7 +142,8 @@ class SyncProcessRunner {
  public:
   static void Initialize(v8::Local<v8::Object> target,
                          v8::Local<v8::Value> unused,
-                         v8::Local<v8::Context> context);
+                         v8::Local<v8::Context> context,
+                         void* priv);
   static void Spawn(const v8::FunctionCallbackInfo<v8::Value>& args);
 
  private:

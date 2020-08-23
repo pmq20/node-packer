@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Debugger | Node.js v10.16.3 Documentation</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
+  <title>Debugger | Node.js v12.13.0 Documentation</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
   <link rel="canonical" href="https://nodejs.org/api/debugger.html">
@@ -52,11 +52,13 @@
 <li><a href="os.html" class="nav-os">OS</a></li>
 <li><a href="path.html" class="nav-path">Path</a></li>
 <li><a href="perf_hooks.html" class="nav-perf_hooks">Performance Hooks</a></li>
+<li><a href="policy.html" class="nav-policy">Policies</a></li>
 <li><a href="process.html" class="nav-process">Process</a></li>
 <li><a href="punycode.html" class="nav-punycode">Punycode</a></li>
 <li><a href="querystring.html" class="nav-querystring">Query Strings</a></li>
 <li><a href="readline.html" class="nav-readline">Readline</a></li>
 <li><a href="repl.html" class="nav-repl">REPL</a></li>
+<li><a href="report.html" class="nav-report">Report</a></li>
 <li><a href="stream.html" class="nav-stream">Stream</a></li>
 <li><a href="string_decoder.html" class="nav-string_decoder">String Decoder</a></li>
 <li><a href="timers.html" class="nav-timers">Timers</a></li>
@@ -79,7 +81,7 @@
 
     <div id="column1" data-id="debugger" class="interior">
       <header>
-        <h1>Node.js v10.16.3 Documentation</h1>
+        <h1>Node.js v12.13.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -150,7 +152,7 @@
 <a href="#debugger_v8_inspector_integration_for_node_js">V8 Inspector</a> and built-in debugging client. To use it, start Node.js
 with the <code>inspect</code> argument followed by the path to the script to debug; a
 prompt will be displayed indicating successful launch of the debugger:</p>
-<pre><code class="language-txt">$ node inspect myscript.js
+<pre><code class="language-console">$ node inspect myscript.js
 &#x3C; Debugger listening on ws://127.0.0.1:9229/80e7a814-7cd3-49fb-921a-2e02228cd5ba
 &#x3C; For help, see: https://nodejs.org/en/docs/inspector
 &#x3C; Debugger attached.
@@ -174,7 +176,7 @@ setTimeout(() => {
 console.log('hello');
 </code></pre>
 <p>Once the debugger is run, a breakpoint will occur at line 3:</p>
-<pre><code class="language-txt">$ node inspect myscript.js
+<pre><code class="language-console">$ node inspect myscript.js
 &#x3C; Debugger listening on ws://127.0.0.1:9229/80e7a814-7cd3-49fb-921a-2e02228cd5ba
 &#x3C; For help, see: https://nodejs.org/en/docs/inspector
 &#x3C; Debugger attached.
@@ -247,7 +249,7 @@ on line 1</li>
 </ul>
 <p>It is also possible to set a breakpoint in a file (module) that
 is not loaded yet:</p>
-<pre><code class="language-txt">$ node inspect main.js
+<pre><code class="language-console">$ node inspect main.js
 &#x3C; Debugger listening on ws://127.0.0.1:9229/4e3db158-9791-4274-8909-914f7facf3bd
 &#x3C; For help, see: https://nodejs.org/en/docs/inspector
 &#x3C; Debugger attached.
@@ -299,7 +301,7 @@ Node.js application. It is also possible to supply a custom port with that flag,
 e.g. <code>--inspect=9222</code> will accept DevTools connections on port 9222.</p>
 <p>To break on the first line of the application code, pass the <code>--inspect-brk</code>
 flag instead of <code>--inspect</code>.</p>
-<pre><code class="language-txt">$ node --inspect index.js
+<pre><code class="language-console">$ node --inspect index.js
 Debugger listening on 127.0.0.1:9229.
 To start debugging, open the following URL in Chrome:
     chrome-devtools://devtools/bundled/js_app.html?experiments=true&#x26;v8only=true&#x26;ws=127.0.0.1:9229/dc9010dd-f8b8-4ac5-a510-c1a114ec7d29

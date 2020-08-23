@@ -1,8 +1,10 @@
 'use strict';
 
 const ModuleJob = require('internal/modules/esm/module_job');
-const { SafeMap } = require('internal/safe_globals');
-const debug = require('util').debuglog('esm');
+const {
+  SafeMap
+} = primordials;
+const debug = require('internal/util/debuglog').debuglog('esm');
 const { ERR_INVALID_ARG_TYPE } = require('internal/errors').codes;
 const { validateString } = require('internal/validators');
 

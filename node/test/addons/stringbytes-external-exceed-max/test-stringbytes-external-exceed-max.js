@@ -5,16 +5,11 @@ const skipMessage = 'intensive toString tests due to memory confinements';
 if (!common.enoughTestMem)
   common.skip(skipMessage);
 
-// See https://github.com/nodejs/build/issues/1820#issuecomment-505998851
-// See https://github.com/nodejs/node/pull/28469
-if (process.platform === 'aix')
-  common.skip('flaky on AIX');
-
 const binding = require(`./build/${common.buildType}/binding`);
 
 // v8 fails silently if string length > v8::String::kMaxLength
 // v8::String::kMaxLength defined in v8.h
-const kStringMaxLength = process.binding('buffer').kStringMaxLength;
+const kStringMaxLength = require('buffer').constants.MAX_STRING_LENGTH;
 
 let buf;
 try {

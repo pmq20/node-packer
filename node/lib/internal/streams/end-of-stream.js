@@ -4,21 +4,29 @@
 'use strict';
 
 const {
+  ERR_INVALID_ARG_TYPE,
   ERR_STREAM_PREMATURE_CLOSE
 } = require('internal/errors').codes;
 const { once } = require('internal/util');
-
-function noop() {}
 
 function isRequest(stream) {
   return stream.setHeader && typeof stream.abort === 'function';
 }
 
 function eos(stream, opts, callback) {
-  if (typeof opts === 'function') return eos(stream, null, opts);
-  if (!opts) opts = {};
+  if (arguments.length === 2) {
+    callback = opts;
+    opts = {};
+  } else if (opts == null) {
+    opts = {};
+  } else if (typeof opts !== 'object') {
+    throw new ERR_INVALID_ARG_TYPE('opts', 'object', opts);
+  }
+  if (typeof callback !== 'function') {
+    throw new ERR_INVALID_ARG_TYPE('callback', 'function', callback);
+  }
 
-  callback = once(callback || noop);
+  callback = once(callback);
 
   let readable = opts.readable || (opts.readable !== false && stream.readable);
   let writable = opts.writable || (opts.writable !== false && stream.writable);
@@ -34,7 +42,8 @@ function eos(stream, opts, callback) {
     if (!readable) callback.call(stream);
   };
 
-  var readableEnded = stream._readableState && stream._readableState.endEmitted;
+  var readableEnded = stream.readableEnded ||
+    (stream._readableState && stream._readableState.endEmitted);
   const onend = () => {
     readable = false;
     readableEnded = true;
@@ -73,12 +82,18 @@ function eos(stream, opts, callback) {
     stream.on('close', onlegacyfinish);
   }
 
+  // Not all streams will emit 'close' after 'aborted'.
+  if (typeof stream.aborted === 'boolean') {
+    stream.on('aborted', onclose);
+  }
+
   stream.on('end', onend);
   stream.on('finish', onfinish);
   if (opts.error !== false) stream.on('error', onerror);
   stream.on('close', onclose);
 
   return function() {
+    stream.removeListener('aborted', onclose);
     stream.removeListener('complete', onfinish);
     stream.removeListener('abort', onclose);
     stream.removeListener('request', onrequest);

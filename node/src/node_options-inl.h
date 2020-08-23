@@ -14,7 +14,11 @@ PerIsolateOptions* PerProcessOptions::get_per_isolate_options() {
 }
 
 DebugOptions* EnvironmentOptions::get_debug_options() {
-  return debug_options.get();
+  return &debug_options_;
+}
+
+const DebugOptions& EnvironmentOptions::debug_options() const {
+  return debug_options_;
 }
 
 EnvironmentOptions* PerIsolateOptions::get_per_env_options() {
@@ -144,7 +148,7 @@ void OptionsParser<Options>::Implies(const char* from,
   CHECK_NE(it, options_.end());
   CHECK_EQ(it->second.type, kBoolean);
   implications_.emplace(from, Implication {
-    std::static_pointer_cast<OptionField<bool>>(it->second.field), true
+    it->second.field, true
   });
 }
 
@@ -155,7 +159,7 @@ void OptionsParser<Options>::ImpliesNot(const char* from,
   CHECK_NE(it, options_.end());
   CHECK_EQ(it->second.type, kBoolean);
   implications_.emplace(from, Implication {
-    std::static_pointer_cast<OptionField<bool>>(it->second.field), false
+    it->second.field, false
   });
 }
 
@@ -201,8 +205,7 @@ auto OptionsParser<Options>::Convert(
     typename OptionsParser<ChildOptions>::Implication original,
     ChildOptions* (Options::* get_child)()) {
   return Implication {
-    std::static_pointer_cast<OptionField<bool>>(
-        Convert(original.target_field, get_child)),
+    Convert(original.target_field, get_child),
     original.target_value
   };
 }
@@ -210,15 +213,15 @@ auto OptionsParser<Options>::Convert(
 template <typename Options>
 template <typename ChildOptions>
 void OptionsParser<Options>::Insert(
-    OptionsParser<ChildOptions>* child_options_parser,
+    const OptionsParser<ChildOptions>& child_options_parser,
     ChildOptions* (Options::* get_child)()) {
-  aliases_.insert(child_options_parser->aliases_.begin(),
-                  child_options_parser->aliases_.end());
+  aliases_.insert(std::begin(child_options_parser.aliases_),
+                  std::end(child_options_parser.aliases_));
 
-  for (const auto& pair : child_options_parser->options_)
+  for (const auto& pair : child_options_parser.options_)
     options_.emplace(pair.first, Convert(pair.second, get_child));
 
-  for (const auto& pair : child_options_parser->implications_)
+  for (const auto& pair : child_options_parser.implications_)
     implications_.emplace(pair.first, Convert(pair.second, get_child));
 }
 
@@ -283,7 +286,7 @@ void OptionsParser<Options>::Parse(
     std::vector<std::string>* const v8_args,
     Options* const options,
     OptionEnvvarSettings required_env_settings,
-    std::vector<std::string>* const errors) {
+    std::vector<std::string>* const errors) const {
   ArgsInfo args(orig_args, exec_args);
 
   // The first entry is the process name. Make sure it ends up in the V8 argv,
@@ -374,8 +377,10 @@ void OptionsParser<Options>::Parse(
 
     {
       auto implications = implications_.equal_range(name);
-      for (auto it = implications.first; it != implications.second; ++it)
-        *it->second.target_field->Lookup(options) = it->second.target_value;
+      for (auto it = implications.first; it != implications.second; ++it) {
+        *it->second.target_field->template Lookup<bool>(options) =
+            it->second.target_value;
+      }
     }
 
     const OptionInfo& info = it->second;
@@ -411,7 +416,7 @@ void OptionsParser<Options>::Parse(
         *Lookup<int64_t>(info.field, options) = std::atoll(value.c_str());
         break;
       case kUInteger:
-        *Lookup<uint64_t>(info.field, options) = std::stoull(value.c_str());
+        *Lookup<uint64_t>(info.field, options) = std::stoull(value);
         break;
       case kString:
         *Lookup<std::string>(info.field, options) = value;

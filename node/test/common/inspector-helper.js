@@ -6,7 +6,7 @@ const http = require('http');
 const fixtures = require('../common/fixtures');
 const { spawn } = require('child_process');
 const { parse: parseURL } = require('url');
-const { pathToFileURL } = require('internal/url');
+const { pathToFileURL } = require('url');
 const { EventEmitter } = require('events');
 
 const _MAINSCRIPT = fixtures.path('loop.js');
@@ -191,6 +191,10 @@ class InspectorSession {
     }
   }
 
+  unprocessedNotifications() {
+    return this._unprocessedNotifications;
+  }
+
   _sendMessage(message) {
     const msg = JSON.parse(JSON.stringify(message)); // Clone!
     msg.id = this._nextId++;
@@ -314,7 +318,7 @@ class InspectorSession {
 }
 
 class NodeInstance extends EventEmitter {
-  constructor(inspectorFlags = ['--inspect-brk=0'],
+  constructor(inspectorFlags = ['--inspect-brk=0', '--expose-internals'],
               scriptContents = '',
               scriptFile = _MAINSCRIPT) {
     super();
@@ -348,7 +352,8 @@ class NodeInstance extends EventEmitter {
 
   static async startViaSignal(scriptContents) {
     const instance = new NodeInstance(
-      [], `${scriptContents}\nprocess._rawDebug('started');`, undefined);
+      ['--expose-internals'],
+      `${scriptContents}\nprocess._rawDebug('started');`, undefined);
     const msg = 'Timed out waiting for process to start';
     while (await fires(instance.nextStderrString(), msg, TIMEOUT) !==
              'started') {}

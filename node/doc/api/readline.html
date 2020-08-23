@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Readline | Node.js v10.16.3 Documentation</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
+  <title>Readline | Node.js v12.13.0 Documentation</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
   <link rel="canonical" href="https://nodejs.org/api/readline.html">
@@ -52,11 +52,13 @@
 <li><a href="os.html" class="nav-os">OS</a></li>
 <li><a href="path.html" class="nav-path">Path</a></li>
 <li><a href="perf_hooks.html" class="nav-perf_hooks">Performance Hooks</a></li>
+<li><a href="policy.html" class="nav-policy">Policies</a></li>
 <li><a href="process.html" class="nav-process">Process</a></li>
 <li><a href="punycode.html" class="nav-punycode">Punycode</a></li>
 <li><a href="querystring.html" class="nav-querystring">Query Strings</a></li>
 <li><a href="readline.html" class="nav-readline active">Readline</a></li>
 <li><a href="repl.html" class="nav-repl">REPL</a></li>
+<li><a href="report.html" class="nav-report">Report</a></li>
 <li><a href="stream.html" class="nav-stream">Stream</a></li>
 <li><a href="string_decoder.html" class="nav-string_decoder">String Decoder</a></li>
 <li><a href="timers.html" class="nav-timers">Timers</a></li>
@@ -79,7 +81,7 @@
 
     <div id="column1" data-id="readline" class="interior">
       <header>
-        <h1>Node.js v10.16.3 Documentation</h1>
+        <h1>Node.js v12.13.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -136,20 +138,20 @@
 <li><a href="#readline_rl_resume">rl.resume()</a></li>
 <li><a href="#readline_rl_setprompt_prompt">rl.setPrompt(prompt)</a></li>
 <li><a href="#readline_rl_write_data_key">rl.write(data[, key])</a></li>
-<li><span class="stability_1"><a href="#readline_rl_symbol_asynciterator">rl[Symbol.asyncIterator]()</a></span></li>
+<li><a href="#readline_rl_symbol_asynciterator">rl[Symbol.asyncIterator]()</a></li>
 </ul>
 </li>
-<li><a href="#readline_readline_clearline_stream_dir">readline.clearLine(stream, dir)</a></li>
-<li><a href="#readline_readline_clearscreendown_stream">readline.clearScreenDown(stream)</a></li>
+<li><a href="#readline_readline_clearline_stream_dir_callback">readline.clearLine(stream, dir[, callback])</a></li>
+<li><a href="#readline_readline_clearscreendown_stream_callback">readline.clearScreenDown(stream[, callback])</a></li>
 <li>
 <p><a href="#readline_readline_createinterface_options">readline.createInterface(options)</a></p>
 <ul>
 <li><a href="#readline_use_of_the_completer_function">Use of the <code>completer</code> Function</a></li>
 </ul>
 </li>
-<li><a href="#readline_readline_cursorto_stream_x_y">readline.cursorTo(stream, x, y)</a></li>
+<li><a href="#readline_readline_cursorto_stream_x_y_callback">readline.cursorTo(stream, x[, y][, callback])</a></li>
 <li><a href="#readline_readline_emitkeypressevents_stream_interface">readline.emitKeypressEvents(stream[, interface])</a></li>
-<li><a href="#readline_readline_movecursor_stream_dx_dy">readline.moveCursor(stream, dx, dy)</a></li>
+<li><a href="#readline_readline_movecursor_stream_dx_dy_callback">readline.moveCursor(stream, dx, dy[, callback])</a></li>
 <li><a href="#readline_example_tiny_cli">Example: Tiny CLI</a></li>
 <li><a href="#readline_example_read_file_stream_line_by_line">Example: Read File Stream Line-by-Line</a></li>
 </ul>
@@ -162,7 +164,8 @@
 
 <p></p><div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><p></p>
 <p>The <code>readline</code> module provides an interface for reading data from a <a href="stream.html#stream_readable_streams">Readable</a>
-stream (such as <a href="process.html#process_process_stdin"><code>process.stdin</code></a>) one line at a time. It can be accessed using:</p>
+stream (such as <a href="process.html#process_process_stdin"><code>process.stdin</code></a>) one line at a time. It can be accessed
+using:</p>
 <pre><code class="language-js">const readline = require('readline');
 </code></pre>
 <p>The following simple example illustrates the basic use of the <code>readline</code> module.</p>
@@ -187,6 +190,9 @@ received on the <code>input</code> stream.</p>
 <div class="api_metadata">
 <span>Added in: v0.1.104</span>
 </div>
+<ul>
+<li>Extends: <a href="events.html#events_class_eventemitter" class="type">&#x3C;EventEmitter></a></li>
+</ul>
 <p>Instances of the <code>readline.Interface</code> class are constructed using the
 <code>readline.createInterface()</code> method. Every instance is associated with a
 single <code>input</code> <a href="stream.html#stream_readable_streams">Readable</a> stream and a single <code>output</code> <a href="stream.html#stream_writable_streams">Writable</a> stream.
@@ -400,23 +406,28 @@ rl.write(null, { ctrl: true, name: 'u' });
 <code>input</code> <em>as if it were provided by the user</em>.</p>
 <h3>rl[Symbol.asyncIterator]()<span><a class="mark" href="#readline_rl_symbol_asynciterator" id="readline_rl_symbol_asynciterator">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v10.16.0</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v11.14.0</td>
+<td><p>Symbol.asyncIterator support is no longer experimental.</p></td></tr>
+<tr><td>v11.4.0</td>
+<td><p><span>Added in: v11.4.0</span></p></td></tr>
+</tbody></table>
+</details>
 </div>
-<p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
 <ul>
 <li>Returns: <a href="https://tc39.github.io/ecma262/#sec-asynciterator-interface" class="type">&#x3C;AsyncIterator></a></li>
 </ul>
 <p>Create an <code>AsyncIterator</code> object that iterates through each line in the input
 stream as a string. This method allows asynchronous iteration of
-<code>readline.Interface</code> objects through <code>for</code>-<code>await</code>-<code>of</code> loops.</p>
+<code>readline.Interface</code> objects through <code>for await...of</code> loops.</p>
 <p>Errors in the input stream are not forwarded.</p>
 <p>If the loop is terminated with <code>break</code>, <code>throw</code>, or <code>return</code>,
 <a href="#readline_rl_close"><code>rl.close()</code></a> will be called. In other words, iterating over a
 <code>readline.Interface</code> will always consume the input stream fully.</p>
-<p>A caveat with using this experimental API is that the performance is
-currently not on par with the traditional <code>'line'</code> event API, and thus it is
-not recommended for performance-sensitive applications. We expect this
-situation to improve in the future.</p>
+<p>Performance is not on par with the traditional <code>'line'</code> event API. Use <code>'line'</code>
+instead for performance-sensitive applications.</p>
 <pre><code class="language-js">async function processLineByLine() {
   const rl = readline.createInterface({
     // ...
@@ -428,9 +439,17 @@ situation to improve in the future.</p>
   }
 }
 </code></pre>
-<h2>readline.clearLine(stream, dir)<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/readline.js#L1166">[src]</a><span><a class="mark" href="#readline_readline_clearline_stream_dir" id="readline_readline_clearline_stream_dir">#</a></span></h2>
+<h2>readline.clearLine(stream, dir[, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/readline.js#L1259">[src]</a><span><a class="mark" href="#readline_readline_clearline_stream_dir_callback" id="readline_readline_clearline_stream_dir_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.7.7</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v12.7.0</td>
+<td><p>The stream's write() callback and return value are exposed.</p></td></tr>
+<tr><td>v0.7.7</td>
+<td><p><span>Added in: v0.7.7</span></p></td></tr>
+</tbody></table>
+</details>
 </div>
 <ul>
 <li><code>stream</code> <a href="stream.html#stream_class_stream_writable" class="type">&#x3C;stream.Writable></a></li>
@@ -442,19 +461,35 @@ situation to improve in the future.</p>
 <li><code>0</code> - the entire line</li>
 </ul>
 </li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> Invoked once the operation completes.</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> <code>false</code> if <code>stream</code> wishes for the calling code to wait for
+the <code>'drain'</code> event to be emitted before continuing to write additional data;
+otherwise <code>true</code>.</li>
 </ul>
 <p>The <code>readline.clearLine()</code> method clears current line of given <a href="tty.html">TTY</a> stream
 in a specified direction identified by <code>dir</code>.</p>
-<h2>readline.clearScreenDown(stream)<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/readline.js#L1186">[src]</a><span><a class="mark" href="#readline_readline_clearscreendown_stream" id="readline_readline_clearscreendown_stream">#</a></span></h2>
+<h2>readline.clearScreenDown(stream[, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/readline.js#L1277">[src]</a><span><a class="mark" href="#readline_readline_clearscreendown_stream_callback" id="readline_readline_clearscreendown_stream_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.7.7</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v12.7.0</td>
+<td><p>The stream's write() callback and return value are exposed.</p></td></tr>
+<tr><td>v0.7.7</td>
+<td><p><span>Added in: v0.7.7</span></p></td></tr>
+</tbody></table>
+</details>
 </div>
 <ul>
 <li><code>stream</code> <a href="stream.html#stream_class_stream_writable" class="type">&#x3C;stream.Writable></a></li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> Invoked once the operation completes.</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> <code>false</code> if <code>stream</code> wishes for the calling code to wait for
+the <code>'drain'</code> event to be emitted before continuing to write additional data;
+otherwise <code>true</code>.</li>
 </ul>
 <p>The <code>readline.clearScreenDown()</code> method clears the given <a href="tty.html">TTY</a> stream from
 the current position of the cursor down.</p>
-<h2>readline.createInterface(options)<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/readline.js#L74">[src]</a><span><a class="mark" href="#readline_readline_createinterface_options" id="readline_readline_createinterface_options">#</a></span></h2>
+<h2>readline.createInterface(options)<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/readline.js#L77">[src]</a><span><a class="mark" href="#readline_readline_createinterface_options" id="readline_readline_createinterface_options">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -536,7 +571,7 @@ as an argument, and returns an <code>Array</code> with 2 entries:</p>
 <pre><code class="language-js">function completer(line) {
   const completions = '.help .error .exit .quit .q'.split(' ');
   const hits = completions.filter((c) => c.startsWith(line));
-  // show all completions if none found
+  // Show all completions if none found
   return [hits.length ? hits : completions, line];
 }
 </code></pre>
@@ -546,18 +581,30 @@ arguments:</p>
   callback(null, [['123'], linePartial]);
 }
 </code></pre>
-<h2>readline.cursorTo(stream, x, y)<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/readline.js#L1121">[src]</a><span><a class="mark" href="#readline_readline_cursorto_stream_x_y" id="readline_readline_cursorto_stream_x_y">#</a></span></h2>
+<h2>readline.cursorTo(stream, x[, y][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/readline.js#L1199">[src]</a><span><a class="mark" href="#readline_readline_cursorto_stream_x_y_callback" id="readline_readline_cursorto_stream_x_y_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.7.7</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v12.7.0</td>
+<td><p>The stream's write() callback and return value are exposed.</p></td></tr>
+<tr><td>v0.7.7</td>
+<td><p><span>Added in: v0.7.7</span></p></td></tr>
+</tbody></table>
+</details>
 </div>
 <ul>
 <li><code>stream</code> <a href="stream.html#stream_class_stream_writable" class="type">&#x3C;stream.Writable></a></li>
 <li><code>x</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
 <li><code>y</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> Invoked once the operation completes.</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> <code>false</code> if <code>stream</code> wishes for the calling code to wait for
+the <code>'drain'</code> event to be emitted before continuing to write additional data;
+otherwise <code>true</code>.</li>
 </ul>
 <p>The <code>readline.cursorTo()</code> method moves cursor to the specified position in a
 given <a href="tty.html">TTY</a> <code>stream</code>.</p>
-<h2>readline.emitKeypressEvents(stream[, interface])<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/readline.js#L1046">[src]</a><span><a class="mark" href="#readline_readline_emitkeypressevents_stream_interface" id="readline_readline_emitkeypressevents_stream_interface">#</a></span></h2>
+<h2>readline.emitKeypressEvents(stream[, interface])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/readline.js#L1124">[src]</a><span><a class="mark" href="#readline_readline_emitkeypressevents_stream_interface" id="readline_readline_emitkeypressevents_stream_interface">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.7.7</span>
 </div>
@@ -577,14 +624,26 @@ the <code>input</code> from emitting <code>'keypress'</code> events.</p>
 if (process.stdin.isTTY)
   process.stdin.setRawMode(true);
 </code></pre>
-<h2>readline.moveCursor(stream, dx, dy)<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/readline.js#L1142">[src]</a><span><a class="mark" href="#readline_readline_movecursor_stream_dx_dy" id="readline_readline_movecursor_stream_dx_dy">#</a></span></h2>
+<h2>readline.moveCursor(stream, dx, dy[, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/readline.js#L1225">[src]</a><span><a class="mark" href="#readline_readline_movecursor_stream_dx_dy_callback" id="readline_readline_movecursor_stream_dx_dy_callback">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v0.7.7</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v12.7.0</td>
+<td><p>The stream's write() callback and return value are exposed.</p></td></tr>
+<tr><td>v0.7.7</td>
+<td><p><span>Added in: v0.7.7</span></p></td></tr>
+</tbody></table>
+</details>
 </div>
 <ul>
 <li><code>stream</code> <a href="stream.html#stream_class_stream_writable" class="type">&#x3C;stream.Writable></a></li>
 <li><code>dx</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
 <li><code>dy</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> Invoked once the operation completes.</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> <code>false</code> if <code>stream</code> wishes for the calling code to wait for
+the <code>'drain'</code> event to be emitted before continuing to write additional data;
+otherwise <code>true</code>.</li>
 </ul>
 <p>The <code>readline.moveCursor()</code> method moves the cursor <em>relative</em> to its current
 position in a given <a href="tty.html">TTY</a> <code>stream</code>.</p>
@@ -618,7 +677,7 @@ rl.on('line', (line) => {
 <h2>Example: Read File Stream Line-by-Line<span><a class="mark" href="#readline_example_read_file_stream_line_by_line" id="readline_example_read_file_stream_line_by_line">#</a></span></h2>
 <p>A common use case for <code>readline</code> is to consume an input file one line at a
 time. The easiest way to do so is leveraging the <a href="fs.html#fs_class_fs_readstream"><code>fs.ReadStream</code></a> API as
-well as a <code>for</code>-<code>await</code>-<code>of</code> loop:</p>
+well as a <code>for await...of</code> loop:</p>
 <pre><code class="language-js">const fs = require('fs');
 const readline = require('readline');
 
@@ -653,7 +712,7 @@ rl.on('line', (line) => {
   console.log(`Line from file: ${line}`);
 });
 </code></pre>
-<p>Currently, <code>for</code>-<code>await</code>-<code>of</code> loop can be a bit slower. If <code>async</code> / <code>await</code>
+<p>Currently, <code>for await...of</code> loop can be a bit slower. If <code>async</code> / <code>await</code>
 flow and speed are both essential, a mixed approach can be applied:</p>
 <pre><code class="language-js">const { once } = require('events');
 const { createReadStream } = require('fs');

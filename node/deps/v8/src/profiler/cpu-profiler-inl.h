@@ -10,7 +10,6 @@
 #include <new>
 #include "src/profiler/circular-queue-inl.h"
 #include "src/profiler/profile-generator-inl.h"
-#include "src/profiler/unbound-queue-inl.h"
 
 namespace v8 {
 namespace internal {
@@ -53,17 +52,15 @@ void ReportBuiltinEventRecord::UpdateCodeMap(CodeMap* code_map) {
   entry->SetBuiltinId(builtin_id);
 }
 
-
-TickSample* ProfilerEventsProcessor::StartTickSample() {
+TickSample* SamplingEventsProcessor::StartTickSample() {
   void* address = ticks_buffer_.StartEnqueue();
   if (address == nullptr) return nullptr;
   TickSampleEventRecord* evt =
-      new (address) TickSampleEventRecord(last_code_event_id_.Value());
+      new (address) TickSampleEventRecord(last_code_event_id_);
   return &evt->sample;
 }
 
-
-void ProfilerEventsProcessor::FinishTickSample() {
+void SamplingEventsProcessor::FinishTickSample() {
   ticks_buffer_.FinishEnqueue();
 }
 

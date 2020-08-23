@@ -1,7 +1,24 @@
 'use strict';
 
-const acorn = require('internal/deps/acorn/dist/acorn');
-const walk = require('internal/deps/acorn/dist/walk');
+const { Object } = primordials;
+
+const acorn = require('internal/deps/acorn/acorn/dist/acorn');
+const walk = require('internal/deps/acorn/acorn-walk/dist/walk');
+const privateMethods =
+  require('internal/deps/acorn-plugins/acorn-private-methods/index');
+const classFields =
+  require('internal/deps/acorn-plugins/acorn-class-fields/index');
+const numericSeparator =
+  require('internal/deps/acorn-plugins/acorn-numeric-separator/index');
+const staticClassFeatures =
+  require('internal/deps/acorn-plugins/acorn-static-class-features/index');
+
+const parser = acorn.Parser.extend(
+  privateMethods,
+  classFields,
+  numericSeparator,
+  staticClassFeatures
+);
 
 const noop = () => {};
 const visitorsWithoutAncestors = {
@@ -74,7 +91,7 @@ function processTopLevelAwait(src) {
   const wrappedArray = wrapped.split('');
   let root;
   try {
-    root = acorn.parse(wrapped, { ecmaVersion: 10 });
+    root = parser.parse(wrapped, { ecmaVersion: 11 });
   } catch {
     return null;
   }

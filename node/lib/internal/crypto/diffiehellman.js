@@ -1,5 +1,7 @@
 'use strict';
 
+const { Object } = primordials;
+
 const { Buffer } = require('buffer');
 const {
   ERR_CRYPTO_ECDH_INVALID_FORMAT,
@@ -10,6 +12,7 @@ const { validateString } = require('internal/validators');
 const { isArrayBufferView } = require('internal/util/types');
 const {
   getDefaultEncoding,
+  kHandle,
   toBuf
 } = require('internal/crypto/util');
 const {
@@ -17,12 +20,12 @@ const {
   DiffieHellmanGroup: _DiffieHellmanGroup,
   ECDH: _ECDH,
   ECDHConvertKey: _ECDHConvertKey
-} = process.binding('crypto');
+} = internalBinding('crypto');
 const {
   POINT_CONVERSION_COMPRESSED,
   POINT_CONVERSION_HYBRID,
   POINT_CONVERSION_UNCOMPRESSED
-} = process.binding('constants').crypto;
+} = internalBinding('constants').crypto;
 
 const DH_GENERATOR = 2;
 
@@ -59,10 +62,10 @@ function DiffieHellman(sizeOrKey, keyEncoding, generator, genEncoding) {
   else if (typeof generator !== 'number')
     generator = toBuf(generator, genEncoding);
 
-  this._handle = new _DiffieHellman(sizeOrKey, generator);
+  this[kHandle] = new _DiffieHellman(sizeOrKey, generator);
   Object.defineProperty(this, 'verifyError', {
     enumerable: true,
-    value: this._handle.verifyError,
+    value: this[kHandle].verifyError,
     writable: false
   });
 }
@@ -71,10 +74,10 @@ function DiffieHellman(sizeOrKey, keyEncoding, generator, genEncoding) {
 function DiffieHellmanGroup(name) {
   if (!(this instanceof DiffieHellmanGroup))
     return new DiffieHellmanGroup(name);
-  this._handle = new _DiffieHellmanGroup(name);
+  this[kHandle] = new _DiffieHellmanGroup(name);
   Object.defineProperty(this, 'verifyError', {
     enumerable: true,
-    value: this._handle.verifyError,
+    value: this[kHandle].verifyError,
     writable: false
   });
 }
@@ -85,7 +88,7 @@ DiffieHellmanGroup.prototype.generateKeys =
     dhGenerateKeys;
 
 function dhGenerateKeys(encoding) {
-  const keys = this._handle.generateKeys();
+  const keys = this[kHandle].generateKeys();
   encoding = encoding || getDefaultEncoding();
   return encode(keys, encoding);
 }
@@ -99,7 +102,7 @@ function dhComputeSecret(key, inEnc, outEnc) {
   const encoding = getDefaultEncoding();
   inEnc = inEnc || encoding;
   outEnc = outEnc || encoding;
-  const ret = this._handle.computeSecret(toBuf(key, inEnc));
+  const ret = this[kHandle].computeSecret(toBuf(key, inEnc));
   if (typeof ret === 'string')
     throw new ERR_CRYPTO_ECDH_INVALID_PUBLIC_KEY();
   return encode(ret, outEnc);
@@ -111,7 +114,7 @@ DiffieHellmanGroup.prototype.getPrime =
     dhGetPrime;
 
 function dhGetPrime(encoding) {
-  const prime = this._handle.getPrime();
+  const prime = this[kHandle].getPrime();
   encoding = encoding || getDefaultEncoding();
   return encode(prime, encoding);
 }
@@ -122,7 +125,7 @@ DiffieHellmanGroup.prototype.getGenerator =
     dhGetGenerator;
 
 function dhGetGenerator(encoding) {
-  const generator = this._handle.getGenerator();
+  const generator = this[kHandle].getGenerator();
   encoding = encoding || getDefaultEncoding();
   return encode(generator, encoding);
 }
@@ -133,7 +136,7 @@ DiffieHellmanGroup.prototype.getPublicKey =
     dhGetPublicKey;
 
 function dhGetPublicKey(encoding) {
-  const key = this._handle.getPublicKey();
+  const key = this[kHandle].getPublicKey();
   encoding = encoding || getDefaultEncoding();
   return encode(key, encoding);
 }
@@ -144,7 +147,7 @@ DiffieHellmanGroup.prototype.getPrivateKey =
     dhGetPrivateKey;
 
 function dhGetPrivateKey(encoding) {
-  const key = this._handle.getPrivateKey();
+  const key = this[kHandle].getPrivateKey();
   encoding = encoding || getDefaultEncoding();
   return encode(key, encoding);
 }
@@ -152,14 +155,14 @@ function dhGetPrivateKey(encoding) {
 
 DiffieHellman.prototype.setPublicKey = function setPublicKey(key, encoding) {
   encoding = encoding || getDefaultEncoding();
-  this._handle.setPublicKey(toBuf(key, encoding));
+  this[kHandle].setPublicKey(toBuf(key, encoding));
   return this;
 };
 
 
 DiffieHellman.prototype.setPrivateKey = function setPrivateKey(key, encoding) {
   encoding = encoding || getDefaultEncoding();
-  this._handle.setPrivateKey(toBuf(key, encoding));
+  this[kHandle].setPrivateKey(toBuf(key, encoding));
   return this;
 };
 
@@ -169,7 +172,7 @@ function ECDH(curve) {
     return new ECDH(curve);
 
   validateString(curve, 'curve');
-  this._handle = new _ECDH(curve);
+  this[kHandle] = new _ECDH(curve);
 }
 
 ECDH.prototype.computeSecret = DiffieHellman.prototype.computeSecret;
@@ -178,14 +181,14 @@ ECDH.prototype.setPublicKey = DiffieHellman.prototype.setPublicKey;
 ECDH.prototype.getPrivateKey = DiffieHellman.prototype.getPrivateKey;
 
 ECDH.prototype.generateKeys = function generateKeys(encoding, format) {
-  this._handle.generateKeys();
+  this[kHandle].generateKeys();
 
   return this.getPublicKey(encoding, format);
 };
 
 ECDH.prototype.getPublicKey = function getPublicKey(encoding, format) {
   const f = getFormat(format);
-  const key = this._handle.getPublicKey(f);
+  const key = this[kHandle].getPublicKey(f);
   encoding = encoding || getDefaultEncoding();
   return encode(key, encoding);
 };

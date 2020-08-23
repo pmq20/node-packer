@@ -18,10 +18,11 @@
 // DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
-
+#define NODE_WANT_INTERNALS 1
 #include "async_wrap-inl.h"
 #include "env-inl.h"
 #include "handle_wrap.h"
+#include "node_process.h"
 #include "util-inl.h"
 #include "v8.h"
 
@@ -43,7 +44,8 @@ class SignalWrap : public HandleWrap {
  public:
   static void Initialize(Local<Object> target,
                          Local<Value> unused,
-                         Local<Context> context) {
+                         Local<Context> context,
+                         void* priv) {
     Environment* env = Environment::GetCurrent(context);
     Local<FunctionTemplate> constructor = env->NewFunctionTemplate(New);
     constructor->InstanceTemplate()->SetInternalFieldCount(1);
@@ -55,8 +57,11 @@ class SignalWrap : public HandleWrap {
     env->SetProtoMethod(constructor, "start", Start);
     env->SetProtoMethod(constructor, "stop", Stop);
 
-    target->Set(signalString,
-                constructor->GetFunction(env->context()).ToLocalChecked());
+    target
+        ->Set(env->context(),
+              signalString,
+              constructor->GetFunction(env->context()).ToLocalChecked())
+        .Check();
   }
 
   SET_NO_MEMORY_INFO()
@@ -98,7 +103,17 @@ class SignalWrap : public HandleWrap {
       }
     }
 #endif
-    int err = uv_signal_start(&wrap->handle_, OnSignal, signum);
+    int err = uv_signal_start(
+        &wrap->handle_,
+        [](uv_signal_t* handle, int signum) {
+          SignalWrap* wrap = ContainerOf(&SignalWrap::handle_, handle);
+          Environment* env = wrap->env();
+          HandleScope handle_scope(env->isolate());
+          Context::Scope context_scope(env->context());
+          Local<Value> arg = Integer::New(env->isolate(), signum);
+          wrap->MakeCallback(env->onsignal_string(), 1, &arg);
+        },
+        signum);
     args.GetReturnValue().Set(err);
   }
 
@@ -109,22 +124,10 @@ class SignalWrap : public HandleWrap {
     args.GetReturnValue().Set(err);
   }
 
-  static void OnSignal(uv_signal_t* handle, int signum) {
-    SignalWrap* wrap = ContainerOf(&SignalWrap::handle_, handle);
-    Environment* env = wrap->env();
-    HandleScope handle_scope(env->isolate());
-    Context::Scope context_scope(env->context());
-
-    Local<Value> arg = Integer::New(env->isolate(), signum);
-    wrap->MakeCallback(env->onsignal_string(), 1, &arg);
-  }
-
   uv_signal_t handle_;
 };
-
 
 }  // anonymous namespace
 }  // namespace node
 
-
-NODE_BUILTIN_MODULE_CONTEXT_AWARE(signal_wrap, node::SignalWrap::Initialize)
+NODE_MODULE_CONTEXT_AWARE_INTERNAL(signal_wrap, node::SignalWrap::Initialize)

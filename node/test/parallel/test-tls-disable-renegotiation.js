@@ -10,6 +10,9 @@ if (!common.hasCrypto)
 
 const tls = require('tls');
 
+// Renegotiation as a protocol feature was dropped after TLS1.2.
+tls.DEFAULT_MAX_VERSION = 'TLSv1.2';
+
 const options = {
   key: fixtures.readKey('agent1-key.pem'),
   cert: fixtures.readKey('agent1-cert.pem'),
@@ -46,6 +49,28 @@ server.listen(0, common.mustCall(() => {
     port
   };
   const client = tls.connect(options, common.mustCall(() => {
+
+    common.expectsError(() => client.renegotiate(), {
+      code: 'ERR_INVALID_ARG_TYPE',
+      type: TypeError,
+    });
+
+    common.expectsError(() => client.renegotiate(common.mustNotCall()), {
+      code: 'ERR_INVALID_ARG_TYPE',
+      type: TypeError,
+    });
+
+    common.expectsError(() => client.renegotiate({}, false), {
+      code: 'ERR_INVALID_CALLBACK',
+      type: TypeError,
+    });
+
+    common.expectsError(() => client.renegotiate({}, null), {
+      code: 'ERR_INVALID_CALLBACK',
+      type: TypeError,
+    });
+
+
     // Negotiation is still permitted for this first
     // attempt. This should succeed.
     let ok = client.renegotiate(options, common.mustCall((err) => {
@@ -64,5 +89,9 @@ server.listen(0, common.mustCall(() => {
       }));
     }));
     assert.strictEqual(ok, true);
+    client.on('secureConnect', common.mustCall(() => {
+    }));
+    client.on('secure', common.mustCall(() => {
+    }));
   }));
 }));

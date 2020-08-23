@@ -1,77 +1,85 @@
 'use strict';
 
-const { URL } = require('url');
-const CJSmodule = require('internal/modules/cjs/loader');
 const internalFS = require('internal/fs/utils');
 const { NativeModule } = require('internal/bootstrap/loaders');
 const { extname } = require('path');
 const { realpathSync } = require('fs');
 const { getOptionValue } = require('internal/options');
+
 const preserveSymlinks = getOptionValue('--preserve-symlinks');
 const preserveSymlinksMain = getOptionValue('--preserve-symlinks-main');
-const {
-  ERR_MISSING_MODULE,
-  ERR_MODULE_RESOLUTION_LEGACY,
-  ERR_UNKNOWN_FILE_EXTENSION
-} = require('internal/errors').codes;
-const { resolve: moduleWrapResolve } = internalBinding('module_wrap');
-const StringStartsWith = Function.call.bind(String.prototype.startsWith);
-const { pathToFileURL, fileURLToPath } = require('internal/url');
+const experimentalJsonModules = getOptionValue('--experimental-json-modules');
+const typeFlag = getOptionValue('--input-type');
+const experimentalWasmModules = getOptionValue('--experimental-wasm-modules');
+const { resolve: moduleWrapResolve,
+        getPackageType } = internalBinding('module_wrap');
+const { URL, pathToFileURL, fileURLToPath } = require('internal/url');
+const { ERR_INPUT_TYPE_NOT_ALLOWED,
+        ERR_UNKNOWN_FILE_EXTENSION } = require('internal/errors').codes;
 
-const realpathCache = new Map();
+const { SafeMap } = primordials;
 
-function search(target, base) {
-  if (base === undefined) {
-    // We cannot search without a base.
-    throw new ERR_MISSING_MODULE(target);
-  }
-  try {
-    return moduleWrapResolve(target, base);
-  } catch (e) {
-    e.stack; // cause V8 to generate stack before rethrow
-    let error = e;
-    try {
-      const questionedBase = new URL(base);
-      const tmpMod = new CJSmodule(questionedBase.pathname, null);
-      tmpMod.paths = CJSmodule._nodeModulePaths(
-        new URL('./', questionedBase).pathname);
-      const found = CJSmodule._resolveFilename(target, tmpMod);
-      error = new ERR_MODULE_RESOLUTION_LEGACY(target, base, found);
-    } catch {
-      // ignore
-    }
-    throw error;
-  }
-}
+const realpathCache = new SafeMap();
+
+// const TYPE_NONE = 0;
+// const TYPE_COMMONJS = 1;
+const TYPE_MODULE = 2;
 
 const extensionFormatMap = {
   '__proto__': null,
-  '.mjs': 'esm',
-  '.json': 'json',
-  '.node': 'addon',
-  '.js': 'cjs'
+  '.cjs': 'commonjs',
+  '.js': 'module',
+  '.mjs': 'module'
 };
 
+const legacyExtensionFormatMap = {
+  '__proto__': null,
+  '.cjs': 'commonjs',
+  '.js': 'commonjs',
+  '.json': 'commonjs',
+  '.mjs': 'module',
+  '.node': 'commonjs'
+};
+
+if (experimentalWasmModules)
+  extensionFormatMap['.wasm'] = legacyExtensionFormatMap['.wasm'] = 'wasm';
+
+if (experimentalJsonModules)
+  extensionFormatMap['.json'] = legacyExtensionFormatMap['.json'] = 'json';
+
 function resolve(specifier, parentURL) {
-  if (NativeModule.nonInternalExists(specifier)) {
+  try {
+    const parsed = new URL(specifier);
+    if (parsed.protocol === 'data:') {
+      const [ , mime ] = /^([^/]+\/[^;,]+)(;base64)?,/.exec(parsed.pathname) || [ null, null, null ];
+      const format = ({
+        '__proto__': null,
+        'text/javascript': 'module',
+        'application/json': 'json',
+        'application/wasm': experimentalWasmModules ? 'wasm' : null
+      })[mime] || null;
+      return {
+        url: specifier,
+        format
+      };
+    }
+  } catch {}
+  if (NativeModule.canBeRequiredByUsers(specifier)) {
     return {
       url: specifier,
       format: 'builtin'
     };
   }
-
-  let url;
-  try {
-    url = search(specifier,
-                 parentURL || pathToFileURL(`${process.cwd()}/`).href);
-  } catch (e) {
-    if (typeof e.message === 'string' &&
-        StringStartsWith(e.message, 'Cannot find module'))
-      e.code = 'MODULE_NOT_FOUND';
-    throw e;
+  if (parentURL && parentURL.startsWith('data:')) {
+    // This is gonna blow up, we want the error
+    new URL(specifier, parentURL);
   }
 
   const isMain = parentURL === undefined;
+  if (isMain)
+    parentURL = pathToFileURL(`${process.cwd()}/`).href;
+
+  let url = moduleWrapResolve(specifier, parentURL);
 
   if (isMain ? !preserveSymlinksMain : !preserveSymlinks) {
     const real = realpathSync(fileURLToPath(url), {
@@ -83,19 +91,29 @@ function resolve(specifier, parentURL) {
     url.hash = old.hash;
   }
 
-  const ext = extname(url.pathname);
+  const type = getPackageType(url.href);
 
-  let format = extensionFormatMap[ext];
+  const ext = extname(url.pathname);
+  const extMap =
+      type !== TYPE_MODULE ? legacyExtensionFormatMap : extensionFormatMap;
+  let format = extMap[ext];
+
+  if (isMain && typeFlag) {
+    // This is the initial entry point to the program, and --input-type has
+    // been passed as an option; but --input-type can only be used with
+    // --eval, --print or STDIN string input. It is not allowed with file
+    // input, to avoid user confusion over how expansive the effect of the
+    // flag should be (i.e. entry point only, package scope surrounding the
+    // entry point, etc.).
+    throw new ERR_INPUT_TYPE_NOT_ALLOWED();
+  }
   if (!format) {
     if (isMain)
-      format = 'cjs';
+      format = type === TYPE_MODULE ? 'module' : 'commonjs';
     else
-      throw new ERR_UNKNOWN_FILE_EXTENSION(url.pathname);
+      throw new ERR_UNKNOWN_FILE_EXTENSION(fileURLToPath(url));
   }
-
   return { url: `${url}`, format };
 }
 
 module.exports = resolve;
-// exported for tests
-module.exports.search = search;

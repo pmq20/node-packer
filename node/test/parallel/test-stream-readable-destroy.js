@@ -69,7 +69,7 @@ const assert = require('assert');
 
   read.on('end', common.mustNotCall('no end event'));
 
-  // error is swallowed by the custom _destroy
+  // Error is swallowed by the custom _destroy
   read.on('error', common.mustNotCall('no error event'));
   read.on('close', common.mustCall());
 
@@ -147,7 +147,7 @@ const assert = require('assert');
   read.destroyed = true;
   assert.strictEqual(read.destroyed, true);
 
-  // the internal destroy() mechanism should not be triggered
+  // The internal destroy() mechanism should not be triggered
   read.on('end', common.mustNotCall());
   read.destroy();
 }
@@ -166,7 +166,7 @@ const assert = require('assert');
 }
 
 {
-  // destroy and destroy callback
+  // Destroy and destroy callback
   const read = new Readable({
     read() {}
   });
@@ -188,4 +188,13 @@ const assert = require('assert');
   read.destroy();
   read.push('hi');
   read.on('data', common.mustNotCall());
+}
+
+{
+  const read = new Readable({
+    read: common.mustNotCall(function() {})
+  });
+  read.destroy();
+  assert.strictEqual(read.destroyed, true);
+  read.read();
 }

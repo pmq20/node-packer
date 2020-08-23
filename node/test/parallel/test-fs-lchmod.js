@@ -41,27 +41,23 @@ assert.throws(() => fs.lchmod(f, {}), { code: 'ERR_INVALID_CALLBACK' });
 [false, null, undefined, {}, [], '', '123x'].forEach((input) => {
   const errObj = {
     code: 'ERR_INVALID_ARG_VALUE',
-    name: 'TypeError [ERR_INVALID_ARG_VALUE]',
+    name: 'TypeError',
     message: 'The argument \'mode\' must be a 32-bit unsigned integer or an ' +
              `octal string. Received ${util.inspect(input)}`
   };
 
-  promises.lchmod(f, input, () => {})
-    .then(common.mustNotCall())
-    .catch(common.expectsError(errObj));
+  assert.rejects(promises.lchmod(f, input, () => {}), errObj);
   assert.throws(() => fs.lchmodSync(f, input), errObj);
 });
 
 [-1, 2 ** 32].forEach((input) => {
   const errObj = {
     code: 'ERR_OUT_OF_RANGE',
-    name: 'RangeError [ERR_OUT_OF_RANGE]',
-    message: 'The value of "mode" is out of range. It must be >= 0 && < ' +
-             `4294967296. Received ${input}`
+    name: 'RangeError',
+    message: 'The value of "mode" is out of range. It must be >= 0 && <= ' +
+             `4294967295. Received ${input}`
   };
 
-  promises.lchmod(f, input, () => {})
-    .then(common.mustNotCall())
-    .catch(common.expectsError(errObj));
+  assert.rejects(promises.lchmod(f, input, () => {}), errObj);
   assert.throws(() => fs.lchmodSync(f, input), errObj);
 });

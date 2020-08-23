@@ -4,11 +4,12 @@
 
 #include "src/inspector/v8-debugger-script.h"
 
+#include "src/base/memory.h"
 #include "src/inspector/inspected-context.h"
 #include "src/inspector/string-util.h"
+#include "src/inspector/v8-debugger-agent-impl.h"
 #include "src/inspector/v8-inspector-impl.h"
 #include "src/inspector/wasm-translation.h"
-#include "src/utils.h"
 
 namespace v8_inspector {
 
@@ -20,7 +21,7 @@ const char kGlobalDebuggerScriptHandleLabel[] = "DevTools debugger";
 // Multiplikation in
 // eingeschränkten Branchingprogrammmodellen" by Woelfe.
 // http://opendatastructures.org/versions/edition-0.1d/ods-java/node33.html#SECTION00832000000000000000
-String16 calculateHash(const String16& str) {
+String16 calculateHash(v8::Isolate* isolate, v8::Local<v8::String> source) {
   static uint64_t prime[] = {0x3FB75161, 0xAB1F4E4F, 0x82675BC5, 0xCD924D35,
                              0x81ABE279};
   static uint64_t random[] = {0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476,
@@ -34,11 +35,16 @@ String16 calculateHash(const String16& str) {
   const size_t hashesSize = arraysize(hashes);
 
   size_t current = 0;
+
+  std::unique_ptr<UChar[]> buffer(new UChar[source->Length()]);
+  int written = source->Write(
+      isolate, reinterpret_cast<uint16_t*>(buffer.get()), 0, source->Length());
+
   const uint32_t* data = nullptr;
-  size_t sizeInBytes = sizeof(UChar) * str.length();
-  data = reinterpret_cast<const uint32_t*>(str.characters16());
+  size_t sizeInBytes = sizeof(UChar) * written;
+  data = reinterpret_cast<const uint32_t*>(buffer.get());
   for (size_t i = 0; i < sizeInBytes / 4; ++i) {
-    uint32_t d = v8::internal::ReadUnalignedUInt32(
+    uint32_t d = v8::base::ReadUnalignedValue<uint32_t>(
         reinterpret_cast<v8::internal::Address>(data + i));
 #if V8_TARGET_LITTLE_ENDIAN
     uint32_t v = d;
@@ -76,7 +82,7 @@ String16 calculateHash(const String16& str) {
 
   String16Builder hash;
   for (size_t i = 0; i < hashesSize; ++i)
-    hash.appendUnsignedAsHex((uint32_t)hashes[i]);
+    hash.appendUnsignedAsHex(static_cast<uint32_t>(hashes[i]));
   return hash.toString();
 }
 
@@ -111,9 +117,11 @@ class ActualScript : public V8DebuggerScript {
 
  public:
   ActualScript(v8::Isolate* isolate, v8::Local<v8::debug::Script> script,
-               bool isLiveEdit, V8InspectorClient* client)
+               bool isLiveEdit, V8DebuggerAgentImpl* agent,
+               V8InspectorClient* client)
       : V8DebuggerScript(isolate, String16::fromInteger(script->Id()),
-                         GetScriptURL(script, client)),
+                         GetScriptURL(isolate, script, client)),
+        m_agent(agent),
         m_isLiveEdit(isLiveEdit) {
     Initialize(script);
   }
@@ -121,12 +129,28 @@ class ActualScript : public V8DebuggerScript {
   bool isLiveEdit() const override { return m_isLiveEdit; }
   bool isModule() const override { return m_isModule; }
 
-  const String16& source() const override { return m_source; }
+  String16 source(size_t pos, size_t len) const override {
+    v8::HandleScope scope(m_isolate);
+    v8::Local<v8::String> v8Source;
+    if (!script()->Source().ToLocal(&v8Source)) return String16();
+    if (pos >= static_cast<size_t>(v8Source->Length())) return String16();
+    size_t substringLength =
+        std::min(len, static_cast<size_t>(v8Source->Length()) - pos);
+    std::unique_ptr<UChar[]> buffer(new UChar[substringLength]);
+    v8Source->Write(m_isolate, reinterpret_cast<uint16_t*>(buffer.get()),
+                    static_cast<int>(pos), static_cast<int>(substringLength));
+    return String16(buffer.get(), substringLength);
+  }
   int startLine() const override { return m_startLine; }
   int startColumn() const override { return m_startColumn; }
   int endLine() const override { return m_endLine; }
   int endColumn() const override { return m_endColumn; }
   bool isSourceLoadedLazily() const override { return false; }
+  int length() const override {
+    v8::HandleScope scope(m_isolate);
+    v8::Local<v8::String> v8Source;
+    return script()->Source().ToLocal(&v8Source) ? v8Source->Length() : 0;
+  }
 
   const String16& sourceMappingURL() const override {
     return m_sourceMappingURL;
@@ -137,17 +161,16 @@ class ActualScript : public V8DebuggerScript {
   }
 
   void setSource(const String16& newSource, bool preview,
-                 bool* stackChanged) override {
-    DCHECK(!isModule());
-    v8::HandleScope scope(m_isolate);
+                 v8::debug::LiveEditResult* result) override {
+    v8::EscapableHandleScope scope(m_isolate);
     v8::Local<v8::String> v8Source = toV8String(m_isolate, newSource);
-    if (!m_script.Get(m_isolate)->SetScriptSource(v8Source, preview,
-                                                  stackChanged)) {
+    if (!m_script.Get(m_isolate)->SetScriptSource(v8Source, preview, result)) {
+      result->message = scope.Escape(result->message);
       return;
     }
     if (preview) return;
-    m_source = newSource;
     m_hash = String16();
+    Initialize(scope.Escape(result->script));
   }
 
   bool getPossibleBreakpoints(
@@ -212,21 +235,32 @@ class ActualScript : public V8DebuggerScript {
                                    id);
   }
 
+  bool setBreakpointOnRun(int* id) const override {
+    v8::HandleScope scope(m_isolate);
+    return script()->SetBreakpointOnScriptEntry(id);
+  }
+
   const String16& hash() const override {
-    if (m_hash.isEmpty()) m_hash = calculateHash(source());
+    if (!m_hash.isEmpty()) return m_hash;
+    v8::HandleScope scope(m_isolate);
+    v8::Local<v8::String> v8Source;
+    if (script()->Source().ToLocal(&v8Source)) {
+      m_hash = calculateHash(m_isolate, v8Source);
+    }
     DCHECK(!m_hash.isEmpty());
     return m_hash;
   }
 
  private:
-  String16 GetScriptURL(v8::Local<v8::debug::Script> script,
-                        V8InspectorClient* client) {
+  static String16 GetScriptURL(v8::Isolate* isolate,
+                               v8::Local<v8::debug::Script> script,
+                               V8InspectorClient* client) {
     v8::Local<v8::String> sourceURL;
     if (script->SourceURL().ToLocal(&sourceURL) && sourceURL->Length() > 0)
-      return toProtocolString(sourceURL);
+      return toProtocolString(isolate, sourceURL);
     v8::Local<v8::String> v8Name;
     if (script->Name().ToLocal(&v8Name) && v8Name->Length() > 0) {
-      String16 name = toProtocolString(v8Name);
+      String16 name = toProtocolString(isolate, v8Name);
       std::unique_ptr<StringBuffer> url =
           client->resourceNameToUrl(toStringView(name));
       return url ? toString16(url->string()) : name;
@@ -243,7 +277,7 @@ class ActualScript : public V8DebuggerScript {
     m_hasSourceURLComment =
         script->SourceURL().ToLocal(&tmp) && tmp->Length() > 0;
     if (script->SourceMappingURL().ToLocal(&tmp))
-      m_sourceMappingURL = toProtocolString(tmp);
+      m_sourceMappingURL = toProtocolString(m_isolate, tmp);
     m_startLine = script->LineOffset();
     m_startColumn = script->ColumnOffset();
     std::vector<int> lineEnds = script->LineEnds();
@@ -263,20 +297,30 @@ class ActualScript : public V8DebuggerScript {
 
     USE(script->ContextId().To(&m_executionContextId));
 
-    if (script->Source().ToLocal(&tmp)) {
-      m_source = toProtocolString(tmp);
-    }
-
     m_isModule = script->IsModule();
 
     m_script.Reset(m_isolate, script);
     m_script.AnnotateStrongRetainer(kGlobalDebuggerScriptHandleLabel);
   }
 
+  void MakeWeak() override {
+    m_script.SetWeak(
+        this,
+        [](const v8::WeakCallbackInfo<ActualScript>& data) {
+          data.GetParameter()->WeakCallback();
+        },
+        v8::WeakCallbackType::kFinalizer);
+  }
+
+  void WeakCallback() {
+    m_script.ClearWeak();
+    m_agent->ScriptCollected(this);
+  }
+
+  V8DebuggerAgentImpl* m_agent;
   String16 m_sourceMappingURL;
   bool m_isLiveEdit = false;
   bool m_isModule = false;
-  String16 m_source;
   mutable String16 m_hash;
   int m_startLine = 0;
   int m_startColumn = 0;
@@ -304,10 +348,13 @@ class WasmVirtualScript : public V8DebuggerScript {
   bool isLiveEdit() const override { return false; }
   bool isModule() const override { return false; }
   void setSourceMappingURL(const String16&) override {}
-  void setSource(const String16&, bool, bool*) override { UNREACHABLE(); }
+  void setSource(const String16&, bool, v8::debug::LiveEditResult*) override {
+    UNREACHABLE();
+  }
   bool isSourceLoadedLazily() const override { return true; }
-  const String16& source() const override {
-    return m_wasmTranslation->GetSource(m_id, m_functionIndex);
+  String16 source(size_t pos, size_t len) const override {
+    return m_wasmTranslation->GetSource(m_id, m_functionIndex)
+        .substring(pos, len);
   }
   int startLine() const override {
     return m_wasmTranslation->GetStartLine(m_id, m_functionIndex);
@@ -320,6 +367,9 @@ class WasmVirtualScript : public V8DebuggerScript {
   }
   int endColumn() const override {
     return m_wasmTranslation->GetEndColumn(m_id, m_functionIndex);
+  }
+  int length() const override {
+    return static_cast<int>(source(0, UINT_MAX).length());
   }
 
   bool getPossibleBreakpoints(
@@ -379,6 +429,8 @@ class WasmVirtualScript : public V8DebuggerScript {
     return true;
   }
 
+  bool setBreakpointOnRun(int*) const override { return false; }
+
   const String16& hash() const override {
     if (m_hash.isEmpty()) {
       m_hash = m_wasmTranslation->GetHash(m_id, m_functionIndex);
@@ -386,10 +438,13 @@ class WasmVirtualScript : public V8DebuggerScript {
     return m_hash;
   }
 
+  void MakeWeak() override {}
+
  private:
   static const String16& emptyString() {
-    static const String16 singleEmptyString;
-    return singleEmptyString;
+    // On the heap and leaked so that no destructor needs to run at exit time.
+    static const String16* singleEmptyString = new String16;
+    return *singleEmptyString;
   }
 
   v8::Local<v8::debug::Script> script() const override {
@@ -406,25 +461,25 @@ class WasmVirtualScript : public V8DebuggerScript {
 
 std::unique_ptr<V8DebuggerScript> V8DebuggerScript::Create(
     v8::Isolate* isolate, v8::Local<v8::debug::Script> scriptObj,
-    bool isLiveEdit, V8InspectorClient* client) {
-  return std::unique_ptr<ActualScript>(
-      new ActualScript(isolate, scriptObj, isLiveEdit, client));
+    bool isLiveEdit, V8DebuggerAgentImpl* agent, V8InspectorClient* client) {
+  return v8::base::make_unique<ActualScript>(isolate, scriptObj, isLiveEdit,
+                                             agent, client);
 }
 
 std::unique_ptr<V8DebuggerScript> V8DebuggerScript::CreateWasm(
     v8::Isolate* isolate, WasmTranslation* wasmTranslation,
     v8::Local<v8::debug::WasmScript> underlyingScript, String16 id,
     String16 url, int functionIndex) {
-  return std::unique_ptr<WasmVirtualScript>(
-      new WasmVirtualScript(isolate, wasmTranslation, underlyingScript,
-                            std::move(id), std::move(url), functionIndex));
+  return v8::base::make_unique<WasmVirtualScript>(
+      isolate, wasmTranslation, underlyingScript, std::move(id), std::move(url),
+      functionIndex);
 }
 
 V8DebuggerScript::V8DebuggerScript(v8::Isolate* isolate, String16 id,
                                    String16 url)
     : m_id(std::move(id)), m_url(std::move(url)), m_isolate(isolate) {}
 
-V8DebuggerScript::~V8DebuggerScript() {}
+V8DebuggerScript::~V8DebuggerScript() = default;
 
 void V8DebuggerScript::setSourceURL(const String16& sourceURL) {
   if (sourceURL.length() > 0) {
@@ -438,4 +493,5 @@ bool V8DebuggerScript::setBreakpoint(const String16& condition,
   v8::HandleScope scope(m_isolate);
   return script()->SetBreakpoint(toV8String(m_isolate, condition), loc, id);
 }
+
 }  // namespace v8_inspector

@@ -4,131 +4,165 @@
 // run in the main thread
 
 const {
-  errnoException
+  errnoException,
+  codes: {
+    ERR_INVALID_ARG_TYPE,
+    ERR_UNKNOWN_CREDENTIAL
+  }
 } = require('internal/errors');
-
 const {
-  setupProcessStdio,
-  getMainThreadStdio
-} = require('internal/process/stdio');
+  parseMode,
+  validateUint32,
+  validateString
+} = require('internal/validators');
 
-const assert = require('assert').strict;
+const { signals } = internalBinding('constants').os;
 
-function setupStdio() {
-  setupProcessStdio(getMainThreadStdio());
-}
+// The execution of this function itself should not cause any side effects.
+function wrapProcessMethods(binding) {
+  // Cache the working directory to prevent lots of lookups. If the working
+  // directory is changed by `chdir`, it'll be updated.
+  let cachedCwd = '';
 
-// Non-POSIX platforms like Windows don't have certain methods.
-// Workers also lack these methods since they change process-global state.
-function setupProcessMethods(_chdir, _umask, _initgroups, _setegid,
-                             _seteuid, _setgid, _setuid, _setgroups) {
-  if (_setgid !== undefined) {
-    setupPosixMethods(_initgroups, _setegid, _seteuid,
-                      _setgid, _setuid, _setgroups);
+  function chdir(directory) {
+    validateString(directory, 'directory');
+    binding.chdir(directory);
+    // Mark cache that it requires an update.
+    cachedCwd = '';
   }
 
-  process.chdir = function chdir(...args) {
-    return _chdir(...args);
-  };
+  function umask(mask) {
+    if (mask !== undefined) {
+      mask = parseMode(mask, 'mask');
+    }
+    return binding.umask(mask);
+  }
 
-  process.umask = function umask(...args) {
-    return _umask(...args);
+  function cwd() {
+    cachedCwd = binding.cwd();
+    return cachedCwd;
+  }
+
+  return {
+    chdir,
+    umask,
+    cwd
   };
 }
 
-function setupPosixMethods(_initgroups, _setegid, _seteuid,
-                           _setgid, _setuid, _setgroups) {
+function wrapPosixCredentialSetters(credentials) {
+  const {
+    initgroups: _initgroups,
+    setgroups: _setgroups,
+    setegid: _setegid,
+    seteuid: _seteuid,
+    setgid: _setgid,
+    setuid: _setuid
+  } = credentials;
 
-  process.initgroups = function initgroups(...args) {
-    return _initgroups(...args);
-  };
+  function initgroups(user, extraGroup) {
+    validateId(user, 'user');
+    validateId(extraGroup, 'extraGroup');
+    // Result is 0 on success, 1 if user is unknown, 2 if group is unknown.
+    const result = _initgroups(user, extraGroup);
+    if (result === 1) {
+      throw new ERR_UNKNOWN_CREDENTIAL('User', user);
+    } else if (result === 2) {
+      throw new ERR_UNKNOWN_CREDENTIAL('Group', extraGroup);
+    }
+  }
 
-  process.setegid = function setegid(...args) {
-    return _setegid(...args);
-  };
+  function setgroups(groups) {
+    if (!Array.isArray(groups)) {
+      throw new ERR_INVALID_ARG_TYPE('groups', 'Array', groups);
+    }
+    for (var i = 0; i < groups.length; i++) {
+      validateId(groups[i], `groups[${i}]`);
+    }
+    // Result is 0 on success. A positive integer indicates that the
+    // corresponding group was not found.
+    const result = _setgroups(groups);
+    if (result > 0) {
+      throw new ERR_UNKNOWN_CREDENTIAL('Group', groups[result - 1]);
+    }
+  }
 
-  process.seteuid = function seteuid(...args) {
-    return _seteuid(...args);
-  };
+  function wrapIdSetter(type, method) {
+    return function(id) {
+      validateId(id, 'id');
+      // Result is 0 on success, 1 if credential is unknown.
+      const result = method(id);
+      if (result === 1) {
+        throw new ERR_UNKNOWN_CREDENTIAL(type, id);
+      }
+    };
+  }
 
-  process.setgid = function setgid(...args) {
-    return _setgid(...args);
-  };
+  function validateId(id, name) {
+    if (typeof id === 'number') {
+      validateUint32(id, name);
+    } else if (typeof id !== 'string') {
+      throw new ERR_INVALID_ARG_TYPE(name, ['number', 'string'], id);
+    }
+  }
 
-  process.setuid = function setuid(...args) {
-    return _setuid(...args);
+  return {
+    initgroups,
+    setgroups,
+    setegid: wrapIdSetter('Group', _setegid),
+    seteuid: wrapIdSetter('User', _seteuid),
+    setgid: wrapIdSetter('Group', _setgid),
+    setuid: wrapIdSetter('User', _setuid)
   };
+}
 
-  process.setgroups = function setgroups(...args) {
-    return _setgroups(...args);
-  };
+let Signal;
+function isSignal(event) {
+  return typeof event === 'string' && signals[event] !== undefined;
 }
 
 // Worker threads don't receive signals.
-function setupSignalHandlers() {
-  const constants = process.binding('constants').os.signals;
-  const signalWraps = Object.create(null);
-  let Signal;
-
-  function isSignal(event) {
-    return typeof event === 'string' && constants[event] !== undefined;
-  }
+function createSignalHandlers() {
+  const signalWraps = new Map();
 
   // Detect presence of a listener for the special signal types
-  process.on('newListener', function(type) {
-    if (isSignal(type) && signalWraps[type] === undefined) {
+  function startListeningIfSignal(type) {
+    if (isSignal(type) && !signalWraps.has(type)) {
       if (Signal === undefined)
-        Signal = process.binding('signal_wrap').Signal;
+        Signal = internalBinding('signal_wrap').Signal;
       const wrap = new Signal();
 
       wrap.unref();
 
       wrap.onsignal = process.emit.bind(process, type, type);
 
-      const signum = constants[type];
+      const signum = signals[type];
       const err = wrap.start(signum);
       if (err) {
         wrap.close();
         throw errnoException(err, 'uv_signal_start');
       }
 
-      signalWraps[type] = wrap;
+      signalWraps.set(type, wrap);
     }
-  });
-
-  process.on('removeListener', function(type) {
-    if (signalWraps[type] !== undefined && this.listenerCount(type) === 0) {
-      signalWraps[type].close();
-      delete signalWraps[type];
-    }
-  });
-
-  // re-arm pre-existing signal event registrations
-  // with this signal wrap capabilities.
-  process.eventNames().forEach((ev) => {
-    if (isSignal(ev))
-      process.emit('newListener', ev);
-  });
-}
-
-function setupChildProcessIpcChannel() {
-  // If we were spawned with env NODE_CHANNEL_FD then load that up and
-  // start parsing data from that stream.
-  if (process.env.NODE_CHANNEL_FD) {
-    const fd = parseInt(process.env.NODE_CHANNEL_FD, 10);
-    assert(fd >= 0);
-
-    // Make sure it's not accidentally inherited by child processes.
-    delete process.env.NODE_CHANNEL_FD;
-
-    require('child_process')._forkChild(fd);
-    assert(process.send);
   }
+
+  function stopListeningIfSignal(type) {
+    const wrap = signalWraps.get(type);
+    if (wrap !== undefined && process.listenerCount(type) === 0) {
+      wrap.close();
+      signalWraps.delete(type);
+    }
+  }
+
+  return {
+    startListeningIfSignal,
+    stopListeningIfSignal
+  };
 }
 
 module.exports = {
-  setupStdio,
-  setupProcessMethods,
-  setupSignalHandlers,
-  setupChildProcessIpcChannel
+  wrapProcessMethods,
+  createSignalHandlers,
+  wrapPosixCredentialSetters
 };

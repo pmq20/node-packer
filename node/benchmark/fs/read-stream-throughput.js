@@ -1,4 +1,4 @@
-// test the throughput of the fs.WriteStream class.
+// Test the throughput of the fs.WriteStream class.
 'use strict';
 
 const path = require('path');
@@ -45,16 +45,16 @@ function runTest() {
     encoding: encoding
   });
 
-  rs.on('open', function() {
+  rs.on('open', () => {
     bench.start();
   });
 
   var bytes = 0;
-  rs.on('data', function(chunk) {
+  rs.on('data', (chunk) => {
     bytes += chunk.length;
   });
 
-  rs.on('end', function() {
+  rs.on('end', () => {
     try { fs.unlinkSync(filename); } catch {}
     // MB/sec
     bench.end(bytes / (1024 * 1024));

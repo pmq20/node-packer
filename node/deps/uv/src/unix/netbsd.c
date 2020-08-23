@@ -126,6 +126,11 @@ uint64_t uv_get_total_memory(void) {
 }
 
 
+uint64_t uv_get_constrained_memory(void) {
+  return 0;  /* Memory constraints are unknown. */
+}
+
+
 int uv_resident_set_memory(size_t* rss) {
   kvm_t *kd = NULL;
   struct kinfo_proc2 *kinfo = NULL;
@@ -228,15 +233,4 @@ int uv_cpu_info(uv_cpu_info_t** cpu_infos, int* count) {
   }
   uv__free(cp_times);
   return 0;
-}
-
-
-void uv_free_cpu_info(uv_cpu_info_t* cpu_infos, int count) {
-  int i;
-
-  for (i = 0; i < count; i++) {
-    uv__free(cpu_infos[i].model);
-  }
-
-  uv__free(cpu_infos);
 }

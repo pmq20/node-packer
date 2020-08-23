@@ -18,15 +18,13 @@
 // DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
-
+#define NODE_WANT_INTERNALS 1
 #include "async_wrap-inl.h"
 #include "env-inl.h"
-#include "util-inl.h"
-#include "node.h"
-#include "node_internals.h"
 #include "handle_wrap.h"
+#include "node.h"
 #include "string_bytes.h"
-
+#include "util-inl.h"
 
 namespace node {
 
@@ -48,11 +46,12 @@ using v8::Value;
 
 namespace {
 
-class FSEventWrap: public HandleWrap {
+class FSEventWrap : public HandleWrap {
  public:
   static void Initialize(Local<Object> target,
                          Local<Value> unused,
-                         Local<Context> context);
+                         Local<Context> context,
+                         void* priv);
   static void New(const FunctionCallbackInfo<Value>& args);
   static void Start(const FunctionCallbackInfo<Value>& args);
   static void GetInitialized(const FunctionCallbackInfo<Value>& args);
@@ -65,15 +64,16 @@ class FSEventWrap: public HandleWrap {
   static const encoding kDefaultEncoding = UTF8;
 
   FSEventWrap(Environment* env, Local<Object> object);
-  ~FSEventWrap() override;
+  ~FSEventWrap() = default;
 
-  static void OnEvent(uv_fs_event_t* handle, const char* filename, int events,
-    int status);
+  static void OnEvent(uv_fs_event_t* handle,
+                      const char* filename,
+                      int events,
+                      int status);
 
   uv_fs_event_t handle_;
   enum encoding encoding_ = kDefaultEncoding;
 };
-
 
 FSEventWrap::FSEventWrap(Environment* env, Local<Object> object)
     : HandleWrap(env,
@@ -81,10 +81,6 @@ FSEventWrap::FSEventWrap(Environment* env, Local<Object> object)
                  reinterpret_cast<uv_handle_t*>(&handle_),
                  AsyncWrap::PROVIDER_FSEVENTWRAP) {
   MarkAsUninitialized();
-}
-
-
-FSEventWrap::~FSEventWrap() {
 }
 
 void FSEventWrap::GetInitialized(const FunctionCallbackInfo<Value>& args) {
@@ -95,7 +91,8 @@ void FSEventWrap::GetInitialized(const FunctionCallbackInfo<Value>& args) {
 
 void FSEventWrap::Initialize(Local<Object> target,
                              Local<Value> unused,
-                             Local<Context> context) {
+                             Local<Context> context,
+                             void* priv) {
   Environment* env = Environment::GetCurrent(context);
 
   auto fsevent_string = FIXED_ONE_BYTE_STRING(env->isolate(), "FSEvent");
@@ -110,18 +107,21 @@ void FSEventWrap::Initialize(Local<Object> target,
   Local<FunctionTemplate> get_initialized_templ =
       FunctionTemplate::New(env->isolate(),
                             GetInitialized,
-                            env->as_external(),
+                            env->as_callback_data(),
                             Signature::New(env->isolate(), t));
 
   t->PrototypeTemplate()->SetAccessorProperty(
       FIXED_ONE_BYTE_STRING(env->isolate(), "initialized"),
       get_initialized_templ,
       Local<FunctionTemplate>(),
-      static_cast<PropertyAttribute>(ReadOnly | DontDelete | v8::DontEnum));
+      static_cast<PropertyAttribute>(ReadOnly | DontDelete | DontEnum));
 
-  target->Set(fsevent_string, t->GetFunction(context).ToLocalChecked());
+  target
+      ->Set(env->context(),
+            fsevent_string,
+            t->GetFunction(context).ToLocalChecked())
+      .Check();
 }
-
 
 void FSEventWrap::New(const FunctionCallbackInfo<Value>& args) {
   CHECK(args.IsConstructCall());
@@ -144,8 +144,7 @@ void FSEventWrap::Start(const FunctionCallbackInfo<Value>& args) {
   CHECK_NOT_NULL(*path);
 
   unsigned int flags = 0;
-  if (args[2]->IsTrue())
-    flags |= UV_FS_EVENT_RECURSIVE;
+  if (args[2]->IsTrue()) flags |= UV_FS_EVENT_RECURSIVE;
 
   wrap->encoding_ = ParseEncoding(env->isolate(), args[3], kDefaultEncoding);
 
@@ -170,9 +169,10 @@ void FSEventWrap::Start(const FunctionCallbackInfo<Value>& args) {
   args.GetReturnValue().Set(err);
 }
 
-
-void FSEventWrap::OnEvent(uv_fs_event_t* handle, const char* filename,
-    int events, int status) {
+void FSEventWrap::OnEvent(uv_fs_event_t* handle,
+                          const char* filename,
+                          int events,
+                          int status) {
   FSEventWrap* wrap = static_cast<FSEventWrap*>(handle->data);
   Environment* env = wrap->env();
 
@@ -204,24 +204,17 @@ void FSEventWrap::OnEvent(uv_fs_event_t* handle, const char* filename,
   }
 
   Local<Value> argv[] = {
-    Integer::New(env->isolate(), status),
-    event_string,
-    Null(env->isolate())
-  };
+      Integer::New(env->isolate(), status), event_string, Null(env->isolate())};
 
   if (filename != nullptr) {
     Local<Value> error;
-    MaybeLocal<Value> fn = StringBytes::Encode(env->isolate(),
-                                               filename,
-                                               wrap->encoding_,
-                                               &error);
+    MaybeLocal<Value> fn =
+        StringBytes::Encode(env->isolate(), filename, wrap->encoding_, &error);
     if (fn.IsEmpty()) {
       argv[0] = Integer::New(env->isolate(), UV_EINVAL);
-      argv[2] = StringBytes::Encode(env->isolate(),
-                                    filename,
-                                    strlen(filename),
-                                    BUFFER,
-                                    &error).ToLocalChecked();
+      argv[2] = StringBytes::Encode(
+                    env->isolate(), filename, strlen(filename), BUFFER, &error)
+                    .ToLocalChecked();
     } else {
       argv[2] = fn.ToLocalChecked();
     }
@@ -233,4 +226,4 @@ void FSEventWrap::OnEvent(uv_fs_event_t* handle, const char* filename,
 }  // anonymous namespace
 }  // namespace node
 
-NODE_BUILTIN_MODULE_CONTEXT_AWARE(fs_event_wrap, node::FSEventWrap::Initialize)
+NODE_MODULE_CONTEXT_AWARE_INTERNAL(fs_event_wrap, node::FSEventWrap::Initialize)

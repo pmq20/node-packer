@@ -21,11 +21,13 @@
 
 'use strict';
 
+const { Object } = primordials;
+
 // This module is deprecated in documentation only. Users should be directed
 // towards using the specific constants exposed by the individual modules on
 // which they are most relevant.
 // Deprecation Code: DEP0008
-const constants = process.binding('constants');
+const constants = internalBinding('constants');
 Object.assign(exports,
               constants.os.dlopen,
               constants.os.errno,
@@ -33,3 +35,4 @@ Object.assign(exports,
               constants.os.signals,
               constants.fs,
               constants.crypto);
+Object.freeze(exports);

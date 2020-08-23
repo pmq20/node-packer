@@ -1,6 +1,6 @@
 # Query String
 
-<!--introduced_in=v0.10.0-->
+<!--introduced_in=v0.1.25-->
 
 > Stability: 2 - Stable
 
@@ -43,7 +43,7 @@ generally not expected to be used directly. It is exported primarily to allow
 application code to provide a replacement percent-encoding implementation if
 necessary by assigning `querystring.escape` to an alternative function.
 
-## querystring.parse(str[, sep[, eq[, options]]])
+## querystring.parse(str\[, sep\[, eq\[, options\]\]\])
 <!-- YAML
 added: v0.1.25
 changes:
@@ -99,7 +99,7 @@ querystring.parse('w=%D6%D0%CE%C4&foo=bar', null, null,
                   { decodeURIComponent: gbkDecodeURIComponent });
 ```
 
-## querystring.stringify(obj[, sep[, eq[, options]]])
+## querystring.stringify(obj\[, sep\[, eq\[, options\]\]\])
 <!-- YAML
 added: v0.1.25
 -->
@@ -123,10 +123,10 @@ Any other input values will be coerced to empty strings.
 
 ```js
 querystring.stringify({ foo: 'bar', baz: ['qux', 'quux'], corge: '' });
-// returns 'foo=bar&baz=qux&baz=quux&corge='
+// Returns 'foo=bar&baz=qux&baz=quux&corge='
 
 querystring.stringify({ foo: 'bar', baz: 'qux' }, ';', ':');
-// returns 'foo:bar;baz:qux'
+// Returns 'foo:bar;baz:qux'
 ```
 
 By default, characters requiring percent-encoding within the query string will
@@ -144,6 +144,7 @@ querystring.stringify({ w: '中文', foo: 'bar' }, null, null,
 <!-- YAML
 added: v0.1.25
 -->
+
 * `str` {string}
 
 The `querystring.unescape()` method performs decoding of URL percent-encoded

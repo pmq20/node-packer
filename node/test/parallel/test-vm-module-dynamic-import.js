@@ -10,7 +10,6 @@ const { Script, SourceTextModule, createContext } = require('vm');
 async function testNoCallback() {
   const m = new SourceTextModule('import("foo")', { context: createContext() });
   await m.link(common.mustNotCall());
-  m.instantiate();
   const { result } = await m.evaluate();
   let threw = false;
   try {
@@ -25,7 +24,6 @@ async function testNoCallback() {
 async function test() {
   const foo = new SourceTextModule('export const a = 1;');
   await foo.link(common.mustNotCall());
-  foo.instantiate();
   await foo.evaluate();
 
   {
@@ -50,7 +48,6 @@ async function test() {
       }),
     });
     await m.link(common.mustNotCall());
-    m.instantiate();
     const { result } = await m.evaluate();
     assert.strictEqual(foo.namespace, await result);
   }
@@ -63,21 +60,38 @@ async function testInvalid() {
     }),
   });
   await m.link(common.mustNotCall());
-  m.instantiate();
   const { result } = await m.evaluate();
   await result.catch(common.mustCall((e) => {
     assert.strictEqual(e.code, 'ERR_VM_MODULE_NOT_MODULE');
   }));
+
+  const s = new Script('import("foo")', {
+    importModuleDynamically: common.mustCall((specifier, wrap) => {
+      return undefined;
+    }),
+  });
+  let threw = false;
+  try {
+    await s.runInThisContext();
+  } catch (e) {
+    threw = true;
+    assert.strictEqual(e.code, 'ERR_VM_MODULE_NOT_MODULE');
+  }
+  assert(threw);
 }
 
-const done = common.mustCallAtLeast(3);
+async function testInvalidimportModuleDynamically() {
+  assert.throws(
+    () => new Script(
+      'import("foo")',
+      { importModuleDynamically: false }),
+    { code: 'ERR_INVALID_ARG_TYPE' }
+  );
+}
+
 (async function() {
   await testNoCallback();
-  done();
-
   await test();
-  done();
-
   await testInvalid();
-  done();
+  await testInvalidimportModuleDynamically();
 }()).then(common.mustCall());

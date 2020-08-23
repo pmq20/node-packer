@@ -19,6 +19,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+// Flags: --expose-internals
 'use strict';
 const common = require('../common');
 if (!common.hasCrypto)
@@ -60,7 +61,6 @@ server.listen(0, '127.0.0.1', function() {
   const req = https.request(options, function(res) {
     res.on('end', function() {
       server.close();
-      process.exit();
     });
     res.resume();
   });

@@ -1,6 +1,7 @@
 'use strict';
 
-// undocumented cb() API, needed for core, not for public API
+// Undocumented cb() API, needed for core, not for public API.
+// The cb() will be invoked synchronously if _destroy is synchronous.
 function destroy(err, cb) {
   const readableDestroyed = this._readableState &&
     this._readableState.destroyed;
@@ -22,14 +23,14 @@ function destroy(err, cb) {
     return this;
   }
 
-  // we set destroyed to true before firing error callbacks in order
+  // We set destroyed to true before firing error callbacks in order
   // to make it re-entrance safe in case destroy() is called within callbacks
 
   if (this._readableState) {
     this._readableState.destroyed = true;
   }
 
-  // if this is a duplex stream mark the writable part as destroyed as well
+  // If this is a duplex stream mark the writable part as destroyed as well
   if (this._writableState) {
     this._writableState.destroyed = true;
   }

@@ -29,7 +29,6 @@
 #include "squash/fs.h"
 
 #include <string.h>
-#include <stdlib.h>
 
 /* Read some directory metadata, updating the dir structure as necessary */
 static sqfs_err sqfs_dir_md_read(sqfs *fs, sqfs_dir *dir, void *buf,

@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>V8 | Node.js v10.16.3 Documentation</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
+  <title>V8 | Node.js v12.13.0 Documentation</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
   <link rel="canonical" href="https://nodejs.org/api/v8.html">
@@ -52,11 +52,13 @@
 <li><a href="os.html" class="nav-os">OS</a></li>
 <li><a href="path.html" class="nav-path">Path</a></li>
 <li><a href="perf_hooks.html" class="nav-perf_hooks">Performance Hooks</a></li>
+<li><a href="policy.html" class="nav-policy">Policies</a></li>
 <li><a href="process.html" class="nav-process">Process</a></li>
 <li><a href="punycode.html" class="nav-punycode">Punycode</a></li>
 <li><a href="querystring.html" class="nav-querystring">Query Strings</a></li>
 <li><a href="readline.html" class="nav-readline">Readline</a></li>
 <li><a href="repl.html" class="nav-repl">REPL</a></li>
+<li><a href="report.html" class="nav-report">Report</a></li>
 <li><a href="stream.html" class="nav-stream">Stream</a></li>
 <li><a href="string_decoder.html" class="nav-string_decoder">String Decoder</a></li>
 <li><a href="timers.html" class="nav-timers">Timers</a></li>
@@ -79,7 +81,7 @@
 
     <div id="column1" data-id="v8" class="interior">
       <header>
-        <h1>Node.js v10.16.3 Documentation</h1>
+        <h1>Node.js v12.13.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -119,8 +121,11 @@
 <ul>
 <li><a href="#v8_v8_cacheddataversiontag">v8.cachedDataVersionTag()</a></li>
 <li><a href="#v8_v8_getheapspacestatistics">v8.getHeapSpaceStatistics()</a></li>
+<li><a href="#v8_v8_getheapsnapshot">v8.getHeapSnapshot()</a></li>
 <li><a href="#v8_v8_getheapstatistics">v8.getHeapStatistics()</a></li>
+<li><a href="#v8_v8_getheapcodestatistics">v8.getHeapCodeStatistics()</a></li>
 <li><a href="#v8_v8_setflagsfromstring_flags">v8.setFlagsFromString(flags)</a></li>
+<li><a href="#v8_v8_writeheapsnapshot_filename">v8.writeHeapSnapshot([filename])</a></li>
 <li>
 <p><a href="#v8_serialization_api">Serialization API</a></p>
 <ul>
@@ -185,9 +190,9 @@ built into the Node.js binary. It can be accessed using:</p>
 </ul>
 <p>Returns an integer representing a "version tag" derived from the V8 version,
 command line flags and detected CPU features. This is useful for determining
-whether a <a href="vm.html#vm_new_vm_script_code_options"><code>vm.Script</code></a> <code>cachedData</code> buffer is compatible with this instance
+whether a <a href="vm.html#vm_constructor_new_vm_script_code_options"><code>vm.Script</code></a> <code>cachedData</code> buffer is compatible with this instance
 of V8.</p>
-<h2>v8.getHeapSpaceStatistics()<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/v8.js#L92">[src]</a><span><a class="mark" href="#v8_v8_getheapspacestatistics" id="v8_v8_getheapspacestatistics">#</a></span></h2>
+<h2>v8.getHeapSpaceStatistics()<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/v8.js#L162">[src]</a><span><a class="mark" href="#v8_v8_getheapspacestatistics" id="v8_v8_getheapspacestatistics">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -253,7 +258,22 @@ next.</p>
   }
 ]
 </code></pre>
-<h2>v8.getHeapStatistics()<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/v8.js#L74">[src]</a><span><a class="mark" href="#v8_v8_getheapstatistics" id="v8_v8_getheapstatistics">#</a></span></h2>
+<h2>v8.getHeapSnapshot()<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/v8.js#L76">[src]</a><span><a class="mark" href="#v8_v8_getheapsnapshot" id="v8_v8_getheapsnapshot">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v11.13.0</span>
+</div>
+<ul>
+<li>Returns: <a href="stream.html#stream_class_stream_readable" class="type">&#x3C;stream.Readable></a> A Readable Stream containing the V8 heap snapshot</li>
+</ul>
+<p>Generates a snapshot of the current V8 heap and returns a Readable
+Stream that may be used to read the JSON serialized representation.
+This JSON stream format is intended to be used with tools such as
+Chrome DevTools. The JSON schema is undocumented and specific to the
+V8 engine, and may change from one version of V8 to the next.</p>
+<pre><code class="language-js">const stream = v8.getHeapSnapshot();
+stream.pipe(process.stdout);
+</code></pre>
+<h2>v8.getHeapStatistics()<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/v8.js#L142">[src]</a><span><a class="mark" href="#v8_v8_getheapstatistics" id="v8_v8_getheapstatistics">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -281,12 +301,20 @@ next.</p>
 <li><code>malloced_memory</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
 <li><code>peak_malloced_memory</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
 <li><code>does_zap_garbage</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
+<li><code>number_of_native_contexts</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
+<li><code>number_of_detached_contexts</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
 </ul>
 <p><code>does_zap_garbage</code> is a 0/1 boolean, which signifies whether the
 <code>--zap_code_space</code> option is enabled or not. This makes V8 overwrite heap
 garbage with a bit pattern. The RSS footprint (resident memory set) gets bigger
 because it continuously touches all heap pages and that makes them less likely
 to get swapped out by the operating system.</p>
+<p><code>number_of_native_contexts</code> The value of native_context is the number of the
+top-level contexts currently active. Increase of this number over time indicates
+a memory leak.</p>
+<p><code>number_of_detached_contexts</code> The value of detached_context is the number
+of contexts that were detached and not yet garbage collected. This number
+being non-zero indicates a potential memory leak.</p>
 <!-- eslint-skip -->
 <pre><code class="language-js">{
   total_heap_size: 7326976,
@@ -297,10 +325,32 @@ to get swapped out by the operating system.</p>
   heap_size_limit: 1535115264,
   malloced_memory: 16384,
   peak_malloced_memory: 1127496,
-  does_zap_garbage: 0
+  does_zap_garbage: 0,
+  number_of_native_contexts: 1,
+  number_of_detached_contexts: 0
 }
 </code></pre>
-<h2>v8.setFlagsFromString(flags)<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/v8.js#L68">[src]</a><span><a class="mark" href="#v8_v8_setflagsfromstring_flags" id="v8_v8_setflagsfromstring_flags">#</a></span></h2>
+<h2>v8.getHeapCodeStatistics()<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/v8.js#L181">[src]</a><span><a class="mark" href="#v8_v8_getheapcodestatistics" id="v8_v8_getheapcodestatistics">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v12.8.0</span>
+</div>
+<ul>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></li>
+</ul>
+<p>Returns an object with the following properties:</p>
+<ul>
+<li><code>code_and_metadata_size</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
+<li><code>bytecode_and_metadata_size</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
+<li><code>external_script_source_size</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
+</ul>
+<!-- eslint-skip -->
+<pre><code class="language-js">{
+  code_and_metadata_size: 212208,
+  bytecode_and_metadata_size: 161368,
+  external_script_source_size: 1410794
+}
+</code></pre>
+<h2>v8.setFlagsFromString(flags)<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/v8.js#L137">[src]</a><span><a class="mark" href="#v8_v8_setflagsfromstring_flags" id="v8_v8_setflagsfromstring_flags">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v1.0.0</span>
 </div>
@@ -312,13 +362,60 @@ V8 command line flags. This method should be used with care. Changing settings
 after the VM has started may result in unpredictable behavior, including
 crashes and data loss; or it may simply do nothing.</p>
 <p>The V8 options available for a version of Node.js may be determined by running
-<code>node --v8-options</code>. An unofficial, community-maintained list of options
-and their effects is available <a href="https://github.com/thlorenz/v8-flags/blob/master/flags-0.11.md">here</a>.</p>
+<code>node --v8-options</code>.</p>
 <p>Usage:</p>
 <pre><code class="language-js">// Print GC events to stdout for one minute.
 const v8 = require('v8');
 v8.setFlagsFromString('--trace_gc');
 setTimeout(() => { v8.setFlagsFromString('--notrace_gc'); }, 60e3);
+</code></pre>
+<h2>v8.writeHeapSnapshot([filename])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/v8.js#L43">[src]</a><span><a class="mark" href="#v8_v8_writeheapsnapshot_filename" id="v8_v8_writeheapsnapshot_filename">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v11.13.0</span>
+</div>
+<ul>
+<li><code>filename</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The file path where the V8 heap snapshot is to be
+saved. If not specified, a file name with the pattern
+<code>'Heap-${yyyymmdd}-${hhmmss}-${pid}-${thread_id}.heapsnapshot'</code> will be
+generated, where <code>{pid}</code> will be the PID of the Node.js process,
+<code>{thread_id}</code> will be <code>0</code> when <code>writeHeapSnapshot()</code> is called from
+the main Node.js thread or the id of a worker thread.</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The filename where the snapshot was saved.</li>
+</ul>
+<p>Generates a snapshot of the current V8 heap and writes it to a JSON
+file. This file is intended to be used with tools such as Chrome
+DevTools. The JSON schema is undocumented and specific to the V8
+engine, and may change from one version of V8 to the next.</p>
+<p>A heap snapshot is specific to a single V8 isolate. When using
+<a href="worker_threads.html">Worker Threads</a>, a heap snapshot generated from the main thread will
+not contain any information about the workers, and vice versa.</p>
+<pre><code class="language-js">const { writeHeapSnapshot } = require('v8');
+const {
+  Worker,
+  isMainThread,
+  parentPort
+} = require('worker_threads');
+
+if (isMainThread) {
+  const worker = new Worker(__filename);
+
+  worker.once('message', (filename) => {
+    console.log(`worker heapdump: ${filename}`);
+    // Now get a heapdump for the main thread.
+    console.log(`main thread heapdump: ${writeHeapSnapshot()}`);
+  });
+
+  // Tell the worker to create a heapdump.
+  worker.postMessage('heapdump');
+} else {
+  parentPort.once('message', (message) => {
+    if (message === 'heapdump') {
+      // Generate a heapdump for the worker
+      // and return the filename to the parent.
+      parentPort.postMessage(writeHeapSnapshot());
+    }
+  });
+}
 </code></pre>
 <h2>Serialization API<span><a class="mark" href="#v8_serialization_api" id="v8_serialization_api">#</a></span></h2>
 <p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
@@ -327,7 +424,7 @@ that is compatible with the <a href="https://developer.mozilla.org/en-US/docs/We
 The format is backward-compatible (i.e. safe to store to disk).</p>
 <p>This API is under development, and changes (including incompatible
 changes to the API or wire format) may occur until this warning is removed.</p>
-<h3>v8.serialize(value)<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/v8.js#L199">[src]</a><span><a class="mark" href="#v8_v8_serialize_value" id="v8_v8_serialize_value">#</a></span></h3>
+<h3>v8.serialize(value)<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/v8.js#L280">[src]</a><span><a class="mark" href="#v8_v8_serialize_value" id="v8_v8_serialize_value">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
 </div>
@@ -336,7 +433,7 @@ changes to the API or wire format) may occur until this warning is removed.</p>
 <li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a></li>
 </ul>
 <p>Uses a <a href="#v8_class_v8_defaultserializer"><code>DefaultSerializer</code></a> to serialize <code>value</code> into a buffer.</p>
-<h3>v8.deserialize(buffer)<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/v8.js#L206">[src]</a><span><a class="mark" href="#v8_v8_deserialize_buffer" id="v8_v8_deserialize_buffer">#</a></span></h3>
+<h3>v8.deserialize(buffer)<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/v8.js#L287">[src]</a><span><a class="mark" href="#v8_v8_deserialize_buffer" id="v8_v8_deserialize_buffer">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.0.0</span>
 </div>
@@ -372,7 +469,7 @@ if a previous write has failed.</p>
 <li><code>id</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> A 32-bit unsigned integer.</li>
 <li><code>arrayBuffer</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer" class="type">&#x3C;ArrayBuffer></a> An <code>ArrayBuffer</code> instance.</li>
 </ul>
-<p>Marks an <code>ArrayBuffer</code> as havings its contents transferred out of band.
+<p>Marks an <code>ArrayBuffer</code> as having its contents transferred out of band.
 Pass the corresponding <code>ArrayBuffer</code> in the deserializing context to
 <a href="#v8_deserializer_transferarraybuffer_id_arraybuffer"><code>deserializer.transferArrayBuffer()</code></a>.</p>
 <h4>serializer.writeUint32(value)<span><a class="mark" href="#v8_serializer_writeuint32_value" id="v8_serializer_writeuint32_value">#</a></span></h4>
@@ -457,7 +554,7 @@ an <code>Error</code> is thrown.</p>
 <li><code>id</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> A 32-bit unsigned integer.</li>
 <li><code>arrayBuffer</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer" class="type">&#x3C;ArrayBuffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SharedArrayBuffer" class="type">&#x3C;SharedArrayBuffer></a> An <code>ArrayBuffer</code> instance.</li>
 </ul>
-<p>Marks an <code>ArrayBuffer</code> as havings its contents transferred out of band.
+<p>Marks an <code>ArrayBuffer</code> as having its contents transferred out of band.
 Pass the corresponding <code>ArrayBuffer</code> in the serializing context to
 <a href="#v8_serializer_transferarraybuffer_id_arraybuffer"><code>serializer.transferArrayBuffer()</code></a> (or return the <code>id</code> from
 <a href="#v8_serializer_getsharedarraybufferid_sharedarraybuffer"><code>serializer._getSharedArrayBufferId()</code></a> in the case of <code>SharedArrayBuffer</code>s).</p>
@@ -487,7 +584,7 @@ For use inside of a custom <a href="#v8_deserializer_readhostobject"><code>deser
 </ul>
 <p>Read a JS <code>number</code> value.
 For use inside of a custom <a href="#v8_deserializer_readhostobject"><code>deserializer._readHostObject()</code></a>.</p>
-<h4>deserializer.readRawBytes(length)<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/v8.js#L116">[src]</a><span><a class="mark" href="#v8_deserializer_readrawbytes_length" id="v8_deserializer_readrawbytes_length">#</a></span></h4>
+<h4>deserializer.readRawBytes(length)<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/v8.js#L197">[src]</a><span><a class="mark" href="#v8_deserializer_readrawbytes_length" id="v8_deserializer_readrawbytes_length">#</a></span></h4>
 <ul>
 <li><code>length</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
 <li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a></li>

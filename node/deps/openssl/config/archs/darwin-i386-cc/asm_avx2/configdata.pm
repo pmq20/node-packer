@@ -48,22 +48,22 @@ our %config = (
   export_var_as_fn => "0",
   includes => [  ],
   lflags => [  ],
-  lib_defines => [ "OPENSSL_PIC", "OPENSSL_CPUID_OBJ", "OPENSSL_BN_ASM_PART_WORDS", "OPENSSL_IA32_SSE2", "OPENSSL_BN_ASM_MONT", "OPENSSL_BN_ASM_GF2m", "SHA1_ASM", "SHA256_ASM", "SHA512_ASM", "RC4_ASM", "MD5_ASM", "RMD160_ASM", "AES_ASM", "VPAES_ASM", "WHIRLPOOL_ASM", "GHASH_ASM", "ECP_NISTZ256_ASM", "POLY1305_ASM" ],
+  lib_defines => [ "OPENSSL_PIC", "OPENSSL_CPUID_OBJ", "OPENSSL_BN_ASM_PART_WORDS", "OPENSSL_IA32_SSE2", "OPENSSL_BN_ASM_MONT", "OPENSSL_BN_ASM_GF2m", "SHA1_ASM", "SHA256_ASM", "SHA512_ASM", "RC4_ASM", "MD5_ASM", "RMD160_ASM", "VPAES_ASM", "WHIRLPOOL_ASM", "GHASH_ASM", "ECP_NISTZ256_ASM", "POLY1305_ASM" ],
   libdir => "",
   major => "1",
   makedepprog => "\$(CROSS_COMPILE)../config/fake_gcc.pl",
   minor => "1.1",
   openssl_algorithm_defines => [ "OPENSSL_NO_COMP", "OPENSSL_NO_MD2", "OPENSSL_NO_RC5" ],
   openssl_api_defines => [  ],
-  openssl_other_defines => [ "OPENSSL_RAND_SEED_OS", "OPENSSL_NO_AFALGENG", "OPENSSL_NO_ASAN", "OPENSSL_NO_CRYPTO_MDEBUG", "OPENSSL_NO_CRYPTO_MDEBUG_BACKTRACE", "OPENSSL_NO_DEVCRYPTOENG", "OPENSSL_NO_EC_NISTP_64_GCC_128", "OPENSSL_NO_EGD", "OPENSSL_NO_EXTERNAL_TESTS", "OPENSSL_NO_FUZZ_AFL", "OPENSSL_NO_FUZZ_LIBFUZZER", "OPENSSL_NO_HEARTBEATS", "OPENSSL_NO_MSAN", "OPENSSL_NO_SCTP", "OPENSSL_NO_SSL_TRACE", "OPENSSL_NO_SSL3", "OPENSSL_NO_SSL3_METHOD", "OPENSSL_NO_UBSAN", "OPENSSL_NO_UNIT_TEST", "OPENSSL_NO_WEAK_SSL_CIPHERS", "OPENSSL_NO_DYNAMIC_ENGINE", "OPENSSL_NO_AFALGENG" ],
+  openssl_other_defines => [ "OPENSSL_RAND_SEED_OS", "OPENSSL_NO_AFALGENG", "OPENSSL_NO_ASAN", "OPENSSL_NO_CRYPTO_MDEBUG", "OPENSSL_NO_CRYPTO_MDEBUG_BACKTRACE", "OPENSSL_NO_DEVCRYPTOENG", "OPENSSL_NO_EC_NISTP_64_GCC_128", "OPENSSL_NO_EGD", "OPENSSL_NO_EXTERNAL_TESTS", "OPENSSL_NO_FUZZ_AFL", "OPENSSL_NO_FUZZ_LIBFUZZER", "OPENSSL_NO_HEARTBEATS", "OPENSSL_NO_MSAN", "OPENSSL_NO_SCTP", "OPENSSL_NO_SSL3", "OPENSSL_NO_SSL3_METHOD", "OPENSSL_NO_UBSAN", "OPENSSL_NO_UNIT_TEST", "OPENSSL_NO_WEAK_SSL_CIPHERS", "OPENSSL_NO_DYNAMIC_ENGINE", "OPENSSL_NO_AFALGENG" ],
   openssl_sys_defines => [ "OPENSSL_SYS_MACOSX" ],
   openssl_thread_defines => [ "OPENSSL_THREADS" ],
   openssldir => "",
-  options => " no-afalgeng no-asan no-buildtest-c++ no-comp no-crypto-mdebug no-crypto-mdebug-backtrace no-devcryptoeng no-dynamic-engine no-ec_nistp_64_gcc_128 no-egd no-external-tests no-fuzz-afl no-fuzz-libfuzzer no-heartbeats no-md2 no-msan no-rc5 no-sctp no-shared no-ssl-trace no-ssl3 no-ssl3-method no-ubsan no-unit-test no-weak-ssl-ciphers no-zlib no-zlib-dynamic",
+  options => "enable-ssl-trace no-afalgeng no-asan no-buildtest-c++ no-comp no-crypto-mdebug no-crypto-mdebug-backtrace no-devcryptoeng no-dynamic-engine no-ec_nistp_64_gcc_128 no-egd no-external-tests no-fuzz-afl no-fuzz-libfuzzer no-heartbeats no-md2 no-msan no-rc5 no-sctp no-shared no-ssl3 no-ssl3-method no-ubsan no-unit-test no-weak-ssl-ciphers no-zlib no-zlib-dynamic",
   perl_archname => "x86_64-linux-gnu-thread-multi",
   perl_cmd => "/usr/bin/perl",
   perl_version => "5.28.1",
-  perlargv => [ "no-comp", "no-shared", "no-afalgeng", "darwin-i386-cc" ],
+  perlargv => [ "no-comp", "no-shared", "no-afalgeng", "enable-ssl-trace", "darwin-i386-cc" ],
   perlenv => {
       "AR" => undef,
       "ARFLAGS" => undef,
@@ -111,8 +111,8 @@ our %config = (
   sourcedir => ".",
   target => "darwin-i386-cc",
   tdirs => [ "ossl_shim" ],
-  version => "1.1.1c",
-  version_num => "0x1010103fL",
+  version => "1.1.1d",
+  version_num => "0x1010104fL",
 );
 
 our %target = (
@@ -124,8 +124,8 @@ our %target = (
   RANLIB => "ranlib -c",
   RC => "windres",
   _conf_fname_int => [ "Configurations/00-base-templates.conf", "Configurations/00-base-templates.conf", "Configurations/10-main.conf", "Configurations/00-base-templates.conf", "Configurations/10-main.conf", "Configurations/shared-info.pl" ],
-  aes_asm_src => "aes-586.s vpaes-x86.s aesni-x86.s",
-  aes_obj => "aes-586.o vpaes-x86.o aesni-x86.o",
+  aes_asm_src => "aes_core.c aes_cbc.c vpaes-x86.s aesni-x86.s",
+  aes_obj => "aes_core.o aes_cbc.o vpaes-x86.o aesni-x86.o",
   apps_aux_src => "",
   apps_init_src => "",
   apps_obj => "",
@@ -335,7 +335,6 @@ our %disabled = (
   "rc5" => "default",
   "sctp" => "default",
   "shared" => "option",
-  "ssl-trace" => "default",
   "ssl3" => "default",
   "ssl3-method" => "default",
   "ubsan" => "default",
@@ -1685,8 +1684,9 @@ our %unified_info = (
                 {
                     "deps" =>
                         [
-                            "crypto/aes/aes-586.o",
+                            "crypto/aes/aes_cbc.o",
                             "crypto/aes/aes_cfb.o",
+                            "crypto/aes/aes_core.o",
                             "crypto/aes/aes_ecb.o",
                             "crypto/aes/aes_ige.o",
                             "crypto/aes/aes_misc.o",
@@ -3227,6 +3227,7 @@ our %unified_info = (
                             "test/testutil/init.o",
                             "test/testutil/main.o",
                             "test/testutil/output_helpers.o",
+                            "test/testutil/random.o",
                             "test/testutil/stanza.o",
                             "test/testutil/tap_bio.o",
                             "test/testutil/test_cleanup.o",
@@ -4840,12 +4841,6 @@ our %unified_info = (
                     "include",
                     "apps",
                 ],
-            "crypto/aes/aes-586.o" =>
-                [
-                    ".",
-                    "crypto/include",
-                    "include",
-                ],
             "crypto/aes/aes-armv4.o" =>
                 [
                     "crypto",
@@ -4862,7 +4857,19 @@ our %unified_info = (
                 [
                     "crypto",
                 ],
+            "crypto/aes/aes_cbc.o" =>
+                [
+                    ".",
+                    "crypto/include",
+                    "include",
+                ],
             "crypto/aes/aes_cfb.o" =>
+                [
+                    ".",
+                    "crypto/include",
+                    "include",
+                ],
+            "crypto/aes/aes_core.o" =>
                 [
                     ".",
                     "crypto/include",
@@ -9980,6 +9987,10 @@ our %unified_info = (
                 [
                     "include",
                 ],
+            "test/testutil/random.o" =>
+                [
+                    "include",
+                ],
             "test/testutil/stanza.o" =>
                 [
                     "include",
@@ -10613,13 +10624,17 @@ our %unified_info = (
                 [
                     "apps/x509.c",
                 ],
-            "crypto/aes/aes-586.o" =>
+            "crypto/aes/aes_cbc.o" =>
                 [
-                    "crypto/aes/aes-586.s",
+                    "crypto/aes/aes_cbc.c",
                 ],
             "crypto/aes/aes_cfb.o" =>
                 [
                     "crypto/aes/aes_cfb.c",
+                ],
+            "crypto/aes/aes_core.o" =>
+                [
+                    "crypto/aes/aes_core.c",
                 ],
             "crypto/aes/aes_ecb.o" =>
                 [
@@ -13310,8 +13325,9 @@ our %unified_info = (
                 ],
             "libcrypto" =>
                 [
-                    "crypto/aes/aes-586.o",
+                    "crypto/aes/aes_cbc.o",
                     "crypto/aes/aes_cfb.o",
+                    "crypto/aes/aes_core.o",
                     "crypto/aes/aes_ecb.o",
                     "crypto/aes/aes_ige.o",
                     "crypto/aes/aes_misc.o",
@@ -15213,6 +15229,7 @@ our %unified_info = (
                     "test/testutil/init.o",
                     "test/testutil/main.o",
                     "test/testutil/output_helpers.o",
+                    "test/testutil/random.o",
                     "test/testutil/stanza.o",
                     "test/testutil/tap_bio.o",
                     "test/testutil/test_cleanup.o",
@@ -15558,6 +15575,10 @@ our %unified_info = (
                 [
                     "test/testutil/output_helpers.c",
                 ],
+            "test/testutil/random.o" =>
+                [
+                    "test/testutil/random.c",
+                ],
             "test/testutil/stanza.o" =>
                 [
                     "test/testutil/stanza.c",
@@ -15784,9 +15805,6 @@ my %disabled_info = (
     },
     'sctp' => {
         macro => 'OPENSSL_NO_SCTP',
-    },
-    'ssl-trace' => {
-        macro => 'OPENSSL_NO_SSL_TRACE',
     },
     'ssl3' => {
         macro => 'OPENSSL_NO_SSL3',

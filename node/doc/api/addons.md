@@ -8,37 +8,43 @@ can be loaded into Node.js using the [`require()`][require] function, and used
 just as if they were an ordinary Node.js module. They are used primarily to
 provide an interface between JavaScript running in Node.js and C/C++ libraries.
 
-At the moment, the method for implementing Addons is rather complicated,
+There are three options for implementing Addons: N-API, nan, or direct
+use of internal V8, libuv and Node.js libraries. Unless you need direct
+access to functionality which is not exposed by N-API, use N-API.
+Refer to the section [C/C++ Addons - N-API](n-api.html)
+for more information on N-API.
+
+When not using N-API, implementing Addons is complicated,
 involving knowledge of several components and APIs:
 
- - V8: the C++ library Node.js currently uses to provide the
-   JavaScript implementation. V8 provides the mechanisms for creating objects,
-   calling functions, etc. V8's API is documented mostly in the
-   `v8.h` header file (`deps/v8/include/v8.h` in the Node.js source
-   tree), which is also available [online][v8-docs].
+* V8: the C++ library Node.js currently uses to provide the
+  JavaScript implementation. V8 provides the mechanisms for creating objects,
+  calling functions, etc. V8's API is documented mostly in the
+  `v8.h` header file (`deps/v8/include/v8.h` in the Node.js source
+  tree), which is also available [online][v8-docs].
 
- - [libuv][]: The C library that implements the Node.js event loop, its worker
-   threads and all of the asynchronous behaviors of the platform. It also
-   serves as a cross-platform abstraction library, giving easy, POSIX-like
-   access across all major operating systems to many common system tasks, such
-   as interacting with the filesystem, sockets, timers, and system events. libuv
-   also provides a pthreads-like threading abstraction that may be used to
-   power more sophisticated asynchronous Addons that need to move beyond the
-   standard event loop. Addon authors are encouraged to think about how to
-   avoid blocking the event loop with I/O or other time-intensive tasks by
-   off-loading work via libuv to non-blocking system operations, worker threads
-   or a custom use of libuv's threads.
+* [libuv][]: The C library that implements the Node.js event loop, its worker
+  threads and all of the asynchronous behaviors of the platform. It also
+  serves as a cross-platform abstraction library, giving easy, POSIX-like
+  access across all major operating systems to many common system tasks, such
+  as interacting with the filesystem, sockets, timers, and system events. libuv
+  also provides a pthreads-like threading abstraction that may be used to
+  power more sophisticated asynchronous Addons that need to move beyond the
+  standard event loop. Addon authors are encouraged to think about how to
+  avoid blocking the event loop with I/O or other time-intensive tasks by
+  off-loading work via libuv to non-blocking system operations, worker threads
+  or a custom use of libuv's threads.
 
- - Internal Node.js libraries. Node.js itself exports a number of C++ APIs
-   that Addons can use &mdash; the most important of which is the
-   `node::ObjectWrap` class.
+* Internal Node.js libraries. Node.js itself exports a number of C++ APIs
+  that Addons can use &mdash; the most important of which is the
+  `node::ObjectWrap` class.
 
- - Node.js includes a number of other statically linked libraries including
-   OpenSSL. These other libraries are located in the `deps/` directory in the
-   Node.js source tree. Only the libuv, OpenSSL, V8 and zlib symbols are
-   purposefully re-exported by Node.js and may be used to various extents by
-   Addons.
-   See [Linking to Node.js' own dependencies][] for additional information.
+* Node.js includes a number of other statically linked libraries including
+  OpenSSL. These other libraries are located in the `deps/` directory in the
+  Node.js source tree. Only the libuv, OpenSSL, V8 and zlib symbols are
+  purposefully re-exported by Node.js and may be used to various extents by
+  Addons.
+  See [Linking to Node.js' own dependencies][] for additional information.
 
 All of the following examples are available for [download][] and may
 be used as the starting-point for an Addon.
@@ -83,7 +89,7 @@ NODE_MODULE(NODE_GYP_MODULE_NAME, Initialize)
 }  // namespace demo
 ```
 
-Note that all Node.js Addons must export an initialization function following
+All Node.js Addons must export an initialization function following
 the pattern:
 
 ```cpp
@@ -137,6 +143,7 @@ followed by a function body.
 
 The following three variables may be used inside the function body following an
 invocation of `NODE_MODULE_INIT()`:
+
 * `Local<Object> exports`,
 * `Local<Value> module`, and
 * `Local<Context> context`
@@ -152,6 +159,7 @@ they were created.
 
 The context-aware addon can be structured to avoid global static data by
 performing the following steps:
+
 * defining a class which will hold per-addon-instance data. Such
 a class should include a `v8::Persistent<v8::Object>` which will hold a weak
 reference to the addon's `exports` object. The callback associated with the weak
@@ -234,6 +242,29 @@ NODE_MODULE_INIT(/* exports, module, context */) {
 }
 ```
 
+#### Worker support
+
+In order to support [`Worker`][] threads, addons need to clean up any resources
+they may have allocated when such a thread exists. This can be achieved through
+the usage of the `AddEnvironmentCleanupHook()` function:
+
+```c++
+void AddEnvironmentCleanupHook(v8::Isolate* isolate,
+                               void (*fun)(void* arg),
+                               void* arg);
+```
+
+This function adds a hook that will run before a given Node.js instance shuts
+down. If necessary, such hooks can be removed using
+`RemoveEnvironmentCleanupHook()` before they are run, which has the same
+signature.
+
+In order to be loaded from multiple Node.js environments,
+such as a main thread and a Worker thread, an add-on needs to either:
+
+* Be an N-API addon, or
+* Be declared as context-aware using `NODE_MODULE_INIT()` as described above
+
 ### Building
 
 Once the source code has been written, it must be compiled into the binary
@@ -284,16 +315,12 @@ console.log(addon.hello());
 // Prints: 'world'
 ```
 
-Please see the examples below for further information or
-<https://github.com/arturadib/node-qt> for an example in production.
-
 Because the exact path to the compiled Addon binary can vary depending on how
 it is compiled (i.e. sometimes it may be in `./build/Debug/`), Addons can use
 the [bindings][] package to load the compiled module.
 
-Note that while the `bindings` package implementation is more sophisticated
-in how it locates Addon modules, it is essentially using a try-catch pattern
-similar to:
+While the `bindings` package implementation is more sophisticated in how it
+locates Addon modules, it is essentially using a `try…catch` pattern similar to:
 
 ```js
 try {
@@ -569,10 +596,10 @@ NODE_MODULE(NODE_GYP_MODULE_NAME, Init)
 }  // namespace demo
 ```
 
-Note that this example uses a two-argument form of `Init()` that receives
-the full `module` object as the second argument. This allows the Addon
-to completely overwrite `exports` with a single function instead of
-adding the function as a property of `exports`.
+This example uses a two-argument form of `Init()` that receives the full
+`module` object as the second argument. This allows the Addon to completely
+overwrite `exports` with a single function instead of adding the function as a
+property of `exports`.
 
 To test it, run the following JavaScript:
 
@@ -586,7 +613,7 @@ addon((msg) => {
 });
 ```
 
-Note that, in this example, the callback function is invoked synchronously.
+In this example, the callback function is invoked synchronously.
 
 ### Object factory
 
@@ -1349,6 +1376,7 @@ Test in JavaScript by running:
 require('./build/Release/addon');
 ```
 
+[`Worker`]: worker_threads.html#worker_threads_class_worker
 [Electron]: https://electronjs.org/
 [Embedder's Guide]: https://github.com/v8/v8/wiki/Embedder's%20Guide
 [Linking to Node.js' own dependencies]: #addons_linking_to_node_js_own_dependencies
@@ -1359,5 +1387,5 @@ require('./build/Release/addon');
 [installation instructions]: https://github.com/nodejs/node-gyp#installation
 [libuv]: https://github.com/libuv/libuv
 [node-gyp]: https://github.com/nodejs/node-gyp
-[require]: modules.html#modules_require
+[require]: modules.html#modules_require_id
 [v8-docs]: https://v8docs.nodesource.com/

@@ -4,28 +4,87 @@
 
 #include "src/interpreter/bytecode-array-accessor.h"
 
-#include "src/feedback-vector.h"
 #include "src/interpreter/bytecode-decoder.h"
 #include "src/interpreter/interpreter-intrinsics.h"
-#include "src/objects-inl.h"
 #include "src/objects/code-inl.h"
+#include "src/objects/feedback-vector.h"
+#include "src/objects/objects-inl.h"
 
 namespace v8 {
 namespace internal {
 namespace interpreter {
 
+namespace {
+
+class OnHeapBytecodeArray final : public AbstractBytecodeArray {
+ public:
+  explicit OnHeapBytecodeArray(Handle<BytecodeArray> bytecode_array)
+      : array_(bytecode_array) {}
+
+  int length() const override { return array_->length(); }
+
+  int parameter_count() const override { return array_->parameter_count(); }
+
+  uint8_t get(int index) const override { return array_->get(index); }
+
+  void set(int index, uint8_t value) override {
+    return array_->set(index, value);
+  }
+
+  Address GetFirstBytecodeAddress() const override {
+    return array_->GetFirstBytecodeAddress();
+  }
+
+  Handle<Object> GetConstantAtIndex(int index,
+                                    Isolate* isolate) const override {
+    return handle(array_->constant_pool().get(index), isolate);
+  }
+
+  bool IsConstantAtIndexSmi(int index) const override {
+    return array_->constant_pool().get(index).IsSmi();
+  }
+
+  Smi GetConstantAtIndexAsSmi(int index) const override {
+    return Smi::cast(array_->constant_pool().get(index));
+  }
+
+ private:
+  Handle<BytecodeArray> array_;
+};
+
+}  // namespace
+
 BytecodeArrayAccessor::BytecodeArrayAccessor(
-    Handle<BytecodeArray> bytecode_array, int initial_offset)
-    : bytecode_array_(bytecode_array),
+    std::unique_ptr<AbstractBytecodeArray> bytecode_array, int initial_offset)
+    : bytecode_array_(std::move(bytecode_array)),
       bytecode_offset_(initial_offset),
       operand_scale_(OperandScale::kSingle),
       prefix_offset_(0) {
   UpdateOperandScale();
 }
 
+BytecodeArrayAccessor::BytecodeArrayAccessor(
+    Handle<BytecodeArray> bytecode_array, int initial_offset)
+    : BytecodeArrayAccessor(
+          base::make_unique<OnHeapBytecodeArray>(bytecode_array),
+          initial_offset) {}
+
 void BytecodeArrayAccessor::SetOffset(int offset) {
   bytecode_offset_ = offset;
   UpdateOperandScale();
+}
+
+void BytecodeArrayAccessor::ApplyDebugBreak() {
+  // Get the raw bytecode from the bytecode array. This may give us a
+  // scaling prefix, which we can patch with the matching debug-break
+  // variant.
+  interpreter::Bytecode bytecode =
+      interpreter::Bytecodes::FromByte(bytecode_array()->get(bytecode_offset_));
+  if (interpreter::Bytecodes::IsDebugBreak(bytecode)) return;
+  interpreter::Bytecode debugbreak =
+      interpreter::Bytecodes::GetDebugBreak(bytecode);
+  bytecode_array()->set(bytecode_offset_,
+                        interpreter::Bytecodes::ToByte(debugbreak));
 }
 
 void BytecodeArrayAccessor::UpdateOperandScale() {
@@ -184,14 +243,22 @@ Runtime::FunctionId BytecodeArrayAccessor::GetIntrinsicIdOperand(
       static_cast<IntrinsicsHelper::IntrinsicId>(raw_id));
 }
 
-Handle<Object> BytecodeArrayAccessor::GetConstantAtIndex(int index) const {
-  return FixedArray::get(bytecode_array()->constant_pool(), index,
-                         bytecode_array()->GetIsolate());
+Handle<Object> BytecodeArrayAccessor::GetConstantAtIndex(
+    int index, Isolate* isolate) const {
+  return bytecode_array()->GetConstantAtIndex(index, isolate);
+}
+
+bool BytecodeArrayAccessor::IsConstantAtIndexSmi(int index) const {
+  return bytecode_array()->IsConstantAtIndexSmi(index);
+}
+
+Smi BytecodeArrayAccessor::GetConstantAtIndexAsSmi(int index) const {
+  return bytecode_array()->GetConstantAtIndexAsSmi(index);
 }
 
 Handle<Object> BytecodeArrayAccessor::GetConstantForIndexOperand(
-    int operand_index) const {
-  return GetConstantAtIndex(GetIndexOperand(operand_index));
+    int operand_index, Isolate* isolate) const {
+  return GetConstantAtIndex(GetIndexOperand(operand_index), isolate);
 }
 
 int BytecodeArrayAccessor::GetJumpTargetOffset() const {
@@ -203,8 +270,8 @@ int BytecodeArrayAccessor::GetJumpTargetOffset() const {
     }
     return GetAbsoluteOffset(relative_offset);
   } else if (interpreter::Bytecodes::IsJumpConstant(bytecode)) {
-    Smi* smi = Smi::cast(*GetConstantForIndexOperand(0));
-    return GetAbsoluteOffset(smi->value());
+    Smi smi = GetConstantAtIndexAsSmi(GetIndexOperand(0));
+    return GetAbsoluteOffset(smi.value());
   } else {
     UNREACHABLE();
   }
@@ -273,6 +340,7 @@ JumpTableTargetOffsets::iterator::iterator(
     int case_value, int table_offset, int table_end,
     const BytecodeArrayAccessor* accessor)
     : accessor_(accessor),
+      current_(Smi::zero()),
       index_(case_value),
       table_offset_(table_offset),
       table_end_(table_end) {
@@ -281,8 +349,7 @@ JumpTableTargetOffsets::iterator::iterator(
 
 JumpTableTargetOffset JumpTableTargetOffsets::iterator::operator*() {
   DCHECK_LT(table_offset_, table_end_);
-  DCHECK(current_->IsSmi());
-  return {index_, accessor_->GetAbsoluteOffset(Smi::ToInt(*current_))};
+  return {index_, accessor_->GetAbsoluteOffset(Smi::ToInt(current_))};
 }
 
 JumpTableTargetOffsets::iterator& JumpTableTargetOffsets::iterator::
@@ -303,15 +370,16 @@ bool JumpTableTargetOffsets::iterator::operator!=(
 }
 
 void JumpTableTargetOffsets::iterator::UpdateAndAdvanceToValid() {
-  if (table_offset_ >= table_end_) return;
-
-  current_ = accessor_->GetConstantAtIndex(table_offset_);
-  Isolate* isolate = accessor_->bytecode_array()->GetIsolate();
-  while (current_->IsTheHole(isolate)) {
+  while (table_offset_ < table_end_ &&
+         !accessor_->IsConstantAtIndexSmi(table_offset_)) {
     ++table_offset_;
     ++index_;
-    if (table_offset_ >= table_end_) break;
-    current_ = accessor_->GetConstantAtIndex(table_offset_);
+  }
+
+  // Make sure we haven't reached the end of the table with a hole in current.
+  if (table_offset_ < table_end_) {
+    DCHECK(accessor_->IsConstantAtIndexSmi(table_offset_));
+    current_ = accessor_->GetConstantAtIndexAsSmi(table_offset_);
   }
 }
 

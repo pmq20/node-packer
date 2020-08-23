@@ -21,12 +21,18 @@
 
 'use strict';
 
+const { Object } = primordials;
+
 const errors = require('internal/errors');
 const {
   kStateSymbol,
   _createSocketHandle,
-  newHandle
+  newHandle,
 } = require('internal/dgram');
+const { guessHandleType } = internalBinding('util');
+const {
+  isLegalPort,
+} = require('internal/net');
 const {
   ERR_INVALID_ARG_TYPE,
   ERR_MISSING_ARGS,
@@ -35,33 +41,45 @@ const {
   ERR_SOCKET_BAD_PORT,
   ERR_SOCKET_BUFFER_SIZE,
   ERR_SOCKET_CANNOT_SEND,
-  ERR_SOCKET_DGRAM_NOT_RUNNING
+  ERR_SOCKET_DGRAM_IS_CONNECTED,
+  ERR_SOCKET_DGRAM_NOT_CONNECTED,
+  ERR_SOCKET_DGRAM_NOT_RUNNING,
+  ERR_INVALID_FD_TYPE
 } = errors.codes;
 const {
+  isInt32,
   validateString,
   validateNumber
 } = require('internal/validators');
 const { Buffer } = require('buffer');
-const util = require('util');
+const { deprecate } = require('internal/util');
 const { isUint8Array } = require('internal/util/types');
 const EventEmitter = require('events');
 const {
   defaultTriggerAsyncIdScope,
   symbols: { async_id_symbol, owner_symbol }
 } = require('internal/async_hooks');
-const { UV_UDP_REUSEADDR } = process.binding('constants').os;
+const { UV_UDP_REUSEADDR } = internalBinding('constants').os;
 
-const { UDP, SendWrap } = process.binding('udp_wrap');
+const {
+  constants: { UV_UDP_IPV6ONLY },
+  UDP,
+  SendWrap
+} = internalBinding('udp_wrap');
 
 const BIND_STATE_UNBOUND = 0;
 const BIND_STATE_BINDING = 1;
 const BIND_STATE_BOUND = 2;
 
+const CONNECT_STATE_DISCONNECTED = 0;
+const CONNECT_STATE_CONNECTING = 1;
+const CONNECT_STATE_CONNECTED = 2;
+
 const RECV_BUFFER = true;
 const SEND_BUFFER = false;
 
 // Lazily loaded
-var cluster = null;
+let cluster = null;
 
 const errnoException = errors.errnoException;
 const exceptionWithHostPort = errors.exceptionWithHostPort;
@@ -69,24 +87,24 @@ const exceptionWithHostPort = errors.exceptionWithHostPort;
 
 function Socket(type, listener) {
   EventEmitter.call(this);
-  var lookup;
+  let lookup;
   let recvBufferSize;
   let sendBufferSize;
 
+  let options;
   if (type !== null && typeof type === 'object') {
-    var options = type;
+    options = type;
     type = options.type;
     lookup = options.lookup;
     recvBufferSize = options.recvBufferSize;
     sendBufferSize = options.sendBufferSize;
   }
 
-  var handle = newHandle(type, lookup);
+  const handle = newHandle(type, lookup);
   handle[owner_symbol] = this;
 
   this[async_id_symbol] = handle.getAsyncId();
   this.type = type;
-  this.fd = null; // compatibility hack
 
   if (typeof listener === 'function')
     this.on('message', listener);
@@ -95,13 +113,16 @@ function Socket(type, listener) {
     handle,
     receiving: false,
     bindState: BIND_STATE_UNBOUND,
+    connectState: CONNECT_STATE_DISCONNECTED,
     queue: undefined,
     reuseAddr: options && options.reuseAddr, // Use UV_UDP_REUSEADDR if true.
+    ipv6Only: options && options.ipv6Only,
     recvBufferSize,
     sendBufferSize
   };
 }
-util.inherits(Socket, EventEmitter);
+Object.setPrototypeOf(Socket.prototype, EventEmitter.prototype);
+Object.setPrototypeOf(Socket, EventEmitter);
 
 
 function createSocket(type, listener) {
@@ -117,7 +138,6 @@ function startListening(socket) {
   state.handle.recvStart();
   state.receiving = true;
   state.bindState = BIND_STATE_BOUND;
-  socket.fd = -42; // compatibility hack
 
   if (state.recvBufferSize)
     bufferSize(socket, state.recvBufferSize, RECV_BUFFER);
@@ -141,6 +161,9 @@ function replaceHandle(self, newHandle) {
   // Replace the existing handle by the handle we got from master.
   oldHandle.close();
   state.handle = newHandle;
+  // Check if the udp handle was connected and set the state accordingly
+  if (isConnected(self))
+    state.connectState = CONNECT_STATE_CONNECTED;
 }
 
 function bufferSize(self, size, buffer) {
@@ -153,6 +176,28 @@ function bufferSize(self, size, buffer) {
     throw new ERR_SOCKET_BUFFER_SIZE(ctx);
   }
   return ret;
+}
+
+// Query master process to get the server handle and utilize it.
+function bindServerHandle(self, options, errCb) {
+  if (!cluster)
+    cluster = require('cluster');
+
+  const state = self[kStateSymbol];
+  cluster._getServer(self, options, (err, handle) => {
+    if (err) {
+      errCb(err);
+      return;
+    }
+
+    if (!state.handle) {
+      // Handle has been closed in the mean time.
+      return handle.close();
+    }
+
+    replaceHandle(self, handle);
+    startListening(self);
+  });
 }
 
 Socket.prototype.bind = function(port_, address_ /* , callback */) {
@@ -175,8 +220,50 @@ Socket.prototype.bind = function(port_, address_ /* , callback */) {
     return this;
   }
 
-  var address;
-  var exclusive;
+  // Open an existing fd instead of creating a new one.
+  if (port !== null && typeof port === 'object' &&
+      isInt32(port.fd) && port.fd > 0) {
+    const fd = port.fd;
+    const exclusive = !!port.exclusive;
+    const state = this[kStateSymbol];
+
+    if (!cluster)
+      cluster = require('cluster');
+
+    if (cluster.isWorker && !exclusive) {
+      bindServerHandle(this, {
+        address: null,
+        port: null,
+        addressType: this.type,
+        fd,
+        flags: null
+      }, (err) => {
+        // Callback to handle error.
+        const ex = errnoException(err, 'open');
+        this.emit('error', ex);
+        state.bindState = BIND_STATE_UNBOUND;
+      });
+      return this;
+    }
+
+    const type = guessHandleType(fd);
+    if (type !== 'UDP')
+      throw new ERR_INVALID_FD_TYPE(type);
+    const err = state.handle.open(fd);
+
+    if (err)
+      throw errnoException(err, 'open');
+
+    // Check if the udp handle was connected and set the state accordingly
+    if (isConnected(this))
+      state.connectState = CONNECT_STATE_CONNECTED;
+
+    startListening(this);
+    return this;
+  }
+
+  let address;
+  let exclusive;
 
   if (port !== null && typeof port === 'object') {
     address = port.address || '';
@@ -187,7 +274,7 @@ Socket.prototype.bind = function(port_, address_ /* , callback */) {
     exclusive = false;
   }
 
-  // defaulting address for bind to all interfaces
+  // Defaulting address for bind to all interfaces
   if (!address) {
     if (this.type === 'udp4')
       address = '0.0.0.0';
@@ -195,7 +282,7 @@ Socket.prototype.bind = function(port_, address_ /* , callback */) {
       address = '::';
   }
 
-  // resolve address first
+  // Resolve address first
   state.handle.lookup(address, (err, ip) => {
     if (err) {
       state.bindState = BIND_STATE_UNBOUND;
@@ -206,40 +293,32 @@ Socket.prototype.bind = function(port_, address_ /* , callback */) {
     if (!cluster)
       cluster = require('cluster');
 
-    var flags = 0;
+    let flags = 0;
     if (state.reuseAddr)
       flags |= UV_UDP_REUSEADDR;
+    if (state.ipv6Only)
+      flags |= UV_UDP_IPV6ONLY;
 
     if (cluster.isWorker && !exclusive) {
-      const onHandle = (err, handle) => {
-        if (err) {
-          var ex = exceptionWithHostPort(err, 'bind', ip, port);
-          this.emit('error', ex);
-          state.bindState = BIND_STATE_UNBOUND;
-          return;
-        }
-
-        if (!state.handle)
-          // handle has been closed in the mean time.
-          return handle.close();
-
-        replaceHandle(this, handle);
-        startListening(this);
-      };
-      cluster._getServer(this, {
+      bindServerHandle(this, {
         address: ip,
         port: port,
         addressType: this.type,
         fd: -1,
         flags: flags
-      }, onHandle);
+      }, (err) => {
+        // Callback to handle error.
+        const ex = exceptionWithHostPort(err, 'bind', ip, port);
+        this.emit('error', ex);
+        state.bindState = BIND_STATE_UNBOUND;
+      });
     } else {
       if (!state.handle)
-        return; // handle has been closed in the mean time
+        return; // Handle has been closed in the mean time
 
       const err = state.handle.bind(ip, port || 0, flags);
       if (err) {
-        var ex = exceptionWithHostPort(err, 'bind', ip, port);
+        const ex = exceptionWithHostPort(err, 'bind', ip, port);
         this.emit('error', ex);
         state.bindState = BIND_STATE_UNBOUND;
         // Todo: close?
@@ -254,7 +333,107 @@ Socket.prototype.bind = function(port_, address_ /* , callback */) {
 };
 
 
-// thin wrapper around `send`, here for compatibility with dgram_legacy.js
+function validatePort(port) {
+  const legal = isLegalPort(port);
+  if (legal)
+    port = port | 0;
+
+  if (!legal || port === 0)
+    throw new ERR_SOCKET_BAD_PORT(port);
+
+  return port;
+}
+
+
+Socket.prototype.connect = function(port, address, callback) {
+  port = validatePort(port);
+  if (typeof address === 'function') {
+    callback = address;
+    address = '';
+  } else if (address === undefined) {
+    address = '';
+  }
+
+  validateString(address, 'address');
+
+  const state = this[kStateSymbol];
+
+  if (state.connectState !== CONNECT_STATE_DISCONNECTED)
+    throw new ERR_SOCKET_DGRAM_IS_CONNECTED();
+
+  state.connectState = CONNECT_STATE_CONNECTING;
+  if (state.bindState === BIND_STATE_UNBOUND)
+    this.bind({ port: 0, exclusive: true }, null);
+
+  if (state.bindState !== BIND_STATE_BOUND) {
+    enqueue(this, _connect.bind(this, port, address, callback));
+    return;
+  }
+
+  _connect.call(this, port, address, callback);
+};
+
+
+function _connect(port, address, callback) {
+  const state = this[kStateSymbol];
+  if (callback)
+    this.once('connect', callback);
+
+  const afterDns = (ex, ip) => {
+    defaultTriggerAsyncIdScope(
+      this[async_id_symbol],
+      doConnect,
+      ex, this, ip, address, port, callback
+    );
+  };
+
+  state.handle.lookup(address, afterDns);
+}
+
+
+function doConnect(ex, self, ip, address, port, callback) {
+  const state = self[kStateSymbol];
+  if (!state.handle)
+    return;
+
+  if (!ex) {
+    const err = state.handle.connect(ip, port);
+    if (err) {
+      ex = exceptionWithHostPort(err, 'connect', address, port);
+    }
+  }
+
+  if (ex) {
+    state.connectState = CONNECT_STATE_DISCONNECTED;
+    return process.nextTick(() => {
+      if (callback) {
+        self.removeListener('connect', callback);
+        callback(ex);
+      } else {
+        self.emit('error', ex);
+      }
+    });
+  }
+
+  state.connectState = CONNECT_STATE_CONNECTED;
+  process.nextTick(() => self.emit('connect'));
+}
+
+
+Socket.prototype.disconnect = function() {
+  const state = this[kStateSymbol];
+  if (state.connectState !== CONNECT_STATE_CONNECTED)
+    throw new ERR_SOCKET_DGRAM_NOT_CONNECTED();
+
+  const err = state.handle.disconnect();
+  if (err)
+    throw errnoException(err, 'connect');
+  else
+    state.connectState = CONNECT_STATE_DISCONNECTED;
+};
+
+
+// Thin wrapper around `send`, here for compatibility with dgram_legacy.js
 Socket.prototype.sendto = function(buffer,
                                    offset,
                                    length,
@@ -288,8 +467,8 @@ function sliceBuffer(buffer, offset, length) {
 function fixBufferList(list) {
   const newlist = new Array(list.length);
 
-  for (var i = 0, l = list.length; i < l; i++) {
-    var buf = list[i];
+  for (let i = 0, l = list.length; i < l; i++) {
+    const buf = list[i];
     if (typeof buf === 'string')
       newlist[i] = Buffer.from(buf);
     else if (!isUint8Array(buf))
@@ -335,12 +514,22 @@ function clearQueue() {
   state.queue = undefined;
 
   // Flush the send queue.
-  for (var i = 0; i < queue.length; i++)
+  for (let i = 0; i < queue.length; i++)
     queue[i]();
+}
+
+function isConnected(self) {
+  try {
+    self.remoteAddress();
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 
 // valid combinations
+// For connectionless sockets
 // send(buffer, offset, length, port, address, callback)
 // send(buffer, offset, length, port, address)
 // send(buffer, offset, length, port, callback)
@@ -349,20 +538,42 @@ function clearQueue() {
 // send(bufferOrList, port, address)
 // send(bufferOrList, port, callback)
 // send(bufferOrList, port)
+// For connected sockets
+// send(buffer, offset, length, callback)
+// send(buffer, offset, length)
+// send(bufferOrList, callback)
+// send(bufferOrList)
 Socket.prototype.send = function(buffer,
                                  offset,
                                  length,
                                  port,
                                  address,
                                  callback) {
-  let list;
 
-  if (address || (port && typeof port !== 'function')) {
-    buffer = sliceBuffer(buffer, offset, length);
+  let list;
+  const state = this[kStateSymbol];
+  const connected = state.connectState === CONNECT_STATE_CONNECTED;
+  if (!connected) {
+    if (address || (port && typeof port !== 'function')) {
+      buffer = sliceBuffer(buffer, offset, length);
+    } else {
+      callback = port;
+      port = offset;
+      address = length;
+    }
   } else {
-    callback = port;
-    port = offset;
-    address = length;
+    if (typeof length === 'number') {
+      buffer = sliceBuffer(buffer, offset, length);
+      if (typeof port === 'function') {
+        callback = port;
+        port = null;
+      }
+    } else {
+      callback = offset;
+    }
+
+    if (port || address)
+      throw new ERR_SOCKET_DGRAM_IS_CONNECTED();
   }
 
   if (!Array.isArray(buffer)) {
@@ -380,9 +591,8 @@ Socket.prototype.send = function(buffer,
                                    ['Buffer', 'string'], buffer);
   }
 
-  port = port >>> 0;
-  if (port === 0 || port > 65535)
-    throw new ERR_SOCKET_BAD_PORT(port);
+  if (!connected)
+    port = validatePort(port);
 
   // Normalize callback so it's either a function or undefined but not anything
   // else.
@@ -397,8 +607,6 @@ Socket.prototype.send = function(buffer,
   }
 
   healthCheck(this);
-
-  const state = this[kStateSymbol];
 
   if (state.bindState === BIND_STATE_UNBOUND)
     this.bind({ port: 0, exclusive: true }, null);
@@ -421,7 +629,11 @@ Socket.prototype.send = function(buffer,
     );
   };
 
-  state.handle.lookup(address, afterDns);
+  if (!connected) {
+    state.handle.lookup(address, afterDns);
+  } else {
+    afterDns(null, null);
+  }
 };
 
 function doSend(ex, self, ip, list, address, port, callback) {
@@ -439,7 +651,7 @@ function doSend(ex, self, ip, list, address, port, callback) {
     return;
   }
 
-  var req = new SendWrap();
+  const req = new SendWrap();
   req.list = list;  // Keep reference alive.
   req.address = address;
   req.port = port;
@@ -448,15 +660,22 @@ function doSend(ex, self, ip, list, address, port, callback) {
     req.oncomplete = afterSend;
   }
 
-  var err = state.handle.send(req,
-                              list,
-                              list.length,
-                              port,
-                              ip,
-                              !!callback);
+  let err;
+  if (port)
+    err = state.handle.send(req, list, list.length, port, ip, !!callback);
+  else
+    err = state.handle.send(req, list, list.length, !!callback);
+
+  if (err >= 1) {
+    // Synchronous finish. The return code is msg_length + 1 so that we can
+    // distinguish between synchronous success and asynchronous success.
+    if (callback)
+      process.nextTick(callback, null, err - 1);
+    return;
+  }
 
   if (err && callback) {
-    // don't emit as error, dgram_legacy.js compatibility
+    // Don't emit as error, dgram_legacy.js compatibility
     const ex = exceptionWithHostPort(err, 'send', address, port);
     process.nextTick(callback, ex);
   }
@@ -505,8 +724,8 @@ function socketCloseNT(self) {
 Socket.prototype.address = function() {
   healthCheck(this);
 
-  var out = {};
-  var err = this[kStateSymbol].handle.getsockname(out);
+  const out = {};
+  const err = this[kStateSymbol].handle.getsockname(out);
   if (err) {
     throw errnoException(err, 'getsockname');
   }
@@ -514,9 +733,24 @@ Socket.prototype.address = function() {
   return out;
 };
 
+Socket.prototype.remoteAddress = function() {
+  healthCheck(this);
+
+  const state = this[kStateSymbol];
+  if (state.connectState !== CONNECT_STATE_CONNECTED)
+    throw new ERR_SOCKET_DGRAM_NOT_CONNECTED();
+
+  const out = {};
+  const err = state.handle.getpeername(out);
+  if (err)
+    throw errnoException(err, 'getpeername');
+
+  return out;
+};
+
 
 Socket.prototype.setBroadcast = function(arg) {
-  var err = this[kStateSymbol].handle.setBroadcast(arg ? 1 : 0);
+  const err = this[kStateSymbol].handle.setBroadcast(arg ? 1 : 0);
   if (err) {
     throw errnoException(err, 'setBroadcast');
   }
@@ -526,7 +760,7 @@ Socket.prototype.setBroadcast = function(arg) {
 Socket.prototype.setTTL = function(ttl) {
   validateNumber(ttl, 'ttl');
 
-  var err = this[kStateSymbol].handle.setTTL(ttl);
+  const err = this[kStateSymbol].handle.setTTL(ttl);
   if (err) {
     throw errnoException(err, 'setTTL');
   }
@@ -538,7 +772,7 @@ Socket.prototype.setTTL = function(ttl) {
 Socket.prototype.setMulticastTTL = function(ttl) {
   validateNumber(ttl, 'ttl');
 
-  var err = this[kStateSymbol].handle.setMulticastTTL(ttl);
+  const err = this[kStateSymbol].handle.setMulticastTTL(ttl);
   if (err) {
     throw errnoException(err, 'setMulticastTTL');
   }
@@ -548,7 +782,7 @@ Socket.prototype.setMulticastTTL = function(ttl) {
 
 
 Socket.prototype.setMulticastLoopback = function(arg) {
-  var err = this[kStateSymbol].handle.setMulticastLoopback(arg ? 1 : 0);
+  const err = this[kStateSymbol].handle.setMulticastLoopback(arg ? 1 : 0);
   if (err) {
     throw errnoException(err, 'setMulticastLoopback');
   }
@@ -576,7 +810,7 @@ Socket.prototype.addMembership = function(multicastAddress,
   }
 
   const { handle } = this[kStateSymbol];
-  var err = handle.addMembership(multicastAddress, interfaceAddress);
+  const err = handle.addMembership(multicastAddress, interfaceAddress);
   if (err) {
     throw errnoException(err, 'addMembership');
   }
@@ -592,7 +826,7 @@ Socket.prototype.dropMembership = function(multicastAddress,
   }
 
   const { handle } = this[kStateSymbol];
-  var err = handle.dropMembership(multicastAddress, interfaceAddress);
+  const err = handle.dropMembership(multicastAddress, interfaceAddress);
   if (err) {
     throw errnoException(err, 'dropMembership');
   }
@@ -615,12 +849,11 @@ function stopReceiving(socket) {
 
   state.handle.recvStop();
   state.receiving = false;
-  socket.fd = null; // compatibility hack
 }
 
 
 function onMessage(nread, handle, buf, rinfo) {
-  var self = handle[owner_symbol];
+  const self = handle[owner_symbol];
   if (nread < 0) {
     return self.emit('error', errnoException(nread, 'recvmsg'));
   }
@@ -669,65 +902,65 @@ Socket.prototype.getSendBufferSize = function() {
 };
 
 
-// Legacy private APIs to be deprecated in the future.
+// Deprecated private APIs.
 Object.defineProperty(Socket.prototype, '_handle', {
-  get() {
+  get: deprecate(function() {
     return this[kStateSymbol].handle;
-  },
-  set(val) {
+  }, 'Socket.prototype._handle is deprecated', 'DEP0112'),
+  set: deprecate(function(val) {
     this[kStateSymbol].handle = val;
-  }
+  }, 'Socket.prototype._handle is deprecated', 'DEP0112')
 });
 
 
 Object.defineProperty(Socket.prototype, '_receiving', {
-  get() {
+  get: deprecate(function() {
     return this[kStateSymbol].receiving;
-  },
-  set(val) {
+  }, 'Socket.prototype._receiving is deprecated', 'DEP0112'),
+  set: deprecate(function(val) {
     this[kStateSymbol].receiving = val;
-  }
+  }, 'Socket.prototype._receiving is deprecated', 'DEP0112')
 });
 
 
 Object.defineProperty(Socket.prototype, '_bindState', {
-  get() {
+  get: deprecate(function() {
     return this[kStateSymbol].bindState;
-  },
-  set(val) {
+  }, 'Socket.prototype._bindState is deprecated', 'DEP0112'),
+  set: deprecate(function(val) {
     this[kStateSymbol].bindState = val;
-  }
+  }, 'Socket.prototype._bindState is deprecated', 'DEP0112')
 });
 
 
 Object.defineProperty(Socket.prototype, '_queue', {
-  get() {
+  get: deprecate(function() {
     return this[kStateSymbol].queue;
-  },
-  set(val) {
+  }, 'Socket.prototype._queue is deprecated', 'DEP0112'),
+  set: deprecate(function(val) {
     this[kStateSymbol].queue = val;
-  }
+  }, 'Socket.prototype._queue is deprecated', 'DEP0112')
 });
 
 
 Object.defineProperty(Socket.prototype, '_reuseAddr', {
-  get() {
+  get: deprecate(function() {
     return this[kStateSymbol].reuseAddr;
-  },
-  set(val) {
+  }, 'Socket.prototype._reuseAddr is deprecated', 'DEP0112'),
+  set: deprecate(function(val) {
     this[kStateSymbol].reuseAddr = val;
-  }
+  }, 'Socket.prototype._reuseAddr is deprecated', 'DEP0112')
 });
 
 
-Socket.prototype._healthCheck = function() {
+Socket.prototype._healthCheck = deprecate(function() {
   healthCheck(this);
-};
+}, 'Socket.prototype._healthCheck() is deprecated', 'DEP0112');
 
 
-Socket.prototype._stopReceiving = function() {
+Socket.prototype._stopReceiving = deprecate(function() {
   stopReceiving(this);
-};
+}, 'Socket.prototype._stopReceiving() is deprecated', 'DEP0112');
 
 
 // Legacy alias on the C++ wrapper object. This is not public API, so we may
@@ -739,7 +972,11 @@ Object.defineProperty(UDP.prototype, 'owner', {
 
 
 module.exports = {
-  _createSocketHandle,
+  _createSocketHandle: deprecate(
+    _createSocketHandle,
+    'dgram._createSocketHandle() is deprecated',
+    'DEP0112'
+  ),
   createSocket,
   Socket
 };

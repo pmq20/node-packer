@@ -11,6 +11,10 @@ For simplicity, we check all pyl files on any changes in this folder.
 import ast
 import os
 
+try:
+  basestring       # Python 2
+except NameError:  # Python 3
+  basestring = str
 
 SUPPORTED_BUILDER_SPEC_KEYS = [
   'swarming_dimensions',
@@ -23,11 +27,15 @@ SUPPORTED_BUILDER_SPEC_KEYS = [
 SUPPORTED_SWARMING_DIMENSIONS = [
   'cores',
   'cpu',
+  'device_os',
+  'device_type',
   'os',
 ]
 
 # This is not an exhaustive list. It only reflects what we currently use. If
-# there's need to specify a different property, just add it here.
+# there's need to specify a different property, add it here and update the
+# properties passed to swarming in:
+# //build/scripts/slave/recipe_modules/v8/testing.py.
 SUPPORTED_SWARMING_TASK_ATTRS = [
   'expiration',
   'hard_timeout',
@@ -113,9 +121,9 @@ def _check_test(error_msg, test):
   if not all(isinstance(x, basestring) for x in test_args):
     errors += error_msg('If specified, all test_args must be strings')
 
-  # Limit shards to 10 to avoid erroneous resource exhaustion.
+  # Limit shards to 12 to avoid erroneous resource exhaustion.
   errors += _check_int_range(
-      error_msg, test, 'shards', lower_bound=1, upper_bound=10)
+      error_msg, test, 'shards', lower_bound=1, upper_bound=12)
 
   variant = test.get('variant', 'default')
   if not variant or not isinstance(variant, basestring):

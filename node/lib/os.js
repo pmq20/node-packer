@@ -21,12 +21,19 @@
 
 'use strict';
 
-const { pushValToArrayMax, safeGetenv } = internalBinding('util');
-const constants = process.binding('constants').os;
+const { Object } = primordials;
+
+const { safeGetenv } = internalBinding('credentials');
+const constants = internalBinding('constants').os;
 const { deprecate } = require('internal/util');
 const isWindows = process.platform === 'win32';
 
-const { codes: { ERR_SYSTEM_ERROR } } = require('internal/errors');
+const {
+  codes: {
+    ERR_SYSTEM_ERROR
+  },
+  hideStackFrames
+} = require('internal/errors');
 const { validateInt32 } = require('internal/validators');
 
 const {
@@ -44,19 +51,17 @@ const {
   getUptime,
   isBigEndian,
   setPriority: _setPriority
-} = process.binding('os');
+} = internalBinding('os');
 
 function getCheckedFunction(fn) {
-  return function checkError(...args) {
+  return hideStackFrames(function checkError(...args) {
     const ctx = {};
     const ret = fn(...args, ctx);
     if (ret === undefined) {
-      const err = new ERR_SYSTEM_ERROR(ctx);
-      Error.captureStackTrace(err, checkError);
-      throw err;
+      throw new ERR_SYSTEM_ERROR(ctx);
     }
     return ret;
-  };
+  });
 }
 
 const getHomeDirectory = getCheckedFunction(_getHomeDirectory);
@@ -78,35 +83,32 @@ const kEndianness = isBigEndian ? 'BE' : 'LE';
 const tmpDirDeprecationMsg =
   'os.tmpDir() is deprecated. Use os.tmpdir() instead.';
 
-const getNetworkInterfacesDepMsg =
-  'os.getNetworkInterfaces is deprecated. Use os.networkInterfaces instead.';
-
 const avgValues = new Float64Array(3);
-const cpuValues = new Float64Array(6 * pushValToArrayMax);
 
 function loadavg() {
   getLoadAvg(avgValues);
   return [avgValues[0], avgValues[1], avgValues[2]];
 }
 
-function addCPUInfo() {
-  for (var i = 0, c = 0; i < arguments.length; ++i, c += 6) {
-    this[this.length] = {
-      model: arguments[i],
-      speed: cpuValues[c],
-      times: {
-        user: cpuValues[c + 1],
-        nice: cpuValues[c + 2],
-        sys: cpuValues[c + 3],
-        idle: cpuValues[c + 4],
-        irq: cpuValues[c + 5]
-      }
-    };
-  }
-}
-
 function cpus() {
-  return getCPUs(addCPUInfo, cpuValues, []);
+  // [] is a bugfix for a regression introduced in 51cea61
+  const data = getCPUs() || [];
+  const result = [];
+  let i = 0;
+  while (i < data.length) {
+    result.push({
+      model: data[i++],
+      speed: data[i++],
+      times: {
+        user: data[i++],
+        nice: data[i++],
+        sys: data[i++],
+        idle: data[i++],
+        irq: data[i++]
+      }
+    });
+  }
+  return result;
 }
 
 function arch() {
@@ -148,18 +150,13 @@ endianness[Symbol.toPrimitive] = () => kEndianness;
 // Returns the number of ones in the binary representation of the decimal
 // number.
 function countBinaryOnes(n) {
-  let count = 0;
-  // Remove one "1" bit from n until n is the power of 2. This iterates k times
-  // while k is the number of "1" in the binary representation.
-  // For more check https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators
-  while (n !== 0) {
-    n = n & (n - 1);
-    count++;
-  }
-  return count;
+  // Count the number of bits set in parallel, which is faster than looping
+  n = n - ((n >>> 1) & 0x55555555);
+  n = (n & 0x33333333) + ((n >>> 2) & 0x33333333);
+  return ((n + (n >>> 4) & 0xF0F0F0F) * 0x1010101) >>> 24;
 }
 
-function getCIDR({ address, netmask, family }) {
+function getCIDR(address, netmask, family) {
   let ones = 0;
   let split = '.';
   let range = 10;
@@ -195,17 +192,33 @@ function getCIDR({ address, netmask, family }) {
 }
 
 function networkInterfaces() {
-  const interfaceAddresses = getInterfaceAddresses();
+  const data = getInterfaceAddresses();
+  const result = {};
 
-  const keys = Object.keys(interfaceAddresses);
-  for (var i = 0; i < keys.length; i++) {
-    const arr = interfaceAddresses[keys[i]];
-    for (var j = 0; j < arr.length; j++) {
-      arr[j].cidr = getCIDR(arr[j]);
-    }
+  if (data === undefined)
+    return result;
+  for (var i = 0; i < data.length; i += 7) {
+    const name = data[i];
+    const entry = {
+      address: data[i + 1],
+      netmask: data[i + 2],
+      family: data[i + 3],
+      mac: data[i + 4],
+      internal: data[i + 5],
+      cidr: getCIDR(data[i + 1], data[i + 2], data[i + 3])
+    };
+    const scopeid = data[i + 6];
+    if (scopeid !== -1)
+      entry.scopeid = scopeid;
+
+    const existing = result[name];
+    if (existing !== undefined)
+      existing.push(entry);
+    else
+      result[name] = [entry];
   }
 
-  return interfaceAddresses;
+  return result;
 }
 
 function setPriority(pid, priority) {
@@ -271,9 +284,6 @@ module.exports = {
   uptime: getUptime,
 
   // Deprecated APIs
-  getNetworkInterfaces: deprecate(getInterfaceAddresses,
-                                  getNetworkInterfacesDepMsg,
-                                  'DEP0023'),
   tmpDir: deprecate(tmpdir, tmpDirDeprecationMsg, 'DEP0022')
 };
 

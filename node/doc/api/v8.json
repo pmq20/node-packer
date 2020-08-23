@@ -28,7 +28,7 @@
               "params": []
             }
           ],
-          "desc": "<p>Returns an integer representing a \"version tag\" derived from the V8 version,\ncommand line flags and detected CPU features. This is useful for determining\nwhether a <a href=\"vm.html#vm_new_vm_script_code_options\"><code>vm.Script</code></a> <code>cachedData</code> buffer is compatible with this instance\nof V8.</p>"
+          "desc": "<p>Returns an integer representing a \"version tag\" derived from the V8 version,\ncommand line flags and detected CPU features. This is useful for determining\nwhether a <a href=\"vm.html#vm_constructor_new_vm_script_code_options\"><code>vm.Script</code></a> <code>cachedData</code> buffer is compatible with this instance\nof V8.</p>"
         },
         {
           "textRaw": "v8.getHeapSpaceStatistics()",
@@ -57,6 +57,29 @@
             }
           ],
           "desc": "<p>Returns statistics about the V8 heap spaces, i.e. the segments which make up\nthe V8 heap. Neither the ordering of heap spaces, nor the availability of a\nheap space can be guaranteed as the statistics are provided via the V8\n<a href=\"https://v8docs.nodesource.com/node-10.6/d5/dda/classv8_1_1_isolate.html#ac673576f24fdc7a33378f8f57e1d13a4\"><code>GetHeapSpaceStatistics</code></a> function and may change from one V8 version to the\nnext.</p>\n<p>The value returned is an array of objects containing the following properties:</p>\n<ul>\n<li><code>space_name</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type\" class=\"type\">&lt;string&gt;</a></li>\n<li><code>space_size</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number&gt;</a></li>\n<li><code>space_used_size</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number&gt;</a></li>\n<li><code>space_available_size</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number&gt;</a></li>\n<li><code>physical_space_size</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number&gt;</a></li>\n</ul>\n<pre><code class=\"language-json\">[\n  {\n    \"space_name\": \"new_space\",\n    \"space_size\": 2063872,\n    \"space_used_size\": 951112,\n    \"space_available_size\": 80824,\n    \"physical_space_size\": 2063872\n  },\n  {\n    \"space_name\": \"old_space\",\n    \"space_size\": 3090560,\n    \"space_used_size\": 2493792,\n    \"space_available_size\": 0,\n    \"physical_space_size\": 3090560\n  },\n  {\n    \"space_name\": \"code_space\",\n    \"space_size\": 1260160,\n    \"space_used_size\": 644256,\n    \"space_available_size\": 960,\n    \"physical_space_size\": 1260160\n  },\n  {\n    \"space_name\": \"map_space\",\n    \"space_size\": 1094160,\n    \"space_used_size\": 201608,\n    \"space_available_size\": 0,\n    \"physical_space_size\": 1094160\n  },\n  {\n    \"space_name\": \"large_object_space\",\n    \"space_size\": 0,\n    \"space_used_size\": 0,\n    \"space_available_size\": 1490980608,\n    \"physical_space_size\": 0\n  }\n]\n</code></pre>"
+        },
+        {
+          "textRaw": "v8.getHeapSnapshot()",
+          "type": "method",
+          "name": "getHeapSnapshot",
+          "meta": {
+            "added": [
+              "v11.13.0"
+            ],
+            "changes": []
+          },
+          "signatures": [
+            {
+              "return": {
+                "textRaw": "Returns: {stream.Readable} A Readable Stream containing the V8 heap snapshot",
+                "name": "return",
+                "type": "stream.Readable",
+                "desc": "A Readable Stream containing the V8 heap snapshot"
+              },
+              "params": []
+            }
+          ],
+          "desc": "<p>Generates a snapshot of the current V8 heap and returns a Readable\nStream that may be used to read the JSON serialized representation.\nThis JSON stream format is intended to be used with tools such as\nChrome DevTools. The JSON schema is undocumented and specific to the\nV8 engine, and may change from one version of V8 to the next.</p>\n<pre><code class=\"language-js\">const stream = v8.getHeapSnapshot();\nstream.pipe(process.stdout);\n</code></pre>"
         },
         {
           "textRaw": "v8.getHeapStatistics()",
@@ -89,7 +112,29 @@
               "params": []
             }
           ],
-          "desc": "<p>Returns an object with the following properties:</p>\n<ul>\n<li><code>total_heap_size</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number&gt;</a></li>\n<li><code>total_heap_size_executable</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number&gt;</a></li>\n<li><code>total_physical_size</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number&gt;</a></li>\n<li><code>total_available_size</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number&gt;</a></li>\n<li><code>used_heap_size</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number&gt;</a></li>\n<li><code>heap_size_limit</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number&gt;</a></li>\n<li><code>malloced_memory</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number&gt;</a></li>\n<li><code>peak_malloced_memory</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number&gt;</a></li>\n<li><code>does_zap_garbage</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number&gt;</a></li>\n</ul>\n<p><code>does_zap_garbage</code> is a 0/1 boolean, which signifies whether the\n<code>--zap_code_space</code> option is enabled or not. This makes V8 overwrite heap\ngarbage with a bit pattern. The RSS footprint (resident memory set) gets bigger\nbecause it continuously touches all heap pages and that makes them less likely\nto get swapped out by the operating system.</p>\n<!-- eslint-skip -->\n<pre><code class=\"language-js\">{\n  total_heap_size: 7326976,\n  total_heap_size_executable: 4194304,\n  total_physical_size: 7326976,\n  total_available_size: 1152656,\n  used_heap_size: 3476208,\n  heap_size_limit: 1535115264,\n  malloced_memory: 16384,\n  peak_malloced_memory: 1127496,\n  does_zap_garbage: 0\n}\n</code></pre>"
+          "desc": "<p>Returns an object with the following properties:</p>\n<ul>\n<li><code>total_heap_size</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number&gt;</a></li>\n<li><code>total_heap_size_executable</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number&gt;</a></li>\n<li><code>total_physical_size</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number&gt;</a></li>\n<li><code>total_available_size</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number&gt;</a></li>\n<li><code>used_heap_size</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number&gt;</a></li>\n<li><code>heap_size_limit</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number&gt;</a></li>\n<li><code>malloced_memory</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number&gt;</a></li>\n<li><code>peak_malloced_memory</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number&gt;</a></li>\n<li><code>does_zap_garbage</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number&gt;</a></li>\n<li><code>number_of_native_contexts</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number&gt;</a></li>\n<li><code>number_of_detached_contexts</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number&gt;</a></li>\n</ul>\n<p><code>does_zap_garbage</code> is a 0/1 boolean, which signifies whether the\n<code>--zap_code_space</code> option is enabled or not. This makes V8 overwrite heap\ngarbage with a bit pattern. The RSS footprint (resident memory set) gets bigger\nbecause it continuously touches all heap pages and that makes them less likely\nto get swapped out by the operating system.</p>\n<p><code>number_of_native_contexts</code> The value of native_context is the number of the\ntop-level contexts currently active. Increase of this number over time indicates\na memory leak.</p>\n<p><code>number_of_detached_contexts</code> The value of detached_context is the number\nof contexts that were detached and not yet garbage collected. This number\nbeing non-zero indicates a potential memory leak.</p>\n<!-- eslint-skip -->\n<pre><code class=\"language-js\">{\n  total_heap_size: 7326976,\n  total_heap_size_executable: 4194304,\n  total_physical_size: 7326976,\n  total_available_size: 1152656,\n  used_heap_size: 3476208,\n  heap_size_limit: 1535115264,\n  malloced_memory: 16384,\n  peak_malloced_memory: 1127496,\n  does_zap_garbage: 0,\n  number_of_native_contexts: 1,\n  number_of_detached_contexts: 0\n}\n</code></pre>"
+        },
+        {
+          "textRaw": "v8.getHeapCodeStatistics()",
+          "type": "method",
+          "name": "getHeapCodeStatistics",
+          "meta": {
+            "added": [
+              "v12.8.0"
+            ],
+            "changes": []
+          },
+          "signatures": [
+            {
+              "return": {
+                "textRaw": "Returns: {Object}",
+                "name": "return",
+                "type": "Object"
+              },
+              "params": []
+            }
+          ],
+          "desc": "<p>Returns an object with the following properties:</p>\n<ul>\n<li><code>code_and_metadata_size</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number&gt;</a></li>\n<li><code>bytecode_and_metadata_size</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number&gt;</a></li>\n<li><code>external_script_source_size</code> <a href=\"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type\" class=\"type\">&lt;number&gt;</a></li>\n</ul>\n<!-- eslint-skip -->\n<pre><code class=\"language-js\">{\n  code_and_metadata_size: 212208,\n  bytecode_and_metadata_size: 161368,\n  external_script_source_size: 1410794\n}\n</code></pre>"
         },
         {
           "textRaw": "v8.setFlagsFromString(flags)",
@@ -112,7 +157,38 @@
               ]
             }
           ],
-          "desc": "<p>The <code>v8.setFlagsFromString()</code> method can be used to programmatically set\nV8 command line flags. This method should be used with care. Changing settings\nafter the VM has started may result in unpredictable behavior, including\ncrashes and data loss; or it may simply do nothing.</p>\n<p>The V8 options available for a version of Node.js may be determined by running\n<code>node --v8-options</code>. An unofficial, community-maintained list of options\nand their effects is available <a href=\"https://github.com/thlorenz/v8-flags/blob/master/flags-0.11.md\">here</a>.</p>\n<p>Usage:</p>\n<pre><code class=\"language-js\">// Print GC events to stdout for one minute.\nconst v8 = require('v8');\nv8.setFlagsFromString('--trace_gc');\nsetTimeout(() => { v8.setFlagsFromString('--notrace_gc'); }, 60e3);\n</code></pre>"
+          "desc": "<p>The <code>v8.setFlagsFromString()</code> method can be used to programmatically set\nV8 command line flags. This method should be used with care. Changing settings\nafter the VM has started may result in unpredictable behavior, including\ncrashes and data loss; or it may simply do nothing.</p>\n<p>The V8 options available for a version of Node.js may be determined by running\n<code>node --v8-options</code>.</p>\n<p>Usage:</p>\n<pre><code class=\"language-js\">// Print GC events to stdout for one minute.\nconst v8 = require('v8');\nv8.setFlagsFromString('--trace_gc');\nsetTimeout(() => { v8.setFlagsFromString('--notrace_gc'); }, 60e3);\n</code></pre>"
+        },
+        {
+          "textRaw": "v8.writeHeapSnapshot([filename])",
+          "type": "method",
+          "name": "writeHeapSnapshot",
+          "meta": {
+            "added": [
+              "v11.13.0"
+            ],
+            "changes": []
+          },
+          "signatures": [
+            {
+              "return": {
+                "textRaw": "Returns: {string} The filename where the snapshot was saved.",
+                "name": "return",
+                "type": "string",
+                "desc": "The filename where the snapshot was saved."
+              },
+              "params": [
+                {
+                  "textRaw": "`filename` {string} The file path where the V8 heap snapshot is to be saved. If not specified, a file name with the pattern `'Heap-${yyyymmdd}-${hhmmss}-${pid}-${thread_id}.heapsnapshot'` will be generated, where `{pid}` will be the PID of the Node.js process, `{thread_id}` will be `0` when `writeHeapSnapshot()` is called from the main Node.js thread or the id of a worker thread.",
+                  "name": "filename",
+                  "type": "string",
+                  "desc": "The file path where the V8 heap snapshot is to be saved. If not specified, a file name with the pattern `'Heap-${yyyymmdd}-${hhmmss}-${pid}-${thread_id}.heapsnapshot'` will be generated, where `{pid}` will be the PID of the Node.js process, `{thread_id}` will be `0` when `writeHeapSnapshot()` is called from the main Node.js thread or the id of a worker thread.",
+                  "optional": true
+                }
+              ]
+            }
+          ],
+          "desc": "<p>Generates a snapshot of the current V8 heap and writes it to a JSON\nfile. This file is intended to be used with tools such as Chrome\nDevTools. The JSON schema is undocumented and specific to the V8\nengine, and may change from one version of V8 to the next.</p>\n<p>A heap snapshot is specific to a single V8 isolate. When using\n<a href=\"worker_threads.html\">Worker Threads</a>, a heap snapshot generated from the main thread will\nnot contain any information about the workers, and vice versa.</p>\n<pre><code class=\"language-js\">const { writeHeapSnapshot } = require('v8');\nconst {\n  Worker,\n  isMainThread,\n  parentPort\n} = require('worker_threads');\n\nif (isMainThread) {\n  const worker = new Worker(__filename);\n\n  worker.once('message', (filename) => {\n    console.log(`worker heapdump: ${filename}`);\n    // Now get a heapdump for the main thread.\n    console.log(`main thread heapdump: ${writeHeapSnapshot()}`);\n  });\n\n  // Tell the worker to create a heapdump.\n  worker.postMessage('heapdump');\n} else {\n  parentPort.once('message', (message) => {\n    if (message === 'heapdump') {\n      // Generate a heapdump for the worker\n      // and return the filename to the parent.\n      parentPort.postMessage(writeHeapSnapshot());\n    }\n  });\n}\n</code></pre>"
         }
       ],
       "modules": [
@@ -254,7 +330,7 @@
                       ]
                     }
                   ],
-                  "desc": "<p>Marks an <code>ArrayBuffer</code> as havings its contents transferred out of band.\nPass the corresponding <code>ArrayBuffer</code> in the deserializing context to\n<a href=\"#v8_deserializer_transferarraybuffer_id_arraybuffer\"><code>deserializer.transferArrayBuffer()</code></a>.</p>"
+                  "desc": "<p>Marks an <code>ArrayBuffer</code> as having its contents transferred out of band.\nPass the corresponding <code>ArrayBuffer</code> in the deserializing context to\n<a href=\"#v8_deserializer_transferarraybuffer_id_arraybuffer\"><code>deserializer.transferArrayBuffer()</code></a>.</p>"
                 },
                 {
                   "textRaw": "serializer.writeUint32(value)",
@@ -461,7 +537,7 @@
                       ]
                     }
                   ],
-                  "desc": "<p>Marks an <code>ArrayBuffer</code> as havings its contents transferred out of band.\nPass the corresponding <code>ArrayBuffer</code> in the serializing context to\n<a href=\"#v8_serializer_transferarraybuffer_id_arraybuffer\"><code>serializer.transferArrayBuffer()</code></a> (or return the <code>id</code> from\n<a href=\"#v8_serializer_getsharedarraybufferid_sharedarraybuffer\"><code>serializer._getSharedArrayBufferId()</code></a> in the case of <code>SharedArrayBuffer</code>s).</p>"
+                  "desc": "<p>Marks an <code>ArrayBuffer</code> as having its contents transferred out of band.\nPass the corresponding <code>ArrayBuffer</code> in the serializing context to\n<a href=\"#v8_serializer_transferarraybuffer_id_arraybuffer\"><code>serializer.transferArrayBuffer()</code></a> (or return the <code>id</code> from\n<a href=\"#v8_serializer_getsharedarraybufferid_sharedarraybuffer\"><code>serializer._getSharedArrayBufferId()</code></a> in the case of <code>SharedArrayBuffer</code>s).</p>"
                 },
                 {
                   "textRaw": "deserializer.getWireFormatVersion()",

@@ -33,7 +33,7 @@ function nextdir() {
   return `test${++dirc}`;
 }
 
-// mkdir creates directory using assigned path
+// fs.mkdir creates directory using assigned path
 {
   const pathname = path.join(tmpdir.path, nextdir());
 
@@ -43,7 +43,7 @@ function nextdir() {
   }));
 }
 
-// mkdir creates directory with assigned mode value
+// fs.mkdir creates directory with assigned mode value
 {
   const pathname = path.join(tmpdir.path, nextdir());
 
@@ -98,7 +98,7 @@ function nextdir() {
   const pathname = path.join(tmpdir.path, nextdir(), nextdir());
 
   fs.mkdirSync(pathname, { recursive: true });
-  // should not cause an error.
+  // Should not cause an error.
   fs.mkdirSync(pathname, { recursive: true });
 
   const exists = fs.existsSync(pathname);
@@ -163,7 +163,7 @@ function nextdir() {
   }));
 }
 
-// mkdirp when path is a file.
+// `mkdirp` when path is a file.
 {
   const pathname = path.join(tmpdir.path, nextdir(), nextdir());
 

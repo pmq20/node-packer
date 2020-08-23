@@ -7,7 +7,7 @@ const failures = [];
 
 const relativeTests = [
   [ path.win32.relative,
-    // arguments                     result
+    // Arguments                     result
     [['c:/blah\\blah', 'd:/games', 'd:\\games'],
      ['c:/aaaa/bbbb', 'c:/aaaa', '..'],
      ['c:/aaaa/bbbb', 'c:/cccc', '..\\..\\cccc'],
@@ -35,7 +35,7 @@ const relativeTests = [
     ]
   ],
   [ path.posix.relative,
-    // arguments          result
+    // Arguments          result
     [['/var/lib', '/var', '..'],
      ['/var/lib', '/bin', '../../bin'],
      ['/var/lib', '/var/lib', ''],
@@ -47,7 +47,8 @@ const relativeTests = [
      ['/foo/bar/baz-quux', '/foo/bar/baz', '../baz'],
      ['/foo/bar/baz', '/foo/bar/baz-quux', '../baz-quux'],
      ['/baz-quux', '/baz', '../baz'],
-     ['/baz', '/baz-quux', '../baz-quux']
+     ['/baz', '/baz-quux', '../baz-quux'],
+     ['/page1/page2/foo', '/', '../../..']
     ]
   ]
 ];

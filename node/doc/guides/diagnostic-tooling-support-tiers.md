@@ -18,16 +18,16 @@ the following tiers.
   early warning of potential issues.  No commit to the current and LTS
   release branches should break this tool/API if the next major release
   is within 1 month. In addition:
-    * The maintainers of the tool must remain responsive when there
-      are problems;
-    * The tool must be actively used by the ecosystem;
-    * The tool must be heavily depended on;
-    * The tool must have a guide or other documentation in the Node.js GitHub
-      organization or website;
-    * The tool must be working on all supported platforms;
-    * The tool must only be using APIs exposed by Nodejs as opposed to
-      its dependencies; and
-    * The tool must be open source.
+  * The maintainers of the tool must remain responsive when there
+    are problems;
+  * The tool must be actively used by the ecosystem;
+  * The tool must be heavily depended on;
+  * The tool must have a guide or other documentation in the Node.js GitHub
+    organization or website;
+  * The tool must be working on all supported platforms;
+  * The tool must only be using APIs exposed by Nodejs as opposed to
+    its dependencies; and
+  * The tool must be open source.
 
 * Tier 2 - Must be working(CI tests passing) for all
   LTS releases. An LTS release will not be shipped if the test
@@ -35,22 +35,22 @@ the following tiers.
   in this tier it must have a good test suite and that test suite and a job
   must exist in the Node.js CI so that it can be run as part of the release
   process. In addition:
-    * The maintainers of the tool must remain responsive when
-      there are problems;
-    * The tool must be actively used by the ecosystem;
-    * The tool must be heavily depended on;
-    * The tool must have a guide or other documentation in the Node.js GitHub
-      organization or website;
-    * The tool must be open source.
+  * The maintainers of the tool must remain responsive when
+    there are problems;
+  * The tool must be actively used by the ecosystem;
+  * The tool must be heavily depended on;
+  * The tool must have a guide or other documentation in the Node.js GitHub
+    organization or website;
+  * The tool must be open source.
 
- * Tier 3 - If possible its test suite
-   will be run at least nightly in the Node.js CI and issues opened for
-   failures.  Does not block shipping a release.
+* Tier 3 - If possible its test suite
+  will be run at least nightly in the Node.js CI and issues opened for
+  failures.  Does not block shipping a release.
 
- * Tier 4 - Does not block shipping a release.
+* Tier 4 - Does not block shipping a release.
 
- * Unclassified - tool/API is new or does not have the required testing in the
-   Node.js CI in order to qualify for a higher tier.
+* Unclassified - tool/API is new or does not have the required testing in the
+  Node.js CI in order to qualify for a higher tier.
 
 The choice of which tier a particular tool will be assigned to, will be a
 collaborative decision between Diagnostics WG and Release WG. Some of the
@@ -102,7 +102,6 @@ The tools are currently assigned to Tiers as follows:
  | Tool Type | Tool/API Name             | Regular Testing in Node.js CI | Integrated with Node.js | Target Tier |
  |-----------|---------------------------|-------------------------------|-------------------------|-------------|
  |           |                           |                               |                         |             |
-
 
 ## Tier 3
 

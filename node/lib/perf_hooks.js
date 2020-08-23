@@ -1,6 +1,9 @@
 'use strict';
 
+const { Object } = primordials;
+
 const {
+  ELDHistogram: _ELDHistogram,
   PerformanceEntry,
   mark: _mark,
   clearMark: _clearMark,
@@ -11,8 +14,10 @@ const {
   timeOrigin,
   timeOriginTimestamp,
   timerify,
-  constants
-} = process.binding('performance');
+  constants,
+  installGarbageCollectionTracking,
+  removeGarbageCollectionTracking
+} = internalBinding('performance');
 
 const {
   NODE_PERFORMANCE_ENTRY_TYPE_NODE,
@@ -21,6 +26,7 @@ const {
   NODE_PERFORMANCE_ENTRY_TYPE_GC,
   NODE_PERFORMANCE_ENTRY_TYPE_FUNCTION,
   NODE_PERFORMANCE_ENTRY_TYPE_HTTP2,
+  NODE_PERFORMANCE_ENTRY_TYPE_HTTP,
 
   NODE_PERFORMANCE_MILESTONE_NODE_START,
   NODE_PERFORMANCE_MILESTONE_V8_START,
@@ -33,8 +39,19 @@ const {
 const { AsyncResource } = require('async_hooks');
 const L = require('internal/linkedlist');
 const kInspect = require('internal/util').customInspectSymbol;
-const { inherits } = require('util');
 
+const {
+  ERR_INVALID_CALLBACK,
+  ERR_INVALID_ARG_VALUE,
+  ERR_INVALID_ARG_TYPE,
+  ERR_INVALID_OPT_VALUE,
+  ERR_VALID_PERFORMANCE_ENTRY_TYPE,
+  ERR_INVALID_PERFORMANCE_MARK
+} = require('internal/errors').codes;
+
+const { setImmediate } = require('timers');
+const kHandle = Symbol('handle');
+const kMap = Symbol('map');
 const kCallback = Symbol('callback');
 const kTypes = Symbol('types');
 const kEntries = Symbol('entries');
@@ -55,7 +72,8 @@ const observerableTypes = [
   'measure',
   'gc',
   'function',
-  'http2'
+  'http2',
+  'http'
 ];
 
 const IDX_STREAM_STATS_ID = 0;
@@ -75,14 +93,16 @@ const IDX_SESSION_STATS_DATA_SENT = 6;
 const IDX_SESSION_STATS_DATA_RECEIVED = 7;
 const IDX_SESSION_STATS_MAX_CONCURRENT_STREAMS = 8;
 
+let http2;
 let sessionStats;
 let streamStats;
 
 function collectHttp2Stats(entry) {
+  if (http2 === undefined) http2 = internalBinding('http2');
   switch (entry.name) {
     case 'Http2Stream':
       if (streamStats === undefined)
-        streamStats = process.binding('http2').streamStats;
+        streamStats = http2.streamStats;
       entry.id =
         streamStats[IDX_STREAM_STATS_ID] >>> 0;
       entry.timeToFirstByte =
@@ -98,7 +118,7 @@ function collectHttp2Stats(entry) {
       break;
     case 'Http2Session':
       if (sessionStats === undefined)
-        sessionStats = process.binding('http2').sessionStats;
+        sessionStats = http2.sessionStats;
       entry.type =
         sessionStats[IDX_SESSION_STATS_TYPE] >>> 0 === 0 ? 'server' : 'client';
       entry.pingRTT =
@@ -121,14 +141,6 @@ function collectHttp2Stats(entry) {
   }
 }
 
-
-let errors;
-function lazyErrors() {
-  if (errors === undefined)
-    errors = require('internal/errors').codes;
-  return errors;
-}
-
 function now() {
   const hr = process.hrtime();
   return hr[0] * 1000 + hr[1] / 1e6;
@@ -141,7 +153,7 @@ function getMilestoneTimestamp(milestoneIdx) {
   return ns / 1e6 - timeOrigin;
 }
 
-class PerformanceNodeTiming {
+class PerformanceNodeTiming extends PerformanceEntry {
   get name() {
     return 'node';
   }
@@ -193,22 +205,10 @@ class PerformanceNodeTiming {
       bootstrapComplete: this.bootstrapComplete,
       environment: this.environment,
       loopStart: this.loopStart,
-      loopExit: this.loopExit,
-      thirdPartyMainStart: this.thirdPartyMainStart,
-      thirdPartyMainEnd: this.thirdPartyMainEnd,
-      clusterSetupStart: this.clusterSetupStart,
-      clusterSetupEnd: this.clusterSetupEnd,
-      moduleLoadStart: this.moduleLoadStart,
-      moduleLoadEnd: this.moduleLoadEnd,
-      preloadModuleLoadStart: this.preloadModuleLoadStart,
-      preloadModuleLoadEnd: this.preloadModuleLoadEnd
+      loopExit: this.loopExit
     };
   }
 }
-// Use this instead of Extends because we want PerformanceEntry in the
-// prototype chain but we do not want to use the PerformanceEntry
-// constructor for this.
-inherits(PerformanceNodeTiming, PerformanceEntry);
 
 const nodeTiming = new PerformanceNodeTiming();
 
@@ -277,8 +277,7 @@ class PerformanceObserverEntryList {
 class PerformanceObserver extends AsyncResource {
   constructor(callback) {
     if (typeof callback !== 'function') {
-      const errors = lazyErrors();
-      throw new errors.ERR_INVALID_CALLBACK();
+      throw new ERR_INVALID_CALLBACK(callback);
     }
     super('PerformanceObserver');
     Object.defineProperties(this, {
@@ -311,6 +310,7 @@ class PerformanceObserver extends AsyncResource {
   }
 
   disconnect() {
+    const observerCountsGC = observerCounts[NODE_PERFORMANCE_ENTRY_TYPE_GC];
     const types = this[kTypes];
     const keys = Object.keys(types);
     for (var n = 0; n < keys.length; n++) {
@@ -321,31 +321,40 @@ class PerformanceObserver extends AsyncResource {
       }
     }
     this[kTypes] = {};
+    if (observerCountsGC === 1 &&
+      observerCounts[NODE_PERFORMANCE_ENTRY_TYPE_GC] === 0) {
+      removeGarbageCollectionTracking();
+    }
   }
 
   observe(options) {
-    const errors = lazyErrors();
-    if (typeof options !== 'object' || options == null) {
-      throw new errors.ERR_INVALID_ARG_TYPE('options', 'Object', options);
+    if (typeof options !== 'object' || options === null) {
+      throw new ERR_INVALID_ARG_TYPE('options', 'Object', options);
     }
     if (!Array.isArray(options.entryTypes)) {
-      throw new errors.ERR_INVALID_OPT_VALUE('entryTypes', options);
+      throw new ERR_INVALID_OPT_VALUE('entryTypes', options);
     }
     const entryTypes = options.entryTypes.filter(filterTypes).map(mapTypes);
     if (entryTypes.length === 0) {
-      throw new errors.ERR_VALID_PERFORMANCE_ENTRY_TYPE();
+      throw new ERR_VALID_PERFORMANCE_ENTRY_TYPE();
     }
     this.disconnect();
+    const observerCountsGC = observerCounts[NODE_PERFORMANCE_ENTRY_TYPE_GC];
     this[kBuffer][kEntries] = [];
     L.init(this[kBuffer][kEntries]);
     this[kBuffering] = Boolean(options.buffered);
     for (var n = 0; n < entryTypes.length; n++) {
       const entryType = entryTypes[n];
       const list = getObserversList(entryType);
+      if (this[kTypes][entryType]) continue;
       const item = { obs: this };
       this[kTypes][entryType] = item;
       L.append(list, item);
       observerCounts[entryType]++;
+    }
+    if (observerCountsGC === 0 &&
+      observerCounts[NODE_PERFORMANCE_ENTRY_TYPE_GC] === 1) {
+      installGarbageCollectionTracking();
     }
   }
 }
@@ -381,8 +390,7 @@ class Performance {
     startMark = startMark !== undefined ? `${startMark}` : '';
     const marks = this[kIndex][kMarks];
     if (!marks.has(endMark) && !(endMark in nodeTiming)) {
-      const errors = lazyErrors();
-      throw new errors.ERR_INVALID_PERFORMANCE_MARK(endMark);
+      throw new ERR_INVALID_PERFORMANCE_MARK(endMark);
     }
     _measure(name, startMark, endMark);
   }
@@ -400,8 +408,7 @@ class Performance {
 
   timerify(fn) {
     if (typeof fn !== 'function') {
-      const errors = lazyErrors();
-      throw new errors.ERR_INVALID_ARG_TYPE('fn', 'Function', fn);
+      throw new ERR_INVALID_ARG_TYPE('fn', 'Function', fn);
     }
     if (fn[kTimerified])
       return fn[kTimerified];
@@ -501,6 +508,7 @@ function mapTypes(i) {
     case 'gc': return NODE_PERFORMANCE_ENTRY_TYPE_GC;
     case 'function': return NODE_PERFORMANCE_ENTRY_TYPE_FUNCTION;
     case 'http2': return NODE_PERFORMANCE_ENTRY_TYPE_HTTP2;
+    case 'http': return NODE_PERFORMANCE_ENTRY_TYPE_HTTP;
   }
 }
 
@@ -538,9 +546,68 @@ function sortedInsert(list, entry) {
   list.splice(location, 0, entry);
 }
 
+class ELDHistogram {
+  constructor(handle) {
+    this[kHandle] = handle;
+    this[kMap] = new Map();
+  }
+
+  reset() { this[kHandle].reset(); }
+  enable() { return this[kHandle].enable(); }
+  disable() { return this[kHandle].disable(); }
+
+  get exceeds() { return this[kHandle].exceeds(); }
+  get min() { return this[kHandle].min(); }
+  get max() { return this[kHandle].max(); }
+  get mean() { return this[kHandle].mean(); }
+  get stddev() { return this[kHandle].stddev(); }
+  percentile(percentile) {
+    if (typeof percentile !== 'number') {
+      throw new ERR_INVALID_ARG_TYPE('percentile', 'number', percentile);
+    }
+    if (percentile <= 0 || percentile > 100) {
+      throw new ERR_INVALID_ARG_VALUE.RangeError('percentile',
+                                                 percentile);
+    }
+    return this[kHandle].percentile(percentile);
+  }
+  get percentiles() {
+    this[kMap].clear();
+    this[kHandle].percentiles(this[kMap]);
+    return this[kMap];
+  }
+
+  [kInspect]() {
+    return {
+      min: this.min,
+      max: this.max,
+      mean: this.mean,
+      stddev: this.stddev,
+      percentiles: this.percentiles,
+      exceeds: this.exceeds
+    };
+  }
+}
+
+function monitorEventLoopDelay(options = {}) {
+  if (typeof options !== 'object' || options === null) {
+    throw new ERR_INVALID_ARG_TYPE('options', 'Object', options);
+  }
+  const { resolution = 10 } = options;
+  if (typeof resolution !== 'number') {
+    throw new ERR_INVALID_ARG_TYPE('options.resolution',
+                                   'number', resolution);
+  }
+  if (resolution <= 0 || !Number.isSafeInteger(resolution)) {
+    throw new ERR_INVALID_OPT_VALUE.RangeError('resolution', resolution);
+  }
+  return new ELDHistogram(new _ELDHistogram(resolution));
+}
+
 module.exports = {
   performance,
-  PerformanceObserver
+  PerformanceObserver,
+  monitorEventLoopDelay
 };
 
 Object.defineProperty(module.exports, 'constants', {

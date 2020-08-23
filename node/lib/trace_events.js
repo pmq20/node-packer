@@ -1,6 +1,6 @@
 'use strict';
 
-const { hasTracing } = process.binding('config');
+const { hasTracing } = internalBinding('config');
 const kHandle = Symbol('handle');
 const kEnabled = Symbol('enabled');
 const kCategories = Symbol('categories');
@@ -13,7 +13,8 @@ const {
   ERR_INVALID_ARG_TYPE
 } = require('internal/errors').codes;
 
-if (!hasTracing)
+const { ownsProcessState } = require('internal/worker');
+if (!hasTracing || !ownsProcessState)
   throw new ERR_TRACE_EVENTS_UNAVAILABLE();
 
 const { CategorySet, getEnabledCategories } = internalBinding('trace_events');
@@ -60,6 +61,9 @@ class Tracing {
   }
 
   [customInspectSymbol](depth, opts) {
+    if (typeof depth === 'number' && depth < 0)
+      return this;
+
     const obj = {
       enabled: this.enabled,
       categories: this.categories
@@ -69,7 +73,7 @@ class Tracing {
 }
 
 function createTracing(options) {
-  if (typeof options !== 'object' || options == null)
+  if (typeof options !== 'object' || options === null)
     throw new ERR_INVALID_ARG_TYPE('options', 'object', options);
 
   if (!Array.isArray(options.categories)) {

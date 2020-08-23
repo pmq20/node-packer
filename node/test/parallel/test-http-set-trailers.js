@@ -36,7 +36,7 @@ const server = http.createServer(function(req, res) {
 server.listen(0);
 
 
-// first, we test an HTTP/1.0 request.
+// First, we test an HTTP/1.0 request.
 server.on('listening', function() {
   const c = net.createConnection(this.address().port);
   let res_buffer = '';
@@ -61,12 +61,11 @@ server.on('listening', function() {
     outstanding_reqs--;
     if (outstanding_reqs === 0) {
       server.close();
-      process.exit();
     }
   });
 });
 
-// now, we test an HTTP/1.1 request.
+// Now, we test an HTTP/1.1 request.
 server.on('listening', function() {
   const c = net.createConnection(this.address().port);
   let res_buffer = '';
@@ -91,13 +90,12 @@ server.on('listening', function() {
       );
       if (outstanding_reqs === 0) {
         server.close();
-        process.exit();
       }
     }
   });
 });
 
-// now, see if the client sees the trailers.
+// Now, see if the client sees the trailers.
 server.on('listening', function() {
   http.get({
     port: this.address().port,
@@ -110,7 +108,6 @@ server.on('listening', function() {
       outstanding_reqs--;
       if (outstanding_reqs === 0) {
         server.close();
-        process.exit();
       }
     });
     res.resume();

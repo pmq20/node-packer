@@ -11,7 +11,7 @@ const bench = common.createBenchmark(main, {
   streams: [1, 10, 20, 40, 100, 200],
   clients: [2],
   benchmarker: ['h2load']
-}, { flags: ['--no-warnings', '--expose-http2'] });
+}, { flags: ['--no-warnings'] });
 
 function main({ requests, streams, clients }) {
   fs.open(file, 'r', (err, fd) => {

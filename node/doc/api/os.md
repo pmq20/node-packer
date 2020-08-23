@@ -164,7 +164,7 @@ The properties included on each object include:
 ]
 ```
 
-Because `nice` values are UNIX-specific, on Windows the `nice` values of all
+Because `nice` values are Unix-specific, on Windows the `nice` values of all
 processors are always 0.
 
 ## os.endianness()
@@ -192,7 +192,7 @@ added: v0.3.3
 The `os.freemem()` method returns the amount of free system memory in bytes as
 an integer.
 
-## os.getPriority([pid])
+## os.getPriority(\[pid\])
 <!-- YAML
 added: v10.10.0
 -->
@@ -214,6 +214,14 @@ added: v2.3.0
 
 The `os.homedir()` method returns the home directory of the current user as a
 string.
+
+**POSIX**:
+Will use the `$HOME` environment variable if defined. Otherwise, it will use
+the [effective UID][EUID] to look up the user's home directory.
+
+**Windows**:
+Will use the `USERPROFILE` environment variable if defined. Otherwise it
+will be the path to the profile directory of the current user.
 
 ## os.hostname()
 <!-- YAML
@@ -239,7 +247,7 @@ The load average is a measure of system activity, calculated by the operating
 system and expressed as a fractional number. As a rule of thumb, the load
 average should ideally be less than the number of logical CPUs in the system.
 
-The load average is a UNIX-specific concept with no real equivalent on
+The load average is a Unix-specific concept with no real equivalent on
 Windows platforms. On Windows, the return value is always `[0, 0, 0]`.
 
 ## os.networkInterfaces()
@@ -353,7 +361,7 @@ On POSIX systems, the operating system release is determined by calling
 [uname(3)][]. On Windows, `GetVersionExW()` is used. Please see
 https://en.wikipedia.org/wiki/Uname#Examples for more information.
 
-## os.setPriority([pid, ]priority)
+## os.setPriority(\[pid, \]priority)
 <!-- YAML
 added: v10.10.0
 -->
@@ -430,7 +438,7 @@ changes:
 
 The `os.uptime()` method returns the system uptime in number of seconds.
 
-## os.userInfo([options])
+## os.userInfo(\[options\])
 <!-- YAML
 added: v6.0.0
 -->
@@ -450,6 +458,8 @@ The value of `homedir` returned by `os.userInfo()` is provided by the operating
 system. This differs from the result of `os.homedir()`, which queries several
 environment variables for the home directory before falling back to the
 operating system response.
+
+Throws a [`SystemError`][] if a user has no `username` or `homedir`.
 
 ## OS Constants
 
@@ -893,7 +903,7 @@ The following error constants are exported by `os.constants.errno`:
   </tr>
   <tr>
     <td><code>EOPNOTSUPP</code></td>
-    <td>Indicates that an operation is not supported on the socket.  Note that
+    <td>Indicates that an operation is not supported on the socket. Note that
     while <code>ENOTSUP</code> and <code>EOPNOTSUPP</code> have the same value
     on Linux, according to POSIX.1 these error values should be distinct.)</td>
   </tr>
@@ -1313,7 +1323,9 @@ The following process scheduling constants are exported by
   </tr>
 </table>
 
+[`SystemError`]: errors.html#errors_class_systemerror
 [`process.arch`]: process.html#process_process_arch
 [`process.platform`]: process.html#process_process_platform
 [Android building]: https://github.com/nodejs/node/blob/master/BUILDING.md#androidandroid-based-devices-eg-firefox-os
+[EUID]: https://en.wikipedia.org/wiki/User_identifier#Effective_user_ID
 [uname(3)]: https://linux.die.net/man/3/uname

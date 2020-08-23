@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>TTY | Node.js v10.16.3 Documentation</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
+  <title>TTY | Node.js v12.13.0 Documentation</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
   <link rel="canonical" href="https://nodejs.org/api/tty.html">
@@ -52,11 +52,13 @@
 <li><a href="os.html" class="nav-os">OS</a></li>
 <li><a href="path.html" class="nav-path">Path</a></li>
 <li><a href="perf_hooks.html" class="nav-perf_hooks">Performance Hooks</a></li>
+<li><a href="policy.html" class="nav-policy">Policies</a></li>
 <li><a href="process.html" class="nav-process">Process</a></li>
 <li><a href="punycode.html" class="nav-punycode">Punycode</a></li>
 <li><a href="querystring.html" class="nav-querystring">Query Strings</a></li>
 <li><a href="readline.html" class="nav-readline">Readline</a></li>
 <li><a href="repl.html" class="nav-repl">REPL</a></li>
+<li><a href="report.html" class="nav-report">Report</a></li>
 <li><a href="stream.html" class="nav-stream">Stream</a></li>
 <li><a href="string_decoder.html" class="nav-string_decoder">String Decoder</a></li>
 <li><a href="timers.html" class="nav-timers">Timers</a></li>
@@ -79,7 +81,7 @@
 
     <div id="column1" data-id="tty" class="interior">
       <header>
-        <h1>Node.js v10.16.3 Documentation</h1>
+        <h1>Node.js v12.13.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -131,15 +133,15 @@
 <p><a href="#tty_class_tty_writestream">Class: tty.WriteStream</a></p>
 <ul>
 <li><a href="#tty_event_resize">Event: 'resize'</a></li>
-<li><a href="#tty_writestream_clearline_dir">writeStream.clearLine(dir)</a></li>
-<li><a href="#tty_writestream_clearscreendown">writeStream.clearScreenDown()</a></li>
+<li><a href="#tty_writestream_clearline_dir_callback">writeStream.clearLine(dir[, callback])</a></li>
+<li><a href="#tty_writestream_clearscreendown_callback">writeStream.clearScreenDown([callback])</a></li>
 <li><a href="#tty_writestream_columns">writeStream.columns</a></li>
-<li><a href="#tty_writestream_cursorto_x_y">writeStream.cursorTo(x, y)</a></li>
+<li><a href="#tty_writestream_cursorto_x_y_callback">writeStream.cursorTo(x[, y][, callback])</a></li>
 <li><a href="#tty_writestream_getcolordepth_env">writeStream.getColorDepth([env])</a></li>
 <li><a href="#tty_writestream_getwindowsize">writeStream.getWindowSize()</a></li>
 <li><a href="#tty_writestream_hascolors_count_env">writeStream.hasColors([count][, env])</a></li>
 <li><a href="#tty_writestream_istty">writeStream.isTTY</a></li>
-<li><a href="#tty_writestream_movecursor_dx_dy">writeStream.moveCursor(dx, dy)</a></li>
+<li><a href="#tty_writestream_movecursor_dx_dy_callback">writeStream.moveCursor(dx, dy[, callback])</a></li>
 <li><a href="#tty_writestream_rows">writeStream.rows</a></li>
 </ul>
 </li>
@@ -172,14 +174,16 @@ false
 <p>In most cases, there should be little to no reason for an application to
 manually create instances of the <code>tty.ReadStream</code> and <code>tty.WriteStream</code>
 classes.</p>
-<h2>Class: tty.ReadStream<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/tty.js#L41">[src]</a><span><a class="mark" href="#tty_class_tty_readstream" id="tty_class_tty_readstream">#</a></span></h2>
+<h2>Class: tty.ReadStream<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/tty.js#L42">[src]</a><span><a class="mark" href="#tty_class_tty_readstream" id="tty_class_tty_readstream">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.5.8</span>
 </div>
-<p>The <code>tty.ReadStream</code> class is a subclass of <a href="net.html#net_class_net_socket"><code>net.Socket</code></a> that represents the
-readable side of a TTY. In normal circumstances <a href="process.html#process_process_stdin"><code>process.stdin</code></a> will be the
-only <code>tty.ReadStream</code> instance in a Node.js process and there should be no
-reason to create additional instances.</p>
+<ul>
+<li>Extends: <a href="net.html#net_class_net_socket" class="type">&#x3C;net.Socket></a></li>
+</ul>
+<p>Represents the readable side of a TTY. In normal circumstances
+<a href="process.html#process_process_stdin"><code>process.stdin</code></a> will be the only <code>tty.ReadStream</code> instance in a Node.js
+process and there should be no reason to create additional instances.</p>
 <h3>readStream.isRaw<span><a class="mark" href="#tty_readstream_israw" id="tty_readstream_israw">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.7.7</span>
@@ -206,15 +210,18 @@ mode.</li>
 <p>When in raw mode, input is always available character-by-character, not
 including modifiers. Additionally, all special processing of characters by the
 terminal is disabled, including echoing input characters.
-Note that <code>CTRL</code>+<code>C</code> will no longer cause a <code>SIGINT</code> when in this mode.</p>
-<h2>Class: tty.WriteStream<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/tty.js#L78">[src]</a><span><a class="mark" href="#tty_class_tty_writestream" id="tty_class_tty_writestream">#</a></span></h2>
+<code>CTRL</code>+<code>C</code> will no longer cause a <code>SIGINT</code> when in this mode.</p>
+<h2>Class: tty.WriteStream<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/tty.js#L80">[src]</a><span><a class="mark" href="#tty_class_tty_writestream" id="tty_class_tty_writestream">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.5.8</span>
 </div>
-<p>The <code>tty.WriteStream</code> class is a subclass of <a href="net.html#net_class_net_socket"><code>net.Socket</code></a> that represents
-the writable side of a TTY. In normal circumstances, <a href="process.html#process_process_stdout"><code>process.stdout</code></a> and
-<a href="process.html#process_process_stderr"><code>process.stderr</code></a> will be the only <code>tty.WriteStream</code> instances created for a
-Node.js process and there should be no reason to create additional instances.</p>
+<ul>
+<li>Extends: <a href="net.html#net_class_net_socket" class="type">&#x3C;net.Socket></a></li>
+</ul>
+<p>Represents the writable side of a TTY. In normal circumstances,
+<a href="process.html#process_process_stdout"><code>process.stdout</code></a> and <a href="process.html#process_process_stderr"><code>process.stderr</code></a> will be the only
+<code>tty.WriteStream</code> instances created for a Node.js process and there
+should be no reason to create additional instances.</p>
 <h3>Event: 'resize'<span><a class="mark" href="#tty_event_resize" id="tty_event_resize">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.7.7</span>
@@ -227,9 +234,17 @@ listener callback when called.</p>
   console.log(`${process.stdout.columns}x${process.stdout.rows}`);
 });
 </code></pre>
-<h3>writeStream.clearLine(dir)<span><a class="mark" href="#tty_writestream_clearline_dir" id="tty_writestream_clearline_dir">#</a></span></h3>
+<h3>writeStream.clearLine(dir[, callback])<span><a class="mark" href="#tty_writestream_clearline_dir_callback" id="tty_writestream_clearline_dir_callback">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.7.7</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v12.7.0</td>
+<td><p>The stream's write() callback and return value are exposed.</p></td></tr>
+<tr><td>v0.7.7</td>
+<td><p><span>Added in: v0.7.7</span></p></td></tr>
+</tbody></table>
+</details>
 </div>
 <ul>
 <li>
@@ -240,13 +255,31 @@ listener callback when called.</p>
 <li><code>0</code> - the entire line</li>
 </ul>
 </li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> Invoked once the operation completes.</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> <code>false</code> if the stream wishes for the calling code to wait
+for the <code>'drain'</code> event to be emitted before continuing to write additional
+data; otherwise <code>true</code>.</li>
 </ul>
 <p><code>writeStream.clearLine()</code> clears the current line of this <code>WriteStream</code> in a
 direction identified by <code>dir</code>.</p>
-<h3>writeStream.clearScreenDown()<span><a class="mark" href="#tty_writestream_clearscreendown" id="tty_writestream_clearscreendown">#</a></span></h3>
+<h3>writeStream.clearScreenDown([callback])<span><a class="mark" href="#tty_writestream_clearscreendown_callback" id="tty_writestream_clearscreendown_callback">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.7.7</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v12.7.0</td>
+<td><p>The stream's write() callback and return value are exposed.</p></td></tr>
+<tr><td>v0.7.7</td>
+<td><p><span>Added in: v0.7.7</span></p></td></tr>
+</tbody></table>
+</details>
 </div>
+<ul>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> Invoked once the operation completes.</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> <code>false</code> if the stream wishes for the calling code to wait
+for the <code>'drain'</code> event to be emitted before continuing to write additional
+data; otherwise <code>true</code>.</li>
+</ul>
 <p><code>writeStream.clearScreenDown()</code> clears this <code>WriteStream</code> from the current
 cursor down.</p>
 <h3>writeStream.columns<span><a class="mark" href="#tty_writestream_columns" id="tty_writestream_columns">#</a></span></h3>
@@ -255,13 +288,25 @@ cursor down.</p>
 </div>
 <p>A <code>number</code> specifying the number of columns the TTY currently has. This property
 is updated whenever the <code>'resize'</code> event is emitted.</p>
-<h3>writeStream.cursorTo(x, y)<span><a class="mark" href="#tty_writestream_cursorto_x_y" id="tty_writestream_cursorto_x_y">#</a></span></h3>
+<h3>writeStream.cursorTo(x[, y][, callback])<span><a class="mark" href="#tty_writestream_cursorto_x_y_callback" id="tty_writestream_cursorto_x_y_callback">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.7.7</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v12.7.0</td>
+<td><p>The stream's write() callback and return value are exposed.</p></td></tr>
+<tr><td>v0.7.7</td>
+<td><p><span>Added in: v0.7.7</span></p></td></tr>
+</tbody></table>
+</details>
 </div>
 <ul>
 <li><code>x</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
 <li><code>y</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> Invoked once the operation completes.</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> <code>false</code> if the stream wishes for the calling code to wait
+for the <code>'drain'</code> event to be emitted before continuing to write additional
+data; otherwise <code>true</code>.</li>
 </ul>
 <p><code>writeStream.cursorTo()</code> moves this <code>WriteStream</code>'s cursor to the specified
 position.</p>
@@ -270,8 +315,9 @@ position.</p>
 <span>Added in: v9.9.0</span>
 </div>
 <ul>
-<li><code>env</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> An object containing the environment variables to check.
-<strong>Default:</strong> <code>process.env</code>.</li>
+<li><code>env</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> An object containing the environment variables to check. This
+enables simulating the usage of a specific terminal. <strong>Default:</strong>
+<code>process.env</code>.</li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
 </ul>
 <p>Returns:</p>
@@ -286,10 +332,17 @@ colors supported.</li>
 colors in terminals it is possible to either have false positives or false
 negatives. It depends on process information and the environment variables that
 may lie about what terminal is used.
-To enforce a specific behavior without relying on <code>process.env</code> it is possible
-to pass in an object with different settings.</p>
-<p>Use the <code>NODE_DISABLE_COLORS</code> environment variable to enforce this function to
-always return 1.</p>
+It is possible to pass in an <code>env</code> object to simulate the usage of a specific
+terminal. This can be useful to check how specific environment settings behave.</p>
+<p>To enforce a specific color support, use one of the below environment settings.</p>
+<ul>
+<li>2 colors: <code>FORCE_COLOR = 0</code> (Disables colors)</li>
+<li>16 colors: <code>FORCE_COLOR = 1</code></li>
+<li>256 colors: <code>FORCE_COLOR = 2</code></li>
+<li>16,777,216 colors: <code>FORCE_COLOR = 3</code></li>
+</ul>
+<p>Disabling color support is also possible by using the <code>NO_COLOR</code> and
+<code>NODE_DISABLE_COLORS</code> environment variables.</p>
 <h3>writeStream.getWindowSize()<span><a class="mark" href="#tty_writestream_getwindowsize" id="tty_writestream_getwindowsize">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.7.7</span>
@@ -303,7 +356,7 @@ corresponding to this <code>WriteStream</code>. The array is of the type
 of columns and rows in the corresponding <a href="tty.html">TTY</a>.</p>
 <h3>writeStream.hasColors([count][, env])<span><a class="mark" href="#tty_writestream_hascolors_count_env" id="tty_writestream_hascolors_count_env">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v10.16.0</span>
+<span>Added in: v11.13.0</span>
 </div>
 <ul>
 <li><code>count</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> The number of colors that are requested (minimum 2).
@@ -331,13 +384,25 @@ process.stdout.hasColors(2 ** 24, { TMUX: '1' });
 <span>Added in: v0.5.8</span>
 </div>
 <p>A <code>boolean</code> that is always <code>true</code>.</p>
-<h3>writeStream.moveCursor(dx, dy)<span><a class="mark" href="#tty_writestream_movecursor_dx_dy" id="tty_writestream_movecursor_dx_dy">#</a></span></h3>
+<h3>writeStream.moveCursor(dx, dy[, callback])<span><a class="mark" href="#tty_writestream_movecursor_dx_dy_callback" id="tty_writestream_movecursor_dx_dy_callback">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.7.7</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v12.7.0</td>
+<td><p>The stream's write() callback and return value are exposed.</p></td></tr>
+<tr><td>v0.7.7</td>
+<td><p><span>Added in: v0.7.7</span></p></td></tr>
+</tbody></table>
+</details>
 </div>
 <ul>
 <li><code>dx</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
 <li><code>dy</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
+<li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> Invoked once the operation completes.</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> <code>false</code> if the stream wishes for the calling code to wait
+for the <code>'drain'</code> event to be emitted before continuing to write additional
+data; otherwise <code>true</code>.</li>
 </ul>
 <p><code>writeStream.moveCursor()</code> moves this <code>WriteStream</code>'s cursor <em>relative</em> to its
 current position.</p>
@@ -347,12 +412,13 @@ current position.</p>
 </div>
 <p>A <code>number</code> specifying the number of rows the TTY currently has. This property
 is updated whenever the <code>'resize'</code> event is emitted.</p>
-<h2>tty.isatty(fd)<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/tty.js#L37">[src]</a><span><a class="mark" href="#tty_tty_isatty_fd" id="tty_tty_isatty_fd">#</a></span></h2>
+<h2>tty.isatty(fd)<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/tty.js#L38">[src]</a><span><a class="mark" href="#tty_tty_isatty_fd" id="tty_tty_isatty_fd">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.5.8</span>
 </div>
 <ul>
 <li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> A numeric file descriptor</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a></li>
 </ul>
 <p>The <code>tty.isatty()</code> method returns <code>true</code> if the given <code>fd</code> is associated with
 a TTY and <code>false</code> if it is not, including whenever <code>fd</code> is not a non-negative

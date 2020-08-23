@@ -42,16 +42,34 @@ if (common.isMainThread) {
 common.expectWarning(
   'Warning',
   [
-    ['No such label \'nolabel\' for console.timeEnd()', common.noWarnCode],
-    ['No such label \'nolabel\' for console.timeLog()', common.noWarnCode]
+    ['Count for \'noLabel\' does not exist'],
+    ['No such label \'noLabel\' for console.timeLog()'],
+    ['No such label \'noLabel\' for console.timeEnd()'],
+    ['Count for \'default\' does not exist'],
+    ['No such label \'default\' for console.timeLog()'],
+    ['No such label \'default\' for console.timeEnd()'],
+    ['Label \'default\' already exists for console.time()'],
+    ['Label \'test\' already exists for console.time()']
   ]
 );
 
-console.timeEnd('nolabel');
-console.timeLog('nolabel');
+console.countReset('noLabel');
+console.timeLog('noLabel');
+console.timeEnd('noLabel');
 
 console.time('label');
 console.timeEnd('label');
+
+// Test using the default label
+// on console.time(), console.countReset(), console.timeLog(), console.timeEnd()
+console.countReset();
+console.timeLog();
+console.timeEnd();
+
+console.time();
+console.time();
+console.timeLog();
+console.timeEnd();
 
 // Check that the `Error` is a `TypeError` but do not check the message as it
 // will be different in different JavaScript engines.
@@ -75,35 +93,35 @@ hijackStderr(function(data) {
   errStrings.push(data);
 });
 
-// test console.log() goes to stdout
+// Test console.log() goes to stdout
 console.log('foo');
 console.log('foo', 'bar');
 console.log('%s %s', 'foo', 'bar', 'hop');
 console.log({ slashes: '\\\\' });
 console.log(custom_inspect);
 
-// test console.debug() goes to stdout
+// Test console.debug() goes to stdout
 console.debug('foo');
 console.debug('foo', 'bar');
 console.debug('%s %s', 'foo', 'bar', 'hop');
 console.debug({ slashes: '\\\\' });
 console.debug(custom_inspect);
 
-// test console.info() goes to stdout
+// Test console.info() goes to stdout
 console.info('foo');
 console.info('foo', 'bar');
 console.info('%s %s', 'foo', 'bar', 'hop');
 console.info({ slashes: '\\\\' });
 console.info(custom_inspect);
 
-// test console.error() goes to stderr
+// Test console.error() goes to stderr
 console.error('foo');
 console.error('foo', 'bar');
 console.error('%s %s', 'foo', 'bar', 'hop');
 console.error({ slashes: '\\\\' });
 console.error(custom_inspect);
 
-// test console.warn() goes to stderr
+// Test console.warn() goes to stderr
 console.warn('foo');
 console.warn('foo', 'bar');
 console.warn('%s %s', 'foo', 'bar', 'hop');
@@ -116,7 +134,7 @@ console.dir(custom_inspect, { showHidden: false });
 console.dir({ foo: { bar: { baz: true } } }, { depth: 0 });
 console.dir({ foo: { bar: { baz: true } } }, { depth: 1 });
 
-// test console.dirxml()
+// Test console.dirxml()
 console.dirxml(custom_inspect, custom_inspect);
 console.dirxml(
   { foo: { bar: { baz: true } } },
@@ -124,14 +142,14 @@ console.dirxml(
   { foo: { bar: { quux: true } } }
 );
 
-// test console.trace()
+// Test console.trace()
 console.trace('This is a %j %d', { formatted: 'trace' }, 10, 'foo');
 
-// test console.time() and console.timeEnd() output
+// Test console.time() and console.timeEnd() output
 console.time('label');
 console.timeEnd('label');
 
-// verify that Object.prototype properties can be used as labels
+// Verify that Object.prototype properties can be used as labels
 console.time('__proto__');
 console.timeEnd('__proto__');
 console.time('constructor');
@@ -156,6 +174,15 @@ console.timeEnd();
 console.time(NaN);
 console.timeEnd(NaN);
 
+// Make sure calling time twice without timeEnd doesn't reset the timer.
+console.time('test');
+const time = console._times.get('test');
+setTimeout(() => {
+  console.time('test');
+  assert.deepStrictEqual(console._times.get('test'), time);
+  console.timeEnd('test');
+}, 1);
+
 console.time('log1');
 console.timeLog('log1');
 console.timeLog('log1', 'test');
@@ -178,7 +205,7 @@ assert.strictEqual(errStrings.length, process.stderr.writeTimes);
 restoreStdout();
 restoreStderr();
 
-// verify that console.timeEnd() doesn't leave dead links
+// Verify that console.timeEnd() doesn't leave dead links
 const timesMapSize = console._times.size;
 console.time('label1');
 console.time('label2');
@@ -207,11 +234,11 @@ for (const expected of expectedStrings) {
 }
 
 assert.strictEqual(strings.shift(),
-                   "{ foo: 'bar',\n  [Symbol(nodejs.util.inspect.custom)]: " +
-                    '[Function: [nodejs.util.inspect.custom]] }\n');
+                   "{\n  foo: 'bar',\n  [Symbol(nodejs.util.inspect.custom)]:" +
+                    ' [Function: [nodejs.util.inspect.custom]]\n}\n');
 assert.strictEqual(strings.shift(),
-                   "{ foo: 'bar',\n  [Symbol(nodejs.util.inspect.custom)]: " +
-                    '[Function: [nodejs.util.inspect.custom]] }\n');
+                   "{\n  foo: 'bar',\n  [Symbol(nodejs.util.inspect.custom)]:" +
+                    ' [Function: [nodejs.util.inspect.custom]]\n}\n');
 assert.ok(strings.shift().includes('foo: [Object]'));
 assert.strictEqual(strings.shift().includes('baz'), false);
 assert.strictEqual(strings.shift(), 'inspect inspect\n');
@@ -224,7 +251,7 @@ assert.ok(/^__proto__: \d+\.\d{3}ms$/.test(strings.shift().trim()));
 assert.ok(/^constructor: \d+\.\d{3}ms$/.test(strings.shift().trim()));
 assert.ok(/^hasOwnProperty: \d+\.\d{3}ms$/.test(strings.shift().trim()));
 
-// verify that console.time() coerces label values to strings as expected
+// Verify that console.time() coerces label values to strings as expected
 assert.ok(/^: \d+\.\d{3}ms$/.test(strings.shift().trim()));
 assert.ok(/^\[object Object\]: \d+\.\d{3}ms$/.test(strings.shift().trim()));
 assert.ok(/^\[object Object\]: \d+\.\d{3}ms$/.test(strings.shift().trim()));
@@ -244,13 +271,13 @@ assert.strictEqual(strings.length, 0);
 assert.strictEqual(errStrings.shift().split('\n').shift(),
                    'Trace: This is a {"formatted":"trace"} 10 foo');
 
-// hijack stderr to catch `process.emitWarning` which is using
+// Hijack stderr to catch `process.emitWarning` which is using
 // `process.nextTick`
 hijackStderr(common.mustCall(function(data) {
   restoreStderr();
 
   // stderr.write will catch sync error, so use `process.nextTick` here
   process.nextTick(function() {
-    assert.strictEqual(data.includes('nolabel'), true);
+    assert.strictEqual(data.includes('noLabel'), true);
   });
 }));

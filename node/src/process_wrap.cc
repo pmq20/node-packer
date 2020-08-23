@@ -18,15 +18,14 @@
 // DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
-
+#define NODE_WANT_INTERNALS 1
 #include "env-inl.h"
-#include "node_internals.h"
 #include "stream_base-inl.h"
 #include "stream_wrap.h"
 #include "util-inl.h"
 
-#include <string.h>
-#include <stdlib.h>
+#include <cstdlib>
+#include <cstring>
 
 namespace node {
 
@@ -49,7 +48,8 @@ class ProcessWrap : public HandleWrap {
  public:
   static void Initialize(Local<Object> target,
                          Local<Value> unused,
-                         Local<Context> context) {
+                         Local<Context> context,
+                         void* priv) {
     Environment* env = Environment::GetCurrent(context);
     Local<FunctionTemplate> constructor = env->NewFunctionTemplate(New);
     constructor->InstanceTemplate()->SetInternalFieldCount(1);
@@ -62,8 +62,11 @@ class ProcessWrap : public HandleWrap {
     env->SetProtoMethod(constructor, "spawn", Spawn);
     env->SetProtoMethod(constructor, "kill", Kill);
 
-    target->Set(processString,
-                constructor->GetFunction(context).ToLocalChecked());
+    target
+        ->Set(env->context(),
+              processString,
+              constructor->GetFunction(context).ToLocalChecked())
+        .Check();
   }
 
   SET_NO_MEMORY_INFO()
@@ -214,7 +217,7 @@ class ProcessWrap : public HandleWrap {
     if (!env_v.IsEmpty() && env_v->IsArray()) {
       Local<Array> env_opt = Local<Array>::Cast(env_v);
       int envc = env_opt->Length();
-      CHECK_GT(envc + 1, 0);  // Check for overflow.
+      CHECK_GT(envc + 1, 0);              // Check for overflow.
       options.env = new char*[envc + 1];  // Heap allocated to detect errors.
       for (int i = 0; i < envc; i++) {
         node::Utf8Value pair(env->isolate(),
@@ -258,19 +261,21 @@ class ProcessWrap : public HandleWrap {
 
     if (err == 0) {
       CHECK_EQ(wrap->process_.data, wrap);
-      wrap->object()->Set(context, env->pid_string(),
-                          Integer::New(env->isolate(),
-                                       wrap->process_.pid)).FromJust();
+      wrap->object()
+          ->Set(context,
+                env->pid_string(),
+                Integer::New(env->isolate(), wrap->process_.pid))
+          .Check();
     }
 
     if (options.args) {
       for (int i = 0; options.args[i]; i++) free(options.args[i]);
-      delete [] options.args;
+      delete[] options.args;
     }
 
     if (options.env) {
       for (int i = 0; options.env[i]; i++) free(options.env[i]);
-      delete [] options.env;
+      delete[] options.env;
     }
 
     delete[] options.stdio;
@@ -299,9 +304,8 @@ class ProcessWrap : public HandleWrap {
     Context::Scope context_scope(env->context());
 
     Local<Value> argv[] = {
-      Number::New(env->isolate(), static_cast<double>(exit_status)),
-      OneByteString(env->isolate(), signo_string(term_signal))
-    };
+        Number::New(env->isolate(), static_cast<double>(exit_status)),
+        OneByteString(env->isolate(), signo_string(term_signal))};
 
     wrap->MakeCallback(env->onexit_string(), arraysize(argv), argv);
   }
@@ -309,8 +313,7 @@ class ProcessWrap : public HandleWrap {
   uv_process_t process_;
 };
 
-
 }  // anonymous namespace
 }  // namespace node
 
-NODE_BUILTIN_MODULE_CONTEXT_AWARE(process_wrap, node::ProcessWrap::Initialize)
+NODE_MODULE_CONTEXT_AWARE_INTERNAL(process_wrap, node::ProcessWrap::Initialize)

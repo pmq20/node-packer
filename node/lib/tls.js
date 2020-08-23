@@ -21,6 +21,8 @@
 
 'use strict';
 
+const { Object } = primordials;
+
 const {
   ERR_TLS_CERT_ALTNAME_INVALID,
   ERR_OUT_OF_RANGE
@@ -28,15 +30,17 @@ const {
 const internalUtil = require('internal/util');
 const internalTLS = require('internal/tls');
 internalUtil.assertCrypto();
-const { isUint8Array } = require('internal/util/types');
+const { isArrayBufferView } = require('internal/util/types');
 
 const net = require('net');
+const { getOptionValue } = require('internal/options');
 const url = require('url');
-const binding = internalBinding('crypto');
+const { getRootCertificates, getSSLCiphers } = internalBinding('crypto');
 const { Buffer } = require('buffer');
 const EventEmitter = require('events');
+const { URL } = require('internal/url');
 const DuplexPair = require('internal/streams/duplexpair');
-const { canonicalizeIP } = process.binding('cares_wrap');
+const { canonicalizeIP } = internalBinding('cares_wrap');
 const _tls_common = require('_tls_common');
 const _tls_wrap = require('_tls_wrap');
 
@@ -48,24 +52,55 @@ exports.CLIENT_RENEG_LIMIT = 3;
 exports.CLIENT_RENEG_WINDOW = 600;
 
 exports.DEFAULT_CIPHERS =
-    process.binding('constants').crypto.defaultCipherList;
+    internalBinding('constants').crypto.defaultCipherList;
 
 exports.DEFAULT_ECDH_CURVE = 'auto';
 
-exports.DEFAULT_MAX_VERSION = 'TLSv1.2';
+if (getOptionValue('--tls-min-v1.0'))
+  exports.DEFAULT_MIN_VERSION = 'TLSv1';
+else if (getOptionValue('--tls-min-v1.1'))
+  exports.DEFAULT_MIN_VERSION = 'TLSv1.1';
+else if (getOptionValue('--tls-min-v1.2'))
+  exports.DEFAULT_MIN_VERSION = 'TLSv1.2';
+else if (getOptionValue('--tls-min-v1.3'))
+  exports.DEFAULT_MIN_VERSION = 'TLSv1.3';
+else
+  exports.DEFAULT_MIN_VERSION = 'TLSv1.2';
 
-exports.DEFAULT_MIN_VERSION = 'TLSv1';
+if (getOptionValue('--tls-max-v1.3'))
+  exports.DEFAULT_MAX_VERSION = 'TLSv1.3';
+else if (getOptionValue('--tls-max-v1.2'))
+  exports.DEFAULT_MAX_VERSION = 'TLSv1.2';
+else
+  exports.DEFAULT_MAX_VERSION = 'TLSv1.3'; // Will depend on node version.
+
 
 exports.getCiphers = internalUtil.cachedResult(
-  () => internalUtil.filterDuplicateStrings(binding.getSSLCiphers(), true)
+  () => internalUtil.filterDuplicateStrings(getSSLCiphers(), true)
 );
+
+let rootCertificates;
+
+function cacheRootCertificates() {
+  rootCertificates = Object.freeze(getRootCertificates());
+}
+
+Object.defineProperty(exports, 'rootCertificates', {
+  configurable: false,
+  enumerable: true,
+  get: () => {
+    // Out-of-line caching to promote inlining the getter.
+    if (!rootCertificates) cacheRootCertificates();
+    return rootCertificates;
+  },
+});
 
 // Convert protocols array into valid OpenSSL protocols list
 // ("\x06spdy/2\x08http/1.1\x08http/1.0")
 function convertProtocols(protocols) {
   const lens = new Array(protocols.length);
   const buff = Buffer.allocUnsafe(protocols.reduce((p, c, i) => {
-    var len = Buffer.byteLength(c);
+    const len = Buffer.byteLength(c);
     if (len > 255) {
       throw new ERR_OUT_OF_RANGE('The byte length of the protocol at index ' +
         `${i} exceeds the maximum length.`, '<= 255', len, true);
@@ -84,21 +119,11 @@ function convertProtocols(protocols) {
   return buff;
 }
 
-exports.convertNPNProtocols = internalUtil.deprecate(function(protocols, out) {
-  // If protocols is Array - translate it into buffer
-  if (Array.isArray(protocols)) {
-    out.NPNProtocols = convertProtocols(protocols);
-  } else if (isUint8Array(protocols)) {
-    // Copy new buffer not to be modified by user.
-    out.NPNProtocols = Buffer.from(protocols);
-  }
-}, 'tls.convertNPNProtocols() is deprecated.', 'DEP0107');
-
 exports.convertALPNProtocols = function convertALPNProtocols(protocols, out) {
   // If protocols is Array - translate it into buffer
   if (Array.isArray(protocols)) {
     out.ALPNProtocols = convertProtocols(protocols);
-  } else if (isUint8Array(protocols)) {
+  } else if (isArrayBufferView(protocols)) {
     // Copy new buffer not to be modified by user.
     out.ALPNProtocols = Buffer.from(protocols);
   }
@@ -178,6 +203,7 @@ function check(hostParts, pattern, wildcards) {
   return true;
 }
 
+let urlWarningEmitted = false;
 exports.checkServerIdentity = function checkServerIdentity(hostname, cert) {
   const subject = cert.subject;
   const altNames = cert.subjectaltname;
@@ -192,7 +218,21 @@ exports.checkServerIdentity = function checkServerIdentity(hostname, cert) {
       if (name.startsWith('DNS:')) {
         dnsNames.push(name.slice(4));
       } else if (name.startsWith('URI:')) {
-        const uri = url.parse(name.slice(4));
+        let uri;
+        try {
+          uri = new URL(name.slice(4));
+        } catch {
+          uri = url.parse(name.slice(4));
+          if (!urlWarningEmitted && !process.noDeprecation) {
+            urlWarningEmitted = true;
+            process.emitWarning(
+              `The URI ${name.slice(4)} found in cert.subjectaltname ` +
+              'is not a valid URI, and is supported in the tls module ' +
+              'solely for compatibility.',
+              'DeprecationWarning', 'DEP0109');
+          }
+        }
+
         uriNames.push(uri.hostname);  // TODO(bnoordhuis) Also use scheme.
       } else if (name.startsWith('IP Address:')) {
         ips.push(canonicalizeIP(name.slice(11)));
@@ -236,11 +276,7 @@ exports.checkServerIdentity = function checkServerIdentity(hostname, cert) {
   }
 
   if (!valid) {
-    const err = new ERR_TLS_CERT_ALTNAME_INVALID(reason);
-    err.reason = reason;
-    err.host = hostname;
-    err.cert = cert;
-    return err;
+    return new ERR_TLS_CERT_ALTNAME_INVALID(reason, hostname, cert);
   }
 };
 
@@ -258,9 +294,13 @@ class SecurePair extends EventEmitter {
     this.credentials = secureContext;
 
     this.encrypted = socket1;
-    this.cleartext = new exports.TLSSocket(socket2, Object.assign({
-      secureContext, isServer, requestCert, rejectUnauthorized
-    }, options));
+    this.cleartext = new exports.TLSSocket(socket2, {
+      secureContext,
+      isServer,
+      requestCert,
+      rejectUnauthorized,
+      ...options
+    });
     this.cleartext.once('secure', () => this.emit('secure'));
   }
 

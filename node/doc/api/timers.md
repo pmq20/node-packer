@@ -10,7 +10,7 @@ globals, there is no need to call `require('timers')` to use the API.
 
 The timer functions within Node.js implement a similar API as the timers API
 provided by Web Browsers but use a different internal implementation that is
-built around [the Node.js Event Loop][].
+built around the Node.js [Event Loop][].
 
 ## Class: Immediate
 
@@ -22,6 +22,15 @@ By default, when an immediate is scheduled, the Node.js event loop will continue
 running as long as the immediate is active. The `Immediate` object returned by
 [`setImmediate()`][] exports both `immediate.ref()` and `immediate.unref()`
 functions that can be used to control this default behavior.
+
+### immediate.hasRef()
+<!-- YAML
+added: v11.0.0
+-->
+
+* Returns: {boolean}
+
+If true, the `Immediate` object will keep the Node.js event loop active.
 
 ### immediate.ref()
 <!-- YAML
@@ -60,6 +69,15 @@ By default, when a timer is scheduled using either [`setTimeout()`][] or
 timer is active. Each of the `Timeout` objects returned by these functions
 export both `timeout.ref()` and `timeout.unref()` functions that can be used to
 control this default behavior.
+
+### timeout.hasRef()
+<!-- YAML
+added: v11.0.0
+-->
+
+* Returns: {boolean}
+
+If true, the `Timeout` object will keep the Node.js event loop active.
 
 ### timeout.ref()
 <!-- YAML
@@ -112,13 +130,13 @@ a certain period of time. When a timer's function is called varies depending on
 which method was used to create the timer and what other work the Node.js
 event loop is doing.
 
-### setImmediate(callback[, ...args])
+### setImmediate(callback\[, ...args\])
 <!-- YAML
 added: v0.9.1
 -->
 
 * `callback` {Function} The function to call at the end of this turn of
-  [the Node.js Event Loop]
+  the Node.js [Event Loop][]
 * `...args` {any} Optional arguments to pass when the `callback` is called.
 * Returns: {Immediate} for use with [`clearImmediate()`][]
 
@@ -145,7 +163,7 @@ setImmediatePromise('foobar').then((value) => {
   // This is executed after all I/O callbacks.
 });
 
-// or with async function
+// Or with async function
 async function timerExample() {
   console.log('Before I/O callbacks');
   await setImmediatePromise();
@@ -154,7 +172,7 @@ async function timerExample() {
 timerExample();
 ```
 
-### setInterval(callback, delay[, ...args])
+### setInterval(callback, delay\[, ...args\])
 <!-- YAML
 added: v0.0.1
 -->
@@ -168,11 +186,11 @@ added: v0.0.1
 Schedules repeated execution of `callback` every `delay` milliseconds.
 
 When `delay` is larger than `2147483647` or less than `1`, the `delay` will be
-set to `1`.
+set to `1`. Non-integer delays are truncated to an integer.
 
 If `callback` is not a function, a [`TypeError`][] will be thrown.
 
-### setTimeout(callback, delay[, ...args])
+### setTimeout(callback, delay\[, ...args\])
 <!-- YAML
 added: v0.0.1
 -->
@@ -191,7 +209,7 @@ nor of their ordering. The callback will be called as close as possible to the
 time specified.
 
 When `delay` is larger than `2147483647` or less than `1`, the `delay`
-will be set to `1`.
+will be set to `1`. Non-integer delays are truncated to an integer.
 
 If `callback` is not a function, a [`TypeError`][] will be thrown.
 
@@ -245,6 +263,7 @@ added: v0.0.1
 
 Cancels a `Timeout` object created by [`setTimeout()`][].
 
+[Event Loop]: https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick/#setimmediate-vs-settimeout
 [`TypeError`]: errors.html#errors_class_typeerror
 [`clearImmediate()`]: timers.html#timers_clearimmediate_immediate
 [`clearInterval()`]: timers.html#timers_clearinterval_timeout
@@ -253,4 +272,3 @@ Cancels a `Timeout` object created by [`setTimeout()`][].
 [`setInterval()`]: timers.html#timers_setinterval_callback_delay_args
 [`setTimeout()`]: timers.html#timers_settimeout_callback_delay_args
 [`util.promisify()`]: util.html#util_util_promisify_original
-[the Node.js Event Loop]: https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick/

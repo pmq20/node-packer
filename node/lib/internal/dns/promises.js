@@ -1,11 +1,16 @@
 'use strict';
+
+const { Object } = primordials;
+
 const {
   bindDefaultResolver,
   Resolver: CallbackResolver,
-  validateHints
+  validateHints,
+  emitInvalidHostnameWarning,
 } = require('internal/dns/utils');
 const { codes, dnsException } = require('internal/errors');
-const { isIP, isIPv4, isLegalPort } = require('internal/net');
+const { toASCII } = require('internal/idna');
+const { isIP, isLegalPort } = require('internal/net');
 const {
   getaddrinfo,
   getnameinfo,
@@ -13,13 +18,14 @@ const {
   GetAddrInfoReqWrap,
   GetNameInfoReqWrap,
   QueryReqWrap
-} = process.binding('cares_wrap');
+} = internalBinding('cares_wrap');
 const {
   ERR_INVALID_ARG_TYPE,
   ERR_INVALID_OPT_VALUE,
   ERR_MISSING_ARGS,
   ERR_SOCKET_BAD_PORT
 } = codes;
+const { validateString } = require('internal/validators');
 
 
 function onlookup(err, addresses) {
@@ -28,7 +34,7 @@ function onlookup(err, addresses) {
     return;
   }
 
-  const family = this.family ? this.family : isIPv4(addresses[0]) ? 4 : 6;
+  const family = this.family ? this.family : isIP(addresses[0]);
   this.resolve({ address: addresses[0], family });
 }
 
@@ -45,7 +51,7 @@ function onlookupall(err, addresses) {
 
     addresses[i] = {
       address,
-      family: family ? family : isIPv4(addresses[i]) ? 4 : 6
+      family: family ? family : isIP(addresses[i])
     };
   }
 
@@ -55,6 +61,7 @@ function onlookupall(err, addresses) {
 function createLookupPromise(family, hostname, all, hints, verbatim) {
   return new Promise((resolve, reject) => {
     if (!hostname) {
+      emitInvalidHostnameWarning(hostname);
       if (all)
         resolve([]);
       else
@@ -83,7 +90,7 @@ function createLookupPromise(family, hostname, all, hints, verbatim) {
     req.resolve = resolve;
     req.reject = reject;
 
-    const err = getaddrinfo(req, hostname, family, hints, verbatim);
+    const err = getaddrinfo(req, toASCII(hostname), family, hints, verbatim);
 
     if (err) {
       reject(dnsException(err, 'getaddrinfo', hostname));
@@ -99,7 +106,7 @@ function lookup(hostname, options) {
 
   // Parse arguments
   if (hostname && typeof hostname !== 'string') {
-    throw new ERR_INVALID_ARG_TYPE('hostname', ['string', 'falsy'], hostname);
+    throw new ERR_INVALID_ARG_TYPE('hostname', 'string', hostname);
   } else if (options !== null && typeof options === 'object') {
     hints = options.hints >>> 0;
     family = options.family >>> 0;
@@ -144,17 +151,17 @@ function createLookupServicePromise(hostname, port) {
   });
 }
 
-function lookupService(hostname, port) {
+function lookupService(address, port) {
   if (arguments.length !== 2)
-    throw new ERR_MISSING_ARGS('hostname', 'port');
+    throw new ERR_MISSING_ARGS('address', 'port');
 
-  if (isIP(hostname) === 0)
-    throw new ERR_INVALID_OPT_VALUE('hostname', hostname);
+  if (isIP(address) === 0)
+    throw new ERR_INVALID_OPT_VALUE('address', address);
 
   if (!isLegalPort(port))
     throw new ERR_SOCKET_BAD_PORT(port);
 
-  return createLookupServicePromise(hostname, +port);
+  return createLookupServicePromise(address, +port);
 }
 
 
@@ -181,7 +188,7 @@ function createResolverPromise(resolver, bindingName, hostname, ttl) {
     req.reject = reject;
     req.ttl = ttl;
 
-    const err = resolver._handle[bindingName](req, hostname);
+    const err = resolver._handle[bindingName](req, toASCII(hostname));
 
     if (err)
       reject(dnsException(err, bindingName, hostname));
@@ -190,9 +197,7 @@ function createResolverPromise(resolver, bindingName, hostname, ttl) {
 
 function resolver(bindingName) {
   function query(name, options) {
-    if (typeof name !== 'string') {
-      throw new ERR_INVALID_ARG_TYPE('name', 'string', name);
-    }
+    validateString(name, 'name');
 
     const ttl = !!(options && options.ttl);
     return createResolverPromise(this, bindingName, name, ttl);

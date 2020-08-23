@@ -20,7 +20,7 @@
             ],
             "changes": []
           },
-          "desc": "<p>The <code>tty.ReadStream</code> class is a subclass of <a href=\"net.html#net_class_net_socket\"><code>net.Socket</code></a> that represents the\nreadable side of a TTY. In normal circumstances <a href=\"process.html#process_process_stdin\"><code>process.stdin</code></a> will be the\nonly <code>tty.ReadStream</code> instance in a Node.js process and there should be no\nreason to create additional instances.</p>",
+          "desc": "<ul>\n<li>Extends: <a href=\"net.html#net_class_net_socket\" class=\"type\">&lt;net.Socket&gt;</a></li>\n</ul>\n<p>Represents the readable side of a TTY. In normal circumstances\n<a href=\"process.html#process_process_stdin\"><code>process.stdin</code></a> will be the only <code>tty.ReadStream</code> instance in a Node.js\nprocess and there should be no reason to create additional instances.</p>",
           "properties": [
             {
               "textRaw": "readStream.isRaw",
@@ -74,7 +74,7 @@
                   ]
                 }
               ],
-              "desc": "<p>Allows configuration of <code>tty.ReadStream</code> so that it operates as a raw device.</p>\n<p>When in raw mode, input is always available character-by-character, not\nincluding modifiers. Additionally, all special processing of characters by the\nterminal is disabled, including echoing input characters.\nNote that <code>CTRL</code>+<code>C</code> will no longer cause a <code>SIGINT</code> when in this mode.</p>"
+              "desc": "<p>Allows configuration of <code>tty.ReadStream</code> so that it operates as a raw device.</p>\n<p>When in raw mode, input is always available character-by-character, not\nincluding modifiers. Additionally, all special processing of characters by the\nterminal is disabled, including echoing input characters.\n<code>CTRL</code>+<code>C</code> will no longer cause a <code>SIGINT</code> when in this mode.</p>"
             }
           ]
         },
@@ -88,7 +88,7 @@
             ],
             "changes": []
           },
-          "desc": "<p>The <code>tty.WriteStream</code> class is a subclass of <a href=\"net.html#net_class_net_socket\"><code>net.Socket</code></a> that represents\nthe writable side of a TTY. In normal circumstances, <a href=\"process.html#process_process_stdout\"><code>process.stdout</code></a> and\n<a href=\"process.html#process_process_stderr\"><code>process.stderr</code></a> will be the only <code>tty.WriteStream</code> instances created for a\nNode.js process and there should be no reason to create additional instances.</p>",
+          "desc": "<ul>\n<li>Extends: <a href=\"net.html#net_class_net_socket\" class=\"type\">&lt;net.Socket&gt;</a></li>\n</ul>\n<p>Represents the writable side of a TTY. In normal circumstances,\n<a href=\"process.html#process_process_stdout\"><code>process.stdout</code></a> and <a href=\"process.html#process_process_stderr\"><code>process.stderr</code></a> will be the only\n<code>tty.WriteStream</code> instances created for a Node.js process and there\nshould be no reason to create additional instances.</p>",
           "events": [
             {
               "textRaw": "Event: 'resize'",
@@ -106,17 +106,29 @@
           ],
           "methods": [
             {
-              "textRaw": "writeStream.clearLine(dir)",
+              "textRaw": "writeStream.clearLine(dir[, callback])",
               "type": "method",
               "name": "clearLine",
               "meta": {
                 "added": [
                   "v0.7.7"
                 ],
-                "changes": []
+                "changes": [
+                  {
+                    "version": "v12.7.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/28721",
+                    "description": "The stream's write() callback and return value are exposed."
+                  }
+                ]
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {boolean} `false` if the stream wishes for the calling code to wait for the `'drain'` event to be emitted before continuing to write additional data; otherwise `true`.",
+                    "name": "return",
+                    "type": "boolean",
+                    "desc": "`false` if the stream wishes for the calling code to wait for the `'drain'` event to be emitted before continuing to write additional data; otherwise `true`."
+                  },
                   "params": [
                     {
                       "textRaw": "`dir` {number}",
@@ -139,6 +151,13 @@
                           "desc": "the entire line"
                         }
                       ]
+                    },
+                    {
+                      "textRaw": "`callback` {Function} Invoked once the operation completes.",
+                      "name": "callback",
+                      "type": "Function",
+                      "desc": "Invoked once the operation completes.",
+                      "optional": true
                     }
                   ]
                 }
@@ -146,34 +165,66 @@
               "desc": "<p><code>writeStream.clearLine()</code> clears the current line of this <code>WriteStream</code> in a\ndirection identified by <code>dir</code>.</p>"
             },
             {
-              "textRaw": "writeStream.clearScreenDown()",
+              "textRaw": "writeStream.clearScreenDown([callback])",
               "type": "method",
               "name": "clearScreenDown",
               "meta": {
                 "added": [
                   "v0.7.7"
                 ],
-                "changes": []
+                "changes": [
+                  {
+                    "version": "v12.7.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/28721",
+                    "description": "The stream's write() callback and return value are exposed."
+                  }
+                ]
               },
               "signatures": [
                 {
-                  "params": []
+                  "return": {
+                    "textRaw": "Returns: {boolean} `false` if the stream wishes for the calling code to wait for the `'drain'` event to be emitted before continuing to write additional data; otherwise `true`.",
+                    "name": "return",
+                    "type": "boolean",
+                    "desc": "`false` if the stream wishes for the calling code to wait for the `'drain'` event to be emitted before continuing to write additional data; otherwise `true`."
+                  },
+                  "params": [
+                    {
+                      "textRaw": "`callback` {Function} Invoked once the operation completes.",
+                      "name": "callback",
+                      "type": "Function",
+                      "desc": "Invoked once the operation completes.",
+                      "optional": true
+                    }
+                  ]
                 }
               ],
               "desc": "<p><code>writeStream.clearScreenDown()</code> clears this <code>WriteStream</code> from the current\ncursor down.</p>"
             },
             {
-              "textRaw": "writeStream.cursorTo(x, y)",
+              "textRaw": "writeStream.cursorTo(x[, y][, callback])",
               "type": "method",
               "name": "cursorTo",
               "meta": {
                 "added": [
                   "v0.7.7"
                 ],
-                "changes": []
+                "changes": [
+                  {
+                    "version": "v12.7.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/28721",
+                    "description": "The stream's write() callback and return value are exposed."
+                  }
+                ]
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {boolean} `false` if the stream wishes for the calling code to wait for the `'drain'` event to be emitted before continuing to write additional data; otherwise `true`.",
+                    "name": "return",
+                    "type": "boolean",
+                    "desc": "`false` if the stream wishes for the calling code to wait for the `'drain'` event to be emitted before continuing to write additional data; otherwise `true`."
+                  },
                   "params": [
                     {
                       "textRaw": "`x` {number}",
@@ -183,7 +234,15 @@
                     {
                       "textRaw": "`y` {number}",
                       "name": "y",
-                      "type": "number"
+                      "type": "number",
+                      "optional": true
+                    },
+                    {
+                      "textRaw": "`callback` {Function} Invoked once the operation completes.",
+                      "name": "callback",
+                      "type": "Function",
+                      "desc": "Invoked once the operation completes.",
+                      "optional": true
                     }
                   ]
                 }
@@ -209,17 +268,17 @@
                   },
                   "params": [
                     {
-                      "textRaw": "`env` {Object} An object containing the environment variables to check. **Default:** `process.env`.",
+                      "textRaw": "`env` {Object} An object containing the environment variables to check. This enables simulating the usage of a specific terminal. **Default:** `process.env`.",
                       "name": "env",
                       "type": "Object",
                       "default": "`process.env`",
-                      "desc": "An object containing the environment variables to check.",
+                      "desc": "An object containing the environment variables to check. This enables simulating the usage of a specific terminal.",
                       "optional": true
                     }
                   ]
                 }
               ],
-              "desc": "<p>Returns:</p>\n<ul>\n<li><code>1</code> for 2,</li>\n<li><code>4</code> for 16,</li>\n<li><code>8</code> for 256,</li>\n<li><code>24</code> for 16,777,216\ncolors supported.</li>\n</ul>\n<p>Use this to determine what colors the terminal supports. Due to the nature of\ncolors in terminals it is possible to either have false positives or false\nnegatives. It depends on process information and the environment variables that\nmay lie about what terminal is used.\nTo enforce a specific behavior without relying on <code>process.env</code> it is possible\nto pass in an object with different settings.</p>\n<p>Use the <code>NODE_DISABLE_COLORS</code> environment variable to enforce this function to\nalways return 1.</p>"
+              "desc": "<p>Returns:</p>\n<ul>\n<li><code>1</code> for 2,</li>\n<li><code>4</code> for 16,</li>\n<li><code>8</code> for 256,</li>\n<li><code>24</code> for 16,777,216\ncolors supported.</li>\n</ul>\n<p>Use this to determine what colors the terminal supports. Due to the nature of\ncolors in terminals it is possible to either have false positives or false\nnegatives. It depends on process information and the environment variables that\nmay lie about what terminal is used.\nIt is possible to pass in an <code>env</code> object to simulate the usage of a specific\nterminal. This can be useful to check how specific environment settings behave.</p>\n<p>To enforce a specific color support, use one of the below environment settings.</p>\n<ul>\n<li>2 colors: <code>FORCE_COLOR = 0</code> (Disables colors)</li>\n<li>16 colors: <code>FORCE_COLOR = 1</code></li>\n<li>256 colors: <code>FORCE_COLOR = 2</code></li>\n<li>16,777,216 colors: <code>FORCE_COLOR = 3</code></li>\n</ul>\n<p>Disabling color support is also possible by using the <code>NO_COLOR</code> and\n<code>NODE_DISABLE_COLORS</code> environment variables.</p>"
             },
             {
               "textRaw": "writeStream.getWindowSize()",
@@ -249,7 +308,7 @@
               "name": "hasColors",
               "meta": {
                 "added": [
-                  "v10.16.0"
+                  "v11.13.0"
                 ],
                 "changes": []
               },
@@ -283,17 +342,29 @@
               "desc": "<p>Returns <code>true</code> if the <code>writeStream</code> supports at least as many colors as provided\nin <code>count</code>. Minimum support is 2 (black and white).</p>\n<p>This has the same false positives and negatives as described in\n<a href=\"#tty_writestream_getcolordepth_env\"><code>writeStream.getColorDepth()</code></a>.</p>\n<pre><code class=\"language-js\">process.stdout.hasColors();\n// Returns true or false depending on if `stdout` supports at least 16 colors.\nprocess.stdout.hasColors(256);\n// Returns true or false depending on if `stdout` supports at least 256 colors.\nprocess.stdout.hasColors({ TMUX: '1' });\n// Returns true.\nprocess.stdout.hasColors(2 ** 24, { TMUX: '1' });\n// Returns false (the environment setting pretends to support 2 ** 8 colors).\n</code></pre>"
             },
             {
-              "textRaw": "writeStream.moveCursor(dx, dy)",
+              "textRaw": "writeStream.moveCursor(dx, dy[, callback])",
               "type": "method",
               "name": "moveCursor",
               "meta": {
                 "added": [
                   "v0.7.7"
                 ],
-                "changes": []
+                "changes": [
+                  {
+                    "version": "v12.7.0",
+                    "pr-url": "https://github.com/nodejs/node/pull/28721",
+                    "description": "The stream's write() callback and return value are exposed."
+                  }
+                ]
               },
               "signatures": [
                 {
+                  "return": {
+                    "textRaw": "Returns: {boolean} `false` if the stream wishes for the calling code to wait for the `'drain'` event to be emitted before continuing to write additional data; otherwise `true`.",
+                    "name": "return",
+                    "type": "boolean",
+                    "desc": "`false` if the stream wishes for the calling code to wait for the `'drain'` event to be emitted before continuing to write additional data; otherwise `true`."
+                  },
                   "params": [
                     {
                       "textRaw": "`dx` {number}",
@@ -304,6 +375,13 @@
                       "textRaw": "`dy` {number}",
                       "name": "dy",
                       "type": "number"
+                    },
+                    {
+                      "textRaw": "`callback` {Function} Invoked once the operation completes.",
+                      "name": "callback",
+                      "type": "Function",
+                      "desc": "Invoked once the operation completes.",
+                      "optional": true
                     }
                   ]
                 }
@@ -361,6 +439,11 @@
           },
           "signatures": [
             {
+              "return": {
+                "textRaw": "Returns: {boolean}",
+                "name": "return",
+                "type": "boolean"
+              },
               "params": [
                 {
                   "textRaw": "`fd` {number} A numeric file descriptor",

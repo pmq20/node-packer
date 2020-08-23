@@ -52,21 +52,13 @@ try:
 except ImportError:
     from Queue import Queue, Empty  # Python 2
 
-try:
-    cmp             # Python 2
-except NameError:
-    def cmp(x, y):  # Python 3
-        return (x > y) - (x < y)
+from functools import reduce
 
 try:
-  reduce            # Python 2
-except NameError:   # Python 3
-  from functools import reduce
+  from urllib.parse import unquote    # Python 3
+except ImportError:
+  from urllib import unquote          # Python 2
 
-try:
-  xrange            # Python 2
-except NameError:
-  xrange = range    # Python 3
 
 logger = logging.getLogger('testrunner')
 skip_regex = re.compile(r'# SKIP\S*\s+(.*)', re.IGNORECASE)
@@ -119,7 +111,7 @@ class ProgressIndicator(object):
     # Spawn N-1 threads and then use this thread as the last one.
     # That way -j1 avoids threading altogether which is a nice fallback
     # in case of threading problems.
-    for i in xrange(tasks - 1):
+    for i in range(tasks - 1):
       thread = threading.Thread(target=self.RunSingle, args=[True, i + 1])
       threads.append(thread)
       thread.start()
@@ -129,9 +121,9 @@ class ProgressIndicator(object):
       for thread in threads:
         # Use a timeout so that signals (ctrl-c) will be processed.
         thread.join(timeout=10000000)
-    except (KeyboardInterrupt, SystemExit) as e:
+    except (KeyboardInterrupt, SystemExit):
       self.shutdown_event.set()
-    except Exception as e:
+    except Exception:
       # If there's an exception we schedule an interruption for any
       # remaining threads.
       self.shutdown_event.set()
@@ -168,7 +160,7 @@ class ProgressIndicator(object):
             output = case.Run()
             output.diagnostic.append('ECONNREFUSED received, test retried')
         case.duration = (datetime.now() - start)
-      except IOError as e:
+      except IOError:
         return
       if self.shutdown_event.is_set():
         return
@@ -349,7 +341,7 @@ class TapProgressIndicator(SimpleProgressIndicator):
     logger.info('  ---')
     logger.info('  duration_ms: %d.%d' %
       (total_seconds, duration.microseconds / 1000))
-    if self.severity is not 'ok' or self.traceback is not '':
+    if self.severity != 'ok' or self.traceback != '':
       if output.HasTimedOut():
         self.traceback = 'timeout\n' + output.output.stdout + output.output.stderr
       self._printDiagnostic()
@@ -377,9 +369,10 @@ class DeoptsCheckProgressIndicator(SimpleProgressIndicator):
     stdout = output.output.stdout.strip()
     printed_file = False
     for line in stdout.splitlines():
-      if (line.startswith("[aborted optimiz") or \
-          line.startswith("[disabled optimiz")) and \
-         ("because:" in line or "reason:" in line):
+      if (
+        (line.startswith("[aborted optimiz") or line.startswith("[disabled optimiz")) and
+        ("because:" in line or "reason:" in line)
+      ):
         if not printed_file:
           printed_file = True
           print('==== %s ====' % command)
@@ -516,9 +509,6 @@ class TestCase(object):
   def IsNegative(self):
     return self.context.expect_fail
 
-  def CompareTime(self, other):
-    return cmp(other.duration, self.duration)
-
   def DidFail(self, output):
     if output.failed is None:
       output.failed = self.IsFailureOutput(output)
@@ -591,7 +581,7 @@ class TestOutput(object):
       return self.output.exit_code < 0
 
   def HasTimedOut(self):
-    return self.output.timed_out;
+    return self.output.timed_out
 
   def HasFailed(self):
     execution_failed = self.test.DidFail(self.output)
@@ -711,7 +701,7 @@ def Execute(args, context, timeout=None, env=None, disable_core_files=False, std
     del env_copy["NODE_PATH"]
 
   # Extend environment
-  for key, value in env.iteritems():
+  for key, value in env.items():
     env_copy[key] = value
 
   preexec_fn = None
@@ -758,7 +748,7 @@ class TestConfiguration(object):
   def Contains(self, path, file):
     if len(path) > len(file):
       return False
-    for i in xrange(len(path)):
+    for i in range(len(path)):
       if not path[i].match(NormalizePath(file[i])):
         return False
     return True
@@ -841,7 +831,7 @@ class LiteralTestSuite(TestSuite):
       if not name or name.match(test_name):
         full_path = current_path + [test_name]
         test.AddTestsToList(result, full_path, path, context, arch, mode)
-    result.sort(cmp=lambda a, b: cmp(a.GetName(), b.GetName()))
+    result.sort(key=lambda x: x.GetName())
     return result
 
   def GetTestStatus(self, context, sections, defs):
@@ -1184,6 +1174,9 @@ class Configuration(object):
       outcomes = reduce(set.union, outcomes_list, set())
       unused_rules.difference_update(matches)
       case.outcomes = set(outcomes) or set([PASS])
+      # slow tests may also just pass.
+      if SLOW in case.outcomes:
+        case.outcomes.add(PASS)
       result.append(case)
     return result, unused_rules
 
@@ -1215,7 +1208,7 @@ class Rule(object):
   def Contains(self, path):
     if len(self.path) > len(path):
       return False
-    for i in xrange(len(self.path)):
+    for i in range(len(self.path)):
       if not self.path[i].match(path[i]):
         return False
     return True
@@ -1224,7 +1217,7 @@ class Rule(object):
 HEADER_PATTERN = re.compile(r'\[([^]]+)\]')
 RULE_PATTERN = re.compile(r'\s*([^: ]*)\s*:(.*)')
 DEF_PATTERN = re.compile(r'^def\s*(\w+)\s*=(.*)$')
-PREFIX_PATTERN = re.compile(r'^\s*prefix\s+([\w\_\.\-\/]+)$')
+PREFIX_PATTERN = re.compile(r'^\s*prefix\s+([\w_.\-/]+)$')
 
 
 def ReadConfigurationInto(path, sections, defs):
@@ -1282,7 +1275,7 @@ def BuildOptions():
       help='write test output to file. NOTE: this only applies the tap progress indicator')
   result.add_option("-p", "--progress",
       help="The style of progress indicator (verbose, dots, color, mono, tap)",
-      choices=PROGRESS_INDICATORS.keys(), default="mono")
+      choices=list(PROGRESS_INDICATORS.keys()), default="mono")
   result.add_option("--report", help="Print a summary of the tests to be run",
       default=False, action="store_true")
   result.add_option("-s", "--suite", help="A test suite",
@@ -1336,6 +1329,8 @@ def BuildOptions():
       default="")
   result.add_option('--temp-dir',
       help='Optional path to change directory used for tests', default=False)
+  result.add_option('--test-root',
+      help='Optional path to change test directory', dest='test_root', default=None)
   result.add_option('--repeat',
       help='Number of times to repeat given tests',
       default=1, type="int")
@@ -1343,7 +1338,7 @@ def BuildOptions():
       help='Send SIGABRT instead of SIGTERM to kill processes that time out',
       default=False, action="store_true", dest="abort_on_timeout")
   result.add_option("--type",
-      help="Type of build (simple, fips)",
+      help="Type of build (simple, fips, coverage)",
       default=None)
   return result
 
@@ -1355,7 +1350,7 @@ def ProcessOptions(options):
   options.mode = options.mode.split(',')
   options.run = options.run.split(',')
   # Split at commas and filter out all the empty strings.
-  options.skip_tests = filter(bool, options.skip_tests.split(','))
+  options.skip_tests = [test for test in options.skip_tests.split(',') if test]
   if options.run == [""]:
     options.run = None
   elif len(options.run) != 2:
@@ -1363,7 +1358,7 @@ def ProcessOptions(options):
     return False
   else:
     try:
-      options.run = map(int, options.run)
+      options.run = [int(level) for level in options.run]
     except ValueError:
       print("Could not parse the integers from the run argument.")
       return False
@@ -1409,9 +1404,9 @@ class Pattern(object):
     return self.pattern
 
 
-def SplitPath(s):
-  stripped = [ c.strip() for c in s.split('/') ]
-  return [ Pattern(s) for s in stripped if len(s) > 0 ]
+def SplitPath(path_arg):
+  stripped = [c.strip() for c in path_arg.split('/')]
+  return [Pattern(s) for s in stripped if len(s) > 0]
 
 def NormalizePath(path, prefix='test/'):
   # strip the extra path information of the specified test
@@ -1431,10 +1426,9 @@ def GetSpecialCommandProcessor(value):
       return args
     return ExpandCommand
   else:
-    pos = value.find('@')
-    import urllib
-    prefix = urllib.unquote(value[:pos]).split()
-    suffix = urllib.unquote(value[pos+1:]).split()
+    prefix, _, suffix = value.partition('@')
+    prefix = unquote(prefix).split()
+    suffix = unquote(suffix).split()
     def ExpandCommand(args):
       return prefix + args + suffix
     return ExpandCommand
@@ -1451,7 +1445,7 @@ def FormatTime(d):
 
 
 def FormatTimedelta(td):
-  if hasattr(td.total, 'total_seconds'):
+  if hasattr(td, 'total_seconds'):
     d = td.total_seconds()
   else: # python2.6 compat
     d =  td.seconds + (td.microseconds / 10.0**6)
@@ -1470,10 +1464,11 @@ def PrintCrashed(code):
 # addons/ requires compilation.
 IGNORED_SUITES = [
   'addons',
-  'addons-napi',
   'benchmark',
   'doctool',
   'internet',
+  'js-native-api',
+  'node-api',
   'pummel',
   'tick-processor',
   'v8-updates'
@@ -1482,8 +1477,8 @@ IGNORED_SUITES = [
 
 def ArgsToTestPaths(test_root, args, suites):
   if len(args) == 0 or 'default' in args:
-    def_suites = filter(lambda s: s not in IGNORED_SUITES, suites)
-    args = filter(lambda a: a != 'default', args) + def_suites
+    def_suites = [s for s in suites if s not in IGNORED_SUITES]
+    args = [a for a in args if a != 'default'] + def_suites
   subsystem_regex = re.compile(r'^[a-zA-Z-]*$')
   check = lambda arg: subsystem_regex.match(arg) and (arg not in suites)
   mapped_args = ["*/test*-%s-*" % arg if check(arg) else arg for arg in args]
@@ -1519,8 +1514,10 @@ def Main():
 
   workspace = abspath(join(dirname(sys.argv[0]), '..'))
   test_root = join(workspace, 'test')
+  if options.test_root is not None:
+    test_root = options.test_root
   suites = GetSuites(test_root)
-  repositories = [TestRepository(join(workspace, 'test', name)) for name in suites]
+  repositories = [TestRepository(join(test_root, name)) for name in suites]
   repositories += [TestRepository(a) for a in options.suite]
 
   root = LiteralTestSuite(repositories, test_root)
@@ -1542,7 +1539,6 @@ def Main():
 
   if options.worker:
     run_worker = join(workspace, "tools", "run-worker.js")
-    options.node_args.append('--experimental-worker')
     options.node_args.append(run_worker)
 
   processor = GetSpecialCommandProcessor(options.special_command)
@@ -1579,7 +1575,7 @@ def Main():
           continue
         archEngineContext = Execute([vm, "-p", "process.arch"], context)
         vmArch = archEngineContext.stdout.rstrip()
-        if archEngineContext.exit_code is not 0 or vmArch == "undefined":
+        if archEngineContext.exit_code != 0 or vmArch == "undefined":
           print("Can't determine the arch of: '%s'" % vm)
           print(archEngineContext.stderr.rstrip())
           continue
@@ -1602,8 +1598,8 @@ def Main():
 
   # We want to skip the inspector tests if node was built without the inspector.
   has_inspector = Execute([vm,
-      '-p', 'process.config.variables.v8_enable_inspector'], context)
-  if has_inspector.stdout.rstrip() == '0':
+      '-p', 'process.features.inspector'], context)
+  if has_inspector.stdout.rstrip() == 'false':
     context.v8_enable_inspector = False
 
   has_crypto = Execute([vm,
@@ -1648,7 +1644,9 @@ def Main():
     else:
       return True
 
-  cases_to_run = filter(should_keep, all_cases)
+  cases_to_run = [
+    test_case for test_case in all_cases if should_keep(test_case)
+  ]
 
   if options.report:
     print(REPORT_TEMPLATE % {
@@ -1665,7 +1663,7 @@ def Main():
     # can be different in different machines
     cases_to_run.sort(key=lambda c: (c.arch, c.mode, c.file))
     cases_to_run = [ cases_to_run[i] for i
-                     in xrange(options.run[0],
+                     in range(options.run[0],
                                len(cases_to_run),
                                options.run[1]) ]
   if len(cases_to_run) == 0:
@@ -1689,7 +1687,7 @@ def Main():
     print()
     sys.stderr.write("--- Total time: %s ---\n" % FormatTime(duration))
     timed_tests = [ t for t in cases_to_run if not t.duration is None ]
-    timed_tests.sort(lambda a, b: a.CompareTime(b))
+    timed_tests.sort(key=lambda x: x.duration)
     for i, entry in enumerate(timed_tests[:20], start=1):
       t = FormatTimedelta(entry.duration)
       sys.stderr.write("%4i (%s) %s\n" % (i, t, entry.GetLabel()))

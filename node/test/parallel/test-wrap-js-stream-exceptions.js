@@ -2,7 +2,7 @@
 'use strict';
 const common = require('../common');
 const assert = require('assert');
-const JSStreamWrap = require('internal/wrap_js_stream');
+const JSStreamWrap = require('internal/js_stream_socket');
 const { Duplex } = require('stream');
 
 process.once('uncaughtException', common.mustCall((err) => {
@@ -10,7 +10,7 @@ process.once('uncaughtException', common.mustCall((err) => {
 }));
 
 const socket = new JSStreamWrap(new Duplex({
-  read: common.mustCall(),
+  read: common.mustNotCall(),
   write: common.mustCall((buffer, data, cb) => {
     throw new Error('exception!');
   })

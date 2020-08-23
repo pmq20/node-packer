@@ -2,12 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "src/api.h"
-#include "src/builtins/builtins-utils.h"
+#include "src/api/api-inl.h"
+#include "src/builtins/builtins-utils-inl.h"
 #include "src/builtins/builtins.h"
-#include "src/counters.h"
-#include "src/json-stringifier.h"
-#include "src/objects-inl.h"
+#include "src/heap/heap-inl.h"  // For ToBoolean. TODO(jkummerow): Drop.
+#include "src/json/json-stringifier.h"
+#include "src/logging/counters.h"
+#include "src/objects/objects-inl.h"
 
 namespace v8 {
 namespace internal {
@@ -21,7 +22,7 @@ using v8::tracing::TracedValue;
 class MaybeUtf8 {
  public:
   explicit MaybeUtf8(Isolate* isolate, Handle<String> string) : buf_(data_) {
-    string = String::Flatten(string);
+    string = String::Flatten(isolate, string);
     int len;
     if (string->IsOneByteRepresentation()) {
       // Technically this allows unescaped latin1 characters but the trace
@@ -34,14 +35,17 @@ class MaybeUtf8 {
         // Why copy? Well, the trace event mechanism requires null-terminated
         // strings, the bytes we get from SeqOneByteString are not. buf_ is
         // guaranteed to be null terminated.
-        memcpy(buf_, Handle<SeqOneByteString>::cast(string)->GetChars(), len);
+        DisallowHeapAllocation no_gc;
+        memcpy(buf_, Handle<SeqOneByteString>::cast(string)->GetChars(no_gc),
+               len);
       }
     } else {
       Local<v8::String> local = Utils::ToLocal(string);
-      len = local->Utf8Length();
+      auto* v8_isolate = reinterpret_cast<v8::Isolate*>(isolate);
+      len = local->Utf8Length(v8_isolate);
       AllocateSufficientSpace(len);
       if (len > 0) {
-        local->WriteUtf8(reinterpret_cast<char*>(buf_));
+        local->WriteUtf8(v8_isolate, reinterpret_cast<char*>(buf_));
       }
     }
     buf_[len] = 0;
@@ -119,7 +123,7 @@ BUILTIN(Trace) {
 
   // Exit early if the category group is not enabled.
   if (!*category_group_enabled) {
-    return isolate->heap()->false_value();
+    return ReadOnlyRoots(isolate).false_value();
   }
 
   if (!phase_arg->IsNumber()) {
@@ -166,12 +170,11 @@ BUILTIN(Trace) {
     // could have perf costs. It is also subject to all the same
     // limitations as JSON.stringify() as it relates to circular
     // references and value limitations (e.g. BigInt is not supported).
-    JsonStringifier stringifier(isolate);
     Handle<Object> result;
     ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
         isolate, result,
-        stringifier.Stringify(data_arg, isolate->factory()->undefined_value(),
-                              isolate->factory()->undefined_value()));
+        JsonStringify(isolate, data_arg, isolate->factory()->undefined_value(),
+                      isolate->factory()->undefined_value()));
     std::unique_ptr<JsonTraceValue> traced_value;
     traced_value.reset(
         new JsonTraceValue(isolate, Handle<String>::cast(result)));
@@ -184,7 +187,7 @@ BUILTIN(Trace) {
       category_group_enabled, *name, tracing::kGlobalScope, id, tracing::kNoId,
       num_args, &arg_name, &arg_type, &arg_value, flags);
 
-  return isolate->heap()->true_value();
+  return ReadOnlyRoots(isolate).true_value();
 }
 
 }  // namespace internal

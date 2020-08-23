@@ -7,63 +7,39 @@
 
 #include "src/ic/ic.h"
 
-#include "src/assembler-inl.h"
+#include "src/codegen/assembler-inl.h"
 #include "src/debug/debug.h"
-#include "src/macro-assembler.h"
-#include "src/prototype.h"
+#include "src/execution/frames-inl.h"
+#include "src/handles/handles-inl.h"
+#include "src/objects/prototype.h"
 
 namespace v8 {
 namespace internal {
 
-
-Address IC::address() const {
-  // Get the address of the call.
-  return Assembler::target_address_from_return_address(pc());
-}
-
-
-Address IC::constant_pool() const {
-  if (FLAG_enable_embedded_constant_pool) {
-    return raw_constant_pool();
+void IC::update_receiver_map(Handle<Object> receiver) {
+  if (receiver->IsSmi()) {
+    receiver_map_ = isolate_->factory()->heap_number_map();
   } else {
-    return kNullAddress;
+    receiver_map_ = handle(HeapObject::cast(*receiver).map(), isolate_);
   }
 }
 
-
-Address IC::raw_constant_pool() const {
-  if (FLAG_enable_embedded_constant_pool) {
-    return *constant_pool_address_;
-  } else {
-    return kNullAddress;
-  }
+bool IC::IsHandler(MaybeObject object) {
+  HeapObject heap_object;
+  return (object->IsSmi() && (object.ptr() != kNullAddress)) ||
+         (object->GetHeapObjectIfWeak(&heap_object) &&
+          (heap_object.IsMap() || heap_object.IsPropertyCell())) ||
+         (object->GetHeapObjectIfStrong(&heap_object) &&
+          (heap_object.IsDataHandler() || heap_object.IsCode()));
 }
 
-bool IC::IsHandler(MaybeObject* object, bool from_stub_cache) {
-  HeapObject* heap_object;
-  return (object->IsSmi() && (object != nullptr)) ||
-         (object->ToWeakHeapObject(&heap_object) &&
-          (heap_object->IsMap() || heap_object->IsPropertyCell())) ||
-         (object->ToStrongHeapObject(&heap_object) &&
-          (heap_object->IsDataHandler() ||
-           (from_stub_cache && heap_object->IsWeakCell() &&
-            (WeakCell::cast(heap_object)->cleared() ||
-             WeakCell::cast(heap_object)->value()->IsMap() ||
-             WeakCell::cast(heap_object)->value()->IsPropertyCell())) ||
-           heap_object->IsCode()));
+bool IC::vector_needs_update() {
+  if (state() == NO_FEEDBACK) return false;
+  return (!vector_set_ &&
+          (state() != MEGAMORPHIC ||
+           nexus()->GetFeedbackExtra().ToSmi().value() != ELEMENT));
 }
 
-bool IC::AddressIsDeoptimizedCode() const {
-  return AddressIsDeoptimizedCode(isolate(), address());
-}
-
-
-bool IC::AddressIsDeoptimizedCode(Isolate* isolate, Address address) {
-  Code* host =
-      isolate->inner_pointer_to_code_cache()->GetCacheEntry(address)->code;
-  return (host->kind() == Code::OPTIMIZED_FUNCTION &&
-          host->marked_for_deoptimization());
-}
 }  // namespace internal
 }  // namespace v8
 

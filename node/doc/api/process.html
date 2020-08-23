@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Process | Node.js v10.16.3 Documentation</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
+  <title>Process | Node.js v12.13.0 Documentation</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
   <link rel="canonical" href="https://nodejs.org/api/process.html">
@@ -52,11 +52,13 @@
 <li><a href="os.html" class="nav-os">OS</a></li>
 <li><a href="path.html" class="nav-path">Path</a></li>
 <li><a href="perf_hooks.html" class="nav-perf_hooks">Performance Hooks</a></li>
+<li><a href="policy.html" class="nav-policy">Policies</a></li>
 <li><a href="process.html" class="nav-process active">Process</a></li>
 <li><a href="punycode.html" class="nav-punycode">Punycode</a></li>
 <li><a href="querystring.html" class="nav-querystring">Query Strings</a></li>
 <li><a href="readline.html" class="nav-readline">Readline</a></li>
 <li><a href="repl.html" class="nav-repl">REPL</a></li>
+<li><a href="report.html" class="nav-report">Report</a></li>
 <li><a href="stream.html" class="nav-stream">Stream</a></li>
 <li><a href="string_decoder.html" class="nav-string_decoder">String Decoder</a></li>
 <li><a href="timers.html" class="nav-timers">Timers</a></li>
@@ -79,7 +81,7 @@
 
     <div id="column1" data-id="process" class="interior">
       <header>
-        <h1>Node.js v10.16.3 Documentation</h1>
+        <h1>Node.js v12.13.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -188,6 +190,20 @@
 <li><a href="#process_process_platform">process.platform</a></li>
 <li><a href="#process_process_ppid">process.ppid</a></li>
 <li><a href="#process_process_release">process.release</a></li>
+<li>
+<p><span class="stability_1"><a href="#process_process_report">process.report</a></span></p>
+<ul>
+<li><span class="stability_1"><a href="#process_process_report_directory">process.report.directory</a></span></li>
+<li><span class="stability_1"><a href="#process_process_report_filename">process.report.filename</a></span></li>
+<li><span class="stability_1"><a href="#process_process_report_getreport_err">process.report.getReport([err])</a></span></li>
+<li><span class="stability_1"><a href="#process_process_report_reportonfatalerror">process.report.reportOnFatalError</a></span></li>
+<li><span class="stability_1"><a href="#process_process_report_reportonsignal">process.report.reportOnSignal</a></span></li>
+<li><span class="stability_1"><a href="#process_process_report_reportonuncaughtexception">process.report.reportOnUncaughtException</a></span></li>
+<li><span class="stability_1"><a href="#process_process_report_signal">process.report.signal</a></span></li>
+<li><span class="stability_1"><a href="#process_process_report_writereport_filename_err">process.report.writeReport([filename][, err])</a></span></li>
+</ul>
+</li>
+<li><a href="#process_process_resourceusage">process.resourceUsage()</a></li>
 <li><a href="#process_process_send_message_sendhandle_options_callback">process.send(message[, sendHandle[, options]][, callback])</a></li>
 <li><a href="#process_process_setegid_id">process.setegid(id)</a></li>
 <li><a href="#process_process_seteuid_id">process.seteuid(id)</a></li>
@@ -222,7 +238,10 @@
 
 <p>The <code>process</code> object is a <code>global</code> that provides information about, and control
 over, the current Node.js process. As a global, it is always available to
-Node.js applications without using <code>require()</code>.</p>
+Node.js applications without using <code>require()</code>. It can also be explicitly
+accessed using <code>require()</code>:</p>
+<pre><code class="language-js">const process = require('process');
+</code></pre>
 <h2>Process Events<span><a class="mark" href="#process_process_events" id="process_process_events">#</a></span></h2>
 <p>The <code>process</code> object is an instance of <a href="events.html#events_class_eventemitter"><code>EventEmitter</code></a>.</p>
 <h3>Event: 'beforeExit'<span><a class="mark" href="#process_event_beforeexit" id="process_event_beforeexit">#</a></span></h3>
@@ -240,6 +259,21 @@ continue.</p>
 termination, such as calling <a href="#process_process_exit_code"><code>process.exit()</code></a> or uncaught exceptions.</p>
 <p>The <code>'beforeExit'</code> should <em>not</em> be used as an alternative to the <code>'exit'</code> event
 unless the intention is to schedule additional work.</p>
+<pre><code class="language-js">process.on('beforeExit', (code) => {
+  console.log('Process beforeExit event with code: ', code);
+});
+
+process.on('exit', (code) => {
+  console.log('Process exit event with code: ', code);
+});
+
+console.log('This message is displayed first.');
+
+// Prints:
+// This message is displayed first.
+// Process beforeExit event with code: 0
+// Process exit event with code: 0
+</code></pre>
 <h3>Event: 'disconnect'<span><a class="mark" href="#process_event_disconnect" id="process_event_disconnect">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.7.7</span>
@@ -300,7 +334,7 @@ not be the same as what is originally sent.</p>
 <span>Added in: v10.12.0</span>
 </div>
 <ul>
-<li><code>type</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The error type. One of <code>'resolve'</code> or <code>'reject'</code>.</li>
+<li><code>type</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The resolution type. One of <code>'resolve'</code> or <code>'reject'</code>.</li>
 <li><code>promise</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise" class="type">&#x3C;Promise></a> The promise that resolved or rejected more than once.</li>
 <li><code>value</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Data_types" class="type">&#x3C;any></a> The value with which the promise was either resolved or
 rejected after the original resolve.</li>
@@ -312,13 +346,10 @@ rejected after the original resolve.</li>
 <li>Rejected after resolve.</li>
 <li>Resolved after reject.</li>
 </ul>
-<p>This is useful for tracking errors in an application while using the promise
-constructor. Otherwise such mistakes are silently swallowed due to being in a
-dead zone.</p>
-<p>It is recommended to end the process on such errors, since the process could be
-in an undefined state. While using the promise constructor make sure that it is
-guaranteed to trigger the <code>resolve()</code> or <code>reject()</code> functions exactly once per
-call and never call both functions in the same call.</p>
+<p>This is useful for tracking potential errors in an application while using the
+<code>Promise</code> constructor, as multiple resolutions are silently swallowed. However,
+the occurrence of this event does not necessarily indicate an error. For
+example, <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/race"><code>Promise.race()</code></a> can trigger a <code>'multipleResolves'</code> event.</p>
 <pre><code class="language-js">process.on('multipleResolves', (type, promise, reason) => {
   console.error(type, promise, reason);
   setImmediate(() => process.exit(1));
@@ -384,8 +415,22 @@ likely best for long-running application) or upon process exit (which is likely
 most convenient for scripts).</p>
 <h3>Event: 'uncaughtException'<span><a class="mark" href="#process_event_uncaughtexception" id="process_event_uncaughtexception">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.1.18</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v12.0.0</td>
+<td><p>Added the <code>origin</code> argument.</p></td></tr>
+<tr><td>v0.1.18</td>
+<td><p><span>Added in: v0.1.18</span></p></td></tr>
+</tbody></table>
+</details>
 </div>
+<ul>
+<li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&#x3C;Error></a> The uncaught exception.</li>
+<li><code>origin</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Indicates if the exception originates from an unhandled
+rejection or from synchronous errors. Can either be <code>'uncaughtException'</code> or
+<code>'unhandledRejection'</code>.</li>
+</ul>
 <p>The <code>'uncaughtException'</code> event is emitted when an uncaught JavaScript
 exception bubbles all the way back to the event loop. By default, Node.js
 handles such exceptions by printing the stack trace to <code>stderr</code> and exiting
@@ -395,10 +440,12 @@ behavior. Alternatively, change the <a href="#process_process_exitcode"><code>pr
 <code>'uncaughtException'</code> handler which will result in the process exiting with the
 provided exit code. Otherwise, in the presence of such handler the process will
 exit with 0.</p>
-<p>The listener function is called with the <code>Error</code> object passed as the only
-argument.</p>
-<pre><code class="language-js">process.on('uncaughtException', (err) => {
-  fs.writeSync(1, `Caught exception: ${err}\n`);
+<pre><code class="language-js">process.on('uncaughtException', (err, origin) => {
+  fs.writeSync(
+    process.stderr.fd,
+    `Caught exception: ${err}\n` +
+    `Exception origin: ${origin}`
+  );
 });
 
 setTimeout(() => {
@@ -410,7 +457,7 @@ nonexistentFunc();
 console.log('This will not run.');
 </code></pre>
 <h4>Warning: Using <code>'uncaughtException'</code> correctly<span><a class="mark" href="#process_warning_using_uncaughtexception_correctly" id="process_warning_using_uncaughtexception_correctly">#</a></span></h4>
-<p>Note that <code>'uncaughtException'</code> is a crude mechanism for exception handling
+<p><code>'uncaughtException'</code> is a crude mechanism for exception handling
 intended to be used only as a last resort. The event <em>should not</em> be used as
 an equivalent to <code>On Error Resume Next</code>. Unhandled exceptions inherently mean
 that an application is in an undefined state. Attempting to resume application
@@ -444,6 +491,11 @@ needed.</p>
 </tbody></table>
 </details>
 </div>
+<ul>
+<li><code>reason</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&#x3C;Error></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Data_types" class="type">&#x3C;any></a> The object with which the promise was rejected
+(typically an <a href="errors.html#errors_class_error"><code>Error</code></a> object).</li>
+<li><code>promise</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise" class="type">&#x3C;Promise></a> The rejected promise.</li>
+</ul>
 <p>The <code>'unhandledRejection'</code> event is emitted whenever a <code>Promise</code> is rejected and
 no error handler is attached to the promise within a turn of the event loop.
 When programming with Promises, exceptions are encapsulated as "rejected
@@ -451,20 +503,14 @@ promises". Rejections can be caught and handled using <a href="https://developer
 are propagated through a <code>Promise</code> chain. The <code>'unhandledRejection'</code> event is
 useful for detecting and keeping track of promises that were rejected whose
 rejections have not yet been handled.</p>
-<p>The listener function is called with the following arguments:</p>
-<ul>
-<li><code>reason</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&#x3C;Error></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Data_types" class="type">&#x3C;any></a> The object with which the promise was rejected
-(typically an <a href="errors.html#errors_class_error"><code>Error</code></a> object).</li>
-<li><code>p</code> the <code>Promise</code> that was rejected.</li>
-</ul>
-<pre><code class="language-js">process.on('unhandledRejection', (reason, p) => {
-  console.log('Unhandled Rejection at:', p, 'reason:', reason);
-  // application specific logging, throwing an error, or other logic here
+<pre><code class="language-js">process.on('unhandledRejection', (reason, promise) => {
+  console.log('Unhandled Rejection at:', promise, 'reason:', reason);
+  // Application specific logging, throwing an error, or other logic here
 });
 
 somePromise.then((res) => {
-  return reportToUser(JSON.pasre(res)); // note the typo (`pasre`)
-}); // no `.catch()` or `.then()`
+  return reportToUser(JSON.pasre(res)); // Note the typo (`pasre`)
+}); // No `.catch()` or `.then()`
 </code></pre>
 <p>The following will also trigger the <code>'unhandledRejection'</code> event to be
 emitted:</p>
@@ -481,7 +527,7 @@ as would typically be the case for other <code>'unhandledRejection'</code> event
 address such failures, a non-operational
 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/catch"><code>.catch(() => { })</code></a> handler may be attached to
 <code>resource.loaded</code>, which would prevent the <code>'unhandledRejection'</code> event from
-being emitted. Alternatively, the <a href="#process_event_rejectionhandled"><code>'rejectionHandled'</code></a> event may be used.</p>
+being emitted.</p>
 <h3>Event: 'warning'<span><a class="mark" href="#process_event_warning" id="process_event_warning">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v6.0.0</span>
@@ -514,7 +560,7 @@ command-line option can be used to suppress the default console output but the
 <code>'warning'</code> event will still be emitted by the <code>process</code> object.</p>
 <p>The following example illustrates the warning that is printed to <code>stderr</code> when
 too many listeners have been added to an event:</p>
-<pre><code class="language-txt">$ node
+<pre><code class="language-console">$ node
 > events.defaultMaxListeners = 1;
 > process.on('foo', () => {});
 > process.on('foo', () => {});
@@ -523,7 +569,7 @@ detected. 2 foo listeners added. Use emitter.setMaxListeners() to increase limit
 </code></pre>
 <p>In contrast, the following example turns off the default warning output and
 adds a custom handler to the <code>'warning'</code> event:</p>
-<pre><code class="language-txt">$ node --no-warnings
+<pre><code class="language-console">$ node --no-warnings
 > const p = process.on('warning', (warning) => console.warn('Do not do that!'));
 > events.defaultMaxListeners = 1;
 > process.on('foo', () => {});
@@ -678,8 +724,8 @@ CPU architecture for which the Node.js binary was compiled.</p>
 </ul>
 <p>The <code>process.argv</code> property returns an array containing the command line
 arguments passed when the Node.js process was launched. The first element will
-be <a href="#process_process_execpath"><code>process.execPath</code></a>. See <code>process.argv0</code> if access to the original value of
-<code>argv[0]</code> is needed. The second element will be the path to the JavaScript
+be <a href="#process_process_execpath"><code>process.execPath</code></a>. See <code>process.argv0</code> if access to the original value
+of <code>argv[0]</code> is needed. The second element will be the path to the JavaScript
 file being executed. The remaining elements will be any additional command line
 arguments.</p>
 <p>For example, assuming the following script for <code>process-args.js</code>:</p>
@@ -766,6 +812,7 @@ running the <code>./configure</code> script.</p>
   variables:
    {
      host_arch: 'x64',
+     napi_build_version: 5,
      node_install_npm: 'true',
      node_prefix: '',
      node_shared_cares: 'false',
@@ -777,7 +824,7 @@ running the <code>./configure</code> script.</p>
      node_shared_openssl: 'false',
      strict_aliasing: 'true',
      target_arch: 'x64',
-     v8_use_snapshot: 'true'
+     v8_use_snapshot: 1
    }
 }
 </code></pre>
@@ -858,8 +905,8 @@ process.</p>
 and <a href="cluster.html">Cluster</a> documentation), the <code>process.disconnect()</code> method will close the
 IPC channel to the parent process, allowing the child process to exit gracefully
 once there are no other connections keeping it alive.</p>
-<p>The effect of calling <code>process.disconnect()</code> is that same as calling the parent
-process's <a href="child_process.html#child_process_subprocess_disconnect"><code>ChildProcess.disconnect()</code></a>.</p>
+<p>The effect of calling <code>process.disconnect()</code> is the same as calling
+<a href="child_process.html#child_process_subprocess_disconnect"><code>ChildProcess.disconnect()</code></a> from the parent process.</p>
 <p>If the Node.js process was not spawned with an IPC channel,
 <code>process.disconnect()</code> will be <code>undefined</code>.</p>
 <h2>process.dlopen(module, filename[, flags])<span><a class="mark" href="#process_process_dlopen_module_filename_flags" id="process_process_dlopen_module_filename_flags">#</a></span></h2>
@@ -995,7 +1042,7 @@ process.emitWarning(myWarning);
 </code></pre>
 <p>A <code>TypeError</code> is thrown if <code>warning</code> is anything other than a string or <code>Error</code>
 object.</p>
-<p>Note that while process warnings use <code>Error</code> objects, the process warning
+<p>While process warnings use <code>Error</code> objects, the process warning
 mechanism is <strong>not</strong> a replacement for normal error handling mechanisms.</p>
 <p>The following additional handling is implemented if the warning <code>type</code> is
 <code>'DeprecationWarning'</code>:</p>
@@ -1027,6 +1074,8 @@ emitMyWarning();
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v11.14.0</td>
+<td><p>Worker threads will now use a copy of the parent thread’s <code>process.env</code> by default, configurable through the <code>env</code> option of the <code>Worker</code> constructor.</p></td></tr>
 <tr><td>v10.0.0</td>
 <td><p>Implicit conversion of variable value to string is deprecated.</p></td></tr>
 <tr><td>v0.1.27</td>
@@ -1055,8 +1104,9 @@ See <a href="http://man7.org/linux/man-pages/man7/environ.7.html"><code>environ(
 }
 </code></pre>
 <p>It is possible to modify this object, but such modifications will not be
-reflected outside the Node.js process. In other words, the following example
-would not work:</p>
+reflected outside the Node.js process, or (unless explicitly requested)
+to other <a href="worker_threads.html#worker_threads_class_worker"><code>Worker</code></a> threads.
+In other words, the following example would not work:</p>
 <pre><code class="language-console">$ node -e 'process.env.foo = "bar"' &#x26;&#x26; echo $foo
 </code></pre>
 <p>While the following will:</p>
@@ -1084,7 +1134,12 @@ console.log(process.env.TEST);
 console.log(process.env.test);
 // => 1
 </code></pre>
-<p><code>process.env</code> is read-only in <a href="worker_threads.html#worker_threads_class_worker"><code>Worker</code></a> threads.</p>
+<p>Unless explicitly specified when creating a <a href="worker_threads.html#worker_threads_class_worker"><code>Worker</code></a> instance,
+each <a href="worker_threads.html#worker_threads_class_worker"><code>Worker</code></a> thread has its own copy of <code>process.env</code>, based on its
+parent thread’s <code>process.env</code>, or whatever was specified as the <code>env</code> option
+to the <a href="worker_threads.html#worker_threads_class_worker"><code>Worker</code></a> constructor. Changes to <code>process.env</code> will not be visible
+across <a href="worker_threads.html#worker_threads_class_worker"><code>Worker</code></a> threads, and only the main thread can make changes that
+are visible to the operating system or to native add-ons.</p>
 <h2>process.execArgv<span><a class="mark" href="#process_process_execargv" id="process_process_execargv">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.7.7</span>
@@ -1292,7 +1347,7 @@ setTimeout(() => {
   // [ 1, 552 ]
 
   console.log(`Benchmark took ${diff[0] * NS_PER_SEC + diff[1]} nanoseconds`);
-  // benchmark took 1000000552 nanoseconds
+  // Benchmark took 1000000552 nanoseconds
 }, 1000);
 </code></pre>
 <h2>process.hrtime.bigint()<span><a class="mark" href="#process_process_hrtime_bigint" id="process_process_hrtime_bigint">#</a></span></h2>
@@ -1300,10 +1355,10 @@ setTimeout(() => {
 <span>Added in: v10.7.0</span>
 </div>
 <ul>
-<li>Returns: <a href="https://github.com/tc39/proposal-bigint" class="type">&#x3C;bigint></a></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt" class="type">&#x3C;bigint></a></li>
 </ul>
 <p>The <code>bigint</code> version of the <a href="#process_process_hrtime_time"><code>process.hrtime()</code></a> method returning the
-current high-resolution real time in a <code>bigint</code>.</p>
+current high-resolution real time in nanoseconds as a <code>bigint</code>.</p>
 <p>Unlike <a href="#process_process_hrtime_time"><code>process.hrtime()</code></a>, it does not support an additional <code>time</code>
 argument since the difference can just be computed directly
 by subtraction of the two <code>bigint</code>s.</p>
@@ -1330,7 +1385,7 @@ setTimeout(() => {
 the group access list, using all groups of which the user is a member. This is
 a privileged operation that requires that the Node.js process either have <code>root</code>
 access or the <code>CAP_SETGID</code> capability.</p>
-<p>Note that care must be taken when dropping privileges:</p>
+<p>Use care when dropping privileges:</p>
 <pre><code class="language-js">console.log(process.getgroups());         // [ 0 ]
 process.initgroups('bnoordhuis', 1000);   // switch user
 console.log(process.getgroups());         // [ 27, 30, 46, 1000, 0 ]
@@ -1450,12 +1505,11 @@ entire process, while the other fields will only refer to the current thread.</p
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
 <li><code>...args</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Data_types" class="type">&#x3C;any></a> Additional arguments to pass when invoking the <code>callback</code></li>
 </ul>
-<p>The <code>process.nextTick()</code> method adds the <code>callback</code> to the "next tick queue".
-Once the current turn of the event loop turn runs to completion, all callbacks
-currently in the next tick queue will be called.</p>
-<p>This is <em>not</em> a simple alias to <a href="timers.html#timers_settimeout_callback_delay_args"><code>setTimeout(fn, 0)</code></a>. It is much more
-efficient. It runs before any additional I/O events (including
-timers) fire in subsequent ticks of the event loop.</p>
+<p><code>process.nextTick()</code> adds <code>callback</code> to the "next tick queue". This queue is
+fully drained after the current operation on the JavaScript stack runs to
+completion and before the event loop is allowed to continue. It's possible to
+create an infinite loop if one were to recursively call <code>process.nextTick()</code>.
+See the <a href="https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick/#process-nexttick">Event Loop</a> guide for more background.</p>
 <pre><code class="language-js">console.log('start');
 process.nextTick(() => {
   console.log('nextTick callback');
@@ -1514,10 +1568,6 @@ bar();
   fs.stat('file', cb);
 }
 </code></pre>
-<p>The next tick queue is completely drained on each pass of the event loop
-<strong>before</strong> additional I/O is processed. As a result, recursively setting
-<code>nextTick()</code> callbacks will block any I/O from happening, just like a
-<code>while(true);</code> loop.</p>
 <h2>process.noDeprecation<span><a class="mark" href="#process_process_nodeprecation" id="process_process_nodeprecation">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.8.0</span>
@@ -1566,7 +1616,7 @@ Android operating system. However, Android support in Node.js
 <a href="https://github.com/nodejs/node/blob/master/BUILDING.md#androidandroid-based-devices-eg-firefox-os">is experimental</a>.</p>
 <h2>process.ppid<span><a class="mark" href="#process_process_ppid" id="process_process_ppid">#</a></span></h2>
 <div class="api_metadata">
-<span>Added in: v9.2.0</span>
+<span>Added in: v9.2.0, v8.10.0, v6.13.0</span>
 </div>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
@@ -1629,6 +1679,210 @@ release types, including <em>Current</em> releases. Currently the valid values a
 <p>In custom builds from non-release versions of the source tree, only the
 <code>name</code> property may be present. The additional properties should not be
 relied upon to exist.</p>
+<h2>process.report<span><a class="mark" href="#process_process_report" id="process_process_report">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v11.8.0</span>
+</div>
+<p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></li>
+</ul>
+<p><code>process.report</code> is an object whose methods are used to generate diagnostic
+reports for the current process. Additional documentation is available in the
+<a href="report.html">report documentation</a>.</p>
+<h3>process.report.directory<span><a class="mark" href="#process_process_report_directory" id="process_process_report_directory">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v11.12.0</span>
+</div>
+<p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+</ul>
+<p>Directory where the report is written. The default value is the empty string,
+indicating that reports are written to the current working directory of the
+Node.js process.</p>
+<pre><code class="language-js">console.log(`Report directory is ${process.report.directory}`);
+</code></pre>
+<h3>process.report.filename<span><a class="mark" href="#process_process_report_filename" id="process_process_report_filename">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v11.12.0</span>
+</div>
+<p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+</ul>
+<p>Filename where the report is written. If set to the empty string, the output
+filename will be comprised of a timestamp, PID, and sequence number. The default
+value is the empty string.</p>
+<pre><code class="language-js">console.log(`Report filename is ${process.report.filename}`);
+</code></pre>
+<h3>process.report.getReport([err])<span><a class="mark" href="#process_process_report_getreport_err" id="process_process_report_getreport_err">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v11.8.0</span>
+</div>
+<p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
+<ul>
+<li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&#x3C;Error></a> A custom error used for reporting the JavaScript stack.</li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></li>
+</ul>
+<p>Returns a JavaScript Object representation of a diagnostic report for the
+running process. The report's JavaScript stack trace is taken from <code>err</code>, if
+present.</p>
+<pre><code class="language-js">const data = process.report.getReport();
+console.log(data.header.nodeJsVersion);
+
+// Similar to process.report.writeReport()
+const fs = require('fs');
+fs.writeFileSync(util.inspect(data), 'my-report.log', 'utf8');
+</code></pre>
+<p>Additional documentation is available in the <a href="report.html">report documentation</a>.</p>
+<h3>process.report.reportOnFatalError<span><a class="mark" href="#process_process_report_reportonfatalerror" id="process_process_report_reportonfatalerror">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v11.12.0</span>
+</div>
+<p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a></li>
+</ul>
+<p>If <code>true</code>, a diagnostic report is generated on fatal errors, such as out of
+memory errors or failed C++ assertions.</p>
+<pre><code class="language-js">console.log(`Report on fatal error: ${process.report.reportOnFatalError}`);
+</code></pre>
+<h3>process.report.reportOnSignal<span><a class="mark" href="#process_process_report_reportonsignal" id="process_process_report_reportonsignal">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v11.12.0</span>
+</div>
+<p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a></li>
+</ul>
+<p>If <code>true</code>, a diagnostic report is generated when the process receives the
+signal specified by <code>process.report.signal</code>.</p>
+<pre><code class="language-js">console.log(`Report on signal: ${process.report.reportOnSignal}`);
+</code></pre>
+<h3>process.report.reportOnUncaughtException<span><a class="mark" href="#process_process_report_reportonuncaughtexception" id="process_process_report_reportonuncaughtexception">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v11.12.0</span>
+</div>
+<p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a></li>
+</ul>
+<p>If <code>true</code>, a diagnostic report is generated on uncaught exception.</p>
+<pre><code class="language-js">console.log(`Report on exception: ${process.report.reportOnUncaughtException}`);
+</code></pre>
+<h3>process.report.signal<span><a class="mark" href="#process_process_report_signal" id="process_process_report_signal">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v11.12.0</span>
+</div>
+<p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+</ul>
+<p>The signal used to trigger the creation of a diagnostic report. Defaults to
+<code>'SIGUSR2'</code>.</p>
+<pre><code class="language-js">console.log(`Report signal: ${process.report.signal}`);
+</code></pre>
+<h3>process.report.writeReport([filename][, err])<span><a class="mark" href="#process_process_report_writereport_filename_err" id="process_process_report_writereport_filename_err">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v11.8.0</span>
+</div>
+<p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
+<ul>
+<li>
+<p><code>filename</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Name of the file where the report is written. This
+should be a relative path, that will be appended to the directory specified in
+<code>process.report.directory</code>, or the current working directory of the Node.js
+process, if unspecified.</p>
+</li>
+<li>
+<p><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&#x3C;Error></a> A custom error used for reporting the JavaScript stack.</p>
+</li>
+<li>
+<p>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Returns the filename of the generated report.</p>
+</li>
+</ul>
+<p>Writes a diagnostic report to a file. If <code>filename</code> is not provided, the default
+filename includes the date, time, PID, and a sequence number. The report's
+JavaScript stack trace is taken from <code>err</code>, if present.</p>
+<pre><code class="language-js">process.report.writeReport();
+</code></pre>
+<p>Additional documentation is available in the <a href="report.html">report documentation</a>.</p>
+<h2>process.resourceUsage()<span><a class="mark" href="#process_process_resourceusage" id="process_process_resourceusage">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v12.6.0</span>
+</div>
+<ul>
+<li>
+<p>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> the resource usage for the current process. All of these
+values come from the <code>uv_getrusage</code> call which returns
+a <a href="http://docs.libuv.org/en/v1.x/misc.html#c.uv_rusage_t"><code>uv_rusage_t</code> struct</a>.</p>
+<ul>
+<li><code>userCPUTime</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> maps to <code>ru_utime</code> computed in microseconds.
+It is the same value as <a href="#process_process_cpuusage_previousvalue"><code>process.cpuUsage().user</code></a>.</li>
+<li><code>systemCPUTime</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> maps to <code>ru_stime</code> computed in microseconds.
+It is the same value as <a href="#process_process_cpuusage_previousvalue"><code>process.cpuUsage().system</code></a>.</li>
+<li><code>maxRSS</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> maps to <code>ru_maxrss</code> which is the maximum resident set
+size used in kilobytes.</li>
+<li><code>sharedMemorySize</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> maps to <code>ru_ixrss</code> but is not supported by
+any platform.</li>
+<li><code>unsharedDataSize</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> maps to <code>ru_idrss</code> but is not supported by
+any platform.</li>
+<li><code>unsharedStackSize</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> maps to <code>ru_isrss</code> but is not supported by
+any platform.</li>
+<li><code>minorPageFault</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> maps to <code>ru_minflt</code> which is the number of
+minor page faults for the process, see
+<a href="https://en.wikipedia.org/wiki/Page_fault#Minor">this article for more details</a>.</li>
+<li><code>majorPageFault</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> maps to <code>ru_majflt</code> which is the number of
+major page faults for the process, see
+<a href="https://en.wikipedia.org/wiki/Page_fault#Major">this article for more details</a>. This field is not
+supported on Windows.</li>
+<li><code>swappedOut</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> maps to <code>ru_nswap</code> but is not supported by any
+platform.</li>
+<li><code>fsRead</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> maps to <code>ru_inblock</code> which is the number of times the
+file system had to perform input.</li>
+<li><code>fsWrite</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> maps to <code>ru_oublock</code> which is the number of times the
+file system had to perform output.</li>
+<li><code>ipcSent</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> maps to <code>ru_msgsnd</code> but is not supported by any
+platform.</li>
+<li><code>ipcReceived</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> maps to <code>ru_msgrcv</code> but is not supported by any
+platform.</li>
+<li><code>signalsCount</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> maps to <code>ru_nsignals</code> but is not supported by any
+platform.</li>
+<li><code>voluntaryContextSwitches</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> maps to <code>ru_nvcsw</code> which is the
+number of times a CPU context switch resulted due to a process voluntarily
+giving up the processor before its time slice was completed (usually to
+await availability of a resource). This field is not supported on Windows.</li>
+<li><code>involuntaryContextSwitches</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> maps to <code>ru_nivcsw</code> which is the
+number of times a CPU context switch resulted due to a higher priority
+process becoming runnable or because the current process exceeded its
+time slice. This field is not supported on Windows.</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-js">console.log(process.resourceUsage());
+/*
+  Will output:
+  {
+    userCPUTime: 82872,
+    systemCPUTime: 4143,
+    maxRSS: 33164,
+    sharedMemorySize: 0,
+    unsharedDataSize: 0,
+    unsharedStackSize: 0,
+    minorPageFault: 2469,
+    majorPageFault: 0,
+    swappedOut: 0,
+    fsRead: 0,
+    fsWrite: 8,
+    ipcSent: 0,
+    ipcReceived: 0,
+    signalsCount: 0,
+    voluntaryContextSwitches: 79,
+    involuntaryContextSwitches: 1
+  }
+*/
+</code></pre>
 <h2>process.send(message[, sendHandle[, options]][, callback])<span><a class="mark" href="#process_process_send_message_sendhandle_options_callback" id="process_process_send_message_sendhandle_options_callback">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.5.9</span>
@@ -1878,11 +2132,26 @@ false
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a></li>
 </ul>
-<p>The <code>process.throwDeprecation</code> property indicates whether the
-<code>--throw-deprecation</code> flag is set on the current Node.js process. See the
+<p>The initial value of <code>process.throwDeprecation</code> indicates whether the
+<code>--throw-deprecation</code> flag is set on the current Node.js process.
+<code>process.throwDeprecation</code> is mutable, so whether or not deprecation
+warnings result in errors may be altered at runtime. See the
 documentation for the <a href="#process_event_warning"><code>'warning'</code> event</a> and the
-<a href="#process_process_emitwarning_warning_type_code_ctor"><code>emitWarning()</code> method</a> for more information about this
-flag's behavior.</p>
+<a href="#process_process_emitwarning_warning_type_code_ctor"><code>emitWarning()</code> method</a> for more information.</p>
+<pre><code class="language-console">$ node --throw-deprecation -p "process.throwDeprecation"
+true
+$ node -p "process.throwDeprecation"
+undefined
+$ node
+> process.emitWarning('test', 'DeprecationWarning');
+undefined
+> (node:26598) DeprecationWarning: test
+> process.throwDeprecation = true;
+true
+> process.emitWarning('test', 'DeprecationWarning');
+Thrown:
+[DeprecationWarning: test] { name: 'DeprecationWarning' }
+</code></pre>
 <h2>process.title<span><a class="mark" href="#process_process_title" id="process_process_title">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.104</span>
@@ -1930,7 +2199,8 @@ console.log(
   `Changed umask from ${oldmask.toString(8)} to ${newmask.toString(8)}`
 );
 </code></pre>
-<p>This feature is not available in <a href="worker_threads.html#worker_threads_class_worker"><code>Worker</code></a> threads.</p>
+<p><a href="worker_threads.html#worker_threads_class_worker"><code>Worker</code></a> threads are able to read the umask, however attempting to set the
+umask will result in a thrown exception.</p>
 <h2>process.uptime()<span><a class="mark" href="#process_process_uptime" id="process_process_uptime">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.5.0</span>
@@ -1976,21 +2246,22 @@ to load modules that were compiled against a different module ABI version.</p>
 <pre><code class="language-js">console.log(process.versions);
 </code></pre>
 <p>Will generate an object similar to:</p>
-<!-- eslint-skip -->
-<pre><code class="language-js">{ http_parser: '2.7.0',
-  node: '8.9.0',
-  v8: '6.3.292.48-node.6',
-  uv: '1.18.0',
+<pre><code class="language-console">{ node: '11.13.0',
+  v8: '7.0.276.38-node.18',
+  uv: '1.27.0',
   zlib: '1.2.11',
-  ares: '1.13.0',
-  modules: '60',
-  nghttp2: '1.29.0',
-  napi: '2',
-  openssl: '1.0.2n',
-  icu: '60.1',
-  unicode: '10.0',
-  cldr: '32.0',
-  tz: '2016b' }
+  brotli: '1.0.7',
+  ares: '1.15.0',
+  modules: '67',
+  nghttp2: '1.34.0',
+  napi: '4',
+  llhttp: '1.1.1',
+  http_parser: '2.8.0',
+  openssl: '1.1.1b',
+  cldr: '34.0',
+  icu: '63.1',
+  tz: '2018e',
+  unicode: '11.0' }
 </code></pre>
 <h2>Exit Codes<span><a class="mark" href="#process_exit_codes" id="process_exit_codes">#</a></span></h2>
 <p>Node.js will normally exit with a <code>0</code> status code when no more async

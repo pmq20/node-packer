@@ -41,7 +41,7 @@ if (cluster.isMaster) {
 
 Running Node.js will now share port 8000 between the workers:
 
-```txt
+```console
 $ node server.js
 Master 3596 is running
 Worker 4324 started
@@ -50,8 +50,7 @@ Worker 6056 started
 Worker 5644 started
 ```
 
-Please note that on Windows, it is not yet possible to set up a named pipe
-server in a worker.
+On Windows, it is not yet possible to set up a named pipe server in a worker.
 
 ## How It Works
 
@@ -92,7 +91,7 @@ Node.js process and a cluster worker differs:
    the worker to use the supplied handle, rather than talk to the master
    process.
 3. `server.listen(0)` Normally, this will cause servers to listen on a
-   random port.  However, in a cluster, each worker will receive the
+   random port. However, in a cluster, each worker will receive the
    same "random" port each time they do `listen(0)`. In essence, the
    port is random the first time, but predictable thereafter. To listen
    on a unique port, generate a port number based on the cluster worker ID.
@@ -116,6 +115,8 @@ also be used for other use cases requiring worker processes.
 <!-- YAML
 added: v0.7.0
 -->
+
+* Extends: {EventEmitter}
 
 A `Worker` object contains all public information and method about a worker.
 In the master it can be obtained using `cluster.workers`. In a worker
@@ -237,7 +238,7 @@ if (cluster.isMaster) {
     res.writeHead(200);
     res.end('hello world\n');
 
-    // notify master about the request
+    // Notify master about the request
     process.send({ cmd: 'notifyRequest' });
   }).listen(8000);
 }
@@ -277,7 +278,7 @@ In the master, an internal message is sent to the worker causing it to call
 
 Causes `.exitedAfterDisconnect` to be set.
 
-Note that after a server is closed, it will no longer accept new connections,
+After a server is closed, it will no longer accept new connections,
 but connections may be accepted by any other listening worker. Existing
 connections will be allowed to close as usual. When no more connections exist,
 see [`server.close()`][], the IPC channel to the worker will close allowing it
@@ -287,8 +288,8 @@ The above applies *only* to server connections, client connections are not
 automatically closed by workers, and disconnect does not wait for them to close
 before exiting.
 
-Note that in a worker, `process.disconnect` exists, but it is not this function,
-it is [`disconnect`][].
+In a worker, `process.disconnect` exists, but it is not this function;
+it is [`disconnect()`][].
 
 Because long living server connections may block workers from disconnecting, it
 may be useful to send a message, so application specific actions may be taken to
@@ -315,14 +316,14 @@ if (cluster.isMaster) {
 } else if (cluster.isWorker) {
   const net = require('net');
   const server = net.createServer((socket) => {
-    // connections never end
+    // Connections never end
   });
 
   server.listen(8000);
 
   process.on('message', (msg) => {
     if (msg === 'shutdown') {
-      // initiate graceful close of any connections to server
+      // Initiate graceful close of any connections to server
     }
   });
 }
@@ -335,7 +336,9 @@ added: v6.0.0
 
 * {boolean}
 
-Set by calling `.kill()` or `.disconnect()`. Until then, it is `undefined`.
+This property is `true` if the worker exited due to `.kill()` or
+`.disconnect()`. If the worker exited any other way, it is `false`. If the
+worker has not exited, it is `undefined`.
 
 The boolean [`worker.exitedAfterDisconnect`][] allows distinguishing between
 voluntary and accidental exit, the master may choose not to respawn a worker
@@ -382,7 +385,37 @@ added: v0.11.14
 This function returns `true` if the worker's process has terminated (either
 because of exiting or being signaled). Otherwise, it returns `false`.
 
-### worker.kill([signal='SIGTERM'])
+```js
+const cluster = require('cluster');
+const http = require('http');
+const numCPUs = require('os').cpus().length;
+
+if (cluster.isMaster) {
+  console.log(`Master ${process.pid} is running`);
+
+  // Fork workers.
+  for (let i = 0; i < numCPUs; i++) {
+    cluster.fork();
+  }
+
+  cluster.on('fork', (worker) => {
+    console.log('worker is dead:', worker.isDead());
+  });
+
+  cluster.on('exit', (worker, code, signal) => {
+    console.log('worker is dead:', worker.isDead());
+  });
+} else {
+  // Workers can share any TCP connection. In this case, it is an HTTP server.
+  http.createServer((req, res) => {
+    res.writeHead(200);
+    res.end(`Current process\n ${process.pid}`);
+    process.kill(process.pid);
+  }).listen(8000);
+}
+```
+
+### worker.kill(\[signal='SIGTERM'\])
 <!-- YAML
 added: v0.9.12
 -->
@@ -403,8 +436,8 @@ Causes `.exitedAfterDisconnect` to be set.
 
 This method is aliased as `worker.destroy()` for backwards compatibility.
 
-Note that in a worker, `process.kill()` exists, but it is not this function,
-it is [`kill`][].
+In a worker, `process.kill()` exists, but it is not this function;
+it is [`kill()`][].
 
 ### worker.process
 <!-- YAML
@@ -419,11 +452,11 @@ is stored.
 
 See: [Child Process module][].
 
-Note that workers will call `process.exit(0)` if the `'disconnect'` event occurs
+Workers will call `process.exit(0)` if the `'disconnect'` event occurs
 on `process` and `.exitedAfterDisconnect` is not `true`. This protects against
 accidental disconnection.
 
-### worker.send(message[, sendHandle][, callback])
+### worker.send(message\[, sendHandle\]\[, callback\])
 <!-- YAML
 added: v0.7.0
 changes:
@@ -560,7 +593,7 @@ The `addressType` is one of:
 
 * `4` (TCPv4)
 * `6` (TCPv6)
-* `-1` (unix domain socket)
+* `-1` (Unix domain socket)
 * `'udp4'` or `'udp6'` (UDP v4 or v6)
 
 ## Event: 'message'
@@ -631,7 +664,7 @@ The `settings` object is the `cluster.settings` object at the time
 
 If accuracy is important, use `cluster.settings`.
 
-## cluster.disconnect([callback])
+## cluster.disconnect(\[callback\])
 <!-- YAML
 added: v0.7.7
 -->
@@ -649,7 +682,7 @@ finished.
 
 This can only be called from the master process.
 
-## cluster.fork([env])
+## cluster.fork(\[env\])
 <!-- YAML
 added: v0.6.0
 -->
@@ -744,7 +777,7 @@ the settings, including the default values.
 
 This object is not intended to be changed or set manually.
 
-## cluster.setupMaster([settings])
+## cluster.setupMaster(\[settings\])
 <!-- YAML
 added: v0.7.1
 changes:
@@ -758,14 +791,14 @@ changes:
 `setupMaster` is used to change the default 'fork' behavior. Once called,
 the settings will be present in `cluster.settings`.
 
-Note that:
+Any settings changes only affect future calls to `.fork()` and have no
+effect on workers that are already running.
 
-* Any settings changes only affect future calls to `.fork()` and have no
-  effect on workers that are already running.
-* The *only* attribute of a worker that cannot be set via `.setupMaster()` is
-  the `env` passed to `.fork()`.
-* The defaults above apply to the first call only, the defaults for later
-  calls is the current value at the time of `cluster.setupMaster()` is called.
+The only attribute of a worker that cannot be set via `.setupMaster()` is
+the `env` passed to `.fork()`.
+
+The defaults above apply to the first call only; the defaults for later
+calls are the current values at the time of `cluster.setupMaster()` is called.
 
 ```js
 const cluster = require('cluster');
@@ -846,8 +879,8 @@ socket.on('data', (id) => {
 [`child_process` event: `'exit'`]: child_process.html#child_process_event_exit
 [`child_process` event: `'message'`]: child_process.html#child_process_event_message
 [`cluster.settings`]: #cluster_cluster_settings
-[`disconnect`]: child_process.html#child_process_subprocess_disconnect
-[`kill`]: process.html#process_process_kill_pid_signal
+[`disconnect()`]: child_process.html#child_process_subprocess_disconnect
+[`kill()`]: process.html#process_process_kill_pid_signal
 [`process` event: `'message'`]: process.html#process_event_message
 [`server.close()`]: net.html#net_event_close
 [`worker.exitedAfterDisconnect`]: #cluster_worker_exitedafterdisconnect

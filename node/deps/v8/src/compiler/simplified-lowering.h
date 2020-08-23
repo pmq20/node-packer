@@ -12,6 +12,9 @@
 
 namespace v8 {
 namespace internal {
+
+class TickCounter;
+
 namespace compiler {
 
 // Forward declarations.
@@ -23,11 +26,12 @@ class TypeCache;
 
 class V8_EXPORT_PRIVATE SimplifiedLowering final {
  public:
-  SimplifiedLowering(JSGraph* jsgraph, Zone* zone,
+  SimplifiedLowering(JSGraph* jsgraph, JSHeapBroker* broker, Zone* zone,
                      SourcePositionTable* source_position,
                      NodeOriginTable* node_origins,
-                     PoisoningMitigationLevel poisoning_level);
-  ~SimplifiedLowering() {}
+                     PoisoningMitigationLevel poisoning_level,
+                     TickCounter* tick_counter);
+  ~SimplifiedLowering() = default;
 
   void LowerAllNodes();
 
@@ -47,11 +51,14 @@ class V8_EXPORT_PRIVATE SimplifiedLowering final {
 
  private:
   JSGraph* const jsgraph_;
+  JSHeapBroker* broker_;
   Zone* const zone_;
-  TypeCache const& type_cache_;
+  TypeCache const* type_cache_;
   SetOncePointer<Node> to_number_code_;
+  SetOncePointer<Node> to_number_convert_big_int_code_;
   SetOncePointer<Node> to_numeric_code_;
   SetOncePointer<Operator const> to_number_operator_;
+  SetOncePointer<Operator const> to_number_convert_big_int_operator_;
   SetOncePointer<Operator const> to_numeric_operator_;
 
   // TODO(danno): SimplifiedLowering shouldn't know anything about the source
@@ -64,6 +71,8 @@ class V8_EXPORT_PRIVATE SimplifiedLowering final {
 
   PoisoningMitigationLevel poisoning_level_;
 
+  TickCounter* const tick_counter_;
+
   Node* Float64Round(Node* const node);
   Node* Float64Sign(Node* const node);
   Node* Int32Abs(Node* const node);
@@ -74,8 +83,10 @@ class V8_EXPORT_PRIVATE SimplifiedLowering final {
   Node* Uint32Mod(Node* const node);
 
   Node* ToNumberCode();
+  Node* ToNumberConvertBigIntCode();
   Node* ToNumericCode();
   Operator const* ToNumberOperator();
+  Operator const* ToNumberConvertBigIntOperator();
   Operator const* ToNumericOperator();
 
   friend class RepresentationSelector;

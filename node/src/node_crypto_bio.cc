@@ -19,29 +19,19 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+#include "base_object-inl.h"
+#include "memory_tracker-inl.h"
 #include "node_crypto_bio.h"
 #include "openssl/bio.h"
 #include "util-inl.h"
-#include <limits.h>
-#include <string.h>
+#include <climits>
+#include <cstring>
 
 namespace node {
 namespace crypto {
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-#define BIO_set_data(bio, data) bio->ptr = data
-#define BIO_get_data(bio) bio->ptr
-#define BIO_set_shutdown(bio, shutdown_) bio->shutdown = shutdown_
-#define BIO_get_shutdown(bio) bio->shutdown
-#define BIO_set_init(bio, init_) bio->init = init_
-#define BIO_get_init(bio) bio->init
-#endif
-
-
 BIOPointer NodeBIO::New(Environment* env) {
-  // The const_cast doesn't violate const correctness.  OpenSSL's usage of
-  // BIO_METHOD is effectively const but BIO_new() takes a non-const argument.
-  BIOPointer bio(BIO_new(const_cast<BIO_METHOD*>(GetMethod())));
+  BIOPointer bio(BIO_new(GetMethod()));
   if (bio && env != nullptr)
     NodeBIO::FromBIO(bio.get())->env_ = env;
   return bio;
@@ -231,22 +221,6 @@ long NodeBIO::Ctrl(BIO* bio, int cmd, long num,  // NOLINT(runtime/int)
 
 
 const BIO_METHOD* NodeBIO::GetMethod() {
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-  static const BIO_METHOD method = {
-    BIO_TYPE_MEM,
-    "node.js SSL buffer",
-    Write,
-    Read,
-    Puts,
-    Gets,
-    Ctrl,
-    New,
-    Free,
-    nullptr
-  };
-
-  return &method;
-#else
   // This is called from InitCryptoOnce() to avoid race conditions during
   // initialization.
   static BIO_METHOD* method = nullptr;
@@ -263,7 +237,6 @@ const BIO_METHOD* NodeBIO::GetMethod() {
   }
 
   return method;
-#endif
 }
 
 
@@ -429,9 +402,7 @@ char* NodeBIO::PeekWritable(size_t* size) {
   TryAllocateForWrite(*size);
 
   size_t available = write_head_->len_ - write_head_->write_pos_;
-  if (*size != 0 && available > *size)
-    available = *size;
-  else
+  if (*size == 0 || available <= *size)
     *size = available;
 
   return write_head_->data_ + write_head_->write_pos_;

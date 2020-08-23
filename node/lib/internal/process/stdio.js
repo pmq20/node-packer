@@ -1,21 +1,10 @@
 'use strict';
 
-const {
-  ERR_UNKNOWN_STDIN_TYPE,
-  ERR_UNKNOWN_STREAM_TYPE
-} = require('internal/errors').codes;
-
-exports.setupProcessStdio = setupProcessStdio;
+const { guessHandleType } = internalBinding('util');
 exports.getMainThreadStdio = getMainThreadStdio;
 
 function dummyDestroy(err, cb) {
-  // SyncWriteStream does not use the stream
-  // destroy mechanism for some legacy reason.
-  // TODO(mcollina): remove when
-  // https://github.com/nodejs/node/pull/26690 lands.
-  if (typeof cb === 'function') {
-    cb(err);
-  }
+  cb(err);
 
   // We need to emit 'close' anyway so that the closing
   // of the stream is observable. We just make sure we
@@ -60,10 +49,9 @@ function getMainThreadStdio() {
 
   function getStdin() {
     if (stdin) return stdin;
-    const tty_wrap = internalBinding('tty_wrap');
     const fd = 0;
 
-    switch (tty_wrap.guessHandleType(fd)) {
+    switch (guessHandleType(fd)) {
       case 'TTY':
         var tty = require('tty');
         stdin = new tty.ReadStream(fd, {
@@ -106,15 +94,18 @@ function getMainThreadStdio() {
         break;
 
       default:
-        // Probably an error on in uv_guess_handle()
-        throw new ERR_UNKNOWN_STDIN_TYPE();
+        // Provide a dummy contentless input for e.g. non-console
+        // Windows applications.
+        const { Readable } = require('stream');
+        stdin = new Readable({ read() {} });
+        stdin.push(null);
     }
 
     // For supporting legacy API we put the FD here.
     stdin.fd = fd;
 
-    // stdin starts out life in a paused state, but node doesn't
-    // know yet.  Explicitly to readStop() it to put it in the
+    // `stdin` starts out life in a paused state, but node doesn't
+    // know yet. Explicitly to readStop() it to put it in the
     // not-reading state.
     if (stdin._handle && stdin._handle.readStop) {
       stdin._handle.reading = false;
@@ -132,7 +123,7 @@ function getMainThreadStdio() {
     function onpause() {
       if (!stdin._handle)
         return;
-      if (stdin._handle.reading && !stdin._readableState.flowing) {
+      if (stdin._handle.reading && !stdin.readableFlowing) {
         stdin._readableState.reading = false;
         stdin._handle.reading = false;
         stdin._handle.readStop();
@@ -142,6 +133,12 @@ function getMainThreadStdio() {
     return stdin;
   }
 
+  exports.resetStdioForTesting = function() {
+    stdin = undefined;
+    stdout = undefined;
+    stderr = undefined;
+  };
+
   return {
     getStdout,
     getStderr,
@@ -149,38 +146,10 @@ function getMainThreadStdio() {
   };
 }
 
-function setupProcessStdio({ getStdout, getStdin, getStderr }) {
-  Object.defineProperty(process, 'stdout', {
-    configurable: true,
-    enumerable: true,
-    get: getStdout
-  });
-
-  Object.defineProperty(process, 'stderr', {
-    configurable: true,
-    enumerable: true,
-    get: getStderr
-  });
-
-  Object.defineProperty(process, 'stdin', {
-    configurable: true,
-    enumerable: true,
-    get: getStdin
-  });
-
-  process.openStdin = function() {
-    process.stdin.resume();
-    return process.stdin;
-  };
-}
-
 function createWritableStdioStream(fd) {
   var stream;
-  const tty_wrap = internalBinding('tty_wrap');
-
   // Note stream._type is used for test-module-load-list.js
-
-  switch (tty_wrap.guessHandleType(fd)) {
+  switch (guessHandleType(fd)) {
     case 'TTY':
       var tty = require('tty');
       stream = new tty.WriteStream(fd);
@@ -218,8 +187,14 @@ function createWritableStdioStream(fd) {
       break;
 
     default:
-      // Probably an error on in uv_guess_handle()
-      throw new ERR_UNKNOWN_STREAM_TYPE();
+      // Provide a dummy black-hole output for e.g. non-console
+      // Windows applications.
+      const { Writable } = require('stream');
+      stream = new Writable({
+        write(buf, enc, cb) {
+          cb();
+        }
+      });
   }
 
   // For supporting legacy API we put the FD here.

@@ -33,7 +33,7 @@ function stat_resource(resource) {
     return fs.statSync(resource);
   } else {
     const stats = fs.fstatSync(resource);
-    // ensure mtime has been written to disk
+    // Ensure mtime has been written to disk
     // except for directories on AIX where it cannot be synced
     if (common.isAIX && stats.isDirectory())
       return stats;
@@ -59,8 +59,8 @@ function expect_errno(syscall, resource, err, errno) {
 function expect_ok(syscall, resource, err, atime, mtime) {
   const mtime_diff = check_mtime(resource, mtime);
   assert(
-    // check up to single-second precision
-    // sub-second precision is OS and fs dependant
+    // Check up to single-second precision.
+    // Sub-second precision is OS and fs dependant.
     !err && (mtime_diff < 2) || err && err.code === 'ENOSYS',
     `FAILED: expect_ok ${util.inspect(arguments)}
      check_mtime: ${mtime_diff}`
@@ -82,7 +82,7 @@ runTests(cases.values());
 function runTests(iter) {
   const { value, done } = iter.next();
   if (done) return;
-  // Support easy setting same or different atime / mtime values
+  // Support easy setting same or different atime / mtime values.
   const [atime, mtime] = Array.isArray(value) ? value : [value, value];
 
   let fd;
@@ -119,7 +119,7 @@ function runTests(iter) {
     fs.utimesSync(tmpdir.path, atime, mtime);
     expect_ok('utimesSync', tmpdir.path, undefined, atime, mtime);
 
-    // some systems don't have futimes
+    // Some systems don't have futimes
     // if there's an error, it should be ENOSYS
     try {
       fs.futimesSync(fd, atime, mtime);
@@ -144,7 +144,7 @@ function runTests(iter) {
 const path = `${tmpdir.path}/test-utimes-precision`;
 fs.writeFileSync(path, '');
 
-// test Y2K38 for all platforms [except 'arm', 'OpenBSD' and 'SunOS']
+// Test Y2K38 for all platforms [except 'arm', 'OpenBSD' and 'SunOS']
 if (!process.arch.includes('arm') && !common.isOpenBSD && !common.isSunOS) {
   const Y2K38_mtime = 2 ** 31;
   fs.utimesSync(path, Y2K38_mtime, Y2K38_mtime);
@@ -153,7 +153,7 @@ if (!process.arch.includes('arm') && !common.isOpenBSD && !common.isSunOS) {
 }
 
 if (common.isWindows) {
-  // this value would get converted to (double)1713037251359.9998
+  // This value would get converted to (double)1713037251359.9998
   const truncate_mtime = 1713037251360;
   fs.utimesSync(path, truncate_mtime / 1000, truncate_mtime / 1000);
   const truncate_stats = fs.statSync(path);
@@ -210,7 +210,7 @@ const expectRangeError = {
   code: 'ERR_OUT_OF_RANGE',
   type: RangeError,
   message: 'The value of "fd" is out of range. ' +
-           'It must be >= 0 && < 4294967296. Received -1'
+           'It must be >= 0 && <= 2147483647. Received -1'
 };
 // futimes-only error cases
 {

@@ -1,31 +1,78 @@
 'use strict';
 
+const { Object, SafeMap } = primordials;
+const {
+  ERR_MANIFEST_DEPENDENCY_MISSING,
+  ERR_UNKNOWN_BUILTIN_MODULE
+} = require('internal/errors').codes;
+const { NativeModule } = require('internal/bootstrap/loaders');
+const { getOptionValue } = require('internal/options');
+const experimentalModules = getOptionValue('--experimental-modules');
+
 const { validateString } = require('internal/validators');
 const path = require('path');
-const { pathToFileURL } = require('internal/url');
+const { pathToFileURL, fileURLToPath } = require('internal/url');
 const { URL } = require('url');
 
-const {
-  CHAR_LINE_FEED,
-  CHAR_CARRIAGE_RETURN,
-  CHAR_EXCLAMATION_MARK,
-  CHAR_HASH,
-} = require('internal/constants');
+const debug = require('internal/util/debuglog').debuglog('module');
 
-const { getOptionValue } = require('internal/options');
+function loadNativeModule(filename, request, experimentalModules) {
+  const mod = NativeModule.map.get(filename);
+  if (mod) {
+    debug('load native module %s', request);
+    mod.compileForPublicLoader(experimentalModules);
+    return mod;
+  }
+}
 
 // Invoke with makeRequireFunction(module) where |module| is the Module object
 // to use as the context for the require() function.
-function makeRequireFunction(mod) {
+// Use redirects to set up a mapping from a policy and restrict dependencies
+const urlToFileCache = new SafeMap();
+function makeRequireFunction(mod, redirects) {
   const Module = mod.constructor;
 
-  function require(path) {
-    try {
-      exports.requireDepth += 1;
+  let require;
+  if (redirects) {
+    const { resolve, reaction } = redirects;
+    const id = mod.filename || mod.id;
+    require = function require(path) {
+      let missing = true;
+      const destination = resolve(path);
+      if (destination === true) {
+        missing = false;
+      } else if (destination) {
+        const href = destination.href;
+        if (destination.protocol === 'node:') {
+          const specifier = destination.pathname;
+          const mod = loadNativeModule(
+            specifier,
+            href,
+            experimentalModules);
+          if (mod && mod.canBeRequiredByUsers) {
+            return mod.exports;
+          }
+          throw new ERR_UNKNOWN_BUILTIN_MODULE(specifier);
+        } else if (destination.protocol === 'file:') {
+          let filepath;
+          if (urlToFileCache.has(href)) {
+            filepath = urlToFileCache.get(href);
+          } else {
+            filepath = fileURLToPath(destination);
+            urlToFileCache.set(href, filepath);
+          }
+          return mod.require(filepath);
+        }
+      }
+      if (missing) {
+        reaction(new ERR_MANIFEST_DEPENDENCY_MISSING(id, path));
+      }
       return mod.require(path);
-    } finally {
-      exports.requireDepth -= 1;
-    }
+    };
+  } else {
+    require = function require(path) {
+      return mod.require(path);
+    };
   }
 
   function resolve(request, options) {
@@ -37,7 +84,7 @@ function makeRequireFunction(mod) {
 
   function paths(request) {
     validateString(request, 'request');
-    return Module._resolveLookupPaths(request, mod, true);
+    return Module._resolveLookupPaths(request, mod);
   }
 
   resolve.paths = paths;
@@ -69,31 +116,17 @@ function stripBOM(content) {
  */
 function stripShebang(content) {
   // Remove shebang
-  var contLen = content.length;
-  if (contLen >= 2) {
-    if (content.charCodeAt(0) === CHAR_HASH &&
-        content.charCodeAt(1) === CHAR_EXCLAMATION_MARK) {
-      if (contLen === 2) {
-        // Exact match
-        content = '';
-      } else {
-        // Find end of shebang line and slice it off
-        var i = 2;
-        for (; i < contLen; ++i) {
-          var code = content.charCodeAt(i);
-          if (code === CHAR_LINE_FEED || code === CHAR_CARRIAGE_RETURN)
-            break;
-        }
-        if (i === contLen)
-          content = '';
-        else {
-          // Note that this actually includes the newline character(s) in the
-          // new output. This duplicates the behavior of the regular expression
-          // that was previously used to replace the shebang line
-          content = content.slice(i);
-        }
-      }
-    }
+  if (content.charAt(0) === '#' && content.charAt(1) === '!') {
+    // Find end of shebang line and slice it off
+    let index = content.indexOf('\n', 2);
+    if (index === -1)
+      return '';
+    if (content.charAt(index - 1) === '\r')
+      index--;
+    // Note that this actually includes the newline character(s) in the
+    // new output. This duplicates the behavior of the regular expression
+    // that was previously used to replace the shebang line.
+    content = content.slice(index);
   }
   return content;
 }
@@ -103,15 +136,10 @@ const builtinLibs = [
   'dgram', 'dns', 'domain', 'events', 'fs', 'http', 'http2', 'https', 'net',
   'os', 'path', 'perf_hooks', 'punycode', 'querystring', 'readline', 'repl',
   'stream', 'string_decoder', 'tls', 'trace_events', 'tty', 'url', 'util',
-  'v8', 'vm', 'zlib'
+  'v8', 'vm', 'worker_threads', 'zlib'
 ];
 
-if (getOptionValue('--experimental-worker')) {
-  builtinLibs.push('worker_threads');
-  builtinLibs.sort();
-}
-
-if (typeof process.binding('inspector').open === 'function') {
+if (typeof internalBinding('inspector').open === 'function') {
   builtinLibs.push('inspector');
   builtinLibs.sort();
 }
@@ -162,12 +190,12 @@ function normalizeReferrerURL(referrer) {
   return new URL(referrer).href;
 }
 
-module.exports = exports = {
+module.exports = {
   addBuiltinLibsToObject,
   builtinLibs,
+  loadNativeModule,
   makeRequireFunction,
   normalizeReferrerURL,
-  requireDepth: 0,
   stripBOM,
   stripShebang
 };

@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>C++ Addons | Node.js v10.16.3 Documentation</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
+  <title>C++ Addons | Node.js v12.13.0 Documentation</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
   <link rel="canonical" href="https://nodejs.org/api/addons.html">
@@ -52,11 +52,13 @@
 <li><a href="os.html" class="nav-os">OS</a></li>
 <li><a href="path.html" class="nav-path">Path</a></li>
 <li><a href="perf_hooks.html" class="nav-perf_hooks">Performance Hooks</a></li>
+<li><a href="policy.html" class="nav-policy">Policies</a></li>
 <li><a href="process.html" class="nav-process">Process</a></li>
 <li><a href="punycode.html" class="nav-punycode">Punycode</a></li>
 <li><a href="querystring.html" class="nav-querystring">Query Strings</a></li>
 <li><a href="readline.html" class="nav-readline">Readline</a></li>
 <li><a href="repl.html" class="nav-repl">REPL</a></li>
+<li><a href="report.html" class="nav-report">Report</a></li>
 <li><a href="stream.html" class="nav-stream">Stream</a></li>
 <li><a href="string_decoder.html" class="nav-string_decoder">String Decoder</a></li>
 <li><a href="timers.html" class="nav-timers">Timers</a></li>
@@ -79,7 +81,7 @@
 
     <div id="column1" data-id="addons" class="interior">
       <header>
-        <h1>Node.js v10.16.3 Documentation</h1>
+        <h1>Node.js v12.13.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -122,7 +124,12 @@
 <li>
 <p><a href="#addons_hello_world">Hello world</a></p>
 <ul>
-<li><a href="#addons_context_aware_addons">Context-aware addons</a></li>
+<li>
+<p><a href="#addons_context_aware_addons">Context-aware addons</a></p>
+<ul>
+<li><a href="#addons_worker_support">Worker support</a></li>
+</ul>
+</li>
 <li><a href="#addons_building">Building</a></li>
 <li><a href="#addons_linking_to_node_js_own_dependencies">Linking to Node.js' own dependencies</a></li>
 <li><a href="#addons_loading_addons_using_require">Loading Addons using require()</a></li>
@@ -158,10 +165,15 @@
 
 
 <p>Node.js Addons are dynamically-linked shared objects, written in C++, that
-can be loaded into Node.js using the <a href="modules.html#modules_require"><code>require()</code></a> function, and used
+can be loaded into Node.js using the <a href="modules.html#modules_require_id"><code>require()</code></a> function, and used
 just as if they were an ordinary Node.js module. They are used primarily to
 provide an interface between JavaScript running in Node.js and C/C++ libraries.</p>
-<p>At the moment, the method for implementing Addons is rather complicated,
+<p>There are three options for implementing Addons: N-API, nan, or direct
+use of internal V8, libuv and Node.js libraries. Unless you need direct
+access to functionality which is not exposed by N-API, use N-API.
+Refer to the section <a href="n-api.html">C/C++ Addons - N-API</a>
+for more information on N-API.</p>
+<p>When not using N-API, implementing Addons is complicated,
 involving knowledge of several components and APIs:</p>
 <ul>
 <li>
@@ -233,7 +245,7 @@ NODE_MODULE(NODE_GYP_MODULE_NAME, Initialize)
 
 }  // namespace demo
 </code></pre>
-<p>Note that all Node.js Addons must export an initialization function following
+<p>All Node.js Addons must export an initialization function following
 the pattern:</p>
 <pre><code class="language-cpp">void Initialize(Local&#x3C;Object> exports);
 NODE_MODULE(NODE_GYP_MODULE_NAME, Initialize)
@@ -368,6 +380,24 @@ NODE_MODULE_INIT(/* exports, module, context */) {
                   ->GetFunction(context).ToLocalChecked()).FromJust();
 }
 </code></pre>
+<h4>Worker support<span><a class="mark" href="#addons_worker_support" id="addons_worker_support">#</a></span></h4>
+<p>In order to support <a href="worker_threads.html#worker_threads_class_worker"><code>Worker</code></a> threads, addons need to clean up any resources
+they may have allocated when such a thread exists. This can be achieved through
+the usage of the <code>AddEnvironmentCleanupHook()</code> function:</p>
+<pre><code class="language-c++">void AddEnvironmentCleanupHook(v8::Isolate* isolate,
+                               void (*fun)(void* arg),
+                               void* arg);
+</code></pre>
+<p>This function adds a hook that will run before a given Node.js instance shuts
+down. If necessary, such hooks can be removed using
+<code>RemoveEnvironmentCleanupHook()</code> before they are run, which has the same
+signature.</p>
+<p>In order to be loaded from multiple Node.js environments,
+such as a main thread and a Worker thread, an add-on needs to either:</p>
+<ul>
+<li>Be an N-API addon, or</li>
+<li>Be declared as context-aware using <code>NODE_MODULE_INIT()</code> as described above</li>
+</ul>
 <h3>Building<span><a class="mark" href="#addons_building" id="addons_building">#</a></span></h3>
 <p>Once the source code has been written, it must be compiled into the binary
 <code>addon.node</code> file. To do so, create a file called <code>binding.gyp</code> in the
@@ -400,21 +430,18 @@ file. This will be put into the <code>build/Release/</code> directory.</p>
 version of <code>node-gyp</code> to perform this same set of actions, generating a
 compiled version of the Addon for the user's platform on demand.</p>
 <p>Once built, the binary Addon can be used from within Node.js by pointing
-<a href="modules.html#modules_require"><code>require()</code></a> to the built <code>addon.node</code> module:</p>
+<a href="modules.html#modules_require_id"><code>require()</code></a> to the built <code>addon.node</code> module:</p>
 <pre><code class="language-js">// hello.js
 const addon = require('./build/Release/addon');
 
 console.log(addon.hello());
 // Prints: 'world'
 </code></pre>
-<p>Please see the examples below for further information or
-<a href="https://github.com/arturadib/node-qt">https://github.com/arturadib/node-qt</a> for an example in production.</p>
 <p>Because the exact path to the compiled Addon binary can vary depending on how
 it is compiled (i.e. sometimes it may be in <code>./build/Debug/</code>), Addons can use
 the <a href="https://github.com/TooTallNate/node-bindings">bindings</a> package to load the compiled module.</p>
-<p>Note that while the <code>bindings</code> package implementation is more sophisticated
-in how it locates Addon modules, it is essentially using a try-catch pattern
-similar to:</p>
+<p>While the <code>bindings</code> package implementation is more sophisticated in how it
+locates Addon modules, it is essentially using a <code>try…catch</code> pattern similar to:</p>
 <pre><code class="language-js">try {
   return require('./build/Release/addon.node');
 } catch (err) {
@@ -444,15 +471,15 @@ dependencies.</p>
 </ul>
 <h3>Loading Addons using require()<span><a class="mark" href="#addons_loading_addons_using_require" id="addons_loading_addons_using_require">#</a></span></h3>
 <p>The filename extension of the compiled Addon binary is <code>.node</code> (as opposed
-to <code>.dll</code> or <code>.so</code>). The <a href="modules.html#modules_require"><code>require()</code></a> function is written to look for
+to <code>.dll</code> or <code>.so</code>). The <a href="modules.html#modules_require_id"><code>require()</code></a> function is written to look for
 files with the <code>.node</code> file extension and initialize those as dynamically-linked
 libraries.</p>
-<p>When calling <a href="modules.html#modules_require"><code>require()</code></a>, the <code>.node</code> extension can usually be
+<p>When calling <a href="modules.html#modules_require_id"><code>require()</code></a>, the <code>.node</code> extension can usually be
 omitted and Node.js will still find and initialize the Addon. One caveat,
 however, is that Node.js will first attempt to locate and load modules or
 JavaScript files that happen to share the same base name. For instance, if
 there is a file <code>addon.js</code> in the same directory as the binary <code>addon.node</code>,
-then <a href="modules.html#modules_require"><code>require('addon')</code></a> will give precedence to the <code>addon.js</code> file
+then <a href="modules.html#modules_require_id"><code>require('addon')</code></a> will give precedence to the <code>addon.js</code> file
 and load it instead.</p>
 <h2>Native Abstractions for Node.js<span><a class="mark" href="#addons_native_abstractions_for_node_js" id="addons_native_abstractions_for_node_js">#</a></span></h2>
 <p>Each of the examples illustrated in this document make direct use of the
@@ -652,10 +679,10 @@ NODE_MODULE(NODE_GYP_MODULE_NAME, Init)
 
 }  // namespace demo
 </code></pre>
-<p>Note that this example uses a two-argument form of <code>Init()</code> that receives
-the full <code>module</code> object as the second argument. This allows the Addon
-to completely overwrite <code>exports</code> with a single function instead of
-adding the function as a property of <code>exports</code>.</p>
+<p>This example uses a two-argument form of <code>Init()</code> that receives the full
+<code>module</code> object as the second argument. This allows the Addon to completely
+overwrite <code>exports</code> with a single function instead of adding the function as a
+property of <code>exports</code>.</p>
 <p>To test it, run the following JavaScript:</p>
 <pre><code class="language-js">// test.js
 const addon = require('./build/Release/addon');
@@ -665,7 +692,7 @@ addon((msg) => {
 // Prints: 'hello world'
 });
 </code></pre>
-<p>Note that, in this example, the callback function is invoked synchronously.</p>
+<p>In this example, the callback function is invoked synchronously.</p>
 <h3>Object factory<span><a class="mark" href="#addons_object_factory" id="addons_object_factory">#</a></span></h3>
 <p>Addons can create and return new objects from within a C++ function as
 illustrated in the following example. An object is created and returned with a

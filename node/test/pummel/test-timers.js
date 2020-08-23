@@ -23,11 +23,11 @@
 const common = require('../common');
 const assert = require('assert');
 
-const WINDOW = 200; // why is does this need to be so big?
+const WINDOW = 200; // Why is does this need to be so big?
 
 let interval_count = 0;
 
-// check that these don't blow up.
+// Check that these don't blow up.
 clearTimeout(null);
 clearInterval(null);
 
@@ -43,7 +43,7 @@ setTimeout(common.mustCall(function() {
   assert.strictEqual(1000 - WINDOW < diff && diff < 1000 + WINDOW, true);
 }), 1000);
 
-// this timer shouldn't execute
+// This timer shouldn't execute
 const id = setTimeout(function() { assert.strictEqual(true, false); }, 500);
 clearTimeout(id);
 
@@ -103,7 +103,7 @@ const interval4 = setInterval(function() {
 }, 0);
 
 
-// we should be able to clearTimeout multiple times without breakage.
+// We should be able to clearTimeout multiple times without breakage.
 let expectedTimeouts = 3;
 
 function t() {

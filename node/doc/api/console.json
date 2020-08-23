@@ -141,7 +141,7 @@
                 ],
                 "changes": [
                   {
-                    "version": "v9.3.0",
+                    "version": "v8.10.0",
                     "pr-url": "https://github.com/nodejs/node/pull/17033",
                     "description": "`console.debug` is now an alias for `console.log`."
                   }
@@ -245,7 +245,7 @@
                   ]
                 }
               ],
-              "desc": "<p>This method calls <code>console.log()</code> passing it the arguments received.\nPlease note that this method does not produce any XML formatting.</p>"
+              "desc": "<p>This method calls <code>console.log()</code> passing it the arguments received.\nThis method does not produce any XML formatting.</p>"
             },
             {
               "textRaw": "console.error([data][, ...args])",
@@ -596,7 +596,7 @@
                   "optional": true
                 }
               ],
-              "desc": "<p>Creates a new <code>Console</code> with one or two writable stream instances. <code>stdout</code> is a\nwritable stream to print log or info output. <code>stderr</code> is used for warning or\nerror output. If <code>stderr</code> is not provided, <code>stdout</code> is used for <code>stderr</code>.</p>\n<pre><code class=\"language-js\">const output = fs.createWriteStream('./stdout.log');\nconst errorOutput = fs.createWriteStream('./stderr.log');\n// custom simple logger\nconst logger = new Console({ stdout: output, stderr: errorOutput });\n// use it like console\nconst count = 5;\nlogger.log('count: %d', count);\n// in stdout.log: count 5\n</code></pre>\n<p>The global <code>console</code> is a special <code>Console</code> whose output is sent to\n<a href=\"process.html#process_process_stdout\"><code>process.stdout</code></a> and <a href=\"process.html#process_process_stderr\"><code>process.stderr</code></a>. It is equivalent to calling:</p>\n<pre><code class=\"language-js\">new Console({ stdout: process.stdout, stderr: process.stderr });\n</code></pre>"
+              "desc": "<p>Creates a new <code>Console</code> with one or two writable stream instances. <code>stdout</code> is a\nwritable stream to print log or info output. <code>stderr</code> is used for warning or\nerror output. If <code>stderr</code> is not provided, <code>stdout</code> is used for <code>stderr</code>.</p>\n<pre><code class=\"language-js\">const output = fs.createWriteStream('./stdout.log');\nconst errorOutput = fs.createWriteStream('./stderr.log');\n// Custom simple logger\nconst logger = new Console({ stdout: output, stderr: errorOutput });\n// use it like console\nconst count = 5;\nlogger.log('count: %d', count);\n// In stdout.log: count 5\n</code></pre>\n<p>The global <code>console</code> is a special <code>Console</code> whose output is sent to\n<a href=\"process.html#process_process_stdout\"><code>process.stdout</code></a> and <a href=\"process.html#process_process_stderr\"><code>process.stderr</code></a>. It is equivalent to calling:</p>\n<pre><code class=\"language-js\">new Console({ stdout: process.stdout, stderr: process.stderr });\n</code></pre>"
             },
             {
               "params": [
@@ -623,16 +623,22 @@
                       "desc": "Ignore errors when writing to the underlying streams."
                     },
                     {
-                      "textRaw": "`colorMode` {boolean|string} Set color support for this `Console` instance. Setting to `true` enables coloring while inspecting values, setting to `'auto'` will make color support depend on the value of the `isTTY` property and the value returned by `getColorDepth()` on the respective stream. **Default:** `'auto'`.",
+                      "textRaw": "`colorMode` {boolean|string} Set color support for this `Console` instance. Setting to `true` enables coloring while inspecting values, setting to `'auto'` will make color support depend on the value of the `isTTY` property and the value returned by `getColorDepth()` on the respective stream. This option can not be used, if `inspectOptions.colors` is set as well. **Default:** `'auto'`.",
                       "name": "colorMode",
                       "type": "boolean|string",
                       "default": "`'auto'`",
-                      "desc": "Set color support for this `Console` instance. Setting to `true` enables coloring while inspecting values, setting to `'auto'` will make color support depend on the value of the `isTTY` property and the value returned by `getColorDepth()` on the respective stream."
+                      "desc": "Set color support for this `Console` instance. Setting to `true` enables coloring while inspecting values, setting to `'auto'` will make color support depend on the value of the `isTTY` property and the value returned by `getColorDepth()` on the respective stream. This option can not be used, if `inspectOptions.colors` is set as well."
+                    },
+                    {
+                      "textRaw": "`inspectOptions` {Object} Specifies options that are passed along to [`util.inspect()`][].",
+                      "name": "inspectOptions",
+                      "type": "Object",
+                      "desc": "Specifies options that are passed along to [`util.inspect()`][]."
                     }
                   ]
                 }
               ],
-              "desc": "<p>Creates a new <code>Console</code> with one or two writable stream instances. <code>stdout</code> is a\nwritable stream to print log or info output. <code>stderr</code> is used for warning or\nerror output. If <code>stderr</code> is not provided, <code>stdout</code> is used for <code>stderr</code>.</p>\n<pre><code class=\"language-js\">const output = fs.createWriteStream('./stdout.log');\nconst errorOutput = fs.createWriteStream('./stderr.log');\n// custom simple logger\nconst logger = new Console({ stdout: output, stderr: errorOutput });\n// use it like console\nconst count = 5;\nlogger.log('count: %d', count);\n// in stdout.log: count 5\n</code></pre>\n<p>The global <code>console</code> is a special <code>Console</code> whose output is sent to\n<a href=\"process.html#process_process_stdout\"><code>process.stdout</code></a> and <a href=\"process.html#process_process_stderr\"><code>process.stderr</code></a>. It is equivalent to calling:</p>\n<pre><code class=\"language-js\">new Console({ stdout: process.stdout, stderr: process.stderr });\n</code></pre>"
+              "desc": "<p>Creates a new <code>Console</code> with one or two writable stream instances. <code>stdout</code> is a\nwritable stream to print log or info output. <code>stderr</code> is used for warning or\nerror output. If <code>stderr</code> is not provided, <code>stdout</code> is used for <code>stderr</code>.</p>\n<pre><code class=\"language-js\">const output = fs.createWriteStream('./stdout.log');\nconst errorOutput = fs.createWriteStream('./stderr.log');\n// Custom simple logger\nconst logger = new Console({ stdout: output, stderr: errorOutput });\n// use it like console\nconst count = 5;\nlogger.log('count: %d', count);\n// In stdout.log: count 5\n</code></pre>\n<p>The global <code>console</code> is a special <code>Console</code> whose output is sent to\n<a href=\"process.html#process_process_stdout\"><code>process.stdout</code></a> and <a href=\"process.html#process_process_stderr\"><code>process.stderr</code></a>. It is equivalent to calling:</p>\n<pre><code class=\"language-js\">new Console({ stdout: process.stdout, stderr: process.stderr });\n</code></pre>"
             }
           ]
         }

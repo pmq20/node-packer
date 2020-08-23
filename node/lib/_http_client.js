@@ -21,34 +21,38 @@
 
 'use strict';
 
-const util = require('util');
+const { Object } = primordials;
+
 const net = require('net');
 const url = require('url');
-const { HTTPParser } = internalBinding('http_parser');
-const assert = require('assert').ok;
+const assert = require('internal/assert');
 const {
   _checkIsHttpToken: checkIsHttpToken,
   debug,
   freeParser,
-  httpSocketSetup,
-  parsers
+  parsers,
+  HTTPParser,
+  prepareError,
 } = require('_http_common');
 const { OutgoingMessage } = require('_http_outgoing');
 const Agent = require('_http_agent');
 const { Buffer } = require('buffer');
 const { defaultTriggerAsyncIdScope } = require('internal/async_hooks');
-const { urlToOptions, searchParamsSymbol } = require('internal/url');
-const { outHeadersKey, ondrain } = require('internal/http');
+const { URL, urlToOptions, searchParamsSymbol } = require('internal/url');
+const { kOutHeaders, kNeedDrain } = require('internal/http');
+const { connResetException, codes } = require('internal/errors');
 const {
   ERR_HTTP_HEADERS_SENT,
   ERR_INVALID_ARG_TYPE,
-  ERR_INVALID_DOMAIN_NAME,
   ERR_INVALID_HTTP_TOKEN,
   ERR_INVALID_PROTOCOL,
   ERR_UNESCAPED_CHARACTERS
-} = require('internal/errors').codes;
-const { validateTimerDuration } = require('internal/timers');
-const is_reused_symbol = require('internal/freelist').symbols.is_reused_symbol;
+} = codes;
+const { getTimerDuration } = require('internal/timers');
+const {
+  DTRACE_HTTP_CLIENT_REQUEST,
+  DTRACE_HTTP_CLIENT_RESPONSE
+} = require('internal/dtrace');
 
 const INVALID_PATH_REGEX = /[^\u0021-\u00ff]/;
 
@@ -61,13 +65,33 @@ function validateHost(host, name) {
   return host;
 }
 
+class HTTPClientAsyncResource {
+  constructor(type, req) {
+    this.type = type;
+    this.req = req;
+  }
+}
+
+let urlWarningEmitted = false;
 function ClientRequest(input, options, cb) {
   OutgoingMessage.call(this);
 
   if (typeof input === 'string') {
-    input = url.parse(input);
-    if (!input.hostname) {
-      throw new ERR_INVALID_DOMAIN_NAME();
+    const urlStr = input;
+    try {
+      input = urlToOptions(new URL(urlStr));
+    } catch (err) {
+      input = url.parse(urlStr);
+      if (!input.hostname) {
+        throw err;
+      }
+      if (!urlWarningEmitted && !process.noDeprecation) {
+        urlWarningEmitted = true;
+        process.emitWarning(
+          `The provided URL ${urlStr} is not a valid URL, and is supported ` +
+          'in the http module solely for compatibility.',
+          'DeprecationWarning', 'DEP0109');
+      }
     }
   } else if (input && input[searchParamsSymbol] &&
              input[searchParamsSymbol][searchParamsSymbol]) {
@@ -81,13 +105,13 @@ function ClientRequest(input, options, cb) {
 
   if (typeof options === 'function') {
     cb = options;
-    options = null;
+    options = input || {};
+  } else {
+    options = Object.assign(input || {}, options);
   }
 
-  options = util._extend(input || {}, options || {});
-
   var agent = options.agent;
-  var defaultAgent = options._defaultAgent || Agent.globalAgent;
+  const defaultAgent = options._defaultAgent || Agent.globalAgent;
   if (agent === false) {
     agent = new defaultAgent.constructor();
   } else if (agent === null || agent === undefined) {
@@ -103,7 +127,7 @@ function ClientRequest(input, options, cb) {
   }
   this.agent = agent;
 
-  var protocol = options.protocol || defaultAgent.protocol;
+  const protocol = options.protocol || defaultAgent.protocol;
   var expectedProtocol = defaultAgent.protocol;
   if (this.agent && this.agent.protocol)
     expectedProtocol = this.agent.protocol;
@@ -119,20 +143,22 @@ function ClientRequest(input, options, cb) {
     throw new ERR_INVALID_PROTOCOL(protocol, expectedProtocol);
   }
 
-  var defaultPort = options.defaultPort ||
-                    this.agent && this.agent.defaultPort;
+  const defaultPort = options.defaultPort ||
+                    (this.agent && this.agent.defaultPort);
 
-  var port = options.port = options.port || defaultPort || 80;
-  var host = options.host = validateHost(options.hostname, 'hostname') ||
+  const port = options.port = options.port || defaultPort || 80;
+  const host = options.host = validateHost(options.hostname, 'hostname') ||
                             validateHost(options.host, 'host') || 'localhost';
 
-  var setHost = (options.setHost === undefined || Boolean(options.setHost));
+  const setHost = (options.setHost === undefined || Boolean(options.setHost));
 
   this.socketPath = options.socketPath;
-  this.timeout = options.timeout;
+
+  if (options.timeout !== undefined)
+    this.timeout = getTimerDuration(options.timeout, 'timeout');
 
   var method = options.method;
-  var methodIsString = (typeof method === 'string');
+  const methodIsString = (typeof method === 'string');
   if (method !== null && method !== undefined && !methodIsString) {
     throw new ERR_INVALID_ARG_TYPE('method', 'string', method);
   }
@@ -155,6 +181,7 @@ function ClientRequest(input, options, cb) {
       method === 'HEAD' ||
       method === 'DELETE' ||
       method === 'OPTIONS' ||
+      method === 'TRACE' ||
       method === 'CONNECT') {
     this.useChunkedEncodingByDefault = false;
   } else {
@@ -163,7 +190,7 @@ function ClientRequest(input, options, cb) {
 
   this._ended = false;
   this.res = null;
-  this.aborted = undefined;
+  this.aborted = false;
   this.timeoutCb = null;
   this.upgradeOrConnect = false;
   this.parser = null;
@@ -185,7 +212,7 @@ function ClientRequest(input, options, cb) {
     }
   }
 
-  var headersArray = Array.isArray(options.headers);
+  const headersArray = Array.isArray(options.headers);
   if (!headersArray) {
     if (options.headers) {
       var keys = Object.keys(options.headers);
@@ -203,7 +230,7 @@ function ClientRequest(input, options, cb) {
       // https://tools.ietf.org/html/rfc3986#section-3.2.2
       var posColon = hostHeader.indexOf(':');
       if (posColon !== -1 &&
-          hostHeader.indexOf(':', posColon + 1) !== -1 &&
+          hostHeader.includes(':', posColon + 1) &&
           hostHeader.charCodeAt(0) !== 91/* '[' */) {
         hostHeader = `[${hostHeader}]`;
       }
@@ -225,14 +252,14 @@ function ClientRequest(input, options, cb) {
       }
 
       this._storeHeader(this.method + ' ' + this.path + ' HTTP/1.1\r\n',
-                        this[outHeadersKey]);
+                        this[kOutHeaders]);
     }
   } else {
     this._storeHeader(this.method + ' ' + this.path + ' HTTP/1.1\r\n',
                       options.headers);
   }
 
-  var oncreate = (err, socket) => {
+  const oncreate = (err, socket) => {
     if (called)
       return;
     called = true;
@@ -267,13 +294,11 @@ function ClientRequest(input, options, cb) {
 
   this._deferToConnect(null, null, () => this._flush());
 }
-
-util.inherits(ClientRequest, OutgoingMessage);
-
+Object.setPrototypeOf(ClientRequest.prototype, OutgoingMessage.prototype);
+Object.setPrototypeOf(ClientRequest, OutgoingMessage);
 
 ClientRequest.prototype._finish = function _finish() {
   DTRACE_HTTP_CLIENT_REQUEST(this, this.connection);
-  COUNTER_HTTP_CLIENT_REQUEST();
   OutgoingMessage.prototype._finish.call(this);
 };
 
@@ -282,26 +307,18 @@ ClientRequest.prototype._implicitHeader = function _implicitHeader() {
     throw new ERR_HTTP_HEADERS_SENT('render');
   }
   this._storeHeader(this.method + ' ' + this.path + ' HTTP/1.1\r\n',
-                    this[outHeadersKey]);
+                    this[kOutHeaders]);
 };
 
 ClientRequest.prototype.abort = function abort() {
   if (!this.aborted) {
     process.nextTick(emitAbortNT.bind(this));
   }
-
-  // Mark as aborting so we can avoid sending queued request data
-  // This is used as a truthy flag elsewhere. The use of Date.now is for
-  // debugging purposes only.
-  this.aborted = Date.now();
+  this.aborted = true;
 
   // If we're aborting, we don't care about any more response data.
   if (this.res) {
     this.res._dump();
-  } else {
-    this.once('response', (res) => {
-      res._dump();
-    });
   }
 
   // In the event that we don't have a socket, we will pop out of
@@ -317,18 +334,17 @@ function emitAbortNT() {
   this.emit('abort');
 }
 
-
-function createHangUpError() {
-  // eslint-disable-next-line no-restricted-syntax
-  var error = new Error('socket hang up');
-  error.code = 'ECONNRESET';
-  return error;
+function ondrain() {
+  const msg = this._httpMessage;
+  if (msg && !msg.finished && msg[kNeedDrain]) {
+    msg[kNeedDrain] = false;
+    msg.emit('drain');
+  }
 }
 
-
 function socketCloseListener() {
-  var socket = this;
-  var req = socket._httpMessage;
+  const socket = this;
+  const req = socket._httpMessage;
   debug('HTTP socket close');
 
   // Pull through final chunk, if anything is buffered.
@@ -361,7 +377,7 @@ function socketCloseListener() {
       // receive a response. The error needs to
       // fire on the request.
       req.socket._hadError = true;
-      req.emit('error', createHangUpError());
+      req.emit('error', connResetException('socket hang up'));
     }
     req.emit('close');
   }
@@ -369,10 +385,8 @@ function socketCloseListener() {
   // Too bad.  That output wasn't getting written.
   // This is pretty terrible that it doesn't raise an error.
   // Fixed better in v0.10
-  if (req.output)
-    req.output.length = 0;
-  if (req.outputEncodings)
-    req.outputEncodings.length = 0;
+  if (req.outputData)
+    req.outputData.length = 0;
 
   if (parser) {
     parser.finish();
@@ -381,8 +395,8 @@ function socketCloseListener() {
 }
 
 function socketErrorListener(err) {
-  var socket = this;
-  var req = socket._httpMessage;
+  const socket = this;
+  const req = socket._httpMessage;
   debug('SOCKET ERROR:', err.message, err.stack);
 
   if (req) {
@@ -395,7 +409,7 @@ function socketErrorListener(err) {
   // Handle any pending data
   socket.read();
 
-  var parser = socket.parser;
+  const parser = socket.parser;
   if (parser) {
     parser.finish();
     freeParser(parser, req, socket);
@@ -408,22 +422,22 @@ function socketErrorListener(err) {
 }
 
 function freeSocketErrorListener(err) {
-  var socket = this;
+  const socket = this;
   debug('SOCKET ERROR on FREE socket:', err.message, err.stack);
   socket.destroy();
   socket.emit('agentRemove');
 }
 
 function socketOnEnd() {
-  var socket = this;
-  var req = this._httpMessage;
-  var parser = this.parser;
+  const socket = this;
+  const req = this._httpMessage;
+  const parser = this.parser;
 
   if (!req.res && !req.socket._hadError) {
     // If we don't have a response then we know that the socket
     // ended prematurely and we need to emit an error on the request.
     req.socket._hadError = true;
-    req.emit('error', createHangUpError());
+    req.emit('error', connResetException('socket hang up'));
   }
   if (parser) {
     parser.finish();
@@ -433,14 +447,15 @@ function socketOnEnd() {
 }
 
 function socketOnData(d) {
-  var socket = this;
-  var req = this._httpMessage;
-  var parser = this.parser;
+  const socket = this;
+  const req = this._httpMessage;
+  const parser = this.parser;
 
   assert(parser && parser.socket === socket);
 
-  var ret = parser.execute(d);
+  const ret = parser.execute(d);
   if (ret instanceof Error) {
+    prepareError(ret, parser, d);
     debug('parse error', ret);
     freeParser(parser, req, socket);
     socket.destroy();
@@ -487,6 +502,7 @@ function socketOnData(d) {
              !statusIsInformational(parser.incoming.statusCode)) {
     socket.removeListener('data', socketOnData);
     socket.removeListener('end', socketOnEnd);
+    socket.removeListener('drain', ondrain);
     freeParser(parser, req, socket);
   }
 }
@@ -501,8 +517,8 @@ function statusIsInformational(status) {
 
 // client
 function parserOnIncomingClient(res, shouldKeepAlive) {
-  var socket = this.socket;
-  var req = socket._httpMessage;
+  const socket = this.socket;
+  const req = socket._httpMessage;
 
   debug('AGENT incoming response!');
 
@@ -533,7 +549,15 @@ function parserOnIncomingClient(res, shouldKeepAlive) {
       req.emit('continue');
     }
     // Send information events to all 1xx responses except 101 Upgrade.
-    req.emit('information', { statusCode: res.statusCode });
+    req.emit('information', {
+      statusCode: res.statusCode,
+      statusMessage: res.statusMessage,
+      httpVersion: res.httpVersion,
+      httpVersionMajor: res.httpVersionMajor,
+      httpVersionMinor: res.httpVersionMinor,
+      headers: res.headers,
+      rawHeaders: res.rawHeaders
+    });
 
     return 1;  // Skip body but don't treat as Upgrade.
   }
@@ -546,19 +570,17 @@ function parserOnIncomingClient(res, shouldKeepAlive) {
   }
 
   DTRACE_HTTP_CLIENT_RESPONSE(socket, req);
-  COUNTER_HTTP_CLIENT_RESPONSE();
   req.res = res;
   res.req = req;
 
-  // add our listener first, so that we guarantee socket cleanup
+  // Add our listener first, so that we guarantee socket cleanup
   res.on('end', responseOnEnd);
   req.on('prefinish', requestOnPrefinish);
-  var handled = req.emit('response', res);
 
   // If the user did not listen for the 'response' event, then they
   // can't possibly read the data, so we ._dump() it into the void
   // so that the socket doesn't hang there in a paused state.
-  if (!handled)
+  if (req.aborted || !req.emit('response', res))
     res._dump();
 
   if (method === 'HEAD')
@@ -568,10 +590,36 @@ function parserOnIncomingClient(res, shouldKeepAlive) {
 }
 
 // client
-function responseKeepAlive(res, req) {
-  var socket = req.socket;
+function responseKeepAlive(req) {
+  const socket = req.socket;
+
+  debug('AGENT socket keep-alive');
+  if (req.timeoutCb) {
+    socket.setTimeout(0, req.timeoutCb);
+    req.timeoutCb = null;
+  }
+  socket.removeListener('close', socketCloseListener);
+  socket.removeListener('error', socketErrorListener);
+  socket.once('error', freeSocketErrorListener);
+  // There are cases where _handle === null. Avoid those. Passing null to
+  // nextTick() will call getDefaultTriggerAsyncId() to retrieve the id.
+  const asyncId = socket._handle ? socket._handle.getAsyncId() : undefined;
+  // Mark this socket as available, AFTER user-added end
+  // handlers have a chance to run.
+  defaultTriggerAsyncIdScope(asyncId, process.nextTick, emitFreeNT, socket);
+}
+
+function responseOnEnd() {
+  const req = this.req;
+
+  if (req.socket && req.timeoutCb) {
+    req.socket.removeListener('timeout', emitRequestTimeout);
+  }
+
+  req._ended = true;
 
   if (!req.shouldKeepAlive) {
+    const socket = req.socket;
     if (socket.writable) {
       debug('AGENT socket.destroySoon()');
       if (typeof socket.destroySoon === 'function')
@@ -580,42 +628,21 @@ function responseKeepAlive(res, req) {
         socket.end();
     }
     assert(!socket.writable);
-  } else {
-    debug('AGENT socket keep-alive');
-    if (req.timeoutCb) {
-      socket.setTimeout(0, req.timeoutCb);
-      req.timeoutCb = null;
-    }
-    socket.removeListener('close', socketCloseListener);
-    socket.removeListener('error', socketErrorListener);
-    socket.once('error', freeSocketErrorListener);
-    // There are cases where _handle === null. Avoid those. Passing null to
-    // nextTick() will call getDefaultTriggerAsyncId() to retrieve the id.
-    const asyncId = socket._handle ? socket._handle.getAsyncId() : undefined;
-    // Mark this socket as available, AFTER user-added end
-    // handlers have a chance to run.
-    defaultTriggerAsyncIdScope(asyncId, process.nextTick, emitFreeNT, socket);
+  } else if (req.finished) {
+    // We can assume `req.finished` means all data has been written since:
+    // - `'responseOnEnd'` means we have been assigned a socket.
+    // - when we have a socket we write directly to it without buffering.
+    // - `req.finished` means `end()` has been called and no further data.
+    //   can be written
+    responseKeepAlive(req);
   }
-}
-
-function responseOnEnd() {
-  const res = this;
-  const req = this.req;
-
-  req._ended = true;
-  if (!req.shouldKeepAlive || req.finished)
-    responseKeepAlive(res, req);
 }
 
 function requestOnPrefinish() {
   const req = this;
-  const res = this.res;
 
-  if (!req.shouldKeepAlive)
-    return;
-
-  if (req._ended)
-    responseKeepAlive(res, req);
+  if (req.shouldKeepAlive && req._ended)
+    responseKeepAlive(req);
 }
 
 function emitFreeNT(socket) {
@@ -623,19 +650,17 @@ function emitFreeNT(socket) {
 }
 
 function tickOnSocket(req, socket) {
-  var parser = parsers.alloc();
+  const parser = parsers.alloc();
   req.socket = socket;
   req.connection = socket;
-  parser.reinitialize(HTTPParser.RESPONSE, parser[is_reused_symbol]);
+  parser.initialize(HTTPParser.RESPONSE,
+                    new HTTPClientAsyncResource('HTTPINCOMINGMESSAGE', req));
   parser.socket = socket;
   parser.outgoing = req;
   req.parser = parser;
 
   socket.parser = parser;
   socket._httpMessage = req;
-
-  // Setup "drain" propagation.
-  httpSocketSetup(socket);
 
   // Propagate headers limit from request object to parser
   if (typeof req.maxHeadersCount === 'number') {
@@ -648,18 +673,28 @@ function tickOnSocket(req, socket) {
   socket.on('data', socketOnData);
   socket.on('end', socketOnEnd);
   socket.on('close', socketCloseListener);
+  socket.on('drain', ondrain);
 
-  if (req.timeout !== undefined) {
+  if (
+    req.timeout !== undefined ||
+    (req.agent && req.agent.options && req.agent.options.timeout)
+  ) {
     listenSocketTimeout(req);
   }
   req.emit('socket', socket);
+}
+
+function emitRequestTimeout() {
+  const req = this._httpMessage;
+  if (req) {
+    req.emit('timeout');
+  }
 }
 
 function listenSocketTimeout(req) {
   if (req.timeoutCb) {
     return;
   }
-  const emitRequestTimeout = () => req.emit('timeout');
   // Set timeoutCb so it will get cleaned up on request end.
   req.timeoutCb = emitRequestTimeout;
   // Delegate socket timeout event.
@@ -670,12 +705,6 @@ function listenSocketTimeout(req) {
       socket.once('timeout', emitRequestTimeout);
     });
   }
-  // Remove socket timeout listener after response end.
-  req.once('response', (res) => {
-    res.once('end', () => {
-      req.socket.removeListener('timeout', emitRequestTimeout);
-    });
-  });
 }
 
 ClientRequest.prototype.onSocket = function onSocket(socket) {
@@ -698,10 +727,10 @@ function onSocketNT(req, socket) {
 ClientRequest.prototype._deferToConnect = _deferToConnect;
 function _deferToConnect(method, arguments_, cb) {
   // This function is for calls that need to happen once the socket is
-  // connected and writable. It's an important promisy thing for all the socket
-  // calls that happen either now (when a socket is assigned) or
-  // in the future (when a socket gets assigned out of the pool and is
-  // eventually writable).
+  // assigned to this request and writable. It's an important promisy
+  // thing for all the socket calls that happen either now
+  // (when a socket is assigned) or in the future (when a socket gets
+  // assigned out of the pool and is eventually writable).
 
   const callSocketMethod = () => {
     if (method)
@@ -732,7 +761,7 @@ ClientRequest.prototype.setTimeout = function setTimeout(msecs, callback) {
   }
 
   listenSocketTimeout(this);
-  msecs = validateTimerDuration(msecs);
+  msecs = getTimerDuration(msecs, 'msecs');
   if (callback) this.once('timeout', callback);
 
   if (this.socket) {

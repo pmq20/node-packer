@@ -31,7 +31,7 @@ const zlib = require('zlib');
 
 const Stream = stream.Stream;
 
-// emit random bytes, and keep a shasum
+// Emit random bytes, and keep a shasum
 class RandomReadStream extends Stream {
   constructor(opt) {
     super();
@@ -46,11 +46,11 @@ class RandomReadStream extends Stream {
     // base block size.
     opt.block = opt.block || 256 * 1024;
 
-    // total number of bytes to emit
+    // Total number of bytes to emit
     opt.total = opt.total || 256 * 1024 * 1024;
     this._remaining = opt.total;
 
-    // how variable to make the block sizes
+    // How variable to make the block sizes
     opt.jitter = opt.jitter || 1024;
 
     this._opt = opt;
@@ -86,7 +86,7 @@ class RandomReadStream extends Stream {
       return;
     }
 
-    // figure out how many bytes to output
+    // Figure out how many bytes to output
     // if finished, then just emit end.
     let block = this._opt.block;
     const jitter = this._opt.jitter;
@@ -110,7 +110,7 @@ class RandomReadStream extends Stream {
   }
 }
 
-// a filter that just verifies a shasum
+// A filter that just verifies a shasum
 class HashStream extends Stream {
   constructor() {
     super();

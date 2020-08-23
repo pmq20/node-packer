@@ -8,8 +8,6 @@
        at *
        at *
        at *
-       at *
-       at *
   nested:
    { err:
       Error: foo
@@ -21,8 +19,6 @@
           at *
           at *
           at *
-          at *
-          at * } }
 {
   err: Error: foo
   bar
@@ -33,14 +29,10 @@
       at *
       at *
       at *
-      at *
-      at *,
   nested: {
     err: Error: foo
     bar
         at *util_inspect_error*
-        at *
-        at *
         at *
         at *
         at *
@@ -52,8 +44,6 @@
 { Error: foo
 bar
     at *util_inspect_error*
-    at *
-    at *
     at *
     at *
     at *

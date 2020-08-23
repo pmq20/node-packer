@@ -15,10 +15,10 @@ const jsPrimitives = {
 
 const jsGlobalObjectsUrl = `${jsDocPrefix}Reference/Global_Objects/`;
 const jsGlobalTypes = [
-  'Array', 'ArrayBuffer', 'DataView', 'Date', 'Error', 'EvalError', 'Function',
-  'Object', 'Promise', 'RangeError', 'ReferenceError', 'RegExp', 'Set',
-  'SharedArrayBuffer', 'SyntaxError', 'TypeError', 'TypedArray', 'URIError',
-  'Uint8Array',
+  'Array', 'ArrayBuffer', 'ArrayBufferView', 'DataView', 'Date', 'Error',
+  'EvalError', 'Function', 'Map', 'Object', 'Promise', 'RangeError',
+  'ReferenceError', 'RegExp', 'Set', 'SharedArrayBuffer', 'SyntaxError',
+  'TypeError', 'TypedArray', 'URIError', 'Uint8Array',
 ];
 
 const customTypesMap = {
@@ -28,12 +28,15 @@ const customTypesMap = {
 
   'AsyncIterator': 'https://tc39.github.io/ecma262/#sec-asynciterator-interface',
 
-  'bigint': 'https://github.com/tc39/proposal-bigint',
+  'bigint': `${jsDocPrefix}Reference/Global_Objects/BigInt`,
 
   'Iterable':
     `${jsDocPrefix}Reference/Iteration_protocols#The_iterable_protocol`,
   'Iterator':
     `${jsDocPrefix}Reference/Iteration_protocols#The_iterator_protocol`,
+
+  'Module Namespace Object':
+    'https://tc39.github.io/ecma262/#sec-module-namespace-exotic-objects',
 
   'AsyncHook': 'async_hooks.html#async_hooks_async_hooks_createhook_callbacks',
   'AsyncResource': 'async_hooks.html#async_hooks_class_asyncresource',
@@ -49,9 +52,11 @@ const customTypesMap = {
   'Cipher': 'crypto.html#crypto_class_cipher',
   'Decipher': 'crypto.html#crypto_class_decipher',
   'DiffieHellman': 'crypto.html#crypto_class_diffiehellman',
+  'DiffieHellmanGroup': 'crypto.html#crypto_class_diffiehellmangroup',
   'ECDH': 'crypto.html#crypto_class_ecdh',
   'Hash': 'crypto.html#crypto_class_hash',
   'Hmac': 'crypto.html#crypto_class_hmac',
+  'KeyObject': 'crypto.html#crypto_class_keyobject',
   'Sign': 'crypto.html#crypto_class_sign',
   'Verify': 'crypto.html#crypto_class_verify',
   'crypto.constants': 'crypto.html#crypto_crypto_constants_1',
@@ -60,9 +65,14 @@ const customTypesMap = {
 
   'Domain': 'domain.html#domain_class_domain',
 
+  'errors.Error': 'errors.html#errors_class_error',
+
+  'import.meta': 'esm.html#esm_import_meta',
+
   'EventEmitter': 'events.html#events_class_eventemitter',
 
   'FileHandle': 'fs.html#fs_class_filehandle',
+  'fs.Dir': 'fs.html#fs_class_fs_dir',
   'fs.Dirent': 'fs.html#fs_class_fs_dirent',
   'fs.FSWatcher': 'fs.html#fs_class_fs_fswatcher',
   'fs.ReadStream': 'fs.html#fs_class_fs_readstream',
@@ -91,6 +101,7 @@ const customTypesMap = {
   'https.Server': 'https.html#https_class_https_server',
 
   'module': 'modules.html#modules_the_module_object',
+  'require': 'modules.html#modules_require_id',
 
   'Handle': 'net.html#net_server_listen_handle_backlog_callback',
   'net.Server': 'net.html#net_class_net_server',
@@ -98,6 +109,7 @@ const customTypesMap = {
 
   'os.constants.dlopen': 'os.html#os_dlopen_constants',
 
+  'Histogram': 'perf_hooks.html#perf_hooks_class_histogram',
   'PerformanceEntry': 'perf_hooks.html#perf_hooks_class_performanceentry',
   'PerformanceNodeTiming':
     'perf_hooks.html#perf_hooks_class_performancenodetiming_extends_performanceentry', // eslint-disable-line max-len
@@ -113,6 +125,7 @@ const customTypesMap = {
   'Stream': 'stream.html#stream_stream',
   'stream.Duplex': 'stream.html#stream_class_stream_duplex',
   'stream.Readable': 'stream.html#stream_class_stream_readable',
+  'stream.Transform': 'stream.html#stream_class_stream_transform',
   'stream.Writable': 'stream.html#stream_class_stream_writable',
 
   'Immediate': 'timers.html#timers_class_immediate',
@@ -127,6 +140,8 @@ const customTypesMap = {
 
   'URL': 'url.html#url_the_whatwg_url_api',
   'URLSearchParams': 'url.html#url_class_urlsearchparams',
+
+  'vm.SourceTextModule': 'vm.html#vm_class_vm_sourcetextmodule',
 
   'MessagePort': 'worker_threads.html#worker_threads_class_messageport',
 

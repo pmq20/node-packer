@@ -21,11 +21,13 @@
 
 'use strict';
 
-const assert = require('assert').ok;
+const { Object, ObjectPrototype } = primordials;
+
+const { getDefaultHighWaterMark } = require('internal/streams/state');
+const assert = require('internal/assert');
 const Stream = require('stream');
-const util = require('util');
 const internalUtil = require('internal/util');
-const { outHeadersKey, utcDate } = require('internal/http');
+const { kOutHeaders, utcDate, kNeedDrain } = require('internal/http');
 const { Buffer } = require('buffer');
 const common = require('_http_common');
 const checkIsHttpToken = common._checkIsHttpToken;
@@ -35,26 +37,28 @@ const {
   symbols: { async_id_symbol }
 } = require('internal/async_hooks');
 const {
-  ERR_HTTP_HEADERS_SENT,
-  ERR_HTTP_INVALID_HEADER_VALUE,
-  ERR_HTTP_TRAILER_INVALID,
-  ERR_INVALID_HTTP_TOKEN,
-  ERR_INVALID_ARG_TYPE,
-  ERR_INVALID_CHAR,
-  ERR_METHOD_NOT_IMPLEMENTED,
-  ERR_STREAM_CANNOT_PIPE,
-  ERR_STREAM_WRITE_AFTER_END
-} = require('internal/errors').codes;
+  codes: {
+    ERR_HTTP_HEADERS_SENT,
+    ERR_HTTP_INVALID_HEADER_VALUE,
+    ERR_HTTP_TRAILER_INVALID,
+    ERR_INVALID_HTTP_TOKEN,
+    ERR_INVALID_ARG_TYPE,
+    ERR_INVALID_CHAR,
+    ERR_METHOD_NOT_IMPLEMENTED,
+    ERR_STREAM_CANNOT_PIPE,
+    ERR_STREAM_WRITE_AFTER_END
+  },
+  hideStackFrames
+} = require('internal/errors');
 const { validateString } = require('internal/validators');
 
+const HIGH_WATER_MARK = getDefaultHighWaterMark();
 const { CRLF, debug } = common;
 
 const kIsCorked = Symbol('isCorked');
 
-const hasOwnProperty = Function.call.bind(Object.prototype.hasOwnProperty);
-
-var RE_CONN_CLOSE = /(?:^|\W)close(?:$|\W)/i;
-var RE_TE_CHUNKED = common.chunkExpression;
+const RE_CONN_CLOSE = /(?:^|\W)close(?:$|\W)/i;
+const RE_TE_CHUNKED = common.chunkExpression;
 
 // isCookieField performs a case-insensitive comparison of a provided string
 // against the word "cookie." As of V8 6.6 this is faster than handrolling or
@@ -70,9 +74,7 @@ function OutgoingMessage() {
 
   // Queue that holds all currently pending data, until the response will be
   // assigned to the socket (until it will its turn in the HTTP pipeline).
-  this.output = [];
-  this.outputEncodings = [];
-  this.outputCallbacks = [];
+  this.outputData = [];
 
   // `outputSize` is an approximate measure of how much data is queued on this
   // response. `_onPendingData` will be invoked to update similar global
@@ -94,6 +96,7 @@ function OutgoingMessage() {
   this._contentLength = null;
   this._hasBody = true;
   this._trailer = '';
+  this[kNeedDrain] = false;
 
   this.finished = false;
   this._headerSent = false;
@@ -102,34 +105,62 @@ function OutgoingMessage() {
   this.socket = null;
   this.connection = null;
   this._header = null;
-  this[outHeadersKey] = null;
+  this[kOutHeaders] = null;
 
   this._onPendingData = noopPendingOutput;
 }
-util.inherits(OutgoingMessage, Stream);
+Object.setPrototypeOf(OutgoingMessage.prototype, Stream.prototype);
+Object.setPrototypeOf(OutgoingMessage, Stream);
 
+Object.defineProperty(OutgoingMessage.prototype, 'writableFinished', {
+  get() {
+    return (
+      this.finished &&
+      this.outputSize === 0 &&
+      (!this.socket || this.socket.writableLength === 0)
+    );
+  }
+});
+
+Object.defineProperty(OutgoingMessage.prototype, 'writableObjectMode', {
+  get() {
+    return false;
+  }
+});
+
+Object.defineProperty(OutgoingMessage.prototype, 'writableLength', {
+  get() {
+    return this.outputSize + (this.socket ? this.socket.writableLength : 0);
+  }
+});
+
+Object.defineProperty(OutgoingMessage.prototype, 'writableHighWaterMark', {
+  get() {
+    return this.socket ? this.socket.writableHighWaterMark : HIGH_WATER_MARK;
+  }
+});
 
 Object.defineProperty(OutgoingMessage.prototype, '_headers', {
-  get: function() {
+  get: internalUtil.deprecate(function() {
     return this.getHeaders();
-  },
-  set: function(val) {
+  }, 'OutgoingMessage.prototype._headers is deprecated', 'DEP0066'),
+  set: internalUtil.deprecate(function(val) {
     if (val == null) {
-      this[outHeadersKey] = null;
+      this[kOutHeaders] = null;
     } else if (typeof val === 'object') {
-      const headers = this[outHeadersKey] = Object.create(null);
+      const headers = this[kOutHeaders] = Object.create(null);
       const keys = Object.keys(val);
       for (var i = 0; i < keys.length; ++i) {
         const name = keys[i];
         headers[name.toLowerCase()] = [name, val[name]];
       }
     }
-  }
+  }, 'OutgoingMessage.prototype._headers is deprecated', 'DEP0066')
 });
 
 Object.defineProperty(OutgoingMessage.prototype, '_headerNames', {
-  get: function() {
-    const headers = this[outHeadersKey];
+  get: internalUtil.deprecate(function() {
+    const headers = this[kOutHeaders];
     if (headers !== null) {
       const out = Object.create(null);
       const keys = Object.keys(headers);
@@ -141,10 +172,10 @@ Object.defineProperty(OutgoingMessage.prototype, '_headerNames', {
       return out;
     }
     return null;
-  },
-  set: function(val) {
+  }, 'OutgoingMessage.prototype._headerNames is deprecated', 'DEP0066'),
+  set: internalUtil.deprecate(function(val) {
     if (typeof val === 'object' && val !== null) {
-      const headers = this[outHeadersKey];
+      const headers = this[kOutHeaders];
       if (!headers)
         return;
       const keys = Object.keys(val);
@@ -154,7 +185,7 @@ Object.defineProperty(OutgoingMessage.prototype, '_headerNames', {
           header[0] = val[keys[i]];
       }
     }
-  }
+  }, 'OutgoingMessage.prototype._headerNames is deprecated', 'DEP0066')
 });
 
 
@@ -163,7 +194,7 @@ OutgoingMessage.prototype._renderHeaders = function _renderHeaders() {
     throw new ERR_HTTP_HEADERS_SENT('render');
   }
 
-  var headersMap = this[outHeadersKey];
+  const headersMap = this[kOutHeaders];
   const headers = {};
 
   if (headersMap !== null) {
@@ -219,14 +250,18 @@ OutgoingMessage.prototype._send = function _send(data, encoding, callback) {
       data = this._header + data;
     } else {
       var header = this._header;
-      if (this.output.length === 0) {
-        this.output = [header];
-        this.outputEncodings = ['latin1'];
-        this.outputCallbacks = [null];
+      if (this.outputData.length === 0) {
+        this.outputData = [{
+          data: header,
+          encoding: 'latin1',
+          callback: null
+        }];
       } else {
-        this.output.unshift(header);
-        this.outputEncodings.unshift('latin1');
-        this.outputCallbacks.unshift(null);
+        this.outputData.unshift({
+          data: header,
+          encoding: 'latin1',
+          callback: null
+        });
       }
       this.outputSize += header.length;
       this._onPendingData(header.length);
@@ -251,33 +286,19 @@ function _writeRaw(data, encoding, callback) {
     encoding = null;
   }
 
-  if (conn && conn._httpMessage === this && conn.writable && !conn.destroyed) {
+  if (conn && conn._httpMessage === this && conn.writable) {
     // There might be pending data in the this.output buffer.
-    if (this.output.length) {
+    if (this.outputData.length) {
       this._flushOutput(conn);
-    } else if (!data.length) {
-      if (typeof callback === 'function') {
-        // If the socket was set directly it won't be correctly initialized
-        // with an async_id_symbol.
-        // TODO(AndreasMadsen): @trevnorris suggested some more correct
-        // solutions in:
-        // https://github.com/nodejs/node/pull/14389/files#r128522202
-        defaultTriggerAsyncIdScope(conn[async_id_symbol],
-                                   process.nextTick,
-                                   callback);
-      }
-      return true;
     }
     // Directly write to socket.
     return conn.write(data, encoding, callback);
   }
   // Buffer, as long as we're not destroyed.
-  this.output.push(data);
-  this.outputEncodings.push(encoding);
-  this.outputCallbacks.push(callback);
+  this.outputData.push({ data, encoding, callback });
   this.outputSize += data.length;
   this._onPendingData(data.length);
-  return false;
+  return this.outputSize < HIGH_WATER_MARK;
 }
 
 
@@ -295,21 +316,21 @@ function _storeHeader(firstLine, headers) {
     header: firstLine
   };
 
-  var key;
-  if (headers === this[outHeadersKey]) {
-    for (key in headers) {
-      const entry = headers[key];
-      processHeader(this, state, entry[0], entry[1], false);
-    }
-  } else if (Array.isArray(headers)) {
-    for (var i = 0; i < headers.length; i++) {
-      const entry = headers[i];
-      processHeader(this, state, entry[0], entry[1], true);
-    }
-  } else if (headers) {
-    for (key in headers) {
-      if (hasOwnProperty(headers, key)) {
-        processHeader(this, state, key, headers[key], true);
+  if (headers) {
+    if (headers === this[kOutHeaders]) {
+      for (const key in headers) {
+        const entry = headers[key];
+        processHeader(this, state, entry[0], entry[1], false);
+      }
+    } else if (Array.isArray(headers)) {
+      for (const entry of headers) {
+        processHeader(this, state, entry[0], entry[1], true);
+      }
+    } else {
+      for (const key in headers) {
+        if (ObjectPrototype.hasOwnProperty(headers, key)) {
+          processHeader(this, state, key, headers[key], true);
+        }
       }
     }
   }
@@ -387,7 +408,7 @@ function _storeHeader(firstLine, headers) {
   this._header = header + CRLF;
   this._headerSent = false;
 
-  // wait until the first body chunk, or close(), is sent to flush,
+  // Wait until the first body chunk, or close(), is sent to flush,
   // UNLESS we're sending Expect: 100-continue.
   if (state.expect) this._send('');
 }
@@ -443,27 +464,21 @@ function matchHeader(self, state, field, value) {
   }
 }
 
-function validateHeaderName(name) {
+const validateHeaderName = hideStackFrames((name) => {
   if (typeof name !== 'string' || !name || !checkIsHttpToken(name)) {
-    const err = new ERR_INVALID_HTTP_TOKEN('Header name', name);
-    Error.captureStackTrace(err, validateHeaderName);
-    throw err;
+    throw new ERR_INVALID_HTTP_TOKEN('Header name', name);
   }
-}
+});
 
-function validateHeaderValue(name, value) {
-  let err;
+const validateHeaderValue = hideStackFrames((name, value) => {
   if (value === undefined) {
-    err = new ERR_HTTP_INVALID_HEADER_VALUE(value, name);
-  } else if (checkInvalidHeaderChar(value)) {
+    throw new ERR_HTTP_INVALID_HEADER_VALUE(value, name);
+  }
+  if (checkInvalidHeaderChar(value)) {
     debug('Header "%s" contains invalid characters', name);
-    err = new ERR_INVALID_CHAR('header content', name);
+    throw new ERR_INVALID_CHAR('header content', name);
   }
-  if (err !== undefined) {
-    Error.captureStackTrace(err, validateHeaderValue);
-    throw err;
-  }
-}
+});
 
 OutgoingMessage.prototype.setHeader = function setHeader(name, value) {
   if (this._header) {
@@ -472,9 +487,9 @@ OutgoingMessage.prototype.setHeader = function setHeader(name, value) {
   validateHeaderName(name);
   validateHeaderValue(name, value);
 
-  let headers = this[outHeadersKey];
+  let headers = this[kOutHeaders];
   if (headers === null)
-    this[outHeadersKey] = headers = Object.create(null);
+    this[kOutHeaders] = headers = Object.create(null);
 
   headers[name.toLowerCase()] = [name, value];
 };
@@ -483,7 +498,7 @@ OutgoingMessage.prototype.setHeader = function setHeader(name, value) {
 OutgoingMessage.prototype.getHeader = function getHeader(name) {
   validateString(name, 'name');
 
-  const headers = this[outHeadersKey];
+  const headers = this[kOutHeaders];
   if (headers === null)
     return;
 
@@ -494,13 +509,13 @@ OutgoingMessage.prototype.getHeader = function getHeader(name) {
 
 // Returns an array of the names of the current outgoing headers.
 OutgoingMessage.prototype.getHeaderNames = function getHeaderNames() {
-  return this[outHeadersKey] !== null ? Object.keys(this[outHeadersKey]) : [];
+  return this[kOutHeaders] !== null ? Object.keys(this[kOutHeaders]) : [];
 };
 
 
 // Returns a shallow copy of the current outgoing headers.
 OutgoingMessage.prototype.getHeaders = function getHeaders() {
-  const headers = this[outHeadersKey];
+  const headers = this[kOutHeaders];
   const ret = Object.create(null);
   if (headers) {
     const keys = Object.keys(headers);
@@ -516,8 +531,8 @@ OutgoingMessage.prototype.getHeaders = function getHeaders() {
 
 OutgoingMessage.prototype.hasHeader = function hasHeader(name) {
   validateString(name, 'name');
-  return this[outHeadersKey] !== null &&
-    !!this[outHeadersKey][name.toLowerCase()];
+  return this[kOutHeaders] !== null &&
+    !!this[kOutHeaders][name.toLowerCase()];
 };
 
 
@@ -528,7 +543,7 @@ OutgoingMessage.prototype.removeHeader = function removeHeader(name) {
     throw new ERR_HTTP_HEADERS_SENT('remove');
   }
 
-  var key = name.toLowerCase();
+  const key = name.toLowerCase();
 
   switch (key) {
     case 'connection':
@@ -545,8 +560,8 @@ OutgoingMessage.prototype.removeHeader = function removeHeader(name) {
       break;
   }
 
-  if (this[outHeadersKey] !== null) {
-    delete this[outHeadersKey][key];
+  if (this[kOutHeaders] !== null) {
+    delete this[kOutHeaders][key];
   }
 };
 
@@ -561,10 +576,17 @@ Object.defineProperty(OutgoingMessage.prototype, 'headersSent', {
   get: function() { return !!this._header; }
 });
 
+Object.defineProperty(OutgoingMessage.prototype, 'writableEnded', {
+  get: function() { return this.finished; }
+});
+
 
 const crlf_buf = Buffer.from('\r\n');
 OutgoingMessage.prototype.write = function write(chunk, encoding, callback) {
-  return write_(this, chunk, encoding, callback, false);
+  const ret = write_(this, chunk, encoding, callback, false);
+  if (!ret)
+    this[kNeedDrain] = true;
+  return ret;
 };
 
 function write_(msg, chunk, encoding, callback, fromEnd) {
@@ -588,20 +610,13 @@ function write_(msg, chunk, encoding, callback, fromEnd) {
   if (!msg._hasBody) {
     debug('This type of response MUST NOT have a body. ' +
           'Ignoring write() calls.');
+    if (callback) process.nextTick(callback);
     return true;
   }
 
   if (!fromEnd && typeof chunk !== 'string' && !(chunk instanceof Buffer)) {
     throw new ERR_INVALID_ARG_TYPE('first argument',
                                    ['string', 'Buffer'], chunk);
-  }
-
-
-  // If we get an empty string or buffer, then just do nothing, and
-  // signal the user to keep writing.
-  if (chunk.length === 0) {
-    debug('received empty string or buffer and waiting for more input');
-    return true;
   }
 
   if (!fromEnd && msg.connection && !msg[kIsCorked]) {
@@ -611,7 +626,7 @@ function write_(msg, chunk, encoding, callback, fromEnd) {
   }
 
   var len, ret;
-  if (msg.chunkedEncoding) {
+  if (msg.chunkedEncoding && chunk.length !== 0) {
     if (typeof chunk === 'string')
       len = Buffer.byteLength(chunk, encoding);
     else
@@ -644,8 +659,8 @@ function connectionCorkNT(msg, conn) {
 
 OutgoingMessage.prototype.addTrailers = function addTrailers(headers) {
   this._trailer = '';
-  var keys = Object.keys(headers);
-  var isArray = Array.isArray(headers);
+  const keys = Object.keys(headers);
+  const isArray = Array.isArray(headers);
   var field, value;
   for (var i = 0, l = keys.length; i < l; i++) {
     var key = keys[i];
@@ -708,7 +723,7 @@ OutgoingMessage.prototype.end = function end(chunk, encoding, callback) {
   if (typeof callback === 'function')
     this.once('finish', callback);
 
-  var finish = onFinish.bind(undefined, this);
+  const finish = onFinish.bind(undefined, this);
 
   if (this._hasBody && this.chunkedEncoding) {
     this._send('0\r\n' + this._trailer + '\r\n', 'latin1', finish);
@@ -725,7 +740,7 @@ OutgoingMessage.prototype.end = function end(chunk, encoding, callback) {
   // There is the first message on the outgoing queue, and we've sent
   // everything to the socket.
   debug('outgoing message end.');
-  if (this.output.length === 0 &&
+  if (this.outputData.length === 0 &&
       this.connection &&
       this.connection._httpMessage === this) {
     this._finish();
@@ -761,7 +776,7 @@ OutgoingMessage.prototype._finish = function _finish() {
 // This function, outgoingFlush(), is called by both the Server and Client
 // to attempt to flush any pending messages out to the socket.
 OutgoingMessage.prototype._flush = function _flush() {
-  var socket = this.socket;
+  const socket = this.socket;
   var ret;
 
   if (socket && socket.writable) {
@@ -771,31 +786,28 @@ OutgoingMessage.prototype._flush = function _flush() {
     if (this.finished) {
       // This is a queue to the server or client to bring in the next this.
       this._finish();
-    } else if (ret) {
-      // This is necessary to prevent https from breaking
+    } else if (ret && this[kNeedDrain]) {
+      this[kNeedDrain] = false;
       this.emit('drain');
     }
   }
 };
 
 OutgoingMessage.prototype._flushOutput = function _flushOutput(socket) {
-  var ret;
-  var outputLength = this.output.length;
+  const outputLength = this.outputData.length;
   if (outputLength <= 0)
-    return ret;
+    return undefined;
 
-  var output = this.output;
-  var outputEncodings = this.outputEncodings;
-  var outputCallbacks = this.outputCallbacks;
+  const outputData = this.outputData;
   socket.cork();
+  let ret;
   for (var i = 0; i < outputLength; i++) {
-    ret = socket.write(output[i], outputEncodings[i], outputCallbacks[i]);
+    const { data, encoding, callback } = outputData[i];
+    ret = socket.write(data, encoding, callback);
   }
   socket.uncork();
 
-  this.output = [];
-  this.outputEncodings = [];
-  this.outputCallbacks = [];
+  this.outputData = [];
   this._onPendingData(-this.outputSize);
   this.outputSize = 0;
 

@@ -5,9 +5,8 @@ const PORT = common.PORT;
 
 const bench = common.createBenchmark(main, {
   n: [1e3],
-  nheaders: [0, 10, 100, 1000],
-  benchmarker: ['h2load']
-}, { flags: ['--no-warnings', '--expose-http2'] });
+  nheaders: [0, 10, 100, 1000]
+}, { flags: ['--no-warnings'] });
 
 function main({ n, nheaders }) {
   const http2 = require('http2');

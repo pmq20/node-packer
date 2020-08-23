@@ -2,8 +2,9 @@
 
 const { AsyncWrap, Providers } = internalBinding('async_wrap');
 const { Buffer } = require('buffer');
-const { pbkdf2: _pbkdf2 } = process.binding('crypto');
+const { pbkdf2: _pbkdf2 } = internalBinding('crypto');
 const { validateUint32 } = require('internal/validators');
+const { deprecate } = require('internal/util');
 const {
   ERR_CRYPTO_INVALID_DIGEST,
   ERR_CRYPTO_PBKDF2_ERROR,
@@ -12,7 +13,7 @@ const {
 } = require('internal/errors').codes;
 const {
   getDefaultEncoding,
-  validateArrayBufferView,
+  getArrayBufferView,
 } = require('internal/crypto/util');
 
 function pbkdf2(password, salt, iterations, keylen, digest, callback) {
@@ -25,7 +26,7 @@ function pbkdf2(password, salt, iterations, keylen, digest, callback) {
     check(password, salt, iterations, keylen, digest));
 
   if (typeof callback !== 'function')
-    throw new ERR_INVALID_CALLBACK();
+    throw new ERR_INVALID_CALLBACK(callback);
 
   const encoding = getDefaultEncoding();
   const keybuf = Buffer.alloc(keylen);
@@ -37,37 +38,41 @@ function pbkdf2(password, salt, iterations, keylen, digest, callback) {
     callback.call(wrap, null, keybuf.toString(encoding));
   };
 
-  handleError(keybuf, password, salt, iterations, digest, wrap);
+  handleError(_pbkdf2(keybuf, password, salt, iterations, digest, wrap),
+              digest);
 }
 
 function pbkdf2Sync(password, salt, iterations, keylen, digest) {
   ({ password, salt, iterations, keylen, digest } =
     check(password, salt, iterations, keylen, digest));
   const keybuf = Buffer.alloc(keylen);
-  handleError(keybuf, password, salt, iterations, digest);
+  handleError(_pbkdf2(keybuf, password, salt, iterations, digest), digest);
   const encoding = getDefaultEncoding();
   if (encoding === 'buffer') return keybuf;
   return keybuf.toString(encoding);
 }
 
+const defaultDigest = deprecate(() => 'sha1',
+                                'Calling pbkdf2 or pbkdf2Sync with "digest" ' +
+                                'set to null is deprecated.',
+                                'DEP0009');
+
 function check(password, salt, iterations, keylen, digest) {
   if (typeof digest !== 'string') {
     if (digest !== null)
       throw new ERR_INVALID_ARG_TYPE('digest', ['string', 'null'], digest);
-    digest = 'sha1';
+    digest = defaultDigest();
   }
 
-  password = validateArrayBufferView(password, 'password');
-  salt = validateArrayBufferView(salt, 'salt');
-  iterations = validateUint32(iterations, 'iterations', 0);
-  keylen = validateUint32(keylen, 'keylen', 0);
+  password = getArrayBufferView(password, 'password');
+  salt = getArrayBufferView(salt, 'salt');
+  validateUint32(iterations, 'iterations', 0);
+  validateUint32(keylen, 'keylen', 0);
 
   return { password, salt, iterations, keylen, digest };
 }
 
-function handleError(keybuf, password, salt, iterations, digest, wrap) {
-  const rc = _pbkdf2(keybuf, password, salt, iterations, digest, wrap);
-
+function handleError(rc, digest) {
   if (rc === -1)
     throw new ERR_CRYPTO_INVALID_DIGEST(digest);
 

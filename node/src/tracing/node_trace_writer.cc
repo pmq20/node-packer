@@ -1,9 +1,9 @@
 #include "tracing/node_trace_writer.h"
 
-#include <string.h>
-#include <fcntl.h>
-
 #include "util-inl.h"
+
+#include <fcntl.h>
+#include <cstring>
 
 namespace node {
 namespace tracing {

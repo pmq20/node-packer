@@ -1,5 +1,5 @@
 // Flags: --experimental-modules
-import '../common';
+import '../common/index.mjs';
 
 // eslint-disable-next-line no-undef
 if (typeof arguments !== 'undefined') {

@@ -7,11 +7,12 @@
 #include <memory>
 
 #include "src/ast/ast.h"
-#include "src/objects-inl.h"
+#include "src/execution/vm-state-inl.h"
+#include "src/objects/objects-inl.h"
 #include "src/parsing/parse-info.h"
 #include "src/parsing/parser.h"
 #include "src/parsing/scanner-character-streams.h"
-#include "src/vm-state-inl.h"
+#include "src/zone/zone-list-inl.h"  // crbug.com/v8/8816
 
 namespace v8 {
 namespace internal {
@@ -25,9 +26,9 @@ bool ParseProgram(ParseInfo* info, Isolate* isolate) {
 
   // Create a character stream for the parser.
   Handle<String> source(String::cast(info->script()->source()), isolate);
-  source = String::Flatten(source);
   isolate->counters()->total_parse_size()->Increment(source->length());
-  std::unique_ptr<Utf16CharacterStream> stream(ScannerStream::For(source));
+  std::unique_ptr<Utf16CharacterStream> stream(
+      ScannerStream::For(isolate, source));
   info->set_character_stream(std::move(stream));
 
   Parser parser(info);
@@ -42,7 +43,6 @@ bool ParseProgram(ParseInfo* info, Isolate* isolate) {
     info->pending_error_handler()->ReportErrors(isolate, info->script(),
                                                 info->ast_value_factory());
   } else {
-    result->scope()->AttachOuterScopeInfo(info, isolate);
     info->set_language_mode(info->literal()->language_mode());
     if (info->is_eval()) {
       info->set_allow_eval_cache(parser.allow_eval_cache());
@@ -60,10 +60,10 @@ bool ParseFunction(ParseInfo* info, Handle<SharedFunctionInfo> shared_info,
 
   // Create a character stream for the parser.
   Handle<String> source(String::cast(info->script()->source()), isolate);
-  source = String::Flatten(source);
   isolate->counters()->total_parse_size()->Increment(source->length());
-  std::unique_ptr<Utf16CharacterStream> stream(ScannerStream::For(
-      source, shared_info->StartPosition(), shared_info->EndPosition()));
+  std::unique_ptr<Utf16CharacterStream> stream(
+      ScannerStream::For(isolate, source, shared_info->StartPosition(),
+                         shared_info->EndPosition()));
   info->set_character_stream(std::move(stream));
 
   VMState<PARSER> state(isolate);
@@ -80,7 +80,7 @@ bool ParseFunction(ParseInfo* info, Handle<SharedFunctionInfo> shared_info,
     info->pending_error_handler()->ReportErrors(isolate, info->script(),
                                                 info->ast_value_factory());
   } else {
-    result->scope()->AttachOuterScopeInfo(info, isolate);
+    info->ast_value_factory()->Internalize(isolate);
     if (info->is_eval()) {
       info->set_allow_eval_cache(parser.allow_eval_cache());
     }

@@ -20,7 +20,7 @@
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "node.h"
-#include <stdio.h>
+#include <cstdio>
 
 // --------- [Enclose.IO Hack start] ---------
 extern "C" {
@@ -143,7 +143,9 @@ extern char** environ;
 #endif
 
 namespace node {
-  extern bool linux_at_secure;
+namespace per_process {
+extern bool linux_at_secure;
+}  // namespace per_process
 }  // namespace node
 
 int main(int argc, char* argv[]) {
@@ -167,7 +169,7 @@ int main(int argc, char* argv[]) {
   Elf_auxv_t* auxv = reinterpret_cast<Elf_auxv_t*>(envp);
   for (; auxv->a_type != AT_NULL; auxv++) {
     if (auxv->a_type == AT_SECURE) {
-      node::linux_at_secure = auxv->a_un.a_val;
+      node::per_process::linux_at_secure = auxv->a_un.a_val;
       break;
     }
   }

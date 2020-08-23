@@ -51,7 +51,7 @@ server.on('checkContinue', (req, res) => {
   server.close();
   assert.strictEqual(req.method, 'PUT');
   res.writeContinue(() => {
-    // continue has been written
+    // Continue has been written
     req.on('end', () => {
       res.write('asdf', (er) => {
         assert.ifError(er);
@@ -91,7 +91,7 @@ server.listen(0, function() {
     });
   });
   req.on('response', (res) => {
-    // this should not come until after the end is flushed out
+    // This should not come until after the end is flushed out
     assert(clientEndCb);
     res.setEncoding('ascii');
     res.on('data', (c) => {

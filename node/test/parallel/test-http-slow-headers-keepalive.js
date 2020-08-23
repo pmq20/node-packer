@@ -8,7 +8,7 @@ const { finished } = require('stream');
 const headers =
   'GET / HTTP/1.1\r\n' +
   'Host: localhost\r\n' +
-  'Connection: keep-alive' +
+  'Connection: keep-alive\r\n' +
   'Agent: node\r\n';
 
 let sendCharEvery = 1000;
@@ -33,7 +33,7 @@ server.once('timeout', common.mustCall((socket) => {
 server.listen(0, () => {
   const client = net.connect(server.address().port);
   client.write(headers);
-  // finish the first request
+  // Finish the first request
   client.write('\r\n');
   // second request
   client.write(headers);

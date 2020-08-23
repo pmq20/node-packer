@@ -26,8 +26,8 @@
 
 #include "node_crypto.h"
 #include "openssl/bio.h"
-#include "env-inl.h"
-#include "util-inl.h"
+#include "env.h"
+#include "util.h"
 #include "v8.h"
 
 namespace node {
@@ -40,7 +40,7 @@ namespace crypto {
 // (a.k.a. std::unique_ptr<BIO>).
 class NodeBIO : public MemoryRetainer {
  public:
-  ~NodeBIO();
+  ~NodeBIO() override;
 
   static BIOPointer New(Environment* env = nullptr);
 

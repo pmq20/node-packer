@@ -27,17 +27,21 @@ function main({ dur, len, num, type, chunks }) {
 
   function onsend() {
     if (sent++ % num === 0) {
-      for (var i = 0; i < num; i++) {
-        socket.send(chunk, PORT, '127.0.0.1', onsend);
-      }
+      // The setImmediate() is necessary to have event loop progress on OSes
+      // that only perform synchronous I/O on nonblocking UDP sockets.
+      setImmediate(() => {
+        for (var i = 0; i < num; i++) {
+          socket.send(chunk, PORT, '127.0.0.1', onsend);
+        }
+      });
     }
   }
 
-  socket.on('listening', function() {
+  socket.on('listening', () => {
     bench.start();
     onsend();
 
-    setTimeout(function() {
+    setTimeout(() => {
       const bytes = (type === 'send' ? sent : received) * len;
       const gbits = (bytes * 8) / (1024 * 1024 * 1024);
       bench.end(gbits);
@@ -45,7 +49,7 @@ function main({ dur, len, num, type, chunks }) {
     }, dur * 1000);
   });
 
-  socket.on('message', function() {
+  socket.on('message', () => {
     received++;
   });
 

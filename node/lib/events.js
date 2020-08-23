@@ -21,7 +21,24 @@
 
 'use strict';
 
+const { Math, Object, Reflect } = primordials;
+const apply = Reflect.apply;
+
 var spliceOne;
+
+const {
+  kEnhanceStackBeforeInspector,
+  codes
+} = require('internal/errors');
+const {
+  ERR_INVALID_ARG_TYPE,
+  ERR_OUT_OF_RANGE,
+  ERR_UNHANDLED_ERROR
+} = codes;
+
+const {
+  inspect
+} = require('internal/util/inspect');
 
 function EventEmitter() {
   EventEmitter.init.call(this);
@@ -42,17 +59,9 @@ EventEmitter.prototype._maxListeners = undefined;
 // added to it. This is a useful default which helps finding memory leaks.
 var defaultMaxListeners = 10;
 
-var errors;
-function lazyErrors() {
-  if (errors === undefined)
-    errors = require('internal/errors').codes;
-  return errors;
-}
-
 function checkListener(listener) {
   if (typeof listener !== 'function') {
-    const errors = lazyErrors();
-    throw new errors.ERR_INVALID_ARG_TYPE('listener', 'Function', listener);
+    throw new ERR_INVALID_ARG_TYPE('listener', 'Function', listener);
   }
 }
 
@@ -63,10 +72,9 @@ Object.defineProperty(EventEmitter, 'defaultMaxListeners', {
   },
   set: function(arg) {
     if (typeof arg !== 'number' || arg < 0 || Number.isNaN(arg)) {
-      const errors = lazyErrors();
-      throw new errors.ERR_OUT_OF_RANGE('defaultMaxListeners',
-                                        'a non-negative number',
-                                        arg);
+      throw new ERR_OUT_OF_RANGE('defaultMaxListeners',
+                                 'a non-negative number',
+                                 arg);
     }
     defaultMaxListeners = arg;
   }
@@ -87,21 +95,20 @@ EventEmitter.init = function() {
 // that to be increased. Set to zero for unlimited.
 EventEmitter.prototype.setMaxListeners = function setMaxListeners(n) {
   if (typeof n !== 'number' || n < 0 || Number.isNaN(n)) {
-    const errors = lazyErrors();
-    throw new errors.ERR_OUT_OF_RANGE('n', 'a non-negative number', n);
+    throw new ERR_OUT_OF_RANGE('n', 'a non-negative number', n);
   }
   this._maxListeners = n;
   return this;
 };
 
-function $getMaxListeners(that) {
+function _getMaxListeners(that) {
   if (that._maxListeners === undefined)
     return EventEmitter.defaultMaxListeners;
   return that._maxListeners;
 }
 
 EventEmitter.prototype.getMaxListeners = function getMaxListeners() {
-  return $getMaxListeners(this);
+  return _getMaxListeners(this);
 };
 
 // Returns the length and line number of the first sequence of `a` that fully
@@ -130,7 +137,13 @@ function identicalSequenceRange(a, b) {
 }
 
 function enhanceStackTrace(err, own) {
-  const sep = '\nEmitted \'error\' event at:\n';
+  let ctorInfo = '';
+  try {
+    const { name } = this.constructor;
+    if (name !== 'EventEmitter')
+      ctorInfo = ` on ${name} instance`;
+  } catch {}
+  const sep = `\nEmitted 'error' event${ctorInfo} at:\n`;
 
   const errStack = err.stack.split('\n').slice(1);
   const ownStack = own.stack.split('\n').slice(1);
@@ -140,8 +153,8 @@ function enhanceStackTrace(err, own) {
     ownStack.splice(off + 1, len - 2,
                     '    [... lines matching original stack trace ...]');
   }
-  // Do this last, because it is the only operation with side effects.
-  err.stack = err.stack + sep + ownStack.join('\n');
+
+  return err.stack + sep + ownStack.join('\n');
 }
 
 EventEmitter.prototype.emit = function emit(type, ...args) {
@@ -160,11 +173,11 @@ EventEmitter.prototype.emit = function emit(type, ...args) {
       er = args[0];
     if (er instanceof Error) {
       try {
-        const { kExpandStackSymbol } = require('internal/util');
         const capture = {};
+        // eslint-disable-next-line no-restricted-syntax
         Error.captureStackTrace(capture, EventEmitter.prototype.emit);
-        Object.defineProperty(er, kExpandStackSymbol, {
-          value: enhanceStackTrace.bind(null, er, capture),
+        Object.defineProperty(er, kEnhanceStackBeforeInspector, {
+          value: enhanceStackTrace.bind(this, er, capture),
           configurable: true
         });
       } catch {}
@@ -183,8 +196,7 @@ EventEmitter.prototype.emit = function emit(type, ...args) {
     }
 
     // At least give some kind of context to the user
-    const errors = lazyErrors();
-    const err = new errors.ERR_UNHANDLED_ERROR(stringifiedEr);
+    const err = new ERR_UNHANDLED_ERROR(stringifiedEr);
     err.context = er;
     throw err; // Unhandled 'error' event
   }
@@ -195,12 +207,12 @@ EventEmitter.prototype.emit = function emit(type, ...args) {
     return false;
 
   if (typeof handler === 'function') {
-    Reflect.apply(handler, this, args);
+    apply(handler, this, args);
   } else {
     const len = handler.length;
     const listeners = arrayClone(handler, len);
     for (var i = 0; i < len; ++i)
-      Reflect.apply(listeners[i], this, args);
+      apply(listeners[i], this, args);
   }
 
   return true;
@@ -248,15 +260,15 @@ function _addListener(target, type, listener, prepend) {
     }
 
     // Check for listener leak
-    m = $getMaxListeners(target);
+    m = _getMaxListeners(target);
     if (m > 0 && existing.length > m && !existing.warned) {
       existing.warned = true;
       // No error code for this since it is a Warning
       // eslint-disable-next-line no-restricted-syntax
       const w = new Error('Possible EventEmitter memory leak detected. ' +
                           `${existing.length} ${String(type)} listeners ` +
-                          'added. Use emitter.setMaxListeners() to ' +
-                          'increase limit');
+                          `added to ${inspect(target, { depth: -1 })}. Use ` +
+                          'emitter.setMaxListeners() to increase limit');
       w.name = 'MaxListenersExceededWarning';
       w.emitter = target;
       w.type = type;
@@ -279,17 +291,19 @@ EventEmitter.prototype.prependListener =
       return _addListener(this, type, listener, true);
     };
 
-function onceWrapper(...args) {
+function onceWrapper() {
   if (!this.fired) {
     this.target.removeListener(this.type, this.wrapFn);
     this.fired = true;
-    return Reflect.apply(this.listener, this.target, args);
+    if (arguments.length === 0)
+      return this.listener.call(this.target);
+    return this.listener.apply(this.target, arguments);
   }
 }
 
 function _onceWrap(target, type, listener) {
-  var state = { fired: false, wrapFn: undefined, target, type, listener };
-  var wrapped = onceWrapper.bind(state);
+  const state = { fired: false, wrapFn: undefined, target, type, listener };
+  const wrapped = onceWrapper.bind(state);
   wrapped.listener = listener;
   state.wrapFn = wrapped;
   return wrapped;
@@ -313,15 +327,15 @@ EventEmitter.prototype.prependOnceListener =
 // Emits a 'removeListener' event if and only if the listener was removed.
 EventEmitter.prototype.removeListener =
     function removeListener(type, listener) {
-      var list, events, position, i, originalListener;
+      let originalListener;
 
       checkListener(listener);
 
-      events = this._events;
+      const events = this._events;
       if (events === undefined)
         return this;
 
-      list = events[type];
+      const list = events[type];
       if (list === undefined)
         return this;
 
@@ -334,9 +348,9 @@ EventEmitter.prototype.removeListener =
             this.emit('removeListener', type, list.listener || listener);
         }
       } else if (typeof list !== 'function') {
-        position = -1;
+        let position = -1;
 
-        for (i = list.length - 1; i >= 0; i--) {
+        for (var i = list.length - 1; i >= 0; i--) {
           if (list[i] === listener || list[i].listener === listener) {
             originalListener = list[i].listener;
             position = i;
@@ -369,13 +383,11 @@ EventEmitter.prototype.off = EventEmitter.prototype.removeListener;
 
 EventEmitter.prototype.removeAllListeners =
     function removeAllListeners(type) {
-      var listeners, events, i;
-
-      events = this._events;
+      const events = this._events;
       if (events === undefined)
         return this;
 
-      // not listening for removeListener, no need to emit
+      // Not listening for removeListener, no need to emit
       if (events.removeListener === undefined) {
         if (arguments.length === 0) {
           this._events = Object.create(null);
@@ -389,7 +401,7 @@ EventEmitter.prototype.removeAllListeners =
         return this;
       }
 
-      // emit removeListener for all listeners on all events
+      // Emit removeListener for all listeners on all events
       if (arguments.length === 0) {
         for (const key of Object.keys(events)) {
           if (key === 'removeListener') continue;
@@ -401,13 +413,13 @@ EventEmitter.prototype.removeAllListeners =
         return this;
       }
 
-      listeners = events[type];
+      const listeners = events[type];
 
       if (typeof listeners === 'function') {
         this.removeListener(type, listeners);
       } else if (listeners !== undefined) {
         // LIFO order
-        for (i = listeners.length - 1; i >= 0; i--) {
+        for (var i = listeners.length - 1; i >= 0; i--) {
           this.removeListener(type, listeners[i]);
         }
       }
@@ -470,7 +482,7 @@ EventEmitter.prototype.eventNames = function eventNames() {
 };
 
 function arrayClone(arr, n) {
-  var copy = new Array(n);
+  const copy = new Array(n);
   for (var i = 0; i < n; ++i)
     copy[i] = arr[i];
   return copy;
@@ -486,6 +498,17 @@ function unwrapListeners(arr) {
 
 function once(emitter, name) {
   return new Promise((resolve, reject) => {
+    if (typeof emitter.addEventListener === 'function') {
+      // EventTarget does not have `error` event semantics like Node
+      // EventEmitters, we do not listen to `error` events here.
+      emitter.addEventListener(
+        name,
+        (...args) => { resolve(args); },
+        { once: true }
+      );
+      return;
+    }
+
     const eventListener = (...args) => {
       if (errorListener !== undefined) {
         emitter.removeListener('error', errorListener);

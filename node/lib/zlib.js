@@ -21,31 +21,37 @@
 
 'use strict';
 
+const { Math, Object } = primordials;
+
 const {
-  ERR_BROTLI_INVALID_PARAM,
-  ERR_BUFFER_TOO_LARGE,
-  ERR_INVALID_ARG_TYPE,
-  ERR_OUT_OF_RANGE,
-  ERR_ZLIB_INITIALIZATION_FAILED,
-} = require('internal/errors').codes;
+  codes: {
+    ERR_BROTLI_INVALID_PARAM,
+    ERR_BUFFER_TOO_LARGE,
+    ERR_INVALID_ARG_TYPE,
+    ERR_OUT_OF_RANGE,
+    ERR_ZLIB_INITIALIZATION_FAILED,
+  },
+  hideStackFrames
+} = require('internal/errors');
 const Transform = require('_stream_transform');
 const {
-  _extend,
-  inherits,
-  types: {
-    isAnyArrayBuffer,
-    isArrayBufferView
-  }
-} = require('util');
-const binding = process.binding('zlib');
-const assert = require('assert').ok;
+  deprecate
+} = require('internal/util');
+const {
+  isArrayBufferView,
+  isAnyArrayBuffer
+} = require('internal/util/types');
+const binding = internalBinding('zlib');
+const assert = require('internal/assert');
 const {
   Buffer,
   kMaxLength
 } = require('buffer');
 const { owner_symbol } = require('internal/async_hooks').symbols;
 
-const constants = process.binding('constants').zlib;
+const kFlushFlag = Symbol('kFlushFlag');
+
+const constants = internalBinding('constants').zlib;
 const {
   // Zlib flush levels
   Z_NO_FLUSH, Z_BLOCK, Z_PARTIAL_FLUSH, Z_SYNC_FLUSH, Z_FULL_FLUSH, Z_FINISH,
@@ -61,7 +67,7 @@ const {
   BROTLI_OPERATION_FINISH
 } = constants;
 
-// translation table for return codes.
+// Translation table for return codes.
 const codes = {
   Z_OK: constants.Z_OK,
   Z_STREAM_END: constants.Z_STREAM_END,
@@ -81,6 +87,8 @@ for (var ck = 0; ck < ckeys.length; ck++) {
 }
 
 function zlibBuffer(engine, buffer, callback) {
+  if (typeof callback !== 'function')
+    throw new ERR_INVALID_ARG_TYPE('callback', 'function', callback);
   // Streams do not support non-Buffer ArrayBufferViews yet. Convert it to a
   // Buffer without copying.
   if (isArrayBufferView(buffer) &&
@@ -152,9 +160,9 @@ function zlibBufferSync(engine, buffer) {
 }
 
 function zlibOnError(message, errno, code) {
-  var self = this[owner_symbol];
-  // there is no way to cleanly recover.
-  // continuing only obscures problems.
+  const self = this[owner_symbol];
+  // There is no way to cleanly recover.
+  // Continuing only obscures problems.
   _close(self);
   self._hadError = true;
 
@@ -169,7 +177,7 @@ function zlibOnError(message, errno, code) {
 // 2. Returns true for finite numbers
 // 3. Throws ERR_INVALID_ARG_TYPE for non-numbers
 // 4. Throws ERR_OUT_OF_RANGE for infinite numbers
-function checkFiniteNumber(number, name) {
+const checkFiniteNumber = hideStackFrames((number, name) => {
   // Common case
   if (number === undefined) {
     return false;
@@ -185,33 +193,29 @@ function checkFiniteNumber(number, name) {
 
   // Other non-numbers
   if (typeof number !== 'number') {
-    const err = new ERR_INVALID_ARG_TYPE(name, 'number', number);
-    Error.captureStackTrace(err, checkFiniteNumber);
-    throw err;
+    throw new ERR_INVALID_ARG_TYPE(name, 'number', number);
   }
 
   // Infinite numbers
-  const err = new ERR_OUT_OF_RANGE(name, 'a finite number', number);
-  Error.captureStackTrace(err, checkFiniteNumber);
-  throw err;
-}
+  throw new ERR_OUT_OF_RANGE(name, 'a finite number', number);
+});
 
 // 1. Returns def for number when it's undefined or NaN
 // 2. Returns number for finite numbers >= lower and <= upper
 // 3. Throws ERR_INVALID_ARG_TYPE for non-numbers
 // 4. Throws ERR_OUT_OF_RANGE for infinite numbers or numbers > upper or < lower
-function checkRangesOrGetDefault(number, name, lower, upper, def) {
-  if (!checkFiniteNumber(number, name)) {
-    return def;
+const checkRangesOrGetDefault = hideStackFrames(
+  (number, name, lower, upper, def) => {
+    if (!checkFiniteNumber(number, name)) {
+      return def;
+    }
+    if (number < lower || number > upper) {
+      throw new ERR_OUT_OF_RANGE(name,
+                                 `>= ${lower} and <= ${upper}`, number);
+    }
+    return number;
   }
-  if (number < lower || number > upper) {
-    const err = new ERR_OUT_OF_RANGE(name,
-                                     `>= ${lower} and <= ${upper}`, number);
-    Error.captureStackTrace(err, checkRangesOrGetDefault);
-    throw err;
-  }
-  return number;
-}
+);
 
 // The base class for all Zlib-style streams.
 function ZlibBase(opts, mode, handle, { flush, finishFlush, fullFlush }) {
@@ -239,7 +243,7 @@ function ZlibBase(opts, mode, handle, { flush, finishFlush, fullFlush }) {
       Z_NO_FLUSH, Z_BLOCK, finishFlush);
 
     if (opts.encoding || opts.objectMode || opts.writableObjectMode) {
-      opts = _extend({}, opts);
+      opts = { ...opts };
       opts.encoding = null;
       opts.objectMode = false;
       opts.writableObjectMode = false;
@@ -259,13 +263,12 @@ function ZlibBase(opts, mode, handle, { flush, finishFlush, fullFlush }) {
   this._chunkSize = chunkSize;
   this._defaultFlushFlag = flush;
   this._finishFlushFlag = finishFlush;
-  this._nextFlush = -1;
   this._defaultFullFlushFlag = fullFlush;
   this.once('end', this.close);
   this._info = opts && opts.info;
 }
-
-inherits(ZlibBase, Transform);
+Object.setPrototypeOf(ZlibBase.prototype, Transform.prototype);
+Object.setPrototypeOf(ZlibBase, Transform);
 
 Object.defineProperty(ZlibBase.prototype, '_closed', {
   configurable: true,
@@ -282,12 +285,14 @@ Object.defineProperty(ZlibBase.prototype, '_closed', {
 Object.defineProperty(ZlibBase.prototype, 'bytesRead', {
   configurable: true,
   enumerable: true,
-  get() {
+  get: deprecate(function() {
     return this.bytesWritten;
-  },
-  set(value) {
+  }, 'zlib.bytesRead is deprecated and will change its meaning in the ' +
+     'future. Use zlib.bytesWritten instead.', 'DEP0108'),
+  set: deprecate(function(value) {
     this.bytesWritten = value;
-  }
+  }, 'Setting zlib.bytesRead is deprecated. ' +
+     'This feature will be removed in the future.', 'DEP0108')
 });
 
 ZlibBase.prototype.reset = function() {
@@ -304,13 +309,16 @@ ZlibBase.prototype._flush = function(callback) {
 
 // If a flush is scheduled while another flush is still pending, a way to figure
 // out which one is the "stronger" flush is needed.
+// This is currently only used to figure out which flush flag to use for the
+// last chunk.
 // Roughly, the following holds:
 // Z_NO_FLUSH (< Z_TREES) < Z_BLOCK < Z_PARTIAL_FLUSH <
 //     Z_SYNC_FLUSH < Z_FULL_FLUSH < Z_FINISH
 const flushiness = [];
 let i = 0;
-for (const flushFlag of [Z_NO_FLUSH, Z_BLOCK, Z_PARTIAL_FLUSH,
-                         Z_SYNC_FLUSH, Z_FULL_FLUSH, Z_FINISH]) {
+const kFlushFlagList = [Z_NO_FLUSH, Z_BLOCK, Z_PARTIAL_FLUSH,
+                        Z_SYNC_FLUSH, Z_FULL_FLUSH, Z_FINISH];
+for (const flushFlag of kFlushFlagList) {
   flushiness[flushFlag] = i++;
 }
 
@@ -318,9 +326,20 @@ function maxFlush(a, b) {
   return flushiness[a] > flushiness[b] ? a : b;
 }
 
-const flushBuffer = Buffer.alloc(0);
+// Set up a list of 'special' buffers that can be written using .write()
+// from the .flush() code as a way of introducing flushing operations into the
+// write sequence.
+const kFlushBuffers = [];
+{
+  const dummyArrayBuffer = new ArrayBuffer();
+  for (const flushFlag of kFlushFlagList) {
+    kFlushBuffers[flushFlag] = Buffer.from(dummyArrayBuffer);
+    kFlushBuffers[flushFlag][kFlushFlag] = flushFlag;
+  }
+}
+
 ZlibBase.prototype.flush = function(kind, callback) {
-  var ws = this._writableState;
+  const ws = this._writableState;
 
   if (typeof kind === 'function' || (kind === undefined && !callback)) {
     callback = kind;
@@ -333,13 +352,8 @@ ZlibBase.prototype.flush = function(kind, callback) {
   } else if (ws.ending) {
     if (callback)
       this.once('end', callback);
-  } else if (this._nextFlush !== -1) {
-    // This means that there is a flush currently in the write queue.
-    // We currently coalesce this flush into the pending one.
-    this._nextFlush = maxFlush(this._nextFlush, kind);
   } else {
-    this._nextFlush = kind;
-    this.write(flushBuffer, '', callback);
+    this.write(kFlushBuffers[kind], '', callback);
   }
 };
 
@@ -357,13 +371,12 @@ ZlibBase.prototype._transform = function(chunk, encoding, cb) {
   var flushFlag = this._defaultFlushFlag;
   // We use a 'fake' zero-length chunk to carry information about flushes from
   // the public API to the actual stream implementation.
-  if (chunk === flushBuffer) {
-    flushFlag = this._nextFlush;
-    this._nextFlush = -1;
+  if (typeof chunk[kFlushFlag] === 'number') {
+    flushFlag = chunk[kFlushFlag];
   }
 
   // For the last chunk, also apply `_finishFlushFlag`.
-  var ws = this._writableState;
+  const ws = this._writableState;
   if ((ws.ending || ws.ended) && ws.length === chunk.byteLength) {
     flushFlag = maxFlush(flushFlag, this._finishFlushFlag);
   }
@@ -388,11 +401,11 @@ function processChunkSync(self, chunk, flushFlag) {
   var buffers = null;
   var nread = 0;
   var inputRead = 0;
-  var state = self._writeState;
-  var handle = self._handle;
+  const state = self._writeState;
+  const handle = self._handle;
   var buffer = self._outBuffer;
   var offset = self._outOffset;
-  var chunkSize = self._chunkSize;
+  const chunkSize = self._chunkSize;
 
   var error;
   self.on('error', function onError(er) {
@@ -429,7 +442,7 @@ function processChunkSync(self, chunk, flushFlag) {
       assert(have === 0, 'have should not go down');
     }
 
-    // exhausted the output buffer, or used all the input create a new one.
+    // Exhausted the output buffer, or used all the input create a new one.
     if (availOutAfter === 0 || offset >= chunkSize) {
       availOutBefore = chunkSize;
       offset = 0;
@@ -462,7 +475,7 @@ function processChunkSync(self, chunk, flushFlag) {
 }
 
 function processChunk(self, chunk, flushFlag, cb) {
-  var handle = self._handle;
+  const handle = self._handle;
   assert(handle, 'zlib binding closed');
 
   handle.buffer = chunk;
@@ -485,9 +498,9 @@ function processCallback() {
   // This callback's context (`this`) is the `_handle` (ZCtx) object. It is
   // important to null out the values once they are no longer needed since
   // `_handle` can stay in memory long after the buffer is needed.
-  var handle = this;
-  var self = this[owner_symbol];
-  var state = self._writeState;
+  const handle = this;
+  const self = this[owner_symbol];
+  const state = self._writeState;
 
   if (self._hadError) {
     this.buffer = null;
@@ -499,13 +512,13 @@ function processCallback() {
     return;
   }
 
-  var availOutAfter = state[0];
-  var availInAfter = state[1];
+  const availOutAfter = state[0];
+  const availInAfter = state[1];
 
   const inDelta = handle.availInBefore - availInAfter;
   self.bytesWritten += inDelta;
 
-  var have = handle.availOutBefore - availOutAfter;
+  const have = handle.availOutBefore - availOutAfter;
   if (have > 0) {
     var out = self._outBuffer.slice(self._outOffset, self._outOffset + have);
     self._outOffset += have;
@@ -518,7 +531,7 @@ function processCallback() {
     return;
   }
 
-  // exhausted the output buffer, or used all the input create a new one.
+  // Exhausted the output buffer, or used all the input create a new one.
   if (availOutAfter === 0 || self._outOffset >= self._chunkSize) {
     handle.availOutBefore = self._chunkSize;
     self._outOffset = 0;
@@ -543,7 +556,17 @@ function processCallback() {
     return;
   }
 
-  // finished with the chunk.
+  if (availInAfter > 0) {
+    // If we have more input that should be written, but we also have output
+    // space available, that means that the compression library was not
+    // interested in receiving more data, and in particular that the input
+    // stream has ended early.
+    // This applies to streams where we don't check data past the end of
+    // what was consumed; that is, everything except Gunzip/Unzip.
+    self.push(null);
+  }
+
+  // Finished with the chunk.
   this.buffer = null;
   this.cb();
 }
@@ -638,7 +661,8 @@ function Zlib(opts, mode) {
   this._level = level;
   this._strategy = strategy;
 }
-inherits(Zlib, ZlibBase);
+Object.setPrototypeOf(Zlib.prototype, ZlibBase.prototype);
+Object.setPrototypeOf(Zlib, ZlibBase);
 
 // This callback is used by `.params()` to wait until a full flush happened
 // before adjusting the parameters. In particular, the call to the native
@@ -673,28 +697,32 @@ function Deflate(opts) {
     return new Deflate(opts);
   Zlib.call(this, opts, DEFLATE);
 }
-inherits(Deflate, Zlib);
+Object.setPrototypeOf(Deflate.prototype, Zlib.prototype);
+Object.setPrototypeOf(Deflate, Zlib);
 
 function Inflate(opts) {
   if (!(this instanceof Inflate))
     return new Inflate(opts);
   Zlib.call(this, opts, INFLATE);
 }
-inherits(Inflate, Zlib);
+Object.setPrototypeOf(Inflate.prototype, Zlib.prototype);
+Object.setPrototypeOf(Inflate, Zlib);
 
 function Gzip(opts) {
   if (!(this instanceof Gzip))
     return new Gzip(opts);
   Zlib.call(this, opts, GZIP);
 }
-inherits(Gzip, Zlib);
+Object.setPrototypeOf(Gzip.prototype, Zlib.prototype);
+Object.setPrototypeOf(Gzip, Zlib);
 
 function Gunzip(opts) {
   if (!(this instanceof Gunzip))
     return new Gunzip(opts);
   Zlib.call(this, opts, GUNZIP);
 }
-inherits(Gunzip, Zlib);
+Object.setPrototypeOf(Gunzip.prototype, Zlib.prototype);
+Object.setPrototypeOf(Gunzip, Zlib);
 
 function DeflateRaw(opts) {
   if (opts && opts.windowBits === 8) opts.windowBits = 9;
@@ -702,21 +730,24 @@ function DeflateRaw(opts) {
     return new DeflateRaw(opts);
   Zlib.call(this, opts, DEFLATERAW);
 }
-inherits(DeflateRaw, Zlib);
+Object.setPrototypeOf(DeflateRaw.prototype, Zlib.prototype);
+Object.setPrototypeOf(DeflateRaw, Zlib);
 
 function InflateRaw(opts) {
   if (!(this instanceof InflateRaw))
     return new InflateRaw(opts);
   Zlib.call(this, opts, INFLATERAW);
 }
-inherits(InflateRaw, Zlib);
+Object.setPrototypeOf(InflateRaw.prototype, Zlib.prototype);
+Object.setPrototypeOf(InflateRaw, Zlib);
 
 function Unzip(opts) {
   if (!(this instanceof Unzip))
     return new Unzip(opts);
   Zlib.call(this, opts, UNZIP);
 }
-inherits(Unzip, Zlib);
+Object.setPrototypeOf(Unzip.prototype, Zlib.prototype);
+Object.setPrototypeOf(Unzip, Zlib);
 
 function createConvenienceMethod(ctor, sync) {
   if (sync) {
@@ -877,6 +908,6 @@ for (var bk = 0; bk < bkeys.length; bk++) {
   var bkey = bkeys[bk];
   if (bkey.startsWith('BROTLI')) continue;
   Object.defineProperty(module.exports, bkey, {
-    enumerable: true, value: constants[bkey], writable: false
+    enumerable: false, value: constants[bkey], writable: false
   });
 }

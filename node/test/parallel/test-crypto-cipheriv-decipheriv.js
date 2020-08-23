@@ -23,7 +23,7 @@ function testCipher1(key, iv) {
   assert.strictEqual(txt, plaintext,
                      `encryption/decryption with key ${key} and iv ${iv}`);
 
-  // streaming cipher interface
+  // Streaming cipher interface
   // NB: In real life, it's not guaranteed that you can get all of it
   // in a single read() like this.  But in this case, we know it's
   // quite small, so there's no harm.
@@ -101,8 +101,8 @@ function testCipher3(key, iv) {
     {
       code: 'ERR_INVALID_ARG_TYPE',
       type: TypeError,
-      message: 'The "key" argument must be one of type string, Buffer, ' +
-               'TypedArray, or DataView. Received type object'
+      message: 'The "key" argument must be one of type Buffer, TypedArray, ' +
+               'DataView, string, or KeyObject. Received type object'
     });
 
   common.expectsError(
@@ -138,8 +138,8 @@ function testCipher3(key, iv) {
     {
       code: 'ERR_INVALID_ARG_TYPE',
       type: TypeError,
-      message: 'The "key" argument must be one of type string, Buffer, ' +
-               'TypedArray, or DataView. Received type object'
+      message: 'The "key" argument must be one of type Buffer, TypedArray, ' +
+               'DataView, string, or KeyObject. Received type object'
     });
 
   common.expectsError(

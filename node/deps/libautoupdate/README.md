@@ -4,6 +4,7 @@ Cross-platform C library that enables your application to auto-update itself in 
 
 [![Build Status](https://travis-ci.org/pmq20/libautoupdate.svg?branch=master)](https://travis-ci.org/pmq20/libautoupdate)
 [![Build status](https://ci.appveyor.com/api/projects/status/sjdyfwd768lh187f/branch/master?svg=true)](https://ci.appveyor.com/project/pmq20/libautoupdate/branch/master)
+[![GitHub version](https://badge.fury.io/gh/pmq20%2Flibautoupdate.svg)](https://badge.fury.io/gh/pmq20%2Flibautoupdate)
 
 ![Terminal simulation of a simple auto-update](https://github.com/pmq20/libautoupdate/raw/master/doc/libautoupdate.gif)
 
@@ -31,7 +32,7 @@ Otherwise, it returns one of the following integers to indicate the situation:
 |:--------------:|---------------------------------------------------------------------------------------------|
 |        0       | Latest version confirmed. No need to update                                                 |
 |        1       | Auto-update shall not proceed due to environment variable `CI` being set                    |
-|        2       | Auto-update process failed prematurely and detailed errors are printed to stderr            |
+|        2       | Auto-update process failed prematually and detailed errors are printed to stderr            |
 |        3       | Failed to restart after replacing itself with the new version                               |
 |        4       | Auto-update shall not proceed due to being already checked in the last 24 hours             |
 
@@ -128,16 +129,6 @@ int main(int argc, char *argv[])
 - Set environment variable `CI=true` will prevent auto-updating
 - Remove the file `~/.libautoupdate` will remove the once-per-24-hours check limit
 
-## To-do
+## See Also
 
-- Cater to bad network connection situations
-- Print more information about the new version
-- Use better error messages when the user did not have permissions to move the new version into the destination directory
-- Move the old binary to the system temporary directory, yet not deleting it.
-  - The Operating System will delete it when restarted/tmpdir-full
-  - Add facility to restore/rollback to the old file once the new version went wrong
-
-## License
-
-[MIT](https://raw.githubusercontent.com/pmq20/libautoupdate/master/LICENSE)
-
+- [Enclose.IO](https://github.com/pmq20/enclose-io): cloud-based service that compiles your application into a single executable with auto-update.

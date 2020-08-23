@@ -1,18 +1,33 @@
 'use strict';
 
+const { Object, Reflect } = primordials;
+
 const { Buffer, kMaxLength } = require('buffer');
 const {
-  ERR_FS_INVALID_SYMLINK_TYPE,
-  ERR_INVALID_ARG_TYPE,
-  ERR_INVALID_ARG_VALUE,
-  ERR_INVALID_OPT_VALUE,
-  ERR_INVALID_OPT_VALUE_ENCODING,
-  ERR_OUT_OF_RANGE
-} = require('internal/errors').codes;
-const { isUint8Array, isArrayBufferView } = require('internal/util/types');
+  codes: {
+    ERR_FS_INVALID_SYMLINK_TYPE,
+    ERR_INVALID_ARG_TYPE,
+    ERR_INVALID_ARG_VALUE,
+    ERR_INVALID_OPT_VALUE,
+    ERR_INVALID_OPT_VALUE_ENCODING,
+    ERR_OUT_OF_RANGE
+  },
+  hideStackFrames,
+  uvException
+} = require('internal/errors');
+const {
+  isArrayBufferView,
+  isUint8Array,
+  isDate,
+  isBigUint64Array
+} = require('internal/util/types');
 const { once } = require('internal/util');
+const { toPathIfFileURL } = require('internal/url');
+const {
+  validateInt32,
+  validateUint32
+} = require('internal/validators');
 const pathModule = require('path');
-const util = require('util');
 const kType = Symbol('type');
 const kStats = Symbol('stats');
 
@@ -43,7 +58,7 @@ const {
   UV_DIRENT_SOCKET,
   UV_DIRENT_CHAR,
   UV_DIRENT_BLOCK
-} = process.binding('constants').fs;
+} = internalBinding('constants').fs;
 
 const isWindows = process.platform === 'win32';
 
@@ -151,16 +166,30 @@ function getDirents(path, [names, types], callback) {
   } else {
     const len = names.length;
     for (i = 0; i < len; i++) {
-      const type = types[i];
-      if (type === UV_DIRENT_UNKNOWN) {
-        const name = names[i];
-        const stats = lazyLoadFs().lstatSync(pathModule.join(path, name));
-        names[i] = new DirentFromStats(name, stats);
-      } else {
-        names[i] = new Dirent(names[i], types[i]);
-      }
+      names[i] = getDirent(path, names[i], types[i]);
     }
     return names;
+  }
+}
+
+function getDirent(path, name, type, callback) {
+  if (typeof callback === 'function') {
+    if (type === UV_DIRENT_UNKNOWN) {
+      lazyLoadFs().lstat(pathModule.join(path, name), (err, stats) => {
+        if (err) {
+          callback(err);
+          return;
+        }
+        callback(null, new DirentFromStats(name, stats));
+      });
+    } else {
+      callback(null, new Dirent(name, type));
+    }
+  } else if (type === UV_DIRENT_UNKNOWN) {
+    const stats = lazyLoadFs().lstatSync(pathModule.join(path, name));
+    return new DirentFromStats(name, stats);
+  } else {
+    return new Dirent(name, type);
   }
 }
 
@@ -171,7 +200,7 @@ function getOptions(options, defaultOptions) {
   }
 
   if (typeof options === 'string') {
-    defaultOptions = util._extend({}, defaultOptions);
+    defaultOptions = { ...defaultOptions };
     defaultOptions.encoding = options;
     options = defaultOptions;
   } else if (typeof options !== 'object') {
@@ -183,20 +212,33 @@ function getOptions(options, defaultOptions) {
   return options;
 }
 
+function handleErrorFromBinding(ctx) {
+  if (ctx.errno !== undefined) {  // libuv error numbers
+    const err = uvException(ctx);
+    // eslint-disable-next-line no-restricted-syntax
+    Error.captureStackTrace(err, handleErrorFromBinding);
+    throw err;
+  }
+  if (ctx.error !== undefined) {  // Errors created in C++ land.
+    // TODO(joyeecheung): currently, ctx.error are encoding errors
+    // usually caused by memory problems. We need to figure out proper error
+    // code(s) for this.
+    // eslint-disable-next-line no-restricted-syntax
+    Error.captureStackTrace(ctx.error, handleErrorFromBinding);
+    throw ctx.error;
+  }
+}
+
 // Check if the path contains null types if it is a string nor Uint8Array,
 // otherwise return silently.
-function nullCheck(path, propName, throwError = true) {
+const nullCheck = hideStackFrames((path, propName, throwError = true) => {
   const pathIsString = typeof path === 'string';
   const pathIsUint8Array = isUint8Array(path);
 
   // We can only perform meaningful checks on strings and Uint8Arrays.
-  if (!pathIsString && !pathIsUint8Array) {
-    return;
-  }
-
-  if (pathIsString && path.indexOf('\u0000') === -1) {
-    return;
-  } else if (pathIsUint8Array && path.indexOf(0) === -1) {
+  if ((!pathIsString && !pathIsUint8Array) ||
+      (pathIsString && !path.includes('\u0000')) ||
+      (pathIsUint8Array && !path.includes(0))) {
     return;
   }
 
@@ -205,13 +247,11 @@ function nullCheck(path, propName, throwError = true) {
     path,
     'must be a string or Uint8Array without null bytes'
   );
-
   if (throwError) {
-    Error.captureStackTrace(err, nullCheck);
     throw err;
   }
   return err;
-}
+});
 
 function preprocessSymlinkDestination(path, type, linkPath) {
   if (!isWindows) {
@@ -228,27 +268,9 @@ function preprocessSymlinkDestination(path, type, linkPath) {
   }
 }
 
-function dateFromNumeric(num) {
-  return new Date(Number(num) + 0.5);
-}
-
 // Constructor for file stats.
-function Stats(
-  dev,
-  mode,
-  nlink,
-  uid,
-  gid,
-  rdev,
-  blksize,
-  ino,
-  size,
-  blocks,
-  atim_msec,
-  mtim_msec,
-  ctim_msec,
-  birthtim_msec
-) {
+function StatsBase(dev, mode, nlink, uid, gid, rdev, blksize,
+                   ino, size, blocks) {
   this.dev = dev;
   this.mode = mode;
   this.nlink = nlink;
@@ -259,63 +281,142 @@ function Stats(
   this.ino = ino;
   this.size = size;
   this.blocks = blocks;
-  this.atimeMs = atim_msec;
-  this.mtimeMs = mtim_msec;
-  this.ctimeMs = ctim_msec;
-  this.birthtimeMs = birthtim_msec;
-  this.atime = dateFromNumeric(atim_msec);
-  this.mtime = dateFromNumeric(mtim_msec);
-  this.ctime = dateFromNumeric(ctim_msec);
-  this.birthtime = dateFromNumeric(birthtim_msec);
 }
+
+StatsBase.prototype.isDirectory = function() {
+  return this._checkModeProperty(S_IFDIR);
+};
+
+StatsBase.prototype.isFile = function() {
+  return this._checkModeProperty(S_IFREG);
+};
+
+StatsBase.prototype.isBlockDevice = function() {
+  return this._checkModeProperty(S_IFBLK);
+};
+
+StatsBase.prototype.isCharacterDevice = function() {
+  return this._checkModeProperty(S_IFCHR);
+};
+
+StatsBase.prototype.isSymbolicLink = function() {
+  return this._checkModeProperty(S_IFLNK);
+};
+
+StatsBase.prototype.isFIFO = function() {
+  return this._checkModeProperty(S_IFIFO);
+};
+
+StatsBase.prototype.isSocket = function() {
+  return this._checkModeProperty(S_IFSOCK);
+};
+
+const kNsPerMsBigInt = 10n ** 6n;
+const kNsPerSecBigInt = 10n ** 9n;
+const kMsPerSec = 10 ** 3;
+const kNsPerMs = 10 ** 6;
+function msFromTimeSpec(sec, nsec) {
+  return sec * kMsPerSec + nsec / kNsPerMs;
+}
+
+function nsFromTimeSpecBigInt(sec, nsec) {
+  return sec * kNsPerSecBigInt + nsec;
+}
+
+// The Date constructor performs Math.floor() to the timestamp.
+// https://www.ecma-international.org/ecma-262/#sec-timeclip
+// Since there may be a precision loss when the timestamp is
+// converted to a floating point number, we manually round
+// the timestamp here before passing it to Date().
+// Refs: https://github.com/nodejs/node/pull/12607
+function dateFromMs(ms) {
+  return new Date(Number(ms) + 0.5);
+}
+
+function BigIntStats(dev, mode, nlink, uid, gid, rdev, blksize,
+                     ino, size, blocks,
+                     atimeNs, mtimeNs, ctimeNs, birthtimeNs) {
+  StatsBase.call(this, dev, mode, nlink, uid, gid, rdev, blksize,
+                 ino, size, blocks);
+
+  this.atimeMs = atimeNs / kNsPerMsBigInt;
+  this.mtimeMs = mtimeNs / kNsPerMsBigInt;
+  this.ctimeMs = ctimeNs / kNsPerMsBigInt;
+  this.birthtimeMs = birthtimeNs / kNsPerMsBigInt;
+  this.atimeNs = atimeNs;
+  this.mtimeNs = mtimeNs;
+  this.ctimeNs = ctimeNs;
+  this.birthtimeNs = birthtimeNs;
+  this.atime = dateFromMs(this.atimeMs);
+  this.mtime = dateFromMs(this.mtimeMs);
+  this.ctime = dateFromMs(this.ctimeMs);
+  this.birthtime = dateFromMs(this.birthtimeMs);
+}
+
+Object.setPrototypeOf(BigIntStats.prototype, StatsBase.prototype);
+Object.setPrototypeOf(BigIntStats, StatsBase);
+
+BigIntStats.prototype._checkModeProperty = function(property) {
+  if (isWindows && (property === S_IFIFO || property === S_IFBLK ||
+    property === S_IFSOCK)) {
+    return false;  // Some types are not available on Windows
+  }
+  return (this.mode & BigInt(S_IFMT)) === BigInt(property);
+};
+
+function Stats(dev, mode, nlink, uid, gid, rdev, blksize,
+               ino, size, blocks,
+               atimeMs, mtimeMs, ctimeMs, birthtimeMs) {
+  StatsBase.call(this, dev, mode, nlink, uid, gid, rdev, blksize,
+                 ino, size, blocks);
+  this.atimeMs = atimeMs;
+  this.mtimeMs = mtimeMs;
+  this.ctimeMs = ctimeMs;
+  this.birthtimeMs = birthtimeMs;
+  this.atime = dateFromMs(atimeMs);
+  this.mtime = dateFromMs(mtimeMs);
+  this.ctime = dateFromMs(ctimeMs);
+  this.birthtime = dateFromMs(birthtimeMs);
+}
+
+Object.setPrototypeOf(Stats.prototype, StatsBase.prototype);
+Object.setPrototypeOf(Stats, StatsBase);
+
+// HACK: Workaround for https://github.com/standard-things/esm/issues/821.
+// TODO(ronag): Remove this as soon as `esm` publishes a fixed version.
+Stats.prototype.isFile = StatsBase.prototype.isFile;
 
 Stats.prototype._checkModeProperty = function(property) {
   if (isWindows && (property === S_IFIFO || property === S_IFBLK ||
     property === S_IFSOCK)) {
     return false;  // Some types are not available on Windows
   }
-  if (typeof this.mode === 'bigint') {  // eslint-disable-line valid-typeof
-    return (this.mode & BigInt(S_IFMT)) === BigInt(property);
-  }
   return (this.mode & S_IFMT) === property;
 };
 
-Stats.prototype.isDirectory = function() {
-  return this._checkModeProperty(S_IFDIR);
-};
-
-Stats.prototype.isFile = function() {
-  return this._checkModeProperty(S_IFREG);
-};
-
-Stats.prototype.isBlockDevice = function() {
-  return this._checkModeProperty(S_IFBLK);
-};
-
-Stats.prototype.isCharacterDevice = function() {
-  return this._checkModeProperty(S_IFCHR);
-};
-
-Stats.prototype.isSymbolicLink = function() {
-  return this._checkModeProperty(S_IFLNK);
-};
-
-Stats.prototype.isFIFO = function() {
-  return this._checkModeProperty(S_IFIFO);
-};
-
-Stats.prototype.isSocket = function() {
-  return this._checkModeProperty(S_IFSOCK);
-};
-
 function getStatsFromBinding(stats, offset = 0) {
-  return new Stats(stats[0 + offset], stats[1 + offset], stats[2 + offset],
-                   stats[3 + offset], stats[4 + offset], stats[5 + offset],
-                   isWindows ? undefined : stats[6 + offset],  // blksize
-                   stats[7 + offset], stats[8 + offset],
-                   isWindows ? undefined : stats[9 + offset],  // blocks
-                   stats[10 + offset], stats[11 + offset],
-                   stats[12 + offset], stats[13 + offset]);
+  if (isBigUint64Array(stats)) {
+    return new BigIntStats(
+      stats[0 + offset], stats[1 + offset], stats[2 + offset],
+      stats[3 + offset], stats[4 + offset], stats[5 + offset],
+      stats[6 + offset], stats[7 + offset], stats[8 + offset],
+      stats[9 + offset],
+      nsFromTimeSpecBigInt(stats[10 + offset], stats[11 + offset]),
+      nsFromTimeSpecBigInt(stats[12 + offset], stats[13 + offset]),
+      nsFromTimeSpecBigInt(stats[14 + offset], stats[15 + offset]),
+      nsFromTimeSpecBigInt(stats[16 + offset], stats[17 + offset])
+    );
+  }
+  return new Stats(
+    stats[0 + offset], stats[1 + offset], stats[2 + offset],
+    stats[3 + offset], stats[4 + offset], stats[5 + offset],
+    stats[6 + offset], stats[7 + offset], stats[8 + offset],
+    stats[9 + offset],
+    msFromTimeSpec(stats[10 + offset], stats[11 + offset]),
+    msFromTimeSpec(stats[12 + offset], stats[13 + offset]),
+    msFromTimeSpec(stats[14 + offset], stats[15 + offset]),
+    msFromTimeSpec(stats[16 + offset], stats[17 + offset])
+  );
 }
 
 function stringToFlags(flags) {
@@ -355,7 +456,7 @@ function stringToFlags(flags) {
   throw new ERR_INVALID_OPT_VALUE('flags', flags);
 }
 
-function stringToSymlinkType(type) {
+const stringToSymlinkType = hideStackFrames((type) => {
   let flags = 0;
   if (typeof type === 'string') {
     switch (type) {
@@ -368,13 +469,11 @@ function stringToSymlinkType(type) {
       case 'file':
         break;
       default:
-        const err = new ERR_FS_INVALID_SYMLINK_TYPE(type);
-        Error.captureStackTrace(err, stringToSymlinkType);
-        throw err;
+        throw new ERR_FS_INVALID_SYMLINK_TYPE(type);
     }
   }
   return flags;
-}
+});
 
 // converts Date or number to a fractional UNIX timestamp
 function toUnixTimestamp(time, name = 'time') {
@@ -388,78 +487,115 @@ function toUnixTimestamp(time, name = 'time') {
     }
     return time;
   }
-  if (util.isDate(time)) {
-    // convert to 123.456 UNIX timestamp
+  if (isDate(time)) {
+    // Convert to 123.456 UNIX timestamp
     return time.getTime() / 1000;
   }
   throw new ERR_INVALID_ARG_TYPE(name, ['Date', 'Time in seconds'], time);
 }
 
-function validateBuffer(buffer) {
-  if (!isArrayBufferView(buffer)) {
-    const err = new ERR_INVALID_ARG_TYPE('buffer',
-                                         ['Buffer', 'TypedArray', 'DataView'],
-                                         buffer);
-    Error.captureStackTrace(err, validateBuffer);
-    throw err;
-  }
-}
-
-function validateOffsetLengthRead(offset, length, bufferLength) {
-  let err;
-
-  if (offset < 0 || offset >= bufferLength) {
-    err = new ERR_OUT_OF_RANGE('offset', `>= 0 && <= ${bufferLength}`, offset);
-  } else if (length < 0 || offset + length > bufferLength) {
-    err = new ERR_OUT_OF_RANGE('length',
-                               `>= 0 && <= ${bufferLength - offset}`, length);
-  }
-
-  if (err !== undefined) {
-    Error.captureStackTrace(err, validateOffsetLengthRead);
-    throw err;
-  }
-}
-
-function validateOffsetLengthWrite(offset, length, byteLength) {
-  let err;
-
-  if (offset > byteLength) {
-    err = new ERR_OUT_OF_RANGE('offset', `<= ${byteLength}`, offset);
-  } else {
-    const max = byteLength > kMaxLength ? kMaxLength : byteLength;
-    if (length > max - offset) {
-      err = new ERR_OUT_OF_RANGE('length', `<= ${max - offset}`, length);
+const validateOffsetLengthRead = hideStackFrames(
+  (offset, length, bufferLength) => {
+    if (offset < 0 || offset >= bufferLength) {
+      throw new ERR_OUT_OF_RANGE('offset',
+                                 `>= 0 && <= ${bufferLength}`, offset);
+    }
+    if (length < 0 || offset + length > bufferLength) {
+      throw new ERR_OUT_OF_RANGE('length',
+                                 `>= 0 && <= ${bufferLength - offset}`, length);
     }
   }
+);
 
-  if (err !== undefined) {
-    Error.captureStackTrace(err, validateOffsetLengthWrite);
-    throw err;
+const validateOffsetLengthWrite = hideStackFrames(
+  (offset, length, byteLength) => {
+    if (offset > byteLength) {
+      throw new ERR_OUT_OF_RANGE('offset', `<= ${byteLength}`, offset);
+    }
+
+    const max = byteLength > kMaxLength ? kMaxLength : byteLength;
+    if (length > max - offset) {
+      throw new ERR_OUT_OF_RANGE('length', `<= ${max - offset}`, length);
+    }
   }
-}
+);
 
-function validatePath(path, propName = 'path') {
-  let err;
-
+const validatePath = hideStackFrames((path, propName = 'path') => {
   if (typeof path !== 'string' && !isUint8Array(path)) {
-    err = new ERR_INVALID_ARG_TYPE(propName, ['string', 'Buffer', 'URL'], path);
-  } else {
-    err = nullCheck(path, propName, false);
+    throw new ERR_INVALID_ARG_TYPE(propName, ['string', 'Buffer', 'URL'], path);
   }
 
+  const err = nullCheck(path, propName, false);
+
   if (err !== undefined) {
-    Error.captureStackTrace(err, validatePath);
     throw err;
   }
+});
+
+const getValidatedPath = hideStackFrames((fileURLOrPath, propName = 'path') => {
+  const path = toPathIfFileURL(fileURLOrPath);
+  validatePath(path, propName);
+  return path;
+});
+
+const validateBufferArray = hideStackFrames((buffers, propName = 'buffers') => {
+  if (!Array.isArray(buffers))
+    throw new ERR_INVALID_ARG_TYPE(propName, 'ArrayBufferView[]', buffers);
+
+  for (let i = 0; i < buffers.length; i++) {
+    if (!isArrayBufferView(buffers[i]))
+      throw new ERR_INVALID_ARG_TYPE(propName, 'ArrayBufferView[]', buffers);
+  }
+
+  return buffers;
+});
+
+let nonPortableTemplateWarn = true;
+
+function warnOnNonPortableTemplate(template) {
+  // Template strings passed to the mkdtemp() family of functions should not
+  // end with 'X' because they are handled inconsistently across platforms.
+  if (nonPortableTemplateWarn && template.endsWith('X')) {
+    process.emitWarning('mkdtemp() templates ending with X are not portable. ' +
+                        'For details see: https://nodejs.org/api/fs.html');
+    nonPortableTemplateWarn = false;
+  }
 }
+
+const defaultRmdirOptions = {
+  emfileWait: 1000,
+  maxBusyTries: 3,
+  recursive: false,
+};
+
+const validateRmdirOptions = hideStackFrames((options) => {
+  if (options === undefined)
+    return defaultRmdirOptions;
+  if (options === null || typeof options !== 'object')
+    throw new ERR_INVALID_ARG_TYPE('options', 'object', options);
+
+  options = { ...defaultRmdirOptions, ...options };
+
+  if (typeof options.recursive !== 'boolean')
+    throw new ERR_INVALID_ARG_TYPE('recursive', 'boolean', options.recursive);
+
+  validateInt32(options.emfileWait, 'emfileWait', 0);
+  validateUint32(options.maxBusyTries, 'maxBusyTries');
+
+  return options;
+});
+
 
 module.exports = {
   assertEncoding,
+  BigIntStats,  // for testing
   copyObject,
   Dirent,
+  getDirent,
   getDirents,
   getOptions,
+  getValidatedPath,
+  handleErrorFromBinding,
   nullCheck,
   preprocessSymlinkDestination,
   realpathCacheKey: Symbol('realpathCacheKey'),
@@ -468,8 +604,10 @@ module.exports = {
   stringToSymlinkType,
   Stats,
   toUnixTimestamp,
-  validateBuffer,
+  validateBufferArray,
   validateOffsetLengthRead,
   validateOffsetLengthWrite,
-  validatePath
+  validatePath,
+  validateRmdirOptions,
+  warnOnNonPortableTemplate
 };

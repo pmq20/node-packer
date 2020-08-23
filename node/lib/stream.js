@@ -41,24 +41,7 @@ Stream.finished = eos;
 // Backwards-compat with node 0.4.x
 Stream.Stream = Stream;
 
-// Internal utilities
-try {
-  const types = require('util').types;
-  if (types && typeof types.isUint8Array === 'function') {
-    Stream._isUint8Array = types.isUint8Array;
-  } else {
-    // This throws for Node < 4.2.0 because there's no util binding and
-    // returns undefined for Node < 7.4.0.
-    Stream._isUint8Array = process.binding('util').isUint8Array;
-  }
-} catch (e) { // eslint-disable-line no-unused-vars
-}
-
-if (!Stream._isUint8Array) {
-  Stream._isUint8Array = function _isUint8Array(obj) {
-    return Object.prototype.toString.call(obj) === '[object Uint8Array]';
-  };
-}
+Stream._isUint8Array = require('internal/util/types').isUint8Array;
 
 const version = process.version.substr(1).split('.');
 if (version[0] === 0 && version[1] < 12) {

@@ -21,178 +21,36 @@
 
 'use strict';
 
-const errors = require('internal/errors');
-const { inspect } = require('internal/util/inspect');
+const { Object, ObjectPrototype, Reflect } = primordials;
+
 const {
-  ERR_FALSY_VALUE_REJECTION,
-  ERR_INVALID_ARG_TYPE,
-  ERR_OUT_OF_RANGE
-} = errors.codes;
+  codes: {
+    ERR_FALSY_VALUE_REJECTION,
+    ERR_INVALID_ARG_TYPE,
+    ERR_OUT_OF_RANGE
+  },
+  errnoException,
+  exceptionWithHostPort,
+  hideStackFrames
+} = require('internal/errors');
+const {
+  format,
+  formatWithOptions,
+  inspect
+} = require('internal/util/inspect');
+const { debuglog } = require('internal/util/debuglog');
 const { validateNumber } = require('internal/validators');
 const { TextDecoder, TextEncoder } = require('internal/encoding');
 const { isBuffer } = require('buffer').Buffer;
-
-const types = internalBinding('types');
-Object.assign(types, require('internal/util/types'));
-const {
-  isRegExp,
-  isDate,
-} = types;
+const types = require('internal/util/types');
 
 const {
   deprecate,
   getSystemErrorName: internalErrorName,
-  isError,
-  promisify,
+  promisify
 } = require('internal/util');
 
-let CIRCULAR_ERROR_MESSAGE;
 let internalDeepEqual;
-
-function tryStringify(arg) {
-  try {
-    return JSON.stringify(arg);
-  } catch (err) {
-    // Populate the circular error message lazily
-    if (!CIRCULAR_ERROR_MESSAGE) {
-      try {
-        const a = {}; a.a = a; JSON.stringify(a);
-      } catch (err) {
-        CIRCULAR_ERROR_MESSAGE = err.message;
-      }
-    }
-    if (err.name === 'TypeError' && err.message === CIRCULAR_ERROR_MESSAGE)
-      return '[Circular]';
-    throw err;
-  }
-}
-
-const emptyOptions = {};
-function format(...args) {
-  return formatWithOptions(emptyOptions, ...args);
-}
-
-function formatWithOptions(inspectOptions, f) {
-  let i, tempStr;
-  if (typeof f !== 'string') {
-    if (arguments.length === 1) return '';
-    let res = '';
-    for (i = 1; i < arguments.length - 1; i++) {
-      res += inspect(arguments[i], inspectOptions);
-      res += ' ';
-    }
-    res += inspect(arguments[i], inspectOptions);
-    return res;
-  }
-
-  if (arguments.length === 2) return f;
-
-  let str = '';
-  let a = 2;
-  let lastPos = 0;
-  for (i = 0; i < f.length - 1; i++) {
-    if (f.charCodeAt(i) === 37) { // '%'
-      const nextChar = f.charCodeAt(++i);
-      if (a !== arguments.length) {
-        switch (nextChar) {
-          case 115: // 's'
-            tempStr = String(arguments[a++]);
-            break;
-          case 106: // 'j'
-            tempStr = tryStringify(arguments[a++]);
-            break;
-          case 100: // 'd'
-            const tempNum = arguments[a++];
-            // eslint-disable-next-line valid-typeof
-            if (typeof tempNum === 'bigint') {
-              tempStr = `${tempNum}n`;
-            } else {
-              tempStr = `${Number(tempNum)}`;
-            }
-            break;
-          case 79: // 'O'
-            tempStr = inspect(arguments[a++], inspectOptions);
-            break;
-          case 111: // 'o'
-          {
-            const opts = Object.assign({}, inspectOptions, {
-              showHidden: true,
-              showProxy: true,
-              depth: 4
-            });
-            tempStr = inspect(arguments[a++], opts);
-            break;
-          }
-          case 105: // 'i'
-            const tempInteger = arguments[a++];
-            // eslint-disable-next-line valid-typeof
-            if (typeof tempInteger === 'bigint') {
-              tempStr = `${tempInteger}n`;
-            } else {
-              tempStr = `${parseInt(tempInteger)}`;
-            }
-            break;
-          case 102: // 'f'
-            tempStr = `${parseFloat(arguments[a++])}`;
-            break;
-          case 37: // '%'
-            str += f.slice(lastPos, i);
-            lastPos = i + 1;
-            continue;
-          default: // any other character is not a correct placeholder
-            continue;
-        }
-        if (lastPos !== i - 1)
-          str += f.slice(lastPos, i - 1);
-        str += tempStr;
-        lastPos = i + 1;
-      } else if (nextChar === 37) {
-        str += f.slice(lastPos, i);
-        lastPos = i + 1;
-      }
-    }
-  }
-  if (lastPos === 0)
-    str = f;
-  else if (lastPos < f.length)
-    str += f.slice(lastPos);
-  while (a < arguments.length) {
-    const x = arguments[a++];
-    if ((typeof x !== 'object' && typeof x !== 'symbol') || x === null) {
-      str += ` ${x}`;
-    } else {
-      str += ` ${inspect(x, inspectOptions)}`;
-    }
-  }
-  return str;
-}
-
-const debugs = {};
-let debugEnvRegex = /^$/;
-if (process.env.NODE_DEBUG) {
-  let debugEnv = process.env.NODE_DEBUG;
-  debugEnv = debugEnv.replace(/[|\\{}()[\]^$+?.]/g, '\\$&')
-      .replace(/\*/g, '.*')
-      .replace(/,/g, '$|^')
-      .toUpperCase();
-  debugEnvRegex = new RegExp(`^${debugEnv}$`, 'i');
-}
-
-function debuglog(set) {
-  set = set.toUpperCase();
-  if (!debugs[set]) {
-    if (debugEnvRegex.test(set)) {
-      const pid = process.pid;
-      debugs[set] = function debug() {
-        const msg = exports.format.apply(exports, arguments);
-        console.error('%s %d: %s', set, pid, msg);
-      };
-    } else {
-      debugs[set] = function debug() {};
-    }
-  }
-  return debugs[set];
-}
 
 function isBoolean(arg) {
   return typeof arg === 'boolean';
@@ -226,13 +84,17 @@ function isObject(arg) {
   return arg !== null && typeof arg === 'object';
 }
 
+function isError(e) {
+  return ObjectPrototype.toString(e) === '[object Error]' || e instanceof Error;
+}
+
 function isFunction(arg) {
   return typeof arg === 'function';
 }
 
 function isPrimitive(arg) {
   return arg === null ||
-         typeof arg !== 'object' && typeof arg !== 'function';
+         (typeof arg !== 'object' && typeof arg !== 'function');
 }
 
 function pad(n) {
@@ -251,9 +113,13 @@ function timestamp() {
   return [d.getDate(), months[d.getMonth()], time].join(' ');
 }
 
-// log is just a thin wrapper to console.log that prepends a timestamp
-function log() {
-  console.log('%s - %s', timestamp(), exports.format.apply(exports, arguments));
+let console;
+// Log is just a thin wrapper to console.log that prepends a timestamp
+function log(...args) {
+  if (!console) {
+    console = require('internal/console/global');
+  }
+  console.log('%s - %s', timestamp(), format(...args));
 }
 
 /**
@@ -283,7 +149,11 @@ function inherits(ctor, superCtor) {
     throw new ERR_INVALID_ARG_TYPE('superCtor.prototype',
                                    'Object', superCtor.prototype);
   }
-  ctor.super_ = superCtor;
+  Object.defineProperty(ctor, 'super_', {
+    value: superCtor,
+    writable: true,
+    configurable: true
+  });
   Object.setPrototypeOf(ctor.prototype, superCtor.prototype);
 }
 
@@ -299,43 +169,16 @@ function _extend(target, source) {
   return target;
 }
 
-// Deprecated old stuff.
-
-function print(...args) {
-  for (var i = 0, len = args.length; i < len; ++i) {
-    process.stdout.write(String(args[i]));
-  }
-}
-
-function puts(...args) {
-  for (var i = 0, len = args.length; i < len; ++i) {
-    process.stdout.write(`${args[i]}\n`);
-  }
-}
-
-function debug(x) {
-  process.stderr.write(`DEBUG: ${x}\n`);
-}
-
-function error(...args) {
-  for (var i = 0, len = args.length; i < len; ++i) {
-    process.stderr.write(`${args[i]}\n`);
-  }
-}
-
-function callbackifyOnRejected(reason, cb) {
+const callbackifyOnRejected = hideStackFrames((reason, cb) => {
   // `!reason` guard inspired by bluebird (Ref: https://goo.gl/t5IS6M).
   // Because `null` is a special error value in callbacks which means "no error
   // occurred", we error-wrap so the callback consumer can distinguish between
   // "the promise rejected with null" or "the promise fulfilled with undefined".
   if (!reason) {
-    const newReason = new ERR_FALSY_VALUE_REJECTION();
-    newReason.reason = reason;
-    reason = newReason;
-    Error.captureStackTrace(reason, callbackifyOnRejected);
+    reason = new ERR_FALSY_VALUE_REJECTION(reason);
   }
   return cb(reason);
-}
+});
 
 function callbackify(original) {
   if (typeof original !== 'function') {
@@ -358,9 +201,16 @@ function callbackify(original) {
             (rej) => process.nextTick(callbackifyOnRejected, rej, cb));
   }
 
-  Object.setPrototypeOf(callbackified, Object.getPrototypeOf(original));
-  Object.defineProperties(callbackified,
-                          Object.getOwnPropertyDescriptors(original));
+  const descriptors = Object.getOwnPropertyDescriptors(original);
+  // It is possible to manipulate a functions `length` or `name` property. This
+  // guards against the manipulation.
+  if (typeof descriptors.length.value === 'number') {
+    descriptors.length.value++;
+  }
+  if (typeof descriptors.name.value === 'string') {
+    descriptors.name.value += 'Callbackified';
+  }
+  Object.defineProperties(callbackified, descriptors);
   return callbackified;
 }
 
@@ -373,9 +223,9 @@ function getSystemErrorName(err) {
 }
 
 // Keep the `exports =` so that various functions can still be monkeypatched
-module.exports = exports = {
-  _errnoException: errors.errnoException,
-  _exceptionWithHostPort: errors.exceptionWithHostPort,
+module.exports = {
+  _errnoException: errnoException,
+  _exceptionWithHostPort: exceptionWithHostPort,
   _extend,
   callbackify,
   debuglog,
@@ -401,9 +251,9 @@ module.exports = exports = {
   isString,
   isSymbol,
   isUndefined,
-  isRegExp,
+  isRegExp: types.isRegExp,
   isObject,
-  isDate,
+  isDate: types.isDate,
   isError,
   isFunction,
   isPrimitive,
@@ -411,19 +261,5 @@ module.exports = exports = {
   promisify,
   TextDecoder,
   TextEncoder,
-  types,
-
-  // Deprecated Old Stuff
-  debug: deprecate(debug,
-                   'util.debug is deprecated. Use console.error instead.',
-                   'DEP0028'),
-  error: deprecate(error,
-                   'util.error is deprecated. Use console.error instead.',
-                   'DEP0029'),
-  print: deprecate(print,
-                   'util.print is deprecated. Use console.log instead.',
-                   'DEP0026'),
-  puts: deprecate(puts,
-                  'util.puts is deprecated. Use console.log instead.',
-                  'DEP0027')
+  types
 };

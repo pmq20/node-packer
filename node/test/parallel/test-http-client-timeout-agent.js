@@ -36,7 +36,7 @@ const server = http.createServer((req, res) => {
   const m = /\/(.*)/.exec(req.url);
   const reqid = parseInt(m[1], 10);
   if (reqid % 2) {
-    // do not reply the request
+    // Do not reply the request
   } else {
     res.writeHead(200, { 'Content-Type': 'text/plain' });
     res.write(reqid.toString());
@@ -89,6 +89,6 @@ server.listen(0, options.host, function() {
 
 process.on('exit', () => {
   console.error(`done=${requests_done} sent=${requests_sent}`);
-  // check that timeout on http request was not called too much
+  // Check that timeout on http request was not called too much
   assert.strictEqual(requests_done, requests_sent);
 });

@@ -1,4 +1,4 @@
-/* eslint-disable node-core/required-modules */
+/* eslint-disable node-core/require-common-first, node-core/required-modules */
 'use strict';
 const { Duplex } = require('stream');
 const assert = require('assert');
@@ -24,8 +24,12 @@ class DuplexSocket extends Duplex {
   _write(chunk, encoding, callback) {
     assert.notStrictEqual(this[kOtherSide], null);
     assert.strictEqual(this[kOtherSide][kCallback], null);
-    this[kOtherSide][kCallback] = callback;
-    this[kOtherSide].push(chunk);
+    if (chunk.length === 0) {
+      process.nextTick(callback);
+    } else {
+      this[kOtherSide].push(chunk);
+      this[kOtherSide][kCallback] = callback;
+    }
   }
 
   _final(callback) {

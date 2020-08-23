@@ -205,12 +205,10 @@ class GitRecipesMixin(object):
     args.append(Quoted(patch_file))
     self.Git(MakeArgs(args), **kwargs)
 
-  def GitUpload(self, reviewer="", author="", force=False, cq=False,
+  def GitUpload(self, reviewer="", force=False, cq=False,
                 cq_dry_run=False, bypass_hooks=False, cc="", tbr_reviewer="",
-                **kwargs):
+                no_autocc=False, message_file=None, **kwargs):
     args = ["cl upload --send-mail"]
-    if author:
-      args += ["--email", Quoted(author)]
     if reviewer:
       args += ["-r", Quoted(reviewer)]
     if tbr_reviewer:
@@ -223,8 +221,12 @@ class GitRecipesMixin(object):
       args.append("--cq-dry-run")
     if bypass_hooks:
       args.append("--bypass-hooks")
+    if no_autocc:
+      args.append("--no-autocc")
     if cc:
       args += ["--cc", Quoted(cc)]
+    if message_file:
+      args += ["--message-file", Quoted(message_file)]
     args += ["--gerrit"]
     # TODO(machenbach): Check output in forced mode. Verify that all required
     # base files were uploaded, if not retry.

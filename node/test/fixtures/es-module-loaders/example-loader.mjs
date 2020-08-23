@@ -1,28 +1,25 @@
 import url from 'url';
 import path from 'path';
 import process from 'process';
+import { builtinModules } from 'module';
 
-const builtins = new Set(
-  Object.keys(process.binding('natives')).filter((str) =>
-    /^(?!(?:internal|node|v8)\/)/.test(str))
-);
 const JS_EXTENSIONS = new Set(['.js', '.mjs']);
 
 const baseURL = new url.URL('file://');
 baseURL.pathname = process.cwd() + '/';
 
 export function resolve(specifier, parentModuleURL = baseURL /*, defaultResolve */) {
-  if (builtins.has(specifier)) {
+  if (builtinModules.includes(specifier)) {
     return {
       url: specifier,
       format: 'builtin'
     };
   }
-  if (/^\.{0,2}[/]/.test(specifier) !== true && !specifier.startsWith('file:')) {
+  if (/^\.{1,2}[/]/.test(specifier) !== true && !specifier.startsWith('file:')) {
     // For node_modules support:
     // return defaultResolve(specifier, parentModuleURL);
     throw new Error(
-      `imports must begin with '/', './', or '../'; '${specifier}' does not`);
+      `imports must be URLs or begin with './', or '../'; '${specifier}' does not`);
   }
   const resolved = new url.URL(specifier, parentModuleURL);
   const ext = path.extname(resolved.pathname);
@@ -32,6 +29,6 @@ export function resolve(specifier, parentModuleURL = baseURL /*, defaultResolve 
   }
   return {
     url: resolved.href,
-    format: 'esm'
+    format: 'module'
   };
 }

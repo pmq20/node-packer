@@ -28,8 +28,9 @@ const {
   restoreStderr
 } = require('../common/hijackstdio');
 const assert = require('assert');
+const path = require('path');
 const fixtures = require('../common/fixtures');
-const hasInspector = process.config.variables.v8_enable_inspector === 1;
+const hasInspector = process.features.inspector;
 
 if (!common.isMainThread)
   common.skip('process.chdir is not available in Workers');
@@ -145,7 +146,7 @@ testMe.complete('inner.o', common.mustCall(function(error, data) {
 
 putIn.run(['.clear']);
 
-// def has the params and { on a separate line
+// The definition has the params and { on a separate line.
 putIn.run([
   'var top = function() {',
   'r = function test (',
@@ -154,14 +155,13 @@ putIn.run([
   ' one:1',
   '};'
 ]);
-// See: https://github.com/nodejs/node/issues/21586
-// testMe.complete('inner.o', getNoResultsFunction());
 testMe.complete('inner.o', common.mustCall(function(error, data) {
+  assert.deepStrictEqual(data, works);
 }));
 
 putIn.run(['.clear']);
 
-// currently does not work, but should not break, not the {
+// Currently does not work, but should not break, not the {
 putIn.run([
   'var top = function() {',
   'r = function test ()',
@@ -174,7 +174,7 @@ testMe.complete('inner.o', getNoResultsFunction());
 
 putIn.run(['.clear']);
 
-// currently does not work, but should not break
+// Currently does not work, but should not break
 putIn.run([
   'var top = function() {',
   'r = function test (',
@@ -188,7 +188,7 @@ testMe.complete('inner.o', getNoResultsFunction());
 
 putIn.run(['.clear']);
 
-// make sure tab completion works on non-Objects
+// Make sure tab completion works on non-Objects
 putIn.run([
   'var str = "test";'
 ]);
@@ -198,7 +198,7 @@ testMe.complete('str.len', common.mustCall(function(error, data) {
 
 putIn.run(['.clear']);
 
-// tab completion should not break on spaces
+// Tab completion should not break on spaces
 const spaceTimeout = setTimeout(function() {
   throw new Error('timeout');
 }, 1000);
@@ -208,13 +208,13 @@ testMe.complete(' ', common.mustCall(function(error, data) {
   clearTimeout(spaceTimeout);
 }));
 
-// tab completion should pick up the global "toString" object, and
+// Tab completion should pick up the global "toString" object, and
 // any other properties up the "global" object's prototype chain
 testMe.complete('toSt', common.mustCall(function(error, data) {
   assert.deepStrictEqual(data, [['toString'], 'toSt']);
 }));
 
-// own properties should shadow properties on the prototype
+// Own properties should shadow properties on the prototype
 putIn.run(['.clear']);
 putIn.run([
   'var x = Object.create(null);',
@@ -385,7 +385,7 @@ testMe.complete('var log = console.lo', common.mustCall((error, data) => {
   assert.deepStrictEqual(data, [['console.log'], 'console.lo']);
 }));
 
-// tab completion for defined commands
+// Tab completion for defined commands
 putIn.run(['.clear']);
 
 testMe.complete('.b', common.mustCall((error, data) => {
@@ -397,6 +397,57 @@ testMe.complete('obj.', common.mustCall((error, data) => {
   assert.strictEqual(data[0].includes('obj.hello, world!'), false);
   assert(data[0].includes('obj.key'));
 }));
+
+// Tab completion for files/directories
+{
+  putIn.run(['.clear']);
+  process.chdir(__dirname);
+
+  const readFileSyncs = ['fs.readFileSync("', 'fs.promises.readFileSync("'];
+  if (!common.isWindows) {
+    readFileSyncs.forEach((readFileSync) => {
+      const fixturePath = `${readFileSync}../fixtures/test-repl-tab-completion`;
+      testMe.complete(fixturePath, common.mustCall((err, data) => {
+        assert.strictEqual(err, null);
+        assert.ok(data[0][0].includes('.hiddenfiles'));
+        assert.ok(data[0][1].includes('hellorandom.txt'));
+        assert.ok(data[0][2].includes('helloworld.js'));
+      }));
+
+      testMe.complete(`${fixturePath}/hello`,
+                      common.mustCall((err, data) => {
+                        assert.strictEqual(err, null);
+                        assert.ok(data[0][0].includes('hellorandom.txt'));
+                        assert.ok(data[0][1].includes('helloworld.js'));
+                      })
+      );
+
+      testMe.complete(`${fixturePath}/.h`,
+                      common.mustCall((err, data) => {
+                        assert.strictEqual(err, null);
+                        assert.ok(data[0][0].includes('.hiddenfiles'));
+                      })
+      );
+
+      testMe.complete(`${readFileSync}./xxxRandom/random`,
+                      common.mustCall((err, data) => {
+                        assert.strictEqual(err, null);
+                        assert.strictEqual(data[0].length, 0);
+                      })
+      );
+
+      const testPath = fixturePath.slice(0, -1);
+      testMe.complete(testPath, common.mustCall((err, data) => {
+        assert.strictEqual(err, null);
+        assert.ok(data[0][0].includes('test-repl-tab-completion'));
+        assert.strictEqual(
+          data[1],
+          path.basename(testPath)
+        );
+      }));
+    });
+  }
+}
 
 [
   Array,
@@ -458,7 +509,7 @@ const testNonGlobal = repl.start({
   useGlobal: false
 });
 
-const builtins = [['Infinity', '', 'Int16Array', 'Int32Array',
+const builtins = [['Infinity', 'Int16Array', 'Int32Array',
                    'Int8Array'], 'I'];
 
 if (common.hasIntl) {
@@ -529,7 +580,7 @@ testCustomCompleterAsyncMode.complete('a', common.mustCall((error, data) => {
   ]);
 }));
 
-// tab completion in editor mode
+// Tab completion in editor mode
 const editorStream = new ArrayStream();
 const editor = repl.start({
   stream: editorStream,
@@ -552,7 +603,7 @@ editor.completer('var log = console.l', common.mustCall((error, data) => {
 }));
 
 {
-  // tab completion of lexically scoped variables
+  // Tab completion of lexically scoped variables
   const stream = new ArrayStream();
   const testRepl = repl.start({ stream });
 

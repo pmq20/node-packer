@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2017 - 2020 Minqi Pan <pmq2001@gmail.com>
- *                           Shengyuan Liu <sounder.liu@gmail.com>
+ * Copyright (c) 2017 Minqi Pan <pmq2001@gmail.com>
+ *                    Shengyuan Liu <sounder.liu@gmail.com>
  *
  * This file is part of libsquash, distributed under the MIT License
  * For full terms see the included LICENSE file
@@ -342,13 +342,11 @@ EncloseIOCreateFileW(
 					);
 				} else {
 					errno = ENOENT;
-                                        ENCLOSE_IO_SET_LAST_ERROR;
-                                        return INVALID_HANDLE_VALUE;
+					return enclose_io_dos_return(-1);
 				}
 			} else {
 				errno = ENOENT;
-                                ENCLOSE_IO_SET_LAST_ERROR;
-                                return INVALID_HANDLE_VALUE;
+				return enclose_io_dos_return(-1);
 			}
 		}
 	} else if (enclose_io_is_path_w(lpFileName)) {
@@ -415,13 +413,11 @@ EncloseIOCreateFileW(
 					);
 				} else {
 					errno = ENOENT;
-                                        ENCLOSE_IO_SET_LAST_ERROR;
-                                        return INVALID_HANDLE_VALUE;
+					return enclose_io_dos_return(-1);
 				}
 			} else {
 				errno = ENOENT;
-                                ENCLOSE_IO_SET_LAST_ERROR;
-                                return INVALID_HANDLE_VALUE;
+				return enclose_io_dos_return(-1);
 			}
 		}
 	} else {
@@ -741,7 +737,6 @@ EncloseIOFindFirstFileHelper(
         char *parent = incoming + strlen(incoming);
         SQUASH_DIR *dirp;
         struct SQUASH_DIRENT *mydirent;
-				struct SQUASH_DIRENT dummy_dirent;
         char *current_path_tail;
         char *current_path;
         size_t mbstowcs_size;
@@ -770,22 +765,7 @@ EncloseIOFindFirstFileHelper(
         do {
         	mydirent = squash_readdir(dirp);
                 if (NULL == mydirent) {
-									// try to determine
-									// either this dir is empty
-									// or the dir is not empty and we run out of possible matches
-									if (dirp->actual_nr == 0) {
-										// this dir is empty
-										// so just return a "." to match the original Windows behavior
-										current_path_tail[0] = '.';
-										current_path_tail[1] = 0; // we are sure that this will make true==PathMatchSpecA(current_path, dup_incoming)
-										dummy_dirent.d_namlen = 1;
-										dummy_dirent.d_ino = dirp->node.base.inode_number;
-										dummy_dirent.d_name[0] = '.';
-										dummy_dirent.d_name[1] = 0;
-										dummy_dirent.d_type = DT_DIR;
-										mydirent = &dummy_dirent;
-									}
-									break;
+                        break;
                 }
                 memcpy(current_path_tail, mydirent->d_name, strlen(mydirent->d_name) + 1);
         } while (!PathMatchSpecA(current_path, dup_incoming));
@@ -1172,35 +1152,6 @@ EncloseIOCreateProcessW(
 	);
 }
 
-BOOL
-EncloseIOGetFileInformationByHandle(
-	HANDLE hFile,
-	LPBY_HANDLE_FILE_INFORMATION lpFileInformation
-)
-{
-	struct squash_file *sqf = squash_find_entry((void *)hFile);
-	struct stat st;
-	if (sqf) {
-		st = sqf->st;
-		lpFileInformation->dwFileAttributes = EncloseIOGetFileAttributesHelper(&st);
-		EncloseIOUnixtimeToFiletime(st.st_ctime, &lpFileInformation->ftCreationTime);
-		EncloseIOUnixtimeToFiletime(st.st_atime, &lpFileInformation->ftLastAccessTime);
-		EncloseIOUnixtimeToFiletime(st.st_mtime, &lpFileInformation->ftLastWriteTime);
-		lpFileInformation->dwVolumeSerialNumber = 0; // TODO
-		lpFileInformation->nFileSizeHigh = 0;
-		lpFileInformation->nFileSizeLow = st.st_size;
-		lpFileInformation->nNumberOfLinks = st.st_nlink;
-		lpFileInformation->nFileIndexHigh = 0;
-		lpFileInformation->nFileIndexLow = st.st_ino;
-		return 1;
-	} else {
-		return GetFileInformationByHandle(
-			hFile,
-			lpFileInformation
-		);
-	}
-}
-
 #ifndef RUBY_EXPORT
 NTSTATUS
 EncloseIOpNtQueryInformationFile(
@@ -1211,7 +1162,7 @@ EncloseIOpNtQueryInformationFile(
 	FILE_INFORMATION_CLASS FileInformationClass)
 {
 	struct squash_file *sqf = squash_find_entry((void *)FileHandle);
-	struct stat st;
+        struct stat st;
 	if (sqf) {
 		st = sqf->st;
 		IoStatusBlock->Status = STATUS_NOT_IMPLEMENTED;

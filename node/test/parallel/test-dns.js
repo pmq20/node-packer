@@ -21,10 +21,12 @@
 
 'use strict';
 const common = require('../common');
+const dnstools = require('../common/dns');
 const assert = require('assert');
 
 const dns = require('dns');
 const dnsPromises = dns.promises;
+const dgram = require('dgram');
 
 const existing = dns.getServers();
 assert(existing.length > 0);
@@ -81,7 +83,7 @@ assert(existing.length > 0);
         dns.setServers([serv]);
       },
       {
-        name: 'TypeError [ERR_INVALID_IP_ADDRESS]',
+        name: 'TypeError',
         code: 'ERR_INVALID_IP_ADDRESS'
       }
     );
@@ -121,13 +123,15 @@ const ports = [
   '4.4.4.4:53',
   '[2001:4860:4860::8888]:53',
   '103.238.225.181:666',
-  '[fe80::483a:5aff:fee6:1f04]:666'
+  '[fe80::483a:5aff:fee6:1f04]:666',
+  '[fe80::483a:5aff:fee6:1f04]',
 ];
 const portsExpected = [
   '4.4.4.4',
   '2001:4860:4860::8888',
   '103.238.225.181:666',
-  '[fe80::483a:5aff:fee6:1f04]:666'
+  '[fe80::483a:5aff:fee6:1f04]:666',
+  'fe80::483a:5aff:fee6:1f04',
 ];
 dns.setServers(ports);
 assert.deepStrictEqual(dns.getServers(), portsExpected);
@@ -166,7 +170,7 @@ assert.deepStrictEqual(dns.getServers(), []);
   const errorReg = common.expectsError({
     code: 'ERR_INVALID_ARG_TYPE',
     type: TypeError,
-    message: /^The "hostname" argument must be one of type string or falsy/
+    message: /^The "hostname" argument must be of type string\. Received type .*/
   }, 10);
 
   assert.throws(() => dns.lookup({}, common.mustNotCall()), errorReg);
@@ -261,29 +265,29 @@ dns.lookup('', {
   const err = {
     code: 'ERR_MISSING_ARGS',
     type: TypeError,
-    message: 'The "hostname", "port", and "callback" arguments must be ' +
+    message: 'The "address", "port", and "callback" arguments must be ' +
     'specified'
   };
 
   common.expectsError(() => dns.lookupService('0.0.0.0'), err);
-  err.message = 'The "hostname" and "port" arguments must be specified';
+  err.message = 'The "address" and "port" arguments must be specified';
   common.expectsError(() => dnsPromises.lookupService('0.0.0.0'), err);
 }
 
 {
-  const invalidHost = 'fasdfdsaf';
+  const invalidAddress = 'fasdfdsaf';
   const err = {
     code: 'ERR_INVALID_OPT_VALUE',
     type: TypeError,
-    message: `The value "${invalidHost}" is invalid for option "hostname"`
+    message: `The value "${invalidAddress}" is invalid for option "address"`
   };
 
   common.expectsError(() => {
-    dnsPromises.lookupService(invalidHost, 0);
+    dnsPromises.lookupService(invalidAddress, 0);
   }, err);
 
   common.expectsError(() => {
-    dns.lookupService(invalidHost, 0, common.mustNotCall());
+    dns.lookupService(invalidAddress, 0, common.mustNotCall());
   }, err);
 }
 
@@ -323,4 +327,114 @@ common.expectsError(() => {
     assert.deepStrictEqual(err.hostname, 'foo.onion');
     assert.deepStrictEqual(err.message, 'queryMx ENOTFOUND foo.onion');
   });
+}
+
+{
+  const cases = [
+    { method: 'resolveAny',
+      answers: [
+        { type: 'A', address: '1.2.3.4', ttl: 3333333333 },
+        { type: 'AAAA', address: '::42', ttl: 3333333333 },
+        { type: 'MX', priority: 42, exchange: 'foobar.com', ttl: 3333333333 },
+        { type: 'NS', value: 'foobar.org', ttl: 3333333333 },
+        { type: 'PTR', value: 'baz.org', ttl: 3333333333 },
+        {
+          type: 'SOA',
+          nsname: 'ns1.example.com',
+          hostmaster: 'admin.example.com',
+          serial: 3210987654,
+          refresh: 900,
+          retry: 900,
+          expire: 1800,
+          minttl: 3333333333
+        },
+      ]
+    },
+
+    { method: 'resolve4',
+      options: { ttl: true },
+      answers: [ { type: 'A', address: '1.2.3.4', ttl: 3333333333 } ]
+    },
+
+    { method: 'resolve6',
+      options: { ttl: true },
+      answers: [ { type: 'AAAA', address: '::42', ttl: 3333333333 } ]
+    },
+
+    { method: 'resolveSoa',
+      answers: [
+        {
+          type: 'SOA',
+          nsname: 'ns1.example.com',
+          hostmaster: 'admin.example.com',
+          serial: 3210987654,
+          refresh: 900,
+          retry: 900,
+          expire: 1800,
+          minttl: 3333333333
+        }
+      ]
+    },
+  ];
+
+  const server = dgram.createSocket('udp4');
+
+  server.on('message', common.mustCall((msg, { address, port }) => {
+    const parsed = dnstools.parseDNSPacket(msg);
+    const domain = parsed.questions[0].domain;
+    assert.strictEqual(domain, 'example.org');
+
+    server.send(dnstools.writeDNSPacket({
+      id: parsed.id,
+      questions: parsed.questions,
+      answers: cases[0].answers.map(
+        (answer) => Object.assign({ domain }, answer)
+      ),
+    }), port, address);
+  }, cases.length * 2));
+
+  server.bind(0, common.mustCall(() => {
+    const address = server.address();
+    dns.setServers([`127.0.0.1:${address.port}`]);
+
+    function validateResults(res) {
+      if (!Array.isArray(res))
+        res = [res];
+
+      assert.deepStrictEqual(res.map(tweakEntry),
+                             cases[0].answers.map(tweakEntry));
+    }
+
+    function tweakEntry(r) {
+      const ret = { ...r };
+
+      const { method } = cases[0];
+
+      // TTL values are only provided for A and AAAA entries.
+      if (!['A', 'AAAA'].includes(ret.type) && !/^resolve(4|6)?$/.test(method))
+        delete ret.ttl;
+
+      if (method !== 'resolveAny')
+        delete ret.type;
+
+      return ret;
+    }
+
+    (async function nextCase() {
+      if (cases.length === 0)
+        return server.close();
+
+      const { method, options } = cases[0];
+
+      validateResults(await dnsPromises[method]('example.org', options));
+
+      dns[method]('example.org', options, common.mustCall((err, res) => {
+        assert.ifError(err);
+        validateResults(res);
+        cases.shift();
+        nextCase();
+      }));
+    })();
+
+  }));
 }

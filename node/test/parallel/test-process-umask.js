@@ -22,8 +22,15 @@
 'use strict';
 const common = require('../common');
 const assert = require('assert');
-if (!common.isMainThread)
-  common.skip('process.umask is not available in Workers');
+
+if (!common.isMainThread) {
+  assert.strictEqual(typeof process.umask(), 'number');
+  assert.throws(() => {
+    process.umask('0664');
+  }, { code: 'ERR_WORKER_UNSUPPORTED_OPERATION' });
+
+  common.skip('Setting process.umask is not supported in Workers');
+}
 
 // Note in Windows one can only set the "user" bits.
 let mask;
@@ -37,7 +44,7 @@ const old = process.umask(mask);
 
 assert.strictEqual(process.umask(old), parseInt(mask, 8));
 
-// confirm reading the umask does not modify it.
+// Confirm reading the umask does not modify it.
 // 1. If the test fails, this call will succeed, but the mask will be set to 0
 assert.strictEqual(process.umask(), old);
 // 2. If the test fails, process.umask() will return 0
@@ -45,8 +52,18 @@ assert.strictEqual(process.umask(), old);
 
 assert.throws(() => {
   process.umask({});
-}, /argument must be an integer or octal string/);
+}, {
+  code: 'ERR_INVALID_ARG_VALUE',
+  message: 'The argument \'mask\' must be a 32-bit unsigned integer ' +
+           'or an octal string. Received {}'
+});
 
-assert.throws(() => {
-  process.umask('123x');
-}, /invalid octal string/);
+['123x', 'abc', '999'].forEach((value) => {
+  assert.throws(() => {
+    process.umask(value);
+  }, {
+    code: 'ERR_INVALID_ARG_VALUE',
+    message: 'The argument \'mask\' must be a 32-bit unsigned integer ' +
+             `or an octal string. Received '${value}'`
+  });
+});

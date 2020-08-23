@@ -1,6 +1,8 @@
 'use strict';
 
-const util = require('util');
+const { Object, Reflect } = primordials;
+
+const { inspect } = require('internal/util/inspect');
 const {
   encodeStr,
   hexTable,
@@ -61,7 +63,7 @@ const {
   kPort,
   kQuery,
   kSchemeStart
-} = process.binding('url');
+} = internalBinding('url');
 
 const context = Symbol('context');
 const cannotBeBase = Symbol('cannot-be-base');
@@ -136,7 +138,7 @@ class URLSearchParams {
           throw new ERR_ARG_NOT_ITERABLE('Query pairs');
         }
 
-        // sequence<sequence<USVString>>
+        // Sequence<sequence<USVString>>
         // Note: per spec we have to first exhaust the lists then process them
         const pairs = [];
         for (const pair of init) {
@@ -159,7 +161,7 @@ class URLSearchParams {
           this[searchParams].push(pair[0], pair[1]);
         }
       } else {
-        // record<USVString, USVString>
+        // Record<USVString, USVString>
         // Need to use reflection APIs for full spec compliance.
         this[searchParams] = [];
         const keys = Reflect.ownKeys(init);
@@ -184,7 +186,7 @@ class URLSearchParams {
     this[context] = null;
   }
 
-  [util.inspect.custom](recurseTimes, ctx) {
+  [inspect.custom](recurseTimes, ctx) {
     if (!this || !this[searchParams] || this[searchParams][searchParams]) {
       throw new ERR_INVALID_THIS('URLSearchParams');
     }
@@ -192,19 +194,19 @@ class URLSearchParams {
     if (typeof recurseTimes === 'number' && recurseTimes < 0)
       return ctx.stylize('[Object]', 'special');
 
-    var separator = ', ';
-    var innerOpts = util._extend({}, ctx);
+    const separator = ', ';
+    const innerOpts = { ...ctx };
     if (recurseTimes !== null) {
       innerOpts.depth = recurseTimes - 1;
     }
-    var innerInspect = (v) => util.inspect(v, innerOpts);
+    const innerInspect = (v) => inspect(v, innerOpts);
 
-    var list = this[searchParams];
-    var output = [];
+    const list = this[searchParams];
+    const output = [];
     for (var i = 0; i < list.length; i += 2)
       output.push(`${innerInspect(list[i])} => ${innerInspect(list[i + 1])}`);
 
-    var length = output.reduce(
+    const length = output.reduce(
       (prev, cur) => prev + removeColors(cur).length + separator.length,
       -separator.length
     );
@@ -220,7 +222,7 @@ class URLSearchParams {
 
 function onParseComplete(flags, protocol, username, password,
                          host, port, path, query, fragment) {
-  var ctx = this[context];
+  const ctx = this[context];
   ctx.flags = flags;
   ctx.scheme = protocol;
   ctx.username = (flags & URL_FLAGS_HAS_USERNAME) !== 0 ? username : '';
@@ -230,7 +232,7 @@ function onParseComplete(flags, protocol, username, password,
   ctx.query = query;
   ctx.fragment = fragment;
   ctx.host = host;
-  if (!this[searchParams]) { // invoked from URL constructor
+  if (!this[searchParams]) { // Invoked from URL constructor
     this[searchParams] = new URLSearchParams();
     this[searchParams][context] = this;
   }
@@ -238,9 +240,7 @@ function onParseComplete(flags, protocol, username, password,
 }
 
 function onParseError(flags, input) {
-  const error = new ERR_INVALID_URL(input);
-  error.input = input;
-  throw error;
+  throw new ERR_INVALID_URL(input);
 }
 
 function onParseProtocolComplete(flags, protocol, username, password,
@@ -336,18 +336,18 @@ class URL {
             scheme === 'file:');
   }
 
-  [util.inspect.custom](depth, opts) {
+  [inspect.custom](depth, opts) {
     if (this == null ||
         Object.getPrototypeOf(this[context]) !== URLContext.prototype) {
       throw new ERR_INVALID_THIS('URL');
     }
 
     if (typeof depth === 'number' && depth < 0)
-      return opts.stylize('[Object]', 'special');
+      return this;
 
-    var ctor = getConstructorOf(this);
+    const ctor = getConstructorOf(this);
 
-    var obj = Object.create({
+    const obj = Object.create({
       constructor: ctor === null ? URL : ctor
     });
 
@@ -370,7 +370,7 @@ class URL {
       obj[context] = this[context];
     }
 
-    return util.inspect(obj, opts);
+    return inspect(obj, opts);
   }
 }
 
@@ -382,12 +382,13 @@ Object.defineProperties(URL.prototype, {
     value: function format(options) {
       if (options && typeof options !== 'object')
         throw new ERR_INVALID_ARG_TYPE('options', 'Object', options);
-      options = util._extend({
+      options = {
         fragment: true,
         unicode: false,
         search: true,
-        auth: true
-      }, options);
+        auth: true,
+        ...options
+      };
       const ctx = this[context];
       var ret = ctx.scheme;
       if (ctx.host !== null) {
@@ -456,7 +457,7 @@ Object.defineProperties(URL.prototype, {
             try {
               return (new URL(ctx.path[0])).origin;
             } catch {
-              // fall through... do nothing
+              // Fall through... do nothing
             }
           }
           return kOpaqueOrigin;
@@ -1091,7 +1092,7 @@ defineIDLClass(URLSearchParams.prototype, 'URLSearchParams', {
       throw new ERR_INVALID_THIS('URLSearchParams');
     }
     if (typeof callback !== 'function') {
-      throw new ERR_INVALID_CALLBACK();
+      throw new ERR_INVALID_CALLBACK(callback);
     }
 
     let list = this[searchParams];
@@ -1101,7 +1102,7 @@ defineIDLClass(URLSearchParams.prototype, 'URLSearchParams', {
       const key = list[i];
       const value = list[i + 1];
       callback.call(thisArg, value, key, this);
-      // in case the URL object's `search` is updated
+      // In case the URL object's `search` is updated
       list = this[searchParams];
       i += 2;
     }
@@ -1195,14 +1196,14 @@ defineIDLClass(URLSearchParamsIteratorPrototype, 'URLSearchParams Iterator', {
       done: false
     };
   },
-  [util.inspect.custom](recurseTimes, ctx) {
+  [inspect.custom](recurseTimes, ctx) {
     if (this == null || this[context] == null || this[context].target == null)
       throw new ERR_INVALID_THIS('URLSearchParamsIterator');
 
     if (typeof recurseTimes === 'number' && recurseTimes < 0)
       return ctx.stylize('[Object]', 'special');
 
-    const innerOpts = util._extend({}, ctx);
+    const innerOpts = { ...ctx };
     if (recurseTimes !== null) {
       innerOpts.depth = recurseTimes - 1;
     }
@@ -1222,8 +1223,8 @@ defineIDLClass(URLSearchParamsIteratorPrototype, 'URLSearchParams Iterator', {
       }
       return prev;
     }, []);
-    const breakLn = util.inspect(output, innerOpts).includes('\n');
-    const outputStrs = output.map((p) => util.inspect(p, innerOpts));
+    const breakLn = inspect(output, innerOpts).includes('\n');
+    const outputStrs = output.map((p) => inspect(p, innerOpts));
     let outputStr;
     if (breakLn) {
       outputStr = `\n  ${outputStrs.join(',\n  ')}`;
@@ -1254,15 +1255,15 @@ function domainToUnicode(domain) {
 // options object as expected by the http.request and https.request
 // APIs.
 function urlToOptions(url) {
-  var options = {
+  const options = {
     protocol: url.protocol,
-    hostname: url.hostname.startsWith('[') ?
+    hostname: typeof url.hostname === 'string' && url.hostname.startsWith('[') ?
       url.hostname.slice(1, -1) :
       url.hostname,
     hash: url.hash,
     search: url.search,
     pathname: url.pathname,
-    path: `${url.pathname}${url.search}`,
+    path: `${url.pathname || ''}${url.search || ''}`,
     href: url.href
   };
   if (url.port !== '') {
@@ -1277,7 +1278,7 @@ function urlToOptions(url) {
 const forwardSlashRegEx = /\//g;
 
 function getPathFromURLWin32(url) {
-  var hostname = url.hostname;
+  const hostname = url.hostname;
   var pathname = url.pathname;
   for (var n = 0; n < pathname.length; n++) {
     if (pathname[n] === '%') {
@@ -1316,7 +1317,7 @@ function getPathFromURLPosix(url) {
   if (url.hostname !== '') {
     throw new ERR_INVALID_FILE_URL_HOST(platform);
   }
-  var pathname = url.pathname;
+  const pathname = url.pathname;
   for (var n = 0; n < pathname.length; n++) {
     if (pathname[n] === '%') {
       var third = pathname.codePointAt(n + 2) | 0x20;
@@ -1362,13 +1363,13 @@ function pathToFileURL(filepath) {
   // path.resolve strips trailing slashes so we must add them back
   const filePathLast = filepath.charCodeAt(filepath.length - 1);
   if ((filePathLast === CHAR_FORWARD_SLASH ||
-       isWindows && filePathLast === CHAR_BACKWARD_SLASH) &&
+       (isWindows && filePathLast === CHAR_BACKWARD_SLASH)) &&
       resolved[resolved.length - 1] !== path.sep)
     resolved += '/';
   const outURL = new URL('file://');
   if (resolved.includes('%'))
     resolved = resolved.replace(percentRegEx, '%25');
-  // in posix, "/" is a valid character in paths
+  // In posix, "/" is a valid character in paths
   if (!isWindows && resolved.includes('\\'))
     resolved = resolved.replace(backslashRegEx, '%5C');
   if (resolved.includes('\n'))
@@ -1390,7 +1391,7 @@ function toPathIfFileURL(fileURLOrPath) {
 
 function constructUrl(flags, protocol, username, password,
                       host, port, path, query, fragment) {
-  var ctx = new URLContext();
+  const ctx = new URLContext();
   ctx.flags = flags;
   ctx.scheme = protocol;
   ctx.username = (flags & URL_FLAGS_HAS_USERNAME) !== 0 ? username : '';

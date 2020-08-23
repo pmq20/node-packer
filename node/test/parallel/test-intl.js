@@ -24,7 +24,7 @@ const common = require('../common');
 const assert = require('assert');
 const { execFile } = require('child_process');
 
-// does node think that i18n was enabled?
+// Does node think that i18n was enabled?
 let enablei18n = process.config.variables.v8_enable_i18n_support;
 if (enablei18n === undefined) {
   enablei18n = 0;
@@ -116,15 +116,15 @@ if (!common.hasIntl) {
   const collOpts = { sensitivity: 'base', ignorePunctuation: true };
   const coll = new Intl.Collator(['en'], collOpts);
 
-  // ignore punctuation
+  // Ignore punctuation
   assert.strictEqual(coll.compare('blackbird', 'black-bird'), 0);
-  // compare less
+  // Compare less
   assert.strictEqual(coll.compare('blackbird', 'red-bird'), -1);
-  // compare greater
+  // Compare greater
   assert.strictEqual(coll.compare('bluebird', 'blackbird'), 1);
-  // ignore case
+  // Ignore case
   assert.strictEqual(coll.compare('Bluebird', 'bluebird'), 0);
-  // ffi ligature (contraction)
+  // `ffi` ligature (contraction)
   assert.strictEqual(coll.compare('\ufb03', 'ffi'), 0);
 
   {

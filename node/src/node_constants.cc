@@ -19,32 +19,37 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+#include "env-inl.h"
 #include "node_constants.h"
 #include "node_internals.h"
+#include "util-inl.h"
 
 #include "zlib.h"
 
-#include <errno.h>
 #if !defined(_MSC_VER)
 #include <unistd.h>
 #endif
+
 #include <fcntl.h>
-#include <signal.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <limits>
+
 
 #if HAVE_OPENSSL
-# include <openssl/ec.h>
-# include <openssl/ssl.h>
-# ifndef OPENSSL_NO_ENGINE
-#  include <openssl/engine.h>
-# endif  // !OPENSSL_NO_ENGINE
-#endif
+#include <openssl/ec.h>
+#include <openssl/ssl.h>
+#ifndef OPENSSL_NO_ENGINE
+#include <openssl/engine.h>
+#endif  // !OPENSSL_NO_ENGINE
+#endif  // HAVE_OPENSSL
 
 #if defined(__POSIX__)
 #include <dlfcn.h>
 #endif
+
+#include <cerrno>
+#include <csignal>
+#include <limits>
 
 namespace node {
 
@@ -792,7 +797,7 @@ void DefinePriorityConstants(Local<Object> target) {
 #endif
 }
 
-void DefineOpenSSLConstants(Local<Object> target) {
+void DefineCryptoConstants(Local<Object> target) {
 #ifdef OPENSSL_VERSION_NUMBER
     NODE_DEFINE_CONSTANT(target, OPENSSL_VERSION_NUMBER);
 #endif
@@ -1038,6 +1043,28 @@ void DefineOpenSSLConstants(Local<Object> target) {
     NODE_DEFINE_CONSTANT(target, RSA_PSS_SALTLEN_AUTO);
 #endif
 
+#ifdef DEFAULT_CIPHER_LIST_CORE
+  NODE_DEFINE_STRING_CONSTANT(target,
+                              "defaultCoreCipherList",
+                              DEFAULT_CIPHER_LIST_CORE);
+#endif
+
+#ifdef TLS1_VERSION
+  NODE_DEFINE_CONSTANT(target, TLS1_VERSION);
+#endif
+
+#ifdef TLS1_1_VERSION
+  NODE_DEFINE_CONSTANT(target, TLS1_1_VERSION);
+#endif
+
+#ifdef TLS1_2_VERSION
+  NODE_DEFINE_CONSTANT(target, TLS1_2_VERSION);
+#endif
+
+#ifdef TLS1_3_VERSION
+  NODE_DEFINE_CONSTANT(target, TLS1_3_VERSION);
+#endif
+
 #if HAVE_OPENSSL
   // NOTE: These are not defines
   NODE_DEFINE_CONSTANT(target, POINT_CONVERSION_COMPRESSED);
@@ -1045,6 +1072,12 @@ void DefineOpenSSLConstants(Local<Object> target) {
   NODE_DEFINE_CONSTANT(target, POINT_CONVERSION_UNCOMPRESSED);
 
   NODE_DEFINE_CONSTANT(target, POINT_CONVERSION_HYBRID);
+
+  NODE_DEFINE_STRING_CONSTANT(
+      target,
+      "defaultCipherList",
+      per_process::cli_options->tls_cipher_list.c_str());
+
 #endif
 }
 
@@ -1093,6 +1126,8 @@ void DefineSystemConstants(Local<Object> target) {
 #ifdef O_EXCL
   NODE_DEFINE_CONSTANT(target, O_EXCL);
 #endif
+
+NODE_DEFINE_CONSTANT(target, UV_FS_O_FILEMAP);
 
 #ifdef O_NOCTTY
   NODE_DEFINE_CONSTANT(target, O_NOCTTY);
@@ -1229,22 +1264,6 @@ void DefineSystemConstants(Local<Object> target) {
 #endif
 }
 
-void DefineCryptoConstants(Local<Object> target) {
-#if HAVE_OPENSSL
-  NODE_DEFINE_STRING_CONSTANT(target,
-                              "defaultCoreCipherList",
-                              DEFAULT_CIPHER_LIST_CORE);
-  NODE_DEFINE_STRING_CONSTANT(target,
-                              "defaultCipherList",
-                              per_process_opts->tls_cipher_list.c_str());
-
-  NODE_DEFINE_CONSTANT(target, TLS1_VERSION);
-  NODE_DEFINE_CONSTANT(target, TLS1_1_VERSION);
-  NODE_DEFINE_CONSTANT(target, TLS1_2_VERSION);
-#endif
-  NODE_DEFINE_CONSTANT(target, INT_MAX);
-}
-
 void DefineDLOpenConstants(Local<Object> target) {
 #ifdef RTLD_LAZY
   NODE_DEFINE_CONSTANT(target, RTLD_LAZY);
@@ -1342,7 +1361,6 @@ void DefineConstants(v8::Isolate* isolate, Local<Object> target) {
   DefineSignalConstants(sig_constants);
   DefinePriorityConstants(priority_constants);
   DefineSystemConstants(fs_constants);
-  DefineOpenSSLConstants(crypto_constants);
   DefineCryptoConstants(crypto_constants);
   DefineZlibConstants(zlib_constants);
   DefineDLOpenConstants(dlopen_constants);
@@ -1351,15 +1369,33 @@ void DefineConstants(v8::Isolate* isolate, Local<Object> target) {
   // Define libuv constants.
   NODE_DEFINE_CONSTANT(os_constants, UV_UDP_REUSEADDR);
 
-  os_constants->Set(OneByteString(isolate, "dlopen"), dlopen_constants);
-  os_constants->Set(OneByteString(isolate, "errno"), err_constants);
-  os_constants->Set(OneByteString(isolate, "signals"), sig_constants);
-  os_constants->Set(OneByteString(isolate, "priority"), priority_constants);
-  target->Set(OneByteString(isolate, "os"), os_constants);
-  target->Set(OneByteString(isolate, "fs"), fs_constants);
-  target->Set(OneByteString(isolate, "crypto"), crypto_constants);
-  target->Set(OneByteString(isolate, "zlib"), zlib_constants);
-  target->Set(OneByteString(isolate, "trace"), trace_constants);
+  os_constants->Set(env->context(),
+                    OneByteString(isolate, "dlopen"),
+                    dlopen_constants).Check();
+  os_constants->Set(env->context(),
+                    OneByteString(isolate, "errno"),
+                    err_constants).Check();
+  os_constants->Set(env->context(),
+                    OneByteString(isolate, "signals"),
+                    sig_constants).Check();
+  os_constants->Set(env->context(),
+                    OneByteString(isolate, "priority"),
+                    priority_constants).Check();
+  target->Set(env->context(),
+              OneByteString(isolate, "os"),
+              os_constants).Check();
+  target->Set(env->context(),
+              OneByteString(isolate, "fs"),
+              fs_constants).Check();
+  target->Set(env->context(),
+              OneByteString(isolate, "crypto"),
+              crypto_constants).Check();
+  target->Set(env->context(),
+              OneByteString(isolate, "zlib"),
+              zlib_constants).Check();
+  target->Set(env->context(),
+              OneByteString(isolate, "trace"),
+              trace_constants).Check();
 }
 
 }  // namespace node

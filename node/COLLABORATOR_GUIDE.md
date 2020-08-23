@@ -3,38 +3,35 @@
 ## Contents
 
 * [Issues and Pull Requests](#issues-and-pull-requests)
-  - [Welcoming First-Time Contributors](#welcoming-first-time-contributors)
-  - [Closing Issues and Pull Requests](#closing-issues-and-pull-requests)
-  - [Author ready pull requests](#author-ready-pull-requests)
-  - [Handling own pull requests](#handling-own-pull-requests)
+  * [Welcoming First-Time Contributors](#welcoming-first-time-contributors)
+  * [Closing Issues and Pull Requests](#closing-issues-and-pull-requests)
+  * [Author ready pull requests](#author-ready-pull-requests)
+  * [Handling own pull requests](#handling-own-pull-requests)
 * [Accepting Modifications](#accepting-modifications)
-  - [Code Reviews](#code-reviews)
-  - [Consensus Seeking](#consensus-seeking)
-  - [Waiting for Approvals](#waiting-for-approvals)
-  - [Testing and CI](#testing-and-ci)
-    - [Useful CI Jobs](#useful-ci-jobs)
-  - [Internal vs. Public API](#internal-vs-public-api)
-  - [Breaking Changes](#breaking-changes)
-    - [Breaking Changes and Deprecations](#breaking-changes-and-deprecations)
-    - [Breaking Changes to Internal Elements](#breaking-changes-to-internal-elements)
-    - [When Breaking Changes Actually Break Things](#when-breaking-changes-actually-break-things)
-      - [Reverting commits](#reverting-commits)
-  - [Introducing New Modules](#introducing-new-modules)
-  - [Additions to N-API](#additions-to-n-api)
-  - [Deprecations](#deprecations)
-  - [Involving the TSC](#involving-the-tsc)
+  * [Code Reviews](#code-reviews)
+  * [Consensus Seeking](#consensus-seeking)
+  * [Waiting for Approvals](#waiting-for-approvals)
+  * [Testing and CI](#testing-and-ci)
+    * [Useful CI Jobs](#useful-ci-jobs)
+  * [Internal vs. Public API](#internal-vs-public-api)
+  * [Breaking Changes](#breaking-changes)
+    * [Breaking Changes and Deprecations](#breaking-changes-and-deprecations)
+    * [Breaking Changes to Internal Elements](#breaking-changes-to-internal-elements)
+    * [Unintended Breaking Changes](#unintended-breaking-changes)
+      * [Reverting commits](#reverting-commits)
+  * [Introducing New Modules](#introducing-new-modules)
+  * [Additions to N-API](#additions-to-n-api)
+  * [Deprecations](#deprecations)
+  * [Involving the TSC](#involving-the-tsc)
 * [Landing Pull Requests](#landing-pull-requests)
-  - [Using `git-node`](#using-git-node)
-  - [Technical HOWTO](#technical-howto)
-  - [Troubleshooting](#troubleshooting)
-  - [I Made a Mistake](#i-made-a-mistake)
-  - [Long Term Support](#long-term-support)
-    - [What is LTS?](#what-is-lts)
-    - [How does LTS work?](#how-does-lts-work)
-    - [Landing semver-minor commits in LTS](#landing-semver-minor-commits-in-lts)
-    - [How are LTS Branches Managed?](#how-are-lts-branches-managed)
-    - [How can I help?](#how-can-i-help)
-    - [How is an LTS release cut?](#how-is-an-lts-release-cut)
+  * [Using `git-node`](#using-git-node)
+  * [Technical HOWTO](#technical-howto)
+  * [Troubleshooting](#troubleshooting)
+  * [I Made a Mistake](#i-made-a-mistake)
+  * [Long Term Support](#long-term-support)
+    * [What is LTS?](#what-is-lts)
+    * [How are LTS Branches Managed?](#how-are-lts-branches-managed)
+    * [How can I help?](#how-can-i-help)
 * [Who to CC in the issue tracker](#who-to-cc-in-the-issue-tracker)
 
 This document explains how Collaborators manage the Node.js project.
@@ -80,9 +77,8 @@ Please always remove it again as soon as the conditions are not met anymore.
 
 ### Handling own pull requests
 
-When you open a pull request, [start a CI](#testing-and-ci) right away and post
-the link to it in a comment in the pull request. Later, after new code changes
-or rebasing, start a new CI.
+When you open a pull request, [start a CI](#testing-and-ci) right away. Later,
+after new code changes or rebasing, start a new CI.
 
 As soon as the pull request is ready to land, please do so. This allows other
 Collaborators to focus on other pull requests. If your pull request is not ready
@@ -112,8 +108,8 @@ review by @-mention.
 See [Who to CC in the issue tracker](#who-to-cc-in-the-issue-tracker).
 
 If you are the first Collaborator to approve a pull request that has no CI yet,
-please [start one](#testing-and-ci). Post the link to the CI in the PR. Please
-also start a new CI if the PR creator pushed new code since the last CI run.
+please [start one](#testing-and-ci). Please also start a new CI if the PR
+creator pushed new code since the last CI run.
 
 ### Consensus Seeking
 
@@ -198,8 +194,7 @@ for changes that only affect comments or documentation.
 * [`citgm-smoker`](https://ci.nodejs.org/job/citgm-smoker/)
 uses [`CitGM`](https://github.com/nodejs/citgm) to allow you to run
 `npm install && npm test` on a large selection of common modules. This is
-useful to check whether a change will cause breakage in the ecosystem. To test
-Node.js ABI changes you can run [`citgm-abi-smoker`](https://ci.nodejs.org/job/citgm-abi-smoker/).
+useful to check whether a change will cause breakage in the ecosystem.
 
 * [`node-stress-single-test`](https://ci.nodejs.org/job/node-stress-single-test/)
 can run a group of tests over and over on a specific platform. Use it to check
@@ -276,136 +271,112 @@ an effort to determine the potential impact of the change in the ecosystem. Use
 If a change will cause ecosystem breakage, then it is semver-major. Consider
 providing a Public API in such cases.
 
-#### When Breaking Changes Actually Break Things
+#### Unintended Breaking Changes
 
-* Breaking changes should *never* land in Current or LTS except when:
-  * Resolving critical security issues.
-  * Fixing a critical bug (e.g. fixing a memory leak) requires a breaking
-    change.
-  * There is TSC consensus that the change is required.
-* If a breaking commit does accidentally land in a Current or LTS branch, an
-  attempt to fix the issue will be made before the next release; If no fix is
-  provided then the commit will be reverted.
-
-When any changes are landed on the master branch and it is determined that the
-changes *do* break existing code, a decision may be made to revert those
-changes either temporarily or permanently. However, the decision to revert or
-not can often be based on many complex factors that are not easily codified. It
-is also possible that the breaking commit can be labeled retroactively as a
-semver-major change that will not be backported to Current or LTS branches.
+Sometimes, a change intended to be non-breaking turns out to be a breaking
+change. If such a change lands on the master branch, a Collaborator may revert
+it. As an alternative to reverting, the TSC may apply the semver-major label
+after-the-fact.
 
 ##### Reverting commits
 
-Commits are reverted with `git revert <HASH>`, or `git revert <FROM>..<TO>` for
-multiple commits. Commit metadata and the reason for the revert should be
-appended. Commit message rules about line length and subsystem can be ignored.
-A Pull Request should be raised and approved like any other change.
+Revert commits with `git revert <HASH>` or `git revert <FROM>..<TO>`. The
+generated commit message will not have a subsystem and may violate line length
+rules. That is OK. Append the reason for the revert and any `Refs` or `Fixes`
+metadata. Raise a Pull Request like any other change.
 
 ### Introducing New Modules
 
-Semver-minor commits that introduce new core modules should be treated with
-extra care.
+Treat commits that introduce new core modules with extra care.
 
-The name of the new core module should not conflict with any existing
-module in the ecosystem unless a written agreement with the owner of those
-modules is reached to transfer ownership.
+Check if the module's name conflicts with an existing ecosystem module. If it
+does, choose a different name unless the module owner has agreed in writing to
+transfer it.
 
-If the new module name is free, a Collaborator should register a placeholder
-in the module registry as soon as possible, linking to the pull request that
-introduces the new core module.
+If the new module name is free, register a placeholder in the module registry as
+soon as possible. Link to the pull request that introduces the new core module
+in the placeholder's `README`.
 
-Pull requests introducing new core modules:
+For pull requests introducing new core modules:
 
-* Must be left open for at least one week for review.
-* Must be labeled using the `tsc-review` label.
-* Must have signoff from at least two TSC members.
-
-New core modules must be landed with a [Stability Index][] of Experimental,
-and must remain Experimental until a semver-major release.
+* Allow at least one week for review.
+* Land only after sign-off from at least two TSC members.
+* Land with a [Stability Index][] of Experimental. The module must remain
+  Experimental until a semver-major release.
 
 ### Additions to N-API
 
-N-API provides an ABI stable API that we will have to support in future
-versions without the usual option to modify or remove existing APIs on
-SemVer boundaries. Therefore, additions need to be managed carefully.
-
-This
-[guide](https://github.com/nodejs/node/blob/master/doc/guides/adding-new-napi-api.md)
-outlines the requirements and principles that we should follow when
-approving and landing new N-API APIs (any additions to `node_api.h` and
-`node_api_types.h`).
+N-API provides an ABI-stable API guaranteed for future Node.js versions. N-API
+additions call for unusual care and scrutiny. If a change adds to `node_api.h`
+or `node_api_types.h`, consult [the relevant
+guide](https://github.com/nodejs/node/blob/master/doc/guides/adding-new-napi-api.md).
 
 ### Deprecations
 
-[_Deprecation_][] is "the discouragement of use of some … feature … or practice,
-typically because it has been superseded or is no longer considered efficient or
-safe, without completely removing it or prohibiting its use. It can also imply
-that a feature, design, or practice will be removed or discontinued entirely in
-the future."
+Node.js uses three [Deprecation][] levels. For all deprecated APIs, the API
+documentation must state the deprecation status.
 
-Node.js uses three Deprecation levels:
+* Documentation-Only Deprecation
+  * A deprecation notice appears in the API documentation.
+  * There are no functional changes.
+  * By default, there will be no warnings emitted for such deprecations at
+    runtime.
+  * May cause a runtime warning with the [`--pending-deprecation`][] flag or
+    `NODE_PENDING_DEPRECATION` environment variable.
 
-* *Documentation-Only Deprecation*: A deprecation notice is added to the API
-  documentation but no functional changes are implemented in the code. By
-  default, there will be no warnings emitted for such deprecations at
-  runtime. Documentation-only deprecations may trigger a runtime warning when
-  Node.js is started with the [`--pending-deprecation`][] flag or the
-  `NODE_PENDING_DEPRECATION=1` environment variable is set.
+* Runtime Deprecation
+  * Emits a warning at runtime on first use of the deprecated API.
+  * If used with the [`--throw-deprecation`][] flag, will throw a runtime error.
 
-* *Runtime Deprecation*: A warning is emitted at runtime the first time that a
-  deprecated API is used. The [`--throw-deprecation`][] flag can be used to
-  escalate such warnings into runtime errors that will cause the Node.js process
-  to exit. As with Documentation-Only Deprecation, the documentation for the API
-  must be updated to clearly indicate the deprecated status.
+* End-of-Life
+  * The API is no longer subject to the semantic versioning rules.
+  * Backward-incompatible changes including complete removal of such APIs may
+    occur at any time.
 
-* *End-of-life*: The API is no longer subject to the semantic versioning rules.
-  Backward-incompatible changes including complete removal of such APIs may
-  occur at any time.
+Apply the `notable change` label to all pull requests that introduce
+Documentation-Only Deprecations. Such deprecations have no impact on code
+execution. Thus, they are not breaking changes (`semver-major`).
 
-Documentation-Only Deprecations may be handled as semver-minor or semver-major
-changes. Such deprecations have no impact on the successful operation of running
-code and therefore should not be viewed as breaking changes.
-
-Runtime Deprecations and End-of-life APIs (internal or public) must be
-handled as semver-major changes unless there is TSC consensus to land the
-deprecation as a semver-minor.
+Runtime Deprecations and End-of-Life APIs (internal or public) are breaking
+changes (`semver-major`). The TSC may make exceptions, deciding that one of
+these deprecations is not a breaking change.
 
 All deprecations receive a unique and immutable identifier. Documentation,
 warnings, and errors use the identifier when referring to the deprecation. The
-documentation for the assigned deprecation identifier must always remain in the
-API documentation. This is true even if the deprecation is no longer in use (for
+documentation for the deprecation identifier must always remain in the API
+documentation. This is true even if the deprecation is no longer in use (for
 example, due to removal of an End-of-Life deprecated API).
 
 <a id="deprecation-cycle"></a>
-A _Deprecation cycle_ is a major release during which an API has been in one of
+A _deprecation cycle_ is a major release during which an API has been in one of
 the three Deprecation levels. Documentation-Only Deprecations may land in a
-minor release but must not be upgraded to a Runtime Deprecation until the next
-major release.
+minor release. They may not change to a Runtime Deprecation until the next major
+release.
 
-No API can be moved to End-of-life without first having gone through a
-Runtime Deprecation cycle. However, there is no requirement that deprecated
-code must progress ultimately to *End-of-Life*. Documentation-only and runtime
-deprecations may remain indefinitely.
+No API can change to End-of-Life without going through a Runtime Deprecation
+cycle. There is no rule that deprecated code must progress to End-of-Life.
+Documentation-Only and Runtime Deprecations may remain in place for an unlimited
+duration.
 
 Communicate pending deprecations and associated mitigations with the ecosystem
-as soon as possible (preferably before the pull request adding the deprecation
-lands on the master branch). Use the `notable-change` label on all pull requests
-that add a new deprecation or move an existing deprecation to a new deprecation
-level.
+as soon as possible. If possible, do it before the pull request adding the
+deprecation lands on the master branch.
+
+Use the `notable-change` label on pull requests that add or change the
+deprecation level of an API.
 
 ### Involving the TSC
 
 Collaborators may opt to elevate pull requests or issues to the [TSC][].
 Do this if a pull request or issue:
 
-- is labeled `semver-major`, or
-- has a significant impact on the codebase, or
-- is controversial, or
-- is at an impasse among Collaborators who are participating in the discussion.
+* is labeled `semver-major`, or
+* has a significant impact on the codebase, or
+* is controversial, or
+* is at an impasse among Collaborators who are participating in the discussion.
 
-Assign the `tsc-review` label or @-mention the
-`@nodejs/tsc` GitHub team if you want to elevate an issue to the [TSC][].
-Do not use the GitHub UI on the right-hand side to assign to
+@-mention the `@nodejs/tsc` GitHub team if you want to elevate an issue to the
+[TSC][]. Do not use the GitHub UI on the right-hand side to assign to
 `@nodejs/tsc` or request a review from `@nodejs/tsc`.
 
 The TSC should serve as the final arbiter where required.
@@ -570,9 +541,7 @@ Save the file and close the editor. When prompted, enter a new commit message
 for that commit. This is an opportunity to fix commit messages.
 
 * The commit message text must conform to the [commit message guidelines][].
-
-<a name="metadata"></a>
-* Change the original commit message to include metadata. (The
+* <a name="metadata"></a>Change the original commit message to include metadata. (The
   [`git node metadata`][git-node-metadata] command can generate the metadata
   for you.)
 
@@ -615,7 +584,7 @@ $ git push upstream master
 
 Close the pull request with a "Landed in `<commit hash>`" comment. If
 your pull request shows the purple merged status then you should still
-add the "Landed in <commit hash>..<commit hash>" comment if you added
+add the "Landed in \<commit hash>..\<commit hash>" comment if you added
 more than one commit.
 
 ### Troubleshooting
@@ -683,40 +652,27 @@ branches.
 
 #### How can I help?
 
-When you send your pull request, please include information about whether your
-change is breaking. If you think your patch can be backported, please include
-that information in the PR thread or your PR description. For more information
-on backporting, please see the [backporting guide][].
+When you send your pull request, please state if your change is breaking. Also
+state if you think your patch is a good candidate for backporting. For more
+information on backporting, please see the [backporting guide][].
 
-Several LTS related issue and PR labels have been provided:
+There are several LTS-related labels:
 
-* `lts-watch-v10.x` - tells the LTS WG that the issue/PR needs to be
-  considered for landing in the `v10.x-staging` branch.
-* `lts-watch-v8.x` - tells the LTS WG that the issue/PR needs to be
-  considered for landing in the `v8.x-staging` branch.
-* `lts-watch-v6.x` - tells the LTS WG that the issue/PR needs to be
-  considered for landing in the `v6.x-staging` branch.
-* `land-on-v10.x` - tells the release team that the commit should be landed
-  in a future v10.x release.
-* `land-on-v8.x` - tells the release team that the commit should be landed
-  in a future v8.x release.
-* `land-on-v6.x` - tells the release team that the commit should be landed
-  in a future v6.x release.
+* `lts-watch-` labels are for pull requests to consider for landing in staging
+  branches. For example, `lts-watch-v10.x` would be for a change
+  to consider for the `v10.x-staging` branch.
 
-Any Collaborator can attach these labels to any PR/issue. As commits are
-landed into the staging branches, the `lts-watch-` label will be removed.
-Likewise, as commits are landed in a LTS release, the `land-on-` label will
-be removed.
+* `land-on-` are for pull requests that should land in a future v*.x
+  release. For example, `land-on-v10.x` would be for a change to land in Node.js
+  10.x.
 
-Collaborators are encouraged to help the LTS WG by attaching the appropriate
-`lts-watch-` label to any PR that may impact an LTS release.
+Any Collaborator can attach these labels to any pull request/issue. As commits
+land on the staging branches, the backporter removes the `lts-watch-` label.
+Likewise, as commits land in an LTS release, the releaser removes the `land-on-`
+label.
 
-#### How is an LTS release cut?
-
-When the LTS working group determines that a new LTS release is required,
-selected commits will be picked from the staging branch to be included in the
-release. This process of making a release will be a collaboration between the
-LTS working group and the Release team.
+Attach the appropriate `lts-watch-` label to any PR that may impact an LTS
+release.
 
 ## Who to CC in the issue tracker
 
@@ -767,9 +723,9 @@ When things need extra attention, are controversial, or `semver-major`:
 If you cannot find who to cc for a file, `git shortlog -n -s <file>` may help.
 
 ["Merge Pull Request"]: https://help.github.com/articles/merging-a-pull-request/#merging-a-pull-request-on-github
+[Deprecation]: https://en.wikipedia.org/wiki/Deprecation
 [Stability Index]: doc/api/documentation.md#stability-index
 [TSC]: https://github.com/nodejs/TSC
-[_Deprecation_]: https://en.wikipedia.org/wiki/Deprecation
 [`--pending-deprecation`]: doc/api/cli.md#--pending-deprecation
 [`--throw-deprecation`]: doc/api/cli.md#--throw-deprecation
 [`node-core-utils`]: https://github.com/nodejs/node-core-utils

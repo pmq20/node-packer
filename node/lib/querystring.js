@@ -23,6 +23,8 @@
 
 'use strict';
 
+const { Object } = primordials;
+
 const { Buffer } = require('buffer');
 const {
   encodeStr,
@@ -62,16 +64,16 @@ const unhexTable = [
   -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
   -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1  // ... 255
 ];
-// a safe fast alternative to decodeURIComponent
+// A safe fast alternative to decodeURIComponent
 function unescapeBuffer(s, decodeSpaces) {
-  var out = Buffer.allocUnsafe(s.length);
+  const out = Buffer.allocUnsafe(s.length);
   var index = 0;
   var outIndex = 0;
   var currentChar;
   var nextChar;
   var hexHigh;
   var hexLow;
-  var maxLength = s.length - 2;
+  const maxLength = s.length - 2;
   // Flag to know if some hex chars have been decoded
   var hasHex = false;
   while (index < s.length) {
@@ -172,23 +174,26 @@ function stringify(obj, sep, eq, options) {
     for (var i = 0; i < len; ++i) {
       var k = keys[i];
       var v = obj[k];
-      var ks = encode(stringifyPrimitive(k)) + eq;
+      var ks = encode(stringifyPrimitive(k));
+      ks += eq;
 
       if (Array.isArray(v)) {
         var vlen = v.length;
+        if (vlen === 0) continue;
         var vlast = vlen - 1;
         for (var j = 0; j < vlen; ++j) {
-          fields += ks + encode(stringifyPrimitive(v[j]));
+          fields += ks;
+          fields += encode(stringifyPrimitive(v[j]));
           if (j < vlast)
             fields += sep;
         }
-        if (vlen && i < flast)
-          fields += sep;
       } else {
-        fields += ks + encode(stringifyPrimitive(v));
-        if (i < flast)
-          fields += sep;
+        fields += ks;
+        fields += encode(stringifyPrimitive(v));
       }
+
+      if (i < flast)
+        fields += sep;
     }
     return fields;
   }
@@ -198,13 +203,33 @@ function stringify(obj, sep, eq, options) {
 function charCodes(str) {
   if (str.length === 0) return [];
   if (str.length === 1) return [str.charCodeAt(0)];
-  const ret = [];
+  const ret = new Array(str.length);
   for (var i = 0; i < str.length; ++i)
-    ret[ret.length] = str.charCodeAt(i);
+    ret[i] = str.charCodeAt(i);
   return ret;
 }
 const defSepCodes = [38]; // &
 const defEqCodes = [61]; // =
+
+function addKeyVal(obj, key, value, keyEncoded, valEncoded, decode) {
+  if (key.length > 0 && keyEncoded)
+    key = decodeStr(key, decode);
+  if (value.length > 0 && valEncoded)
+    value = decodeStr(value, decode);
+
+  if (obj[key] === undefined) {
+    obj[key] = value;
+  } else {
+    const curValue = obj[key];
+    // A simple Array-specific property check is enough here to
+    // distinguish from a string value and is faster and still safe
+    // since we are generating all of the values being assigned.
+    if (curValue.pop)
+      curValue[curValue.length] = value;
+    else
+      obj[key] = [curValue, value];
+  }
+}
 
 // Parse a key/val string.
 function parse(qs, sep, eq, options) {
@@ -214,8 +239,8 @@ function parse(qs, sep, eq, options) {
     return obj;
   }
 
-  var sepCodes = (!sep ? defSepCodes : charCodes(sep + ''));
-  var eqCodes = (!eq ? defEqCodes : charCodes(eq + ''));
+  const sepCodes = (!sep ? defSepCodes : charCodes(sep + ''));
+  const eqCodes = (!eq ? defEqCodes : charCodes(eq + ''));
   const sepLen = sepCodes.length;
   const eqLen = eqCodes.length;
 
@@ -270,23 +295,8 @@ function parse(qs, sep, eq, options) {
           value += qs.slice(lastPos, end);
         }
 
-        if (key.length > 0 && keyEncoded)
-          key = decodeStr(key, decode);
-        if (value.length > 0 && valEncoded)
-          value = decodeStr(value, decode);
+        addKeyVal(obj, key, value, keyEncoded, valEncoded, decode);
 
-        if (obj[key] === undefined) {
-          obj[key] = value;
-        } else {
-          const curValue = obj[key];
-          // A simple Array-specific property check is enough here to
-          // distinguish from a string value and is faster and still safe
-          // since we are generating all of the values being assigned.
-          if (curValue.pop)
-            curValue[curValue.length] = value;
-          else
-            obj[key] = [curValue, value];
-        }
         if (--pairs === 0)
           return obj;
         keyEncoded = valEncoded = customDecode;
@@ -368,22 +378,8 @@ function parse(qs, sep, eq, options) {
     // We ended on an empty substring
     return obj;
   }
-  if (key.length > 0 && keyEncoded)
-    key = decodeStr(key, decode);
-  if (value.length > 0 && valEncoded)
-    value = decodeStr(value, decode);
-  if (obj[key] === undefined) {
-    obj[key] = value;
-  } else {
-    const curValue = obj[key];
-    // A simple Array-specific property check is enough here to
-    // distinguish from a string value and is faster and still safe since
-    // we are generating all of the values being assigned.
-    if (curValue.pop)
-      curValue[curValue.length] = value;
-    else
-      obj[key] = [curValue, value];
-  }
+
+  addKeyVal(obj, key, value, keyEncoded, valEncoded, decode);
 
   return obj;
 }

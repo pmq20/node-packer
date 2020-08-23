@@ -3,7 +3,7 @@
 
 #if defined(NODE_WANT_INTERNALS) && NODE_WANT_INTERNALS
 
-#include "util-inl.h"
+#include "util.h"
 #include "uv.h"
 
 #include <string>
@@ -25,7 +25,7 @@ class InspectorSocket {
                                  const std::string& path,
                                  const std::string& accept_key) = 0;
     virtual void OnWsFrame(const std::vector<char>& frame) = 0;
-    virtual ~Delegate() {}
+    virtual ~Delegate() = default;
   };
 
   using DelegatePointer = std::unique_ptr<Delegate>;
@@ -41,13 +41,14 @@ class InspectorSocket {
   void SwitchProtocol(ProtocolHandler* handler);
   std::string GetHost();
 
+  InspectorSocket(const InspectorSocket&) = delete;
+  InspectorSocket& operator=(const InspectorSocket&) = delete;
+
  private:
   static void Shutdown(ProtocolHandler*);
   InspectorSocket() = default;
 
   DeleteFnPtr<ProtocolHandler, Shutdown> protocol_handler_;
-
-  DISALLOW_COPY_AND_ASSIGN(InspectorSocket);
 };
 
 

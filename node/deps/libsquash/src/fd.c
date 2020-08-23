@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2017 - 2020 Minqi Pan <pmq2001@gmail.com>
- *                           Shengyuan Liu <sounder.liu@gmail.com>
+ * Copyright (c) 2017 Minqi Pan <pmq2001@gmail.com>
+ *                    Shengyuan Liu <sounder.liu@gmail.com>
  *
  * This file is part of libsquash, distributed under the MIT License
  * For full terms see the included LICENSE file
@@ -37,8 +37,6 @@ int squash_open_inner(sqfs *fs, const char *path, short follow_link)
 	{
 		goto failure;
 	}
-	file->filename = strdup(path);
-
 	if (!found)
 	{
 		errno = ENOENT;
@@ -115,8 +113,6 @@ int squash_open(sqfs *fs, const char *path)
 int squash_close(int vfd)
 {
 	int ret;
-	struct squash_file *file;
-
         if (!SQUASH_VALID_VFD(vfd)) {
                 errno = EBADF;
                 return -1;
@@ -133,11 +129,7 @@ int squash_close(int vfd)
                 int *handle = (int *) (squash_global_fdtable.fds[vfd]->payload);
                 free(handle);
         }
-
-        file = squash_global_fdtable.fds[vfd];
-        free(file->filename);
-        free(file);
-
+        free(squash_global_fdtable.fds[vfd]);
         squash_global_fdtable.fds[vfd] = NULL;
         if (vfd + 1 == squash_global_fdtable.end) {
                 while (vfd >= 0 && NULL == squash_global_fdtable.fds[vfd]) {

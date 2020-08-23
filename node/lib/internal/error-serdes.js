@@ -1,22 +1,17 @@
 'use strict';
 
 const Buffer = require('buffer').Buffer;
-const { serialize, deserialize } = require('v8');
-const { SafeSet } = require('internal/safe_globals');
+const {
+  ArrayPrototype,
+  FunctionPrototype,
+  Object,
+  ObjectPrototype,
+  SafeSet,
+} = primordials;
 
 const kSerializedError = 0;
 const kSerializedObject = 1;
 const kInspectedError = 2;
-
-const GetPrototypeOf = Object.getPrototypeOf;
-const GetOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
-const GetOwnPropertyNames = Object.getOwnPropertyNames;
-const DefineProperty = Object.defineProperty;
-const Assign = Object.assign;
-const ObjectPrototypeToString =
-    Function.prototype.call.bind(Object.prototype.toString);
-const ForEach = Function.prototype.call.bind(Array.prototype.forEach);
-const Call = Function.prototype.call.bind(Function.prototype.call);
 
 const errors = {
   Error, TypeError, RangeError, URIError, SyntaxError, ReferenceError, EvalError
@@ -27,14 +22,18 @@ function TryGetAllProperties(object, target = object) {
   const all = Object.create(null);
   if (object === null)
     return all;
-  Assign(all, TryGetAllProperties(GetPrototypeOf(object), target));
-  const keys = GetOwnPropertyNames(object);
-  ForEach(keys, (key) => {
-    const descriptor = GetOwnPropertyDescriptor(object, key);
+  Object.assign(all,
+                TryGetAllProperties(Object.getPrototypeOf(object), target));
+  const keys = Object.getOwnPropertyNames(object);
+  ArrayPrototype.forEach(keys, (key) => {
+    let descriptor;
+    try {
+      descriptor = Object.getOwnPropertyDescriptor(object, key);
+    } catch { return; }
     const getter = descriptor.get;
     if (getter && key !== '__proto__') {
       try {
-        descriptor.value = Call(getter, target);
+        descriptor.value = FunctionPrototype.call(getter, target);
       } catch {}
     }
     if ('value' in descriptor && typeof descriptor.value !== 'function') {
@@ -51,10 +50,10 @@ function GetConstructors(object) {
 
   for (var current = object;
     current !== null;
-    current = GetPrototypeOf(current)) {
-    const desc = GetOwnPropertyDescriptor(current, 'constructor');
+    current = Object.getPrototypeOf(current)) {
+    const desc = Object.getOwnPropertyDescriptor(current, 'constructor');
     if (desc && desc.value) {
-      DefineProperty(constructors, constructors.length, {
+      Object.defineProperty(constructors, constructors.length, {
         value: desc.value, enumerable: true
       });
     }
@@ -64,26 +63,28 @@ function GetConstructors(object) {
 }
 
 function GetName(object) {
-  const desc = GetOwnPropertyDescriptor(object, 'name');
+  const desc = Object.getOwnPropertyDescriptor(object, 'name');
   return desc && desc.value;
 }
 
-let util;
-function lazyUtil() {
-  if (!util)
-    util = require('util');
-  return util;
+let internalUtilInspect;
+function inspect(...args) {
+  if (!internalUtilInspect) {
+    internalUtilInspect = require('internal/util/inspect');
+  }
+  return internalUtilInspect.inspect(...args);
 }
 
+let serialize;
 function serializeError(error) {
+  if (!serialize) serialize = require('v8').serialize;
   try {
     if (typeof error === 'object' &&
-        ObjectPrototypeToString(error) === '[object Error]') {
+        ObjectPrototype.toString(error) === '[object Error]') {
       const constructors = GetConstructors(error);
-      for (var i = constructors.length - 1; i >= 0; i--) {
+      for (var i = 0; i < constructors.length; i++) {
         const name = GetName(constructors[i]);
         if (errorConstructorNames.has(name)) {
-          try { error.stack; } catch {}
           const serialized = serialize({
             constructor: name,
             properties: TryGetAllProperties(error)
@@ -98,10 +99,12 @@ function serializeError(error) {
     return Buffer.concat([Buffer.from([kSerializedObject]), serialized]);
   } catch {}
   return Buffer.concat([Buffer.from([kInspectedError]),
-                        Buffer.from(lazyUtil().inspect(error), 'utf8')]);
+                        Buffer.from(inspect(error), 'utf8')]);
 }
 
+let deserialize;
 function deserializeError(error) {
+  if (!deserialize) deserialize = require('v8').deserialize;
   switch (error[0]) {
     case kSerializedError:
       const { constructor, properties } = deserialize(error.subarray(1));

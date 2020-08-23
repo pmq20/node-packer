@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Crypto | Node.js v10.16.3 Documentation</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
+  <title>Crypto | Node.js v12.13.0 Documentation</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
   <link rel="canonical" href="https://nodejs.org/api/crypto.html">
@@ -52,11 +52,13 @@
 <li><a href="os.html" class="nav-os">OS</a></li>
 <li><a href="path.html" class="nav-path">Path</a></li>
 <li><a href="perf_hooks.html" class="nav-perf_hooks">Performance Hooks</a></li>
+<li><a href="policy.html" class="nav-policy">Policies</a></li>
 <li><a href="process.html" class="nav-process">Process</a></li>
 <li><a href="punycode.html" class="nav-punycode">Punycode</a></li>
 <li><a href="querystring.html" class="nav-querystring">Query Strings</a></li>
 <li><a href="readline.html" class="nav-readline">Readline</a></li>
 <li><a href="repl.html" class="nav-repl">REPL</a></li>
+<li><a href="report.html" class="nav-report">Report</a></li>
 <li><a href="stream.html" class="nav-stream">Stream</a></li>
 <li><a href="string_decoder.html" class="nav-string_decoder">String Decoder</a></li>
 <li><a href="timers.html" class="nav-timers">Timers</a></li>
@@ -79,7 +81,7 @@
 
     <div id="column1" data-id="crypto" class="interior">
       <header>
-        <h1>Node.js v10.16.3 Documentation</h1>
+        <h1>Node.js v12.13.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -171,6 +173,7 @@
 <li><a href="#crypto_diffiehellman_verifyerror">diffieHellman.verifyError</a></li>
 </ul>
 </li>
+<li><a href="#crypto_class_diffiehellmangroup">Class: DiffieHellmanGroup</a></li>
 <li>
 <p><a href="#crypto_class_ecdh">Class: ECDH</a></p>
 <ul>
@@ -198,6 +201,15 @@
 </ul>
 </li>
 <li>
+<p><a href="#crypto_class_keyobject">Class: KeyObject</a></p>
+<ul>
+<li><a href="#crypto_keyobject_asymmetrickeytype">keyObject.asymmetricKeyType</a></li>
+<li><a href="#crypto_keyobject_export_options">keyObject.export([options])</a></li>
+<li><a href="#crypto_keyobject_symmetrickeysize">keyObject.symmetricKeySize</a></li>
+<li><a href="#crypto_keyobject_type">keyObject.type</a></li>
+</ul>
+</li>
+<li>
 <p><a href="#crypto_class_sign">Class: Sign</a></p>
 <ul>
 <li><a href="#crypto_sign_sign_privatekey_outputencoding">sign.sign(privateKey[, outputEncoding])</a></li>
@@ -219,14 +231,17 @@
 <li><span class="stability_0"><a href="#crypto_crypto_fips">crypto.fips</a></span></li>
 <li><span class="stability_0"><a href="#crypto_crypto_createcipher_algorithm_password_options">crypto.createCipher(algorithm, password[, options])</a></span></li>
 <li><a href="#crypto_crypto_createcipheriv_algorithm_key_iv_options">crypto.createCipheriv(algorithm, key, iv[, options])</a></li>
-<li><span class="stability_0"><a href="#crypto_crypto_createcredentials_details">crypto.createCredentials(details)</a></span></li>
 <li><span class="stability_0"><a href="#crypto_crypto_createdecipher_algorithm_password_options">crypto.createDecipher(algorithm, password[, options])</a></span></li>
 <li><a href="#crypto_crypto_createdecipheriv_algorithm_key_iv_options">crypto.createDecipheriv(algorithm, key, iv[, options])</a></li>
 <li><a href="#crypto_crypto_creatediffiehellman_prime_primeencoding_generator_generatorencoding">crypto.createDiffieHellman(prime[, primeEncoding][, generator][, generatorEncoding])</a></li>
 <li><a href="#crypto_crypto_creatediffiehellman_primelength_generator">crypto.createDiffieHellman(primeLength[, generator])</a></li>
+<li><a href="#crypto_crypto_creatediffiehellmangroup_name">crypto.createDiffieHellmanGroup(name)</a></li>
 <li><a href="#crypto_crypto_createecdh_curvename">crypto.createECDH(curveName)</a></li>
 <li><a href="#crypto_crypto_createhash_algorithm_options">crypto.createHash(algorithm[, options])</a></li>
 <li><a href="#crypto_crypto_createhmac_algorithm_key_options">crypto.createHmac(algorithm, key[, options])</a></li>
+<li><a href="#crypto_crypto_createprivatekey_key">crypto.createPrivateKey(key)</a></li>
+<li><a href="#crypto_crypto_createpublickey_key">crypto.createPublicKey(key)</a></li>
+<li><a href="#crypto_crypto_createsecretkey_key">crypto.createSecretKey(key)</a></li>
 <li><a href="#crypto_crypto_createsign_algorithm_options">crypto.createSign(algorithm[, options])</a></li>
 <li><a href="#crypto_crypto_createverify_algorithm_options">crypto.createVerify(algorithm[, options])</a></li>
 <li><a href="#crypto_crypto_generatekeypair_type_options_callback">crypto.generateKeyPair(type, options, callback)</a></li>
@@ -249,7 +264,9 @@
 <li><a href="#crypto_crypto_scryptsync_password_salt_keylen_options">crypto.scryptSync(password, salt, keylen[, options])</a></li>
 <li><a href="#crypto_crypto_setengine_engine_flags">crypto.setEngine(engine[, flags])</a></li>
 <li><a href="#crypto_crypto_setfips_bool">crypto.setFips(bool)</a></li>
+<li><a href="#crypto_crypto_sign_algorithm_data_key">crypto.sign(algorithm, data, key)</a></li>
 <li><a href="#crypto_crypto_timingsafeequal_a_b">crypto.timingSafeEqual(a, b)</a></li>
+<li><a href="#crypto_crypto_verify_algorithm_data_key_signature">crypto.verify(algorithm, data, key, signature)</a></li>
 </ul>
 </li>
 <li>
@@ -309,7 +326,7 @@ try {
 </div>
 <p>SPKAC is a Certificate Signing Request mechanism originally implemented by
 Netscape and was specified formally as part of <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/keygen">HTML5's <code>keygen</code> element</a>.</p>
-<p>Note that <code>&#x3C;keygen></code> is deprecated since <a href="https://www.w3.org/TR/html52/changes.html#features-removed">HTML 5.2</a> and new projects
+<p><code>&#x3C;keygen></code> is deprecated since <a href="https://www.w3.org/TR/html52/changes.html#features-removed">HTML 5.2</a> and new projects
 should not use this element anymore.</p>
 <p>The <code>crypto</code> module provides the <code>Certificate</code> class for working with SPKAC
 data. The most common usage is handling output generated by the HTML5
@@ -419,6 +436,9 @@ console.log(cert.verifySpkac(Buffer.from(spkac)));
 <div class="api_metadata">
 <span>Added in: v0.1.94</span>
 </div>
+<ul>
+<li>Extends: <a href="stream.html#stream_class_stream_transform" class="type">&#x3C;stream.Transform></a></li>
+</ul>
 <p>Instances of the <code>Cipher</code> class are used to encrypt data. The class can be
 used in one of two ways:</p>
 <ul>
@@ -560,7 +580,7 @@ Disabling automatic padding is useful for non-standard padding, for instance
 using <code>0x0</code> instead of PKCS padding.</p>
 <p>The <code>cipher.setAutoPadding()</code> method must be called before
 <a href="#crypto_cipher_final_outputencoding"><code>cipher.final()</code></a>.</p>
-<h3>cipher.update(data[, inputEncoding][, outputencoding])<span><a class="mark" href="#crypto_cipher_update_data_inputencoding_outputencoding" id="crypto_cipher_update_data_inputencoding_outputencoding">#</a></span></h3>
+<h3>cipher.update(data[, inputEncoding][, outputEncoding])<span><a class="mark" href="#crypto_cipher_update_data_inputencoding_outputencoding" id="crypto_cipher_update_data_inputencoding_outputencoding">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -595,6 +615,9 @@ is specified, a string using the specified encoding is returned. If no
 <div class="api_metadata">
 <span>Added in: v0.1.94</span>
 </div>
+<ul>
+<li>Extends: <a href="stream.html#stream_class_stream_transform" class="type">&#x3C;stream.Transform></a></li>
+</ul>
 <p>Instances of the <code>Decipher</code> class are used to decrypt data. The class can be
 used in one of two ways:</p>
 <ul>
@@ -722,6 +745,8 @@ of the plaintext in bytes. See <a href="#crypto_ccm_mode">CCM mode</a>.</p>
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v11.0.0</td>
+<td><p>This method now throws if the GCM tag length is invalid.</p></td></tr>
 <tr><td>v7.2.0</td>
 <td><p>This method now returns a reference to <code>decipher</code>.</p></td></tr>
 <tr><td>v1.0.0</td>
@@ -737,16 +762,11 @@ of the plaintext in bytes. See <a href="#crypto_ccm_mode">CCM mode</a>.</p>
 currently supported), the <code>decipher.setAuthTag()</code> method is used to pass in the
 received <em>authentication tag</em>. If no tag is provided, or if the cipher text
 has been tampered with, <a href="#crypto_decipher_final_outputencoding"><code>decipher.final()</code></a> will throw, indicating that the
-cipher text should be discarded due to failed authentication.</p>
-<p>Note that this Node.js version does not verify the length of GCM authentication
-tags. Such a check <em>must</em> be implemented by applications and is crucial to the
-authenticity of the encrypted data, otherwise, an attacker can use an
-arbitrarily short authentication tag to increase the chances of successfully
-passing authentication (up to 0.39%). It is highly recommended to associate one
-of the values 16, 15, 14, 13, 12, 8 or 4 bytes with each key, and to only permit
-authentication tags of that length, see <a href="https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf">NIST SP 800-38D</a>.</p>
+cipher text should be discarded due to failed authentication. If the tag length
+is invalid according to <a href="https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf">NIST SP 800-38D</a> or does not match the value of the
+<code>authTagLength</code> option, <code>decipher.setAuthTag()</code> will throw an error.</p>
 <p>The <code>decipher.setAuthTag()</code> method must be called before
-<a href="#crypto_decipher_final_outputencoding"><code>decipher.final()</code></a>.</p>
+<a href="#crypto_decipher_final_outputencoding"><code>decipher.final()</code></a> and can only be called once.</p>
 <h3>decipher.setAutoPadding([autoPadding])<span><a class="mark" href="#crypto_decipher_setautopadding_autopadding" id="crypto_decipher_setautopadding_autopadding">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.7.1</span>
@@ -762,7 +782,7 @@ authentication tags of that length, see <a href="https://nvlpubs.nist.gov/nistpu
 multiple of the ciphers block size.</p>
 <p>The <code>decipher.setAutoPadding()</code> method must be called before
 <a href="#crypto_decipher_final_outputencoding"><code>decipher.final()</code></a>.</p>
-<h3>decipher.update(data[, inputEncoding][, outputencoding])<span><a class="mark" href="#crypto_decipher_update_data_inputencoding_outputencoding" id="crypto_decipher_update_data_inputencoding_outputencoding">#</a></span></h3>
+<h3>decipher.update(data[, inputEncoding][, outputEncoding])<span><a class="mark" href="#crypto_decipher_update_data_inputencoding_outputencoding" id="crypto_decipher_update_data_inputencoding_outputencoding">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -818,7 +838,7 @@ const bobSecret = bob.computeSecret(aliceKey);
 // OK
 assert.strictEqual(aliceSecret.toString('hex'), bobSecret.toString('hex'));
 </code></pre>
-<h3>diffieHellman.computeSecret(otherPublicKey[, inputEncoding][, outputencoding])<span><a class="mark" href="#crypto_diffiehellman_computesecret_otherpublickey_inputencoding_outputencoding" id="crypto_diffiehellman_computesecret_otherpublickey_inputencoding_outputencoding">#</a></span></h3>
+<h3>diffieHellman.computeSecret(otherPublicKey[, inputEncoding][, outputEncoding])<span><a class="mark" href="#crypto_diffiehellman_computesecret_otherpublickey_inputencoding_outputencoding" id="crypto_diffiehellman_computesecret_otherpublickey_inputencoding_outputencoding">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.5.0</span>
 </div>
@@ -837,7 +857,7 @@ provided, <code>otherPublicKey</code> is expected to be a <a href="buffer.html">
 <code>TypedArray</code>, or <code>DataView</code>.</p>
 <p>If <code>outputEncoding</code> is given a string is returned; otherwise, a
 <a href="buffer.html"><code>Buffer</code></a> is returned.</p>
-<h3>diffieHellman.generateKeys(<a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a>)<span><a class="mark" href="#crypto_diffiehellman_generatekeys_encoding" id="crypto_diffiehellman_generatekeys_encoding">#</a></span></h3>
+<h3>diffieHellman.generateKeys([encoding])<span><a class="mark" href="#crypto_diffiehellman_generatekeys_encoding" id="crypto_diffiehellman_generatekeys_encoding">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.5.0</span>
 </div>
@@ -850,7 +870,7 @@ the public key in the specified <code>encoding</code>. This key should be
 transferred to the other party.
 If <code>encoding</code> is provided a string is returned; otherwise a
 <a href="buffer.html"><code>Buffer</code></a> is returned.</p>
-<h3>diffieHellman.getGenerator(<a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a>)<span><a class="mark" href="#crypto_diffiehellman_getgenerator_encoding" id="crypto_diffiehellman_getgenerator_encoding">#</a></span></h3>
+<h3>diffieHellman.getGenerator([encoding])<span><a class="mark" href="#crypto_diffiehellman_getgenerator_encoding" id="crypto_diffiehellman_getgenerator_encoding">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.5.0</span>
 </div>
@@ -861,7 +881,7 @@ If <code>encoding</code> is provided a string is returned; otherwise a
 <p>Returns the Diffie-Hellman generator in the specified <code>encoding</code>.
 If <code>encoding</code> is provided a string is
 returned; otherwise a <a href="buffer.html"><code>Buffer</code></a> is returned.</p>
-<h3>diffieHellman.getPrime(<a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a>)<span><a class="mark" href="#crypto_diffiehellman_getprime_encoding" id="crypto_diffiehellman_getprime_encoding">#</a></span></h3>
+<h3>diffieHellman.getPrime([encoding])<span><a class="mark" href="#crypto_diffiehellman_getprime_encoding" id="crypto_diffiehellman_getprime_encoding">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.5.0</span>
 </div>
@@ -872,7 +892,7 @@ returned; otherwise a <a href="buffer.html"><code>Buffer</code></a> is returned.
 <p>Returns the Diffie-Hellman prime in the specified <code>encoding</code>.
 If <code>encoding</code> is provided a string is
 returned; otherwise a <a href="buffer.html"><code>Buffer</code></a> is returned.</p>
-<h3>diffieHellman.getPrivateKey(<a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a>)<span><a class="mark" href="#crypto_diffiehellman_getprivatekey_encoding" id="crypto_diffiehellman_getprivatekey_encoding">#</a></span></h3>
+<h3>diffieHellman.getPrivateKey([encoding])<span><a class="mark" href="#crypto_diffiehellman_getprivatekey_encoding" id="crypto_diffiehellman_getprivatekey_encoding">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.5.0</span>
 </div>
@@ -883,7 +903,7 @@ returned; otherwise a <a href="buffer.html"><code>Buffer</code></a> is returned.
 <p>Returns the Diffie-Hellman private key in the specified <code>encoding</code>.
 If <code>encoding</code> is provided a
 string is returned; otherwise a <a href="buffer.html"><code>Buffer</code></a> is returned.</p>
-<h3>diffieHellman.getPublicKey(<a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a>)<span><a class="mark" href="#crypto_diffiehellman_getpublickey_encoding" id="crypto_diffiehellman_getpublickey_encoding">#</a></span></h3>
+<h3>diffieHellman.getPublicKey([encoding])<span><a class="mark" href="#crypto_diffiehellman_getpublickey_encoding" id="crypto_diffiehellman_getpublickey_encoding">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.5.0</span>
 </div>
@@ -932,6 +952,26 @@ module):</p>
 <li><code>DH_UNABLE_TO_CHECK_GENERATOR</code></li>
 <li><code>DH_NOT_SUITABLE_GENERATOR</code></li>
 </ul>
+<h2>Class: DiffieHellmanGroup<span><a class="mark" href="#crypto_class_diffiehellmangroup" id="crypto_class_diffiehellmangroup">#</a></span></h2>
+<div class="api_metadata">
+<span>Added in: v0.7.5</span>
+</div>
+<p>The <code>DiffieHellmanGroup</code> class takes a well-known modp group as its argument but
+otherwise works the same as <code>DiffieHellman</code>.</p>
+<pre><code class="language-js">const name = 'modp1';
+const dh = crypto.createDiffieHellmanGroup(name);
+</code></pre>
+<p><code>name</code> is taken from <a href="https://www.rfc-editor.org/rfc/rfc2412.txt">RFC 2412</a> (modp1 and 2) and <a href="https://www.rfc-editor.org/rfc/rfc3526.txt">RFC 3526</a>:</p>
+<pre><code class="language-console">$ perl -ne 'print "$1\n" if /"(modp\d+)"/' src/node_crypto_groups.h
+modp1  #  768 bits
+modp2  # 1024 bits
+modp5  # 1536 bits
+modp14 # 2048 bits
+modp15 # etc.
+modp16
+modp17
+modp18
+</code></pre>
 <h2>Class: ECDH<span><a class="mark" href="#crypto_class_ecdh" id="crypto_class_ecdh">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.11.14</span>
@@ -996,10 +1036,10 @@ const uncompressedKey = ECDH.convertKey(compressedKey,
                                         'hex',
                                         'uncompressed');
 
-// the converted key and the uncompressed public key should be the same
+// The converted key and the uncompressed public key should be the same
 console.log(uncompressedKey === ecdh.getPublicKey('hex'));
 </code></pre>
-<h3>ecdh.computeSecret(otherPublicKey[, inputEncoding][, outputencoding])<span><a class="mark" href="#crypto_ecdh_computesecret_otherpublickey_inputencoding_outputencoding" id="crypto_ecdh_computesecret_otherpublickey_inputencoding_outputencoding">#</a></span></h3>
+<h3>ecdh.computeSecret(otherPublicKey[, inputEncoding][, outputEncoding])<span><a class="mark" href="#crypto_ecdh_computesecret_otherpublickey_inputencoding_outputencoding" id="crypto_ecdh_computesecret_otherpublickey_inputencoding_outputencoding">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1050,7 +1090,7 @@ transferred to the other party.</p>
 <code>'uncompressed'</code> format.</p>
 <p>If <code>encoding</code> is provided a string is returned; otherwise a <a href="buffer.html"><code>Buffer</code></a>
 is returned.</p>
-<h3>ecdh.getPrivateKey(<a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a>)<span><a class="mark" href="#crypto_ecdh_getprivatekey_encoding" id="crypto_ecdh_getprivatekey_encoding">#</a></span></h3>
+<h3>ecdh.getPrivateKey([encoding])<span><a class="mark" href="#crypto_ecdh_getprivatekey_encoding" id="crypto_ecdh_getprivatekey_encoding">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.14</span>
 </div>
@@ -1102,7 +1142,7 @@ public point (key) is also generated and set in the <code>ECDH</code> object.</p
 <p>Sets the EC Diffie-Hellman public key.
 If <code>encoding</code> is provided <code>publicKey</code> is expected to
 be a string; otherwise a <a href="buffer.html"><code>Buffer</code></a>, <code>TypedArray</code>, or <code>DataView</code> is expected.</p>
-<p>Note that there is not normally a reason to call this method because <code>ECDH</code>
+<p>There is not normally a reason to call this method because <code>ECDH</code>
 only requires a private key and the other party's public key to compute the
 shared secret. Typically either <a href="#crypto_ecdh_generatekeys_encoding_format"><code>ecdh.generateKeys()</code></a> or
 <a href="#crypto_ecdh_setprivatekey_privatekey_encoding"><code>ecdh.setPrivateKey()</code></a> will be called. The <a href="#crypto_ecdh_setprivatekey_privatekey_encoding"><code>ecdh.setPrivateKey()</code></a> method
@@ -1134,6 +1174,9 @@ console.log(aliceSecret === bobSecret);
 <div class="api_metadata">
 <span>Added in: v0.1.92</span>
 </div>
+<ul>
+<li>Extends: <a href="stream.html#stream_class_stream_transform" class="type">&#x3C;stream.Transform></a></li>
+</ul>
 <p>The <code>Hash</code> class is a utility for creating hash digests of data. It can be
 used in one of two ways:</p>
 <ul>
@@ -1179,7 +1222,7 @@ console.log(hash.digest('hex'));
 // Prints:
 //   6a2da20943931e9834fc12cfe5bb47bbd9ae43489a30726962b576f4e3993e50
 </code></pre>
-<h3>hash.digest(<a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a>)<span><a class="mark" href="#crypto_hash_digest_encoding" id="crypto_hash_digest_encoding">#</a></span></h3>
+<h3>hash.digest([encoding])<span><a class="mark" href="#crypto_hash_digest_encoding" id="crypto_hash_digest_encoding">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.92</span>
 </div>
@@ -1219,7 +1262,10 @@ encoding of <code>'utf8'</code> is enforced. If <code>data</code> is a <a href="
 <div class="api_metadata">
 <span>Added in: v0.1.94</span>
 </div>
-<p>The <code>Hmac</code> Class is a utility for creating cryptographic HMAC digests. It can
+<ul>
+<li>Extends: <a href="stream.html#stream_class_stream_transform" class="type">&#x3C;stream.Transform></a></li>
+</ul>
+<p>The <code>Hmac</code> class is a utility for creating cryptographic HMAC digests. It can
 be used in one of two ways:</p>
 <ul>
 <li>As a <a href="stream.html">stream</a> that is both readable and writable, where data is written
@@ -1264,7 +1310,7 @@ console.log(hmac.digest('hex'));
 // Prints:
 //   7fd04df92f636fd450bc841c9418e5825c17f33ad9c87c518115a45971f7f77e
 </code></pre>
-<h3>hmac.digest(<a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a>)<span><a class="mark" href="#crypto_hmac_digest_encoding" id="crypto_hmac_digest_encoding">#</a></span></h3>
+<h3>hmac.digest([encoding])<span><a class="mark" href="#crypto_hmac_digest_encoding" id="crypto_hmac_digest_encoding">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.94</span>
 </div>
@@ -1299,11 +1345,127 @@ If <code>encoding</code> is not provided, and the <code>data</code> is a string,
 encoding of <code>'utf8'</code> is enforced. If <code>data</code> is a <a href="buffer.html"><code>Buffer</code></a>, <code>TypedArray</code>, or
 <code>DataView</code>, then <code>inputEncoding</code> is ignored.</p>
 <p>This can be called many times with new data as it is streamed.</p>
+<h2>Class: KeyObject<span><a class="mark" href="#crypto_class_keyobject" id="crypto_class_keyobject">#</a></span></h2>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v11.13.0</td>
+<td><p>This class is now exported.</p></td></tr>
+<tr><td>v11.6.0</td>
+<td><p><span>Added in: v11.6.0</span></p></td></tr>
+</tbody></table>
+</details>
+</div>
+<p>Node.js uses a <code>KeyObject</code> class to represent a symmetric or asymmetric key,
+and each kind of key exposes different functions. The
+<a href="#crypto_crypto_createsecretkey_key"><code>crypto.createSecretKey()</code></a>, <a href="#crypto_crypto_createpublickey_key"><code>crypto.createPublicKey()</code></a> and
+<a href="#crypto_crypto_createprivatekey_key"><code>crypto.createPrivateKey()</code></a> methods are used to create <code>KeyObject</code>
+instances. <code>KeyObject</code> objects are not to be created directly using the <code>new</code>
+keyword.</p>
+<p>Most applications should consider using the new <code>KeyObject</code> API instead of
+passing keys as strings or <code>Buffer</code>s due to improved security features.</p>
+<h3>keyObject.asymmetricKeyType<span><a class="mark" href="#crypto_keyobject_asymmetrickeytype" id="crypto_keyobject_asymmetrickeytype">#</a></span></h3>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v12.0.0</td>
+<td><p>Added support for <code>'rsa-pss'</code></p></td></tr>
+<tr><td>v12.0.0</td>
+<td><p>This property now returns <code>undefined</code> for KeyObject instances of unrecognized type instead of aborting.</p></td></tr>
+<tr><td>v12.0.0</td>
+<td><p>Added support for <code>'x25519'</code> and <code>'x448'</code></p></td></tr>
+<tr><td>v12.0.0</td>
+<td><p>Added support for <code>'ed25519'</code> and <code>'ed448'</code>.</p></td></tr>
+<tr><td>v11.6.0</td>
+<td><p><span>Added in: v11.6.0</span></p></td></tr>
+</tbody></table>
+</details>
+</div>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+</ul>
+<p>For asymmetric keys, this property represents the type of the key. Supported key
+types are:</p>
+<ul>
+<li><code>'rsa'</code> (OID 1.2.840.113549.1.1.1)</li>
+<li><code>'rsa-pss'</code> (OID 1.2.840.113549.1.1.10)</li>
+<li><code>'dsa'</code> (OID 1.2.840.10040.4.1)</li>
+<li><code>'ec'</code> (OID 1.2.840.10045.2.1)</li>
+<li><code>'x25519'</code> (OID 1.3.101.110)</li>
+<li><code>'x448'</code> (OID 1.3.101.111)</li>
+<li><code>'ed25519'</code> (OID 1.3.101.112)</li>
+<li><code>'ed448'</code> (OID 1.3.101.113)</li>
+</ul>
+<p>This property is <code>undefined</code> for unrecognized <code>KeyObject</code> types and symmetric
+keys.</p>
+<h3>keyObject.export([options])<span><a class="mark" href="#crypto_keyobject_export_options" id="crypto_keyobject_export_options">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v11.6.0</span>
+</div>
+<ul>
+<li><code>options</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a></li>
+</ul>
+<p>For symmetric keys, this function allocates a <code>Buffer</code> containing the key
+material and ignores any options.</p>
+<p>For asymmetric keys, the <code>options</code> parameter is used to determine the export
+format.</p>
+<p>For public keys, the following encoding options can be used:</p>
+<ul>
+<li><code>type</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Must be one of <code>'pkcs1'</code> (RSA only) or <code>'spki'</code>.</li>
+<li><code>format</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Must be <code>'pem'</code> or <code>'der'</code>.</li>
+</ul>
+<p>For private keys, the following encoding options can be used:</p>
+<ul>
+<li><code>type</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Must be one of <code>'pkcs1'</code> (RSA only), <code>'pkcs8'</code> or
+<code>'sec1'</code> (EC only).</li>
+<li><code>format</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Must be <code>'pem'</code> or <code>'der'</code>.</li>
+<li><code>cipher</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> If specified, the private key will be encrypted with
+ the given <code>cipher</code> and <code>passphrase</code> using PKCS#5 v2.0 password based
+encryption.</li>
+<li><code>passphrase</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> The passphrase to use for encryption, see
+<code>cipher</code>.</li>
+</ul>
+<p>When PEM encoding was selected, the result will be a string, otherwise it will
+be a buffer containing the data encoded as DER.</p>
+<p>PKCS#1, SEC1, and PKCS#8 type keys can be encrypted by using a combination of
+the <code>cipher</code> and <code>format</code> options. The PKCS#8 <code>type</code> can be used with any
+<code>format</code> to encrypt any key algorithm (RSA, EC, or DH) by specifying a
+<code>cipher</code>. PKCS#1 and SEC1 can only be encrypted by specifying a <code>cipher</code>
+when the PEM <code>format</code> is used. For maximum compatibility, use PKCS#8 for
+encrypted private keys. Since PKCS#8 defines its own
+encryption mechanism, PEM-level encryption is not supported when encrypting
+a PKCS#8 key. See <a href="https://www.rfc-editor.org/rfc/rfc5208.txt">RFC 5208</a> for PKCS#8 encryption and <a href="https://www.rfc-editor.org/rfc/rfc1421.txt">RFC 1421</a> for
+PKCS#1 and SEC1 encryption.</p>
+<h3>keyObject.symmetricKeySize<span><a class="mark" href="#crypto_keyobject_symmetrickeysize" id="crypto_keyobject_symmetrickeysize">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v11.6.0</span>
+</div>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
+</ul>
+<p>For secret keys, this property represents the size of the key in bytes. This
+property is <code>undefined</code> for asymmetric keys.</p>
+<h3>keyObject.type<span><a class="mark" href="#crypto_keyobject_type" id="crypto_keyobject_type">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v11.6.0</span>
+</div>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+</ul>
+<p>Depending on the type of this <code>KeyObject</code>, this property is either
+<code>'secret'</code> for secret (symmetric) keys, <code>'public'</code> for public (asymmetric) keys
+or <code>'private'</code> for private (asymmetric) keys.</p>
 <h2>Class: Sign<span><a class="mark" href="#crypto_class_sign" id="crypto_class_sign">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.1.92</span>
 </div>
-<p>The <code>Sign</code> Class is a utility for generating signatures. It can be used in one
+<ul>
+<li>Extends: <a href="stream.html#stream_class_stream_writable" class="type">&#x3C;stream.Writable></a></li>
+</ul>
+<p>The <code>Sign</code> class is a utility for generating signatures. It can be used in one
 of two ways:</p>
 <ul>
 <li>As a writable <a href="stream.html">stream</a>, where data to be signed is written and the
@@ -1314,48 +1476,51 @@ signature.</li>
 <p>The <a href="#crypto_crypto_createsign_algorithm_options"><code>crypto.createSign()</code></a> method is used to create <code>Sign</code> instances. The
 argument is the string name of the hash function to use. <code>Sign</code> objects are not
 to be created directly using the <code>new</code> keyword.</p>
-<p>Example: Using <code>Sign</code> objects as streams:</p>
+<p>Example: Using <code>Sign</code> and <a href="#crypto_class_verify"><code>Verify</code></a> objects as streams:</p>
 <pre><code class="language-js">const crypto = require('crypto');
-const sign = crypto.createSign('SHA256');
 
+const { privateKey, publicKey } = crypto.generateKeyPairSync('ec', {
+  namedCurve: 'sect239k1'
+});
+
+const sign = crypto.createSign('SHA256');
 sign.write('some data to sign');
 sign.end();
+const signature = sign.sign(privateKey, 'hex');
 
-const privateKey = getPrivateKeySomehow();
-console.log(sign.sign(privateKey, 'hex'));
-// Prints: the calculated signature using the specified private key and
-// SHA-256. For RSA keys, the algorithm is RSASSA-PKCS1-v1_5 (see padding
-// parameter below for RSASSA-PSS). For EC keys, the algorithm is ECDSA.
+const verify = crypto.createVerify('SHA256');
+verify.write('some data to sign');
+verify.end();
+console.log(verify.verify(publicKey, signature));
+// Prints: true or false
 </code></pre>
-<p>Example: Using the <a href="#crypto_sign_update_data_inputencoding"><code>sign.update()</code></a> and <a href="#crypto_sign_sign_privatekey_outputencoding"><code>sign.sign()</code></a> methods:</p>
+<p>Example: Using the <a href="#crypto_sign_update_data_inputencoding"><code>sign.update()</code></a> and <a href="#crypto_verify_update_data_inputencoding"><code>verify.update()</code></a> methods:</p>
 <pre><code class="language-js">const crypto = require('crypto');
+
+const { privateKey, publicKey } = crypto.generateKeyPairSync('rsa', {
+  modulusLength: 2048,
+});
+
 const sign = crypto.createSign('SHA256');
-
 sign.update('some data to sign');
+sign.end();
+const signature = sign.sign(privateKey);
 
-const privateKey = getPrivateKeySomehow();
-console.log(sign.sign(privateKey, 'hex'));
-// Prints: the calculated signature
-</code></pre>
-<p>In some cases, a <code>Sign</code> instance can also be created by passing in a signature
-algorithm name, such as 'RSA-SHA256'. This will use the corresponding digest
-algorithm. This does not work for all signature algorithms, such as
-'ecdsa-with-SHA256'. Use digest names instead.</p>
-<p>Example: signing using legacy signature algorithm name</p>
-<pre><code class="language-js">const crypto = require('crypto');
-const sign = crypto.createSign('RSA-SHA256');
-
-sign.update('some data to sign');
-
-const privateKey = getPrivateKeySomehow();
-console.log(sign.sign(privateKey, 'hex'));
-// Prints: the calculated signature
+const verify = crypto.createVerify('SHA256');
+verify.update('some data to sign');
+verify.end();
+console.log(verify.verify(publicKey, signature));
+// Prints: true
 </code></pre>
 <h3>sign.sign(privateKey[, outputEncoding])<span><a class="mark" href="#crypto_sign_sign_privatekey_outputencoding" id="crypto_sign_sign_privatekey_outputencoding">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v12.0.0</td>
+<td><p>This function now supports RSA-PSS keys.</p></td></tr>
+<tr><td>v11.6.0</td>
+<td><p>This function now supports key objects.</p></td></tr>
 <tr><td>v8.0.0</td>
 <td><p>Support for RSASSA-PSS and additional options was added.</p></td></tr>
 <tr><td>v0.1.92</td>
@@ -1365,10 +1530,8 @@ console.log(sign.sign(privateKey, 'hex'));
 </div>
 <ul>
 <li>
-<p><code>privateKey</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></p>
+<p><code>privateKey</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="crypto.html#crypto_class_keyobject" class="type">&#x3C;KeyObject></a></p>
 <ul>
-<li><code>key</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
-<li><code>passphrase</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 <li><code>padding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
 <li><code>saltLength</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
 </ul>
@@ -1378,24 +1541,20 @@ console.log(sign.sign(privateKey, 'hex'));
 </ul>
 <p>Calculates the signature on all the data passed through using either
 <a href="#crypto_sign_update_data_inputencoding"><code>sign.update()</code></a> or <a href="stream.html#stream_writable_write_chunk_encoding_callback"><code>sign.write()</code></a>.</p>
-<p>The <code>privateKey</code> argument can be an object or a string. If <code>privateKey</code> is a
-string, it is treated as a raw key with no passphrase. If <code>privateKey</code> is an
-object, it must contain one or more of the following properties:</p>
+<p>If <code>privateKey</code> is not a <a href="#crypto_class_keyobject"><code>KeyObject</code></a>, this function behaves as if
+<code>privateKey</code> had been passed to <a href="#crypto_crypto_createprivatekey_key"><code>crypto.createPrivateKey()</code></a>. If it is an
+object, the following additional properties can be passed:</p>
 <ul>
-<li>
-<p><code>key</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> - PEM encoded private key (required)</p>
-</li>
-<li>
-<p><code>passphrase</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> - passphrase for the private key</p>
-</li>
 <li>
 <p><code>padding</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> - Optional padding value for RSA, one of the following:</p>
 <ul>
 <li><code>crypto.constants.RSA_PKCS1_PADDING</code> (default)</li>
 <li><code>crypto.constants.RSA_PKCS1_PSS_PADDING</code></li>
 </ul>
-<p>Note that <code>RSA_PKCS1_PSS_PADDING</code> will use MGF1 with the same hash function
-used to sign the message as specified in section 3.1 of <a href="https://www.rfc-editor.org/rfc/rfc4055.txt">RFC 4055</a>.</p>
+<p><code>RSA_PKCS1_PSS_PADDING</code> will use MGF1 with the same hash function
+used to sign the message as specified in section 3.1 of <a href="https://www.rfc-editor.org/rfc/rfc4055.txt">RFC 4055</a>, unless
+an MGF1 hash function has been specified as part of the key in compliance with
+section 3.3 of <a href="https://www.rfc-editor.org/rfc/rfc4055.txt">RFC 4055</a>.</p>
 </li>
 <li>
 <p><code>saltLength</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> - salt length for when padding is
@@ -1435,6 +1594,9 @@ encoding of <code>'utf8'</code> is enforced. If <code>data</code> is a <a href="
 <div class="api_metadata">
 <span>Added in: v0.1.92</span>
 </div>
+<ul>
+<li>Extends: <a href="stream.html#stream_class_stream_writable" class="type">&#x3C;stream.Writable></a></li>
+</ul>
 <p>The <code>Verify</code> class is a utility for verifying signatures. It can be used in one
 of two ways:</p>
 <ul>
@@ -1445,29 +1607,7 @@ the signature.</li>
 </ul>
 <p>The <a href="#crypto_crypto_createverify_algorithm_options"><code>crypto.createVerify()</code></a> method is used to create <code>Verify</code> instances.
 <code>Verify</code> objects are not to be created directly using the <code>new</code> keyword.</p>
-<p>Example: Using <code>Verify</code> objects as streams:</p>
-<pre><code class="language-js">const crypto = require('crypto');
-const verify = crypto.createVerify('SHA256');
-
-verify.write('some data to sign');
-verify.end();
-
-const publicKey = getPublicKeySomehow();
-const signature = getSignatureToVerify();
-console.log(verify.verify(publicKey, signature));
-// Prints: true or false
-</code></pre>
-<p>Example: Using the <a href="#crypto_verify_update_data_inputencoding"><code>verify.update()</code></a> and <a href="#crypto_verify_verify_object_signature_signatureencoding"><code>verify.verify()</code></a> methods:</p>
-<pre><code class="language-js">const crypto = require('crypto');
-const verify = crypto.createVerify('SHA256');
-
-verify.update('some data to sign');
-
-const publicKey = getPublicKeySomehow();
-const signature = getSignatureToVerify();
-console.log(verify.verify(publicKey, signature));
-// Prints: true or false
-</code></pre>
+<p>See <a href="#crypto_class_sign"><code>Sign</code></a> for examples.</p>
 <h3>verify.update(data[, inputEncoding])<span><a class="mark" href="#crypto_verify_update_data_inputencoding" id="crypto_verify_update_data_inputencoding">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
@@ -1495,6 +1635,10 @@ encoding of <code>'utf8'</code> is enforced. If <code>data</code> is a <a href="
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v12.0.0</td>
+<td><p>This function now supports RSA-PSS keys.</p></td></tr>
+<tr><td>v11.7.0</td>
+<td><p>The key can now be a private key.</p></td></tr>
 <tr><td>v8.0.0</td>
 <td><p>Support for RSASSA-PSS and additional options was added.</p></td></tr>
 <tr><td>v0.1.92</td>
@@ -1503,28 +1647,33 @@ encoding of <code>'utf8'</code> is enforced. If <code>data</code> is a <a href="
 </details>
 </div>
 <ul>
-<li><code>object</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></li>
+<li>
+<p><code>object</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="crypto.html#crypto_class_keyobject" class="type">&#x3C;KeyObject></a></p>
+<ul>
+<li><code>padding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
+<li><code>saltLength</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
+</ul>
+</li>
 <li><code>signature</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a></li>
 <li><code>signatureEncoding</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The <a href="buffer.html#buffer_buffers_and_character_encodings">encoding</a> of the <code>signature</code> string.</li>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> <code>true</code> or <code>false</code> depending on the validity of the
 signature for the data and public key.</li>
 </ul>
-<p>Verifies the provided data using the given <code>object</code> and <code>signature</code>.
-The <code>object</code> argument can be either a string containing a PEM encoded object,
-which can be an RSA public key, a DSA public key, or an X.509 certificate,
-or an object with one or more of the following properties:</p>
+<p>Verifies the provided data using the given <code>object</code> and <code>signature</code>.</p>
+<p>If <code>object</code> is not a <a href="#crypto_class_keyobject"><code>KeyObject</code></a>, this function behaves as if
+<code>object</code> had been passed to <a href="#crypto_crypto_createpublickey_key"><code>crypto.createPublicKey()</code></a>. If it is an
+object, the following additional properties can be passed:</p>
 <ul>
-<li>
-<p><code>key</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> - PEM encoded public key (required)</p>
-</li>
 <li>
 <p><code>padding</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> - Optional padding value for RSA, one of the following:</p>
 <ul>
 <li><code>crypto.constants.RSA_PKCS1_PADDING</code> (default)</li>
 <li><code>crypto.constants.RSA_PKCS1_PSS_PADDING</code></li>
 </ul>
-<p>Note that <code>RSA_PKCS1_PSS_PADDING</code> will use MGF1 with the same hash function
-used to verify the message as specified in section 3.1 of <a href="https://www.rfc-editor.org/rfc/rfc4055.txt">RFC 4055</a>.</p>
+<p><code>RSA_PKCS1_PSS_PADDING</code> will use MGF1 with the same hash function
+used to verify the message as specified in section 3.1 of <a href="https://www.rfc-editor.org/rfc/rfc4055.txt">RFC 4055</a>, unless
+an MGF1 hash function has been specified as part of the key in compliance with
+section 3.3 of <a href="https://www.rfc-editor.org/rfc/rfc4055.txt">RFC 4055</a>.</p>
 </li>
 <li>
 <p><code>saltLength</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> - salt length for when padding is
@@ -1542,6 +1691,8 @@ string; otherwise <code>signature</code> is expected to be a <a href="buffer.htm
 <p>The <code>verify</code> object can not be used again after <code>verify.verify()</code> has been
 called. Multiple calls to <code>verify.verify()</code> will result in an error being
 thrown.</p>
+<p>Because public keys can be derived from private keys, a private key may
+be passed instead of a public key.</p>
 <h2><code>crypto</code> module methods and properties<span><a class="mark" href="#crypto_crypto_module_methods_and_properties" id="crypto_crypto_module_methods_and_properties">#</a></span></h2>
 <h3>crypto.constants<span><a class="mark" href="#crypto_crypto_constants" id="crypto_crypto_constants">#</a></span></h3>
 <div class="api_metadata">
@@ -1573,7 +1724,7 @@ with legacy programs that expect <code>'latin1'</code> to be the default encodin
 is currently in use. Setting to true requires a FIPS build of Node.js.</p>
 <p>This property is deprecated. Please use <code>crypto.setFips()</code> and
 <code>crypto.getFips()</code> instead.</p>
-<h3>crypto.createCipher(algorithm, password[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/crypto.js#L104">[src]</a><span><a class="mark" href="#crypto_crypto_createcipher_algorithm_password_options" id="crypto_crypto_createcipher_algorithm_password_options">#</a></span></h3>
+<h3>crypto.createCipher(algorithm, password[, options])<span><a class="mark" href="#crypto_crypto_createcipher_algorithm_password_options" id="crypto_crypto_createcipher_algorithm_password_options">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1625,11 +1776,15 @@ to create the <code>Cipher</code> object. Users should not use ciphers with coun
 they are used in order to avoid the risk of IV reuse that causes
 vulnerabilities. For the case when IV is reused in GCM, see <a href="https://github.com/nonce-disrespect/nonce-disrespect">Nonce-Disrespecting
 Adversaries</a> for details.</p>
-<h3>crypto.createCipheriv(algorithm, key, iv[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/crypto.js#L108">[src]</a><span><a class="mark" href="#crypto_crypto_createcipheriv_algorithm_key_iv_options" id="crypto_crypto_createcipheriv_algorithm_key_iv_options">#</a></span></h3>
+<h3>crypto.createCipheriv(algorithm, key, iv[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/crypto.js#L114">[src]</a><span><a class="mark" href="#crypto_crypto_createcipheriv_algorithm_key_iv_options" id="crypto_crypto_createcipheriv_algorithm_key_iv_options">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v11.6.0</td>
+<td><p>The <code>key</code> argument can now be a <code>KeyObject</code>.</p></td></tr>
+<tr><td>v11.2.0</td>
+<td><p>The cipher <code>chacha20-poly1305</code> is now supported.</p></td></tr>
 <tr><td>v10.10.0</td>
 <td><p>Ciphers in OCB mode are now supported.</p></td></tr>
 <tr><td>v10.2.0</td>
@@ -1643,8 +1798,8 @@ Adversaries</a> for details.</p>
 </div>
 <ul>
 <li><code>algorithm</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
-<li><code>key</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a></li>
-<li><code>iv</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a></li>
+<li><code>key</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a> | <a href="crypto.html#crypto_class_keyobject" class="type">&#x3C;KeyObject></a></li>
+<li><code>iv</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Null_type" class="type">&#x3C;null></a></li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> <a href="stream.html#stream_new_stream_transform_options"><code>stream.transform</code> options</a></li>
 <li>Returns: <a href="crypto.html#crypto_class_cipher" class="type">&#x3C;Cipher></a></li>
 </ul>
@@ -1662,7 +1817,8 @@ recent OpenSSL releases, <code>openssl list -cipher-algorithms</code>
 display the available cipher algorithms.</p>
 <p>The <code>key</code> is the raw key used by the <code>algorithm</code> and <code>iv</code> is an
 <a href="https://en.wikipedia.org/wiki/Initialization_vector">initialization vector</a>. Both arguments must be <code>'utf8'</code> encoded strings,
-<a href="buffer.html">Buffers</a>, <code>TypedArray</code>, or <code>DataView</code>s. If the cipher does not need
+<a href="buffer.html">Buffers</a>, <code>TypedArray</code>, or <code>DataView</code>s. The <code>key</code> may optionally be
+a <a href="#crypto_class_keyobject"><code>KeyObject</code></a> of type <code>secret</code>. If the cipher does not need
 an initialization vector, <code>iv</code> may be <code>null</code>.</p>
 <p>Initialization vectors should be unpredictable and unique; ideally, they will be
 cryptographically random. They do not have to be secret: IVs are typically just
@@ -1670,22 +1826,7 @@ added to ciphertext messages unencrypted. It may sound contradictory that
 something has to be unpredictable and unique, but does not have to be secret;
 it is important to remember that an attacker must not be able to predict ahead
 of time what a given IV will be.</p>
-<h3>crypto.createCredentials(details)<span><a class="mark" href="#crypto_crypto_createcredentials_details" id="crypto_crypto_createcredentials_details">#</a></span></h3>
-<div class="api_metadata">
-<span>Added in: v0.1.92</span><span>Deprecated since: v0.11.13</span>
-</div>
-<p></p><div class="api_stability api_stability_0"><a href="documentation.html#documentation_stability_index">Stability: 0</a> - Deprecated: Use <a href="tls.html#tls_tls_createsecurecontext_options"><code>tls.createSecureContext()</code></a> instead.</div><p></p>
-<ul>
-<li><code>details</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> Identical to <a href="tls.html#tls_tls_createsecurecontext_options"><code>tls.createSecureContext()</code></a>.</li>
-<li>Returns: <a href="tls.html#tls_tls_createsecurecontext_options" class="type">&#x3C;tls.SecureContext></a></li>
-</ul>
-<p>The <code>crypto.createCredentials()</code> method is a deprecated function for creating
-and returning a <code>tls.SecureContext</code>. It should not be used. Replace it with
-<a href="tls.html#tls_tls_createsecurecontext_options"><code>tls.createSecureContext()</code></a> which has the exact same arguments and return
-value.</p>
-<p>Returns a <code>tls.SecureContext</code>, as-if <a href="tls.html#tls_tls_createsecurecontext_options"><code>tls.createSecureContext()</code></a> had been
-called.</p>
-<h3>crypto.createDecipher(algorithm, password[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/crypto.js#L112">[src]</a><span><a class="mark" href="#crypto_crypto_createdecipher_algorithm_password_options" id="crypto_crypto_createdecipher_algorithm_password_options">#</a></span></h3>
+<h3>crypto.createDecipher(algorithm, password[, options])<span><a class="mark" href="#crypto_crypto_createdecipher_algorithm_password_options" id="crypto_crypto_createdecipher_algorithm_password_options">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1722,11 +1863,15 @@ rapidly.</p>
 <a href="https://www.openssl.org/docs/man1.1.0/crypto/EVP_BytesToKey.html"><code>EVP_BytesToKey</code></a> it is recommended that developers derive a key and IV on
 their own using <a href="#crypto_crypto_scrypt_password_salt_keylen_options_callback"><code>crypto.scrypt()</code></a> and to use <a href="#crypto_crypto_createdecipheriv_algorithm_key_iv_options"><code>crypto.createDecipheriv()</code></a>
 to create the <code>Decipher</code> object.</p>
-<h3>crypto.createDecipheriv(algorithm, key, iv[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/crypto.js#L116">[src]</a><span><a class="mark" href="#crypto_crypto_createdecipheriv_algorithm_key_iv_options" id="crypto_crypto_createdecipheriv_algorithm_key_iv_options">#</a></span></h3>
+<h3>crypto.createDecipheriv(algorithm, key, iv[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/crypto.js#L122">[src]</a><span><a class="mark" href="#crypto_crypto_createdecipheriv_algorithm_key_iv_options" id="crypto_crypto_createdecipheriv_algorithm_key_iv_options">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v11.6.0</td>
+<td><p>The <code>key</code> argument can now be a <code>KeyObject</code>.</p></td></tr>
+<tr><td>v11.2.0</td>
+<td><p>The cipher <code>chacha20-poly1305</code> is now supported.</p></td></tr>
 <tr><td>v10.10.0</td>
 <td><p>Ciphers in OCB mode are now supported.</p></td></tr>
 <tr><td>v10.2.0</td>
@@ -1740,8 +1885,8 @@ to create the <code>Decipher</code> object.</p>
 </div>
 <ul>
 <li><code>algorithm</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
-<li><code>key</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a></li>
-<li><code>iv</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a></li>
+<li><code>key</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a> | <a href="crypto.html#crypto_class_keyobject" class="type">&#x3C;KeyObject></a></li>
+<li><code>iv</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Null_type" class="type">&#x3C;null></a></li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> <a href="stream.html#stream_new_stream_transform_options"><code>stream.transform</code> options</a></li>
 <li>Returns: <a href="crypto.html#crypto_class_decipher" class="type">&#x3C;Decipher></a></li>
 </ul>
@@ -1759,7 +1904,8 @@ recent OpenSSL releases, <code>openssl list -cipher-algorithms</code>
 display the available cipher algorithms.</p>
 <p>The <code>key</code> is the raw key used by the <code>algorithm</code> and <code>iv</code> is an
 <a href="https://en.wikipedia.org/wiki/Initialization_vector">initialization vector</a>. Both arguments must be <code>'utf8'</code> encoded strings,
-<a href="buffer.html">Buffers</a>, <code>TypedArray</code>, or <code>DataView</code>s. If the cipher does not need
+<a href="buffer.html">Buffers</a>, <code>TypedArray</code>, or <code>DataView</code>s. The <code>key</code> may optionally be
+a <a href="#crypto_class_keyobject"><code>KeyObject</code></a> of type <code>secret</code>. If the cipher does not need
 an initialization vector, <code>iv</code> may be <code>null</code>.</p>
 <p>Initialization vectors should be unpredictable and unique; ideally, they will be
 cryptographically random. They do not have to be secret: IVs are typically just
@@ -1767,7 +1913,7 @@ added to ciphertext messages unencrypted. It may sound contradictory that
 something has to be unpredictable and unique, but does not have to be secret;
 it is important to remember that an attacker must not be able to predict ahead
 of time what a given IV will be.</p>
-<h3>crypto.createDiffieHellman(prime[, primeEncoding][, generator][, generatorEncoding])<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/crypto.js#L120">[src]</a><span><a class="mark" href="#crypto_crypto_creatediffiehellman_prime_primeencoding_generator_generatorencoding" id="crypto_crypto_creatediffiehellman_prime_primeencoding_generator_generatorencoding">#</a></span></h3>
+<h3>crypto.createDiffieHellman(prime[, primeEncoding][, generator][, generatorEncoding])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/crypto.js#L126">[src]</a><span><a class="mark" href="#crypto_crypto_creatediffiehellman_prime_primeencoding_generator_generatorencoding" id="crypto_crypto_creatediffiehellman_prime_primeencoding_generator_generatorencoding">#</a></span></h3>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -1799,7 +1945,7 @@ optional specific <code>generator</code>.</p>
 a <a href="buffer.html"><code>Buffer</code></a>, <code>TypedArray</code>, or <code>DataView</code> is expected.</p>
 <p>If <code>generatorEncoding</code> is specified, <code>generator</code> is expected to be a string;
 otherwise a number, <a href="buffer.html"><code>Buffer</code></a>, <code>TypedArray</code>, or <code>DataView</code> is expected.</p>
-<h3>crypto.createDiffieHellman(primeLength[, generator])<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/crypto.js#L120">[src]</a><span><a class="mark" href="#crypto_crypto_creatediffiehellman_primelength_generator" id="crypto_crypto_creatediffiehellman_primelength_generator">#</a></span></h3>
+<h3>crypto.createDiffieHellman(primeLength[, generator])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/crypto.js#L126">[src]</a><span><a class="mark" href="#crypto_crypto_creatediffiehellman_primelength_generator" id="crypto_crypto_creatediffiehellman_primelength_generator">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.5.0</span>
 </div>
@@ -1812,7 +1958,16 @@ otherwise a number, <a href="buffer.html"><code>Buffer</code></a>, <code>TypedAr
 <p>Creates a <code>DiffieHellman</code> key exchange object and generates a prime of
 <code>primeLength</code> bits using an optional specific numeric <code>generator</code>.
 If <code>generator</code> is not specified, the value <code>2</code> is used.</p>
-<h3>crypto.createECDH(curveName)<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/crypto.js#L128">[src]</a><span><a class="mark" href="#crypto_crypto_createecdh_curvename" id="crypto_crypto_createecdh_curvename">#</a></span></h3>
+<h3>crypto.createDiffieHellmanGroup(name)<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/crypto.js#L130">[src]</a><span><a class="mark" href="#crypto_crypto_creatediffiehellmangroup_name" id="crypto_crypto_creatediffiehellmangroup_name">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v0.9.3</span>
+</div>
+<ul>
+<li><code>name</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
+<li>Returns: <a href="crypto.html#crypto_class_diffiehellmangroup" class="type">&#x3C;DiffieHellmanGroup></a></li>
+</ul>
+<p>An alias for <a href="#crypto_crypto_getdiffiehellman_groupname"><code>crypto.getDiffieHellman()</code></a></p>
+<h3>crypto.createECDH(curveName)<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/crypto.js#L134">[src]</a><span><a class="mark" href="#crypto_crypto_createecdh_curvename" id="crypto_crypto_createecdh_curvename">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.11.14</span>
 </div>
@@ -1825,9 +1980,17 @@ predefined curve specified by the <code>curveName</code> string. Use
 <a href="#crypto_crypto_getcurves"><code>crypto.getCurves()</code></a> to obtain a list of available curve names. On recent
 OpenSSL releases, <code>openssl ecparam -list_curves</code> will also display the name
 and description of each available elliptic curve.</p>
-<h3>crypto.createHash(algorithm[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/crypto.js#L100">[src]</a><span><a class="mark" href="#crypto_crypto_createhash_algorithm_options" id="crypto_crypto_createhash_algorithm_options">#</a></span></h3>
+<h3>crypto.createHash(algorithm[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/crypto.js#L106">[src]</a><span><a class="mark" href="#crypto_crypto_createhash_algorithm_options" id="crypto_crypto_createhash_algorithm_options">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.1.92</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v12.8.0</td>
+<td><p>The <code>outputLength</code> option was added for XOF hash functions.</p></td></tr>
+<tr><td>v0.1.92</td>
+<td><p><span>Added in: v0.1.92</span></p></td></tr>
+</tbody></table>
+</details>
 </div>
 <ul>
 <li><code>algorithm</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
@@ -1836,7 +1999,8 @@ and description of each available elliptic curve.</p>
 </ul>
 <p>Creates and returns a <code>Hash</code> object that can be used to generate hash digests
 using the given <code>algorithm</code>. Optional <code>options</code> argument controls stream
-behavior.</p>
+behavior. For XOF hash functions such as <code>'shake256'</code>, the <code>outputLength</code> option
+can be used to specify the desired output length in bytes.</p>
 <p>The <code>algorithm</code> is dependent on the available algorithms supported by the
 version of OpenSSL on the platform. Examples are <code>'sha256'</code>, <code>'sha512'</code>, etc.
 On recent releases of OpenSSL, <code>openssl list -digest-algorithms</code>
@@ -1861,13 +2025,21 @@ input.on('readable', () => {
   }
 });
 </code></pre>
-<h3>crypto.createHmac(algorithm, key[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/crypto.js#L132">[src]</a><span><a class="mark" href="#crypto_crypto_createhmac_algorithm_key_options" id="crypto_crypto_createhmac_algorithm_key_options">#</a></span></h3>
+<h3>crypto.createHmac(algorithm, key[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/crypto.js#L138">[src]</a><span><a class="mark" href="#crypto_crypto_createhmac_algorithm_key_options" id="crypto_crypto_createhmac_algorithm_key_options">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.1.94</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v11.6.0</td>
+<td><p>The <code>key</code> argument can now be a <code>KeyObject</code>.</p></td></tr>
+<tr><td>v0.1.94</td>
+<td><p><span>Added in: v0.1.94</span></p></td></tr>
+</tbody></table>
+</details>
 </div>
 <ul>
 <li><code>algorithm</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
-<li><code>key</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a></li>
+<li><code>key</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a> | <a href="crypto.html#crypto_class_keyobject" class="type">&#x3C;KeyObject></a></li>
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> <a href="stream.html#stream_new_stream_transform_options"><code>stream.transform</code> options</a></li>
 <li>Returns: <a href="crypto.html#crypto_class_hmac" class="type">&#x3C;Hmac></a></li>
 </ul>
@@ -1878,7 +2050,8 @@ version of OpenSSL on the platform. Examples are <code>'sha256'</code>, <code>'s
 On recent releases of OpenSSL, <code>openssl list -digest-algorithms</code>
 (<code>openssl list-message-digest-algorithms</code> for older versions of OpenSSL) will
 display the available digest algorithms.</p>
-<p>The <code>key</code> is the HMAC key used to generate the cryptographic HMAC hash.</p>
+<p>The <code>key</code> is the HMAC key used to generate the cryptographic HMAC hash. If it is
+a <a href="#crypto_class_keyobject"><code>KeyObject</code></a>, its type must be <code>secret</code>.</p>
 <p>Example: generating the sha256 HMAC of a file</p>
 <pre><code class="language-js">const filename = process.argv[2];
 const crypto = require('crypto');
@@ -1898,7 +2071,77 @@ input.on('readable', () => {
   }
 });
 </code></pre>
-<h3>crypto.createSign(algorithm[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/crypto.js#L136">[src]</a><span><a class="mark" href="#crypto_crypto_createsign_algorithm_options" id="crypto_crypto_createsign_algorithm_options">#</a></span></h3>
+<h3>crypto.createPrivateKey(key)<span><a class="mark" href="#crypto_crypto_createprivatekey_key" id="crypto_crypto_createprivatekey_key">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v11.6.0</span>
+</div>
+<ul>
+<li>
+<p><code>key</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a></p>
+<ul>
+<li><code>key</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> The key material, either in PEM or DER format.</li>
+<li><code>format</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Must be <code>'pem'</code> or <code>'der'</code>. <strong>Default:</strong> <code>'pem'</code>.</li>
+<li><code>type</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Must be <code>'pkcs1'</code>, <code>'pkcs8'</code> or <code>'sec1'</code>. This option is
+required only if the <code>format</code> is <code>'der'</code> and ignored if it is <code>'pem'</code>.</li>
+<li><code>passphrase</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> The passphrase to use for decryption.</li>
+</ul>
+</li>
+<li>Returns: <a href="crypto.html#crypto_class_keyobject" class="type">&#x3C;KeyObject></a></li>
+</ul>
+<p>Creates and returns a new key object containing a private key. If <code>key</code> is a
+string or <code>Buffer</code>, <code>format</code> is assumed to be <code>'pem'</code>; otherwise, <code>key</code>
+must be an object with the properties described above.</p>
+<p>If the private key is encrypted, a <code>passphrase</code> must be specified. The length
+of the passphrase is limited to 1024 bytes.</p>
+<h3>crypto.createPublicKey(key)<span><a class="mark" href="#crypto_crypto_createpublickey_key" id="crypto_crypto_createpublickey_key">#</a></span></h3>
+<div class="api_metadata">
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v11.13.0</td>
+<td><p>The <code>key</code> argument can now be a <code>KeyObject</code> with type <code>private</code>.</p></td></tr>
+<tr><td>v11.7.0</td>
+<td><p>The <code>key</code> argument can now be a private key.</p></td></tr>
+<tr><td>v11.6.0</td>
+<td><p><span>Added in: v11.6.0</span></p></td></tr>
+</tbody></table>
+</details>
+</div>
+<ul>
+<li>
+<p><code>key</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="crypto.html#crypto_class_keyobject" class="type">&#x3C;KeyObject></a></p>
+<ul>
+<li><code>key</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a></li>
+<li><code>format</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Must be <code>'pem'</code> or <code>'der'</code>. <strong>Default:</strong> <code>'pem'</code>.</li>
+<li><code>type</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Must be <code>'pkcs1'</code> or <code>'spki'</code>. This option is required
+only if the <code>format</code> is <code>'der'</code>.</li>
+</ul>
+</li>
+<li>Returns: <a href="crypto.html#crypto_class_keyobject" class="type">&#x3C;KeyObject></a></li>
+</ul>
+<p>Creates and returns a new key object containing a public key. If <code>key</code> is a
+string or <code>Buffer</code>, <code>format</code> is assumed to be <code>'pem'</code>; if <code>key</code> is a <code>KeyObject</code>
+with type <code>'private'</code>, the public key is derived from the given private key;
+otherwise, <code>key</code> must be an object with the properties described above.</p>
+<p>If the format is <code>'pem'</code>, the <code>'key'</code> may also be an X.509 certificate.</p>
+<p>Because public keys can be derived from private keys, a private key may be
+passed instead of a public key. In that case, this function behaves as if
+<a href="#crypto_crypto_createprivatekey_key"><code>crypto.createPrivateKey()</code></a> had been called, except that the type of the
+returned <code>KeyObject</code> will be <code>'public'</code> and that the private key cannot be
+extracted from the returned <code>KeyObject</code>. Similarly, if a <code>KeyObject</code> with type
+<code>'private'</code> is given, a new <code>KeyObject</code> with type <code>'public'</code> will be returned
+and it will be impossible to extract the private key from the returned object.</p>
+<h3>crypto.createSecretKey(key)<span><a class="mark" href="#crypto_crypto_createsecretkey_key" id="crypto_crypto_createsecretkey_key">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v11.6.0</span>
+</div>
+<ul>
+<li><code>key</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a></li>
+<li>Returns: <a href="crypto.html#crypto_class_keyobject" class="type">&#x3C;KeyObject></a></li>
+</ul>
+<p>Creates and returns a new key object containing a secret key for symmetric
+encryption or <code>Hmac</code>.</p>
+<h3>crypto.createSign(algorithm[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/crypto.js#L142">[src]</a><span><a class="mark" href="#crypto_crypto_createsign_algorithm_options" id="crypto_crypto_createsign_algorithm_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.92</span>
 </div>
@@ -1907,11 +2150,15 @@ input.on('readable', () => {
 <li><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> <a href="stream.html#stream_constructor_new_stream_writable_options"><code>stream.Writable</code> options</a></li>
 <li>Returns: <a href="crypto.html#crypto_class_sign" class="type">&#x3C;Sign></a></li>
 </ul>
-<p>Creates and returns a <code>Sign</code> object that uses the given <code>algorithm</code>.
-Use <a href="#crypto_crypto_gethashes"><code>crypto.getHashes()</code></a> to obtain an array of names of the available
-signing algorithms. Optional <code>options</code> argument controls the
-<code>stream.Writable</code> behavior.</p>
-<h3>crypto.createVerify(algorithm[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/crypto.js#L140">[src]</a><span><a class="mark" href="#crypto_crypto_createverify_algorithm_options" id="crypto_crypto_createverify_algorithm_options">#</a></span></h3>
+<p>Creates and returns a <code>Sign</code> object that uses the given <code>algorithm</code>.  Use
+<a href="#crypto_crypto_gethashes"><code>crypto.getHashes()</code></a> to obtain the names of the available digest algorithms.
+Optional <code>options</code> argument controls the <code>stream.Writable</code> behavior.</p>
+<p>In some cases, a <code>Sign</code> instance can be created using the name of a signature
+algorithm, such as <code>'RSA-SHA256'</code>, instead of a digest algorithm. This will use
+the corresponding digest algorithm. This does not work for all signature
+algorithms, such as <code>'ecdsa-with-SHA256'</code>, so it is best to always use digest
+algorithm names.</p>
+<h3>crypto.createVerify(algorithm[, options])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/crypto.js#L146">[src]</a><span><a class="mark" href="#crypto_crypto_createverify_algorithm_options" id="crypto_crypto_createverify_algorithm_options">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v0.1.92</span>
 </div>
@@ -1924,12 +2171,30 @@ signing algorithms. Optional <code>options</code> argument controls the
 Use <a href="#crypto_crypto_gethashes"><code>crypto.getHashes()</code></a> to obtain an array of names of the available
 signing algorithms. Optional <code>options</code> argument controls the
 <code>stream.Writable</code> behavior.</p>
+<p>In some cases, a <code>Verify</code> instance can be created using the name of a signature
+algorithm, such as <code>'RSA-SHA256'</code>, instead of a digest algorithm. This will use
+the corresponding digest algorithm. This does not work for all signature
+algorithms, such as <code>'ecdsa-with-SHA256'</code>, so it is best to always use digest
+algorithm names.</p>
 <h3>crypto.generateKeyPair(type, options, callback)<span><a class="mark" href="#crypto_crypto_generatekeypair_type_options_callback" id="crypto_crypto_generatekeypair_type_options_callback">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v10.12.0</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v12.0.0</td>
+<td><p>Add ability to generate X25519 and X448 key pairs.</p></td></tr>
+<tr><td>v12.0.0</td>
+<td><p>Add ability to generate Ed25519 and Ed448 key pairs.</p></td></tr>
+<tr><td>v11.6.0</td>
+<td><p>The <code>generateKeyPair</code> and <code>generateKeyPairSync</code> functions now produce key objects if no encoding was specified.</p></td></tr>
+<tr><td>v10.12.0</td>
+<td><p><span>Added in: v10.12.0</span></p></td></tr>
+</tbody></table>
+</details>
 </div>
 <ul>
-<li><code>type</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Must be <code>'rsa'</code>, <code>'dsa'</code> or <code>'ec'</code>.</li>
+<li><code>type</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Must be <code>'rsa'</code>, <code>'dsa'</code>, <code>'ec'</code>, <code>'ed25519'</code>, <code>'ed448'</code>,
+<code>'x25519'</code>, or <code>'x448'</code>.</li>
 <li>
 <p><code>options</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></p>
 <ul>
@@ -1937,40 +2202,26 @@ signing algorithms. Optional <code>options</code> argument controls the
 <li><code>publicExponent</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Public exponent (RSA). <strong>Default:</strong> <code>0x10001</code>.</li>
 <li><code>divisorLength</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Size of <code>q</code> in bits (DSA).</li>
 <li><code>namedCurve</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Name of the curve to use (EC).</li>
-<li>
-<p><code>publicKeyEncoding</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></p>
-<ul>
-<li><code>type</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Must be one of <code>'pkcs1'</code> (RSA only) or <code>'spki'</code>.</li>
-<li><code>format</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Must be <code>'pem'</code> or <code>'der'</code>.</li>
-</ul>
-</li>
-<li>
-<p><code>privateKeyEncoding</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></p>
-<ul>
-<li><code>type</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Must be one of <code>'pkcs1'</code> (RSA only), <code>'pkcs8'</code> or
-<code>'sec1'</code> (EC only).</li>
-<li><code>format</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Must be <code>'pem'</code> or <code>'der'</code>.</li>
-<li><code>cipher</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> If specified, the private key will be encrypted with
-the given <code>cipher</code> and <code>passphrase</code> using PKCS#5 v2.0 password based
-encryption.</li>
-<li><code>passphrase</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The passphrase to use for encryption, see <code>cipher</code>.</li>
-</ul>
-</li>
+<li><code>publicKeyEncoding</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> See <a href="#crypto_keyobject_export_options"><code>keyObject.export()</code></a>.</li>
+<li><code>privateKeyEncoding</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> See <a href="#crypto_keyobject_export_options"><code>keyObject.export()</code></a>.</li>
 </ul>
 </li>
 <li>
 <p><code>callback</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></p>
 <ul>
 <li><code>err</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&#x3C;Error></a></li>
-<li><code>publicKey</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a></li>
-<li><code>privateKey</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a></li>
+<li><code>publicKey</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="crypto.html#crypto_class_keyobject" class="type">&#x3C;KeyObject></a></li>
+<li><code>privateKey</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="crypto.html#crypto_class_keyobject" class="type">&#x3C;KeyObject></a></li>
 </ul>
 </li>
 </ul>
-<p>Generates a new asymmetric key pair of the given <code>type</code>. Only RSA, DSA and EC
-are currently supported.</p>
+<p>Generates a new asymmetric key pair of the given <code>type</code>. RSA, DSA, EC, Ed25519
+and Ed448 are currently supported.</p>
+<p>If a <code>publicKeyEncoding</code> or <code>privateKeyEncoding</code> was specified, this function
+behaves as if <a href="#crypto_keyobject_export_options"><code>keyObject.export()</code></a> had been called on its result. Otherwise,
+the respective part of the key is returned as a <a href="#crypto_class_keyobject"><code>KeyObject</code></a>.</p>
 <p>It is recommended to encode public keys as <code>'spki'</code> and private keys as
-<code>'pkcs8'</code> with encryption:</p>
+<code>'pkcs8'</code> with encryption for long-term storage:</p>
 <pre><code class="language-js">const { generateKeyPair } = require('crypto');
 generateKeyPair('rsa', {
   modulusLength: 4096,
@@ -1989,19 +2240,25 @@ generateKeyPair('rsa', {
 });
 </code></pre>
 <p>On completion, <code>callback</code> will be called with <code>err</code> set to <code>undefined</code> and
-<code>publicKey</code> / <code>privateKey</code> representing the generated key pair. When PEM
-encoding was selected, the result will be a string, otherwise it will be a
-buffer containing the data encoded as DER. Note that Node.js itself does not
-accept DER, it is supported for interoperability with other libraries such as
-WebCrypto only.</p>
+<code>publicKey</code> / <code>privateKey</code> representing the generated key pair.</p>
 <p>If this method is invoked as its <a href="util.html#util_util_promisify_original"><code>util.promisify()</code></a>ed version, it returns
 a <code>Promise</code> for an <code>Object</code> with <code>publicKey</code> and <code>privateKey</code> properties.</p>
 <h3>crypto.generateKeyPairSync(type, options)<span><a class="mark" href="#crypto_crypto_generatekeypairsync_type_options" id="crypto_crypto_generatekeypairsync_type_options">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v10.12.0</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v12.0.0</td>
+<td><p>Add ability to generate Ed25519 and Ed448 key pairs.</p></td></tr>
+<tr><td>v11.6.0</td>
+<td><p>The <code>generateKeyPair</code> and <code>generateKeyPairSync</code> functions now produce key objects if no encoding was specified.</p></td></tr>
+<tr><td>v10.12.0</td>
+<td><p><span>Added in: v10.12.0</span></p></td></tr>
+</tbody></table>
+</details>
 </div>
 <ul>
-<li><code>type</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Must be <code>'rsa'</code>, <code>'dsa'</code> or <code>'ec'</code>.</li>
+<li><code>type</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Must be <code>'rsa'</code>, <code>'dsa'</code>, <code>'ec'</code>, <code>'ed25519'</code>, or <code>'ed448'</code>.</li>
 <li>
 <p><code>options</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></p>
 <ul>
@@ -2009,39 +2266,26 @@ a <code>Promise</code> for an <code>Object</code> with <code>publicKey</code> an
 <li><code>publicExponent</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Public exponent (RSA). <strong>Default:</strong> <code>0x10001</code>.</li>
 <li><code>divisorLength</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Size of <code>q</code> in bits (DSA).</li>
 <li><code>namedCurve</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Name of the curve to use (EC).</li>
-<li>
-<p><code>publicKeyEncoding</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></p>
-<ul>
-<li><code>type</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Must be one of <code>'pkcs1'</code> (RSA only) or <code>'spki'</code>.</li>
-<li><code>format</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Must be <code>'pem'</code> or <code>'der'</code>.</li>
-</ul>
-</li>
-<li>
-<p><code>privateKeyEncoding</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></p>
-<ul>
-<li><code>type</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Must be one of <code>'pkcs1'</code> (RSA only), <code>'pkcs8'</code> or
-<code>'sec1'</code> (EC only).</li>
-<li><code>format</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> Must be <code>'pem'</code> or <code>'der'</code>.</li>
-<li><code>cipher</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> If specified, the private key will be encrypted with
-the given <code>cipher</code> and <code>passphrase</code> using PKCS#5 v2.0 password based
-encryption.</li>
-<li><code>passphrase</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The passphrase to use for encryption, see <code>cipher</code>.</li>
-</ul>
-</li>
+<li><code>publicKeyEncoding</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> See <a href="#crypto_keyobject_export_options"><code>keyObject.export()</code></a>.</li>
+<li><code>privateKeyEncoding</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> See <a href="#crypto_keyobject_export_options"><code>keyObject.export()</code></a>.</li>
 </ul>
 </li>
 <li>
 <p>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></p>
 <ul>
-<li><code>publicKey</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a></li>
-<li><code>privateKey</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a></li>
+<li><code>publicKey</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="crypto.html#crypto_class_keyobject" class="type">&#x3C;KeyObject></a></li>
+<li><code>privateKey</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="crypto.html#crypto_class_keyobject" class="type">&#x3C;KeyObject></a></li>
 </ul>
 </li>
 </ul>
-<p>Generates a new asymmetric key pair of the given <code>type</code>. Only RSA, DSA and EC
-are currently supported.</p>
-<p>It is recommended to encode public keys as <code>'spki'</code> and private keys as
-<code>'pkcs8'</code> with encryption:</p>
+<p>Generates a new asymmetric key pair of the given <code>type</code>. RSA, DSA, EC, Ed25519
+and Ed448 are currently supported.</p>
+<p>If a <code>publicKeyEncoding</code> or <code>privateKeyEncoding</code> was specified, this function
+behaves as if <a href="#crypto_keyobject_export_options"><code>keyObject.export()</code></a> had been called on its result. Otherwise,
+the respective part of the key is returned as a <a href="#crypto_class_keyobject"><code>KeyObject</code></a>.</p>
+<p>When encoding public keys, it is recommended to use <code>'spki'</code>. When encoding
+private keys, it is recommended to use <code>'pks8'</code> with a strong passphrase, and to
+keep the passphrase confidential.</p>
 <pre><code class="language-js">const { generateKeyPairSync } = require('crypto');
 const { publicKey, privateKey } = generateKeyPairSync('rsa', {
   modulusLength: 4096,
@@ -2087,9 +2331,9 @@ console.log(curves); // ['Oakley-EC2N-3', 'Oakley-EC2N-4', ...]
 </div>
 <ul>
 <li><code>groupName</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
-<li>Returns: <a href="crypto.html#crypto_class_diffiehellman" class="type">&#x3C;DiffieHellman></a></li>
+<li>Returns: <a href="crypto.html#crypto_class_diffiehellmangroup" class="type">&#x3C;DiffieHellmanGroup></a></li>
 </ul>
-<p>Creates a predefined <code>DiffieHellman</code> key exchange object. The
+<p>Creates a predefined <code>DiffieHellmanGroup</code> key exchange object. The
 supported groups are: <code>'modp1'</code>, <code>'modp2'</code>, <code>'modp5'</code> (defined in
 <a href="https://www.rfc-editor.org/rfc/rfc2412.txt">RFC 2412</a>, but see <a href="#crypto_support_for_weak_or_compromised_algorithms">Caveats</a>) and <code>'modp14'</code>, <code>'modp15'</code>,
 <code>'modp16'</code>, <code>'modp17'</code>, <code>'modp18'</code> (defined in <a href="https://www.rfc-editor.org/rfc/rfc3526.txt">RFC 3526</a>). The
@@ -2127,7 +2371,7 @@ currently in use.</li>
 </div>
 <ul>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string[]></a> An array of the names of the supported hash algorithms,
-such as <code>'RSA-SHA256'</code>.</li>
+such as <code>'RSA-SHA256'</code>. Hash algorithms are also called "digest" algorithms.</li>
 </ul>
 <pre><code class="language-js">const hashes = crypto.getHashes();
 console.log(hashes); // ['DSA', 'DSA-SHA', 'DSA-SHA1', ...]
@@ -2171,8 +2415,8 @@ applied to derive a key of the requested byte length (<code>keylen</code>) from 
 otherwise <code>err</code> will be <code>null</code>. By default, the successfully generated
 <code>derivedKey</code> will be passed to the callback as a <a href="buffer.html"><code>Buffer</code></a>. An error will be
 thrown if any of the input arguments specify invalid values or types.</p>
-<p>If <code>digest</code> is <code>null</code>, <code>'sha1'</code> will be used. This behavior will be deprecated
-in a future version of Node.js.</p>
+<p>If <code>digest</code> is <code>null</code>, <code>'sha1'</code> will be used. This behavior is deprecated,
+please specify a <code>digest</code> explicitly.</p>
 <p>The <code>iterations</code> argument must be a number set as high as possible. The
 higher the number of iterations, the more secure the derived key will be,
 but will take a longer amount of time to complete.</p>
@@ -2196,8 +2440,8 @@ crypto.pbkdf2('secret', 'salt', 100000, 512, 'sha512', (err, derivedKey) => {
 </code></pre>
 <p>An array of supported digest functions can be retrieved using
 <a href="#crypto_crypto_gethashes"><code>crypto.getHashes()</code></a>.</p>
-<p>Note that this API uses libuv's threadpool, which can have surprising and
-negative performance implications for some applications, see the
+<p>This API uses libuv's threadpool, which can have surprising and
+negative performance implications for some applications; see the
 <a href="cli.html#cli_uv_threadpool_size_size"><code>UV_THREADPOOL_SIZE</code></a> documentation for more information.</p>
 <h3>crypto.pbkdf2Sync(password, salt, iterations, keylen, digest)<span><a class="mark" href="#crypto_crypto_pbkdf2sync_password_salt_iterations_keylen_digest" id="crypto_crypto_pbkdf2sync_password_salt_iterations_keylen_digest">#</a></span></h3>
 <div class="api_metadata">
@@ -2227,8 +2471,8 @@ applied to derive a key of the requested byte length (<code>keylen</code>) from 
 <code>password</code>, <code>salt</code> and <code>iterations</code>.</p>
 <p>If an error occurs an <code>Error</code> will be thrown, otherwise the derived key will be
 returned as a <a href="buffer.html"><code>Buffer</code></a>.</p>
-<p>If <code>digest</code> is <code>null</code>, <code>'sha1'</code> will be used. This behavior will be deprecated
-in a future version of Node.js.</p>
+<p>If <code>digest</code> is <code>null</code>, <code>'sha1'</code> will be used. This behavior is deprecated,
+please specify a <code>digest</code> explicitly.</p>
 <p>The <code>iterations</code> argument must be a number set as high as possible. The
 higher the number of iterations, the more secure the derived key will be,
 but will take a longer amount of time to complete.</p>
@@ -2250,14 +2494,26 @@ console.log(key);  // '3745e48...aa39b34'
 <a href="#crypto_crypto_gethashes"><code>crypto.getHashes()</code></a>.</p>
 <h3>crypto.privateDecrypt(privateKey, buffer)<span><a class="mark" href="#crypto_crypto_privatedecrypt_privatekey_buffer" id="crypto_crypto_privatedecrypt_privatekey_buffer">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.11.14</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v12.11.0</td>
+<td><p>The <code>oaepLabel</code> option was added.</p></td></tr>
+<tr><td>v12.9.0</td>
+<td><p>The <code>oaepHash</code> option was added.</p></td></tr>
+<tr><td>v11.6.0</td>
+<td><p>This function now supports key objects.</p></td></tr>
+<tr><td>v0.11.14</td>
+<td><p><span>Added in: v0.11.14</span></p></td></tr>
+</tbody></table>
+</details>
 </div>
 <ul>
 <li>
-<p><code>privateKey</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></p>
+<p><code>privateKey</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="crypto.html#crypto_class_keyobject" class="type">&#x3C;KeyObject></a></p>
 <ul>
-<li><code>key</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> A PEM encoded private key.</li>
-<li><code>passphrase</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> An optional passphrase for the private key.</li>
+<li><code>oaepHash</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The hash function to use for OAEP padding.
+<strong>Default:</strong> <code>'sha1'</code></li>
 <li><code>padding</code> <a href="crypto.html#crypto_crypto_constants_1" class="type">&#x3C;crypto.constants></a> An optional padding value defined in
 <code>crypto.constants</code>, which may be: <code>crypto.constants.RSA_NO_PADDING</code>,
 <code>crypto.constants.RSA_PKCS1_PADDING</code>, or
@@ -2269,18 +2525,28 @@ console.log(key);  // '3745e48...aa39b34'
 </ul>
 <p>Decrypts <code>buffer</code> with <code>privateKey</code>. <code>buffer</code> was previously encrypted using
 the corresponding public key, for example using <a href="#crypto_crypto_publicencrypt_key_buffer"><code>crypto.publicEncrypt()</code></a>.</p>
-<p><code>privateKey</code> can be an object or a string. If <code>privateKey</code> is a string, it is
-treated as the key with no passphrase and will use <code>RSA_PKCS1_OAEP_PADDING</code>.</p>
+<p>If <code>privateKey</code> is not a <a href="#crypto_class_keyobject"><code>KeyObject</code></a>, this function behaves as if
+<code>privateKey</code> had been passed to <a href="#crypto_crypto_createprivatekey_key"><code>crypto.createPrivateKey()</code></a>. If it is an
+object, the <code>padding</code> property can be passed. Otherwise, this function uses
+<code>RSA_PKCS1_OAEP_PADDING</code>.</p>
 <h3>crypto.privateEncrypt(privateKey, buffer)<span><a class="mark" href="#crypto_crypto_privateencrypt_privatekey_buffer" id="crypto_crypto_privateencrypt_privatekey_buffer">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v1.1.0</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v11.6.0</td>
+<td><p>This function now supports key objects.</p></td></tr>
+<tr><td>v1.1.0</td>
+<td><p><span>Added in: v1.1.0</span></p></td></tr>
+</tbody></table>
+</details>
 </div>
 <ul>
 <li>
-<p><code>privateKey</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></p>
+<p><code>privateKey</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="crypto.html#crypto_class_keyobject" class="type">&#x3C;KeyObject></a></p>
 <ul>
-<li><code>key</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> A PEM encoded private key.</li>
-<li><code>passphrase</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> An optional passphrase for the private key.</li>
+<li><code>key</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="crypto.html#crypto_class_keyobject" class="type">&#x3C;KeyObject></a> A PEM encoded private key.</li>
+<li><code>passphrase</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> An optional passphrase for the private key.</li>
 <li><code>padding</code> <a href="crypto.html#crypto_crypto_constants_1" class="type">&#x3C;crypto.constants></a> An optional padding value defined in
 <code>crypto.constants</code>, which may be: <code>crypto.constants.RSA_NO_PADDING</code> or
 <code>crypto.constants.RSA_PKCS1_PADDING</code>.</li>
@@ -2291,18 +2557,27 @@ treated as the key with no passphrase and will use <code>RSA_PKCS1_OAEP_PADDING<
 </ul>
 <p>Encrypts <code>buffer</code> with <code>privateKey</code>. The returned data can be decrypted using
 the corresponding public key, for example using <a href="#crypto_crypto_publicdecrypt_key_buffer"><code>crypto.publicDecrypt()</code></a>.</p>
-<p><code>privateKey</code> can be an object or a string. If <code>privateKey</code> is a string, it is
-treated as the key with no passphrase and will use <code>RSA_PKCS1_PADDING</code>.</p>
+<p>If <code>privateKey</code> is not a <a href="#crypto_class_keyobject"><code>KeyObject</code></a>, this function behaves as if
+<code>privateKey</code> had been passed to <a href="#crypto_crypto_createprivatekey_key"><code>crypto.createPrivateKey()</code></a>. If it is an
+object, the <code>padding</code> property can be passed. Otherwise, this function uses
+<code>RSA_PKCS1_PADDING</code>.</p>
 <h3>crypto.publicDecrypt(key, buffer)<span><a class="mark" href="#crypto_crypto_publicdecrypt_key_buffer" id="crypto_crypto_publicdecrypt_key_buffer">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v1.1.0</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v11.6.0</td>
+<td><p>This function now supports key objects.</p></td></tr>
+<tr><td>v1.1.0</td>
+<td><p><span>Added in: v1.1.0</span></p></td></tr>
+</tbody></table>
+</details>
 </div>
 <ul>
 <li>
-<p><code>key</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></p>
+<p><code>key</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="crypto.html#crypto_class_keyobject" class="type">&#x3C;KeyObject></a></p>
 <ul>
-<li><code>key</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> A PEM encoded public or private key.</li>
-<li><code>passphrase</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> An optional passphrase for the private key.</li>
+<li><code>passphrase</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> An optional passphrase for the private key.</li>
 <li><code>padding</code> <a href="crypto.html#crypto_crypto_constants_1" class="type">&#x3C;crypto.constants></a> An optional padding value defined in
 <code>crypto.constants</code>, which may be: <code>crypto.constants.RSA_NO_PADDING</code> or
 <code>crypto.constants.RSA_PKCS1_PADDING</code>.</li>
@@ -2313,20 +2588,36 @@ treated as the key with no passphrase and will use <code>RSA_PKCS1_PADDING</code
 </ul>
 <p>Decrypts <code>buffer</code> with <code>key</code>.<code>buffer</code> was previously encrypted using
 the corresponding private key, for example using <a href="#crypto_crypto_privateencrypt_privatekey_buffer"><code>crypto.privateEncrypt()</code></a>.</p>
-<p><code>key</code> can be an object or a string. If <code>key</code> is a string, it is treated as
-the key with no passphrase and will use <code>RSA_PKCS1_PADDING</code>.</p>
+<p>If <code>key</code> is not a <a href="#crypto_class_keyobject"><code>KeyObject</code></a>, this function behaves as if
+<code>key</code> had been passed to <a href="#crypto_crypto_createpublickey_key"><code>crypto.createPublicKey()</code></a>. If it is an
+object, the <code>padding</code> property can be passed. Otherwise, this function uses
+<code>RSA_PKCS1_PADDING</code>.</p>
 <p>Because RSA public keys can be derived from private keys, a private key may
 be passed instead of a public key.</p>
 <h3>crypto.publicEncrypt(key, buffer)<span><a class="mark" href="#crypto_crypto_publicencrypt_key_buffer" id="crypto_crypto_publicencrypt_key_buffer">#</a></span></h3>
 <div class="api_metadata">
-<span>Added in: v0.11.14</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v12.11.0</td>
+<td><p>The <code>oaepLabel</code> option was added.</p></td></tr>
+<tr><td>v12.9.0</td>
+<td><p>The <code>oaepHash</code> option was added.</p></td></tr>
+<tr><td>v11.6.0</td>
+<td><p>This function now supports key objects.</p></td></tr>
+<tr><td>v0.11.14</td>
+<td><p><span>Added in: v0.11.14</span></p></td></tr>
+</tbody></table>
+</details>
 </div>
 <ul>
 <li>
-<p><code>key</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></p>
+<p><code>key</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="crypto.html#crypto_class_keyobject" class="type">&#x3C;KeyObject></a></p>
 <ul>
-<li><code>key</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> A PEM encoded public or private key.</li>
-<li><code>passphrase</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> An optional passphrase for the private key.</li>
+<li><code>key</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="crypto.html#crypto_class_keyobject" class="type">&#x3C;KeyObject></a> A PEM encoded public or private key.</li>
+<li><code>oaepHash</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> The hash function to use for OAEP padding.
+<strong>Default:</strong> <code>'sha1'</code></li>
+<li><code>passphrase</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> An optional passphrase for the private key.</li>
 <li><code>padding</code> <a href="crypto.html#crypto_crypto_constants_1" class="type">&#x3C;crypto.constants></a> An optional padding value defined in
 <code>crypto.constants</code>, which may be: <code>crypto.constants.RSA_NO_PADDING</code>,
 <code>crypto.constants.RSA_PKCS1_PADDING</code>, or
@@ -2339,8 +2630,10 @@ be passed instead of a public key.</p>
 <p>Encrypts the content of <code>buffer</code> with <code>key</code> and returns a new
 <a href="buffer.html"><code>Buffer</code></a> with encrypted content. The returned data can be decrypted using
 the corresponding private key, for example using <a href="#crypto_crypto_privatedecrypt_privatekey_buffer"><code>crypto.privateDecrypt()</code></a>.</p>
-<p><code>key</code> can be an object or a string. If <code>key</code> is a string, it is treated as
-the key with no passphrase and will use <code>RSA_PKCS1_OAEP_PADDING</code>.</p>
+<p>If <code>key</code> is not a <a href="#crypto_class_keyobject"><code>KeyObject</code></a>, this function behaves as if
+<code>key</code> had been passed to <a href="#crypto_crypto_createpublickey_key"><code>crypto.createPublicKey()</code></a>. If it is an
+object, the <code>padding</code> property can be passed. Otherwise, this function uses
+<code>RSA_PKCS1_OAEP_PADDING</code>.</p>
 <p>Because RSA public keys can be derived from private keys, a private key may
 be passed instead of a public key.</p>
 <h3>crypto.randomBytes(size[, callback])<span><a class="mark" href="#crypto_crypto_randombytes_size_callback" id="crypto_crypto_randombytes_size_callback">#</a></span></h3>
@@ -2392,8 +2685,8 @@ sufficient entropy available.
 This should normally never take longer than a few milliseconds. The only time
 when generating the random bytes may conceivably block for a longer period of
 time is right after boot, when the whole system is still low on entropy.</p>
-<p>Note that this API uses libuv's threadpool, which can have surprising and
-negative performance implications for some applications, see the
+<p>This API uses libuv's threadpool, which can have surprising and
+negative performance implications for some applications; see the
 <a href="cli.html#cli_uv_threadpool_size_size"><code>UV_THREADPOOL_SIZE</code></a> documentation for more information.</p>
 <p>The asynchronous version of <code>crypto.randomBytes()</code> is carried out in a single
 threadpool request. To minimize threadpool task length variation, partition
@@ -2502,8 +2795,8 @@ crypto.randomFill(c, (err, buf) => {
     .toString('hex'));
 });
 </code></pre>
-<p>Note that this API uses libuv's threadpool, which can have surprising and
-negative performance implications for some applications, see the
+<p>This API uses libuv's threadpool, which can have surprising and
+negative performance implications for some applications; see the
 <a href="cli.html#cli_uv_threadpool_size_size"><code>UV_THREADPOOL_SIZE</code></a> documentation for more information.</p>
 <p>The asynchronous version of <code>crypto.randomFill()</code> is carried out in a single
 threadpool request. To minimize threadpool task length variation, partition
@@ -2514,6 +2807,8 @@ request.</p>
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v12.8.0</td>
+<td><p>The <code>maxmem</code> value can now be any safe integer.</p></td></tr>
 <tr><td>v10.9.0</td>
 <td><p>The <code>cost</code>, <code>blockSize</code> and <code>parallelization</code> option names have been added.</p></td></tr>
 <tr><td>v10.5.0</td>
@@ -2528,8 +2823,7 @@ request.</p>
 <li>
 <p><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></p>
 <ul>
-<li><code>cost</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> CPU/memory cost parameter. Must be a power of two greater</li>
-<li><code>N</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> CPU/memory cost parameter. Must be a power of two greater
+<li><code>cost</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> CPU/memory cost parameter. Must be a power of two greater
 than one. <strong>Default:</strong> <code>16384</code>.</li>
 <li><code>blockSize</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Block size parameter. <strong>Default:</strong> <code>8</code>.</li>
 <li><code>parallelization</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Parallelization parameter. <strong>Default:</strong> <code>1</code>.</li>
@@ -2575,6 +2869,8 @@ crypto.scrypt('secret', 'salt', 64, { N: 1024 }, (err, derivedKey) => {
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v12.8.0</td>
+<td><p>The <code>maxmem</code> value can now be any safe integer.</p></td></tr>
 <tr><td>v10.9.0</td>
 <td><p>The <code>cost</code>, <code>blockSize</code> and <code>parallelization</code> option names have been added.</p></td></tr>
 <tr><td>v10.5.0</td>
@@ -2589,8 +2885,7 @@ crypto.scrypt('secret', 'salt', 64, { N: 1024 }, (err, derivedKey) => {
 <li>
 <p><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></p>
 <ul>
-<li><code>cost</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> CPU/memory cost parameter. Must be a power of two greater</li>
-<li><code>N</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> CPU/memory cost parameter. Must be a power of two greater
+<li><code>cost</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> CPU/memory cost parameter. Must be a power of two greater
 than one. <strong>Default:</strong> <code>16384</code>.</li>
 <li><code>blockSize</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Block size parameter. <strong>Default:</strong> <code>8</code>.</li>
 <li><code>parallelization</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Parallelization parameter. <strong>Default:</strong> <code>1</code>.</li>
@@ -2661,6 +2956,40 @@ is a bit field taking one of or a mix of the following flags (defined in
 </ul>
 <p>Enables the FIPS compliant crypto provider in a FIPS-enabled Node.js build.
 Throws an error if FIPS mode is not available.</p>
+<h3>crypto.sign(algorithm, data, key)<span><a class="mark" href="#crypto_crypto_sign_algorithm_data_key" id="crypto_crypto_sign_algorithm_data_key">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v12.0.0</span>
+</div>
+<ul>
+<li><code>algorithm</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Null_type" class="type">&#x3C;null></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Undefined_type" class="type">&#x3C;undefined></a></li>
+<li><code>data</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a></li>
+<li><code>key</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="crypto.html#crypto_class_keyobject" class="type">&#x3C;KeyObject></a></li>
+<li>Returns: <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a></li>
+</ul>
+<p>Calculates and returns the signature for <code>data</code> using the given private key and
+algorithm. If <code>algorithm</code> is <code>null</code> or <code>undefined</code>, then the algorithm is
+dependent upon the key type (especially Ed25519 and Ed448).</p>
+<p>If <code>key</code> is not a <a href="#crypto_class_keyobject"><code>KeyObject</code></a>, this function behaves as if <code>key</code> had been
+passed to <a href="#crypto_crypto_createprivatekey_key"><code>crypto.createPrivateKey()</code></a>. If it is an object, the following
+additional properties can be passed:</p>
+<ul>
+<li>
+<p><code>padding</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> - Optional padding value for RSA, one of the following:</p>
+<ul>
+<li><code>crypto.constants.RSA_PKCS1_PADDING</code> (default)</li>
+<li><code>crypto.constants.RSA_PKCS1_PSS_PADDING</code></li>
+</ul>
+<p><code>RSA_PKCS1_PSS_PADDING</code> will use MGF1 with the same hash function
+used to sign the message as specified in section 3.1 of <a href="https://www.rfc-editor.org/rfc/rfc4055.txt">RFC 4055</a>.</p>
+</li>
+<li>
+<p><code>saltLength</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> - salt length for when padding is
+<code>RSA_PKCS1_PSS_PADDING</code>. The special value
+<code>crypto.constants.RSA_PSS_SALTLEN_DIGEST</code> sets the salt length to the digest
+size, <code>crypto.constants.RSA_PSS_SALTLEN_MAX_SIGN</code> (default) sets it to the
+maximum permissible value.</p>
+</li>
+</ul>
 <h3>crypto.timingSafeEqual(a, b)<span><a class="mark" href="#crypto_crypto_timingsafeequal_a_b" id="crypto_crypto_timingsafeequal_a_b">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v6.6.0</span>
@@ -2680,6 +3009,44 @@ must have the same length.</p>
 <p>Use of <code>crypto.timingSafeEqual</code> does not guarantee that the <em>surrounding</em> code
 is timing-safe. Care should be taken to ensure that the surrounding code does
 not introduce timing vulnerabilities.</p>
+<h3>crypto.verify(algorithm, data, key, signature)<span><a class="mark" href="#crypto_crypto_verify_algorithm_data_key_signature" id="crypto_crypto_verify_algorithm_data_key_signature">#</a></span></h3>
+<div class="api_metadata">
+<span>Added in: v12.0.0</span>
+</div>
+<ul>
+<li><code>algorithm</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Null_type" class="type">&#x3C;null></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Undefined_type" class="type">&#x3C;undefined></a></li>
+<li><code>data</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a></li>
+<li><code>key</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> | <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="crypto.html#crypto_class_keyobject" class="type">&#x3C;KeyObject></a></li>
+<li><code>signature</code> <a href="buffer.html#buffer_class_buffer" class="type">&#x3C;Buffer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray" class="type">&#x3C;TypedArray></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView" class="type">&#x3C;DataView></a></li>
+<li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a></li>
+</ul>
+<p>Verifies the given signature for <code>data</code> using the given key and algorithm. If
+<code>algorithm</code> is <code>null</code> or <code>undefined</code>, then the algorithm is dependent upon the
+key type (especially Ed25519 and Ed448).</p>
+<p>If <code>key</code> is not a <a href="#crypto_class_keyobject"><code>KeyObject</code></a>, this function behaves as if <code>key</code> had been
+passed to <a href="#crypto_crypto_createpublickey_key"><code>crypto.createPublicKey()</code></a>. If it is an object, the following
+additional properties can be passed:</p>
+<ul>
+<li>
+<p><code>padding</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> - Optional padding value for RSA, one of the following:</p>
+<ul>
+<li><code>crypto.constants.RSA_PKCS1_PADDING</code> (default)</li>
+<li><code>crypto.constants.RSA_PKCS1_PSS_PADDING</code></li>
+</ul>
+<p><code>RSA_PKCS1_PSS_PADDING</code> will use MGF1 with the same hash function
+used to sign the message as specified in section 3.1 of <a href="https://www.rfc-editor.org/rfc/rfc4055.txt">RFC 4055</a>.</p>
+</li>
+<li>
+<p><code>saltLength</code>: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> - salt length for when padding is
+<code>RSA_PKCS1_PSS_PADDING</code>. The special value
+<code>crypto.constants.RSA_PSS_SALTLEN_DIGEST</code> sets the salt length to the digest
+size, <code>crypto.constants.RSA_PSS_SALTLEN_MAX_SIGN</code> (default) sets it to the
+maximum permissible value.</p>
+</li>
+</ul>
+<p>The <code>signature</code> argument is the previously calculated signature for the <code>data</code>.</p>
+<p>Because public keys can be derived from private keys, a private key or a public
+key may be passed for <code>key</code>.</p>
 <h2>Notes<span><a class="mark" href="#crypto_notes" id="crypto_notes">#</a></span></h2>
 <h3>Legacy Streams API (pre Node.js v0.10)<span><a class="mark" href="#crypto_legacy_streams_api_pre_node_js_v0_10" id="crypto_legacy_streams_api_pre_node_js_v0_10">#</a></span></h3>
 <p>The Crypto module was added to Node.js before there was the concept of a
@@ -2705,8 +3072,8 @@ it can be used to put the ECDH key pair into an inconsistent state.</p>
 <h3>Support for weak or compromised algorithms<span><a class="mark" href="#crypto_support_for_weak_or_compromised_algorithms" id="crypto_support_for_weak_or_compromised_algorithms">#</a></span></h3>
 <p>The <code>crypto</code> module still supports some algorithms which are already
 compromised and are not currently recommended for use. The API also allows
-the use of ciphers and hashes with a small key size that are considered to be
-too weak for safe use.</p>
+the use of ciphers and hashes with a small key size that are too weak for safe
+use.</p>
 <p>Users should take full responsibility for selecting the crypto
 algorithm and key size according to their security requirements.</p>
 <p>Based on the recommendations of <a href="https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-131Ar1.pdf">NIST SP 800-131A</a>:</p>
@@ -2731,7 +3098,7 @@ setting the <code>authTagLength</code> option and must be one of 4, 6, 8, 10, 12
 bytes (<code>7 ≤ N ≤ 13</code>).</li>
 <li>The length of the plaintext is limited to <code>2 ** (8 * (15 - N))</code> bytes.</li>
 <li>When decrypting, the authentication tag must be set via <code>setAuthTag()</code> before
-specifying additional authenticated data or calling <code>update()</code>.
+calling <code>update()</code>.
 Otherwise, decryption will fail and <code>final()</code> will throw an error in
 compliance with section 2.6 of <a href="https://www.rfc-editor.org/rfc/rfc3610.txt">RFC 3610</a>.</li>
 <li>Using stream methods such as <code>write(data)</code>, <code>end(data)</code> or <code>pipe()</code> in CCM
@@ -2778,6 +3145,7 @@ try {
   decipher.final();
 } catch (err) {
   console.error('Authentication failed!');
+  return;
 }
 
 console.log(receivedPlaintext);

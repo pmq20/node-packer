@@ -5,7 +5,7 @@
 
 import os.path
 import sys
-import optparse
+import argparse
 import collections
 import functools
 import re
@@ -16,6 +16,13 @@ except ImportError:
     import simplejson as json
 
 import pdl
+
+try:
+    unicode
+except NameError:
+    # Define unicode for Py3
+    def unicode(s, *_):
+        return s
 
 # Path handling for libraries and templates
 # Paths have to be normalized because Jinja uses the exact template path to
@@ -29,11 +36,14 @@ module_path, module_filename = os.path.split(os.path.realpath(__file__))
 
 def read_config():
     # pylint: disable=W0703
-    def json_to_object(data, output_base, config_base):
+    def json_to_object(data, output_base):
         def json_object_hook(object_dict):
-            items = [(k, os.path.join(config_base, v) if k == "path" else v) for (k, v) in object_dict.items()]
+            items = [(k, os.path.join(output_base, v) if k == "path" else v) for (k, v) in object_dict.items()]
             items = [(k, os.path.join(output_base, v) if k == "output" else v) for (k, v) in items]
             keys, values = list(zip(*items))
+            # 'async' is a python 3.7 keyword. Don't use namedtuple(rename=True)
+            # because that only renames it in python 3 but not python 2.
+            keys = tuple('async_' if k == 'async' else k for k in keys)
             return collections.namedtuple('X', keys)(*values)
         return json.loads(data, object_hook=json_object_hook)
 
@@ -53,28 +63,16 @@ def read_config():
         return collections.namedtuple('X', keys)(*values)
 
     try:
-        cmdline_parser = optparse.OptionParser()
-        cmdline_parser.add_option("--output_base")
-        cmdline_parser.add_option("--jinja_dir")
-        cmdline_parser.add_option("--config")
-        cmdline_parser.add_option("--config_value", action="append", type="string")
-        arg_options, _ = cmdline_parser.parse_args()
+        cmdline_parser = argparse.ArgumentParser()
+        cmdline_parser.add_argument("--output_base", type=unicode, required=True)
+        cmdline_parser.add_argument("--jinja_dir", type=unicode, required=True)
+        cmdline_parser.add_argument("--config", type=unicode, required=True)
+        cmdline_parser.add_argument("--config_value", default=[], action="append")
+        arg_options = cmdline_parser.parse_args()
         jinja_dir = arg_options.jinja_dir
-        if not jinja_dir:
-            raise Exception("jinja directory must be specified")
-        jinja_dir = jinja_dir.decode('utf8')
         output_base = arg_options.output_base
-        if not output_base:
-            raise Exception("Base output directory must be specified")
-        output_base = output_base.decode('utf8')
         config_file = arg_options.config
-        if not config_file:
-            raise Exception("Config file name must be specified")
-        config_file = config_file.decode('utf8')
-        config_base = os.path.dirname(config_file)
         config_values = arg_options.config_value
-        if not config_values:
-            config_values = []
     except Exception:
         # Work with python 2 and 3 http://docs.python.org/py3k/howto/pyporting.html
         exc = sys.exc_info()[1]
@@ -84,7 +82,7 @@ def read_config():
     try:
         config_json_file = open(config_file, "r")
         config_json_string = config_json_file.read()
-        config_partial = json_to_object(config_json_string, output_base, config_base)
+        config_partial = json_to_object(config_json_string, output_base)
         config_json_file.close()
         defaults = {
             ".use_snake_file_names": False,
@@ -526,7 +524,7 @@ class Protocol(object):
     def is_async_command(self, domain, command):
         if not self.config.protocol.options:
             return False
-        return self.check_options(self.config.protocol.options, domain, command, "async", None, False)
+        return self.check_options(self.config.protocol.options, domain, command, "async_", None, False)
 
 
     def is_exported(self, domain, name):
@@ -632,7 +630,7 @@ def main():
             "Array_h.template",
             "DispatcherBase_h.template",
             "Parser_h.template",
-            "CBOR_h.template",
+            "encoding_h.template",
         ]
 
         protocol_cpp_templates = [
@@ -642,7 +640,7 @@ def main():
             "Object_cpp.template",
             "DispatcherBase_cpp.template",
             "Parser_cpp.template",
-            "CBOR_cpp.template",
+            "encoding_cpp.template",
         ]
 
         forward_h_templates = [

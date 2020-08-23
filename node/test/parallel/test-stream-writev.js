@@ -113,9 +113,18 @@ function test(decode, uncork, multi, next) {
   w.end(cnt('end'));
 
   w.on('finish', function() {
-    // make sure finish comes after all the write cb
+    // Make sure finish comes after all the write cb
     cnt('finish')();
     assert.deepStrictEqual(actualChunks, expectChunks);
     next();
   });
+}
+
+{
+  const w = new stream.Writable({
+    writev: common.mustCall(function(chunks, cb) {
+      cb();
+    })
+  });
+  w.write('asd', common.mustCall());
 }

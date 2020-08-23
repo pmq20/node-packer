@@ -21,8 +21,11 @@
 
 'use strict';
 
+const { Object } = primordials;
+
 const cares = internalBinding('cares_wrap');
-const { isIP, isIPv4, isLegalPort } = require('internal/net');
+const { toASCII } = require('internal/idna');
+const { isIP, isLegalPort } = require('internal/net');
 const { customPromisifyArgs } = require('internal/util');
 const errors = require('internal/errors');
 const {
@@ -30,7 +33,8 @@ const {
   getDefaultResolver,
   setDefaultResolver,
   Resolver,
-  validateHints
+  validateHints,
+  emitInvalidHostnameWarning,
 } = require('internal/dns/utils');
 const {
   ERR_INVALID_ARG_TYPE,
@@ -58,7 +62,7 @@ function onlookup(err, addresses) {
   if (this.family) {
     this.callback(null, addresses[0], this.family);
   } else {
-    this.callback(null, addresses[0], isIPv4(addresses[0]) ? 4 : 6);
+    this.callback(null, addresses[0], isIP(addresses[0]));
   }
 }
 
@@ -68,12 +72,12 @@ function onlookupall(err, addresses) {
     return this.callback(dnsException(err, 'getaddrinfo', this.hostname));
   }
 
-  var family = this.family;
+  const family = this.family;
   for (var i = 0; i < addresses.length; i++) {
     const addr = addresses[i];
     addresses[i] = {
       address: addr,
-      family: family || (isIPv4(addr) ? 4 : 6)
+      family: family || isIP(addr)
     };
   }
 
@@ -91,12 +95,12 @@ function lookup(hostname, options, callback) {
 
   // Parse arguments
   if (hostname && typeof hostname !== 'string') {
-    throw new ERR_INVALID_ARG_TYPE('hostname', ['string', 'falsy'], hostname);
+    throw new ERR_INVALID_ARG_TYPE('hostname', 'string', hostname);
   } else if (typeof options === 'function') {
     callback = options;
     family = 0;
   } else if (typeof callback !== 'function') {
-    throw new ERR_INVALID_CALLBACK();
+    throw new ERR_INVALID_CALLBACK(callback);
   } else if (options !== null && typeof options === 'object') {
     hints = options.hints >>> 0;
     family = options.family >>> 0;
@@ -112,6 +116,7 @@ function lookup(hostname, options, callback) {
     throw new ERR_INVALID_OPT_VALUE('family', family);
 
   if (!hostname) {
+    emitInvalidHostnameWarning(hostname);
     if (all) {
       process.nextTick(callback, null, []);
     } else {
@@ -120,7 +125,7 @@ function lookup(hostname, options, callback) {
     return {};
   }
 
-  var matchedFamily = isIP(hostname);
+  const matchedFamily = isIP(hostname);
   if (matchedFamily) {
     if (all) {
       process.nextTick(
@@ -131,13 +136,15 @@ function lookup(hostname, options, callback) {
     return {};
   }
 
-  var req = new GetAddrInfoReqWrap();
+  const req = new GetAddrInfoReqWrap();
   req.callback = callback;
   req.family = family;
   req.hostname = hostname;
   req.oncomplete = all ? onlookupall : onlookup;
 
-  var err = cares.getaddrinfo(req, hostname, family, hints, verbatim);
+  const err = cares.getaddrinfo(
+    req, toASCII(hostname), family, hints, verbatim
+  );
   if (err) {
     process.nextTick(callback, dnsException(err, 'getaddrinfo', hostname));
     return {};
@@ -157,30 +164,29 @@ function onlookupservice(err, hostname, service) {
 }
 
 
-// lookupService(address, port, callback)
-function lookupService(hostname, port, callback) {
+function lookupService(address, port, callback) {
   if (arguments.length !== 3)
-    throw new ERR_MISSING_ARGS('hostname', 'port', 'callback');
+    throw new ERR_MISSING_ARGS('address', 'port', 'callback');
 
-  if (isIP(hostname) === 0)
-    throw new ERR_INVALID_OPT_VALUE('hostname', hostname);
+  if (isIP(address) === 0)
+    throw new ERR_INVALID_OPT_VALUE('address', address);
 
   if (!isLegalPort(port))
     throw new ERR_SOCKET_BAD_PORT(port);
 
   if (typeof callback !== 'function')
-    throw new ERR_INVALID_CALLBACK();
+    throw new ERR_INVALID_CALLBACK(callback);
 
   port = +port;
 
-  var req = new GetNameInfoReqWrap();
+  const req = new GetNameInfoReqWrap();
   req.callback = callback;
-  req.hostname = hostname;
+  req.hostname = address;
   req.port = port;
   req.oncomplete = onlookupservice;
 
-  var err = cares.getnameinfo(req, hostname, port);
-  if (err) throw dnsException(err, 'getnameinfo', hostname);
+  const err = cares.getnameinfo(req, address, port);
+  if (err) throw dnsException(err, 'getnameinfo', address);
   return req;
 }
 
@@ -208,16 +214,16 @@ function resolver(bindingName) {
 
     validateString(name, 'name');
     if (typeof callback !== 'function') {
-      throw new ERR_INVALID_CALLBACK();
+      throw new ERR_INVALID_CALLBACK(callback);
     }
 
-    var req = new QueryReqWrap();
+    const req = new QueryReqWrap();
     req.bindingName = bindingName;
     req.callback = callback;
     req.hostname = name;
     req.oncomplete = onresolve;
     req.ttl = !!(options && options.ttl);
-    var err = this._handle[bindingName](req, name);
+    const err = this._handle[bindingName](req, toASCII(name));
     if (err) throw dnsException(err, bindingName, name);
     return req;
   }
@@ -225,7 +231,7 @@ function resolver(bindingName) {
   return query;
 }
 
-var resolveMap = Object.create(null);
+const resolveMap = Object.create(null);
 Resolver.prototype.resolveAny = resolveMap.ANY = resolver('queryAny');
 Resolver.prototype.resolve4 = resolveMap.A = resolver('queryA');
 Resolver.prototype.resolve6 = resolveMap.AAAA = resolver('queryAaaa');
@@ -313,13 +319,11 @@ bindDefaultResolver(module.exports, getDefaultResolver());
 Object.defineProperties(module.exports, {
   promises: {
     configurable: true,
-    enumerable: false,
+    enumerable: true,
     get() {
       if (promises === null) {
         promises = require('internal/dns/promises');
         promises.setServers = defaultResolverSetServers;
-        process.emitWarning('The dns.promises API is experimental',
-                            'ExperimentalWarning');
       }
       return promises;
     }

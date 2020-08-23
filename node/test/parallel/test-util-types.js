@@ -1,14 +1,15 @@
-// Flags: --experimental-vm-modules
+// Flags: --experimental-vm-modules --expose-internals
 'use strict';
 require('../common');
 const fixtures = require('../common/fixtures');
 const assert = require('assert');
 const { types, inspect } = require('util');
 const vm = require('vm');
-const { JSStream } = process.binding('js_stream');
+const { internalBinding } = require('internal/test/binding');
+const { JSStream } = internalBinding('js_stream');
 
 const external = (new JSStream())._externalStream;
-const wasmBuffer = fixtures.readSync('test.wasm');
+const wasmBuffer = fixtures.readSync('simple.wasm');
 
 for (const [ value, _method ] of [
   [ external, 'isExternal' ],
@@ -280,7 +281,6 @@ for (const [ value, _method ] of [
 (async () => {
   const m = new vm.SourceTextModule('');
   await m.link(() => 0);
-  m.instantiate();
   await m.evaluate();
   assert.ok(types.isModuleNamespaceObject(m.namespace));
 })();

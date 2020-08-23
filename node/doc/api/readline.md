@@ -5,7 +5,8 @@
 > Stability: 2 - Stable
 
 The `readline` module provides an interface for reading data from a [Readable][]
-stream (such as [`process.stdin`]) one line at a time. It can be accessed using:
+stream (such as [`process.stdin`][]) one line at a time. It can be accessed
+using:
 
 ```js
 const readline = require('readline');
@@ -37,6 +38,8 @@ received on the `input` stream.
 <!-- YAML
 added: v0.1.104
 -->
+
+* Extends: {EventEmitter}
 
 Instances of the `readline.Interface` class are constructed using the
 `readline.createInterface()` method. Every instance is associated with a
@@ -209,7 +212,7 @@ later if necessary.
 Calling `rl.pause()` does not immediately pause other events (including
 `'line'`) from being emitted by the `readline.Interface` instance.
 
-### rl.prompt([preserveCursor])
+### rl.prompt(\[preserveCursor\])
 <!-- YAML
 added: v0.1.98
 -->
@@ -276,7 +279,7 @@ added: v0.1.98
 The `rl.setPrompt()` method sets the prompt that will be written to `output`
 whenever `rl.prompt()` is called.
 
-### rl.write(data[, key])
+### rl.write(data\[, key\])
 <!-- YAML
 added: v0.1.98
 -->
@@ -311,16 +314,18 @@ The `rl.write()` method will write the data to the `readline` `Interface`'s
 
 ### rl\[Symbol.asyncIterator\]()
 <!-- YAML
-added: v10.16.0
+added: v11.4.0
+changes:
+  - version: v11.14.0
+    pr-url: https://github.com/nodejs/node/pull/26989
+    description: Symbol.asyncIterator support is no longer experimental.
 -->
-
-> Stability: 1 - Experimental
 
 * Returns: {AsyncIterator}
 
 Create an `AsyncIterator` object that iterates through each line in the input
 stream as a string. This method allows asynchronous iteration of
-`readline.Interface` objects through `for`-`await`-`of` loops.
+`readline.Interface` objects through `for await...of` loops.
 
 Errors in the input stream are not forwarded.
 
@@ -328,10 +333,8 @@ If the loop is terminated with `break`, `throw`, or `return`,
 [`rl.close()`][] will be called. In other words, iterating over a
 `readline.Interface` will always consume the input stream fully.
 
-A caveat with using this experimental API is that the performance is
-currently not on par with the traditional `'line'` event API, and thus it is
-not recommended for performance-sensitive applications. We expect this
-situation to improve in the future.
+Performance is not on par with the traditional `'line'` event API. Use `'line'`
+instead for performance-sensitive applications.
 
 ```js
 async function processLineByLine() {
@@ -346,9 +349,13 @@ async function processLineByLine() {
 }
 ```
 
-## readline.clearLine(stream, dir)
+## readline.clearLine(stream, dir\[, callback\])
 <!-- YAML
 added: v0.7.7
+changes:
+  - version: v12.7.0
+    pr-url: https://github.com/nodejs/node/pull/28674
+    description: The stream's write() callback and return value are exposed.
 -->
 
 * `stream` {stream.Writable}
@@ -356,16 +363,28 @@ added: v0.7.7
   * `-1` - to the left from cursor
   * `1` - to the right from cursor
   * `0` - the entire line
+* `callback` {Function} Invoked once the operation completes.
+* Returns: {boolean} `false` if `stream` wishes for the calling code to wait for
+  the `'drain'` event to be emitted before continuing to write additional data;
+  otherwise `true`.
 
 The `readline.clearLine()` method clears current line of given [TTY][] stream
 in a specified direction identified by `dir`.
 
-## readline.clearScreenDown(stream)
+## readline.clearScreenDown(stream\[, callback\])
 <!-- YAML
 added: v0.7.7
+changes:
+  - version: v12.7.0
+    pr-url: https://github.com/nodejs/node/pull/28641
+    description: The stream's write() callback and return value are exposed.
 -->
 
 * `stream` {stream.Writable}
+* `callback` {Function} Invoked once the operation completes.
+* Returns: {boolean} `false` if `stream` wishes for the calling code to wait for
+  the `'drain'` event to be emitted before continuing to write additional data;
+  otherwise `true`.
 
 The `readline.clearScreenDown()` method clears the given [TTY][] stream from
 the current position of the cursor down.
@@ -457,7 +476,7 @@ For instance: `[[substr1, substr2, ...], originalsubstring]`.
 function completer(line) {
   const completions = '.help .error .exit .quit .q'.split(' ');
   const hits = completions.filter((c) => c.startsWith(line));
-  // show all completions if none found
+  // Show all completions if none found
   return [hits.length ? hits : completions, line];
 }
 ```
@@ -471,19 +490,27 @@ function completer(linePartial, callback) {
 }
 ```
 
-## readline.cursorTo(stream, x, y)
+## readline.cursorTo(stream, x\[, y\]\[, callback\])
 <!-- YAML
 added: v0.7.7
+changes:
+  - version: v12.7.0
+    pr-url: https://github.com/nodejs/node/pull/28674
+    description: The stream's write() callback and return value are exposed.
 -->
 
 * `stream` {stream.Writable}
 * `x` {number}
 * `y` {number}
+* `callback` {Function} Invoked once the operation completes.
+* Returns: {boolean} `false` if `stream` wishes for the calling code to wait for
+  the `'drain'` event to be emitted before continuing to write additional data;
+  otherwise `true`.
 
 The `readline.cursorTo()` method moves cursor to the specified position in a
 given [TTY][] `stream`.
 
-## readline.emitKeypressEvents(stream[, interface])
+## readline.emitKeypressEvents(stream\[, interface\])
 <!-- YAML
 added: v0.7.7
 -->
@@ -509,14 +536,22 @@ if (process.stdin.isTTY)
   process.stdin.setRawMode(true);
 ```
 
-## readline.moveCursor(stream, dx, dy)
+## readline.moveCursor(stream, dx, dy\[, callback\])
 <!-- YAML
 added: v0.7.7
+changes:
+  - version: v12.7.0
+    pr-url: https://github.com/nodejs/node/pull/28674
+    description: The stream's write() callback and return value are exposed.
 -->
 
 * `stream` {stream.Writable}
 * `dx` {number}
 * `dy` {number}
+* `callback` {Function} Invoked once the operation completes.
+* Returns: {boolean} `false` if `stream` wishes for the calling code to wait for
+  the `'drain'` event to be emitted before continuing to write additional data;
+  otherwise `true`.
 
 The `readline.moveCursor()` method moves the cursor *relative* to its current
 position in a given [TTY][] `stream`.
@@ -556,7 +591,7 @@ rl.on('line', (line) => {
 
 A common use case for `readline` is to consume an input file one line at a
 time. The easiest way to do so is leveraging the [`fs.ReadStream`][] API as
-well as a `for`-`await`-`of` loop:
+well as a `for await...of` loop:
 
 ```js
 const fs = require('fs');
@@ -597,7 +632,7 @@ rl.on('line', (line) => {
 });
 ```
 
-Currently, `for`-`await`-`of` loop can be a bit slower. If `async` / `await`
+Currently, `for await...of` loop can be a bit slower. If `async` / `await`
 flow and speed are both essential, a mixed approach can be applied:
 
 ```js

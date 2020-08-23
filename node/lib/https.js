@@ -21,11 +21,12 @@
 
 'use strict';
 
+const { Object } = primordials;
+
 require('internal/util').assertCrypto();
 
 const tls = require('tls');
 const url = require('url');
-const util = require('util');
 const { Agent: HttpAgent } = require('_http_agent');
 const {
   Server: HttpServer,
@@ -33,12 +34,14 @@ const {
   kServerResponse
 } = require('_http_server');
 const { ClientRequest } = require('_http_client');
-const { inherits } = util;
-const debug = util.debuglog('https');
-const { urlToOptions, searchParamsSymbol } = require('internal/url');
-const { ERR_INVALID_DOMAIN_NAME } = require('internal/errors').codes;
+const debug = require('internal/util/debuglog').debuglog('https');
+const { URL, urlToOptions, searchParamsSymbol } = require('internal/url');
 const { IncomingMessage, ServerResponse } = require('http');
 const { kIncomingMessage } = require('_http_common');
+const { getOptionValue } = require('internal/options');
+
+const kDefaultHttpServerTimeout =
+  getOptionValue('--http-server-default-timeout');
 
 function Server(opts, requestListener) {
   if (!(this instanceof Server)) return new Server(opts, requestListener);
@@ -47,7 +50,7 @@ function Server(opts, requestListener) {
     requestListener = opts;
     opts = undefined;
   }
-  opts = util._extend({}, opts);
+  opts = { ...opts };
 
   if (!opts.ALPNProtocols) {
     // http/1.0 is not defined as Protocol IDs in IANA
@@ -72,12 +75,13 @@ function Server(opts, requestListener) {
       conn.destroy(err);
   });
 
-  this.timeout = 2 * 60 * 1000;
+  this.timeout = kDefaultHttpServerTimeout;
   this.keepAliveTimeout = 5000;
   this.maxHeadersCount = null;
   this.headersTimeout = 40 * 1000; // 40 seconds
 }
-inherits(Server, tls.Server);
+Object.setPrototypeOf(Server.prototype, tls.Server.prototype);
+Object.setPrototypeOf(Server, tls.Server);
 
 Server.prototype.setTimeout = HttpServer.prototype.setTimeout;
 
@@ -111,24 +115,27 @@ function createConnection(port, host, options) {
     const session = this._getSession(options._agentKey);
     if (session) {
       debug('reuse session for %j', options._agentKey);
-      options = util._extend({
-        session: session
-      }, options);
+      options = {
+        session,
+        ...options
+      };
     }
   }
 
-  const socket = tls.connect(options, () => {
-    if (!options._agentKey)
-      return;
+  const socket = tls.connect(options);
 
-    this._cacheSession(options._agentKey, socket.getSession());
-  });
+  if (options._agentKey) {
+    // Cache new session for reuse
+    socket.on('session', (session) => {
+      this._cacheSession(options._agentKey, session);
+    });
 
-  // Evict session on error
-  socket.once('close', (err) => {
-    if (err)
-      this._evictSession(options._agentKey);
-  });
+    // Evict session on error
+    socket.once('close', (err) => {
+      if (err)
+        this._evictSession(options._agentKey);
+    });
+  }
 
   return socket;
 }
@@ -150,7 +157,8 @@ function Agent(options) {
     list: []
   };
 }
-inherits(Agent, HttpAgent);
+Object.setPrototypeOf(Agent.prototype, HttpAgent.prototype);
+Object.setPrototypeOf(Agent, HttpAgent);
 Agent.prototype.createConnection = createConnection;
 
 Agent.prototype.getName = function getName(options) {
@@ -264,14 +272,26 @@ Agent.prototype._evictSession = function _evictSession(key) {
 
 const globalAgent = new Agent();
 
+let urlWarningEmitted = false;
 function request(...args) {
   let options = {};
 
   if (typeof args[0] === 'string') {
     const urlStr = args.shift();
-    options = url.parse(urlStr);
-    if (!options.hostname) {
-      throw new ERR_INVALID_DOMAIN_NAME();
+    try {
+      options = urlToOptions(new URL(urlStr));
+    } catch (err) {
+      options = url.parse(urlStr);
+      if (!options.hostname) {
+        throw err;
+      }
+      if (!urlWarningEmitted && !process.noDeprecation) {
+        urlWarningEmitted = true;
+        process.emitWarning(
+          `The provided URL ${urlStr} is not a valid URL, and is supported ` +
+          'in the https module solely for compatibility.',
+          'DeprecationWarning', 'DEP0109');
+      }
     }
   } else if (args[0] && args[0][searchParamsSymbol] &&
              args[0][searchParamsSymbol][searchParamsSymbol]) {
@@ -280,7 +300,7 @@ function request(...args) {
   }
 
   if (args[0] && typeof args[0] !== 'function') {
-    options = util._extend(options, args.shift());
+    Object.assign(options, args.shift());
   }
 
   options._defaultAgent = module.exports.globalAgent;

@@ -1,30 +1,27 @@
 'use strict';
 
 const {
-  setImportModuleDynamicallyCallback,
-  setInitializeImportMetaObjectCallback,
-  callbackMap,
-} = internalBinding('module_wrap');
-
-const { pathToFileURL } = require('internal/url');
-const Loader = require('internal/modules/esm/loader');
-const {
-  wrapToModuleMap,
-} = require('internal/vm/source_text_module');
-const {
   ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING,
 } = require('internal/errors').codes;
 
-function initializeImportMetaObject(wrap, meta) {
+const { Loader } = require('internal/modules/esm/loader');
+const { pathToFileURL } = require('internal/url');
+const {
+  wrapToModuleMap,
+} = require('internal/vm/source_text_module');
+
+exports.initializeImportMetaObject = function(wrap, meta) {
+  const { callbackMap } = internalBinding('module_wrap');
   if (callbackMap.has(wrap)) {
     const { initializeImportMeta } = callbackMap.get(wrap);
     if (initializeImportMeta !== undefined) {
       initializeImportMeta(meta, wrapToModuleMap.get(wrap) || wrap);
     }
   }
-}
+};
 
-async function importModuleDynamicallyCallback(wrap, specifier) {
+exports.importModuleDynamicallyCallback = async function(wrap, specifier) {
+  const { callbackMap } = internalBinding('module_wrap');
   if (callbackMap.has(wrap)) {
     const { importModuleDynamically } = callbackMap.get(wrap);
     if (importModuleDynamically !== undefined) {
@@ -33,25 +30,19 @@ async function importModuleDynamicallyCallback(wrap, specifier) {
     }
   }
   throw new ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING();
-}
-
-setInitializeImportMetaObjectCallback(initializeImportMetaObject);
-setImportModuleDynamicallyCallback(importModuleDynamicallyCallback);
+};
 
 let loaderResolve;
-exports.loaderPromise = new Promise((resolve, reject) => {
-  loaderResolve = resolve;
-});
+exports.loaderPromise = new Promise((resolve) => loaderResolve = resolve);
 
 exports.ESMLoader = undefined;
 
-exports.setup = function() {
+exports.initializeLoader = function(cwd, userLoader) {
   let ESMLoader = new Loader();
   const loaderPromise = (async () => {
-    const userLoader = require('internal/options').getOptionValue('--loader');
     if (userLoader) {
       const hooks = await ESMLoader.import(
-        userLoader, pathToFileURL(`${process.cwd()}/`).href);
+        userLoader, pathToFileURL(`${cwd}/`).href);
       ESMLoader = new Loader();
       ESMLoader.hook(hooks);
       exports.ESMLoader = ESMLoader;

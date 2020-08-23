@@ -20,7 +20,14 @@ const fs = require('fs');
 const inp = fs.createReadStream('input.txt');
 const out = fs.createWriteStream('input.txt.gz');
 
-inp.pipe(gzip).pipe(out);
+inp.pipe(gzip)
+  .on('error', () => {
+    // handle error
+  })
+  .pipe(out)
+  .on('error', () => {
+    // handle error
+  });
 ```
 
 It is also possible to compress or decompress data in a single step:
@@ -47,7 +54,7 @@ zlib.unzip(buffer, (err, buffer) => {
 
 ## Threadpool Usage
 
-Note that all zlib APIs except those that are explicitly synchronous use libuv's
+All zlib APIs, except those that are explicitly synchronous, use libuv's
 threadpool. This can lead to surprising effects in some applications, such as
 subpar performance (which can be mitigated by adjusting the [pool size][])
 and/or unrecoverable and catastrophic memory fragmentation.
@@ -69,7 +76,7 @@ See [Memory Usage Tuning][] for more information on the speed/memory/compression
 tradeoffs involved in `zlib` usage.
 
 ```js
-// client request example
+// Client request example
 const zlib = require('zlib');
 const http = require('http');
 const fs = require('fs');
@@ -107,6 +114,8 @@ const http = require('http');
 const fs = require('fs');
 http.createServer((request, response) => {
   const raw = fs.createReadStream('index.html');
+  // Store both a compressed and an uncompressed version of the resource.
+  response.setHeader('Vary: Accept-Encoding');
   let acceptEncoding = request.headers['accept-encoding'];
   if (!acceptEncoding) {
     acceptEncoding = '';
@@ -208,8 +217,8 @@ speed, at the cost of memory usage.
 There are equivalents to the zlib options for Brotli-based streams, although
 these options have different ranges than the zlib ones:
 
-- zlib’s `level` option matches Brotli’s `BROTLI_PARAM_QUALITY` option.
-- zlib’s `windowBits` option matches Brotli’s `BROTLI_PARAM_LGWIN` option.
+* zlib’s `level` option matches Brotli’s `BROTLI_PARAM_QUALITY` option.
+* zlib’s `windowBits` option matches Brotli’s `BROTLI_PARAM_LGWIN` option.
 
 See [below][Brotli parameters] for more details on Brotli-specific options.
 
@@ -221,6 +230,7 @@ quality, but can be useful when data needs to be available as soon as possible.
 
 In the following example, `flush()` is used to write a compressed partial
 HTTP response to the client:
+
 ```js
 const zlib = require('zlib');
 const http = require('http');
@@ -256,8 +266,7 @@ All of the constants defined in `zlib.h` are also defined on
 `require('zlib').constants`. In the normal course of operations, it will not be
 necessary to use these constants. They are documented so that their presence is
 not surprising. This section is taken almost directly from the
-[zlib documentation][]. See <https://zlib.net/manual.html#Constants> for more
-details.
+[zlib documentation][].
 
 Previously, the constants were available directly from `require('zlib')`, for
 instance `zlib.Z_NO_FLUSH`. Accessing the constants directly from the module is
@@ -304,7 +313,7 @@ Compression strategy.
 
 ### Brotli constants
 <!-- YAML
-added: v10.16.0
+added: v11.7.0
 -->
 
 There are several options and other constants available for Brotli-based
@@ -392,7 +401,7 @@ changes:
 
 Each zlib-based class takes an `options` object. All options are optional.
 
-Note that some options are only relevant when compressing, and are
+Some options are only relevant when compressing and are
 ignored by the decompression classes.
 
 * `flush` {integer} **Default:** `zlib.constants.Z_NO_FLUSH`
@@ -406,12 +415,12 @@ ignored by the decompression classes.
   empty dictionary by default)
 * `info` {boolean} (If `true`, returns an object with `buffer` and `engine`.)
 
-See the description of `deflateInit2` and `inflateInit2` at
-<https://zlib.net/manual.html#Advanced> for more information on these.
+See the [`deflateInit2` and `inflateInit2`][] documentation for more
+information.
 
 ## Class: BrotliOptions
 <!-- YAML
-added: v10.16.0
+added: v11.7.0
 -->
 
 <!--type=misc-->
@@ -438,14 +447,14 @@ const stream = zlib.createBrotliCompress({
 
 ## Class: zlib.BrotliCompress
 <!-- YAML
-added: v10.16.0
+added: v11.7.0
 -->
 
 Compress data using the Brotli algorithm.
 
 ## Class: zlib.BrotliDecompress
 <!-- YAML
-added: v10.16.0
+added: v11.7.0
 -->
 
 Decompress data using the Brotli algorithm.
@@ -526,7 +535,7 @@ the header.
 <!-- YAML
 added: v0.5.8
 changes:
-  - version: v10.16.0
+  - version: v11.7.0
     pr-url: https://github.com/nodejs/node/pull/24939
     description: This class was renamed from `Zlib` to `ZlibBase`.
 -->
@@ -563,7 +572,7 @@ The `zlib.bytesWritten` property specifies the number of bytes written to
 the engine, before the bytes are processed (compressed or decompressed,
 as appropriate for the derived class).
 
-### zlib.close([callback])
+### zlib.close(\[callback\])
 <!-- YAML
 added: v0.9.4
 -->
@@ -572,7 +581,7 @@ added: v0.9.4
 
 Close the underlying handle.
 
-### zlib.flush([kind, ]callback)
+### zlib.flush(\[kind, \]callback)
 <!-- YAML
 added: v0.5.8
 -->
@@ -618,39 +627,39 @@ added: v7.0.0
 
 Provides an object enumerating Zlib-related constants.
 
-## zlib.createBrotliCompress([options])
+## zlib.createBrotliCompress(\[options\])
 <!-- YAML
-added: v10.16.0
+added: v11.7.0
 -->
 
 * `options` {brotli options}
 
 Creates and returns a new [`BrotliCompress`][] object.
 
-## zlib.createBrotliDecompress([options])
+## zlib.createBrotliDecompress(\[options\])
 <!-- YAML
-added: v10.16.0
+added: v11.7.0
 -->
 
 * `options` {brotli options}
 
 Creates and returns a new [`BrotliDecompress`][] object.
 
-## zlib.createDeflate([options])
+## zlib.createDeflate(\[options\])
 <!-- YAML
 added: v0.5.8
 -->
 
-* `options` {Object}
+* `options` {zlib options}
 
 Creates and returns a new [`Deflate`][] object.
 
-## zlib.createDeflateRaw([options])
+## zlib.createDeflateRaw(\[options\])
 <!-- YAML
 added: v0.5.8
 -->
 
-* `options` {Object}
+* `options` {zlib options}
 
 Creates and returns a new [`DeflateRaw`][] object.
 
@@ -661,48 +670,49 @@ so Node.js restored the original behavior of upgrading a value of 8 to 9,
 since passing `windowBits = 9` to zlib actually results in a compressed stream
 that effectively uses an 8-bit window only.
 
-## zlib.createGunzip([options])
+## zlib.createGunzip(\[options\])
 <!-- YAML
 added: v0.5.8
 -->
 
-* `options` {Object}
+* `options` {zlib options}
 
 Creates and returns a new [`Gunzip`][] object.
 
-## zlib.createGzip([options])
+## zlib.createGzip(\[options\])
 <!-- YAML
 added: v0.5.8
 -->
 
-* `options` {Object}
+* `options` {zlib options}
 
 Creates and returns a new [`Gzip`][] object.
+See [example][zlib.createGzip example].
 
-## zlib.createInflate([options])
+## zlib.createInflate(\[options\])
 <!-- YAML
 added: v0.5.8
 -->
 
-* `options` {Object}
+* `options` {zlib options}
 
 Creates and returns a new [`Inflate`][] object.
 
-## zlib.createInflateRaw([options])
+## zlib.createInflateRaw(\[options\])
 <!-- YAML
 added: v0.5.8
 -->
 
-* `options` {Object}
+* `options` {zlib options}
 
 Creates and returns a new [`InflateRaw`][] object.
 
-## zlib.createUnzip([options])
+## zlib.createUnzip(\[options\])
 <!-- YAML
 added: v0.5.8
 -->
 
-* `options` {Object}
+* `options` {zlib options}
 
 Creates and returns a new [`Unzip`][] object.
 
@@ -718,41 +728,45 @@ with `callback(error, result)`.
 Every method has a `*Sync` counterpart, which accept the same arguments, but
 without a callback.
 
-### zlib.brotliCompress(buffer[, options], callback)
+### zlib.brotliCompress(buffer\[, options\], callback)
 <!-- YAML
-added: v10.16.0
+added: v11.7.0
 -->
+
 * `buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}
 * `options` {brotli options}
 * `callback` {Function}
 
-### zlib.brotliCompressSync(buffer[, options])
+### zlib.brotliCompressSync(buffer\[, options\])
 <!-- YAML
-added: v10.16.0
+added: v11.7.0
 -->
+
 * `buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}
 * `options` {brotli options}
 
 Compress a chunk of data with [`BrotliCompress`][].
 
-### zlib.brotliDecompress(buffer[, options], callback)
+### zlib.brotliDecompress(buffer\[, options\], callback)
 <!-- YAML
-added: v10.16.0
+added: v11.7.0
 -->
+
 * `buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}
 * `options` {brotli options}
 * `callback` {Function}
 
-### zlib.brotliDecompressSync(buffer[, options])
+### zlib.brotliDecompressSync(buffer\[, options\])
 <!-- YAML
-added: v10.16.0
+added: v11.7.0
 -->
+
 * `buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}
 * `options` {brotli options}
 
 Decompress a chunk of data with [`BrotliDecompress`][].
 
-### zlib.deflate(buffer[, options], callback)
+### zlib.deflate(buffer\[, options\], callback)
 <!-- YAML
 added: v0.6.0
 changes:
@@ -766,11 +780,12 @@ changes:
     pr-url: https://github.com/nodejs/node/pull/12001
     description: The `buffer` parameter can be an `Uint8Array` now.
 -->
+
 * `buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}
-* `options` {Object}
+* `options` {zlib options}
 * `callback` {Function}
 
-### zlib.deflateSync(buffer[, options])
+### zlib.deflateSync(buffer\[, options\])
 <!-- YAML
 added: v0.11.12
 changes:
@@ -786,11 +801,11 @@ changes:
 -->
 
 * `buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}
-* `options` {Object}
+* `options` {zlib options}
 
 Compress a chunk of data with [`Deflate`][].
 
-### zlib.deflateRaw(buffer[, options], callback)
+### zlib.deflateRaw(buffer\[, options\], callback)
 <!-- YAML
 added: v0.6.0
 changes:
@@ -803,10 +818,10 @@ changes:
 -->
 
 * `buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}
-* `options` {Object}
+* `options` {zlib options}
 * `callback` {Function}
 
-### zlib.deflateRawSync(buffer[, options])
+### zlib.deflateRawSync(buffer\[, options\])
 <!-- YAML
 added: v0.11.12
 changes:
@@ -822,11 +837,11 @@ changes:
 -->
 
 * `buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}
-* `options` {Object}
+* `options` {zlib options}
 
 Compress a chunk of data with [`DeflateRaw`][].
 
-### zlib.gunzip(buffer[, options], callback)
+### zlib.gunzip(buffer\[, options\], callback)
 <!-- YAML
 added: v0.6.0
 changes:
@@ -842,10 +857,10 @@ changes:
 -->
 
 * `buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}
-* `options` {Object}
+* `options` {zlib options}
 * `callback` {Function}
 
-### zlib.gunzipSync(buffer[, options])
+### zlib.gunzipSync(buffer\[, options\])
 <!-- YAML
 added: v0.11.12
 changes:
@@ -861,11 +876,11 @@ changes:
 -->
 
 * `buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}
-* `options` {Object}
+* `options` {zlib options}
 
 Decompress a chunk of data with [`Gunzip`][].
 
-### zlib.gzip(buffer[, options], callback)
+### zlib.gzip(buffer\[, options\], callback)
 <!-- YAML
 added: v0.6.0
 changes:
@@ -881,10 +896,10 @@ changes:
 -->
 
 * `buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}
-* `options` {Object}
+* `options` {zlib options}
 * `callback` {Function}
 
-### zlib.gzipSync(buffer[, options])
+### zlib.gzipSync(buffer\[, options\])
 <!-- YAML
 added: v0.11.12
 changes:
@@ -900,11 +915,11 @@ changes:
 -->
 
 * `buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}
-* `options` {Object}
+* `options` {zlib options}
 
 Compress a chunk of data with [`Gzip`][].
 
-### zlib.inflate(buffer[, options], callback)
+### zlib.inflate(buffer\[, options\], callback)
 <!-- YAML
 added: v0.6.0
 changes:
@@ -920,10 +935,10 @@ changes:
 -->
 
 * `buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}
-* `options` {Object}
+* `options` {zlib options}
 * `callback` {Function}
 
-### zlib.inflateSync(buffer[, options])
+### zlib.inflateSync(buffer\[, options\])
 <!-- YAML
 added: v0.11.12
 changes:
@@ -939,11 +954,11 @@ changes:
 -->
 
 * `buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}
-* `options` {Object}
+* `options` {zlib options}
 
 Decompress a chunk of data with [`Inflate`][].
 
-### zlib.inflateRaw(buffer[, options], callback)
+### zlib.inflateRaw(buffer\[, options\], callback)
 <!-- YAML
 added: v0.6.0
 changes:
@@ -959,10 +974,10 @@ changes:
 -->
 
 * `buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}
-* `options` {Object}
+* `options` {zlib options}
 * `callback` {Function}
 
-### zlib.inflateRawSync(buffer[, options])
+### zlib.inflateRawSync(buffer\[, options\])
 <!-- YAML
 added: v0.11.12
 changes:
@@ -978,11 +993,11 @@ changes:
 -->
 
 * `buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}
-* `options` {Object}
+* `options` {zlib options}
 
 Decompress a chunk of data with [`InflateRaw`][].
 
-### zlib.unzip(buffer[, options], callback)
+### zlib.unzip(buffer\[, options\], callback)
 <!-- YAML
 added: v0.6.0
 changes:
@@ -998,10 +1013,10 @@ changes:
 -->
 
 * `buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}
-* `options` {Object}
+* `options` {zlib options}
 * `callback` {Function}
 
-### zlib.unzipSync(buffer[, options])
+### zlib.unzipSync(buffer\[, options\])
 <!-- YAML
 added: v0.11.12
 changes:
@@ -1017,7 +1032,7 @@ changes:
 -->
 
 * `buffer` {Buffer|TypedArray|DataView|ArrayBuffer|string}
-* `options` {Object}
+* `options` {zlib options}
 
 Decompress a chunk of data with [`Unzip`][].
 
@@ -1037,6 +1052,7 @@ Decompress a chunk of data with [`Unzip`][].
 [`Inflate`]: #zlib_class_zlib_inflate
 [`TypedArray`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray
 [`Unzip`]: #zlib_class_zlib_unzip
+[`deflateInit2` and `inflateInit2`]: https://zlib.net/manual.html#Advanced
 [`stream.Transform`]: stream.html#stream_class_stream_transform
 [`zlib.bytesWritten`]: #zlib_zlib_byteswritten
 [Brotli parameters]: #zlib_brotli_constants
@@ -1044,3 +1060,4 @@ Decompress a chunk of data with [`Unzip`][].
 [RFC 7932]: https://www.rfc-editor.org/rfc/rfc7932.txt
 [pool size]: cli.html#cli_uv_threadpool_size_size
 [zlib documentation]: https://zlib.net/manual.html#Constants
+[zlib.createGzip example]: #zlib_zlib

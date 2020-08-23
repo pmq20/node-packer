@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>HTTP/2 | Node.js v10.16.3 Documentation</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
+  <title>HTTP/2 | Node.js v12.13.0 Documentation</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
   <link rel="canonical" href="https://nodejs.org/api/http2.html">
@@ -52,11 +52,13 @@
 <li><a href="os.html" class="nav-os">OS</a></li>
 <li><a href="path.html" class="nav-path">Path</a></li>
 <li><a href="perf_hooks.html" class="nav-perf_hooks">Performance Hooks</a></li>
+<li><a href="policy.html" class="nav-policy">Policies</a></li>
 <li><a href="process.html" class="nav-process">Process</a></li>
 <li><a href="punycode.html" class="nav-punycode">Punycode</a></li>
 <li><a href="querystring.html" class="nav-querystring">Query Strings</a></li>
 <li><a href="readline.html" class="nav-readline">Readline</a></li>
 <li><a href="repl.html" class="nav-repl">REPL</a></li>
+<li><a href="report.html" class="nav-report">Report</a></li>
 <li><a href="stream.html" class="nav-stream">Stream</a></li>
 <li><a href="string_decoder.html" class="nav-string_decoder">String Decoder</a></li>
 <li><a href="timers.html" class="nav-timers">Timers</a></li>
@@ -79,7 +81,7 @@
 
     <div id="column1" data-id="http2" class="interior">
       <header>
-        <h1>Node.js v10.16.3 Documentation</h1>
+        <h1>Node.js v12.13.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -149,7 +151,7 @@
 <li><a href="#http2_http2session_settimeout_msecs_callback">http2session.setTimeout(msecs, callback)</a></li>
 <li><a href="#http2_http2session_socket">http2session.socket</a></li>
 <li><a href="#http2_http2session_state">http2session.state</a></li>
-<li><a href="#http2_http2session_settings_settings">http2session.settings(settings)</a></li>
+<li><a href="#http2_http2session_settings_settings_callback">http2session.settings([settings][, callback])</a></li>
 <li><a href="#http2_http2session_type">http2session.type</a></li>
 <li><a href="#http2_http2session_unref">http2session.unref()</a></li>
 </ul>
@@ -193,6 +195,7 @@
 <li><a href="#http2_http2stream_closed">http2stream.closed</a></li>
 <li><a href="#http2_http2stream_destroyed">http2stream.destroyed</a></li>
 <li><a href="#http2_http2stream_endafterheaders">http2stream.endAfterHeaders</a></li>
+<li><a href="#http2_http2stream_id">http2stream.id</a></li>
 <li><a href="#http2_http2stream_pending">http2stream.pending</a></li>
 <li><a href="#http2_http2stream_priority_options">http2stream.priority(options)</a></li>
 <li><a href="#http2_http2stream_rstcode">http2stream.rstCode</a></li>
@@ -263,7 +266,7 @@
 </ul>
 </li>
 <li><a href="#http2_http2_getdefaultsettings">http2.getDefaultSettings()</a></li>
-<li><a href="#http2_http2_getpackedsettings_settings">http2.getPackedSettings(settings)</a></li>
+<li><a href="#http2_http2_getpackedsettings_settings">http2.getPackedSettings([settings])</a></li>
 <li><a href="#http2_http2_getunpackedsettings_buf">http2.getUnpackedSettings(buf)</a></li>
 <li><a href="#http2_headers_object">Headers Object</a></li>
 <li><a href="#http2_settings_object">Settings Object</a></li>
@@ -286,6 +289,7 @@
 <li><a href="#http2_event_close_2">Event: 'close'</a></li>
 <li><a href="#http2_request_aborted">request.aborted</a></li>
 <li><a href="#http2_request_authority">request.authority</a></li>
+<li><a href="#http2_request_complete">request.complete</a></li>
 <li><a href="#http2_request_destroy_error">request.destroy([error])</a></li>
 <li><a href="#http2_request_headers">request.headers</a></li>
 <li><a href="#http2_request_httpversion">request.httpVersion</a></li>
@@ -307,7 +311,7 @@
 <li><a href="#http2_event_finish">Event: 'finish'</a></li>
 <li><a href="#http2_response_addtrailers_headers">response.addTrailers(headers)</a></li>
 <li><a href="#http2_response_connection">response.connection</a></li>
-<li><a href="#http2_response_end_data_encoding_callback">response.end([data][, encoding][, callback])</a></li>
+<li><a href="#http2_response_end_data_encoding_callback">response.end([data[, encoding]][, callback])</a></li>
 <li><a href="#http2_response_finished">response.finished</a></li>
 <li><a href="#http2_response_getheader_name">response.getHeader(name)</a></li>
 <li><a href="#http2_response_getheadernames">response.getHeaderNames()</a></li>
@@ -322,6 +326,7 @@
 <li><a href="#http2_response_statuscode">response.statusCode</a></li>
 <li><a href="#http2_response_statusmessage">response.statusMessage</a></li>
 <li><a href="#http2_response_stream">response.stream</a></li>
+<li><a href="#http2_response_writableended">response.writableEnded</a></li>
 <li><a href="#http2_response_write_chunk_encoding_callback">response.write(chunk[, encoding][, callback])</a></li>
 <li><a href="#http2_response_writecontinue">response.writeContinue()</a></li>
 <li><a href="#http2_response_writehead_statuscode_statusmessage_headers">response.writeHead(statusCode[, statusMessage][, headers])</a></li>
@@ -489,7 +494,7 @@ stream).</li>
 </ul>
 <p>The <code>'frameError'</code> event is emitted when an error occurs while attempting to
 send a frame on the session. If the frame that could not be sent is associated
-with a specific <code>Http2Stream</code>, an attempt to emit <code>'frameError'</code> event on the
+with a specific <code>Http2Stream</code>, an attempt to emit a <code>'frameError'</code> event on the
 <code>Http2Stream</code> is made.</p>
 <p>If the <code>'frameError'</code> event is associated with a stream, the stream will be
 closed and destroyed immediately following the <code>'frameError'</code> event. If the
@@ -726,9 +731,9 @@ considered authoritative.</p>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a></li>
 </ul>
-<p>Indicates whether or not the <code>Http2Session</code> is currently waiting for an
-acknowledgment for a sent <code>SETTINGS</code> frame. Will be <code>true</code> after calling the
-<code>http2session.settings()</code> method. Will be <code>false</code> once all sent SETTINGS
+<p>Indicates whether the <code>Http2Session</code> is currently waiting for acknowledgment of
+a sent <code>SETTINGS</code> frame. Will be <code>true</code> after calling the
+<code>http2session.settings()</code> method. Will be <code>false</code> once all sent <code>SETTINGS</code>
 frames have been acknowledged.</p>
 <h4>http2session.ping([payload, ]callback)<span><a class="mark" href="#http2_http2session_ping_payload_callback" id="http2_http2session_ping_payload_callback">#</a></span></h4>
 <div class="api_metadata">
@@ -833,12 +838,21 @@ inbound header compression state table.</li>
 </li>
 </ul>
 <p>An object describing the current status of this <code>Http2Session</code>.</p>
-<h4>http2session.settings(settings)<span><a class="mark" href="#http2_http2session_settings_settings" id="http2_http2session_settings_settings">#</a></span></h4>
+<h4>http2session.settings([settings][, callback])<span><a class="mark" href="#http2_http2session_settings_settings_callback" id="http2_http2session_settings_settings_callback">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
 </div>
 <ul>
 <li><code>settings</code> <a href="http2.html#http2_settings_object" class="type">&#x3C;HTTP/2 Settings Object></a></li>
+<li>
+<p><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> Callback that is called once the session is connected or
+right away if the session is already connected.</p>
+<ul>
+<li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&#x3C;Error></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Null_type" class="type">&#x3C;null></a></li>
+<li><code>settings</code> <a href="http2.html#http2_settings_object" class="type">&#x3C;HTTP/2 Settings Object></a> The updated <code>settings</code> object.</li>
+<li><code>duration</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a></li>
+</ul>
+</li>
 </ul>
 <p>Updates the current local settings for this <code>Http2Session</code> and sends a new
 <code>SETTINGS</code> frame to the connected HTTP/2 peer.</p>
@@ -869,6 +883,9 @@ instance's underlying <a href="net.html#net_class_net_socket"><code>net.Socket</
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
 </div>
+<ul>
+<li>Extends: <a href="http2.html#http2_class_http2session" class="type">&#x3C;Http2Session></a></li>
+</ul>
 <h4>serverhttp2session.altsvc(alt, originOrStream)<span><a class="mark" href="#http2_serverhttp2session_altsvc_alt_originorstream" id="http2_serverhttp2session_altsvc_alt_originorstream">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v9.4.0</span>
@@ -968,6 +985,9 @@ server.on('stream', (stream) => {
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
 </div>
+<ul>
+<li>Extends: <a href="http2.html#http2_class_http2session" class="type">&#x3C;Http2Session></a></li>
+</ul>
 <h4>Event: 'altsvc'<span><a class="mark" href="#http2_event_altsvc" id="http2_event_altsvc">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v9.4.0</span>
@@ -997,7 +1017,7 @@ client.on('altsvc', (alt, origin, streamId) => {
 <ul>
 <li><code>origins</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string[]></a></li>
 </ul>
-<p>The <code>'origin'</code>  event is emitted whenever an <code>ORIGIN</code> frame is received by
+<p>The <code>'origin'</code> event is emitted whenever an <code>ORIGIN</code> frame is received by
 the client. The event is emitted with an array of <code>origin</code> strings. The
 <code>http2session.originSet</code> will be updated to include the received
 origins.</p>
@@ -1118,12 +1138,13 @@ the value is <code>undefined</code>, the stream is not yet ready for use.</p>
 <h5>Destruction<span><a class="mark" href="#http2_destruction" id="http2_destruction">#</a></span></h5>
 <p>All <a href="#http2_class_http2stream"><code>Http2Stream</code></a> instances are destroyed either when:</p>
 <ul>
-<li>An <code>RST_STREAM</code> frame for the stream is received by the connected peer.</li>
-<li>The <code>http2stream.close()</code> method is called.</li>
+<li>An <code>RST_STREAM</code> frame for the stream is received by the connected peer,
+and pending data has been read.</li>
+<li>The <code>http2stream.close()</code> method is called, and pending data has been read.</li>
 <li>The <code>http2stream.destroy()</code> or <code>http2session.destroy()</code> methods are called.</li>
 </ul>
 <p>When an <code>Http2Stream</code> instance is destroyed, an attempt will be made to send an
-<code>RST_STREAM</code> frame will be sent to the connected peer.</p>
+<code>RST_STREAM</code> frame to the connected peer.</p>
 <p>When the <code>Http2Stream</code> instance is destroyed, the <code>'close'</code> event will
 be emitted. Because <code>Http2Stream</code> is an instance of <code>stream.Duplex</code>, the
 <code>'end'</code> event will also be emitted if the stream data is currently flowing.
@@ -1182,7 +1203,7 @@ error code. The <code>Http2Stream</code> instance will be destroyed immediately 
 <p>The <code>'trailers'</code> event is emitted when a block of headers associated with
 trailing header fields is received. The listener callback is passed the
 <a href="#http2_headers_object">HTTP/2 Headers Object</a> and flags associated with the headers.</p>
-<p>Note that this event might not be emitted if <code>http2stream.end()</code> is called
+<p>This event might not be emitted if <code>http2stream.end()</code> is called
 before trailers are received and the incoming data is not being read or
 listened for.</p>
 <pre><code class="language-js">stream.on('trailers', (headers, flags) => {
@@ -1208,7 +1229,7 @@ option must be set for this event to be emitted.</p>
 the <code>'aborted'</code> event will have been emitted.</p>
 <h4>http2stream.bufferSize<span><a class="mark" href="#http2_http2stream_buffersize" id="http2_http2stream_buffersize">#</a></span></h4>
 <div class="api_metadata">
-<span>Added in: v10.16.0</span>
+<span>Added in: v11.2.0</span>
 </div>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
@@ -1254,6 +1275,15 @@ usable.</p>
 <p>Set the <code>true</code> if the <code>END_STREAM</code> flag was set in the request or response
 HEADERS frame received, indicating that no additional data should be received
 and the readable side of the <code>Http2Stream</code> will be closed.</p>
+<h4>http2stream.id<span><a class="mark" href="#http2_http2stream_id" id="http2_http2stream_id">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v8.4.0</span>
+</div>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Undefined_type" class="type">&#x3C;undefined></a></li>
+</ul>
+<p>The numeric stream identifier of this <code>Http2Stream</code> instance. Set to <code>undefined</code>
+if the stream identifier has not yet been assigned.</p>
 <h4>http2stream.pending<span><a class="mark" href="#http2_http2stream_pending" id="http2_http2stream_pending">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v9.4.0</span>
@@ -1361,8 +1391,8 @@ req.setTimeout(5000, () => req.close(NGHTTP2_CANCEL));
 for this <code>Http2Stream</code> without receiving a <code>WINDOW_UPDATE</code>.</li>
 <li><code>state</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> A flag indicating the low-level current state of the
 <code>Http2Stream</code> as determined by <code>nghttp2</code>.</li>
-<li><code>localClose</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> <code>true</code> if this <code>Http2Stream</code> has been closed locally.</li>
-<li><code>remoteClose</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> <code>true</code> if this <code>Http2Stream</code> has been closed
+<li><code>localClose</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> <code>1</code> if this <code>Http2Stream</code> has been closed locally.</li>
+<li><code>remoteClose</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> <code>1</code> if this <code>Http2Stream</code> has been closed
 remotely.</li>
 <li><code>sumDependencyWeight</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> The sum weight of all <code>Http2Stream</code>
 instances that depend on this <code>Http2Stream</code> as specified using
@@ -1381,7 +1411,7 @@ instances that depend on this <code>Http2Stream</code> as specified using
 </ul>
 <p>Sends a trailing <code>HEADERS</code> frame to the connected HTTP/2 peer. This method
 will cause the <code>Http2Stream</code> to be immediately closed and must only be
-called after the <code>'wantTrailers'</code>  event has been emitted. When sending a
+called after the <code>'wantTrailers'</code> event has been emitted. When sending a
 request or sending a response, the <code>options.waitForTrailers</code> option must be set
 in order to keep the <code>Http2Stream</code> open after the final <code>DATA</code> frame so that
 trailers can be sent.</p>
@@ -1585,6 +1615,8 @@ server.on('stream', (stream) => {
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v12.12.0</td>
+<td><p>The <code>fd</code> option may now be a <code>FileHandle</code>.</p></td></tr>
 <tr><td>v10.0.0</td>
 <td><p>Any readable file descriptor, not necessarily for a regular file, is supported now.</p></td></tr>
 <tr><td>v8.4.0</td>
@@ -1593,7 +1625,7 @@ server.on('stream', (stream) => {
 </details>
 </div>
 <ul>
-<li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> A readable file descriptor.</li>
+<li><code>fd</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> | <a href="fs.html#fs_class_filehandle" class="type">&#x3C;FileHandle></a> A readable file descriptor.</li>
 <li><code>headers</code> <a href="http2.html#http2_headers_object" class="type">&#x3C;HTTP/2 Headers Object></a></li>
 <li>
 <p><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></p>
@@ -1637,9 +1669,9 @@ collect details on the provided file descriptor.</p>
 <p>The <code>offset</code> and <code>length</code> options may be used to limit the response to a
 specific range subset. This can be used, for instance, to support HTTP Range
 requests.</p>
-<p>The file descriptor is not closed when the stream is closed, so it will need
-to be closed manually once it is no longer needed.
-Note that using the same file descriptor concurrently for multiple streams
+<p>The file descriptor or <code>FileHandle</code> is not closed when the stream is closed,
+so it will need to be closed manually once it is no longer needed.
+Using the same file descriptor concurrently for multiple streams
 is not supported and may result in data loss. Re-using a file descriptor
 after a stream has finished is supported.</p>
 <p>When the <code>options.waitForTrailers</code> option is set, the <code>'wantTrailers'</code> event
@@ -1802,7 +1834,7 @@ not listened for, the server will automatically respond with a status
 client should continue to send the request body, or generating an appropriate
 HTTP response (e.g. 400 Bad Request) if the client should not continue to send
 the request body.</p>
-<p>Note that when this event is emitted and handled, the <a href="#http2_event_request"><code>'request'</code></a> event will
+<p>When this event is emitted and handled, the <a href="#http2_event_request"><code>'request'</code></a> event will
 not be emitted.</p>
 <h4>Event: 'request'<span><a class="mark" href="#http2_event_request" id="http2_event_request">#</a></span></h4>
 <div class="api_metadata">
@@ -1812,7 +1844,7 @@ not be emitted.</p>
 <li><code>request</code> <a href="http2.html#http2_class_http2_http2serverrequest" class="type">&#x3C;http2.Http2ServerRequest></a></li>
 <li><code>response</code> <a href="http2.html#http2_class_http2_http2serverresponse" class="type">&#x3C;http2.Http2ServerResponse></a></li>
 </ul>
-<p>Emitted each time there is a request. Note that there may be multiple requests
+<p>Emitted each time there is a request. There may be multiple requests
 per session. See the <a href="#http2_compatibility_api">Compatibility API</a>.</p>
 <h4>Event: 'session'<span><a class="mark" href="#http2_event_session" id="http2_event_session">#</a></span></h4>
 <div class="api_metadata">
@@ -1860,18 +1892,23 @@ server.on('stream', (stream, headers, flags) => {
 <p>The <code>'timeout'</code> event is emitted when there is no activity on the Server for
 a given number of milliseconds set using <code>http2server.setTimeout()</code>.
 <strong>Default:</strong> 2 minutes.</p>
-<h4>server.close([callback])<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/net.js#L1561">[src]</a><span><a class="mark" href="#http2_server_close_callback" id="http2_server_close_callback">#</a></span></h4>
+<p>To change the default timeout use the <a href="cli.html#cli_http_server_default_timeout_milliseconds"><code>--http-server-default-timeout</code></a>
+flag.</p>
+<h4>server.close([callback])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/net.js#L1587">[src]</a><span><a class="mark" href="#http2_server_close_callback" id="http2_server_close_callback">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
 </div>
 <ul>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
 </ul>
-<p>Stops the server from accepting new connections.  See <a href="net.html#net_server_close_callback"><code>net.Server.close()</code></a>.</p>
-<p>Note that this is not analogous to restricting new requests since HTTP/2
-connections are persistent. To achieve a similar graceful shutdown behavior,
-consider also using <a href="#http2_http2session_close_callback"><code>http2session.close()</code></a> on active sessions.</p>
-<h4>server.setTimeout([msecs][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/https.js#L82">[src]</a><span><a class="mark" href="#http2_server_settimeout_msecs_callback" id="http2_server_settimeout_msecs_callback">#</a></span></h4>
+<p>Stops the server from establishing new sessions. This does not prevent new
+request streams from being created due to the persistent nature of HTTP/2
+sessions. To gracefully shut down the server, call <a href="#http2_http2session_close_callback"><code>http2session.close()</code></a> on
+all active sessions.</p>
+<p>If <code>callback</code> is provided, it is not invoked until all active sessions have been
+closed, although the server has already stopped allowing new sessions. See
+<a href="net.html#net_server_close_callback"><code>net.Server.close()</code></a> for more details.</p>
+<h4>server.setTimeout([msecs][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/_http_server.js#L348">[src]</a><span><a class="mark" href="#http2_server_settimeout_msecs_callback" id="http2_server_settimeout_msecs_callback">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
 </div>
@@ -1886,6 +1923,8 @@ on the <code>Http2Server</code> after <code>msecs</code> milliseconds.</p>
 <p>The given callback is registered as a listener on the <code>'timeout'</code> event.</p>
 <p>In case of no callback function were assigned, a new <code>ERR_INVALID_CALLBACK</code>
 error will be thrown.</p>
+<p>To change the default timeout use the <a href="cli.html#cli_http_server_default_timeout_milliseconds"><code>--http-server-default-timeout</code></a>
+flag.</p>
 <h3>Class: Http2SecureServer<span><a class="mark" href="#http2_class_http2secureserver" id="http2_class_http2secureserver">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
@@ -1913,7 +1952,7 @@ is not listened for, the server will automatically respond with a status
 client should continue to send the request body, or generating an appropriate
 HTTP response (e.g. 400 Bad Request) if the client should not continue to send
 the request body.</p>
-<p>Note that when this event is emitted and handled, the <a href="#http2_event_request"><code>'request'</code></a> event will
+<p>When this event is emitted and handled, the <a href="#http2_event_request"><code>'request'</code></a> event will
 not be emitted.</p>
 <h4>Event: 'request'<span><a class="mark" href="#http2_event_request_1" id="http2_event_request_1">#</a></span></h4>
 <div class="api_metadata">
@@ -1923,7 +1962,7 @@ not be emitted.</p>
 <li><code>request</code> <a href="http2.html#http2_class_http2_http2serverrequest" class="type">&#x3C;http2.Http2ServerRequest></a></li>
 <li><code>response</code> <a href="http2.html#http2_class_http2_http2serverresponse" class="type">&#x3C;http2.Http2ServerResponse></a></li>
 </ul>
-<p>Emitted each time there is a request. Note that there may be multiple requests
+<p>Emitted each time there is a request. There may be multiple requests
 per session. See the <a href="#http2_compatibility_api">Compatibility API</a>.</p>
 <h4>Event: 'session'<span><a class="mark" href="#http2_event_session_1" id="http2_event_session_1">#</a></span></h4>
 <div class="api_metadata">
@@ -1981,18 +2020,21 @@ a given number of milliseconds set using <code>http2secureServer.setTimeout()</c
 negotiate an allowed protocol (i.e. HTTP/2 or HTTP/1.1). The event handler
 receives the socket for handling. If no listener is registered for this event,
 the connection is terminated. See the <a href="#http2_compatibility_api">Compatibility API</a>.</p>
-<h4>server.close([callback])<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/net.js#L1561">[src]</a><span><a class="mark" href="#http2_server_close_callback_1" id="http2_server_close_callback_1">#</a></span></h4>
+<h4>server.close([callback])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/net.js#L1587">[src]</a><span><a class="mark" href="#http2_server_close_callback_1" id="http2_server_close_callback_1">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
 </div>
 <ul>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
 </ul>
-<p>Stops the server from accepting new connections.  See <a href="tls.html#tls_server_close_callback"><code>tls.Server.close()</code></a>.</p>
-<p>Note that this is not analogous to restricting new requests since HTTP/2
-connections are persistent. To achieve a similar graceful shutdown behavior,
-consider also using <a href="#http2_http2session_close_callback"><code>http2session.close()</code></a> on active sessions.</p>
-<h4>server.setTimeout([msecs][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/https.js#L82">[src]</a><span><a class="mark" href="#http2_server_settimeout_msecs_callback_1" id="http2_server_settimeout_msecs_callback_1">#</a></span></h4>
+<p>Stops the server from establishing new sessions. This does not prevent new
+request streams from being created due to the persistent nature of HTTP/2
+sessions. To gracefully shut down the server, call <a href="#http2_http2session_close_callback"><code>http2session.close()</code></a> on
+all active sessions.</p>
+<p>If <code>callback</code> is provided, it is not invoked until all active sessions have been
+closed, although the server has already stopped allowing new sessions. See
+<a href="tls.html#tls_server_close_callback"><code>tls.Server.close()</code></a> for more details.</p>
+<h4>server.setTimeout([msecs][, callback])<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/_http_server.js#L348">[src]</a><span><a class="mark" href="#http2_server_settimeout_msecs_callback_1" id="http2_server_settimeout_msecs_callback_1">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
 </div>
@@ -2012,6 +2054,8 @@ error will be thrown.</p>
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v12.4.0</td>
+<td><p>The <code>options</code> parameter now supports <code>net.createServer()</code> options.</p></td></tr>
 <tr><td>v9.6.0</td>
 <td><p>Added the <code>Http1IncomingMessage</code> and <code>Http1ServerResponse</code> option.</p></td></tr>
 <tr><td>v8.9.3</td>
@@ -2048,7 +2092,7 @@ exceed this limit will result in a <code>'frameError'</code> event being emitted
 and the stream being closed and destroyed.</li>
 <li>
 <p><code>paddingStrategy</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Identifies the strategy used for determining the
- amount of padding to use for <code>HEADERS</code> and <code>DATA</code> frames. <strong>Default:</strong>
+amount of padding to use for <code>HEADERS</code> and <code>DATA</code> frames. <strong>Default:</strong>
 <code>http2.constants.PADDING_STRATEGY_NONE</code>. Value may be one of:</p>
 <ul>
 <li><code>http2.constants.PADDING_STRATEGY_NONE</code> - Specifies that no padding is
@@ -2091,6 +2135,7 @@ Useful for extending the original <code>Http2ServerRequest</code>.
 <code>Http2ServerResponse</code> class to use.
 Useful for extending the original <code>Http2ServerResponse</code>.
 <strong>Default:</strong> <code>Http2ServerResponse</code>.</li>
+<li>...: Any <a href="net.html#net_net_createserver_options_connectionlistener"><code>net.createServer()</code></a> option can be provided.</li>
 </ul>
 </li>
 <li><code>onRequestHandler</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> See <a href="#http2_compatibility_api">Compatibility API</a></li>
@@ -2165,7 +2210,7 @@ exceed this limit will result in a <code>'frameError'</code> event being emitted
 and the stream being closed and destroyed.</li>
 <li>
 <p><code>paddingStrategy</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Identifies the strategy used for determining the
- amount of padding to use for <code>HEADERS</code> and <code>DATA</code> frames. <strong>Default:</strong>
+amount of padding to use for <code>HEADERS</code> and <code>DATA</code> frames. <strong>Default:</strong>
 <code>http2.constants.PADDING_STRATEGY_NONE</code>. Value may be one of:</p>
 <ul>
 <li><code>http2.constants.PADDING_STRATEGY_NONE</code> - Specifies that no padding is
@@ -2263,14 +2308,16 @@ unacknowledged pings. <strong>Default:</strong> <code>10</code>.</li>
 <li><code>maxReservedRemoteStreams</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Sets the maximum number of reserved push
 streams the client will accept at any given time. Once the current number of
 currently reserved push streams exceeds reaches this limit, new push streams
-sent by the server will be automatically rejected.</li>
+sent by the server will be automatically rejected. The minimum allowed value
+is 0. The maximum allowed value is 2<sup>32</sup>-1. A negative value sets
+this option to the maximum allowed value. <strong>Default:</strong> <code>200</code>.</li>
 <li><code>maxSendHeaderBlockLength</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Sets the maximum allowed size for a
 serialized, compressed block of headers. Attempts to send headers that
 exceed this limit will result in a <code>'frameError'</code> event being emitted
 and the stream being closed and destroyed.</li>
 <li>
 <p><code>paddingStrategy</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Identifies the strategy used for determining the
- amount of padding to use for <code>HEADERS</code> and <code>DATA</code> frames. <strong>Default:</strong>
+amount of padding to use for <code>HEADERS</code> and <code>DATA</code> frames. <strong>Default:</strong>
 <code>http2.constants.PADDING_STRATEGY_NONE</code>. Value may be one of:</p>
 <ul>
 <li><code>http2.constants.PADDING_STRATEGY_NONE</code> - Specifies that no padding is
@@ -2305,7 +2352,8 @@ instance passed to <code>connect</code> and the <code>options</code> object, and
 <li>...: Any <a href="net.html#net_net_connect"><code>net.connect()</code></a> or <a href="tls.html#tls_tls_connect_options_callback"><code>tls.connect()</code></a> options can be provided.</li>
 </ul>
 </li>
-<li><code>listener</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
+<li><code>listener</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a> Will be registered as a one-time listener of the
+<a href="#http2_event_connect"><code>'connect'</code></a> event.</li>
 <li>Returns: <a href="http2.html#http2_class_clienthttp2session" class="type">&#x3C;ClientHttp2Session></a></li>
 </ul>
 <p>Returns a <code>ClientHttp2Session</code> instance.</p>
@@ -2415,7 +2463,7 @@ a given number of milliseconds set using <code>http2server.setTimeout()</code>.<
 <p>Returns an object containing the default settings for an <code>Http2Session</code>
 instance. This method returns a new object instance every time it is called
 so instances returned may be safely modified for use.</p>
-<h3>http2.getPackedSettings(settings)<span><a class="mark" href="#http2_http2_getpackedsettings_settings" id="http2_http2_getpackedsettings_settings">#</a></span></h3>
+<h3>http2.getPackedSettings([settings])<span><a class="mark" href="#http2_http2_getpackedsettings_settings" id="http2_http2_getpackedsettings_settings">#</a></span></h3>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
 </div>
@@ -2489,6 +2537,8 @@ server.on('stream', (stream, headers) => {
 <details class="changelog"><summary>History</summary>
 <table>
 <tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v12.12.0</td>
+<td><p>The <code>maxConcurrentStreams</code> setting is stricter.</p></td></tr>
 <tr><td>v8.9.3</td>
 <td><p>The <code>maxHeaderListSize</code> setting is now strictly enforced.</p></td></tr>
 <tr><td>v8.4.0</td>
@@ -2517,9 +2567,10 @@ The minimum allowed value is 16,384. The maximum allowed value
 is 2<sup>24</sup>-1. <strong>Default:</strong> <code>16,384 bytes</code>.</li>
 <li><code>maxConcurrentStreams</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Specifies the maximum number of concurrent
 streams permitted on an <code>Http2Session</code>. There is no default value which
-implies, at least theoretically, 2<sup>31</sup>-1 streams may be open
+implies, at least theoretically, 2<sup>32</sup>-1 streams may be open
 concurrently at any given time in an <code>Http2Session</code>. The minimum value
-is 0. The maximum allowed value is 2<sup>31</sup>-1.</li>
+is 0. The maximum allowed value is 2<sup>32</sup>-1. <strong>Default:</strong>
+<code>4294967295</code>.</li>
 <li><code>maxHeaderListSize</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> Specifies the maximum size (uncompressed octets)
 of header list that will be accepted. The minimum allowed value is 0. The
 maximum allowed value is 2<sup>32</sup>-1. <strong>Default:</strong> <code>65535</code>.</li>
@@ -2587,7 +2638,7 @@ const client = http2.connect('http://localhost');
 
 client.on('stream', (pushedStream, requestHeaders) => {
   pushedStream.on('push', (responseHeaders) => {
-    // process response headers
+    // Process response headers
   });
   pushedStream.on('data', (chunk) => { /* handle pushed data */ });
 });
@@ -2672,7 +2723,7 @@ const server = http2.createServer({ settings });
 </code></pre>
 <p>Once the client receives the <code>SETTINGS</code> frame from the server indicating that
 the extended CONNECT may be used, it may send <code>CONNECT</code> requests that use the
-<code>':protocol'</code>  HTTP/2 pseudo-header:</p>
+<code>':protocol'</code> HTTP/2 pseudo-header:</p>
 <pre><code class="language-js">const http2 = require('http2');
 const client = http2.connect('http://localhost:8080');
 client.on('remoteSettings', (settings) => {
@@ -2702,8 +2753,8 @@ const server = http2.createServer((req, res) => {
 <p>In order to create a mixed <a href="https.html">HTTPS</a> and HTTP/2 server, refer to the
 <a href="#http2_alpn_negotiation">ALPN negotiation</a> section.
 Upgrading from non-tls HTTP/1 servers is not supported.</p>
-<p>The HTTP/2 compatibility API is composed of <a href=""><code>Http2ServerRequest</code></a> and
-<a href=""><code>Http2ServerResponse</code></a>. They aim at API compatibility with HTTP/1, but
+<p>The HTTP/2 compatibility API is composed of <a href="#http2_class_http2_http2serverrequest"><code>Http2ServerRequest</code></a> and
+<a href="#class-http2http2serverresponse"><code>Http2ServerResponse</code></a>. They aim at API compatibility with HTTP/1, but
 they do not hide the differences between the protocols. As an example,
 the status message for HTTP codes is ignored.</p>
 <h3>ALPN negotiation<span><a class="mark" href="#http2_alpn_negotiation" id="http2_alpn_negotiation">#</a></span></h3>
@@ -2725,7 +2776,7 @@ const server = createSecureServer(
 ).listen(4443);
 
 function onRequest(req, res) {
-  // detects if it is a HTTPS request or HTTP/2
+  // Detects if it is a HTTPS request or HTTP/2
   const { socket: { alpnProtocol } } = req.httpVersion === '2.0' ?
     req.stream.session : req;
   res.writeHead(200, { 'content-type': 'application/json' });
@@ -2741,12 +2792,13 @@ HTTP/2.</p>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
 </div>
+<ul>
+<li>Extends: <a href="stream.html#stream_class_stream_readable" class="type">&#x3C;stream.Readable></a></li>
+</ul>
 <p>A <code>Http2ServerRequest</code> object is created by <a href="#http2_class_http2server"><code>http2.Server</code></a> or
 <a href="#http2_class_http2secureserver"><code>http2.SecureServer</code></a> and passed as the first argument to the
 <a href="#http2_event_request"><code>'request'</code></a> event. It may be used to access a request status, headers, and
 data.</p>
-<p>It implements the <a href="stream.html#stream_class_stream_readable">Readable Stream</a> interface, as well as the
-following additional events, methods, and properties.</p>
 <h4>Event: 'aborted'<span><a class="mark" href="#http2_event_aborted_1" id="http2_event_aborted_1">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
@@ -2779,6 +2831,15 @@ been aborted.</p>
 </ul>
 <p>The request authority pseudo header field. It can also be accessed via
 <code>req.headers[':authority']</code>.</p>
+<h4>request.complete<span><a class="mark" href="#http2_request_complete" id="http2_request_complete">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v12.10.0</span>
+</div>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a></li>
+</ul>
+<p>The <code>request.complete</code> property will be <code>true</code> if the request has
+been completed, aborted, or destroyed.</p>
 <h4>request.destroy([error])<span><a class="mark" href="#http2_request_destroy_error" id="http2_request_destroy_error">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
@@ -2843,7 +2904,7 @@ client response, the HTTP version of the connected-to server. Returns
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string[]></a></li>
 </ul>
 <p>The raw request/response headers list exactly as they were received.</p>
-<p>Note that the keys and values are in the same list. It is <em>not</em> a
+<p>The keys and values are in the same list. It is <em>not</em> a
 list of tuples. So, the even-numbered offsets are key values, and the
 odd-numbered offsets are the associated values.</p>
 <p>Header names are not lowercased, and duplicates are not merged.</p>
@@ -2886,11 +2947,11 @@ portion of the target URL.</p>
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
 <li>Returns: <a href="http2.html#http2_class_http2_http2serverrequest" class="type">&#x3C;http2.Http2ServerRequest></a></li>
 </ul>
-<p>Sets the <a href=""><code>Http2Stream</code></a>'s timeout value to <code>msecs</code>. If a callback is
+<p>Sets the <a href="#http2_class_http2stream"><code>Http2Stream</code></a>'s timeout value to <code>msecs</code>. If a callback is
 provided, then it is added as a listener on the <code>'timeout'</code> event on
 the response object.</p>
 <p>If no <code>'timeout'</code> listener is added to the request, the response, or
-the server, then <a href=""><code>Http2Stream</code></a>s are destroyed when they time out. If a
+the server, then <a href="#http2_class_http2stream"><code>Http2Stream</code></a>s are destroyed when they time out. If a
 handler is assigned to the request, the response, or the server's <code>'timeout'</code>
 events, timed out sockets must be handled explicitly.</p>
 <h4>request.socket<span><a class="mark" href="#http2_request_socket" id="http2_request_socket">#</a></span></h4>
@@ -2967,7 +3028,7 @@ Url {
 <p>To extract the parameters from the query string, the
 <code>require('querystring').parse</code> function can be used, or
 <code>true</code> can be passed as the second argument to <code>require('url').parse</code>.</p>
-<pre><code class="language-txt">$ node
+<pre><code class="language-console">$ node
 > require('url').parse('/status?name=ryan', true)
 Url {
   protocol: null,
@@ -2987,15 +3048,16 @@ Url {
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
 </div>
+<ul>
+<li>Extends: <a href="stream.html#stream_stream" class="type">&#x3C;Stream></a></li>
+</ul>
 <p>This object is created internally by an HTTP server — not by the user. It is
 passed as the second parameter to the <a href="#http2_event_request"><code>'request'</code></a> event.</p>
-<p>The response inherits from <a href="stream.html#stream_stream">Stream</a>, and additionally implements the
-following:</p>
 <h4>Event: 'close'<span><a class="mark" href="#http2_event_close_3" id="http2_event_close_3">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
 </div>
-<p>Indicates that the underlying <a href=""><code>Http2Stream</code></a> was terminated before
+<p>Indicates that the underlying <a href="#http2_class_http2stream"><code>Http2Stream</code></a> was terminated before
 <a href="#http2_response_end_data_encoding_callback"><code>response.end()</code></a> was called or able to flush.</p>
 <h4>Event: 'finish'<span><a class="mark" href="#http2_event_finish" id="http2_event_finish">#</a></span></h4>
 <div class="api_metadata">
@@ -3025,7 +3087,7 @@ will result in a <a href="errors.html#errors_class_typeerror"><code>TypeError</c
 <li><a href="net.html#net_class_net_socket" class="type">&#x3C;net.Socket></a> | <a href="tls.html#tls_class_tls_tlssocket" class="type">&#x3C;tls.TLSSocket></a></li>
 </ul>
 <p>See <a href="#http2_response_socket"><code>response.socket</code></a>.</p>
-<h4>response.end([data][, encoding][, callback])<span><a class="mark" href="#http2_response_end_data_encoding_callback" id="http2_response_end_data_encoding_callback">#</a></span></h4>
+<h4>response.end([data[, encoding]][, callback])<span><a class="mark" href="#http2_response_end_data_encoding_callback" id="http2_response_end_data_encoding_callback">#</a></span></h4>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -3068,7 +3130,7 @@ as <code>false</code>. After <a href="#http2_response_end_data_encoding_callback
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
 <p>Reads out a header that has already been queued but not sent to the client.
-Note that the name is case insensitive.</p>
+The name is case-insensitive.</p>
 <pre><code class="language-js">const contentType = response.getHeader('content-type');
 </code></pre>
 <h4>response.getHeaderNames()<span><a class="mark" href="#http2_response_getheadernames" id="http2_response_getheadernames">#</a></span></h4>
@@ -3117,7 +3179,7 @@ const headers = response.getHeaders();
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a></li>
 </ul>
 <p>Returns <code>true</code> if the header identified by <code>name</code> is currently set in the
-outgoing headers. Note that the header name matching is case-insensitive.</p>
+outgoing headers. The header name matching is case-insensitive.</p>
 <pre><code class="language-js">const hasContentType = response.hasHeader('content-type');
 </code></pre>
 <h4>response.headersSent<span><a class="mark" href="#http2_response_headerssent" id="http2_response_headerssent">#</a></span></h4>
@@ -3170,7 +3232,7 @@ will result in a <a href="errors.html#errors_class_typeerror"><code>TypeError</c
 <p>When headers have been set with <a href="#http2_response_setheader_name_value"><code>response.setHeader()</code></a>, they will be merged
 with any headers passed to <a href="#http2_response_writehead_statuscode_statusmessage_headers"><code>response.writeHead()</code></a>, with the headers passed
 to <a href="#http2_response_writehead_statuscode_statusmessage_headers"><code>response.writeHead()</code></a> given precedence.</p>
-<pre><code class="language-js">// returns content-type = text/plain
+<pre><code class="language-js">// Returns content-type = text/plain
 const server = http2.createServer((req, res) => {
   res.setHeader('Content-Type', 'text/html');
   res.setHeader('X-Foo', 'bar');
@@ -3187,11 +3249,11 @@ const server = http2.createServer((req, res) => {
 <li><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></li>
 <li>Returns: <a href="http2.html#http2_class_http2_http2serverresponse" class="type">&#x3C;http2.Http2ServerResponse></a></li>
 </ul>
-<p>Sets the <a href=""><code>Http2Stream</code></a>'s timeout value to <code>msecs</code>. If a callback is
+<p>Sets the <a href="#http2_class_http2stream"><code>Http2Stream</code></a>'s timeout value to <code>msecs</code>. If a callback is
 provided, then it is added as a listener on the <code>'timeout'</code> event on
 the response object.</p>
 <p>If no <code>'timeout'</code> listener is added to the request, the response, or
-the server, then <a href=""><code>Http2Stream</code></a>s are destroyed when they time out. If a
+the server, then <a href="#http2_class_http2stream"><code>Http2Stream</code></a>s are destroyed when they time out. If a
 handler is assigned to the request, the response, or the server's <code>'timeout'</code>
 events, timed out sockets must be handled explicitly.</p>
 <h4>response.socket<span><a class="mark" href="#http2_response_socket" id="http2_response_socket">#</a></span></h4>
@@ -3240,7 +3302,7 @@ status code which was sent out.</p>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 </ul>
-<p>Status message is not supported by HTTP/2 (RFC7540 8.1.2.4). It returns
+<p>Status message is not supported by HTTP/2 (RFC 7540 8.1.2.4). It returns
 an empty string.</p>
 <h4>response.stream<span><a class="mark" href="#http2_response_stream" id="http2_response_stream">#</a></span></h4>
 <div class="api_metadata">
@@ -3250,6 +3312,16 @@ an empty string.</p>
 <li><a href="http2.html#http2_class_http2stream" class="type">&#x3C;Http2Stream></a></li>
 </ul>
 <p>The <a href="#http2_class_http2stream"><code>Http2Stream</code></a> object backing the response.</p>
+<h4>response.writableEnded<span><a class="mark" href="#http2_response_writableended" id="http2_response_writableended">#</a></span></h4>
+<div class="api_metadata">
+<span>Added in: v12.9.0</span>
+</div>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a></li>
+</ul>
+<p>Is <code>true</code> after <a href="#http2_response_end_data_encoding_callback"><code>response.end()</code></a> has been called. This property
+does not indicate whether the data has been flushed, for this use
+<a href="stream.html#stream_writable_writablefinished"><code>writable.writableFinished</code></a> instead.</p>
 <h4>response.write(chunk[, encoding][, callback])<span><a class="mark" href="#http2_response_write_chunk_encoding_callback" id="http2_response_write_chunk_encoding_callback">#</a></span></h4>
 <div class="api_metadata">
 <span>Added in: v8.4.0</span>
@@ -3264,7 +3336,7 @@ an empty string.</p>
 it will switch to implicit header mode and flush the implicit headers.</p>
 <p>This sends a chunk of the response body. This method may
 be called multiple times to provide successive parts of the body.</p>
-<p>Note that in the <code>http</code> module, the response body is omitted when the
+<p>In the <code>http</code> module, the response body is omitted when the
 request is a HEAD request. Similarly, the <code>204</code> and <code>304</code> responses
 <em>must not</em> include a message body.</p>
 <p><code>chunk</code> can be a string or a buffer. If <code>chunk</code> is a string,
@@ -3290,15 +3362,25 @@ should be sent. See the <a href="#http2_event_checkcontinue"><code>'checkContinu
 <code>Http2SecureServer</code>.</p>
 <h4>response.writeHead(statusCode[, statusMessage][, headers])<span><a class="mark" href="#http2_response_writehead_statuscode_statusmessage_headers" id="http2_response_writehead_statuscode_statusmessage_headers">#</a></span></h4>
 <div class="api_metadata">
-<span>Added in: v8.4.0</span>
+<details class="changelog"><summary>History</summary>
+<table>
+<tbody><tr><th>Version</th><th>Changes</th></tr>
+<tr><td>v11.10.0</td>
+<td><p>Return <code>this</code> from <code>writeHead()</code> to allow chaining with <code>end()</code>.</p></td></tr>
+<tr><td>v8.4.0</td>
+<td><p><span>Added in: v8.4.0</span></p></td></tr>
+</tbody></table>
+</details>
 </div>
 <ul>
 <li><code>statusCode</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a></li>
 <li><code>statusMessage</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a></li>
 <li><code>headers</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></li>
+<li>Returns: <a href="http2.html#http2_class_http2_http2serverresponse" class="type">&#x3C;http2.Http2ServerResponse></a></li>
 </ul>
 <p>Sends a response header to the request. The status code is a 3-digit HTTP
 status code, like <code>404</code>. The last argument, <code>headers</code>, are the response headers.</p>
+<p>Returns a reference to the <code>Http2ServerResponse</code>, so that calls can be chained.</p>
 <p>For compatibility with <a href="http.html">HTTP/1</a>, a human-readable <code>statusMessage</code> may be
 passed as the second argument. However, because the <code>statusMessage</code> has no
 meaning within HTTP/2, the argument will have no effect and a process warning
@@ -3308,12 +3390,12 @@ response.writeHead(200, {
   'Content-Length': Buffer.byteLength(body),
   'Content-Type': 'text/plain' });
 </code></pre>
-<p>Note that Content-Length is given in bytes not characters. The
+<p><code>Content-Length</code> is given in bytes not characters. The
 <code>Buffer.byteLength()</code> API may be used to determine the number of bytes in a
 given encoding. On outbound messages, Node.js does not check if Content-Length
 and the length of the body being transmitted are equal or not. However, when
 receiving messages, Node.js will automatically reject messages when the
-Content-Length does not match the actual payload size.</p>
+<code>Content-Length</code> does not match the actual payload size.</p>
 <p>This method may be called at most one time on a message before
 <a href="#http2_response_end_data_encoding_callback"><code>response.end()</code></a> is called.</p>
 <p>If <a href="#http2_response_write_chunk_encoding_callback"><code>response.write()</code></a> or <a href="#http2_response_end_data_encoding_callback"><code>response.end()</code></a> are called before calling
@@ -3321,7 +3403,7 @@ this, the implicit/mutable headers will be calculated and call this function.</p
 <p>When headers have been set with <a href="#http2_response_setheader_name_value"><code>response.setHeader()</code></a>, they will be merged
 with any headers passed to <a href="#http2_response_writehead_statuscode_statusmessage_headers"><code>response.writeHead()</code></a>, with the headers passed
 to <a href="#http2_response_writehead_statuscode_statusmessage_headers"><code>response.writeHead()</code></a> given precedence.</p>
-<pre><code class="language-js">// returns content-type = text/plain
+<pre><code class="language-js">// Returns content-type = text/plain
 const server = http2.createServer((req, res) => {
   res.setHeader('Content-Type', 'text/html');
   res.setHeader('X-Foo', 'bar');
@@ -3361,9 +3443,9 @@ const obs = new PerformanceObserver((items) => {
   const entry = items.getEntries()[0];
   console.log(entry.entryType);  // prints 'http2'
   if (entry.name === 'Http2Session') {
-    // entry contains statistics about the Http2Session
+    // Entry contains statistics about the Http2Session
   } else if (entry.name === 'Http2Stream') {
-    // entry contains statistics about the Http2Stream
+    // Entry contains statistics about the Http2Stream
   }
 });
 obs.observe({ entryTypes: ['http2'] });

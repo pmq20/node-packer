@@ -6,12 +6,6 @@ const assert = require('assert');
 const b = Buffer.allocUnsafe(1024);
 const c = Buffer.allocUnsafe(512);
 
-const errorProperty = {
-  code: 'ERR_INDEX_OUT_OF_RANGE',
-  type: RangeError,
-  message: 'Index out of range'
-};
-
 let cntr = 0;
 
 {
@@ -37,7 +31,7 @@ let cntr = 0;
 }
 
 {
-  // copy c into b, without specifying sourceEnd
+  // Copy c into b, without specifying sourceEnd
   b.fill(++cntr);
   c.fill(++cntr);
   const copied = c.copy(b, 0, 0);
@@ -48,7 +42,7 @@ let cntr = 0;
 }
 
 {
-  // copy c into b, without specifying sourceStart
+  // Copy c into b, without specifying sourceStart
   b.fill(++cntr);
   c.fill(++cntr);
   const copied = c.copy(b, 0);
@@ -59,7 +53,7 @@ let cntr = 0;
 }
 
 {
-  // copy longer buffer b to shorter c without targetStart
+  // Copy longer buffer b to shorter c without targetStart
   b.fill(++cntr);
   c.fill(++cntr);
   const copied = b.copy(c);
@@ -70,7 +64,7 @@ let cntr = 0;
 }
 
 {
-  // copy starting near end of b to c
+  // Copy starting near end of b to c
   b.fill(++cntr);
   c.fill(++cntr);
   const copied = b.copy(c, 0, b.length - Math.floor(c.length / 2));
@@ -84,7 +78,7 @@ let cntr = 0;
 }
 
 {
-  // try to copy 513 bytes, and check we don't overrun c
+  // Try to copy 513 bytes, and check we don't overrun c
   b.fill(++cntr);
   c.fill(++cntr);
   const copied = b.copy(c, 0, 0, 513);
@@ -105,7 +99,7 @@ let cntr = 0;
   }
 }
 
-// copy string longer than buffer length (failure will segfault)
+// Copy string longer than buffer length (failure will segfault)
 const bb = Buffer.allocUnsafe(10);
 bb.fill('hello crazy world');
 
@@ -113,13 +107,19 @@ bb.fill('hello crazy world');
 // Try to copy from before the beginning of b. Should not throw.
 b.copy(c, 0, 100, 10);
 
-// copy throws at negative sourceStart
+// Copy throws at negative sourceStart
 common.expectsError(
   () => Buffer.allocUnsafe(5).copy(Buffer.allocUnsafe(5), 0, -1),
-  errorProperty);
+  {
+    code: 'ERR_OUT_OF_RANGE',
+    type: RangeError,
+    message: 'The value of "sourceStart" is out of range. ' +
+             'It must be >= 0. Received -1'
+  }
+);
 
 {
-  // check sourceEnd resets to targetEnd if former is greater than the latter
+  // Check sourceEnd resets to targetEnd if former is greater than the latter
   b.fill(++cntr);
   c.fill(++cntr);
   b.copy(c, 0, 0, 1025);
@@ -128,14 +128,21 @@ common.expectsError(
   }
 }
 
-// throw with negative sourceEnd
+// Throw with negative sourceEnd
 common.expectsError(
-  () => b.copy(c, 0, -1), errorProperty);
+  () => b.copy(c, 0, 0, -1),
+  {
+    code: 'ERR_OUT_OF_RANGE',
+    type: RangeError,
+    message: 'The value of "sourceEnd" is out of range. ' +
+             'It must be >= 0. Received -1'
+  }
+);
 
-// when sourceStart is greater than sourceEnd, zero copied
+// When sourceStart is greater than sourceEnd, zero copied
 assert.strictEqual(b.copy(c, 0, 100, 10), 0);
 
-// when targetStart > targetLength, zero copied
+// When targetStart > targetLength, zero copied
 assert.strictEqual(b.copy(c, 512, 0, 10), 0);
 
 // Test that the `target` can be a Uint8Array.

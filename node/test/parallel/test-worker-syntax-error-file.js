@@ -1,4 +1,3 @@
-// Flags: --experimental-worker
 'use strict';
 const common = require('../common');
 const fixtures = require('../common/fixtures');
@@ -11,6 +10,7 @@ if (!process.env.HAS_STARTED_WORKER) {
   const w = new Worker(fixtures.path('syntax', 'bad_syntax.js'));
   w.on('message', common.mustNotCall());
   w.on('error', common.mustCall((err) => {
+    assert.strictEqual(err.constructor, SyntaxError);
     assert(/SyntaxError/.test(err));
   }));
 } else {

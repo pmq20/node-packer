@@ -1,7 +1,9 @@
 'use strict';
-const assert = require('assert');
+
+const { Object } = primordials;
+
+const assert = require('internal/assert');
 const { fork } = require('child_process');
-const util = require('util');
 const path = require('path');
 const EventEmitter = require('events');
 const RoundRobinHandle = require('internal/cluster/round_robin_handle');
@@ -9,7 +11,6 @@ const SharedHandle = require('internal/cluster/shared_handle');
 const Worker = require('internal/cluster/worker');
 const { internal, sendHelper } = require('internal/cluster/utils');
 const { ERR_SOCKET_BAD_PORT } = require('internal/errors').codes;
-const keys = Object.keys;
 const cluster = new EventEmitter();
 const intercom = new EventEmitter();
 const SCHED_NONE = 1;
@@ -47,14 +48,14 @@ if (schedulingPolicy === undefined) {
 cluster.schedulingPolicy = schedulingPolicy;
 
 cluster.setupMaster = function(options) {
-  var settings = {
+  const settings = {
     args: process.argv.slice(2),
     exec: process.argv[1],
     execArgv: process.execArgv,
-    silent: false
+    silent: false,
+    ...cluster.settings,
+    ...options
   };
-  util._extend(settings, cluster.settings);
-  util._extend(settings, options || {});
 
   // Tell V8 to write profile data for each process to a separate file.
   // Without --logfile=v8-%p.log, everything ends up in a single, unusable
@@ -98,14 +99,11 @@ function setupSettingsNT(settings) {
 }
 
 function createWorkerProcess(id, env) {
-  const workerEnv = util._extend({}, process.env);
+  const workerEnv = { ...process.env, ...env, NODE_UNIQUE_ID: `${id}` };
   const execArgv = cluster.settings.execArgv.slice();
   const debugArgRegex = /--inspect(?:-brk|-port)?|--debug-port/;
   const nodeOptions = process.env.NODE_OPTIONS ?
     process.env.NODE_OPTIONS : '';
-
-  util._extend(workerEnv, env);
-  workerEnv.NODE_UNIQUE_ID = '' + id;
 
   if (execArgv.some((arg) => arg.match(debugArgRegex)) ||
       nodeOptions.match(debugArgRegex)) {
@@ -145,7 +143,7 @@ function removeWorker(worker) {
   assert(worker);
   delete cluster.workers[worker.id];
 
-  if (keys(cluster.workers).length === 0) {
+  if (Object.keys(cluster.workers).length === 0) {
     assert(handles.size === 0, 'Resource leak detected.');
     intercom.emit('disconnect');
   }
@@ -223,7 +221,7 @@ function emitForkNT(worker) {
 }
 
 cluster.disconnect = function(cb) {
-  const workers = keys(cluster.workers);
+  const workers = Object.keys(cluster.workers);
 
   if (workers.length === 0) {
     process.nextTick(() => intercom.emit('disconnect'));
@@ -311,17 +309,18 @@ function queryServer(worker, message) {
 
   // Set custom server data
   handle.add(worker, (errno, reply, handle) => {
-    reply = util._extend({
-      errno: errno,
-      key: key,
-      ack: message.seq,
-      data: handles.get(key).data
-    }, reply);
+    const { data } = handles.get(key);
 
     if (errno)
       handles.delete(key);  // Gives other workers a chance to retry.
 
-    send(worker, reply, handle);
+    send(worker, {
+      errno,
+      key,
+      ack: message.seq,
+      data,
+      ...reply
+    }, handle);
   });
 }
 

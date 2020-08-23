@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>DNS | Node.js v10.16.3 Documentation</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic">
+  <title>DNS | Node.js v12.13.0 Documentation</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic&display=fallback">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="stylesheet" href="assets/sh.css">
   <link rel="canonical" href="https://nodejs.org/api/dns.html">
@@ -52,11 +52,13 @@
 <li><a href="os.html" class="nav-os">OS</a></li>
 <li><a href="path.html" class="nav-path">Path</a></li>
 <li><a href="perf_hooks.html" class="nav-perf_hooks">Performance Hooks</a></li>
+<li><a href="policy.html" class="nav-policy">Policies</a></li>
 <li><a href="process.html" class="nav-process">Process</a></li>
 <li><a href="punycode.html" class="nav-punycode">Punycode</a></li>
 <li><a href="querystring.html" class="nav-querystring">Query Strings</a></li>
 <li><a href="readline.html" class="nav-readline">Readline</a></li>
 <li><a href="repl.html" class="nav-repl">REPL</a></li>
+<li><a href="report.html" class="nav-report">Report</a></li>
 <li><a href="stream.html" class="nav-stream">Stream</a></li>
 <li><a href="string_decoder.html" class="nav-string_decoder">String Decoder</a></li>
 <li><a href="timers.html" class="nav-timers">Timers</a></li>
@@ -79,7 +81,7 @@
 
     <div id="column1" data-id="dns" class="interior">
       <header>
-        <h1>Node.js v10.16.3 Documentation</h1>
+        <h1>Node.js v12.13.0 Documentation</h1>
         <div id="gtoc">
           <ul>
             <li>
@@ -188,11 +190,14 @@
 
 <p></p><div class="api_stability api_stability_2"><a href="documentation.html#documentation_stability_index">Stability: 2</a> - Stable</div><p></p>
 <p>The <code>dns</code> module contains functions belonging to two different categories:</p>
-<p>1) Functions that use the underlying operating system facilities to perform
-name resolution, and that do not necessarily perform any network communication.
+<ol>
+<li>
+<p>Functions that use the underlying operating system facilities to perform
+name resolution, and that do not necessarily perform any network
+communication.
 This category contains only one function: <a href="#dns_dns_lookup_hostname_options_callback"><code>dns.lookup()</code></a>. <strong>Developers
-looking to perform name resolution in the same way that other applications on
-the same operating system behave should use <a href="#dns_dns_lookup_hostname_options_callback"><code>dns.lookup()</code></a>.</strong></p>
+looking to perform name resolution in the same way that other applications
+on the same operating system behave should use <a href="#dns_dns_lookup_hostname_options_callback"><code>dns.lookup()</code></a>.</strong></p>
 <p>For example, looking up <code>iana.org</code>.</p>
 <pre><code class="language-js">const dns = require('dns');
 
@@ -201,15 +206,18 @@ dns.lookup('iana.org', (err, address, family) => {
 });
 // address: "192.0.43.8" family: IPv4
 </code></pre>
-<p>2) Functions that connect to an actual DNS server to perform name resolution,
+</li>
+<li>
+<p>Functions that connect to an actual DNS server to perform name resolution,
 and that <em>always</em> use the network to perform DNS queries. This category
-contains all functions in the <code>dns</code> module <em>except</em> <a href="#dns_dns_lookup_hostname_options_callback"><code>dns.lookup()</code></a>. These
-functions do not use the same set of configuration files used by
+contains all functions in the <code>dns</code> module <em>except</em> <a href="#dns_dns_lookup_hostname_options_callback"><code>dns.lookup()</code></a>.
+These functions do not use the same set of configuration files used by
 <a href="#dns_dns_lookup_hostname_options_callback"><code>dns.lookup()</code></a> (e.g. <code>/etc/hosts</code>). These functions should be used by
-developers who do not want to use the underlying operating system's facilities
-for name resolution, and instead want to <em>always</em> perform DNS queries.</p>
-<p>Below is an example that resolves <code>'archive.org'</code> then reverse resolves the IP
-addresses that are returned.</p>
+developers who do not want to use the underlying operating system's
+facilities for name resolution, and instead want to <em>always</em> perform DNS
+queries.</p>
+<p>Below is an example that resolves <code>'archive.org'</code> then reverse resolves the
+IP addresses that are returned.</p>
 <pre><code class="language-js">const dns = require('dns');
 
 dns.resolve4('archive.org', (err, addresses) => {
@@ -227,6 +235,8 @@ dns.resolve4('archive.org', (err, addresses) => {
   });
 });
 </code></pre>
+</li>
+</ol>
 <p>There are subtle consequences in choosing one over the other, please consult
 the <a href="#dns_implementation_considerations">Implementation considerations section</a> for more information.</p>
 <h2>Class: dns.Resolver<span><a class="mark" href="#dns_class_dns_resolver" id="dns_class_dns_resolver">#</a></span></h2>
@@ -234,7 +244,7 @@ the <a href="#dns_implementation_considerations">Implementation considerations s
 <span>Added in: v8.3.0</span>
 </div>
 <p>An independent resolver for DNS requests.</p>
-<p>Note that creating a new resolver uses the default server settings. Setting
+<p>Creating a new resolver uses the default server settings. Setting
 the servers used for a resolver using
 <a href="#dns_dns_setservers_servers"><code>resolver.setServers()</code></a> does not affect
 other resolvers:</p>
@@ -278,7 +288,7 @@ callbacks will be called with an error with code <code>ECANCELLED</code>.</p>
 <ul>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string[]></a></li>
 </ul>
-<p>Returns an array of IP address strings, formatted according to <a href="https://tools.ietf.org/html/rfc5952#section-6">rfc5952</a>,
+<p>Returns an array of IP address strings, formatted according to <a href="https://tools.ietf.org/html/rfc5952#section-6">RFC 5952</a>,
 that are currently configured for DNS resolution. A string will include a port
 section if a custom port is used.</p>
 <!-- eslint-disable semi-->
@@ -289,7 +299,7 @@ section if a custom port is used.</p>
   '[2001:4860:4860::8888]:1053'
 ]
 </code></pre>
-<h2>dns.lookup(hostname[, options], callback)<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/dns.js#L86">[src]</a><span><a class="mark" href="#dns_dns_lookup_hostname_options_callback" id="dns_dns_lookup_hostname_options_callback">#</a></span></h2>
+<h2>dns.lookup(hostname[, options], callback)<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/dns.js#L90">[src]</a><span><a class="mark" href="#dns_dns_lookup_hostname_options_callback" id="dns_dns_lookup_hostname_options_callback">#</a></span></h2>
 <div class="api_metadata">
 <details class="changelog"><summary>History</summary>
 <table>
@@ -308,8 +318,9 @@ section if a custom port is used.</p>
 <li>
 <p><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></p>
 <ul>
-<li><code>family</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> The record family. Must be <code>4</code> or <code>6</code>. IPv4
-and IPv6 addresses are both returned by default.</li>
+<li><code>family</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> The record family. Must be <code>4</code>, <code>6</code>, or <code>0</code>. The value
+<code>0</code> indicates that IPv4 and IPv6 addresses are both returned. <strong>Default:</strong>
+<code>0</code>.</li>
 <li><code>hints</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> One or more <a href="#dns_supported_getaddrinfo_flags">supported <code>getaddrinfo</code> flags</a>. Multiple
 flags may be passed by bitwise <code>OR</code>ing their values.</li>
 <li><code>all</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> When <code>true</code>, the callback returns all resolved addresses in
@@ -327,7 +338,9 @@ New code should use <code>{ verbatim: true }</code>.</li>
 <ul>
 <li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&#x3C;Error></a></li>
 <li><code>address</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string></a> A string representation of an IPv4 or IPv6 address.</li>
-<li><code>family</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> <code>4</code> or <code>6</code>, denoting the family of <code>address</code>.</li>
+<li><code>family</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> <code>4</code> or <code>6</code>, denoting the family of <code>address</code>, or <code>0</code> if
+the address is not an IPv4 or IPv6 address. <code>0</code> is a likely indicator of a
+bug in the name resolution service used by the operating system.</li>
 </ul>
 </li>
 </ul>
@@ -339,7 +352,7 @@ and IPv6 addresses are both returned if found.</p>
 <code>(err, addresses)</code>, with <code>addresses</code> being an array of objects with the
 properties <code>address</code> and <code>family</code>.</p>
 <p>On error, <code>err</code> is an <a href="errors.html#errors_class_error"><code>Error</code></a> object, where <code>err.code</code> is the error code.
-Keep in mind that <code>err.code</code> will be set to <code>'ENOENT'</code> not only when
+Keep in mind that <code>err.code</code> will be set to <code>'ENOTFOUND'</code> not only when
 the hostname does not exist but also when the lookup fails in other ways
 such as no available file descriptors.</p>
 <p><code>dns.lookup()</code> does not necessarily have anything to do with the DNS protocol.
@@ -375,10 +388,10 @@ of addresses supported by the current system. For example, IPv4 addresses
 are only returned if the current system has at least one IPv4 address
 configured. Loopback addresses are not considered.</li>
 <li><code>dns.V4MAPPED</code>: If the IPv6 family was specified, but no IPv6 addresses were
-found, then return IPv4 mapped IPv6 addresses. Note that it is not supported
+found, then return IPv4 mapped IPv6 addresses. It is not supported
 on some operating systems (e.g FreeBSD 10.1).</li>
 </ul>
-<h2>dns.lookupService(address, port, callback)<a class="srclink" href="https://github.com/nodejs/node/blob/75657ee41677d56a498e298b01d049aef5bf199f/lib/dns.js#L161">[src]</a><span><a class="mark" href="#dns_dns_lookupservice_address_port_callback" id="dns_dns_lookupservice_address_port_callback">#</a></span></h2>
+<h2>dns.lookupService(address, port, callback)<a class="srclink" href="https://github.com/nodejs/node/blob/42cce5a9d0fd905bf4ad7a2528c36572dfb8b5ad/lib/dns.js#L167">[src]</a><span><a class="mark" href="#dns_dns_lookupservice_address_port_callback" id="dns_dns_lookupservice_address_port_callback">#</a></span></h2>
 <div class="api_metadata">
 <span>Added in: v0.11.14</span>
 </div>
@@ -845,7 +858,7 @@ be an array of objects with the following properties:</p>
 <p><code>callback</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" class="type">&#x3C;Function></a></p>
 <ul>
 <li><code>err</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error" class="type">&#x3C;Error></a></li>
-<li><code>records</code> {string[][]}</li>
+<li><code>records</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string[][]></a></li>
 </ul>
 </li>
 </ul>
@@ -878,10 +891,10 @@ one of the <a href="#dns_error_codes">DNS error codes</a>.</p>
 <span>Added in: v0.11.3</span>
 </div>
 <ul>
-<li><code>servers</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string[]></a> array of <a href="https://tools.ietf.org/html/rfc5952#section-6">rfc5952</a> formatted addresses</li>
+<li><code>servers</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string[]></a> array of <a href="https://tools.ietf.org/html/rfc5952#section-6">RFC 5952</a> formatted addresses</li>
 </ul>
 <p>Sets the IP address and port of servers to be used when performing DNS
-resolution. The <code>servers</code> argument is an array of <a href="https://tools.ietf.org/html/rfc5952#section-6">rfc5952</a> formatted
+resolution. The <code>servers</code> argument is an array of <a href="https://tools.ietf.org/html/rfc5952#section-6">RFC 5952</a> formatted
 addresses. If the port is the IANA default DNS port (53) it can be omitted.</p>
 <pre><code class="language-js">dns.setServers([
   '4.4.4.4',
@@ -894,16 +907,15 @@ addresses. If the port is the IANA default DNS port (53) it can be omitted.</p>
 <p>The <code>dns.setServers()</code> method must not be called while a DNS query is in
 progress.</p>
 <p>The <a href="#dns_dns_setservers_servers"><code>dns.setServers()</code></a> method affects only <a href="#dns_dns_resolve_hostname_rrtype_callback"><code>dns.resolve()</code></a>,
-[<code>dns.resolve*()</code>][] and <a href="#dns_dns_reverse_ip_callback"><code>dns.reverse()</code></a> (and specifically <em>not</em>
+<code>dns.resolve*()</code> and <a href="#dns_dns_reverse_ip_callback"><code>dns.reverse()</code></a> (and specifically <em>not</em>
 <a href="#dns_dns_lookup_hostname_options_callback"><code>dns.lookup()</code></a>).</p>
-<p>Note that this method works much like
+<p>This method works much like
 <a href="http://man7.org/linux/man-pages/man5/resolv.conf.5.html">resolve.conf</a>.
 That is, if attempting to resolve with the first server provided results in a
 <code>NOTFOUND</code> error, the <code>resolve()</code> method will <em>not</em> attempt to resolve with
 subsequent servers provided. Fallback DNS servers will only be used if the
 earlier ones time out or result in some other error.</p>
 <h2>DNS Promises API<span><a class="mark" href="#dns_dns_promises_api" id="dns_dns_promises_api">#</a></span></h2>
-<p></p><div class="api_stability api_stability_1"><a href="documentation.html#documentation_stability_index">Stability: 1</a> - Experimental</div><p></p>
 <p>The <code>dns.promises</code> API provides an alternative set of asynchronous DNS methods
 that return <code>Promise</code> objects rather than using callbacks. The API is accessible
 via <code>require('dns').promises</code>.</p>
@@ -912,7 +924,7 @@ via <code>require('dns').promises</code>.</p>
 <span>Added in: v10.6.0</span>
 </div>
 <p>An independent resolver for DNS requests.</p>
-<p>Note that creating a new resolver uses the default server settings. Setting
+<p>Creating a new resolver uses the default server settings. Setting
 the servers used for a resolver using
 <a href="#dns_dnspromises_setservers_servers"><code>resolver.setServers()</code></a> does not affect
 other resolvers:</p>
@@ -955,7 +967,7 @@ resolver.resolve4('example.org').then((addresses) => {
 <ul>
 <li>Returns: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string[]></a></li>
 </ul>
-<p>Returns an array of IP address strings, formatted according to <a href="https://tools.ietf.org/html/rfc5952#section-6">rfc5952</a>,
+<p>Returns an array of IP address strings, formatted according to <a href="https://tools.ietf.org/html/rfc5952#section-6">RFC 5952</a>,
 that are currently configured for DNS resolution. A string will include a port
 section if a custom port is used.</p>
 <!-- eslint-disable semi-->
@@ -975,8 +987,9 @@ section if a custom port is used.</p>
 <li>
 <p><code>options</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object" class="type">&#x3C;Object></a></p>
 <ul>
-<li><code>family</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> The record family. Must be <code>4</code> or <code>6</code>. IPv4
-and IPv6 addresses are both returned by default.</li>
+<li><code>family</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;integer></a> The record family. Must be <code>4</code>, <code>6</code>, or <code>0</code>. The value
+<code>0</code> indicates that IPv4 and IPv6 addresses are both returned. <strong>Default:</strong>
+<code>0</code>.</li>
 <li><code>hints</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type" class="type">&#x3C;number></a> One or more <a href="#dns_supported_getaddrinfo_flags">supported <code>getaddrinfo</code> flags</a>. Multiple
 flags may be passed by bitwise <code>OR</code>ing their values.</li>
 <li><code>all</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type" class="type">&#x3C;boolean></a> When <code>true</code>, the <code>Promise</code> is resolved with all addresses in
@@ -998,7 +1011,7 @@ and IPv6 addresses are both returned if found.</p>
 being an array of objects with the properties <code>address</code> and <code>family</code>.</p>
 <p>On error, the <code>Promise</code> is rejected with an <a href="errors.html#errors_class_error"><code>Error</code></a> object, where <code>err.code</code>
 is the error code.
-Keep in mind that <code>err.code</code> will be set to <code>'ENOENT'</code> not only when
+Keep in mind that <code>err.code</code> will be set to <code>'ENOTFOUND'</code> not only when
 the hostname does not exist but also when the lookup fails in other ways
 such as no available file descriptors.</p>
 <p><a href="#dns_dnspromises_lookup_hostname_options"><code>dnsPromises.lookup()</code></a> does not necessarily have anything to do with the DNS
@@ -1409,10 +1422,10 @@ is one of the <a href="#dns_error_codes">DNS error codes</a>.</p>
 <span>Added in: v10.6.0</span>
 </div>
 <ul>
-<li><code>servers</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string[]></a> array of <a href="https://tools.ietf.org/html/rfc5952#section-6">rfc5952</a> formatted addresses</li>
+<li><code>servers</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type" class="type">&#x3C;string[]></a> array of <a href="https://tools.ietf.org/html/rfc5952#section-6">RFC 5952</a> formatted addresses</li>
 </ul>
 <p>Sets the IP address and port of servers to be used when performing DNS
-resolution. The <code>servers</code> argument is an array of <a href="https://tools.ietf.org/html/rfc5952#section-6">rfc5952</a> formatted
+resolution. The <code>servers</code> argument is an array of <a href="https://tools.ietf.org/html/rfc5952#section-6">RFC 5952</a> formatted
 addresses. If the port is the IANA default DNS port (53) it can be omitted.</p>
 <pre><code class="language-js">dnsPromises.setServers([
   '4.4.4.4',
@@ -1424,7 +1437,7 @@ addresses. If the port is the IANA default DNS port (53) it can be omitted.</p>
 <p>An error will be thrown if an invalid address is provided.</p>
 <p>The <code>dnsPromises.setServers()</code> method must not be called while a DNS query is in
 progress.</p>
-<p>Note that this method works much like
+<p>This method works much like
 <a href="http://man7.org/linux/man-pages/man5/resolv.conf.5.html">resolve.conf</a>.
 That is, if attempting to resolve with the first server provided results in a
 <code>NOTFOUND</code> error, the <code>resolve()</code> method will <em>not</em> attempt to resolve with
@@ -1470,14 +1483,14 @@ as most other programs. For instance, <a href="#dns_dns_lookup_hostname_options_
 resolve a given name the same way as the <code>ping</code> command. On most POSIX-like
 operating systems, the behavior of the <a href="#dns_dns_lookup_hostname_options_callback"><code>dns.lookup()</code></a> function can be
 modified by changing settings in <a href="http://man7.org/linux/man-pages/man5/nsswitch.conf.5.html"><code>nsswitch.conf(5)</code></a> and/or <a href="http://man7.org/linux/man-pages/man5/resolv.conf.5.html"><code>resolv.conf(5)</code></a>,
-but note that changing these files will change the behavior of <em>all other
-programs running on the same operating system</em>.</p>
+but changing these files will change the behavior of all other
+programs running on the same operating system.</p>
 <p>Though the call to <code>dns.lookup()</code> will be asynchronous from JavaScript's
 perspective, it is implemented as a synchronous call to <a href="http://man7.org/linux/man-pages/man3/getaddrinfo.3.html"><code>getaddrinfo(3)</code></a> that runs
 on libuv's threadpool. This can have surprising negative performance
 implications for some applications, see the <a href="cli.html#cli_uv_threadpool_size_size"><code>UV_THREADPOOL_SIZE</code></a>
 documentation for more information.</p>
-<p>Note that various networking APIs will call <code>dns.lookup()</code> internally to resolve
+<p>Various networking APIs will call <code>dns.lookup()</code> internally to resolve
 host names. If that is an issue, consider resolving the hostname to an address
 using <code>dns.resolve()</code> and using the address instead of a host name. Also, some
 networking APIs (such as <a href="net.html#net_socket_connect_options_connectlistener"><code>socket.connect()</code></a> and <a href="dgram.html#dgram_dgram_createsocket_options_callback"><code>dgram.createSocket()</code></a>)

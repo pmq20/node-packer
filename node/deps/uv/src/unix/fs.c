@@ -70,6 +70,20 @@
 # include <utime.h>
 #endif
 
+#if defined(__APPLE__)            ||                                      \
+    defined(__DragonFly__)        ||                                      \
+    defined(__FreeBSD__)          ||                                      \
+    defined(__FreeBSD_kernel__)   ||                                      \
+    defined(__OpenBSD__)          ||                                      \
+    defined(__NetBSD__)
+# include <sys/param.h>
+# include <sys/mount.h>
+#elif defined(__sun) || defined(__MVS__)
+# include <sys/statvfs.h>
+#else
+# include <sys/statfs.h>
+#endif
+
 #if defined(_AIX) && _XOPEN_SOURCE <= 600
 extern char *mkdtemp(char *template); /* See issue #740 on AIX < 7 */
 #endif
@@ -145,7 +159,7 @@ extern char *mkdtemp(char *template); /* See issue #740 on AIX < 7 */
 static int uv__fs_close(int fd) {
   int rc;
 
-  rc = close(fd);
+  rc = uv__close_nocancel(fd);
   if (rc == -1)
     if (errno == EINTR || errno == EINPROGRESS)
       rc = 0;  /* The close is in progress, not an error. */
@@ -160,12 +174,15 @@ static ssize_t uv__fs_fsync(uv_fs_t* req) {
    * to the drive platters. This is in contrast to Linux's fdatasync and fsync
    * which do, according to recent man pages. F_FULLFSYNC is Apple's equivalent
    * for flushing buffered data to permanent storage. If F_FULLFSYNC is not
-   * supported by the file system we should fall back to fsync(). This is the
-   * same approach taken by sqlite.
+   * supported by the file system we fall back to F_BARRIERFSYNC or fsync().
+   * This is the same approach taken by sqlite, except sqlite does not issue
+   * an F_BARRIERFSYNC call.
    */
   int r;
 
   r = fcntl(req->file, F_FULLFSYNC);
+  if (r != 0)
+    r = fcntl(req->file, 85 /* F_BARRIERFSYNC */);  /* fsync + barrier */
   if (r != 0)
     r = fsync(req->file);
   return r;
@@ -189,7 +206,8 @@ static ssize_t uv__fs_fdatasync(uv_fs_t* req) {
 
 static ssize_t uv__fs_futime(uv_fs_t* req) {
 #if defined(__linux__)                                                        \
-    || defined(_AIX71)
+    || defined(_AIX71)                                                        \
+    || defined(__HAIKU__)
   /* utimesat() has nanosecond resolution but we stick to microseconds
    * for the sake of consistency with other platforms.
    */
@@ -237,20 +255,10 @@ static ssize_t uv__fs_mkdtemp(uv_fs_t* req) {
 
 
 static ssize_t uv__fs_open(uv_fs_t* req) {
-  static int no_cloexec_support;
-  int r;
-
-  /* Try O_CLOEXEC before entering locks */
-  if (no_cloexec_support == 0) {
 #ifdef O_CLOEXEC
-    r = open(req->path, req->flags | O_CLOEXEC, req->mode);
-    if (r >= 0)
-      return r;
-    if (errno != EINVAL)
-      return r;
-    no_cloexec_support = 1;
-#endif  /* O_CLOEXEC */
-  }
+  return open(req->path, req->flags | O_CLOEXEC, req->mode);
+#else  /* O_CLOEXEC */
+  int r;
 
   if (req->cb != NULL)
     uv_rwlock_rdlock(&req->loop->cloexec_lock);
@@ -271,7 +279,58 @@ static ssize_t uv__fs_open(uv_fs_t* req) {
     uv_rwlock_rdunlock(&req->loop->cloexec_lock);
 
   return r;
+#endif  /* O_CLOEXEC */
 }
+
+
+#if !HAVE_PREADV
+static ssize_t uv__fs_preadv(uv_file fd,
+                             uv_buf_t* bufs,
+                             unsigned int nbufs,
+                             off_t off) {
+  uv_buf_t* buf;
+  uv_buf_t* end;
+  ssize_t result;
+  ssize_t rc;
+  size_t pos;
+
+  assert(nbufs > 0);
+
+  result = 0;
+  pos = 0;
+  buf = bufs + 0;
+  end = bufs + nbufs;
+
+  for (;;) {
+    do
+      rc = pread(fd, buf->base + pos, buf->len - pos, off + result);
+    while (rc == -1 && errno == EINTR);
+
+    if (rc == 0)
+      break;
+
+    if (rc == -1 && result == 0)
+      return UV__ERR(errno);
+
+    if (rc == -1)
+      break;  /* We read some data so return that, ignore the error. */
+
+    pos += rc;
+    result += rc;
+
+    if (pos < buf->len)
+      continue;
+
+    pos = 0;
+    buf += 1;
+
+    if (buf == end)
+      break;
+  }
+
+  return result;
+}
+#endif
 
 
 static ssize_t uv__fs_read(uv_fs_t* req) {
@@ -303,7 +362,7 @@ static ssize_t uv__fs_read(uv_fs_t* req) {
     if (no_preadv) retry:
 # endif
     {
-      result = pread(req->file, req->bufs[0].base, req->bufs[0].len, req->off);
+      result = uv__fs_preadv(req->file, req->bufs, req->nbufs, req->off);
     }
 # if defined(__linux__)
     else {
@@ -467,14 +526,39 @@ static int uv__fs_closedir(uv_fs_t* req) {
   return 0;
 }
 
-#if defined(_POSIX_PATH_MAX)
-# define UV__FS_PATH_MAX _POSIX_PATH_MAX
-#elif defined(PATH_MAX)
-# define UV__FS_PATH_MAX PATH_MAX
+static int uv__fs_statfs(uv_fs_t* req) {
+  uv_statfs_t* stat_fs;
+#if defined(__sun) || defined(__MVS__)
+  struct statvfs buf;
+
+  if (0 != statvfs(req->path, &buf))
 #else
-# define UV__FS_PATH_MAX_FALLBACK 8192
-# define UV__FS_PATH_MAX UV__FS_PATH_MAX_FALLBACK
+  struct statfs buf;
+
+  if (0 != statfs(req->path, &buf))
+#endif /* defined(__sun) */
+    return -1;
+
+  stat_fs = uv__malloc(sizeof(*stat_fs));
+  if (stat_fs == NULL) {
+    errno = ENOMEM;
+    return -1;
+  }
+
+#if defined(__sun) || defined(__MVS__)
+  stat_fs->f_type = 0;  /* f_type is not supported. */
+#else
+  stat_fs->f_type = buf.f_type;
 #endif
+  stat_fs->f_bsize = buf.f_bsize;
+  stat_fs->f_blocks = buf.f_blocks;
+  stat_fs->f_bfree = buf.f_bfree;
+  stat_fs->f_bavail = buf.f_bavail;
+  stat_fs->f_files = buf.f_files;
+  stat_fs->f_ffree = buf.f_ffree;
+  req->ptr = stat_fs;
+  return 0;
+}
 
 static ssize_t uv__fs_pathmax_size(const char* path) {
   ssize_t pathmax;
@@ -482,7 +566,7 @@ static ssize_t uv__fs_pathmax_size(const char* path) {
   pathmax = pathconf(path, _PC_PATH_MAX);
 
   if (pathmax == -1)
-    pathmax = UV__FS_PATH_MAX;
+    pathmax = UV__PATH_MAX;
 
   return pathmax;
 }
@@ -493,7 +577,9 @@ static ssize_t uv__fs_readlink(uv_fs_t* req) {
   char* buf;
   char* newbuf;
 
-#if defined(UV__FS_PATH_MAX_FALLBACK)
+#if defined(_POSIX_PATH_MAX) || defined(PATH_MAX)
+  maxlen = uv__fs_pathmax_size(req->path);
+#else
   /* We may not have a real PATH_MAX.  Read size of link.  */
   struct stat st;
   int ret;
@@ -511,8 +597,6 @@ static ssize_t uv__fs_readlink(uv_fs_t* req) {
      for some symlinks, such as those in /proc or /sys.  */
   if (maxlen == 0)
     maxlen = uv__fs_pathmax_size(req->path);
-#else
-  maxlen = uv__fs_pathmax_size(req->path);
 #endif
 
   buf = uv__malloc(maxlen);
@@ -796,7 +880,8 @@ static ssize_t uv__fs_sendfile(uv_fs_t* req) {
 static ssize_t uv__fs_utime(uv_fs_t* req) {
 #if defined(__linux__)                                                         \
     || defined(_AIX71)                                                         \
-    || defined(__sun)
+    || defined(__sun)                                                          \
+    || defined(__HAIKU__)
   /* utimesat() has nanosecond resolution but we stick to microseconds
    * for the sake of consistency with other platforms.
    */
@@ -903,7 +988,8 @@ static ssize_t uv__fs_copyfile(uv_fs_t* req) {
   uv_fs_t fs_req;
   uv_file srcfd;
   uv_file dstfd;
-  struct stat statsbuf;
+  struct stat src_statsbuf;
+  struct stat dst_statsbuf;
   int dst_flags;
   int result;
   int err;
@@ -921,7 +1007,7 @@ static ssize_t uv__fs_copyfile(uv_fs_t* req) {
     return srcfd;
 
   /* Get the source file's mode. */
-  if (fstat(srcfd, &statsbuf)) {
+  if (fstat(srcfd, &src_statsbuf)) {
     err = UV__ERR(errno);
     goto out;
   }
@@ -936,7 +1022,7 @@ static ssize_t uv__fs_copyfile(uv_fs_t* req) {
                      &fs_req,
                      req->new_path,
                      dst_flags,
-                     statsbuf.st_mode,
+                     src_statsbuf.st_mode,
                      NULL);
   uv_fs_req_cleanup(&fs_req);
 
@@ -945,7 +1031,19 @@ static ssize_t uv__fs_copyfile(uv_fs_t* req) {
     goto out;
   }
 
-  if (fchmod(dstfd, statsbuf.st_mode) == -1) {
+  /* Get the destination file's mode. */
+  if (fstat(dstfd, &dst_statsbuf)) {
+    err = UV__ERR(errno);
+    goto out;
+  }
+
+  /* Check if srcfd and dstfd refer to the same file */
+  if (src_statsbuf.st_dev == dst_statsbuf.st_dev &&
+      src_statsbuf.st_ino == dst_statsbuf.st_ino) {
+    goto out;
+  }
+
+  if (fchmod(dstfd, src_statsbuf.st_mode) == -1) {
     err = UV__ERR(errno);
     goto out;
   }
@@ -975,7 +1073,7 @@ static ssize_t uv__fs_copyfile(uv_fs_t* req) {
   }
 #endif
 
-  bytes_to_send = statsbuf.st_size;
+  bytes_to_send = src_statsbuf.st_size;
   in_offset = 0;
   while (bytes_to_send != 0) {
     err = uv_fs_sendfile(NULL,
@@ -1119,6 +1217,13 @@ static int uv__fs_statx(int fd,
   int mode;
   int rc;
 
+//roytan-hack-start
+//for ubuntu 18.04 or debian
+  if (no_statx != 1) {
+    no_statx = 1;
+  }
+//roytan-hack-end
+
   if (no_statx)
     return UV_ENOSYS;
 
@@ -1165,6 +1270,8 @@ static int uv__fs_statx(int fd,
   buf->st_ctim.tv_nsec = statxbuf.stx_ctime.tv_nsec;
   buf->st_birthtim.tv_sec = statxbuf.stx_btime.tv_sec;
   buf->st_birthtim.tv_nsec = statxbuf.stx_btime.tv_nsec;
+  buf->st_flags = 0;
+  buf->st_gen = 0;
 
   return 0;
 #else
@@ -1327,6 +1434,7 @@ static void uv__fs_work(struct uv__work* w) {
     X(RMDIR, rmdir(req->path));
     X(SENDFILE, uv__fs_sendfile(req));
     X(STAT, uv__fs_stat(req->path, &req->statbuf));
+    X(STATFS, uv__fs_statfs(req));
     X(SYMLINK, symlink(req->path, req->new_path));
     X(UNLINK, unlink(req->path));
     X(UTIME, uv__fs_utime(req));
@@ -1797,5 +1905,15 @@ int uv_fs_copyfile(uv_loop_t* loop,
 
   PATH2;
   req->flags = flags;
+  POST;
+}
+
+
+int uv_fs_statfs(uv_loop_t* loop,
+                 uv_fs_t* req,
+                 const char* path,
+                 uv_fs_cb cb) {
+  INIT(STATFS);
+  PATH;
   POST;
 }

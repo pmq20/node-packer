@@ -13,12 +13,13 @@ const runBenchmark = require('../common/benchmark');
 
 runBenchmark('http',
              [
-               'benchmarker=test-double',
+               'benchmarker=test-double-http',
+               'arg=string',
                'c=1',
                'chunkedEnc=true',
                'chunks=0',
                'dur=0.1',
-               'duplicates=1',
+               'e=0',
                'input=keep-alive',
                'key=""',
                'len=1',
@@ -26,7 +27,8 @@ runBenchmark('http',
                'n=1',
                'res=normal',
                'type=asc',
-               'value=X-Powered-By'
+               'url=long',
+               'value=X-Powered-By',
              ],
              {
                NODEJS_BENCHMARK_ZERO_ALLOWED: 1,

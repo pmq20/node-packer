@@ -27,7 +27,7 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "eslint": "^3.10.2",
+    "eslint": "^7.7.0",
     "nlm": "^3.0.0",
     "tap": "^10.7.0"
   },

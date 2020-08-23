@@ -79,12 +79,12 @@ void MemoryReducer::NotifyTimer(const Event& event) {
                         kIncrementalMarkingDelayMs;
       heap()->incremental_marking()->AdvanceIncrementalMarking(
           deadline, IncrementalMarking::NO_GC_VIA_STACK_GUARD,
-          IncrementalMarking::FORCE_COMPLETION, StepOrigin::kTask);
+          StepOrigin::kTask);
       heap()->FinalizeIncrementalMarkingIfComplete(
           GarbageCollectionReason::kFinalizeMarkingViaTask);
     }
     // Re-schedule the timer.
-    ScheduleTimer(event.time_ms, state_.next_gc_start_ms - event.time_ms);
+    ScheduleTimer(state_.next_gc_start_ms - event.time_ms);
     if (FLAG_trace_gc_verbose) {
       heap()->isolate()->PrintWithTimestamp(
           "Memory reducer: waiting for %.f ms\n",
@@ -100,7 +100,7 @@ void MemoryReducer::NotifyMarkCompact(const Event& event) {
   state_ = Step(state_, event);
   if (old_action != kWait && state_.action == kWait) {
     // If we are transitioning to the WAIT state, start the timer.
-    ScheduleTimer(event.time_ms, state_.next_gc_start_ms - event.time_ms);
+    ScheduleTimer(state_.next_gc_start_ms - event.time_ms);
   }
   if (old_action == kRun) {
     if (FLAG_trace_gc_verbose) {
@@ -117,7 +117,7 @@ void MemoryReducer::NotifyPossibleGarbage(const Event& event) {
   state_ = Step(state_, event);
   if (old_action != kWait && state_.action == kWait) {
     // If we are transitioning to the WAIT state, start the timer.
-    ScheduleTimer(event.time_ms, state_.next_gc_start_ms - event.time_ms);
+    ScheduleTimer(state_.next_gc_start_ms - event.time_ms);
   }
 }
 
@@ -197,12 +197,11 @@ MemoryReducer::State MemoryReducer::Step(const State& state,
       }
   }
   UNREACHABLE();
-  return State(kDone, 0, 0, 0.0, 0);  // Make the compiler happy.
 }
 
-
-void MemoryReducer::ScheduleTimer(double time_ms, double delay_ms) {
-  DCHECK(delay_ms > 0);
+void MemoryReducer::ScheduleTimer(double delay_ms) {
+  DCHECK_LT(0, delay_ms);
+  if (heap()->IsTearingDown()) return;
   // Leave some room for precision error in task scheduler.
   const double kSlackMs = 100;
   v8::Isolate* isolate = reinterpret_cast<v8::Isolate*>(heap()->isolate());

@@ -1,4 +1,3 @@
-// Flags: --expose-http2
 'use strict';
 
 const common = require('../common');
@@ -16,6 +15,28 @@ const server = h2.createServer((request, response) => {
   assert.strictEqual(response.stream.id % 2, 1);
   response.write(servExpect);
 
+  // callback must be specified (and be a function)
+  common.expectsError(
+    () => response.createPushResponse({
+      ':path': '/pushed',
+      ':method': 'GET'
+    }, undefined),
+    {
+      code: 'ERR_INVALID_CALLBACK',
+      type: TypeError,
+      message: 'Callback must be a function'
+    }
+  );
+
+  response.stream.on('close', () => {
+    response.createPushResponse({
+      ':path': '/pushed',
+      ':method': 'GET'
+    }, common.mustCall((error) => {
+      assert.strictEqual(error.code, 'ERR_HTTP2_INVALID_STREAM');
+    }));
+  });
+
   response.createPushResponse({
     ':path': '/pushed',
     ':method': 'GET'
@@ -24,16 +45,6 @@ const server = h2.createServer((request, response) => {
     assert.strictEqual(push.stream.id % 2, 0);
     push.end(pushExpect);
     response.end();
-
-    // wait for a tick, so the stream is actually closed
-    setImmediate(function() {
-      response.createPushResponse({
-        ':path': '/pushed',
-        ':method': 'GET'
-      }, common.mustCall((error) => {
-        assert.strictEqual(error.code, 'ERR_HTTP2_STREAM_CLOSED');
-      }));
-    });
   }));
 });
 
@@ -49,7 +60,7 @@ server.listen(0, common.mustCall(() => {
     let remaining = 2;
     function maybeClose() {
       if (--remaining === 0) {
-        client.destroy();
+        client.close();
         server.close();
       }
     }
@@ -65,7 +76,7 @@ server.listen(0, common.mustCall(() => {
       let actual = '';
       pushStream.on('push', common.mustCall((headers) => {
         assert.strictEqual(headers[':status'], 200);
-        assert(headers['date']);
+        assert(headers.date);
       }));
       pushStream.setEncoding('utf8');
       pushStream.on('data', (chunk) => actual += chunk);
@@ -77,7 +88,7 @@ server.listen(0, common.mustCall(() => {
 
     req.on('response', common.mustCall((headers) => {
       assert.strictEqual(headers[':status'], 200);
-      assert(headers['date']);
+      assert(headers.date);
     }));
 
     let actual = '';

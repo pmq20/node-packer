@@ -23,9 +23,9 @@
 require('../common');
 const assert = require('assert');
 const http = require('http');
+const Countdown = require('../common/countdown');
 
-let nresponses = 0;
-
+const countdown = new Countdown(2, () => server.close());
 const server = http.createServer(function(req, res) {
   if (req.url === '/one') {
     res.writeHead(200, [['set-cookie', 'A'],
@@ -47,39 +47,31 @@ server.on('listening', function() {
   http.get({ port: this.address().port, path: '/one' }, function(res) {
     // set-cookie headers are always return in an array.
     // even if there is only one.
-    assert.deepStrictEqual(['A'], res.headers['set-cookie']);
-    assert.strictEqual('text/plain', res.headers['content-type']);
+    assert.deepStrictEqual(res.headers['set-cookie'], ['A']);
+    assert.strictEqual(res.headers['content-type'], 'text/plain');
 
     res.on('data', function(chunk) {
       console.log(chunk.toString());
     });
 
     res.on('end', function() {
-      if (++nresponses === 2) {
-        server.close();
-      }
+      countdown.dec();
     });
   });
 
   // two set-cookie headers
 
   http.get({ port: this.address().port, path: '/two' }, function(res) {
-    assert.deepStrictEqual(['A', 'B'], res.headers['set-cookie']);
-    assert.strictEqual('text/plain', res.headers['content-type']);
+    assert.deepStrictEqual(res.headers['set-cookie'], ['A', 'B']);
+    assert.strictEqual(res.headers['content-type'], 'text/plain');
 
     res.on('data', function(chunk) {
       console.log(chunk.toString());
     });
 
     res.on('end', function() {
-      if (++nresponses === 2) {
-        server.close();
-      }
+      countdown.dec();
     });
   });
 
-});
-
-process.on('exit', function() {
-  assert.strictEqual(2, nresponses);
 });

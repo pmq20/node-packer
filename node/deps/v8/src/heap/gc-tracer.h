@@ -10,6 +10,8 @@
 #include "src/base/ring-buffer.h"
 #include "src/counters.h"
 #include "src/globals.h"
+#include "src/heap-symbols.h"
+#include "src/heap/heap.h"
 #include "testing/gtest/include/gtest/gtest_prod.h"  // nogncheck
 
 namespace v8 {
@@ -23,103 +25,16 @@ inline BytesAndDuration MakeBytesAndDuration(uint64_t bytes, double duration) {
 
 enum ScavengeSpeedMode { kForAllObjects, kForSurvivedObjects };
 
-#define INCREMENTAL_SCOPES(F)                                      \
-  /* MC_INCREMENTAL is the top-level incremental marking scope. */ \
-  F(MC_INCREMENTAL)                                                \
-  F(MC_INCREMENTAL_SWEEPING)                                       \
-  F(MC_INCREMENTAL_WRAPPER_PROLOGUE)                               \
-  F(MC_INCREMENTAL_WRAPPER_TRACING)                                \
-  F(MC_INCREMENTAL_FINALIZE)                                       \
-  F(MC_INCREMENTAL_FINALIZE_BODY)                                  \
-  F(MC_INCREMENTAL_EXTERNAL_EPILOGUE)                              \
-  F(MC_INCREMENTAL_EXTERNAL_PROLOGUE)
-
-#define TRACER_SCOPES(F)                              \
-  INCREMENTAL_SCOPES(F)                               \
-  F(HEAP_EPILOGUE)                                    \
-  F(HEAP_EPILOGUE_REDUCE_NEW_SPACE)                   \
-  F(HEAP_EXTERNAL_EPILOGUE)                           \
-  F(HEAP_EXTERNAL_PROLOGUE)                           \
-  F(HEAP_EXTERNAL_WEAK_GLOBAL_HANDLES)                \
-  F(HEAP_PROLOGUE)                                    \
-  F(MC_CLEAR)                                         \
-  F(MC_CLEAR_CODE_FLUSH)                              \
-  F(MC_CLEAR_DEPENDENT_CODE)                          \
-  F(MC_CLEAR_MAPS)                                    \
-  F(MC_CLEAR_SLOTS_BUFFER)                            \
-  F(MC_CLEAR_STORE_BUFFER)                            \
-  F(MC_CLEAR_STRING_TABLE)                            \
-  F(MC_CLEAR_WEAK_CELLS)                              \
-  F(MC_CLEAR_WEAK_COLLECTIONS)                        \
-  F(MC_CLEAR_WEAK_LISTS)                              \
-  F(MC_EPILOGUE)                                      \
-  F(MC_EVACUATE)                                      \
-  F(MC_EVACUATE_CANDIDATES)                           \
-  F(MC_EVACUATE_CLEAN_UP)                             \
-  F(MC_EVACUATE_COPY)                                 \
-  F(MC_EVACUATE_EPILOGUE)                             \
-  F(MC_EVACUATE_PROLOGUE)                             \
-  F(MC_EVACUATE_REBALANCE)                            \
-  F(MC_EVACUATE_UPDATE_POINTERS)                      \
-  F(MC_EVACUATE_UPDATE_POINTERS_TO_EVACUATED)         \
-  F(MC_EVACUATE_UPDATE_POINTERS_TO_NEW)               \
-  F(MC_EVACUATE_UPDATE_POINTERS_WEAK)                 \
-  F(MC_FINISH)                                        \
-  F(MC_MARK)                                          \
-  F(MC_MARK_FINISH_INCREMENTAL)                       \
-  F(MC_MARK_PREPARE_CODE_FLUSH)                       \
-  F(MC_MARK_ROOTS)                                    \
-  F(MC_MARK_WEAK_CLOSURE)                             \
-  F(MC_MARK_WEAK_CLOSURE_EPHEMERAL)                   \
-  F(MC_MARK_WEAK_CLOSURE_WEAK_HANDLES)                \
-  F(MC_MARK_WEAK_CLOSURE_WEAK_ROOTS)                  \
-  F(MC_MARK_WEAK_CLOSURE_HARMONY)                     \
-  F(MC_MARK_WRAPPER_EPILOGUE)                         \
-  F(MC_MARK_WRAPPER_PROLOGUE)                         \
-  F(MC_MARK_WRAPPER_TRACING)                          \
-  F(MC_PROLOGUE)                                      \
-  F(MC_SWEEP)                                         \
-  F(MC_SWEEP_CODE)                                    \
-  F(MC_SWEEP_MAP)                                     \
-  F(MC_SWEEP_OLD)                                     \
-  F(MINOR_MC)                                         \
-  F(MINOR_MC_CLEAR)                                   \
-  F(MINOR_MC_CLEAR_STRING_TABLE)                      \
-  F(MINOR_MC_CLEAR_WEAK_LISTS)                        \
-  F(MINOR_MC_EVACUATE)                                \
-  F(MINOR_MC_EVACUATE_CLEAN_UP)                       \
-  F(MINOR_MC_EVACUATE_COPY)                           \
-  F(MINOR_MC_EVACUATE_EPILOGUE)                       \
-  F(MINOR_MC_EVACUATE_PROLOGUE)                       \
-  F(MINOR_MC_EVACUATE_REBALANCE)                      \
-  F(MINOR_MC_EVACUATE_UPDATE_POINTERS)                \
-  F(MINOR_MC_EVACUATE_UPDATE_POINTERS_TO_NEW)         \
-  F(MINOR_MC_EVACUATE_UPDATE_POINTERS_TO_NEW_ROOTS)   \
-  F(MINOR_MC_EVACUATE_UPDATE_POINTERS_TO_NEW_TOSPACE) \
-  F(MINOR_MC_EVACUATE_UPDATE_POINTERS_TO_NEW_OLD)     \
-  F(MINOR_MC_EVACUATE_UPDATE_POINTERS_WEAK)           \
-  F(MINOR_MC_MARK)                                    \
-  F(MINOR_MC_MARK_GLOBAL_HANDLES)                     \
-  F(MINOR_MC_MARK_IDENTIFY_GLOBAL_HANDLES)            \
-  F(MINOR_MC_MARK_SEED)                               \
-  F(MINOR_MC_MARK_ROOTS)                              \
-  F(MINOR_MC_MARK_WEAK)                               \
-  F(MINOR_MC_MARKING_DEQUE)                           \
-  F(MINOR_MC_RESET_LIVENESS)                          \
-  F(MINOR_MC_SWEEPING)                                \
-  F(SCAVENGER_CODE_FLUSH_CANDIDATES)                  \
-  F(SCAVENGER_EVACUATE)                               \
-  F(SCAVENGER_OLD_TO_NEW_POINTERS)                    \
-  F(SCAVENGER_ROOTS)                                  \
-  F(SCAVENGER_SCAVENGE)                               \
-  F(SCAVENGER_SEMISPACE)                              \
-  F(SCAVENGER_WEAK)
-
 #define TRACE_GC(tracer, scope_id)                             \
   GCTracer::Scope::ScopeId gc_tracer_scope_id(scope_id);       \
   GCTracer::Scope gc_tracer_scope(tracer, gc_tracer_scope_id); \
   TRACE_EVENT0(TRACE_DISABLED_BY_DEFAULT("v8.gc"),             \
                GCTracer::Scope::Name(gc_tracer_scope_id))
+
+#define TRACE_BACKGROUND_GC(tracer, scope_id)                   \
+  GCTracer::BackgroundScope background_scope(tracer, scope_id); \
+  TRACE_EVENT0(TRACE_DISABLED_BY_DEFAULT("v8.gc"),              \
+               GCTracer::BackgroundScope::Name(scope_id))
 
 // GCTracer collects and prints ONE line after each garbage collector
 // invocation IFF --trace_gc is used.
@@ -151,14 +66,21 @@ class V8_EXPORT_PRIVATE GCTracer {
    public:
     enum ScopeId {
 #define DEFINE_SCOPE(scope) scope,
-      TRACER_SCOPES(DEFINE_SCOPE)
+      TRACER_SCOPES(DEFINE_SCOPE) TRACER_BACKGROUND_SCOPES(DEFINE_SCOPE)
 #undef DEFINE_SCOPE
           NUMBER_OF_SCOPES,
 
       FIRST_INCREMENTAL_SCOPE = MC_INCREMENTAL,
       LAST_INCREMENTAL_SCOPE = MC_INCREMENTAL_EXTERNAL_PROLOGUE,
+      FIRST_SCOPE = MC_INCREMENTAL,
       NUMBER_OF_INCREMENTAL_SCOPES =
-          LAST_INCREMENTAL_SCOPE - FIRST_INCREMENTAL_SCOPE + 1
+          LAST_INCREMENTAL_SCOPE - FIRST_INCREMENTAL_SCOPE + 1,
+      FIRST_GENERAL_BACKGROUND_SCOPE = BACKGROUND_ARRAY_BUFFER_FREE,
+      LAST_GENERAL_BACKGROUND_SCOPE = BACKGROUND_UNMAPPER,
+      FIRST_MC_BACKGROUND_SCOPE = MC_BACKGROUND_EVACUATE_COPY,
+      LAST_MC_BACKGROUND_SCOPE = MC_BACKGROUND_SWEEPING,
+      FIRST_MINOR_GC_BACKGROUND_SCOPE = MINOR_MC_BACKGROUND_EVACUATE_COPY,
+      LAST_MINOR_GC_BACKGROUND_SCOPE = SCAVENGER_BACKGROUND_SCAVENGE_PARALLEL
     };
 
     Scope(GCTracer* tracer, ScopeId scope);
@@ -170,10 +92,39 @@ class V8_EXPORT_PRIVATE GCTracer {
     ScopeId scope_;
     double start_time_;
     RuntimeCallTimer timer_;
+    RuntimeCallStats* runtime_stats_ = nullptr;
 
     DISALLOW_COPY_AND_ASSIGN(Scope);
   };
 
+  class V8_EXPORT_PRIVATE BackgroundScope {
+   public:
+    enum ScopeId {
+#define DEFINE_SCOPE(scope) scope,
+      TRACER_BACKGROUND_SCOPES(DEFINE_SCOPE)
+#undef DEFINE_SCOPE
+          NUMBER_OF_SCOPES,
+      FIRST_GENERAL_BACKGROUND_SCOPE = BACKGROUND_ARRAY_BUFFER_FREE,
+      LAST_GENERAL_BACKGROUND_SCOPE = BACKGROUND_UNMAPPER,
+      FIRST_MC_BACKGROUND_SCOPE = MC_BACKGROUND_EVACUATE_COPY,
+      LAST_MC_BACKGROUND_SCOPE = MC_BACKGROUND_SWEEPING,
+      FIRST_MINOR_GC_BACKGROUND_SCOPE = MINOR_MC_BACKGROUND_EVACUATE_COPY,
+      LAST_MINOR_GC_BACKGROUND_SCOPE = SCAVENGER_BACKGROUND_SCAVENGE_PARALLEL
+    };
+    BackgroundScope(GCTracer* tracer, ScopeId scope);
+    ~BackgroundScope();
+
+    static const char* Name(ScopeId id);
+
+   private:
+    GCTracer* tracer_;
+    ScopeId scope_;
+    double start_time_;
+    RuntimeCallTimer timer_;
+    RuntimeCallCounter counter_;
+    bool runtime_stats_enabled_;
+    DISALLOW_COPY_AND_ASSIGN(BackgroundScope);
+  };
 
   class Event {
    public:
@@ -247,6 +198,8 @@ class V8_EXPORT_PRIVATE GCTracer {
   };
 
   static const int kThroughputTimeFrameMs = 5000;
+
+  static RuntimeCallCounterId RCSCounterFromScope(Scope::ScopeId id);
 
   explicit GCTracer(Heap* heap);
 
@@ -347,6 +300,11 @@ class V8_EXPORT_PRIVATE GCTracer {
 
   void NotifyIncrementalMarkingStart();
 
+  // Returns average mutator utilization with respect to mark-compact
+  // garbage collections. This ignores scavenger.
+  double AverageMarkCompactMutatorUtilization() const;
+  double CurrentMarkCompactMutatorUtilization() const;
+
   V8_INLINE void AddScopeSample(Scope::ScopeId scope, double duration) {
     DCHECK(scope < Scope::NUMBER_OF_SCOPES);
     if (scope >= Scope::FIRST_INCREMENTAL_SCOPE &&
@@ -358,9 +316,16 @@ class V8_EXPORT_PRIVATE GCTracer {
     }
   }
 
+  void AddBackgroundScopeSample(BackgroundScope::ScopeId scope, double duration,
+                                RuntimeCallCounter* runtime_call_counter);
+
  private:
   FRIEND_TEST(GCTracer, AverageSpeed);
   FRIEND_TEST(GCTracerTest, AllocationThroughput);
+  FRIEND_TEST(GCTracerTest, BackgroundScavengerScope);
+  FRIEND_TEST(GCTracerTest, BackgroundMinorMCScope);
+  FRIEND_TEST(GCTracerTest, BackgroundMajorMCScope);
+  FRIEND_TEST(GCTracerTest, MultithreadedBackgroundScope);
   FRIEND_TEST(GCTracerTest, NewSpaceAllocationThroughput);
   FRIEND_TEST(GCTracerTest, NewSpaceAllocationThroughputWithProvidedTime);
   FRIEND_TEST(GCTracerTest, OldGenerationAllocationThroughputWithProvidedTime);
@@ -368,6 +333,12 @@ class V8_EXPORT_PRIVATE GCTracer {
   FRIEND_TEST(GCTracerTest, IncrementalMarkingDetails);
   FRIEND_TEST(GCTracerTest, IncrementalScope);
   FRIEND_TEST(GCTracerTest, IncrementalMarkingSpeed);
+  FRIEND_TEST(GCTracerTest, MutatorUtilization);
+
+  struct BackgroundCounter {
+    double total_duration_ms;
+    RuntimeCallCounter runtime_call_counter;
+  };
 
   // Returns the average speed of the events in the buffer.
   // If the buffer is empty, the result is 0.
@@ -379,6 +350,8 @@ class V8_EXPORT_PRIVATE GCTracer {
   void ResetForTesting();
   void ResetIncrementalMarkingCounters();
   void RecordIncrementalMarkingSpeed(size_t bytes, double duration);
+  void RecordMutatorUtilization(double mark_compactor_end_time,
+                                double mark_compactor_duration);
 
   // Print one detailed trace line in name=value format.
   // TODO(ernstm): Move to Heap.
@@ -399,6 +372,13 @@ class V8_EXPORT_PRIVATE GCTracer {
            current_.scopes[Scope::MC_INCREMENTAL_EXTERNAL_EPILOGUE] +
            current_.scopes[Scope::MC_INCREMENTAL_EXTERNAL_PROLOGUE];
   }
+
+  void FetchBackgroundCounters(int first_global_scope, int last_global_scope,
+                               int first_background_scope,
+                               int last_background_scope);
+  void FetchBackgroundMinorGCCounters();
+  void FetchBackgroundMarkCompactCounters();
+  void FetchBackgroundGeneralCounters();
 
   // Pointer to the heap that owns this tracer.
   Heap* heap_;
@@ -443,8 +423,11 @@ class V8_EXPORT_PRIVATE GCTracer {
   // Counts how many tracers were started without stopping.
   int start_counter_;
 
-  // Separate timer used for --runtime_call_stats
-  RuntimeCallTimer timer_;
+  // Used for computing average mutator utilization.
+  double average_mutator_duration_;
+  double average_mark_compact_duration_;
+  double current_mark_compact_mutator_utilization_;
+  double previous_mark_compact_end_time_;
 
   base::RingBuffer<BytesAndDuration> recorded_minor_gcs_total_;
   base::RingBuffer<BytesAndDuration> recorded_minor_gcs_survived_;
@@ -456,8 +439,12 @@ class V8_EXPORT_PRIVATE GCTracer {
   base::RingBuffer<double> recorded_context_disposal_times_;
   base::RingBuffer<double> recorded_survival_ratios_;
 
+  base::Mutex background_counter_mutex_;
+  BackgroundCounter background_counter_[BackgroundScope::NUMBER_OF_SCOPES];
+
   DISALLOW_COPY_AND_ASSIGN(GCTracer);
 };
+
 }  // namespace internal
 }  // namespace v8
 

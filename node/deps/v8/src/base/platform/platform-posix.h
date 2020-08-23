@@ -13,17 +13,13 @@ namespace base {
 
 class PosixTimezoneCache : public TimezoneCache {
  public:
-  const char* LocalTimezone(double time_ms) override;
   double DaylightSavingsOffset(double time_ms) override;
-  double LocalTimeOffset() override;
   void Clear() override {}
   ~PosixTimezoneCache() override {}
 
  protected:
   static const int msPerSecond = 1000;
 };
-
-int GetProtectionFromMemoryPermission(OS::MemoryPermission access);
 
 }  // namespace base
 }  // namespace v8

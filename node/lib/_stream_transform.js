@@ -64,7 +64,12 @@
 'use strict';
 
 module.exports = Transform;
-
+const {
+  ERR_METHOD_NOT_IMPLEMENTED,
+  ERR_MULTIPLE_CALLBACK,
+  ERR_TRANSFORM_ALREADY_TRANSFORMING,
+  ERR_TRANSFORM_WITH_LENGTH_0
+} = require('internal/errors').codes;
 const Duplex = require('_stream_duplex');
 const util = require('util');
 util.inherits(Transform, Duplex);
@@ -76,9 +81,8 @@ function afterTransform(er, data) {
 
   var cb = ts.writecb;
 
-  if (!cb) {
-    return this.emit('error',
-                     new Error('write callback called multiple times'));
+  if (cb === null) {
+    return this.emit('error', new ERR_MULTIPLE_CALLBACK());
   }
 
   ts.writechunk = null;
@@ -133,7 +137,7 @@ function Transform(options) {
 }
 
 function prefinish() {
-  if (typeof this._flush === 'function') {
+  if (typeof this._flush === 'function' && !this._readableState.destroyed) {
     this._flush((er, data) => {
       done(this, er, data);
     });
@@ -158,7 +162,7 @@ Transform.prototype.push = function(chunk, encoding) {
 // an error, then that'll put the hurt on the whole operation.  If you
 // never call cb(), then you'll never get another chunk.
 Transform.prototype._transform = function(chunk, encoding, cb) {
-  throw new Error('_transform() is not implemented');
+  cb(new ERR_METHOD_NOT_IMPLEMENTED('_transform()'));
 };
 
 Transform.prototype._write = function(chunk, encoding, cb) {
@@ -181,7 +185,7 @@ Transform.prototype._write = function(chunk, encoding, cb) {
 Transform.prototype._read = function(n) {
   var ts = this._transformState;
 
-  if (ts.writechunk !== null && ts.writecb && !ts.transforming) {
+  if (ts.writechunk !== null && !ts.transforming) {
     ts.transforming = true;
     this._transform(ts.writechunk, ts.writeencoding, ts.afterTransform);
   } else {
@@ -195,7 +199,6 @@ Transform.prototype._read = function(n) {
 Transform.prototype._destroy = function(err, cb) {
   Duplex.prototype._destroy.call(this, err, (err2) => {
     cb(err2);
-    this.emit('close');
   });
 };
 
@@ -207,13 +210,13 @@ function done(stream, er, data) {
   if (data != null) // single equals check for both `null` and `undefined`
     stream.push(data);
 
+  // TODO(BridgeAR): Write a test for these two error cases
   // if there's nothing in the write buffer, then that means
   // that nothing more will ever be provided
   if (stream._writableState.length)
-    throw new Error('Calling transform done when ws.length != 0');
+    throw new ERR_TRANSFORM_WITH_LENGTH_0();
 
   if (stream._transformState.transforming)
-    throw new Error('Calling transform done when still transforming');
-
+    throw new ERR_TRANSFORM_ALREADY_TRANSFORMING();
   return stream.push(null);
 }

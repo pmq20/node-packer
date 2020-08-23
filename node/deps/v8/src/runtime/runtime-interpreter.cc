@@ -13,25 +13,32 @@
 #include "src/interpreter/bytecode-flags.h"
 #include "src/interpreter/bytecode-register.h"
 #include "src/interpreter/bytecodes.h"
+#include "src/interpreter/interpreter.h"
 #include "src/isolate-inl.h"
 #include "src/ostreams.h"
+#include "src/snapshot/snapshot.h"
 
 namespace v8 {
 namespace internal {
 
-RUNTIME_FUNCTION(Runtime_InterpreterNewClosure) {
+RUNTIME_FUNCTION(Runtime_InterpreterDeserializeLazy) {
   HandleScope scope(isolate);
-  DCHECK_EQ(4, args.length());
-  CONVERT_ARG_HANDLE_CHECKED(SharedFunctionInfo, shared, 0);
-  CONVERT_ARG_HANDLE_CHECKED(FeedbackVector, vector, 1);
-  CONVERT_SMI_ARG_CHECKED(index, 2);
-  CONVERT_SMI_ARG_CHECKED(pretenured_flag, 3);
-  Handle<Context> context(isolate->context(), isolate);
-  FeedbackSlot slot = FeedbackVector::ToSlot(index);
-  Handle<Cell> vector_cell(Cell::cast(vector->Get(slot)), isolate);
-  return *isolate->factory()->NewFunctionFromSharedFunctionInfo(
-      shared, context, vector_cell,
-      static_cast<PretenureFlag>(pretenured_flag));
+
+  DCHECK(FLAG_lazy_handler_deserialization);
+  DCHECK(FLAG_lazy_deserialization);
+  DCHECK_EQ(2, args.length());
+  CONVERT_SMI_ARG_CHECKED(bytecode_int, 0);
+  CONVERT_SMI_ARG_CHECKED(operand_scale_int, 1);
+
+  using interpreter::Bytecode;
+  using interpreter::Bytecodes;
+  using interpreter::OperandScale;
+
+  Bytecode bytecode = Bytecodes::FromByte(bytecode_int);
+  OperandScale operand_scale = static_cast<OperandScale>(operand_scale_int);
+
+  return isolate->interpreter()->GetAndMaybeDeserializeBytecodeHandler(
+      bytecode, operand_scale);
 }
 
 #ifdef V8_TRACE_IGNITION
@@ -128,7 +135,8 @@ RUNTIME_FUNCTION(Runtime_InterpreterTraceBytecodeEntry) {
     OFStream os(stdout);
 
     // Print bytecode.
-    const uint8_t* base_address = bytecode_array->GetFirstBytecodeAddress();
+    const uint8_t* base_address = reinterpret_cast<const uint8_t*>(
+        bytecode_array->GetFirstBytecodeAddress());
     const uint8_t* bytecode_address = base_address + offset;
     os << " -> " << static_cast<const void*>(bytecode_address) << " @ "
        << std::setw(4) << offset << " : ";
@@ -173,19 +181,40 @@ RUNTIME_FUNCTION(Runtime_InterpreterTraceBytecodeExit) {
 
 #endif
 
-RUNTIME_FUNCTION(Runtime_InterpreterAdvanceBytecodeOffset) {
+#ifdef V8_TRACE_FEEDBACK_UPDATES
+
+RUNTIME_FUNCTION(Runtime_InterpreterTraceUpdateFeedback) {
+  if (!FLAG_trace_feedback_updates) {
+    return isolate->heap()->undefined_value();
+  }
+
   SealHandleScope shs(isolate);
-  DCHECK_EQ(2, args.length());
-  CONVERT_ARG_HANDLE_CHECKED(BytecodeArray, bytecode_array, 0);
-  CONVERT_SMI_ARG_CHECKED(bytecode_offset, 1);
-  interpreter::BytecodeArrayIterator it(bytecode_array);
-  int offset = bytecode_offset - BytecodeArray::kHeaderSize + kHeapObjectTag;
-  while (it.current_offset() < offset) it.Advance();
-  DCHECK_EQ(offset, it.current_offset());
-  it.Advance();  // Advance by one bytecode.
-  offset = it.current_offset() + BytecodeArray::kHeaderSize - kHeapObjectTag;
-  return Smi::FromInt(offset);
+  DCHECK_EQ(3, args.length());
+  CONVERT_ARG_HANDLE_CHECKED(JSFunction, function, 0);
+  CONVERT_SMI_ARG_CHECKED(slot, 1);
+  CONVERT_ARG_CHECKED(String, reason, 2);
+
+  int slot_count = function->feedback_vector()->metadata()->slot_count();
+
+  OFStream os(stdout);
+  os << "[Feedback slot " << slot << "/" << slot_count << " in ";
+  function->shared()->ShortPrint(os);
+  os << " updated to ";
+  function->feedback_vector()->FeedbackSlotPrint(os, FeedbackSlot(slot));
+  os << " - ";
+
+  StringCharacterStream stream(reason);
+  while (stream.HasMore()) {
+    uint16_t character = stream.GetNext();
+    PrintF("%c", character);
+  }
+
+  os << "]" << std::endl;
+
+  return isolate->heap()->undefined_value();
 }
+
+#endif
 
 }  // namespace internal
 }  // namespace v8

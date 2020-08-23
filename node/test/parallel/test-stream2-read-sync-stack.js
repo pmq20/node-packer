@@ -22,12 +22,12 @@
 'use strict';
 const common = require('../common');
 const Readable = require('stream').Readable;
+
+// This tests synchronous read callbacks and verifies that even if they nest
+// heavily the process handles it without an error
+
 const r = new Readable();
 const N = 256 * 1024;
-
-// Go ahead and allow the pathological case for this test.
-// Yes, it's an infinite loop, that's the point.
-process.maxTickDepth = N + 2;
 
 let reads = 0;
 r._read = function(n) {
@@ -36,8 +36,8 @@ r._read = function(n) {
 };
 
 r.on('readable', function onReadable() {
-  if (!(r._readableState.length % 256))
-    console.error('readable', r._readableState.length);
+  if (!(r.readableLength % 256))
+    console.error('readable', r.readableLength);
   r.read(N * 2);
 });
 

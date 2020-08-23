@@ -62,7 +62,7 @@ function closeSync() {
 }
 
 
-// On Windows chmod is only able to manipulate read-only bit
+// On Windows chmod is only able to manipulate write permission
 if (common.isWindows) {
   mode_async = 0o400;   // read-only
   mode_sync = 0o600;    // read-write
@@ -71,47 +71,59 @@ if (common.isWindows) {
   mode_sync = 0o644;
 }
 
-const file1 = path.join(common.fixturesDir, 'a.js');
-const file2 = path.join(common.fixturesDir, 'a1.js');
+const tmpdir = require('../common/tmpdir');
+tmpdir.refresh();
+
+const file1 = path.join(tmpdir.path, 'a.js');
+const file2 = path.join(tmpdir.path, 'a1.js');
+
+// Create file1.
+fs.closeSync(fs.openSync(file1, 'w'));
 
 fs.chmod(file1, mode_async.toString(8), common.mustCall((err) => {
   assert.ifError(err);
 
-  console.log(fs.statSync(file1).mode);
-
   if (common.isWindows) {
     assert.ok((fs.statSync(file1).mode & 0o777) & mode_async);
   } else {
-    assert.strictEqual(mode_async, fs.statSync(file1).mode & 0o777);
+    assert.strictEqual(fs.statSync(file1).mode & 0o777, mode_async);
   }
 
   fs.chmodSync(file1, mode_sync);
   if (common.isWindows) {
     assert.ok((fs.statSync(file1).mode & 0o777) & mode_sync);
   } else {
-    assert.strictEqual(mode_sync, fs.statSync(file1).mode & 0o777);
+    assert.strictEqual(fs.statSync(file1).mode & 0o777, mode_sync);
   }
 }));
 
-fs.open(file2, 'a', common.mustCall((err, fd) => {
+fs.open(file2, 'w', common.mustCall((err, fd) => {
   assert.ifError(err);
 
   fs.fchmod(fd, mode_async.toString(8), common.mustCall((err) => {
     assert.ifError(err);
 
-    console.log(fs.fstatSync(fd).mode);
-
     if (common.isWindows) {
       assert.ok((fs.fstatSync(fd).mode & 0o777) & mode_async);
     } else {
-      assert.strictEqual(mode_async, fs.fstatSync(fd).mode & 0o777);
+      assert.strictEqual(fs.fstatSync(fd).mode & 0o777, mode_async);
     }
+
+    common.expectsError(
+      () => fs.fchmod(fd, {}),
+      {
+        code: 'ERR_INVALID_ARG_VALUE',
+        type: TypeError,
+        message: 'The argument \'mode\' must be a 32-bit unsigned integer ' +
+                 'or an octal string. Received {}'
+      }
+    );
 
     fs.fchmodSync(fd, mode_sync);
     if (common.isWindows) {
       assert.ok((fs.fstatSync(fd).mode & 0o777) & mode_sync);
     } else {
-      assert.strictEqual(mode_sync, fs.fstatSync(fd).mode & 0o777);
+      assert.strictEqual(fs.fstatSync(fd).mode & 0o777, mode_sync);
     }
 
     fs.close(fd, assert.ifError);
@@ -120,24 +132,32 @@ fs.open(file2, 'a', common.mustCall((err, fd) => {
 
 // lchmod
 if (fs.lchmod) {
-  const link = path.join(common.tmpDir, 'symbolic-link');
+  const link = path.join(tmpdir.path, 'symbolic-link');
 
-  common.refreshTmpDir();
   fs.symlinkSync(file2, link);
 
   fs.lchmod(link, mode_async, common.mustCall((err) => {
     assert.ifError(err);
 
-    console.log(fs.lstatSync(link).mode);
-    assert.strictEqual(mode_async, fs.lstatSync(link).mode & 0o777);
+    assert.strictEqual(fs.lstatSync(link).mode & 0o777, mode_async);
 
     fs.lchmodSync(link, mode_sync);
-    assert.strictEqual(mode_sync, fs.lstatSync(link).mode & 0o777);
+    assert.strictEqual(fs.lstatSync(link).mode & 0o777, mode_sync);
 
   }));
 }
 
+[false, 1, {}, [], null, undefined].forEach((input) => {
+  const errObj = {
+    code: 'ERR_INVALID_ARG_TYPE',
+    name: 'TypeError [ERR_INVALID_ARG_TYPE]',
+    message: 'The "path" argument must be one of type string, Buffer, or URL.' +
+             ` Received type ${typeof input}`
+  };
+  assert.throws(() => fs.chmod(input, 1, common.mustNotCall()), errObj);
+  assert.throws(() => fs.chmodSync(input, 1), errObj);
+});
 
 process.on('exit', function() {
-  assert.strictEqual(0, openCount);
+  assert.strictEqual(openCount, 0);
 });

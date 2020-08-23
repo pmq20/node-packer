@@ -5,19 +5,20 @@
 #ifndef V8_COMPILER_CODE_GENERATOR_H_
 #define V8_COMPILER_CODE_GENERATOR_H_
 
+#include "src/base/optional.h"
 #include "src/compiler/gap-resolver.h"
 #include "src/compiler/instruction.h"
+#include "src/compiler/osr.h"
 #include "src/compiler/unwinding-info-writer.h"
 #include "src/deoptimizer.h"
 #include "src/macro-assembler.h"
 #include "src/safepoint-table.h"
 #include "src/source-position-table.h"
-#include "src/trap-handler/trap-handler.h"
 
 namespace v8 {
 namespace internal {
 
-class CompilationInfo;
+class OptimizedCompilationInfo;
 
 namespace compiler {
 
@@ -26,6 +27,7 @@ class DeoptimizationExit;
 class FrameAccessState;
 class Linkage;
 class OutOfLineCode;
+class WasmCompilationData;
 
 struct BranchInfo {
   FlagsCondition condition;
@@ -65,9 +67,7 @@ class DeoptimizationLiteral {
            bit_cast<uint64_t>(number_) == bit_cast<uint64_t>(other.number_);
   }
 
-  Handle<Object> Reify(Isolate* isolate) const {
-    return object_.is_null() ? isolate->factory()->NewNumber(number_) : object_;
-  }
+  Handle<Object> Reify(Isolate* isolate) const;
 
  private:
   Handle<Object> object_;
@@ -77,37 +77,57 @@ class DeoptimizationLiteral {
 // Generates native code for a sequence of instructions.
 class CodeGenerator final : public GapResolver::Assembler {
  public:
-  explicit CodeGenerator(Frame* frame, Linkage* linkage,
-                         InstructionSequence* code, CompilationInfo* info);
+  explicit CodeGenerator(Zone* codegen_zone, Frame* frame, Linkage* linkage,
+                         InstructionSequence* code,
+                         OptimizedCompilationInfo* info, Isolate* isolate,
+                         base::Optional<OsrHelper> osr_helper,
+                         int start_source_position,
+                         JumpOptimizationInfo* jump_opt,
+                         WasmCompilationData* wasm_compilation_data,
+                         PoisoningMitigationLevel poisoning_level);
 
   // Generate native code. After calling AssembleCode, call FinalizeCode to
   // produce the actual code object. If an error occurs during either phase,
   // FinalizeCode returns a null handle.
-  void AssembleCode();
+  void AssembleCode();  // Does not need to run on main thread.
   Handle<Code> FinalizeCode();
+
+  Handle<ByteArray> GetSourcePositionTable();
 
   InstructionSequence* code() const { return code_; }
   FrameAccessState* frame_access_state() const { return frame_access_state_; }
   const Frame* frame() const { return frame_access_state_->frame(); }
-  Isolate* isolate() const;
+  Isolate* isolate() const { return isolate_; }
   Linkage* linkage() const { return linkage_; }
 
   Label* GetLabel(RpoNumber rpo) { return &labels_[rpo.ToSize()]; }
 
-  void AssembleSourcePosition(Instruction* instr);
+  void AddProtectedInstructionLanding(uint32_t instr_offset,
+                                      uint32_t landing_offset);
 
+  bool wasm_runtime_exception_support() const;
+
+  SourcePosition start_source_position() const {
+    return start_source_position_;
+  }
+
+  void AssembleSourcePosition(Instruction* instr);
   void AssembleSourcePosition(SourcePosition source_position);
 
   // Record a safepoint with the given pointer map.
   void RecordSafepoint(ReferenceMap* references, Safepoint::Kind kind,
                        int arguments, Safepoint::DeoptMode deopt_mode);
 
+  Zone* zone() const { return zone_; }
+  TurboAssembler* tasm() { return &tasm_; }
+  size_t GetSafepointTableOffset() const { return safepoints_.GetCodeOffset(); }
+  size_t GetHandlerTableOffset() const { return handler_table_offset_; }
+
  private:
-  MacroAssembler* masm() { return &masm_; }
   GapResolver* resolver() { return &resolver_; }
   SafepointTableBuilder* safepoints() { return &safepoints_; }
-  Zone* zone() const { return code()->zone(); }
-  CompilationInfo* info() const { return info_; }
+  OptimizedCompilationInfo* info() const { return info_; }
+  OsrHelper* osr_helper() { return &(*osr_helper_); }
 
   // Create the FrameAccessState object. The Frame is immutable from here on.
   void CreateFrameAccessState(Frame* frame);
@@ -130,15 +150,34 @@ class CodeGenerator final : public GapResolver::Assembler {
   // Assemble instructions for the specified block.
   CodeGenResult AssembleBlock(const InstructionBlock* block);
 
+  // Inserts mask update at the beginning of an instruction block if the
+  // predecessor blocks ends with a masking branch.
+  void TryInsertBranchPoisoning(const InstructionBlock* block);
+
+  // Initializes the masking register in the prologue of a function.
+  void InitializeSpeculationPoison();
+  // Reset the masking register during execution of a function.
+  void ResetSpeculationPoison();
+  // Generates a mask from the pc passed in {kJavaScriptCallCodeStartRegister}.
+  void GenerateSpeculationPoisonFromCodeStartRegister();
+
   // Assemble code for the specified instruction.
   CodeGenResult AssembleInstruction(Instruction* instr,
                                     const InstructionBlock* block);
   void AssembleGaps(Instruction* instr);
 
+  // Compute branch info from given instruction. Returns a valid rpo number
+  // if the branch is redundant, the returned rpo number point to the target
+  // basic block.
+  RpoNumber ComputeBranchInfo(BranchInfo* branch, Instruction* instr);
+
   // Returns true if a instruction is a tail call that needs to adjust the stack
   // pointer before execution. The stack slot index to the empty slot above the
   // adjusted stack pointer is returned in |slot|.
   bool GetSlotAboveSPBeforeTailCall(Instruction* instr, int* slot);
+
+  CodeGenResult AssembleDeoptimizerCall(int deoptimization_id,
+                                        SourcePosition pos);
 
   // ===========================================================================
   // ============= Architecture-specific code generation methods. ==============
@@ -147,13 +186,30 @@ class CodeGenerator final : public GapResolver::Assembler {
   CodeGenResult AssembleArchInstruction(Instruction* instr);
   void AssembleArchJump(RpoNumber target);
   void AssembleArchBranch(Instruction* instr, BranchInfo* branch);
+
+  // Generates special branch for deoptimization condition.
+  void AssembleArchDeoptBranch(Instruction* instr, BranchInfo* branch);
+
   void AssembleArchBoolean(Instruction* instr, FlagsCondition condition);
   void AssembleArchTrap(Instruction* instr, FlagsCondition condition);
   void AssembleArchLookupSwitch(Instruction* instr);
   void AssembleArchTableSwitch(Instruction* instr);
 
-  CodeGenResult AssembleDeoptimizerCall(int deoptimization_id,
-                                        SourcePosition pos);
+  // Generates code that checks whether the {kJavaScriptCallCodeStartRegister}
+  // contains the expected pointer to the start of the instruction stream.
+  void AssembleCodeStartRegisterCheck();
+
+  void AssembleBranchPoisoning(FlagsCondition condition, Instruction* instr);
+
+  // When entering a code that is marked for deoptimization, rather continuing
+  // with its execution, we jump to a lazy compiled code. We need to do this
+  // because this code has already been deoptimized and needs to be unlinked
+  // from the JS functions referring it.
+  void BailoutIfDeoptimized();
+
+  // Generates code to poison the stack pointer and implicit register arguments
+  // like the context register and the function register.
+  void AssembleRegisterArgumentPoisoning();
 
   // Generates an architecture-specific, descriptor-specific prologue
   // to set up a stack frame.
@@ -174,10 +230,9 @@ class CodeGenerator final : public GapResolver::Assembler {
 
   enum PushTypeFlag {
     kImmediatePush = 0x1,
-    kScalarPush = 0x2,
-    kFloat32Push = 0x4,
-    kFloat64Push = 0x8,
-    kFloatPush = kFloat32Push | kFloat64Push
+    kRegisterPush = 0x2,
+    kStackSlotPush = 0x4,
+    kScalarPush = kRegisterPush | kStackSlotPush
   };
 
   typedef base::Flags<PushTypeFlag> PushTypeFlags;
@@ -195,6 +250,26 @@ class CodeGenerator final : public GapResolver::Assembler {
                                      PushTypeFlags push_type,
                                      ZoneVector<MoveOperands*>* pushes);
 
+  class MoveType {
+   public:
+    enum Type {
+      kRegisterToRegister,
+      kRegisterToStack,
+      kStackToRegister,
+      kStackToStack,
+      kConstantToRegister,
+      kConstantToStack
+    };
+
+    // Detect what type of move or swap needs to be performed. Note that these
+    // functions do not take into account the representation (Tagged, FP,
+    // ...etc).
+
+    static Type InferMove(InstructionOperand* source,
+                          InstructionOperand* destination);
+    static Type InferSwap(InstructionOperand* source,
+                          InstructionOperand* destination);
+  };
   // Called before a tail call |instr|'s gap moves are assembled and allows
   // gap-specific pre-processing, e.g. adjustment of the sp for tail calls that
   // need it before gap moves or conversion of certain gap moves into pushes.
@@ -235,7 +310,7 @@ class CodeGenerator final : public GapResolver::Assembler {
   // ===========================================================================
 
   void RecordCallPosition(Instruction* instr);
-  void PopulateDeoptimizationData(Handle<Code> code);
+  Handle<DeoptimizationData> GenerateDeoptimizationData();
   int DefineDeoptimizationLiteral(DeoptimizationLiteral literal);
   DeoptimizationEntry const& GetDeoptimizationEntry(Instruction* instr,
                                                     size_t frame_state_offset);
@@ -257,7 +332,6 @@ class CodeGenerator final : public GapResolver::Assembler {
                                              Translation* translation);
   void AddTranslationForOperand(Translation* translation, Instruction* instr,
                                 InstructionOperand* op, MachineType type);
-  void EnsureSpaceForLazyDeopt();
   void MarkLazyDeoptSite();
 
   DeoptimizationExit* AddDeoptimizationExit(Instruction* instr,
@@ -295,17 +369,21 @@ class CodeGenerator final : public GapResolver::Assembler {
   };
 
   friend class OutOfLineCode;
+  friend class CodeGeneratorTester;
 
+  Zone* zone_;
+  Isolate* isolate_;
   FrameAccessState* frame_access_state_;
   Linkage* const linkage_;
   InstructionSequence* const code_;
   UnwindingInfoWriter unwinding_info_writer_;
-  CompilationInfo* const info_;
+  OptimizedCompilationInfo* const info_;
   Label* const labels_;
   Label return_label_;
   RpoNumber current_block_;
+  SourcePosition start_source_position_;
   SourcePosition current_source_position_;
-  MacroAssembler masm_;
+  TurboAssembler tasm_;
   GapResolver resolver_;
   SafepointTableBuilder safepoints_;
   ZoneVector<HandlerInfo> handlers_;
@@ -314,17 +392,34 @@ class CodeGenerator final : public GapResolver::Assembler {
   ZoneDeque<DeoptimizationLiteral> deoptimization_literals_;
   size_t inlined_function_count_;
   TranslationBuffer translations_;
+  int handler_table_offset_;
   int last_lazy_deopt_pc_;
+
+  // kArchCallCFunction could be reached either:
+  //   kArchCallCFunction;
+  // or:
+  //   kArchSaveCallerRegisters;
+  //   kArchCallCFunction;
+  //   kArchRestoreCallerRegisters;
+  // The boolean is used to distinguish the two cases. In the latter case, we
+  // also need to decide if FP registers need to be saved, which is controlled
+  // by fp_mode_.
+  bool caller_registers_saved_;
+  SaveFPRegsMode fp_mode_;
+
   JumpTable* jump_tables_;
   OutOfLineCode* ools_;
+  base::Optional<OsrHelper> osr_helper_;
   int osr_pc_offset_;
   int optimized_out_literal_id_;
   SourcePositionTableBuilder source_position_table_builder_;
+  WasmCompilationData* wasm_compilation_data_;
   CodeGenResult result_;
+  PoisoningMitigationLevel poisoning_level_;
 };
 
 }  // namespace compiler
 }  // namespace internal
 }  // namespace v8
 
-#endif  // V8_COMPILER_CODE_GENERATOR_H
+#endif  // V8_COMPILER_CODE_GENERATOR_H_

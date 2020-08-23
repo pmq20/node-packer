@@ -10,28 +10,37 @@ const configs = {
 };
 
 const bench = common.createBenchmark(main, configs);
+const noop = () => {};
 
-function main(conf) {
-  const n = +conf.n;
-  const port = conf.port === 'true' ? 0 : undefined;
-  const address = conf.address === 'true' ? '0.0.0.0' : undefined;
+function main({ n, port, address }) {
+  port = port === 'true' ? 0 : undefined;
+  address = address === 'true' ? '0.0.0.0' : undefined;
+  var i;
 
   if (port !== undefined && address !== undefined) {
     bench.start();
-    for (let i = 0; i < n; i++) {
-      dgram.createSocket('udp4').bind(port, address).unref();
+    for (i = 0; i < n; i++) {
+      dgram.createSocket('udp4').bind(port, address)
+        .on('error', noop)
+        .unref();
     }
     bench.end(n);
   } else if (port !== undefined) {
     bench.start();
-    for (let i = 0; i < n; i++) {
-      dgram.createSocket('udp4').bind(port).unref();
+    for (i = 0; i < n; i++) {
+      dgram.createSocket('udp4')
+        .bind(port)
+        .on('error', noop)
+        .unref();
     }
     bench.end(n);
   } else if (port === undefined && address === undefined) {
     bench.start();
-    for (let i = 0; i < n; i++) {
-      dgram.createSocket('udp4').bind().unref();
+    for (i = 0; i < n; i++) {
+      dgram.createSocket('udp4')
+        .bind()
+        .on('error', noop)
+        .unref();
     }
     bench.end(n);
   }

@@ -5,8 +5,6 @@ const fs = require('fs');
 const path = require('path');
 const { promisify } = require('util');
 
-common.crashOnUnhandledRejection();
-
 const read = promisify(fs.read);
 const write = promisify(fs.write);
 const exists = promisify(fs.exists);
@@ -20,9 +18,10 @@ const exists = promisify(fs.exists);
   }));
 }
 
-common.refreshTmpDir();
+const tmpdir = require('../common/tmpdir');
+tmpdir.refresh();
 {
-  const filename = path.join(common.tmpDir, 'write-promise.txt');
+  const filename = path.join(tmpdir.path, 'write-promise.txt');
   const fd = fs.openSync(filename, 'w');
   write(fd, Buffer.from('foobar')).then(common.mustCall((obj) => {
     assert.strictEqual(typeof obj.bytesWritten, 'number');

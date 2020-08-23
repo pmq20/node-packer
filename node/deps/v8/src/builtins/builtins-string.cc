@@ -8,6 +8,7 @@
 #include "src/counters.h"
 #include "src/objects-inl.h"
 #include "src/regexp/regexp-utils.h"
+#include "src/string-builder.h"
 #include "src/string-case.h"
 #include "src/unicode-inl.h"
 #include "src/unicode.h"
@@ -56,7 +57,8 @@ BUILTIN(StringFromCodePoint) {
 
   // Optimistically assume that the resulting String contains only one byte
   // characters.
-  List<uint8_t> one_byte_buffer(length);
+  std::vector<uint8_t> one_byte_buffer;
+  one_byte_buffer.reserve(length);
   uc32 code = 0;
   int index;
   for (index = 0; index < length; index++) {
@@ -67,22 +69,24 @@ BUILTIN(StringFromCodePoint) {
     if (code > String::kMaxOneByteCharCode) {
       break;
     }
-    one_byte_buffer.Add(code);
+    one_byte_buffer.push_back(code);
   }
 
   if (index == length) {
-    RETURN_RESULT_OR_FAILURE(isolate, isolate->factory()->NewStringFromOneByte(
-                                          one_byte_buffer.ToConstVector()));
+    RETURN_RESULT_OR_FAILURE(
+        isolate, isolate->factory()->NewStringFromOneByte(Vector<uint8_t>(
+                     one_byte_buffer.data(), one_byte_buffer.size())));
   }
 
-  List<uc16> two_byte_buffer(length - index);
+  std::vector<uc16> two_byte_buffer;
+  two_byte_buffer.reserve(length - index);
 
   while (true) {
     if (code <= static_cast<uc32>(unibrow::Utf16::kMaxNonSurrogateCharCode)) {
-      two_byte_buffer.Add(code);
+      two_byte_buffer.push_back(code);
     } else {
-      two_byte_buffer.Add(unibrow::Utf16::LeadSurrogate(code));
-      two_byte_buffer.Add(unibrow::Utf16::TrailSurrogate(code));
+      two_byte_buffer.push_back(unibrow::Utf16::LeadSurrogate(code));
+      two_byte_buffer.push_back(unibrow::Utf16::TrailSurrogate(code));
     }
 
     if (++index == length) {
@@ -97,13 +101,12 @@ BUILTIN(StringFromCodePoint) {
   Handle<SeqTwoByteString> result;
   ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
       isolate, result,
-      isolate->factory()->NewRawTwoByteString(one_byte_buffer.length() +
-                                              two_byte_buffer.length()));
+      isolate->factory()->NewRawTwoByteString(
+          static_cast<int>(one_byte_buffer.size() + two_byte_buffer.size())));
 
-  CopyChars(result->GetChars(), one_byte_buffer.ToConstVector().start(),
-            one_byte_buffer.length());
-  CopyChars(result->GetChars() + one_byte_buffer.length(),
-            two_byte_buffer.ToConstVector().start(), two_byte_buffer.length());
+  CopyChars(result->GetChars(), one_byte_buffer.data(), one_byte_buffer.size());
+  CopyChars(result->GetChars() + one_byte_buffer.size(), two_byte_buffer.data(),
+            two_byte_buffer.size());
 
   return *result;
 }
@@ -170,38 +173,6 @@ BUILTIN(StringPrototypeEndsWith) {
     }
   }
   return isolate->heap()->true_value();
-}
-
-// ES6 section 21.1.3.7
-// String.prototype.includes ( searchString [ , position ] )
-BUILTIN(StringPrototypeIncludes) {
-  HandleScope handle_scope(isolate);
-  TO_THIS_STRING(str, "String.prototype.includes");
-
-  // Check if the search string is a regExp and fail if it is.
-  Handle<Object> search = args.atOrUndefined(isolate, 1);
-  Maybe<bool> is_reg_exp = RegExpUtils::IsRegExp(isolate, search);
-  if (is_reg_exp.IsNothing()) {
-    DCHECK(isolate->has_pending_exception());
-    return isolate->heap()->exception();
-  }
-  if (is_reg_exp.FromJust()) {
-    THROW_NEW_ERROR_RETURN_FAILURE(
-        isolate, NewTypeError(MessageTemplate::kFirstArgumentNotRegExp,
-                              isolate->factory()->NewStringFromStaticChars(
-                                  "String.prototype.includes")));
-  }
-  Handle<String> search_string;
-  ASSIGN_RETURN_FAILURE_ON_EXCEPTION(isolate, search_string,
-                                     Object::ToString(isolate, search));
-  Handle<Object> position;
-  ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
-      isolate, position,
-      Object::ToInteger(isolate, args.atOrUndefined(isolate, 2)));
-
-  uint32_t index = str->ToValidIndex(*position);
-  int index_in_str = String::IndexOf(isolate, str, search_string, index);
-  return *isolate->factory()->ToBoolean(index_in_str != -1);
 }
 
 // ES6 section 21.1.3.9
@@ -347,39 +318,19 @@ BUILTIN(StringPrototypeStartsWith) {
   return isolate->heap()->true_value();
 }
 
-// ES6 section 21.1.3.27 String.prototype.trim ()
-BUILTIN(StringPrototypeTrim) {
-  HandleScope scope(isolate);
-  TO_THIS_STRING(string, "String.prototype.trim");
-  return *String::Trim(string, String::kTrim);
-}
-
-// Non-standard WebKit extension
-BUILTIN(StringPrototypeTrimLeft) {
-  HandleScope scope(isolate);
-  TO_THIS_STRING(string, "String.prototype.trimLeft");
-  return *String::Trim(string, String::kTrimLeft);
-}
-
-// Non-standard WebKit extension
-BUILTIN(StringPrototypeTrimRight) {
-  HandleScope scope(isolate);
-  TO_THIS_STRING(string, "String.prototype.trimRight");
-  return *String::Trim(string, String::kTrimRight);
-}
-
+#ifndef V8_INTL_SUPPORT
 namespace {
 
 inline bool ToUpperOverflows(uc32 character) {
   // y with umlauts and the micro sign are the only characters that stop
   // fitting into one-byte when converting to uppercase.
-  static const uc32 yuml_code = 0xff;
-  static const uc32 micro_code = 0xb5;
+  static const uc32 yuml_code = 0xFF;
+  static const uc32 micro_code = 0xB5;
   return (character == yuml_code || character == micro_code);
 }
 
 template <class Converter>
-MUST_USE_RESULT static Object* ConvertCaseHelper(
+V8_WARN_UNUSED_RESULT static Object* ConvertCaseHelper(
     Isolate* isolate, String* string, SeqString* result, int result_length,
     unibrow::Mapping<Converter, 128>* mapping) {
   DisallowHeapAllocation no_gc;
@@ -476,7 +427,7 @@ MUST_USE_RESULT static Object* ConvertCaseHelper(
 }
 
 template <class Converter>
-MUST_USE_RESULT static Object* ConvertCase(
+V8_WARN_UNUSED_RESULT static Object* ConvertCase(
     Handle<String> s, Isolate* isolate,
     unibrow::Mapping<Converter, 128>* mapping) {
   s = String::Flatten(s);
@@ -518,7 +469,7 @@ MUST_USE_RESULT static Object* ConvertCase(
   if (answer->IsException(isolate) || answer->IsString()) return answer;
 
   DCHECK(answer->IsSmi());
-  length = Smi::cast(answer)->value();
+  length = Smi::ToInt(answer);
   if (s->IsOneByteRepresentation() && length > 0) {
     ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
         isolate, result, isolate->factory()->NewRawOneByteString(length));
@@ -558,6 +509,67 @@ BUILTIN(StringPrototypeToUpperCase) {
   TO_THIS_STRING(string, "String.prototype.toUpperCase");
   return ConvertCase(string, isolate,
                      isolate->runtime_state()->to_upper_mapping());
+}
+#endif  // !V8_INTL_SUPPORT
+
+// ES6 #sec-string.prototype.raw
+BUILTIN(StringRaw) {
+  HandleScope scope(isolate);
+  Handle<Object> templ = args.atOrUndefined(isolate, 1);
+  const uint32_t argc = args.length();
+  Handle<String> raw_string =
+      isolate->factory()->NewStringFromAsciiChecked("raw");
+
+  Handle<Object> cooked;
+  ASSIGN_RETURN_FAILURE_ON_EXCEPTION(isolate, cooked,
+                                     Object::ToObject(isolate, templ));
+
+  Handle<Object> raw;
+  ASSIGN_RETURN_FAILURE_ON_EXCEPTION(isolate, raw,
+                                     Object::GetProperty(cooked, raw_string));
+  ASSIGN_RETURN_FAILURE_ON_EXCEPTION(isolate, raw,
+                                     Object::ToObject(isolate, raw));
+  Handle<Object> raw_len;
+  ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
+      isolate, raw_len,
+      Object::GetProperty(raw, isolate->factory()->length_string()));
+
+  ASSIGN_RETURN_FAILURE_ON_EXCEPTION(isolate, raw_len,
+                                     Object::ToLength(isolate, raw_len));
+
+  IncrementalStringBuilder result_builder(isolate);
+  const uint32_t length = static_cast<uint32_t>(raw_len->Number());
+  if (length > 0) {
+    Handle<Object> first_element;
+    ASSIGN_RETURN_FAILURE_ON_EXCEPTION(isolate, first_element,
+                                       Object::GetElement(isolate, raw, 0));
+
+    Handle<String> first_string;
+    ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
+        isolate, first_string, Object::ToString(isolate, first_element));
+    result_builder.AppendString(first_string);
+
+    for (uint32_t i = 1, arg_i = 2; i < length; i++, arg_i++) {
+      if (arg_i < argc) {
+        Handle<String> argument_string;
+        ASSIGN_RETURN_FAILURE_ON_EXCEPTION(
+            isolate, argument_string,
+            Object::ToString(isolate, args.at(arg_i)));
+        result_builder.AppendString(argument_string);
+      }
+
+      Handle<Object> element;
+      ASSIGN_RETURN_FAILURE_ON_EXCEPTION(isolate, element,
+                                         Object::GetElement(isolate, raw, i));
+
+      Handle<String> element_string;
+      ASSIGN_RETURN_FAILURE_ON_EXCEPTION(isolate, element_string,
+                                         Object::ToString(isolate, element));
+      result_builder.AppendString(element_string);
+    }
+  }
+
+  RETURN_RESULT_OR_FAILURE(isolate, result_builder.Finish());
 }
 
 }  // namespace internal

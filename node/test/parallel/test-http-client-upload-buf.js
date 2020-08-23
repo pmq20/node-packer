@@ -27,8 +27,7 @@ const http = require('http');
 const N = 1024;
 
 const server = http.createServer(common.mustCall(function(req, res) {
-  assert.strictEqual('POST', req.method);
-
+  assert.strictEqual(req.method, 'POST');
   let bytesReceived = 0;
 
   req.on('data', function(chunk) {
@@ -38,7 +37,7 @@ const server = http.createServer(common.mustCall(function(req, res) {
   req.on('end', common.mustCall(function() {
     assert.strictEqual(N, bytesReceived);
     console.log('request complete from server');
-    res.writeHead(200, {'Content-Type': 'text/plain'});
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
     res.write('hello\n');
     res.end();
   }));

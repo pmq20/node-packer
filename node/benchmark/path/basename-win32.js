@@ -1,8 +1,8 @@
 'use strict';
-var common = require('../common.js');
-var path = require('path');
+const common = require('../common.js');
+const { win32 } = require('path');
 
-var bench = common.createBenchmark(main, {
+const bench = common.createBenchmark(main, {
   pathext: [
     '',
     'C:\\',
@@ -15,23 +15,20 @@ var bench = common.createBenchmark(main, {
     '\\foo\\bar\\baz\\asdf\\quux.html',
     ['\\foo\\bar\\baz\\asdf\\quux.html', '.html'].join('|')
   ],
-  n: [1e6]
+  n: [1e5]
 });
 
-function main(conf) {
-  var n = +conf.n;
-  var p = path.win32;
-  var input = String(conf.pathext);
+function main({ n, pathext }) {
   var ext;
-  var extIdx = input.indexOf('|');
+  const extIdx = pathext.indexOf('|');
   if (extIdx !== -1) {
-    ext = input.slice(extIdx + 1);
-    input = input.slice(0, extIdx);
+    ext = pathext.slice(extIdx + 1);
+    pathext = pathext.slice(0, extIdx);
   }
 
   bench.start();
   for (var i = 0; i < n; i++) {
-    p.basename(input, ext);
+    win32.basename(i % 3 === 0 ? `${pathext}${i}` : pathext, ext);
   }
   bench.end(n);
 }

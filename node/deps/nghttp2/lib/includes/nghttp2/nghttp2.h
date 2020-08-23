@@ -28,7 +28,12 @@
 /* Define WIN32 when build target is Win32 API (borrowed from
    libcurl) */
 #if (defined(_WIN32) || defined(__WIN32__)) && !defined(WIN32)
-#define WIN32
+#  define WIN32
+#endif
+
+/* Compatibility for non-Clang compilers */
+#ifndef __has_declspec_attribute
+#  define __has_declspec_attribute(x) 0
 #endif
 
 #ifdef __cplusplus
@@ -40,9 +45,9 @@ extern "C" {
 /* MSVC < 2013 does not have inttypes.h because it is not C99
    compliant.  See compiler macros and version number in
    https://sourceforge.net/p/predef/wiki/Compilers/ */
-#include <stdint.h>
+#  include <stdint.h>
 #else /* !defined(_MSC_VER) || (_MSC_VER >= 1800) */
-#include <inttypes.h>
+#  include <inttypes.h>
 #endif /* !defined(_MSC_VER) || (_MSC_VER >= 1800) */
 #include <sys/types.h>
 #include <stdarg.h>
@@ -50,20 +55,21 @@ extern "C" {
 #include <nghttp2/nghttp2ver.h>
 
 #ifdef NGHTTP2_STATICLIB
-#define NGHTTP2_EXTERN
-#elif defined(WIN32)
-#ifdef BUILDING_NGHTTP2
-#define NGHTTP2_EXTERN __declspec(dllexport)
-#else /* !BUILDING_NGHTTP2 */
-#define NGHTTP2_EXTERN __declspec(dllimport)
-#endif /* !BUILDING_NGHTTP2 */
-#else  /* !defined(WIN32) */
-#ifdef BUILDING_NGHTTP2
-#define NGHTTP2_EXTERN __attribute__((visibility("default")))
-#else /* !BUILDING_NGHTTP2 */
-#define NGHTTP2_EXTERN
-#endif /* !BUILDING_NGHTTP2 */
-#endif /* !defined(WIN32) */
+#  define NGHTTP2_EXTERN
+#elif defined(WIN32) || (__has_declspec_attribute(dllexport) &&                \
+                         __has_declspec_attribute(dllimport))
+#  ifdef BUILDING_NGHTTP2
+#    define NGHTTP2_EXTERN __declspec(dllexport)
+#  else /* !BUILDING_NGHTTP2 */
+#    define NGHTTP2_EXTERN __declspec(dllimport)
+#  endif /* !BUILDING_NGHTTP2 */
+#else    /* !defined(WIN32) */
+#  ifdef BUILDING_NGHTTP2
+#    define NGHTTP2_EXTERN __attribute__((visibility("default")))
+#  else /* !BUILDING_NGHTTP2 */
+#    define NGHTTP2_EXTERN
+#  endif /* !BUILDING_NGHTTP2 */
+#endif   /* !defined(WIN32) */
 
 /**
  * @macro
@@ -388,6 +394,11 @@ typedef enum {
    */
   NGHTTP2_ERR_CANCEL = -535,
   /**
+   * When a local endpoint expects to receive SETTINGS frame, it
+   * receives an other type of frame.
+   */
+  NGHTTP2_ERR_SETTINGS_EXPECTED = -536,
+  /**
    * The errors < :enum:`NGHTTP2_ERR_FATAL` mean that the library is
    * under unexpected condition and processing was terminated (e.g.,
    * out of memory).  If application receives this error code, it must
@@ -468,6 +479,15 @@ NGHTTP2_EXTERN void nghttp2_rcbuf_decref(nghttp2_rcbuf *rcbuf);
  * Returns the underlying buffer managed by |rcbuf|.
  */
 NGHTTP2_EXTERN nghttp2_vec nghttp2_rcbuf_get_buf(nghttp2_rcbuf *rcbuf);
+
+/**
+ * @function
+ *
+ * Returns nonzero if the underlying buffer is statically allocated,
+ * and 0 otherwise. This can be useful for language bindings that wish
+ * to avoid creating duplicate strings for these buffers.
+ */
+NGHTTP2_EXTERN int nghttp2_rcbuf_is_static(const nghttp2_rcbuf *rcbuf);
 
 /**
  * @enum
@@ -597,7 +617,12 @@ typedef enum {
    * The ALTSVC frame, which is defined in `RFC 7383
    * <https://tools.ietf.org/html/rfc7838#section-4>`_.
    */
-  NGHTTP2_ALTSVC = 0x0a
+  NGHTTP2_ALTSVC = 0x0a,
+  /**
+   * The ORIGIN frame, which is defined by `RFC 8336
+   * <https://tools.ietf.org/html/rfc8336>`_.
+   */
+  NGHTTP2_ORIGIN = 0x0c
 } nghttp2_frame_type;
 
 /**
@@ -661,7 +686,12 @@ typedef enum {
   /**
    * SETTINGS_MAX_HEADER_LIST_SIZE
    */
-  NGHTTP2_SETTINGS_MAX_HEADER_LIST_SIZE = 0x06
+  NGHTTP2_SETTINGS_MAX_HEADER_LIST_SIZE = 0x06,
+  /**
+   * SETTINGS_ENABLE_CONNECT_PROTOCOL
+   * (`RFC 8441 <https://tools.ietf.org/html/rfc8441>`_)
+   */
+  NGHTTP2_SETTINGS_ENABLE_CONNECT_PROTOCOL = 0x08
 } nghttp2_settings_id;
 /* Note: If we add SETTINGS, update the capacity of
    NGHTTP2_INBOUND_NUM_IV as well */
@@ -1741,11 +1771,12 @@ typedef int (*nghttp2_on_header_callback2)(nghttp2_session *session,
  * The parameter and behaviour are similar to
  * :type:`nghttp2_on_header_callback`.  The difference is that this
  * callback is only invoked when a invalid header name/value pair is
- * received which is silently ignored if this callback is not set.
- * Only invalid regular header field are passed to this callback.  In
- * other words, invalid pseudo header field is not passed to this
- * callback.  Also header fields which includes upper cased latter are
- * also treated as error without passing them to this callback.
+ * received which is treated as stream error if this callback is not
+ * set.  Only invalid regular header field are passed to this
+ * callback.  In other words, invalid pseudo header field is not
+ * passed to this callback.  Also header fields which includes upper
+ * cased latter are also treated as error without passing them to this
+ * callback.
  *
  * This callback is only considered if HTTP messaging validation is
  * turned on (which is on by default, see
@@ -1754,10 +1785,13 @@ typedef int (*nghttp2_on_header_callback2)(nghttp2_session *session,
  * With this callback, application inspects the incoming invalid
  * field, and it also can reset stream from this callback by returning
  * :enum:`NGHTTP2_ERR_TEMPORAL_CALLBACK_FAILURE`.  By default, the
- * error code is :enum:`NGHTTP2_INTERNAL_ERROR`.  To change the error
+ * error code is :enum:`NGHTTP2_PROTOCOL_ERROR`.  To change the error
  * code, call `nghttp2_submit_rst_stream()` with the error code of
  * choice in addition to returning
  * :enum:`NGHTTP2_ERR_TEMPORAL_CALLBACK_FAILURE`.
+ *
+ * If 0 is returned, the header field is ignored, and the stream is
+ * not reset.
  */
 typedef int (*nghttp2_on_invalid_header_callback)(
     nghttp2_session *session, const nghttp2_frame *frame, const uint8_t *name,
@@ -1974,6 +2008,9 @@ typedef ssize_t (*nghttp2_pack_extension_callback)(nghttp2_session *session,
  * of length |len|.  |len| does not include the sentinel NULL
  * character.
  *
+ * This function is deprecated.  The new application should use
+ * :type:`nghttp2_error_callback2`.
+ *
  * The format of error message may change between nghttp2 library
  * versions.  The application should not depend on the particular
  * format.
@@ -1989,6 +2026,33 @@ typedef ssize_t (*nghttp2_pack_extension_callback)(nghttp2_session *session,
  */
 typedef int (*nghttp2_error_callback)(nghttp2_session *session, const char *msg,
                                       size_t len, void *user_data);
+
+/**
+ * @functypedef
+ *
+ * Callback function invoked when library provides the error code, and
+ * message.  This callback is solely for debugging purpose.
+ * |lib_error_code| is one of error code defined in
+ * :enum:`nghttp2_error`.  The |msg| is typically NULL-terminated
+ * string of length |len|, and intended for human consumption.  |len|
+ * does not include the sentinel NULL character.
+ *
+ * The format of error message may change between nghttp2 library
+ * versions.  The application should not depend on the particular
+ * format.
+ *
+ * Normally, application should return 0 from this callback.  If fatal
+ * error occurred while doing something in this callback, application
+ * should return :enum:`NGHTTP2_ERR_CALLBACK_FAILURE`.  In this case,
+ * library will return immediately with return value
+ * :enum:`NGHTTP2_ERR_CALLBACK_FAILURE`.  Currently, if nonzero value
+ * is returned from this callback, they are treated as
+ * :enum:`NGHTTP2_ERR_CALLBACK_FAILURE`, but application should not
+ * rely on this details.
+ */
+typedef int (*nghttp2_error_callback2)(nghttp2_session *session,
+                                       int lib_error_code, const char *msg,
+                                       size_t len, void *user_data);
 
 struct nghttp2_session_callbacks;
 
@@ -2254,9 +2318,29 @@ nghttp2_session_callbacks_set_on_extension_chunk_recv_callback(
  *
  * Sets callback function invoked when library tells error message to
  * the application.
+ *
+ * This function is deprecated.  The new application should use
+ * `nghttp2_session_callbacks_set_error_callback2()`.
+ *
+ * If both :type:`nghttp2_error_callback` and
+ * :type:`nghttp2_error_callback2` are set, the latter takes
+ * precedence.
  */
 NGHTTP2_EXTERN void nghttp2_session_callbacks_set_error_callback(
     nghttp2_session_callbacks *cbs, nghttp2_error_callback error_callback);
+
+/**
+ * @function
+ *
+ * Sets callback function invoked when library tells error code, and
+ * message to the application.
+ *
+ * If both :type:`nghttp2_error_callback` and
+ * :type:`nghttp2_error_callback2` are set, the latter takes
+ * precedence.
+ */
+NGHTTP2_EXTERN void nghttp2_session_callbacks_set_error_callback2(
+    nghttp2_session_callbacks *cbs, nghttp2_error_callback2 error_callback2);
 
 /**
  * @functypedef
@@ -2405,15 +2489,15 @@ nghttp2_option_set_no_auto_window_update(nghttp2_option *option, int val);
  *
  * This option sets the SETTINGS_MAX_CONCURRENT_STREAMS value of
  * remote endpoint as if it is received in SETTINGS frame.  Without
- * specifying this option, before the local endpoint receives
- * SETTINGS_MAX_CONCURRENT_STREAMS in SETTINGS frame from remote
- * endpoint, SETTINGS_MAX_CONCURRENT_STREAMS is unlimited.  This may
- * cause problem if local endpoint submits lots of requests initially
- * and sending them at once to the remote peer may lead to the
- * rejection of some requests.  Specifying this option to the sensible
- * value, say 100, may avoid this kind of issue. This value will be
- * overwritten if the local endpoint receives
- * SETTINGS_MAX_CONCURRENT_STREAMS from the remote endpoint.
+ * specifying this option, the maximum number of outgoing concurrent
+ * streams is initially limited to 100 to avoid issues when the local
+ * endpoint submits lots of requests before receiving initial SETTINGS
+ * frame from the remote endpoint, since sending them at once to the
+ * remote endpoint could lead to rejection of some of the requests.
+ * This value will be overwritten when the local endpoint receives
+ * initial SETTINGS frame from the remote endpoint, either to the
+ * value advertised in SETTINGS_MAX_CONCURRENT_STREAMS or to the
+ * default value (unlimited) if none was advertised.
  */
 NGHTTP2_EXTERN void
 nghttp2_option_set_peer_max_concurrent_streams(nghttp2_option *option,
@@ -2448,7 +2532,10 @@ nghttp2_option_set_no_recv_client_magic(nghttp2_option *option, int val);
  * <https://tools.ietf.org/html/rfc7540#section-8>`_.  See
  * :ref:`http-messaging` section for details.  For those applications
  * who use nghttp2 library as non-HTTP use, give nonzero to |val| to
- * disable this enforcement.
+ * disable this enforcement.  Please note that disabling this feature
+ * does not change the fundamental client and server model of HTTP.
+ * That is, even if the validation is disabled, only client can send
+ * requests.
  */
 NGHTTP2_EXTERN void nghttp2_option_set_no_http_messaging(nghttp2_option *option,
                                                          int val);
@@ -2560,6 +2647,17 @@ nghttp2_option_set_max_deflate_dynamic_table_size(nghttp2_option *option,
  */
 NGHTTP2_EXTERN void nghttp2_option_set_no_closed_streams(nghttp2_option *option,
                                                          int val);
+
+/**
+ * @function
+ *
+ * This function sets the maximum number of outgoing SETTINGS ACK and
+ * PING ACK frames retained in :type:`nghttp2_session` object.  If
+ * more than those frames are retained, the peer is considered to be
+ * misbehaving and session will be closed.  The default value is 1000.
+ */
+NGHTTP2_EXTERN void nghttp2_option_set_max_outbound_ack(nghttp2_option *option,
+                                                        size_t val);
 
 /**
  * @function
@@ -3009,6 +3107,16 @@ nghttp2_session_get_stream_user_data(nghttp2_session *session,
 NGHTTP2_EXTERN int
 nghttp2_session_set_stream_user_data(nghttp2_session *session,
                                      int32_t stream_id, void *stream_user_data);
+
+/**
+ * @function
+ *
+ * Sets |user_data| to |session|, overwriting the existing user data
+ * specified in `nghttp2_session_client_new()`, or
+ * `nghttp2_session_server_new()`.
+ */
+NGHTTP2_EXTERN void nghttp2_session_set_user_data(nghttp2_session *session,
+                                                  void *user_data);
 
 /**
  * @function
@@ -3716,10 +3824,13 @@ nghttp2_priority_spec_check_default(const nghttp2_priority_spec *pri_spec);
  * .. warning::
  *
  *   This function returns assigned stream ID if it succeeds.  But
- *   that stream is not opened yet.  The application must not submit
+ *   that stream is not created yet.  The application must not submit
  *   frame to that stream ID before
  *   :type:`nghttp2_before_frame_send_callback` is called for this
- *   frame.
+ *   frame.  This means `nghttp2_session_get_stream_user_data()` does
+ *   not work before the callback.  But
+ *   `nghttp2_session_set_stream_user_data()` handles this situation
+ *   specially, and it can set data to a stream during this period.
  *
  */
 NGHTTP2_EXTERN int32_t nghttp2_submit_request(
@@ -3802,9 +3913,8 @@ nghttp2_submit_response(nghttp2_session *session, int32_t stream_id,
  * Submits trailer fields HEADERS against the stream |stream_id|.
  *
  * The |nva| is an array of name/value pair :type:`nghttp2_nv` with
- * |nvlen| elements.  The application is responsible not to include
- * pseudo-header fields (header field whose name starts with ":") in
- * |nva|.
+ * |nvlen| elements.  The application must not include pseudo-header
+ * fields (headers whose names starts with ":") in |nva|.
  *
  * This function creates copies of all name/value pairs in |nva|.  It
  * also lower-cases all names in |nva|.  The order of elements in
@@ -4436,8 +4546,7 @@ typedef struct {
  * Submits ALTSVC frame.
  *
  * ALTSVC frame is a non-critical extension to HTTP/2, and defined in
- * is defined in `RFC 7383
- * <https://tools.ietf.org/html/rfc7838#section-4>`_.
+ * `RFC 7383 <https://tools.ietf.org/html/rfc7838#section-4>`_.
  *
  * The |flags| is currently ignored and should be
  * :enum:`NGHTTP2_FLAG_NONE`.
@@ -4470,6 +4579,81 @@ NGHTTP2_EXTERN int nghttp2_submit_altsvc(nghttp2_session *session,
                                          size_t origin_len,
                                          const uint8_t *field_value,
                                          size_t field_value_len);
+
+/**
+ * @struct
+ *
+ * The single entry of an origin.
+ */
+typedef struct {
+  /**
+   * The pointer to origin.  No validation is made against this field
+   * by the library.  This is not necessarily NULL-terminated.
+   */
+  uint8_t *origin;
+  /**
+   * The length of the |origin|.
+   */
+  size_t origin_len;
+} nghttp2_origin_entry;
+
+/**
+ * @struct
+ *
+ * The payload of ORIGIN frame.  ORIGIN frame is a non-critical
+ * extension to HTTP/2 and defined by `RFC 8336
+ * <https://tools.ietf.org/html/rfc8336>`_.
+ *
+ * If this frame is received, and
+ * `nghttp2_option_set_user_recv_extension_type()` is not set, and
+ * `nghttp2_option_set_builtin_recv_extension_type()` is set for
+ * :enum:`NGHTTP2_ORIGIN`, ``nghttp2_extension.payload`` will point to
+ * this struct.
+ *
+ * It has the following members:
+ */
+typedef struct {
+  /**
+   * The number of origins contained in |ov|.
+   */
+  size_t nov;
+  /**
+   * The pointer to the array of origins contained in ORIGIN frame.
+   */
+  nghttp2_origin_entry *ov;
+} nghttp2_ext_origin;
+
+/**
+ * @function
+ *
+ * Submits ORIGIN frame.
+ *
+ * ORIGIN frame is a non-critical extension to HTTP/2 and defined by
+ * `RFC 8336 <https://tools.ietf.org/html/rfc8336>`_.
+ *
+ * The |flags| is currently ignored and should be
+ * :enum:`NGHTTP2_FLAG_NONE`.
+ *
+ * The |ov| points to the array of origins.  The |nov| specifies the
+ * number of origins included in |ov|.  This function creates copies
+ * of all elements in |ov|.
+ *
+ * The ORIGIN frame is only usable by a server.  If this function is
+ * invoked with client side session, this function returns
+ * :enum:`NGHTTP2_ERR_INVALID_STATE`.
+ *
+ * :enum:`NGHTTP2_ERR_NOMEM`
+ *     Out of memory
+ * :enum:`NGHTTP2_ERR_INVALID_STATE`
+ *     The function is called from client side session.
+ * :enum:`NGHTTP2_ERR_INVALID_ARGUMENT`
+ *     There are too many origins, or an origin is too large to fit
+ *     into a default frame payload.
+ */
+NGHTTP2_EXTERN int nghttp2_submit_origin(nghttp2_session *session,
+                                         uint8_t flags,
+                                         const nghttp2_origin_entry *ov,
+                                         size_t nov);
 
 /**
  * @function
@@ -4687,8 +4871,8 @@ nghttp2_hd_deflate_change_table_size(nghttp2_hd_deflater *deflater,
  *
  * After this function returns, it is safe to delete the |nva|.
  *
- * This function returns 0 if it succeeds, or one of the following
- * negative error codes:
+ * This function returns the number of bytes written to |buf| if it
+ * succeeds, or one of the following negative error codes:
  *
  * :enum:`NGHTTP2_ERR_NOMEM`
  *     Out of memory.
@@ -4719,8 +4903,8 @@ NGHTTP2_EXTERN ssize_t nghttp2_hd_deflate_hd(nghttp2_hd_deflater *deflater,
  *
  * After this function returns, it is safe to delete the |nva|.
  *
- * This function returns 0 if it succeeds, or one of the following
- * negative error codes:
+ * This function returns the number of bytes written to |vec| if it
+ * succeeds, or one of the following negative error codes:
  *
  * :enum:`NGHTTP2_ERR_NOMEM`
  *     Out of memory.

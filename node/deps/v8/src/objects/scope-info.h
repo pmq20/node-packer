@@ -7,6 +7,7 @@
 
 #include "src/globals.h"
 #include "src/objects.h"
+#include "src/objects/fixed-array.h"
 #include "src/utils.h"
 
 // Has to be the last include (doesn't have include guards):
@@ -20,6 +21,7 @@ class Handle;
 class Isolate;
 template <typename T>
 class MaybeHandle;
+class ModuleInfo;
 class Scope;
 class Zone;
 
@@ -32,32 +34,30 @@ class Zone;
 // routines.
 class ScopeInfo : public FixedArray {
  public:
-  DECLARE_CAST(ScopeInfo)
+  DECL_CAST(ScopeInfo)
+  DECL_PRINTER(ScopeInfo)
 
   // Return the type of this scope.
-  ScopeType scope_type();
-
-  // Does this scope call eval?
-  bool CallsEval();
+  ScopeType scope_type() const;
 
   // Return the language mode of this scope.
-  LanguageMode language_mode();
+  LanguageMode language_mode() const;
 
   // True if this scope is a (var) declaration scope.
-  bool is_declaration_scope();
+  bool is_declaration_scope() const;
 
   // Does this scope make a sloppy eval call?
-  bool CallsSloppyEval() { return CallsEval() && is_sloppy(language_mode()); }
+  bool CallsSloppyEval() const;
 
   // Return the total number of locals allocated on the stack and in the
   // context. This includes the parameters that are allocated in the context.
-  int LocalCount();
+  int LocalCount() const;
 
   // Return the number of stack slots for code. This number consists of two
   // parts:
   //  1. One stack slot per stack allocated local.
   //  2. One stack slot for the function name if it is stack allocated.
-  int StackSlotCount();
+  int StackSlotCount() const;
 
   // Return the number of context slots for code if a context is allocated. This
   // number consists of three parts:
@@ -66,65 +66,81 @@ class ScopeInfo : public FixedArray {
   //  3. One context slot for the function name if it is context allocated.
   // Parameters allocated in the context count as context allocated locals. If
   // no contexts are allocated for this scope ContextLength returns 0.
-  int ContextLength();
+  int ContextLength() const;
 
   // Does this scope declare a "this" binding?
-  bool HasReceiver();
+  bool HasReceiver() const;
 
   // Does this scope declare a "this" binding, and the "this" binding is stack-
   // or context-allocated?
-  bool HasAllocatedReceiver();
+  bool HasAllocatedReceiver() const;
 
   // Does this scope declare a "new.target" binding?
-  bool HasNewTarget();
+  bool HasNewTarget() const;
 
   // Is this scope the scope of a named function expression?
-  bool HasFunctionName();
+  bool HasFunctionName() const;
 
-  // Return if this has context allocated locals.
-  bool HasHeapAllocatedLocals();
+  // See SharedFunctionInfo::HasSharedName.
+  bool HasSharedFunctionName() const;
+
+  bool HasInferredFunctionName() const;
+
+  void SetFunctionName(Object* name);
+  void SetInferredFunctionName(String* name);
+
+  // Does this scope belong to a function?
+  bool HasPositionInfo() const;
 
   // Return if contexts are allocated for this scope.
-  bool HasContext();
+  bool HasContext() const;
 
   // Return if this is a function scope with "use asm".
-  inline bool IsAsmModule() { return AsmModuleField::decode(Flags()); }
+  inline bool IsAsmModule() const;
 
-  // Return if this is a nested function within an asm module scope.
-  inline bool IsAsmFunction() { return AsmFunctionField::decode(Flags()); }
-
-  inline bool HasSimpleParameters() {
-    return HasSimpleParametersField::decode(Flags());
-  }
+  inline bool HasSimpleParameters() const;
 
   // Return the function_name if present.
-  String* FunctionName();
+  Object* FunctionName() const;
 
-  ModuleInfo* ModuleDescriptorInfo();
+  // The function's name if it is non-empty, otherwise the inferred name or an
+  // empty string.
+  String* FunctionDebugName() const;
+
+  // Return the function's inferred name if present.
+  // See SharedFunctionInfo::function_identifier.
+  Object* InferredFunctionName() const;
+
+  // Position information accessors.
+  int StartPosition() const;
+  int EndPosition() const;
+  void SetPositionInfo(int start, int end);
+
+  ModuleInfo* ModuleDescriptorInfo() const;
 
   // Return the name of the given parameter.
-  String* ParameterName(int var);
+  String* ParameterName(int var) const;
 
   // Return the name of the given local.
-  String* LocalName(int var);
+  String* LocalName(int var) const;
 
   // Return the name of the given stack local.
-  String* StackLocalName(int var);
+  String* StackLocalName(int var) const;
 
   // Return the name of the given stack local.
-  int StackLocalIndex(int var);
+  int StackLocalIndex(int var) const;
 
   // Return the name of the given context local.
-  String* ContextLocalName(int var);
+  String* ContextLocalName(int var) const;
 
   // Return the mode of the given context local.
-  VariableMode ContextLocalMode(int var);
+  VariableMode ContextLocalMode(int var) const;
 
   // Return the initialization flag of the given context local.
-  InitializationFlag ContextLocalInitFlag(int var);
+  InitializationFlag ContextLocalInitFlag(int var) const;
 
   // Return the initialization flag of the given context local.
-  MaybeAssignedFlag ContextLocalMaybeAssignedFlag(int var);
+  MaybeAssignedFlag ContextLocalMaybeAssignedFlag(int var) const;
 
   // Return true if this local was introduced by the compiler, and should not be
   // exposed to the user in a debugger.
@@ -134,12 +150,12 @@ class ScopeInfo : public FixedArray {
   // the stack slot index for a given slot name if the slot is
   // present; otherwise returns a value < 0. The name must be an internalized
   // string.
-  int StackSlotIndex(String* name);
+  int StackSlotIndex(String* name) const;
 
   // Lookup support for serialized scope info. Returns the local context slot
   // index for a given slot name if the slot is present; otherwise
   // returns a value < 0. The name must be an internalized string.
-  // If the slot is present and mode != NULL, sets *mode to the corresponding
+  // If the slot is present and mode != nullptr, sets *mode to the corresponding
   // mode for that variable.
   static int ContextSlotIndex(Handle<ScopeInfo> scope_info, Handle<String> name,
                               VariableMode* mode, InitializationFlag* init_flag,
@@ -152,39 +168,36 @@ class ScopeInfo : public FixedArray {
                   InitializationFlag* init_flag,
                   MaybeAssignedFlag* maybe_assigned_flag);
 
-  // Lookup the name of a certain context slot by its index.
-  String* ContextSlotName(int slot_index);
-
   // Lookup support for serialized scope info. Returns the
   // parameter index for a given parameter name if the parameter is present;
   // otherwise returns a value < 0. The name must be an internalized string.
-  int ParameterIndex(String* name);
+  int ParameterIndex(String* name) const;
 
   // Lookup support for serialized scope info. Returns the function context
   // slot index if the function name is present and context-allocated (named
   // function expressions, only), otherwise returns a value < 0. The name
   // must be an internalized string.
-  int FunctionContextSlotIndex(String* name);
+  int FunctionContextSlotIndex(String* name) const;
 
   // Lookup support for serialized scope info.  Returns the receiver context
   // slot index if scope has a "this" binding, and the binding is
   // context-allocated.  Otherwise returns a value < 0.
-  int ReceiverContextSlotIndex();
+  int ReceiverContextSlotIndex() const;
 
-  FunctionKind function_kind();
+  FunctionKind function_kind() const;
 
   // Returns true if this ScopeInfo is linked to a outer ScopeInfo.
-  bool HasOuterScopeInfo();
+  bool HasOuterScopeInfo() const;
 
   // Returns true if this ScopeInfo was created for a debug-evaluate scope.
-  bool IsDebugEvaluateScope();
+  bool IsDebugEvaluateScope() const;
 
   // Can be used to mark a ScopeInfo that looks like a with-scope as actually
   // being a debug-evaluate scope.
   void SetIsDebugEvaluateScope();
 
   // Return the outer ScopeInfo if present.
-  ScopeInfo* OuterScopeInfo();
+  ScopeInfo* OuterScopeInfo() const;
 
 #ifdef DEBUG
   bool Equals(ScopeInfo* other) const;
@@ -194,14 +207,11 @@ class ScopeInfo : public FixedArray {
                                   MaybeHandle<ScopeInfo> outer_scope);
   static Handle<ScopeInfo> CreateForWithScope(
       Isolate* isolate, MaybeHandle<ScopeInfo> outer_scope);
+  static Handle<ScopeInfo> CreateForEmptyFunction(Isolate* isolate);
   static Handle<ScopeInfo> CreateGlobalThisBinding(Isolate* isolate);
 
   // Serializes empty scope info.
   V8_EXPORT_PRIVATE static ScopeInfo* Empty(Isolate* isolate);
-
-#ifdef DEBUG
-  void Print();
-#endif
 
 // The layout of the static part of a ScopeInfo is as follows. Each entry is
 // numeric and occupies one array slot.
@@ -216,16 +226,9 @@ class ScopeInfo : public FixedArray {
   V(StackLocalCount)                         \
   V(ContextLocalCount)
 
-#define FIELD_ACCESSORS(name)                                             \
-  inline void Set##name(int value) { set(k##name, Smi::FromInt(value)); } \
-  inline int name() {                                                     \
-    if (length() > 0) {                                                   \
-      return Smi::cast(get(k##name))->value();                            \
-    } else {                                                              \
-      return 0;                                                           \
-    }                                                                     \
-  }
-
+#define FIELD_ACCESSORS(name)       \
+  inline void Set##name(int value); \
+  inline int name() const;
   FOR_EACH_SCOPE_INFO_NUMERIC_FIELD(FIELD_ACCESSORS)
 #undef FIELD_ACCESSORS
 
@@ -271,23 +274,34 @@ class ScopeInfo : public FixedArray {
   //    information about the function variable. It always occupies two array
   //    slots:  a. The name of the function variable.
   //            b. The context or stack slot index for the variable.
-  // 8. OuterScopeInfoIndex:
+  // 8. InferredFunctionName:
+  //    Contains the function's inferred name.
+  // 9. SourcePosition:
+  //    Contains two slots with a) the startPosition and b) the endPosition if
+  //    the scope belongs to a function or script.
+  // 10. OuterScopeInfoIndex:
   //    The outer scope's ScopeInfo or the hole if there's none.
-  // 9. ModuleInfo, ModuleVariableCount, and ModuleVariables:
+  // 11. ModuleInfo, ModuleVariableCount, and ModuleVariables:
   //    For a module scope, this part contains the ModuleInfo, the number of
   //    MODULE-allocated variables, and the metadata of those variables.  For
   //    non-module scopes it is empty.
-  int ParameterNamesIndex();
-  int StackLocalFirstSlotIndex();
-  int StackLocalNamesIndex();
-  int ContextLocalNamesIndex();
-  int ContextLocalInfosIndex();
-  int ReceiverInfoIndex();
-  int FunctionNameInfoIndex();
-  int OuterScopeInfoIndex();
-  int ModuleInfoIndex();
-  int ModuleVariableCountIndex();
-  int ModuleVariablesIndex();
+  int ParameterNamesIndex() const;
+  int StackLocalFirstSlotIndex() const;
+  int StackLocalNamesIndex() const;
+  int ContextLocalNamesIndex() const;
+  int ContextLocalInfosIndex() const;
+  int ReceiverInfoIndex() const;
+  int FunctionNameInfoIndex() const;
+  int InferredFunctionNameIndex() const;
+  int PositionInfoIndex() const;
+  int OuterScopeInfoIndex() const;
+  int ModuleInfoIndex() const;
+  int ModuleVariableCountIndex() const;
+  int ModuleVariablesIndex() const;
+
+  static bool NeedsPositionInfo(ScopeType type);
+  static Handle<ScopeInfo> CreateForBootstrapping(Isolate* isolate,
+                                                  ScopeType type);
 
   int Lookup(Handle<String> name, int start, int end, VariableMode* mode,
              VariableLocation* location, InitializationFlag* init_flag,
@@ -305,12 +319,16 @@ class ScopeInfo : public FixedArray {
   // the receiver.
   enum VariableAllocationInfo { NONE, STACK, CONTEXT, UNUSED };
 
+  static const int kFunctionNameEntries = 2;
+  static const int kPositionInfoEntries = 2;
+
   // Properties of scopes.
   class ScopeTypeField : public BitField<ScopeType, 0, 4> {};
-  class CallsEvalField : public BitField<bool, ScopeTypeField::kNext, 1> {};
-  STATIC_ASSERT(LANGUAGE_END == 2);
+  class CallsSloppyEvalField : public BitField<bool, ScopeTypeField::kNext, 1> {
+  };
+  STATIC_ASSERT(LanguageModeSize == 2);
   class LanguageModeField
-      : public BitField<LanguageMode, CallsEvalField::kNext, 1> {};
+      : public BitField<LanguageMode, CallsSloppyEvalField::kNext, 1> {};
   class DeclarationScopeField
       : public BitField<bool, LanguageModeField::kNext, 1> {};
   class ReceiverVariableField
@@ -320,17 +338,22 @@ class ScopeInfo : public FixedArray {
       : public BitField<bool, ReceiverVariableField::kNext, 1> {};
   class FunctionVariableField
       : public BitField<VariableAllocationInfo, HasNewTargetField::kNext, 2> {};
-  class AsmModuleField
+  // TODO(cbruni): Combine with function variable field when only storing the
+  // function name.
+  class HasInferredFunctionNameField
       : public BitField<bool, FunctionVariableField::kNext, 1> {};
-  class AsmFunctionField : public BitField<bool, AsmModuleField::kNext, 1> {};
+  class AsmModuleField
+      : public BitField<bool, HasInferredFunctionNameField::kNext, 1> {};
   class HasSimpleParametersField
-      : public BitField<bool, AsmFunctionField::kNext, 1> {};
+      : public BitField<bool, AsmModuleField::kNext, 1> {};
   class FunctionKindField
-      : public BitField<FunctionKind, HasSimpleParametersField::kNext, 10> {};
+      : public BitField<FunctionKind, HasSimpleParametersField::kNext, 5> {};
   class HasOuterScopeInfoField
       : public BitField<bool, FunctionKindField::kNext, 1> {};
   class IsDebugEvaluateScopeField
       : public BitField<bool, HasOuterScopeInfoField::kNext, 1> {};
+
+  STATIC_ASSERT(kLastFunctionKind <= FunctionKindField::kMax);
 
   // Properties of variables.
   class VariableModeField : public BitField<VariableMode, 0, 3> {};
@@ -338,7 +361,12 @@ class ScopeInfo : public FixedArray {
   class MaybeAssignedFlagField : public BitField<MaybeAssignedFlag, 4, 1> {};
 
   friend class ScopeIterator;
+  friend std::ostream& operator<<(std::ostream& os,
+                                  ScopeInfo::VariableAllocationInfo var);
 };
+
+std::ostream& operator<<(std::ostream& os,
+                         ScopeInfo::VariableAllocationInfo var);
 
 }  // namespace internal
 }  // namespace v8

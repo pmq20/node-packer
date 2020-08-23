@@ -26,7 +26,7 @@ BytecodeArrayWriter::BytecodeArrayWriter(
     SourcePositionTableBuilder::RecordingMode source_position_mode)
     : bytecodes_(zone),
       unbound_jumps_(0),
-      source_position_table_builder_(zone, source_position_mode),
+      source_position_table_builder_(source_position_mode),
       constant_array_builder_(constant_array_builder),
       last_bytecode_(Bytecode::kIllegal),
       last_bytecode_offset_(0),
@@ -38,21 +38,23 @@ BytecodeArrayWriter::BytecodeArrayWriter(
 
 Handle<BytecodeArray> BytecodeArrayWriter::ToBytecodeArray(
     Isolate* isolate, int register_count, int parameter_count,
-    Handle<FixedArray> handler_table) {
+    Handle<ByteArray> handler_table) {
   DCHECK_EQ(0, unbound_jumps_);
 
   int bytecode_size = static_cast<int>(bytecodes()->size());
   int frame_size = register_count * kPointerSize;
   Handle<FixedArray> constant_pool =
       constant_array_builder()->ToFixedArray(isolate);
+  Handle<ByteArray> source_position_table =
+      source_position_table_builder()->ToSourcePositionTable(isolate);
   Handle<BytecodeArray> bytecode_array = isolate->factory()->NewBytecodeArray(
       bytecode_size, &bytecodes()->front(), frame_size, parameter_count,
       constant_pool);
   bytecode_array->set_handler_table(*handler_table);
-  Handle<ByteArray> source_position_table =
-      source_position_table_builder()->ToSourcePositionTable(
-          isolate, Handle<AbstractCode>::cast(bytecode_array));
   bytecode_array->set_source_position_table(*source_position_table);
+  LOG_CODE_EVENT(isolate, CodeLinePosInfoRecordEvent(
+                              bytecode_array->GetFirstBytecodeAddress(),
+                              *source_position_table));
   return bytecode_array;
 }
 
@@ -153,8 +155,10 @@ void BytecodeArrayWriter::UpdateExitSeenInBlock(Bytecode bytecode) {
     case Bytecode::kReturn:
     case Bytecode::kThrow:
     case Bytecode::kReThrow:
+    case Bytecode::kAbort:
     case Bytecode::kJump:
     case Bytecode::kJumpConstant:
+    case Bytecode::kSuspendGenerator:
       exit_seen_in_block_ = true;
       break;
     default:
@@ -244,8 +248,6 @@ Bytecode GetJumpWithConstantOperand(Bytecode jump_bytecode) {
       return Bytecode::kJumpIfToBooleanTrueConstant;
     case Bytecode::kJumpIfToBooleanFalse:
       return Bytecode::kJumpIfToBooleanFalseConstant;
-    case Bytecode::kJumpIfNotHole:
-      return Bytecode::kJumpIfNotHoleConstant;
     case Bytecode::kJumpIfNull:
       return Bytecode::kJumpIfNullConstant;
     case Bytecode::kJumpIfNotNull:
@@ -258,7 +260,6 @@ Bytecode GetJumpWithConstantOperand(Bytecode jump_bytecode) {
       return Bytecode::kJumpIfJSReceiverConstant;
     default:
       UNREACHABLE();
-      return Bytecode::kIllegal;
   }
 }
 
@@ -303,7 +304,8 @@ void BytecodeArrayWriter::PatchJumpWith16BitOperand(size_t jump_location,
     // The jump fits within the range of an Imm16 operand, so cancel
     // the reservation and jump directly.
     constant_array_builder()->DiscardReservedEntry(OperandSize::kShort);
-    WriteUnalignedUInt16(operand_bytes, static_cast<uint16_t>(delta));
+    WriteUnalignedUInt16(reinterpret_cast<Address>(operand_bytes),
+                         static_cast<uint16_t>(delta));
   } else {
     // The jump does not fit within the range of an Imm16 operand, so
     // commit reservation putting the offset into the constant pool,
@@ -312,7 +314,8 @@ void BytecodeArrayWriter::PatchJumpWith16BitOperand(size_t jump_location,
         OperandSize::kShort, Smi::FromInt(delta));
     jump_bytecode = GetJumpWithConstantOperand(jump_bytecode);
     bytecodes()->at(jump_location) = Bytecodes::ToByte(jump_bytecode);
-    WriteUnalignedUInt16(operand_bytes, static_cast<uint16_t>(entry));
+    WriteUnalignedUInt16(reinterpret_cast<Address>(operand_bytes),
+                         static_cast<uint16_t>(entry));
   }
   DCHECK(bytecodes()->at(operand_location) == k8BitJumpPlaceholder &&
          bytecodes()->at(operand_location + 1) == k8BitJumpPlaceholder);
@@ -326,7 +329,8 @@ void BytecodeArrayWriter::PatchJumpWith32BitOperand(size_t jump_location,
       Bytecodes::FromByte(bytecodes()->at(jump_location))));
   constant_array_builder()->DiscardReservedEntry(OperandSize::kQuad);
   uint8_t operand_bytes[4];
-  WriteUnalignedUInt32(operand_bytes, static_cast<uint32_t>(delta));
+  WriteUnalignedUInt32(reinterpret_cast<Address>(operand_bytes),
+                       static_cast<uint32_t>(delta));
   size_t operand_location = jump_location + 1;
   DCHECK(bytecodes()->at(operand_location) == k8BitJumpPlaceholder &&
          bytecodes()->at(operand_location + 1) == k8BitJumpPlaceholder &&

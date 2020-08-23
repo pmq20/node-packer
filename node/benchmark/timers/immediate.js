@@ -1,31 +1,30 @@
 'use strict';
-var common = require('../common.js');
+const common = require('../common.js');
 
-var bench = common.createBenchmark(main, {
-  thousands: [2000],
+const bench = common.createBenchmark(main, {
+  n: [5e6],
   type: ['depth', 'depth1', 'breadth', 'breadth1', 'breadth4', 'clear']
 });
 
-function main(conf) {
-  var N = +conf.thousands * 1e3;
-  switch (conf.type) {
+function main({ n, type }) {
+  switch (type) {
     case 'depth':
-      depth(N);
+      depth(n);
       break;
     case 'depth1':
-      depth1(N);
+      depth1(n);
       break;
     case 'breadth':
-      breadth(N);
+      breadth(n);
       break;
     case 'breadth1':
-      breadth1(N);
+      breadth1(n);
       break;
     case 'breadth4':
-      breadth4(N);
+      breadth4(n);
       break;
     case 'clear':
-      clear(N);
+      clear(n);
       break;
   }
 }
@@ -38,7 +37,7 @@ function depth(N) {
   function cb() {
     n++;
     if (n === N)
-      bench.end(N / 1e3);
+      bench.end(n);
     else
       setImmediate(cb);
   }
@@ -52,7 +51,7 @@ function depth1(N) {
   function cb(a1) {
     n++;
     if (n === N)
-      bench.end(N / 1e3);
+      bench.end(N);
     else
       setImmediate(cb, 1);
   }
@@ -65,7 +64,7 @@ function breadth(N) {
   function cb() {
     n++;
     if (n === N)
-      bench.end(N / 1e3);
+      bench.end(N);
   }
   for (var i = 0; i < N; i++) {
     setImmediate(cb);
@@ -79,7 +78,7 @@ function breadth1(N) {
   function cb(a1) {
     n++;
     if (n === N)
-      bench.end(N / 1e3);
+      bench.end(n);
   }
   for (var i = 0; i < N; i++) {
     setImmediate(cb, 1);
@@ -88,12 +87,13 @@ function breadth1(N) {
 
 // concurrent setImmediate, 4 arguments
 function breadth4(N) {
+  N /= 2;
   var n = 0;
   bench.start();
   function cb(a1, a2, a3, a4) {
     n++;
     if (n === N)
-      bench.end(N / 1e3);
+      bench.end(n);
   }
   for (var i = 0; i < N; i++) {
     setImmediate(cb, 1, 2, 3, 4);
@@ -101,10 +101,11 @@ function breadth4(N) {
 }
 
 function clear(N) {
+  N *= 4;
   bench.start();
   function cb(a1) {
     if (a1 === 2)
-      bench.end(N / 1e3);
+      bench.end(N);
   }
   for (var i = 0; i < N; i++) {
     clearImmediate(setImmediate(cb, 1));

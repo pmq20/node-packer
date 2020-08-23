@@ -27,12 +27,11 @@ namespace compiler {
 // expression will be evaluated at runtime. If it evaluates to false, then an
 // error message will be shown containing the condition, as well as the extra
 // info formatted like with printf.
-#define CHECK_EXTRA(condition, fmt, ...)                                 \
-  do {                                                                   \
-    if (V8_UNLIKELY(!(condition))) {                                     \
-      V8_Fatal(__FILE__, __LINE__, "Check failed: %s. Extra info: " fmt, \
-               #condition, ##__VA_ARGS__);                               \
-    }                                                                    \
+#define CHECK_EXTRA(condition, fmt, ...)                                      \
+  do {                                                                        \
+    if (V8_UNLIKELY(!(condition))) {                                          \
+      FATAL("Check failed: %s. Extra info: " fmt, #condition, ##__VA_ARGS__); \
+    }                                                                         \
   } while (0)
 
 #ifdef DEBUG
@@ -79,7 +78,6 @@ struct UnobservableStore {
   StoreOffset offset_;
 
   bool operator==(const UnobservableStore) const;
-  bool operator!=(const UnobservableStore) const;
   bool operator<(const UnobservableStore) const;
 };
 
@@ -140,7 +138,6 @@ class RedundantStoreFinder final {
   void Visit(Node* node);
 
  private:
-  static bool IsEffectful(Node* node);
   void VisitEffectfulNode(Node* node);
   UnobservablesSet RecomputeUseIntersection(Node* node);
   UnobservablesSet RecomputeSet(Node* node, UnobservablesSet uses);
@@ -172,7 +169,7 @@ class RedundantStoreFinder final {
 // To safely cast an offset from a FieldAccess, which has a potentially wider
 // range (namely int).
 StoreOffset ToOffset(int offset) {
-  CHECK(0 <= offset);
+  CHECK_LE(0, offset);
   return static_cast<StoreOffset>(offset);
 }
 
@@ -251,10 +248,6 @@ void StoreStoreElimination::Run(JSGraph* js_graph, Zone* temp_zone) {
   }
 }
 
-bool RedundantStoreFinder::IsEffectful(Node* node) {
-  return (node->op()->EffectInputCount() >= 1);
-}
-
 // Recompute unobservables-set for a node. Will also mark superfluous nodes
 // as to be removed.
 
@@ -263,7 +256,7 @@ UnobservablesSet RedundantStoreFinder::RecomputeSet(Node* node,
   switch (node->op()->opcode()) {
     case IrOpcode::kStoreField: {
       Node* stored_to = node->InputAt(0);
-      FieldAccess access = OpParameter<FieldAccess>(node->op());
+      const FieldAccess& access = FieldAccessOf(node->op());
       StoreOffset offset = ToOffset(access);
 
       UnobservableStore observation = {stored_to->id(), offset};
@@ -304,7 +297,7 @@ UnobservablesSet RedundantStoreFinder::RecomputeSet(Node* node,
     }
     case IrOpcode::kLoadField: {
       Node* loaded_from = node->InputAt(0);
-      FieldAccess access = OpParameter<FieldAccess>(node->op());
+      const FieldAccess& access = FieldAccessOf(node->op());
       StoreOffset offset = ToOffset(access);
 
       TRACE(
@@ -329,17 +322,14 @@ UnobservablesSet RedundantStoreFinder::RecomputeSet(Node* node,
       }
   }
   UNREACHABLE();
-  return UnobservablesSet::Unvisited();
 }
 
 bool RedundantStoreFinder::CannotObserveStoreField(Node* node) {
-  return node->opcode() == IrOpcode::kCheckedLoad ||
-         node->opcode() == IrOpcode::kLoadElement ||
+  return node->opcode() == IrOpcode::kLoadElement ||
          node->opcode() == IrOpcode::kLoad ||
          node->opcode() == IrOpcode::kStore ||
          node->opcode() == IrOpcode::kEffectPhi ||
          node->opcode() == IrOpcode::kStoreElement ||
-         node->opcode() == IrOpcode::kCheckedStore ||
          node->opcode() == IrOpcode::kUnsafePointerAdd ||
          node->opcode() == IrOpcode::kRetain;
 }
@@ -553,13 +543,14 @@ bool UnobservableStore::operator==(const UnobservableStore other) const {
   return (id_ == other.id_) && (offset_ == other.offset_);
 }
 
-bool UnobservableStore::operator!=(const UnobservableStore other) const {
-  return !(*this == other);
-}
 
 bool UnobservableStore::operator<(const UnobservableStore other) const {
   return (id_ < other.id_) || (id_ == other.id_ && offset_ < other.offset_);
 }
+
+#undef TRACE
+#undef CHECK_EXTRA
+#undef DCHECK_EXTRA
 
 }  // namespace compiler
 }  // namespace internal

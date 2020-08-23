@@ -1,45 +1,46 @@
 'use strict';
 
-const yaml = require('js-yaml');
+const yaml =
+  require(`${__dirname}/../node_modules/eslint/node_modules/js-yaml`);
 
 function isYAMLBlock(text) {
-  return !!text.match(/^<!-- YAML/);
+  return /^<!-- YAML/.test(text);
 }
-
-exports.isYAMLBlock = isYAMLBlock;
 
 function arrify(value) {
   return Array.isArray(value) ? value : [value];
 }
 
 function extractAndParseYAML(text) {
-  text = text.trim();
-
-  text = text.replace(/^<!-- YAML/, '')
+  text = text.trim()
+             .replace(/^<!-- YAML/, '')
              .replace(/-->$/, '');
 
-  // js-yaml.safeLoad() throws on error
+  // js-yaml.safeLoad() throws on error.
   const meta = yaml.safeLoad(text);
 
-  const added = meta.added || meta.Added;
-  if (added) {
+  if (meta.added) {
     // Since semver-minors can trickle down to previous major versions,
     // features may have been added in multiple versions.
-    meta.added = arrify(added);
+    meta.added = arrify(meta.added);
   }
 
-  const deprecated = meta.deprecated || meta.Deprecated;
-  if (deprecated) {
+  if (meta.napiVersion) {
+    meta.napiVersion = arrify(meta.napiVersion);
+  }
+
+  if (meta.deprecated) {
     // Treat deprecated like added for consistency.
-    meta.deprecated = arrify(deprecated);
+    meta.deprecated = arrify(meta.deprecated);
+  }
+
+  if (meta.removed) {
+    meta.removed = arrify(meta.removed);
   }
 
   meta.changes = meta.changes || [];
-  meta.changes.forEach((entry) => {
-    entry.description = entry.description.replace(/^\^\s*/, '');
-  });
 
   return meta;
 }
 
-exports.extractAndParseYAML = extractAndParseYAML;
+module.exports = { arrify, isYAMLBlock, extractAndParseYAML };

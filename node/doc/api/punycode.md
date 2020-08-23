@@ -6,6 +6,8 @@ changes:
     description: Accessing this module will now emit a deprecation warning.
 -->
 
+<!--introduced_in=v0.10.0-->
+
 > Stability: 0 - Deprecated
 
 **The version of the punycode module bundled in Node.js is being deprecated**.
@@ -31,7 +33,7 @@ to `'example.com'`) is represented by Punycode as the ASCII string
 
 The `punycode` module provides a simple implementation of the Punycode standard.
 
-*Note*: The `punycode` module is a third-party dependency used by Node.js and
+The `punycode` module is a third-party dependency used by Node.js and
 made available to developers as a convenience. Fixes or other modifications to
 the module must be directed to the [Punycode.js][] project.
 
@@ -128,7 +130,7 @@ punycode.ucs2.decode('\uD834\uDF06'); // [0x1D306]
 added: v0.7.0
 -->
 
-* `codePoints` {Array}
+* `codePoints` {integer[]}
 
 The `punycode.ucs2.encode()` method returns a string based on an array of
 numeric code point values.
@@ -143,7 +145,9 @@ punycode.ucs2.encode([0x1D306]); // '\uD834\uDF06'
 added: v0.6.1
 -->
 
+* {string}
+
 Returns a string identifying the current [Punycode.js][] version number.
 
-[Punycode.js]: https://mths.be/punycode
+[Punycode.js]: https://github.com/bestiejs/punycode.js
 [Punycode]: https://tools.ietf.org/html/rfc3492

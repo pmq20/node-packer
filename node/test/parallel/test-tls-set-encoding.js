@@ -26,11 +26,11 @@ if (!common.hasCrypto)
 
 const assert = require('assert');
 const tls = require('tls');
-const fs = require('fs');
+const fixtures = require('../common/fixtures');
 
 const options = {
-  key: fs.readFileSync(`${common.fixturesDir}/keys/agent2-key.pem`),
-  cert: fs.readFileSync(`${common.fixturesDir}/keys/agent2-cert.pem`)
+  key: fixtures.readKey('agent2-key.pem'),
+  cert: fixtures.readKey('agent2-cert.pem')
 };
 
 // Contains a UTF8 only character
@@ -63,16 +63,16 @@ server.listen(0, function() {
   client.on('close', function() {
     // readyState is deprecated but we want to make
     // sure this isn't triggering an assert in lib/net.js
-    // See issue #1069.
-    assert.strictEqual('closed', client.readyState);
+    // See https://github.com/nodejs/node-v0.x-archive/issues/1069.
+    assert.strictEqual(client.readyState, 'closed');
 
     // Confirming the buffer string is encoded in ASCII
     // and thus does NOT match the UTF8 string
-    assert.notStrictEqual(buffer, messageUtf8);
+    assert.notStrictEqual(messageUtf8, buffer);
 
     // Confirming the buffer string is encoded in ASCII
     // and thus does equal the ASCII string representation
-    assert.strictEqual(buffer, messageAscii);
+    assert.strictEqual(messageAscii, buffer);
 
     server.close();
   });

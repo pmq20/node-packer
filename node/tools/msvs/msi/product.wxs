@@ -59,6 +59,7 @@
       <ComponentRef Id="NodeRegistryEntries"/>
       <ComponentRef Id="NodeVarsScript"/>
       <ComponentRef Id="NodeStartMenu"/>
+      <ComponentRef Id="AppData" />
       <ComponentGroupRef Id="Product.Generated"/>
     </Feature>
 
@@ -107,7 +108,18 @@
                        Key="$(var.RegistryKeyPath)"
                        Name="Version"
                        Type="string"
-                       Value="<%= @package_json['version'] %>"/>
+                       Value="$(var.ProductVersion)"/>
+      </Component>
+
+      <Component Id="NodeVarsScript">
+        <File Id="nodevars.bat" KeyPath="yes" Source="$(var.RepoDir)\tools\msvs\nodevars.bat"/>
+      </Component>
+
+      <?if $(var.NoPerfCtr) != 1 ?>
+      <Component Id="NodePerfCtrSupport">
+        <File Id="node_perfctr_provider_man" Name="node_perfctr_provider.man" Source="$(var.RepoDir)\src\res\node_perfctr_provider.man">
+          <util:PerfCounterManifest ResourceFileDirectory="[INSTALLDIR]"/>
+        </File>
       </Component>
 
       <Component Id="NodeVarsScript" Guid="2e150d25-cc98-4a2a-8c30-adf9578f8b6d">
@@ -150,6 +162,61 @@
                       On="uninstall"/>
         <RemoveFolder Id="RemoveApplicationProgramsFolder"
                       On="uninstall"/>
+      </Component>
+    </DirectoryRef>
+
+    <DirectoryRef Id="INSTALLDIR">
+      <Component Id="NpmCmdScript">
+        <File Id="npm.cmd" KeyPath="yes" Source="$(var.NpmSourceDir)\bin\npm.cmd"/>
+      </Component>
+
+      <Component Id="NpmBashScript">
+        <File Id="npm.sh" KeyPath="yes" Source="$(var.NpmSourceDir)\bin\npm"/>
+      </Component>
+
+      <Component Id="NpxCmdScript">
+        <File Id="npx.cmd" KeyPath="yes" Source="$(var.NpmSourceDir)\bin\npx.cmd"/>
+      </Component>
+
+      <Component Id="NpxBashScript">
+        <File Id="npx.sh" KeyPath="yes" Source="$(var.NpmSourceDir)\bin\npx"/>
+      </Component>
+
+      <Directory Id="NodeModulesFolder" Name="node_modules">
+        <Directory Id="NpmFolder" Name="npm">
+          <Component Id="NpmConfigurationFile">
+            <File Id="npm.rc" KeyPath="yes" Source="$(var.RepoDir)\tools\msvs\npm\npmrc"/>
+          </Component>
+        </Directory>
+      </Directory>
+
+      <Directory Id="AppDataFolder">
+        <Directory Id="AppDataDir" Name="npm">
+          <Component Id="AppData" Guid="D3B35D0E-D0F9-4D11-A773-D4608E90E1D1">
+            <CreateFolder />
+            <RemoveFolder Id="AppDataDir" On="uninstall" />
+            <RegistryValue Root="HKCU" Key="$(var.RegistryKeyPath)\Components" Type="string" Value="" />
+          </Component>
+        </Directory>
+      </Directory>
+    </DirectoryRef>
+
+    <DirectoryRef Id="ApplicationProgramsFolder">
+      <Component Id="DocumentationShortcuts">
+        <RegistryValue Root="HKCU"
+                       Key="$(var.RegistryKeyPath)\Components"
+                       Name="DocumentationShortcuts"
+                       Type="integer"
+                       Value="1"
+                       KeyPath="yes"/>
+        <util:InternetShortcut Id="WebsiteShortcut"
+                               Name="Node.js website"
+                               Target="https://nodejs.org/"
+                               Type="url"/>
+        <util:InternetShortcut Id="DocsShortcut"
+                               Name="Node.js documentation"
+                               Target="https://nodejs.org/download/$(var.DistTypeDir)/v$(var.FullVersion)/docs/api/"
+                               Type="url"/>
       </Component>
     </DirectoryRef>
 

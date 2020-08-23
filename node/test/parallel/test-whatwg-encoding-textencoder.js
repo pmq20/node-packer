@@ -2,6 +2,7 @@
 'use strict';
 
 const common = require('../common');
+
 const assert = require('assert');
 const { TextDecoder, TextEncoder } = require('util');
 const { customInspectSymbol: inspect } = require('internal/util');
@@ -13,24 +14,48 @@ const encoded = Buffer.from([0xef, 0xbb, 0xbf, 0x74, 0x65,
 assert(TextEncoder);
 
 // Test TextEncoder
-const enc = new TextEncoder();
-assert(enc);
-const buf = enc.encode('\ufefftest€');
-
-assert.strictEqual(Buffer.compare(buf, encoded), 0);
+{
+  const enc = new TextEncoder();
+  assert.strictEqual(enc.encoding, 'utf-8');
+  assert(enc);
+  const buf = enc.encode('\ufefftest€');
+  assert.strictEqual(Buffer.compare(buf, encoded), 0);
+}
 
 {
-  const fn = TextEncoder.prototype[inspect];
-  assert.doesNotThrow(() => {
-    fn.call(new TextEncoder(), Infinity, {});
-  });
+  const enc = new TextEncoder();
+  const buf = enc.encode();
+  assert.strictEqual(buf.length, 0);
+}
 
-  [{}, [], true, 1, '', new TextDecoder()].forEach((i) => {
-    assert.throws(() => fn.call(i, Infinity, {}),
-                  common.expectsError({
-                    code: 'ERR_INVALID_THIS',
-                    type: TypeError,
-                    message: 'Value of "this" must be of type TextEncoder'
-                  }));
+{
+  const enc = new TextEncoder();
+  const buf = enc.encode(undefined);
+  assert.strictEqual(buf.length, 0);
+}
+
+{
+  const inspectFn = TextEncoder.prototype[inspect];
+  const encodeFn = TextEncoder.prototype.encode;
+  const encodingGetter =
+    Object.getOwnPropertyDescriptor(TextEncoder.prototype, 'encoding').get;
+
+  const instance = new TextEncoder();
+
+  const expectedError = {
+    code: 'ERR_INVALID_THIS',
+    type: TypeError,
+    message: 'Value of "this" must be of type TextEncoder'
+  };
+
+  inspectFn.call(instance, Infinity, {});
+  encodeFn.call(instance);
+  encodingGetter.call(instance);
+
+  const invalidThisArgs = [{}, [], true, 1, '', new TextDecoder()];
+  invalidThisArgs.forEach((i) => {
+    common.expectsError(() => inspectFn.call(i, Infinity, {}), expectedError);
+    common.expectsError(() => encodeFn.call(i), expectedError);
+    common.expectsError(() => encodingGetter.call(i), expectedError);
   });
 }

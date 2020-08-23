@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef V8_INSPECTOR_STRINGUTIL_H_
-#define V8_INSPECTOR_STRINGUTIL_H_
+#ifndef V8_INSPECTOR_STRING_UTIL_H_
+#define V8_INSPECTOR_STRING_UTIL_H_
 
 #include <memory>
 
@@ -49,6 +49,7 @@ class StringUtil {
   static void builderAppend(StringBuilder& builder, const char* s, size_t len) {
     builder.append(s, len);
   }
+  static void builderAppendQuotedString(StringBuilder&, const String&);
   static void builderReserve(StringBuilder& builder, size_t capacity) {
     builder.reserveCapacity(capacity);
   }
@@ -86,6 +87,9 @@ class StringBufferImpl : public StringBuffer {
   DISALLOW_COPY_AND_ASSIGN(StringBufferImpl);
 };
 
+String16 debuggerIdToString(const std::pair<int64_t, int64_t>& debuggerId);
+String16 stackTraceIdToString(uintptr_t id);
+
 }  //  namespace v8_inspector
 
-#endif  // V8_INSPECTOR_STRINGUTIL_H_
+#endif  // V8_INSPECTOR_STRING_UTIL_H_

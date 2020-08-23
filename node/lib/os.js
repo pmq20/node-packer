@@ -21,25 +21,49 @@
 
 'use strict';
 
-const pushValToArrayMax = process.binding('util').pushValToArrayMax;
+const { pushValToArrayMax, safeGetenv } = internalBinding('util');
 const constants = process.binding('constants').os;
-const deprecate = require('internal/util').deprecate;
+const { deprecate } = require('internal/util');
 const isWindows = process.platform === 'win32';
+
+const { codes: { ERR_SYSTEM_ERROR } } = require('internal/errors');
+const { validateInt32 } = require('internal/validators');
 
 const {
   getCPUs,
   getFreeMem,
-  getHomeDirectory,
-  getHostname,
-  getInterfaceAddresses,
+  getHomeDirectory: _getHomeDirectory,
+  getHostname: _getHostname,
+  getInterfaceAddresses: _getInterfaceAddresses,
   getLoadAvg,
-  getOSRelease,
-  getOSType,
+  getOSRelease: _getOSRelease,
+  getOSType: _getOSType,
+  getPriority: _getPriority,
   getTotalMem,
   getUserInfo,
   getUptime,
-  isBigEndian
+  isBigEndian,
+  setPriority: _setPriority
 } = process.binding('os');
+
+function getCheckedFunction(fn) {
+  return function checkError(...args) {
+    const ctx = {};
+    const ret = fn(...args, ctx);
+    if (ret === undefined) {
+      const err = new ERR_SYSTEM_ERROR(ctx);
+      Error.captureStackTrace(err, checkError);
+      throw err;
+    }
+    return ret;
+  };
+}
+
+const getHomeDirectory = getCheckedFunction(_getHomeDirectory);
+const getHostname = getCheckedFunction(_getHostname);
+const getInterfaceAddresses = getCheckedFunction(_getInterfaceAddresses);
+const getOSRelease = getCheckedFunction(_getOSRelease);
+const getOSType = getCheckedFunction(_getOSType);
 
 getFreeMem[Symbol.toPrimitive] = () => getFreeMem();
 getHostname[Symbol.toPrimitive] = () => getHostname();
@@ -104,9 +128,9 @@ function tmpdir() {
     if (path.length > 1 && path.endsWith('\\') && !path.endsWith(':\\'))
       path = path.slice(0, -1);
   } else {
-    path = process.env.TMPDIR ||
-           process.env.TMP ||
-           process.env.TEMP ||
+    path = safeGetenv('TMPDIR') ||
+           safeGetenv('TMP') ||
+           safeGetenv('TEMP') ||
            '/tmp';
     if (path.length > 1 && path.endsWith('/'))
       path = path.slice(0, -1);
@@ -121,22 +145,129 @@ function endianness() {
 }
 endianness[Symbol.toPrimitive] = () => kEndianness;
 
-module.exports = exports = {
+// Returns the number of ones in the binary representation of the decimal
+// number.
+function countBinaryOnes(n) {
+  let count = 0;
+  // Remove one "1" bit from n until n is the power of 2. This iterates k times
+  // while k is the number of "1" in the binary representation.
+  // For more check https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators
+  while (n !== 0) {
+    n = n & (n - 1);
+    count++;
+  }
+  return count;
+}
+
+function getCIDR({ address, netmask, family }) {
+  let ones = 0;
+  let split = '.';
+  let range = 10;
+  let groupLength = 8;
+  let hasZeros = false;
+
+  if (family === 'IPv6') {
+    split = ':';
+    range = 16;
+    groupLength = 16;
+  }
+
+  const parts = netmask.split(split);
+  for (var i = 0; i < parts.length; i++) {
+    if (parts[i] !== '') {
+      const binary = parseInt(parts[i], range);
+      const tmp = countBinaryOnes(binary);
+      ones += tmp;
+      if (hasZeros) {
+        if (tmp !== 0) {
+          return null;
+        }
+      } else if (tmp !== groupLength) {
+        if ((binary & 1) !== 0) {
+          return null;
+        }
+        hasZeros = true;
+      }
+    }
+  }
+
+  return `${address}/${ones}`;
+}
+
+function networkInterfaces() {
+  const interfaceAddresses = getInterfaceAddresses();
+
+  const keys = Object.keys(interfaceAddresses);
+  for (var i = 0; i < keys.length; i++) {
+    const arr = interfaceAddresses[keys[i]];
+    for (var j = 0; j < arr.length; j++) {
+      arr[j].cidr = getCIDR(arr[j]);
+    }
+  }
+
+  return interfaceAddresses;
+}
+
+function setPriority(pid, priority) {
+  if (priority === undefined) {
+    priority = pid;
+    pid = 0;
+  }
+
+  validateInt32(pid, 'pid');
+  validateInt32(priority, 'priority', -20, 19);
+
+  const ctx = {};
+
+  if (_setPriority(pid, priority, ctx) !== 0)
+    throw new ERR_SYSTEM_ERROR(ctx);
+}
+
+function getPriority(pid) {
+  if (pid === undefined)
+    pid = 0;
+  else
+    validateInt32(pid, 'pid');
+
+  const ctx = {};
+  const priority = _getPriority(pid, ctx);
+
+  if (priority === undefined)
+    throw new ERR_SYSTEM_ERROR(ctx);
+
+  return priority;
+}
+
+function userInfo(options) {
+  if (typeof options !== 'object')
+    options = null;
+
+  const ctx = {};
+  const user = getUserInfo(options, ctx);
+
+  if (user === undefined)
+    throw new ERR_SYSTEM_ERROR(ctx);
+
+  return user;
+}
+
+module.exports = {
   arch,
   cpus,
-  EOL: isWindows ? '\r\n' : '\n',
   endianness,
   freemem: getFreeMem,
+  getPriority,
   homedir: getHomeDirectory,
   hostname: getHostname,
   loadavg,
-  networkInterfaces: getInterfaceAddresses,
+  networkInterfaces,
   platform,
   release: getOSRelease,
+  setPriority,
   tmpdir,
   totalmem: getTotalMem,
   type: getOSType,
-  userInfo: getUserInfo,
+  userInfo,
   uptime: getUptime,
 
   // Deprecated APIs
@@ -146,8 +277,17 @@ module.exports = exports = {
   tmpDir: deprecate(tmpdir, tmpDirDeprecationMsg, 'DEP0022')
 };
 
-Object.defineProperty(module.exports, 'constants', {
-  configurable: false,
-  enumerable: true,
-  value: constants
+Object.defineProperties(module.exports, {
+  constants: {
+    configurable: false,
+    enumerable: true,
+    value: constants
+  },
+
+  EOL: {
+    configurable: true,
+    enumerable: true,
+    writable: false,
+    value: isWindows ? '\r\n' : '\n'
+  }
 });

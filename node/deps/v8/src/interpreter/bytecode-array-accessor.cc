@@ -4,9 +4,11 @@
 
 #include "src/interpreter/bytecode-array-accessor.h"
 
+#include "src/feedback-vector.h"
 #include "src/interpreter/bytecode-decoder.h"
 #include "src/interpreter/interpreter-intrinsics.h"
 #include "src/objects-inl.h"
+#include "src/objects/code-inl.h"
 
 namespace v8 {
 namespace internal {
@@ -66,7 +68,7 @@ uint32_t BytecodeArrayAccessor::GetUnsignedOperand(
   DCHECK_EQ(operand_type,
             Bytecodes::GetOperandType(current_bytecode(), operand_index));
   DCHECK(Bytecodes::IsUnsignedOperandType(operand_type));
-  const uint8_t* operand_start =
+  Address operand_start =
       bytecode_array()->GetFirstBytecodeAddress() + bytecode_offset_ +
       current_prefix_offset() +
       Bytecodes::GetOperandOffset(current_bytecode(), operand_index,
@@ -82,7 +84,7 @@ int32_t BytecodeArrayAccessor::GetSignedOperand(
   DCHECK_EQ(operand_type,
             Bytecodes::GetOperandType(current_bytecode(), operand_index));
   DCHECK(!Bytecodes::IsUnsignedOperandType(operand_type));
-  const uint8_t* operand_start =
+  Address operand_start =
       bytecode_array()->GetFirstBytecodeAddress() + bytecode_offset_ +
       current_prefix_offset() +
       Bytecodes::GetOperandOffset(current_bytecode(), operand_index,
@@ -124,10 +126,15 @@ uint32_t BytecodeArrayAccessor::GetIndexOperand(int operand_index) const {
   return GetUnsignedOperand(operand_index, operand_type);
 }
 
+FeedbackSlot BytecodeArrayAccessor::GetSlotOperand(int operand_index) const {
+  int index = GetIndexOperand(operand_index);
+  return FeedbackVector::ToSlot(index);
+}
+
 Register BytecodeArrayAccessor::GetRegisterOperand(int operand_index) const {
   OperandType operand_type =
       Bytecodes::GetOperandType(current_bytecode(), operand_index);
-  const uint8_t* operand_start =
+  Address operand_start =
       bytecode_array()->GetFirstBytecodeAddress() + bytecode_offset_ +
       current_prefix_offset() +
       Bytecodes::GetOperandOffset(current_bytecode(), operand_index,
@@ -142,7 +149,8 @@ int BytecodeArrayAccessor::GetRegisterOperandRange(int operand_index) const {
       Bytecodes::GetOperandTypes(current_bytecode());
   OperandType operand_type = operand_types[operand_index];
   DCHECK(Bytecodes::IsRegisterOperandType(operand_type));
-  if (operand_type == OperandType::kRegList) {
+  if (operand_type == OperandType::kRegList ||
+      operand_type == OperandType::kRegOutList) {
     return GetRegisterCountOperand(operand_index + 1);
   } else {
     return Bytecodes::GetNumberOfRegistersRepresentedBy(operand_type);
@@ -153,16 +161,24 @@ Runtime::FunctionId BytecodeArrayAccessor::GetRuntimeIdOperand(
     int operand_index) const {
   OperandType operand_type =
       Bytecodes::GetOperandType(current_bytecode(), operand_index);
-  DCHECK(operand_type == OperandType::kRuntimeId);
+  DCHECK_EQ(operand_type, OperandType::kRuntimeId);
   uint32_t raw_id = GetUnsignedOperand(operand_index, operand_type);
   return static_cast<Runtime::FunctionId>(raw_id);
+}
+
+uint32_t BytecodeArrayAccessor::GetNativeContextIndexOperand(
+    int operand_index) const {
+  OperandType operand_type =
+      Bytecodes::GetOperandType(current_bytecode(), operand_index);
+  DCHECK_EQ(operand_type, OperandType::kNativeContextIndex);
+  return GetUnsignedOperand(operand_index, operand_type);
 }
 
 Runtime::FunctionId BytecodeArrayAccessor::GetIntrinsicIdOperand(
     int operand_index) const {
   OperandType operand_type =
       Bytecodes::GetOperandType(current_bytecode(), operand_index);
-  DCHECK(operand_type == OperandType::kIntrinsicId);
+  DCHECK_EQ(operand_type, OperandType::kIntrinsicId);
   uint32_t raw_id = GetUnsignedOperand(operand_index, operand_type);
   return IntrinsicsHelper::ToRuntimeId(
       static_cast<IntrinsicsHelper::IntrinsicId>(raw_id));
@@ -191,18 +207,23 @@ int BytecodeArrayAccessor::GetJumpTargetOffset() const {
     return GetAbsoluteOffset(smi->value());
   } else {
     UNREACHABLE();
-    return kMinInt;
   }
 }
 
 JumpTableTargetOffsets BytecodeArrayAccessor::GetJumpTableTargetOffsets()
     const {
-  DCHECK_EQ(current_bytecode(), Bytecode::kSwitchOnSmiNoFeedback);
-
-  uint32_t table_start = GetIndexOperand(0);
-  uint32_t table_size = GetUnsignedImmediateOperand(1);
-  int32_t case_value_base = GetImmediateOperand(2);
-
+  uint32_t table_start, table_size;
+  int32_t case_value_base;
+  if (current_bytecode() == Bytecode::kSwitchOnGeneratorState) {
+    table_start = GetIndexOperand(1);
+    table_size = GetUnsignedImmediateOperand(2);
+    case_value_base = 0;
+  } else {
+    DCHECK_EQ(current_bytecode(), Bytecode::kSwitchOnSmiNoFeedback);
+    table_start = GetIndexOperand(0);
+    table_size = GetUnsignedImmediateOperand(1);
+    case_value_base = GetImmediateOperand(2);
+  }
   return JumpTableTargetOffsets(this, table_start, table_size, case_value_base);
 }
 
@@ -216,9 +237,10 @@ bool BytecodeArrayAccessor::OffsetWithinBytecode(int offset) const {
 }
 
 std::ostream& BytecodeArrayAccessor::PrintTo(std::ostream& os) const {
-  return BytecodeDecoder::Decode(
-      os, bytecode_array()->GetFirstBytecodeAddress() + bytecode_offset_,
-      bytecode_array()->parameter_count());
+  const uint8_t* bytecode_addr = reinterpret_cast<const uint8_t*>(
+      bytecode_array()->GetFirstBytecodeAddress() + bytecode_offset_);
+  return BytecodeDecoder::Decode(os, bytecode_addr,
+                                 bytecode_array()->parameter_count());
 }
 
 JumpTableTargetOffsets::JumpTableTargetOffsets(
@@ -260,7 +282,7 @@ JumpTableTargetOffsets::iterator::iterator(
 JumpTableTargetOffset JumpTableTargetOffsets::iterator::operator*() {
   DCHECK_LT(table_offset_, table_end_);
   DCHECK(current_->IsSmi());
-  return {index_, accessor_->GetAbsoluteOffset(Smi::cast(*current_)->value())};
+  return {index_, accessor_->GetAbsoluteOffset(Smi::ToInt(*current_))};
 }
 
 JumpTableTargetOffsets::iterator& JumpTableTargetOffsets::iterator::
@@ -288,6 +310,7 @@ void JumpTableTargetOffsets::iterator::UpdateAndAdvanceToValid() {
   while (current_->IsTheHole(isolate)) {
     ++table_offset_;
     ++index_;
+    if (table_offset_ >= table_end_) break;
     current_ = accessor_->GetConstantAtIndex(table_offset_);
   }
 }

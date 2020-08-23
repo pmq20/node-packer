@@ -43,7 +43,7 @@ const optsInfo = {
 for (const [type, expect] of [
   ['string', expectStr],
   ['Buffer', expectBuf],
-  ...common.getArrayBufferViews(expectBuf).map((obj) =>
+  ...common.getBufferSources(expectBuf).map((obj) =>
     [obj[Symbol.toStringTag], obj]
   )
 ]) {
@@ -52,6 +52,8 @@ for (const [type, expect] of [
     ['gzip', 'unzip', 'Gzip', 'Unzip'],
     ['deflate', 'inflate', 'Deflate', 'Inflate'],
     ['deflateRaw', 'inflateRaw', 'DeflateRaw', 'InflateRaw'],
+    ['brotliCompress', 'brotliDecompress',
+     'BrotliCompress', 'BrotliDecompress'],
   ]) {
     zlib[method[0]](expect, opts, common.mustCall((err, result) => {
       zlib[method[1]](result, opts, common.mustCall((err, result) => {

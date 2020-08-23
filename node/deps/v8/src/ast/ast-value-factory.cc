@@ -32,7 +32,7 @@
 #include "src/objects-inl.h"
 #include "src/objects.h"
 #include "src/string-hasher.h"
-#include "src/utils.h"
+#include "src/utils-inl.h"
 
 namespace v8 {
 namespace internal {
@@ -55,10 +55,10 @@ class OneByteStringStream {
 
 }  // namespace
 
-class AstRawStringInternalizationKey : public HashTableKey {
+class AstRawStringInternalizationKey : public StringTableKey {
  public:
   explicit AstRawStringInternalizationKey(const AstRawString* string)
-      : string_(string) {}
+      : StringTableKey(string->hash_field()), string_(string) {}
 
   bool IsMatch(Object* other) override {
     if (string_->is_one_byte())
@@ -67,18 +67,13 @@ class AstRawStringInternalizationKey : public HashTableKey {
         Vector<const uint16_t>::cast(string_->literal_bytes_));
   }
 
-  uint32_t Hash() override { return string_->hash() >> Name::kHashShift; }
-
-  uint32_t HashForObject(Object* key) override {
-    return String::cast(key)->Hash();
-  }
-
-  Handle<Object> AsHandle(Isolate* isolate) override {
+  Handle<String> AsHandle(Isolate* isolate) override {
     if (string_->is_one_byte())
       return isolate->factory()->NewOneByteInternalizedString(
-          string_->literal_bytes_, string_->hash());
+          string_->literal_bytes_, string_->hash_field());
     return isolate->factory()->NewTwoByteInternalizedString(
-        Vector<const uint16_t>::cast(string_->literal_bytes_), string_->hash());
+        Vector<const uint16_t>::cast(string_->literal_bytes_),
+        string_->hash_field());
   }
 
  private:
@@ -98,9 +93,9 @@ void AstRawString::Internalize(Isolate* isolate) {
 bool AstRawString::AsArrayIndex(uint32_t* index) const {
   // The StringHasher will set up the hash in such a way that we can use it to
   // figure out whether the string is convertible to an array index.
-  if ((hash_ & Name::kIsNotArrayIndexMask) != 0) return false;
+  if ((hash_field_ & Name::kIsNotArrayIndexMask) != 0) return false;
   if (length() <= Name::kMaxCachedArrayIndexLength) {
-    *index = Name::ArrayIndexValueBits::decode(hash_);
+    *index = Name::ArrayIndexValueBits::decode(hash_field_);
   } else {
     OneByteStringStream stream(literal_bytes_);
     CHECK(StringToArrayIndex(&stream, index));
@@ -127,7 +122,7 @@ uint16_t AstRawString::FirstCharacter() const {
 bool AstRawString::Compare(void* a, void* b) {
   const AstRawString* lhs = static_cast<AstRawString*>(a);
   const AstRawString* rhs = static_cast<AstRawString*>(b);
-  DCHECK_EQ(lhs->hash(), rhs->hash());
+  DCHECK_EQ(lhs->Hash(), rhs->Hash());
 
   if (lhs->length() != rhs->length()) return false;
   const unsigned char* l = lhs->raw_data();
@@ -173,79 +168,43 @@ void AstConsString::Internalize(Isolate* isolate) {
   set_string(tmp);
 }
 
-bool AstValue::IsPropertyName() const {
-  if (type_ == STRING) {
-    uint32_t index;
-    return !string_->AsArrayIndex(&index);
+std::forward_list<const AstRawString*> AstConsString::ToRawStrings() const {
+  std::forward_list<const AstRawString*> result;
+  if (IsEmpty()) {
+    return result;
   }
-  return false;
+
+  result.emplace_front(segment_.string);
+  for (AstConsString::Segment* current = segment_.next; current != nullptr;
+       current = current->next) {
+    result.emplace_front(current->string);
+  }
+  return result;
 }
 
-
-bool AstValue::BooleanValue() const {
-  switch (type_) {
-    case STRING:
-      DCHECK(string_ != NULL);
-      return !string_->IsEmpty();
-    case SYMBOL:
-      UNREACHABLE();
-      break;
-    case NUMBER:
-      return DoubleToBoolean(number_);
-    case SMI:
-      return smi_ != 0;
-    case BOOLEAN:
-      return bool_;
-    case NULL_TYPE:
-      return false;
-    case THE_HOLE:
-      UNREACHABLE();
-      break;
-    case UNDEFINED:
-      return false;
+AstStringConstants::AstStringConstants(Isolate* isolate, uint64_t hash_seed)
+    : zone_(isolate->allocator(), ZONE_NAME),
+      string_table_(AstRawString::Compare),
+      hash_seed_(hash_seed) {
+  DCHECK(ThreadId::Current().Equals(isolate->thread_id()));
+#define F(name, str)                                                       \
+  {                                                                        \
+    const char* data = str;                                                \
+    Vector<const uint8_t> literal(reinterpret_cast<const uint8_t*>(data),  \
+                                  static_cast<int>(strlen(data)));         \
+    uint32_t hash_field = StringHasher::HashSequentialString<uint8_t>(     \
+        literal.start(), literal.length(), hash_seed_);                    \
+    name##_string_ = new (&zone_) AstRawString(true, literal, hash_field); \
+    /* The Handle returned by the factory is located on the roots */       \
+    /* array, not on the temporary HandleScope, so this is safe.  */       \
+    name##_string_->set_string(isolate->factory()->name##_string());       \
+    base::HashMap::Entry* entry =                                          \
+        string_table_.InsertNew(name##_string_, name##_string_->Hash());   \
+    DCHECK_NULL(entry->value);                                             \
+    entry->value = reinterpret_cast<void*>(1);                             \
   }
-  UNREACHABLE();
-  return false;
-}
-
-
-void AstValue::Internalize(Isolate* isolate) {
-  switch (type_) {
-    case STRING:
-      DCHECK_NOT_NULL(string_);
-      // Strings are already internalized.
-      DCHECK(!string_->string().is_null());
-      break;
-    case SYMBOL:
-      switch (symbol_) {
-        case AstSymbol::kHomeObjectSymbol:
-          set_value(isolate->factory()->home_object_symbol());
-          break;
-      }
-      break;
-    case NUMBER:
-      set_value(isolate->factory()->NewNumber(number_, TENURED));
-      break;
-    case SMI:
-      set_value(handle(Smi::FromInt(smi_), isolate));
-      break;
-    case BOOLEAN:
-      if (bool_) {
-        set_value(isolate->factory()->true_value());
-      } else {
-        set_value(isolate->factory()->false_value());
-      }
-      break;
-    case NULL_TYPE:
-      set_value(isolate->factory()->null_value());
-      break;
-    case THE_HOLE:
-      set_value(isolate->factory()->the_hole_value());
-      break;
-    case UNDEFINED:
-      set_value(isolate->factory()->undefined_value());
-      break;
-  }
+  AST_STRING_CONSTANTS(F)
+#undef F
 }
 
 AstRawString* AstValueFactory::GetOneByteStringInternal(
@@ -253,28 +212,26 @@ AstRawString* AstValueFactory::GetOneByteStringInternal(
   if (literal.length() == 1 && IsInRange(literal[0], 'a', 'z')) {
     int key = literal[0] - 'a';
     if (one_character_strings_[key] == nullptr) {
-      uint32_t hash = StringHasher::HashSequentialString<uint8_t>(
+      uint32_t hash_field = StringHasher::HashSequentialString<uint8_t>(
           literal.start(), literal.length(), hash_seed_);
-      one_character_strings_[key] = GetString(hash, true, literal);
+      one_character_strings_[key] = GetString(hash_field, true, literal);
     }
     return one_character_strings_[key];
   }
-  uint32_t hash = StringHasher::HashSequentialString<uint8_t>(
+  uint32_t hash_field = StringHasher::HashSequentialString<uint8_t>(
       literal.start(), literal.length(), hash_seed_);
-  return GetString(hash, true, literal);
+  return GetString(hash_field, true, literal);
 }
-
 
 AstRawString* AstValueFactory::GetTwoByteStringInternal(
     Vector<const uint16_t> literal) {
-  uint32_t hash = StringHasher::HashSequentialString<uint16_t>(
+  uint32_t hash_field = StringHasher::HashSequentialString<uint16_t>(
       literal.start(), literal.length(), hash_seed_);
-  return GetString(hash, false, Vector<const byte>::cast(literal));
+  return GetString(hash_field, false, Vector<const byte>::cast(literal));
 }
 
-
 const AstRawString* AstValueFactory::GetString(Handle<String> literal) {
-  AstRawString* result = NULL;
+  AstRawString* result = nullptr;
   DisallowHeapAllocation no_gc;
   String::FlatContent content = literal->GetFlatContent();
   if (content.IsOneByte()) {
@@ -318,88 +275,24 @@ void AstValueFactory::Internalize(Isolate* isolate) {
     current = next;
   }
 
-  for (AstValue* current = values_; current != nullptr;) {
-    AstValue* next = current->next();
-    current->Internalize(isolate);
-    current = next;
-  }
   ResetStrings();
-  values_ = nullptr;
 }
 
-
-const AstValue* AstValueFactory::NewString(const AstRawString* string) {
-  AstValue* value = new (zone_) AstValue(string);
-  CHECK_NOT_NULL(string);
-  return AddValue(value);
-}
-
-const AstValue* AstValueFactory::NewSymbol(AstSymbol symbol) {
-  AstValue* value = new (zone_) AstValue(symbol);
-  return AddValue(value);
-}
-
-const AstValue* AstValueFactory::NewNumber(double number) {
-  AstValue* value = new (zone_) AstValue(number);
-  return AddValue(value);
-}
-
-const AstValue* AstValueFactory::NewSmi(uint32_t number) {
-  bool cacheable_smi = number <= kMaxCachedSmi;
-  if (cacheable_smi && smis_[number] != nullptr) return smis_[number];
-
-  AstValue* value = new (zone_) AstValue(AstValue::SMI, number);
-  if (cacheable_smi) smis_[number] = value;
-  return AddValue(value);
-}
-
-#define GENERATE_VALUE_GETTER(value, initializer)        \
-  if (!value) {                                          \
-    value = AddValue(new (zone_) AstValue(initializer)); \
-  }                                                      \
-  return value;
-
-const AstValue* AstValueFactory::NewBoolean(bool b) {
-  if (b) {
-    GENERATE_VALUE_GETTER(true_value_, true);
-  } else {
-    GENERATE_VALUE_GETTER(false_value_, false);
-  }
-}
-
-
-const AstValue* AstValueFactory::NewNull() {
-  GENERATE_VALUE_GETTER(null_value_, AstValue::NULL_TYPE);
-}
-
-
-const AstValue* AstValueFactory::NewUndefined() {
-  GENERATE_VALUE_GETTER(undefined_value_, AstValue::UNDEFINED);
-}
-
-
-const AstValue* AstValueFactory::NewTheHole() {
-  GENERATE_VALUE_GETTER(the_hole_value_, AstValue::THE_HOLE);
-}
-
-
-#undef GENERATE_VALUE_GETTER
-
-AstRawString* AstValueFactory::GetString(uint32_t hash, bool is_one_byte,
+AstRawString* AstValueFactory::GetString(uint32_t hash_field, bool is_one_byte,
                                          Vector<const byte> literal_bytes) {
   // literal_bytes here points to whatever the user passed, and this is OK
   // because we use vector_compare (which checks the contents) to compare
   // against the AstRawStrings which are in the string_table_. We should not
   // return this AstRawString.
-  AstRawString key(is_one_byte, literal_bytes, hash);
-  base::HashMap::Entry* entry = string_table_.LookupOrInsert(&key, hash);
+  AstRawString key(is_one_byte, literal_bytes, hash_field);
+  base::HashMap::Entry* entry = string_table_.LookupOrInsert(&key, key.Hash());
   if (entry->value == nullptr) {
     // Copy literal contents for later comparison.
     int length = literal_bytes.length();
     byte* new_literal_bytes = zone_->NewArray<byte>(length);
     memcpy(new_literal_bytes, literal_bytes.start(), length);
     AstRawString* new_string = new (zone_) AstRawString(
-        is_one_byte, Vector<const byte>(new_literal_bytes, length), hash);
+        is_one_byte, Vector<const byte>(new_literal_bytes, length), hash_field);
     CHECK_NOT_NULL(new_string);
     AddString(new_string);
     entry->key = new_string;

@@ -31,7 +31,7 @@ const assert = require('assert');
 const spawn = require('child_process').spawn;
 const tls = require('tls');
 const https = require('https');
-const fs = require('fs');
+const fixtures = require('../common/fixtures');
 
 // renegotiation limits to test
 const LIMITS = [0, 1, 2, 3, 5, 10, 16];
@@ -48,11 +48,9 @@ const LIMITS = [0, 1, 2, 3, 5, 10, 16];
 
 function test(next) {
   const options = {
-    cert: fs.readFileSync(`${common.fixturesDir}/test_cert.pem`),
-    key: fs.readFileSync(`${common.fixturesDir}/test_key.pem`)
+    cert: fixtures.readSync('test_cert.pem'),
+    key: fixtures.readSync('test_key.pem')
   };
-
-  let seenError = false;
 
   const server = https.createServer(options, function(req, res) {
     const conn = req.connection;
@@ -60,17 +58,14 @@ function test(next) {
       console.error(`Caught exception: ${err}`);
       assert(/TLS session renegotiation attack/.test(err));
       conn.destroy();
-      seenError = true;
     });
     res.end('ok');
   });
 
-  server.listen(common.PORT, function() {
-    const args = (`s_client -connect 127.0.0.1:${common.PORT}`).split(' ');
+  server.listen(0, function() {
+    const cmd = `s_client -connect 127.0.0.1:${server.address().port}`;
+    const args = cmd.split(' ');
     const child = spawn(common.opensslCli, args);
-
-    //child.stdout.pipe(process.stdout);
-    //child.stderr.pipe(process.stderr);
 
     child.stdout.resume();
     child.stderr.resume();
@@ -80,7 +75,6 @@ function test(next) {
     let renegs = 0;
 
     child.stderr.on('data', function(data) {
-      if (seenError) return;
       handshakes += ((String(data)).match(/verify return:1/g) || []).length;
       if (handshakes === 2) spam();
       renegs += ((String(data)).match(/RENEGOTIATING/g) || []).length;

@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+import ast
 import errno
-import json
 import os
 import re
 import shutil
@@ -20,25 +21,24 @@ def abspath(*args):
 
 def load_config():
   s = open('config.gypi').read()
-  s = re.sub(r'#.*?\n', '', s) # strip comments
-  s = re.sub(r'\'', '"', s) # convert quotes
-  return json.loads(s)
+  return ast.literal_eval(s)
 
 def try_unlink(path):
   try:
     os.unlink(path)
-  except OSError, e:
+  except OSError as e:
     if e.errno != errno.ENOENT: raise
 
 def try_symlink(source_path, link_path):
-  print 'symlinking %s -> %s' % (source_path, link_path)
+  print('symlinking %s -> %s' % (source_path, link_path))
   try_unlink(link_path)
+  try_mkdir_r(os.path.dirname(link_path))
   os.symlink(source_path, link_path)
 
 def try_mkdir_r(path):
   try:
     os.makedirs(path)
-  except OSError, e:
+  except OSError as e:
     if e.errno != errno.EEXIST: raise
 
 def try_rmdir_r(path):
@@ -46,7 +46,7 @@ def try_rmdir_r(path):
   while path.startswith(install_path):
     try:
       os.rmdir(path)
-    except OSError, e:
+    except OSError as e:
       if e.errno == errno.ENOTEMPTY: return
       if e.errno == errno.ENOENT: return
       raise
@@ -61,14 +61,14 @@ def mkpaths(path, dst):
 
 def try_copy(path, dst):
   source_path, target_path = mkpaths(path, dst)
-  print 'installing %s' % target_path
+  print('installing %s' % target_path)
   try_mkdir_r(os.path.dirname(target_path))
   try_unlink(target_path) # prevent ETXTBSY errors
   return shutil.copy2(source_path, target_path)
 
 def try_remove(path, dst):
   source_path, target_path = mkpaths(path, dst)
-  print 'removing %s' % target_path
+  print('removing %s' % target_path)
   try_unlink(target_path)
   try_rmdir_r(os.path.dirname(target_path))
 
@@ -133,7 +133,10 @@ def files(action):
       if sys.platform != 'darwin':
         output_prefix += 'lib.target/'
 
-  action([output_prefix + output_file], 'bin/' + output_file)
+  if 'false' == variables.get('node_shared'):
+    action([output_prefix + output_file], 'bin/' + output_file)
+  else:
+    action([output_prefix + output_file], 'lib/' + output_file)
 
   if 'true' == variables.get('node_use_dtrace'):
     action(['out/Release/node.d'], 'lib/dtrace/node.d')
@@ -179,7 +182,7 @@ def headers(action):
      'false' == variables.get('node_shared_openssl'):
     subdir_files('deps/openssl/openssl/include/openssl', 'include/node/openssl/', action)
     subdir_files('deps/openssl/config/archs', 'include/node/openssl/archs', action)
-    action(['deps/openssl/config/opensslconf.h'], 'include/node/openssl/')
+    subdir_files('deps/openssl/config', 'include/node/openssl', action)
 
   if 'false' == variables.get('node_shared_zlib'):
     action([

@@ -42,6 +42,8 @@ First install the prerequisites:
   "Common Tools for Visual C++ 2015" feature during installation).
   - [Visual Studio 2017](https://www.visualstudio.com/downloads/), any edition (including the Build Tools SKU).
   __Required Components:__ "MSbuild", "VC++ 2017 v141 toolset" and one of the Windows SDKs (10 or 8.1).
+  
+Please take note that Visual Studio 2019 is NOT supported for now.
 
 Then download [nodec-x64.zip](https://gw.alipayobjects.com/os/enclose-prod/0d0ec8fd-dc9c-4b0a-85df-8bf4af0e8b8d/nodec-v1.5.0-x64.zip), and this zip file contains only one executable. Unzip it. Optionally, rename it to `nodec.exe` and put it under `C:\Windows` (or any other directory that is part of `PATH`). Execute `nodec` from the command line.
 
@@ -63,6 +65,12 @@ Then,
     chmod +x nodec
     ./nodec
 
+#### Additional Notes on Build failure in macOS XCode 11
+
+According to recent Travis Build, the test cases will fail shortly after its launch occurs when the Build Environement is XCode 11. Currently, it is not known whether the issue is caused by XCode 11 or other factors within Travis CI that may not impact on actual macOS deployment.
+
+Therefore, the build environment for macOS under Travis is XCode 10.2 so as to ensure the test case can be successfully executed and completed.
+
 ### ![linux](resource/linux_med.png) Install on Linux
 
 First install the prerequisites:
@@ -80,7 +88,32 @@ Then,
     curl -L https://gw.alipayobjects.com/os/enclose-prod/b6aa41a6-f6b5-4542-b777-06e4bc292c5e/nodec-v1.5.0-linux-x64.gz | gunzip > nodec
     chmod +x nodec
     ./nodec
-    
+
+
+#### Additional Notes on the compatibility between RHEL based (CentOS) / Ubuntu
+
+It is known that the default repo for Red Hat and CentOS distros contains a very outdated gcc / g++ (3.8.5) while the latest Long Term Support (LTS) of Ubuntu as of 15 Feb 2018 (Ubuntu 18.04 LTS) contains a relatively updated gcc / g++ (7.3.0).
+
+It is known that compilation can fail when using unsupported configuration where the version of prerequisites is older than prescribed.
+
+Therefore, it is crucial for the users of Red Hat based distros to install gcc / g++ outside from official repos.
+For starters, one may look at: 
+- https://developers.redhat.com/blog/2018/07/07/yum-install-gcc7-clang/
+- http://blog.stevedoria.net/20180214/how-to-install-gcc-7-on-centos-7
+
+Additionally, binaries that are compiled from Ubuntu 18.04 LTS is known NOT to work in Red Hat 7 based distro (Including CentOS) due to 'glibcxx_3.4.20' not found' related error. However, binaries that are compiled from either Red Hat or CentOS 7 are known to work with Ubuntu 18.04 LTS based on my internal experiment.
+
+Having said that, I will still recommend that binaries distributors should compile 2 versions for Linux where one caters for RHEL based and the other for Ubuntu based.
+
+#### Additional Notes on Build failure in Linux
+
+According to recent Travis Build, Linux has been failing to build since nodec-1.6.0-10.16.0 (Node.js 10.16.0).
+The root cause is yet to be determined, and the last known good build is 10.15.3 which can be downloaded here:
+https://github.com/slee047/node-packer/releases/tag/1.6.0-10.15.3-1
+
+The issue can be found here:
+https://github.com/slee047/node-packer/issues/11
+
 ## Usage
 
     nodec [OPTION]... [ENTRANCE]

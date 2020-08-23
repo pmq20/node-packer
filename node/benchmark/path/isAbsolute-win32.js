@@ -1,8 +1,8 @@
 'use strict';
-var common = require('../common.js');
-var path = require('path');
+const common = require('../common.js');
+const { win32 } = require('path');
 
-var bench = common.createBenchmark(main, {
+const bench = common.createBenchmark(main, {
   path: [
     '',
     '.',
@@ -11,17 +11,13 @@ var bench = common.createBenchmark(main, {
     'C:baz\\..',
     'bar\\baz'
   ],
-  n: [1e6]
+  n: [1e5]
 });
 
-function main(conf) {
-  var n = +conf.n;
-  var p = path.win32;
-  var input = String(conf.path);
-
+function main({ n, path }) {
   bench.start();
   for (var i = 0; i < n; i++) {
-    p.isAbsolute(input);
+    win32.isAbsolute(i % 3 === 0 ? `${path}${i}` : path);
   }
   bench.end(n);
 }

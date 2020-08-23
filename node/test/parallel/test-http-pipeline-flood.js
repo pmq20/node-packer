@@ -9,7 +9,7 @@ const common = require('../common');
 // processed).
 
 // Normally when the writable stream emits a 'drain' event, the server then
-// uncorks the readable stream, although we arent testing that part here.
+// uncorks the readable stream, although we aren't testing that part here.
 
 // The issue being tested exists in Node.js 0.10.20 and is resolved in 0.10.21
 // and newer.
@@ -56,9 +56,9 @@ function parent() {
       server.close();
     }));
 
-    server.setTimeout(200, common.mustCall(function() {
+    server.setTimeout(200, common.mustCallAtLeast(function() {
       child.kill();
-    }));
+    }, 1));
   });
 }
 
@@ -66,7 +66,7 @@ function child() {
   const net = require('net');
 
   const port = +process.argv[3];
-  const conn = net.connect({ port: port });
+  const conn = net.connect({ port });
 
   let req = `GET / HTTP/1.1\r\nHost: localhost:${port}\r\nAccept: */*\r\n\r\n`;
 

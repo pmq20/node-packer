@@ -135,7 +135,7 @@ static UnicodeString& appendAsciiDigits(int32_t number, uint8_t length, UnicodeS
             digits[i++] = number % 10;
             number /= 10;
         } while (number != 0);
-        length = i;
+        length = static_cast<uint8_t>(i);
     } else {
         // fixed digits
         for (i = 0; i < length; i++) {
@@ -1747,26 +1747,16 @@ VTimeZone::write(VTZWriter& writer, UErrorCode& status) const {
             }
         }
     } else {
-        UVector *customProps = NULL;
+        UnicodeString icutzprop;
+        UVector customProps(nullptr, uhash_compareUnicodeString, status);
         if (olsonzid.length() > 0 && icutzver.length() > 0) {
-            customProps = new UVector(uprv_deleteUObject, uhash_compareUnicodeString, status);
-            if (U_FAILURE(status)) {
-                return;
-            }
-            UnicodeString *icutzprop = new UnicodeString(ICU_TZINFO_PROP);
-            icutzprop->append(olsonzid);
-            icutzprop->append((UChar)0x005B/*'['*/);
-            icutzprop->append(icutzver);
-            icutzprop->append((UChar)0x005D/*']'*/);
-            customProps->addElement(icutzprop, status);
-            if (U_FAILURE(status)) {
-                delete icutzprop;
-                delete customProps;
-                return;
-            }
+            icutzprop.append(olsonzid);
+            icutzprop.append(u'[');
+            icutzprop.append(icutzver);
+            icutzprop.append(u']');
+            customProps.addElement(&icutzprop, status);
         }
-        writeZone(writer, *tz, customProps, status);
-        delete customProps;
+        writeZone(writer, *tz, &customProps, status);
     }
 }
 

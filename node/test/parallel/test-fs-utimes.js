@@ -25,14 +25,18 @@ const assert = require('assert');
 const util = require('util');
 const fs = require('fs');
 
-let tests_ok = 0;
-let tests_run = 0;
+const tmpdir = require('../common/tmpdir');
+tmpdir.refresh();
 
 function stat_resource(resource) {
   if (typeof resource === 'string') {
     return fs.statSync(resource);
   } else {
+    const stats = fs.fstatSync(resource);
     // ensure mtime has been written to disk
+    // except for directories on AIX where it cannot be synced
+    if (common.isAIX && stats.isDirectory())
+      return stats;
     fs.fsyncSync(resource);
     return fs.fstatSync(resource);
   }
@@ -42,142 +46,107 @@ function check_mtime(resource, mtime) {
   mtime = fs._toUnixTimestamp(mtime);
   const stats = stat_resource(resource);
   const real_mtime = fs._toUnixTimestamp(stats.mtime);
-  // check up to single-second precision
-  // sub-second precision is OS and fs dependant
-  return mtime - real_mtime < 2;
+  return mtime - real_mtime;
 }
 
 function expect_errno(syscall, resource, err, errno) {
-  if (err && (err.code === errno || err.code === 'ENOSYS')) {
-    tests_ok++;
-  } else {
-    console.log('FAILED:', 'expect_errno', util.inspect(arguments));
-  }
+  assert(
+    err && (err.code === errno || err.code === 'ENOSYS'),
+    `FAILED: expect_errno ${util.inspect(arguments)}`
+  );
 }
 
 function expect_ok(syscall, resource, err, atime, mtime) {
-  if (!err && check_mtime(resource, mtime) ||
-      err && err.code === 'ENOSYS') {
-    tests_ok++;
-  } else {
-    console.log('FAILED:', 'expect_ok', util.inspect(arguments));
-  }
+  const mtime_diff = check_mtime(resource, mtime);
+  assert(
+    // check up to single-second precision
+    // sub-second precision is OS and fs dependant
+    !err && (mtime_diff < 2) || err && err.code === 'ENOSYS',
+    `FAILED: expect_ok ${util.inspect(arguments)}
+     check_mtime: ${mtime_diff}`
+  );
 }
 
-// the tests assume that __filename belongs to the user running the tests
-// this should be a fairly safe assumption; testing against a temp file
-// would be even better though (node doesn't have such functionality yet)
-function testIt(atime, mtime, callback) {
+const stats = fs.statSync(tmpdir.path);
+
+const cases = [
+  new Date('1982-09-10 13:37'),
+  new Date(),
+  123456.789,
+  stats.mtime,
+  ['123456', -1],
+  new Date('2017-04-08T17:59:38.008Z')
+];
+runTests(cases.values());
+
+function runTests(iter) {
+  const { value, done } = iter.next();
+  if (done) return;
+  // Support easy setting same or different atime / mtime values
+  const [atime, mtime] = Array.isArray(value) ? value : [value, value];
 
   let fd;
+  //
+  // test async code paths
+  //
+  fs.utimes(tmpdir.path, atime, mtime, common.mustCall((err) => {
+    expect_ok('utimes', tmpdir.path, err, atime, mtime);
+
+    fs.utimes('foobarbaz', atime, mtime, common.mustCall((err) => {
+      expect_errno('utimes', 'foobarbaz', err, 'ENOENT');
+
+      // don't close this fd
+      if (common.isWindows) {
+        fd = fs.openSync(tmpdir.path, 'r+');
+      } else {
+        fd = fs.openSync(tmpdir.path, 'r');
+      }
+
+      fs.futimes(fd, atime, mtime, common.mustCall((err) => {
+        expect_ok('futimes', fd, err, atime, mtime);
+
+        syncTests();
+
+        setImmediate(common.mustCall(runTests), iter);
+      }));
+    }));
+  }));
+
   //
   // test synchronized code paths, these functions throw on failure
   //
   function syncTests() {
-    fs.utimesSync(__filename, atime, mtime);
-    expect_ok('utimesSync', __filename, undefined, atime, mtime);
-    tests_run++;
+    fs.utimesSync(tmpdir.path, atime, mtime);
+    expect_ok('utimesSync', tmpdir.path, undefined, atime, mtime);
 
     // some systems don't have futimes
     // if there's an error, it should be ENOSYS
     try {
-      tests_run++;
       fs.futimesSync(fd, atime, mtime);
       expect_ok('futimesSync', fd, undefined, atime, mtime);
     } catch (ex) {
       expect_errno('futimesSync', fd, ex, 'ENOSYS');
     }
 
-    let err = undefined;
+    let err;
     try {
       fs.utimesSync('foobarbaz', atime, mtime);
     } catch (ex) {
       err = ex;
     }
     expect_errno('utimesSync', 'foobarbaz', err, 'ENOENT');
-    tests_run++;
 
     err = undefined;
-    try {
-      fs.futimesSync(-1, atime, mtime);
-    } catch (ex) {
-      err = ex;
-    }
-    expect_errno('futimesSync', -1, err, 'EBADF');
-    tests_run++;
   }
-
-  //
-  // test async code paths
-  //
-  fs.utimes(__filename, atime, mtime, common.mustCall(function(err) {
-    expect_ok('utimes', __filename, err, atime, mtime);
-
-    fs.utimes('foobarbaz', atime, mtime, common.mustCall(function(err) {
-      expect_errno('utimes', 'foobarbaz', err, 'ENOENT');
-
-      // don't close this fd
-      if (common.isWindows) {
-        fd = fs.openSync(__filename, 'r+');
-      } else {
-        fd = fs.openSync(__filename, 'r');
-      }
-
-      fs.futimes(fd, atime, mtime, common.mustCall(function(err) {
-        expect_ok('futimes', fd, err, atime, mtime);
-
-        fs.futimes(-1, atime, mtime, common.mustCall(function(err) {
-          expect_errno('futimes', -1, err, 'EBADF');
-          syncTests();
-          callback();
-        }));
-        tests_run++;
-      }));
-      tests_run++;
-    }));
-    tests_run++;
-  }));
-  tests_run++;
 }
 
-const stats = fs.statSync(__filename);
-
-// run tests
-const runTest = common.mustCall(testIt, 6);
-
-runTest(new Date('1982-09-10 13:37'), new Date('1982-09-10 13:37'), function() {
-  runTest(new Date(), new Date(), function() {
-    runTest(123456.789, 123456.789, function() {
-      runTest(stats.mtime, stats.mtime, function() {
-        runTest('123456', -1, function() {
-          runTest(
-            new Date('2017-04-08T17:59:38.008Z'),
-            new Date('2017-04-08T17:59:38.008Z'),
-            common.mustCall(function() {
-              // done
-            })
-          );
-        });
-      });
-    });
-  });
-});
-
-process.on('exit', function() {
-  assert.strictEqual(tests_ok, tests_run);
-});
-
-
 // Ref: https://github.com/nodejs/node/issues/13255
-common.refreshTmpDir();
-const path = `${common.tmpDir}/test-utimes-precision`;
+const path = `${tmpdir.path}/test-utimes-precision`;
 fs.writeFileSync(path, '');
 
-// test Y2K38 for all platforms [except 'arm', and 'SunOS']
-if (!process.arch.includes('arm') && !common.isSunOS) {
-  // because 2 ** 31 doesn't look right
-  // eslint-disable-next-line space-infix-ops
-  const Y2K38_mtime = 2**31;
+// test Y2K38 for all platforms [except 'arm', 'OpenBSD' and 'SunOS']
+if (!process.arch.includes('arm') && !common.isOpenBSD && !common.isSunOS) {
+  const Y2K38_mtime = 2 ** 31;
   fs.utimesSync(path, Y2K38_mtime, Y2K38_mtime);
   const Y2K38_stats = fs.statSync(path);
   assert.strictEqual(Y2K38_mtime, Y2K38_stats.mtime.getTime() / 1000);
@@ -199,4 +168,58 @@ if (common.isWindows) {
   fs.utimesSync(path, overflow_mtime / 1000, overflow_mtime / 1000);
   const overflow_stats = fs.statSync(path);
   assert.strictEqual(overflow_mtime, overflow_stats.mtime.getTime());
+}
+
+const expectTypeError = {
+  code: 'ERR_INVALID_ARG_TYPE',
+  type: TypeError
+};
+// utimes-only error cases
+{
+  common.expectsError(
+    () => fs.utimes(0, new Date(), new Date(), common.mustNotCall()),
+    expectTypeError
+  );
+  common.expectsError(
+    () => fs.utimesSync(0, new Date(), new Date()),
+    expectTypeError
+  );
+}
+
+// shared error cases
+[false, {}, [], null, undefined].forEach((i) => {
+  common.expectsError(
+    () => fs.utimes(i, new Date(), new Date(), common.mustNotCall()),
+    expectTypeError
+  );
+  common.expectsError(
+    () => fs.utimesSync(i, new Date(), new Date()),
+    expectTypeError
+  );
+  common.expectsError(
+    () => fs.futimes(i, new Date(), new Date(), common.mustNotCall()),
+    expectTypeError
+  );
+  common.expectsError(
+    () => fs.futimesSync(i, new Date(), new Date()),
+    expectTypeError
+  );
+});
+
+const expectRangeError = {
+  code: 'ERR_OUT_OF_RANGE',
+  type: RangeError,
+  message: 'The value of "fd" is out of range. ' +
+           'It must be >= 0 && < 4294967296. Received -1'
+};
+// futimes-only error cases
+{
+  common.expectsError(
+    () => fs.futimes(-1, new Date(), new Date(), common.mustNotCall()),
+    expectRangeError
+  );
+  common.expectsError(
+    () => fs.futimesSync(-1, new Date(), new Date()),
+    expectRangeError
+  );
 }

@@ -1,4 +1,3 @@
-// Flags: --expose-http2
 'use strict';
 
 const common = require('../common');
@@ -6,15 +5,24 @@ if (!common.hasCrypto)
   common.skip('missing crypto');
 const assert = require('assert');
 const h2 = require('http2');
+const net = require('net');
 
 // Http2ServerResponse.finished
-
 const server = h2.createServer();
-server.listen(0, common.mustCall(function() {
+server.listen(0, common.mustCall(() => {
   const port = server.address().port;
-  server.once('request', common.mustCall(function(request, response) {
-    response.on('finish', common.mustCall(function() {
-      server.close();
+  server.once('request', common.mustCall((request, response) => {
+    assert.ok(response.socket instanceof net.Socket);
+    assert.ok(response.connection instanceof net.Socket);
+    assert.strictEqual(response.socket, response.connection);
+
+    response.on('finish', common.mustCall(() => {
+      assert.strictEqual(response.socket, undefined);
+      assert.strictEqual(response.connection, undefined);
+      process.nextTick(common.mustCall(() => {
+        assert.ok(response.stream);
+        server.close();
+      }));
     }));
     assert.strictEqual(response.finished, false);
     response.end();
@@ -22,7 +30,7 @@ server.listen(0, common.mustCall(function() {
   }));
 
   const url = `http://localhost:${port}`;
-  const client = h2.connect(url, common.mustCall(function() {
+  const client = h2.connect(url, common.mustCall(() => {
     const headers = {
       ':path': '/',
       ':method': 'GET',
@@ -30,8 +38,8 @@ server.listen(0, common.mustCall(function() {
       ':authority': `localhost:${port}`
     };
     const request = client.request(headers);
-    request.on('end', common.mustCall(function() {
-      client.destroy();
+    request.on('end', common.mustCall(() => {
+      client.close();
     }));
     request.end();
     request.resume();

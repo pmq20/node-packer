@@ -1,14 +1,15 @@
 'use strict';
 const common = require('../common');
+const ArrayStream = require('../common/arraystream');
 const assert = require('assert');
 const repl = require('repl');
 
 {
-  const stream = new common.ArrayStream();
+  const stream = new ArrayStream();
   const options = {
     eval: common.mustCall((cmd, context) => {
       assert.strictEqual(cmd, '.scope\n');
-      assert.deepStrictEqual(context, {animal: 'Sterrance'});
+      assert.deepStrictEqual(context, { animal: 'Sterrance' });
     }),
     input: stream,
     output: stream,
@@ -16,7 +17,7 @@ const repl = require('repl');
   };
 
   const r = repl.start(options);
-  r.context = {animal: 'Sterrance'};
+  r.context = { animal: 'Sterrance' };
 
   stream.emit('data', '\t');
   stream.emit('.exit\n');

@@ -31,11 +31,10 @@ class SimplifiedOperatorBuilder;
 class V8_EXPORT_PRIVATE JSIntrinsicLowering final
     : public NON_EXPORTED_BASE(AdvancedReducer) {
  public:
-  enum DeoptimizationMode { kDeoptimizationEnabled, kDeoptimizationDisabled };
-
-  JSIntrinsicLowering(Editor* editor, JSGraph* jsgraph,
-                      DeoptimizationMode mode);
+  JSIntrinsicLowering(Editor* editor, JSGraph* jsgraph);
   ~JSIntrinsicLowering() final {}
+
+  const char* reducer_name() const override { return "JSIntrinsicLowering"; }
 
   Reduction Reduce(Node* node) final;
 
@@ -45,19 +44,17 @@ class V8_EXPORT_PRIVATE JSIntrinsicLowering final
   Reduction ReduceDeoptimizeNow(Node* node);
   Reduction ReduceCreateJSGeneratorObject(Node* node);
   Reduction ReduceGeneratorClose(Node* node);
-  Reduction ReduceGeneratorGetContext(Node* node);
   Reduction ReduceGeneratorGetInputOrDebugPos(Node* node);
-  Reduction ReduceAsyncGeneratorGetAwaitInputOrDebugPos(Node* node);
   Reduction ReduceAsyncGeneratorReject(Node* node);
   Reduction ReduceAsyncGeneratorResolve(Node* node);
+  Reduction ReduceAsyncGeneratorYield(Node* node);
   Reduction ReduceGeneratorSaveInputForAwait(Node* node);
   Reduction ReduceGeneratorGetResumeMode(Node* node);
   Reduction ReduceIsInstanceType(Node* node, InstanceType instance_type);
   Reduction ReduceIsJSReceiver(Node* node);
   Reduction ReduceIsSmi(Node* node);
-  Reduction ReduceFixedArrayGet(Node* node);
-  Reduction ReduceFixedArraySet(Node* node);
-  Reduction ReduceSubString(Node* node);
+  Reduction ReduceRejectPromise(Node* node);
+  Reduction ReduceResolvePromise(Node* node);
   Reduction ReduceToInteger(Node* node);
   Reduction ReduceToLength(Node* node);
   Reduction ReduceToNumber(Node* node);
@@ -71,17 +68,12 @@ class V8_EXPORT_PRIVATE JSIntrinsicLowering final
   Reduction ReduceArrayBufferViewField(Node* node, FieldAccess const& access);
   Reduction ReduceArrayBufferViewWasNeutered(Node* node);
   Reduction ReduceMaxSmi(Node* node);
-  Reduction ReduceTypedArrayMaxSizeInHeap(Node* node);
 
   // TODO(turbofan): collection.js support; drop once Maps and Sets are
   // converted to proper CodeStubAssembler based builtins.
-  Reduction ReduceJSCollectionGetTable(Node* node);
-  Reduction ReduceStringGetRawHashField(Node* node);
   Reduction ReduceTheHole(Node* node);
 
-  // TODO(turbofan): JavaScript builtins support; drop once all uses of
-  // %_ClassOf in JavaScript builtins are eliminated.
-  Reduction ReduceClassOf(Node* node);
+  Reduction ReduceStringMaxLength(Node* node);
 
   Reduction Change(Node* node, const Operator* op);
   Reduction Change(Node* node, const Operator* op, Node* a, Node* b);
@@ -97,10 +89,8 @@ class V8_EXPORT_PRIVATE JSIntrinsicLowering final
   CommonOperatorBuilder* common() const;
   JSOperatorBuilder* javascript() const;
   SimplifiedOperatorBuilder* simplified() const;
-  DeoptimizationMode mode() const { return mode_; }
 
   JSGraph* const jsgraph_;
-  DeoptimizationMode const mode_;
 };
 
 }  // namespace compiler

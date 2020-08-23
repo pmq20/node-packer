@@ -20,34 +20,30 @@
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 'use strict';
-require('../common');
+const common = require('../common');
 const assert = require('assert');
 const zlib = require('zlib');
 
-const gzip = zlib.createGzip();
-const gunz = zlib.createUnzip();
+for (const [ createCompress, createDecompress ] of [
+  [ zlib.createGzip, zlib.createGunzip ],
+  [ zlib.createBrotliCompress, zlib.createBrotliDecompress ],
+]) {
+  const gzip = createCompress();
+  const gunz = createDecompress();
 
-gzip.pipe(gunz);
+  gzip.pipe(gunz);
 
-let output = '';
-const input = 'A line of data\n';
-gunz.setEncoding('utf8');
-gunz.on('data', function(c) {
-  output += c;
-});
+  let output = '';
+  const input = 'A line of data\n';
+  gunz.setEncoding('utf8');
+  gunz.on('data', (c) => output += c);
+  gunz.on('end', common.mustCall(() => {
+    assert.strictEqual(output, input);
+    assert.strictEqual(gzip._nextFlush, -1);
+  }));
 
-process.on('exit', function() {
-  assert.strictEqual(output, input);
-
-  // Make sure that the flush flag was set back to normal
-  assert.strictEqual(gzip._flushFlag, zlib.constants.Z_NO_FLUSH);
-
-  console.log('ok');
-});
-
-// make sure that flush/write doesn't trigger an assert failure
-gzip.flush(); write();
-function write() {
+  // Make sure that flush/write doesn't trigger an assert failure
+  gzip.flush();
   gzip.write(input);
   gzip.end();
   gunz.read(0);

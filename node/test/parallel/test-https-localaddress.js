@@ -27,18 +27,18 @@ if (!common.hasCrypto)
 if (!common.hasMultiLocalhost())
   common.skip('platform-specific test.');
 
-const fs = require('fs');
+const fixtures = require('../common/fixtures');
 const assert = require('assert');
 const https = require('https');
 
 const options = {
-  key: fs.readFileSync(`${common.fixturesDir}/keys/agent1-key.pem`),
-  cert: fs.readFileSync(`${common.fixturesDir}/keys/agent1-cert.pem`)
+  key: fixtures.readKey('agent1-key.pem'),
+  cert: fixtures.readKey('agent1-cert.pem')
 };
 
 const server = https.createServer(options, function(req, res) {
   console.log(`Connect from: ${req.connection.remoteAddress}`);
-  assert.strictEqual('127.0.0.2', req.connection.remoteAddress);
+  assert.strictEqual(req.connection.remoteAddress, '127.0.0.2');
 
   req.on('end', function() {
     res.writeHead(200, { 'Content-Type': 'text/plain' });

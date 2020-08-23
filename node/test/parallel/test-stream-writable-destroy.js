@@ -3,14 +3,14 @@
 const common = require('../common');
 const { Writable } = require('stream');
 const assert = require('assert');
-const { inherits } = require('util');
 
 {
   const write = new Writable({
     write(chunk, enc, cb) { cb(); }
   });
 
-  write.on('finish', common.mustCall());
+  write.on('finish', common.mustNotCall());
+  write.on('close', common.mustCall());
 
   write.destroy();
   assert.strictEqual(write.destroyed, true);
@@ -23,7 +23,8 @@ const { inherits } = require('util');
 
   const expected = new Error('kaboom');
 
-  write.on('finish', common.mustCall());
+  write.on('finish', common.mustNotCall());
+  write.on('close', common.mustCall());
   write.on('error', common.mustCall((err) => {
     assert.strictEqual(err, expected);
   }));
@@ -45,6 +46,7 @@ const { inherits } = require('util');
   const expected = new Error('kaboom');
 
   write.on('finish', common.mustNotCall('no finish event'));
+  write.on('close', common.mustCall());
   write.on('error', common.mustCall((err) => {
     assert.strictEqual(err, expected);
   }));
@@ -65,6 +67,7 @@ const { inherits } = require('util');
   const expected = new Error('kaboom');
 
   write.on('finish', common.mustNotCall('no finish event'));
+  write.on('close', common.mustCall());
 
   // error is swallowed by the custom _destroy
   write.on('error', common.mustNotCall('no error event'));
@@ -103,6 +106,7 @@ const { inherits } = require('util');
   const fail = common.mustNotCall('no finish event');
 
   write.on('finish', fail);
+  write.on('close', common.mustCall());
 
   write.destroy();
 
@@ -123,6 +127,7 @@ const { inherits } = require('util');
     cb(expected);
   });
 
+  write.on('close', common.mustCall());
   write.on('finish', common.mustNotCall('no finish event'));
   write.on('error', common.mustCall((err) => {
     assert.strictEqual(err, expected);
@@ -138,12 +143,39 @@ const { inherits } = require('util');
     write(chunk, enc, cb) { cb(); }
   });
 
+  write.on('close', common.mustCall());
   write.on('error', common.mustCall());
 
   write.destroy(new Error('kaboom 1'));
   write.destroy(new Error('kaboom 2'));
   assert.strictEqual(write._writableState.errorEmitted, true);
   assert.strictEqual(write.destroyed, true);
+}
+
+{
+  const writable = new Writable({
+    destroy: common.mustCall(function(err, cb) {
+      process.nextTick(cb, new Error('kaboom 1'));
+    }),
+    write(chunk, enc, cb) {
+      cb();
+    }
+  });
+
+  writable.on('close', common.mustCall());
+  writable.on('error', common.expectsError({
+    type: Error,
+    message: 'kaboom 2'
+  }));
+
+  writable.destroy();
+  assert.strictEqual(writable.destroyed, true);
+  assert.strictEqual(writable._writableState.errorEmitted, false);
+
+  // Test case where `writable.destroy()` is called again with an error before
+  // the `_destroy()` callback is called.
+  writable.destroy(new Error('kaboom 2'));
+  assert.strictEqual(writable._writableState.errorEmitted, true);
 }
 
 {
@@ -155,7 +187,7 @@ const { inherits } = require('util');
   assert.strictEqual(write.destroyed, true);
 
   // the internal destroy() mechanism should not be triggered
-  write.on('finish', common.mustNotCall());
+  write.on('close', common.mustNotCall());
   write.destroy();
 }
 
@@ -166,7 +198,8 @@ const { inherits } = require('util');
     Writable.call(this);
   }
 
-  inherits(MyWritable, Writable);
+  Object.setPrototypeOf(MyWritable.prototype, Writable.prototype);
+  Object.setPrototypeOf(MyWritable, Writable);
 
   new MyWritable();
 }
@@ -182,6 +215,20 @@ const { inherits } = require('util');
   const expected = new Error('kaboom');
 
   write.destroy(expected, common.mustCall(function(err) {
-    assert.strictEqual(expected, err);
+    assert.strictEqual(err, expected);
   }));
+}
+
+{
+  // Checks that `._undestroy()` restores the state so that `final` will be
+  // called again.
+  const write = new Writable({
+    write: common.mustNotCall(),
+    final: common.mustCall((cb) => cb(), 2)
+  });
+
+  write.end();
+  write.destroy();
+  write._undestroy();
+  write.end();
 }

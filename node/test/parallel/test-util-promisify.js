@@ -7,8 +7,6 @@ const vm = require('vm');
 const { promisify } = require('util');
 const { customPromisifyArgs } = require('internal/util');
 
-common.crashOnUnhandledRejection();
-
 const stat = promisify(fs.stat);
 
 {
@@ -37,11 +35,10 @@ const stat = promisify(fs.stat);
 {
   function fn() {}
   fn[promisify.custom] = 42;
-  assert.throws(
+  common.expectsError(
     () => promisify(fn),
-    (err) => err instanceof TypeError &&
-                err.message === 'The [util.promisify.custom] property must ' +
-                                'be a function');
+    { code: 'ERR_INVALID_ARG_TYPE', type: TypeError }
+  );
 }
 
 {
@@ -55,7 +52,7 @@ const stat = promisify(fs.stat);
   fn[customPromisifyArgs] = ['first', 'second'];
 
   promisify(fn)().then(common.mustCall((obj) => {
-    assert.deepStrictEqual(obj, {first: firstValue, second: secondValue});
+    assert.deepStrictEqual(obj, { first: firstValue, second: secondValue });
   }));
 }
 
@@ -185,3 +182,14 @@ const stat = promisify(fs.stat);
     })
   ]);
 }
+
+[undefined, null, true, 0, 'str', {}, [], Symbol()].forEach((input) => {
+  common.expectsError(
+    () => promisify(input),
+    {
+      code: 'ERR_INVALID_ARG_TYPE',
+      type: TypeError,
+      message: 'The "original" argument must be of type Function. ' +
+               `Received type ${typeof input}`
+    });
+});

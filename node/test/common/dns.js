@@ -1,7 +1,5 @@
-/* eslint-disable required-modules */
+/* eslint-disable node-core/required-modules */
 'use strict';
-
-// Naïve DNS parser/serializer.
 
 const assert = require('assert');
 const os = require('os');
@@ -22,6 +20,8 @@ const classes = {
   IN: 1
 };
 
+// Naïve DNS parser/serializer.
+
 function readDomainFromPacket(buffer, offset) {
   assert.ok(offset < buffer.length);
   const length = buffer[offset];
@@ -39,7 +39,7 @@ function readDomainFromPacket(buffer, offset) {
   } else {
     // Pointer to another part of the packet.
     assert.strictEqual(length & 0xC0, 0xC0);
-    // eslint-disable-next-line
+    // eslint-disable-next-line space-infix-ops, space-unary-ops
     const pointeeOffset = buffer.readUInt16BE(offset) &~ 0xC000;
     return {
       nread: 2,
@@ -287,4 +287,26 @@ function writeDNSPacket(parsed) {
   }));
 }
 
-module.exports = { types, classes, writeDNSPacket, parseDNSPacket };
+const mockedErrorCode = 'ENOTFOUND';
+const mockedSysCall = 'getaddrinfo';
+
+function errorLookupMock(code = mockedErrorCode, syscall = mockedSysCall) {
+  return function lookupWithError(hostname, dnsopts, cb) {
+    const err = new Error(`${syscall} ${code} ${hostname}`);
+    err.code = code;
+    err.errno = code;
+    err.syscall = syscall;
+    err.hostname = hostname;
+    cb(err);
+  };
+}
+
+module.exports = {
+  types,
+  classes,
+  writeDNSPacket,
+  parseDNSPacket,
+  errorLookupMock,
+  mockedErrorCode,
+  mockedSysCall
+};

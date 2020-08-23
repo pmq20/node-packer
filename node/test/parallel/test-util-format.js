@@ -30,7 +30,7 @@ assert.strictEqual(util.format(''), '');
 assert.strictEqual(util.format([]), '[]');
 assert.strictEqual(util.format([0]), '[ 0 ]');
 assert.strictEqual(util.format({}), '{}');
-assert.strictEqual(util.format({foo: 42}), '{ foo: 42 }');
+assert.strictEqual(util.format({ foo: 42 }), '{ foo: 42 }');
 assert.strictEqual(util.format(null), 'null');
 assert.strictEqual(util.format(true), 'true');
 assert.strictEqual(util.format(false), 'false');
@@ -44,9 +44,18 @@ assert.strictEqual(util.format(symbol), 'Symbol(foo)');
 assert.strictEqual(util.format('foo', symbol), 'foo Symbol(foo)');
 assert.strictEqual(util.format('%s', symbol), 'Symbol(foo)');
 assert.strictEqual(util.format('%j', symbol), 'undefined');
-assert.throws(function() {
-  util.format('%d', symbol);
-}, /^TypeError: Cannot convert a Symbol value to a number$/);
+assert.throws(
+  () => { util.format('%d', symbol); },
+  (e) => {
+    // The error should be a TypeError.
+    if (!(e instanceof TypeError))
+      return false;
+
+    // The error should be from the JS engine and not from Node.js.
+    // JS engine errors do not have the `code` property.
+    return e.code === undefined;
+  }
+);
 
 // Number format specifier
 assert.strictEqual(util.format('%d'), '%d');
@@ -59,6 +68,18 @@ assert.strictEqual(util.format('%d', -0.5), '-0.5');
 assert.strictEqual(util.format('%d', ''), '0');
 assert.strictEqual(util.format('%d %d', 42, 43), '42 43');
 assert.strictEqual(util.format('%d %d', 42), '42 %d');
+assert.strictEqual(
+  util.format('%d', 1180591620717411303424),
+  '1.1805916207174113e+21'
+);
+assert.strictEqual(
+  util.format('%d', 1180591620717411303424n),
+  '1180591620717411303424n'
+);
+assert.strictEqual(
+  util.format('%d %d', 1180591620717411303424n, 12345678901234567890123n),
+  '1180591620717411303424n 12345678901234567890123n'
+);
 
 // Integer format specifier
 assert.strictEqual(util.format('%i'), '%i');
@@ -71,6 +92,28 @@ assert.strictEqual(util.format('%i', -0.5), '0');
 assert.strictEqual(util.format('%i', ''), 'NaN');
 assert.strictEqual(util.format('%i %i', 42, 43), '42 43');
 assert.strictEqual(util.format('%i %i', 42), '42 %i');
+assert.strictEqual(
+  util.format('%i', 1180591620717411303424),
+  '1'
+);
+assert.strictEqual(
+  util.format('%i', 1180591620717411303424n),
+  '1180591620717411303424n'
+);
+assert.strictEqual(
+  util.format('%i %i', 1180591620717411303424n, 12345678901234567890123n),
+  '1180591620717411303424n 12345678901234567890123n'
+);
+
+assert.strictEqual(
+  util.format('%d %i', 1180591620717411303424n, 12345678901234567890123n),
+  '1180591620717411303424n 12345678901234567890123n'
+);
+
+assert.strictEqual(
+  util.format('%i %d', 1180591620717411303424n, 12345678901234567890123n),
+  '1180591620717411303424n 12345678901234567890123n'
+);
 
 // Float format specifier
 assert.strictEqual(util.format('%f'), '%f');
@@ -114,6 +157,11 @@ const nestedObj = {
     func: function() {}
   }
 };
+const nestedObj2 = {
+  foo: 'bar',
+  foobar: 1,
+  func: [{ a: function() {} }]
+};
 assert.strictEqual(util.format('%o'), '%o');
 assert.strictEqual(util.format('%o', 42), '42');
 assert.strictEqual(util.format('%o', 'foo'), '\'foo\'');
@@ -121,17 +169,28 @@ assert.strictEqual(
   util.format('%o', obj),
   '{ foo: \'bar\',\n' +
   '  foobar: 1,\n' +
-  '  func: \n' +
+  '  func:\n' +
   '   { [Function: func]\n' +
   '     [length]: 0,\n' +
   '     [name]: \'func\',\n' +
   '     [prototype]: func { [constructor]: [Circular] } } }');
 assert.strictEqual(
+  util.format('%o', nestedObj2),
+  '{ foo: \'bar\',\n' +
+  '  foobar: 1,\n' +
+  '  func:\n' +
+  '   [ { a:\n' +
+  '        { [Function: a]\n' +
+  '          [length]: 0,\n' +
+  '          [name]: \'a\',\n' +
+  '          [prototype]: a { [constructor]: [Circular] } } },\n' +
+  '     [length]: 1 ] }');
+assert.strictEqual(
   util.format('%o', nestedObj),
   '{ foo: \'bar\',\n' +
-  '  foobar: \n' +
+  '  foobar:\n' +
   '   { foo: \'bar\',\n' +
-  '     func: \n' +
+  '     func:\n' +
   '      { [Function: func]\n' +
   '        [length]: 0,\n' +
   '        [name]: \'func\',\n' +
@@ -140,14 +199,14 @@ assert.strictEqual(
   util.format('%o %o', obj, obj),
   '{ foo: \'bar\',\n' +
   '  foobar: 1,\n' +
-  '  func: \n' +
+  '  func:\n' +
   '   { [Function: func]\n' +
   '     [length]: 0,\n' +
   '     [name]: \'func\',\n' +
   '     [prototype]: func { [constructor]: [Circular] } } }' +
   ' { foo: \'bar\',\n' +
   '  foobar: 1,\n' +
-  '  func: \n' +
+  '  func:\n' +
   '   { [Function: func]\n' +
   '     [length]: 0,\n' +
   '     [name]: \'func\',\n' +
@@ -156,7 +215,7 @@ assert.strictEqual(
   util.format('%o %o', obj),
   '{ foo: \'bar\',\n' +
   '  foobar: 1,\n' +
-  '  func: \n' +
+  '  func:\n' +
   '   { [Function: func]\n' +
   '     [length]: 0,\n' +
   '     [name]: \'func\',\n' +
@@ -233,15 +292,16 @@ assert.strictEqual(util.format('abc%', 1), 'abc% 1');
 // Errors
 const err = new Error('foo');
 assert.strictEqual(util.format(err), err.stack);
-function CustomError(msg) {
-  Error.call(this);
-  Object.defineProperty(this, 'message',
-                        { value: msg, enumerable: false });
-  Object.defineProperty(this, 'name',
-                        { value: 'CustomError', enumerable: false });
-  Error.captureStackTrace(this, CustomError);
+class CustomError extends Error {
+  constructor(msg) {
+    super();
+    Object.defineProperty(this, 'message',
+                          { value: msg, enumerable: false });
+    Object.defineProperty(this, 'name',
+                          { value: 'CustomError', enumerable: false });
+    Error.captureStackTrace(this, CustomError);
+  }
 }
-util.inherits(CustomError, Error);
 const customError = new CustomError('bar');
 assert.strictEqual(util.format(customError), customError.stack);
 // Doesn't capture stack trace
@@ -252,6 +312,7 @@ function BadCustomError(msg) {
   Object.defineProperty(this, 'name',
                         { value: 'BadCustomError', enumerable: false });
 }
-util.inherits(BadCustomError, Error);
+Object.setPrototypeOf(BadCustomError.prototype, Error.prototype);
+Object.setPrototypeOf(BadCustomError, Error);
 assert.strictEqual(util.format(new BadCustomError('foo')),
                    '[BadCustomError: foo]');

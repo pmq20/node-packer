@@ -4,8 +4,8 @@
 
 #include "src/compilation-dependencies.h"
 
-#include "src/factory.h"
 #include "src/handles-inl.h"
+#include "src/heap/factory.h"
 #include "src/isolate.h"
 #include "src/objects-inl.h"
 #include "src/zone/zone.h"
@@ -22,7 +22,6 @@ DependentCode* CompilationDependencies::Get(Handle<Object> object) const {
     return Handle<AllocationSite>::cast(object)->dependent_code();
   }
   UNREACHABLE();
-  return nullptr;
 }
 
 
@@ -43,9 +42,10 @@ void CompilationDependencies::Set(Handle<Object> object,
 void CompilationDependencies::Insert(DependentCode::DependencyGroup group,
                                      Handle<HeapObject> object) {
   if (groups_[group] == nullptr) {
-    groups_[group] = new (zone_) ZoneList<Handle<HeapObject>>(2, zone_);
+    groups_[group] = new (zone_->New(sizeof(ZoneVector<Handle<HeapObject>>)))
+        ZoneVector<Handle<HeapObject>>(zone_);
   }
-  groups_[group]->Add(object, zone_);
+  groups_[group]->push_back(object);
 
   if (object_wrapper_.is_null()) {
     // Allocate the wrapper if necessary.
@@ -74,11 +74,11 @@ void CompilationDependencies::Commit(Handle<Code> code) {
   Handle<WeakCell> cell = Code::WeakCellFor(code);
   AllowDeferredHandleDereference get_wrapper;
   for (int i = 0; i < DependentCode::kGroupCount; i++) {
-    ZoneList<Handle<HeapObject>>* group_objects = groups_[i];
+    ZoneVector<Handle<HeapObject>>* group_objects = groups_[i];
     if (group_objects == nullptr) continue;
     DependentCode::DependencyGroup group =
         static_cast<DependentCode::DependencyGroup>(i);
-    for (int j = 0; j < group_objects->length(); j++) {
+    for (size_t j = 0; j < group_objects->size(); j++) {
       DependentCode* dependent_code = Get(group_objects->at(j));
       dependent_code->UpdateToFinishedCode(group, *object_wrapper_, *cell);
     }
@@ -93,11 +93,11 @@ void CompilationDependencies::Rollback() {
   AllowDeferredHandleDereference get_wrapper;
   // Unregister from all dependent maps if not yet committed.
   for (int i = 0; i < DependentCode::kGroupCount; i++) {
-    ZoneList<Handle<HeapObject>>* group_objects = groups_[i];
+    ZoneVector<Handle<HeapObject>>* group_objects = groups_[i];
     if (group_objects == nullptr) continue;
     DependentCode::DependencyGroup group =
         static_cast<DependentCode::DependencyGroup>(i);
-    for (int j = 0; j < group_objects->length(); j++) {
+    for (size_t j = 0; j < group_objects->size(); j++) {
       DependentCode* dependent_code = Get(group_objects->at(j));
       dependent_code->RemoveCompilationDependencies(group, *object_wrapper_);
     }
@@ -141,11 +141,10 @@ void CompilationDependencies::AssumePrototypeMapsStable(
 void CompilationDependencies::AssumeTransitionStable(
     Handle<AllocationSite> site) {
   // Do nothing if the object doesn't have any useful element transitions left.
-  ElementsKind kind =
-      site->SitePointsToLiteral()
-          ? JSObject::cast(site->transition_info())->GetElementsKind()
-          : site->GetElementsKind();
-  if (AllocationSite::GetMode(kind) == TRACK_ALLOCATION_SITE) {
+  ElementsKind kind = site->PointsToLiteral()
+                          ? site->boilerplate()->GetElementsKind()
+                          : site->GetElementsKind();
+  if (AllocationSite::ShouldTrack(kind)) {
     Insert(DependentCode::kAllocationSiteTransitionChangedGroup, site);
   }
 }

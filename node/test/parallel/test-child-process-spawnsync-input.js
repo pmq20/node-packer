@@ -20,7 +20,7 @@
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 'use strict';
-require('../common');
+const common = require('../common');
 
 const assert = require('assert');
 
@@ -76,10 +76,9 @@ let options = {
   input: 1234
 };
 
-assert.throws(function() {
-  spawnSync('cat', [], options);
-}, /TypeError:.*should be Buffer, Uint8Array or string not number/);
-
+common.expectsError(
+  () => spawnSync('cat', [], options),
+  { code: 'ERR_INVALID_ARG_TYPE', type: TypeError });
 
 options = {
   input: 'hello world'
@@ -101,16 +100,21 @@ checkSpawnSyncRet(ret);
 assert.deepStrictEqual(ret.stdout, options.input);
 assert.deepStrictEqual(ret.stderr, Buffer.from(''));
 
-options = {
-  input: Uint8Array.from(Buffer.from('hello world'))
-};
+// common.getArrayBufferViews expects a buffer
+// with length an multiple of 8
+const msgBuf = Buffer.from('hello world'.repeat(8));
+for (const arrayBufferView of common.getArrayBufferViews(msgBuf)) {
+  options = {
+    input: arrayBufferView
+  };
 
-ret = spawnSync('cat', [], options);
+  ret = spawnSync('cat', [], options);
 
-checkSpawnSyncRet(ret);
-// Wrap options.input because Uint8Array and Buffer have different prototypes.
-assert.deepStrictEqual(ret.stdout, Buffer.from(options.input));
-assert.deepStrictEqual(ret.stderr, Buffer.from(''));
+  checkSpawnSyncRet(ret);
+
+  assert.deepStrictEqual(ret.stdout, msgBuf);
+  assert.deepStrictEqual(ret.stderr, Buffer.from(''));
+}
 
 verifyBufOutput(spawnSync(process.execPath, args));
 

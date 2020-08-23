@@ -27,7 +27,9 @@
 // Deprecation Code: DEP0008
 const constants = process.binding('constants');
 Object.assign(exports,
+              constants.os.dlopen,
               constants.os.errno,
+              constants.os.priority,
               constants.os.signals,
               constants.fs,
               constants.crypto);

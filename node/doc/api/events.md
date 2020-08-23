@@ -1,13 +1,14 @@
 # Events
 
+<!--introduced_in=v0.10.0-->
+
 > Stability: 2 - Stable
 
 <!--type=module-->
 
 Much of the Node.js core API is built around an idiomatic asynchronous
 event-driven architecture in which certain kinds of objects (called "emitters")
-periodically emit named events that cause Function objects ("listeners") to be
-called.
+emit named events that cause `Function` objects ("listeners") to be called.
 
 For instance: a [`net.Server`][] object emits an event each time a peer
 connects to it; a [`fs.ReadStream`][] emits an event when the file is opened;
@@ -42,21 +43,21 @@ myEmitter.emit('event');
 ## Passing arguments and `this` to listeners
 
 The `eventEmitter.emit()` method allows an arbitrary set of arguments to be
-passed to the listener functions. It is important to keep in mind that when an
-ordinary listener function is called by the `EventEmitter`, the standard `this`
-keyword is intentionally set to reference the `EventEmitter` to which the
+passed to the listener functions. It is important to keep in mind that when
+an ordinary listener function is called, the standard `this` keyword
+is intentionally set to reference the `EventEmitter` instance to which the
 listener is attached.
 
 ```js
 const myEmitter = new MyEmitter();
 myEmitter.on('event', function(a, b) {
-  console.log(a, b, this);
+  console.log(a, b, this, this === myEmitter);
   // Prints:
   //   a b MyEmitter {
   //     domain: null,
   //     _events: { event: [Function] },
   //     _eventsCount: 1,
-  //     _maxListeners: undefined }
+  //     _maxListeners: undefined } true
 });
 myEmitter.emit('event', 'a', 'b');
 ```
@@ -75,7 +76,7 @@ myEmitter.emit('event', 'a', 'b');
 
 ## Asynchronous vs. Synchronous
 
-The `EventListener` calls all listeners synchronously in the order in which
+The `EventEmitter` calls all listeners synchronously in the order in which
 they were registered. This is important to ensure the proper sequencing of
 events and to avoid race conditions or logic errors. When appropriate,
 listener functions can switch to an asynchronous mode of operation using
@@ -140,20 +141,8 @@ myEmitter.emit('error', new Error('whoops!'));
 // Throws and crashes Node.js
 ```
 
-To guard against crashing the Node.js process, a listener can be registered
-on the [`process` object's `uncaughtException` event][] or the [`domain`][] module
-can be used. (Note, however, that the `domain` module has been deprecated.)
-
-```js
-const myEmitter = new MyEmitter();
-
-process.on('uncaughtException', (err) => {
-  console.error('whoops! there was an error');
-});
-
-myEmitter.emit('error', new Error('whoops!'));
-// Prints: whoops! there was an error
-```
+To guard against crashing the Node.js process the [`domain`][] module can be
+used. (Note, however, that the `domain` module is deprecated.)
 
 As a best practice, listeners should always be added for the `'error'` events.
 
@@ -177,7 +166,7 @@ The `EventEmitter` class is defined and exposed by the `events` module:
 const EventEmitter = require('events');
 ```
 
-All EventEmitters emit the event `'newListener'` when new listeners are
+All `EventEmitter`s emit the event `'newListener'` when new listeners are
 added and `'removeListener'` when existing listeners are removed.
 
 ### Event: 'newListener'
@@ -185,7 +174,7 @@ added and `'removeListener'` when existing listeners are removed.
 added: v0.1.26
 -->
 
-* `eventName` {any} The name of the event being listened for
+* `eventName` {string|symbol} The name of the event being listened for
 * `listener` {Function} The event handler function
 
 The `EventEmitter` instance will emit its own `'newListener'` event *before*
@@ -229,7 +218,7 @@ changes:
                  now yields the original listener function.
 -->
 
-* `eventName` {any} The event name
+* `eventName` {string|symbol} The event name
 * `listener` {Function} The event handler function
 
 The `'removeListener'` event is emitted *after* the `listener` is removed.
@@ -239,6 +228,8 @@ The `'removeListener'` event is emitted *after* the `listener` is removed.
 added: v0.9.12
 deprecated: v4.0.0
 -->
+* `emitter` {EventEmitter} The emitter to query
+* `eventName` {string|symbol} The event name
 
 > Stability: 0 - Deprecated: Use [`emitter.listenerCount()`][] instead.
 
@@ -266,7 +257,7 @@ property can be used. If this value is not a positive number, a `TypeError`
 will be thrown.
 
 Take caution when setting the `EventEmitter.defaultMaxListeners` because the
-change effects *all* `EventEmitter` instances, including those created before
+change affects *all* `EventEmitter` instances, including those created before
 the change is made. However, calling [`emitter.setMaxListeners(n)`][] still has
 precedence over `EventEmitter.defaultMaxListeners`.
 
@@ -297,8 +288,8 @@ Its `name` property is set to `'MaxListenersExceededWarning'`.
 <!-- YAML
 added: v0.1.26
 -->
-- `eventName` {any}
-- `listener` {Function}
+* `eventName` {string|symbol}
+* `listener` {Function}
 
 Alias for `emitter.on(eventName, listener)`.
 
@@ -306,8 +297,9 @@ Alias for `emitter.on(eventName, listener)`.
 <!-- YAML
 added: v0.1.26
 -->
-- `eventName` {any}
+* `eventName` {string|symbol}
 - `...args` {any}
+* Returns: {boolean}
 
 Synchronously calls each of the listeners registered for the event named
 `eventName`, in the order they were registered, passing the supplied arguments
@@ -320,8 +312,10 @@ Returns `true` if the event had listeners, `false` otherwise.
 added: v6.0.0
 -->
 
+* Returns: {Array}
+
 Returns an array listing the events for which the emitter has registered
-listeners. The values in the array will be strings or Symbols.
+listeners. The values in the array will be strings or `Symbol`s.
 
 ```js
 const EventEmitter = require('events');
@@ -341,6 +335,8 @@ console.log(myEE.eventNames());
 added: v1.0.0
 -->
 
+* Returns: {integer}
+
 Returns the current max listener value for the `EventEmitter` which is either
 set by [`emitter.setMaxListeners(n)`][] or defaults to
 [`EventEmitter.defaultMaxListeners`][].
@@ -350,7 +346,8 @@ set by [`emitter.setMaxListeners(n)`][] or defaults to
 added: v3.2.0
 -->
 
-* `eventName` {any} The name of the event being listened for
+* `eventName` {string|symbol} The name of the event being listened for
+* Returns: {integer}
 
 Returns the number of listeners listening to the event named `eventName`.
 
@@ -363,7 +360,8 @@ changes:
     description: For listeners attached using `.once()` this returns the
                  original listeners instead of wrapper functions now.
 -->
-- `eventName` {any}
+* `eventName` {string|symbol}
+* Returns: {Function[]}
 
 Returns a copy of the array of listeners for the event named `eventName`.
 
@@ -375,13 +373,25 @@ console.log(util.inspect(server.listeners('connection')));
 // Prints: [ [Function] ]
 ```
 
+### emitter.off(eventName, listener)
+<!-- YAML
+added: v10.0.0
+-->
+
+* `eventName` {string|symbol}
+* `listener` {Function}
+* Returns: {EventEmitter}
+
+Alias for [`emitter.removeListener()`][].
+
 ### emitter.on(eventName, listener)
 <!-- YAML
 added: v0.1.101
 -->
 
-* `eventName` {any} The name of the event.
+* `eventName` {string|symbol} The name of the event.
 * `listener` {Function} The callback function
+* Returns: {EventEmitter}
 
 Adds the `listener` function to the end of the listeners array for the
 event named `eventName`. No checks are made to see if the `listener` has
@@ -416,10 +426,11 @@ myEE.emit('foo');
 added: v0.3.0
 -->
 
-* `eventName` {any} The name of the event.
+* `eventName` {string|symbol} The name of the event.
 * `listener` {Function} The callback function
+* Returns: {EventEmitter}
 
-Adds a **one time** `listener` function for the event named `eventName`. The
+Adds a **one-time** `listener` function for the event named `eventName`. The
 next time `eventName` is triggered, this listener is removed and then invoked.
 
 ```js
@@ -449,8 +460,9 @@ myEE.emit('foo');
 added: v6.0.0
 -->
 
-* `eventName` {any} The name of the event.
+* `eventName` {string|symbol} The name of the event.
 * `listener` {Function} The callback function
+* Returns: {EventEmitter}
 
 Adds the `listener` function to the *beginning* of the listeners array for the
 event named `eventName`. No checks are made to see if the `listener` has
@@ -471,10 +483,11 @@ Returns a reference to the `EventEmitter`, so that calls can be chained.
 added: v6.0.0
 -->
 
-* `eventName` {any} The name of the event.
+* `eventName` {string|symbol} The name of the event.
 * `listener` {Function} The callback function
+* Returns: {EventEmitter}
 
-Adds a **one time** `listener` function for the event named `eventName` to the
+Adds a **one-time** `listener` function for the event named `eventName` to the
 *beginning* of the listeners array. The next time `eventName` is triggered, this
 listener is removed, and then invoked.
 
@@ -490,7 +503,8 @@ Returns a reference to the `EventEmitter`, so that calls can be chained.
 <!-- YAML
 added: v0.1.26
 -->
-- `eventName` {any}
+* `eventName` {string|symbol}
+* Returns: {EventEmitter}
 
 Removes all listeners, or those of the specified `eventName`.
 
@@ -504,8 +518,9 @@ Returns a reference to the `EventEmitter`, so that calls can be chained.
 <!-- YAML
 added: v0.1.26
 -->
-- `eventName` {any}
-- `listener` {Function}
+* `eventName` {string|symbol}
+* `listener` {Function}
+* Returns: {EventEmitter}
 
 Removes the specified `listener` from the listener array for the event named
 `eventName`.
@@ -519,16 +534,16 @@ server.on('connection', callback);
 server.removeListener('connection', callback);
 ```
 
-`removeListener` will remove, at most, one instance of a listener from the
+`removeListener()` will remove, at most, one instance of a listener from the
 listener array. If any single listener has been added multiple times to the
-listener array for the specified `eventName`, then `removeListener` must be
+listener array for the specified `eventName`, then `removeListener()` must be
 called multiple times to remove each instance.
 
 Note that once an event has been emitted, all listeners attached to it at the
-time of emitting will be called in order. This implies that any `removeListener()`
-or `removeAllListeners()` calls *after* emitting and *before* the last listener
-finishes execution will not remove them from `emit()` in progress. Subsequent
-events will behave as expected.
+time of emitting will be called in order. This implies that any
+`removeListener()` or `removeAllListeners()` calls *after* emitting and
+*before* the last listener finishes execution will not remove them from
+`emit()` in progress. Subsequent events will behave as expected.
 
 ```js
 const myEmitter = new MyEmitter();
@@ -558,7 +573,6 @@ myEmitter.emit('event');
 myEmitter.emit('event');
 // Prints:
 //   A
-
 ```
 
 Because listeners are managed using an internal array, calling this will
@@ -567,15 +581,36 @@ being removed. This will not impact the order in which listeners are called,
 but it means that any copies of the listener array as returned by
 the `emitter.listeners()` method will need to be recreated.
 
+When a single function has been added as a handler multiple times for a single
+event (as in the example below), `removeListener()` will remove the most
+recently added instance. In the example the `once('ping')`
+listener is removed:
+
+```js
+const ee = new EventEmitter();
+
+function pong() {
+  console.log('pong');
+}
+
+ee.on('ping', pong);
+ee.once('ping', pong);
+ee.removeListener('ping', pong);
+
+ee.emit('ping');
+ee.emit('ping');
+```
+
 Returns a reference to the `EventEmitter`, so that calls can be chained.
 
 ### emitter.setMaxListeners(n)
 <!-- YAML
 added: v0.3.5
 -->
-- `n` {integer}
+* `n` {integer}
+* Returns: {EventEmitter}
 
-By default EventEmitters will print a warning if more than `10` listeners are
+By default `EventEmitter`s will print a warning if more than `10` listeners are
 added for a particular event. This is a useful default that helps finding
 memory leaks. Obviously, not all events should be limited to just 10 listeners.
 The `emitter.setMaxListeners()` method allows the limit to be modified for this
@@ -584,13 +619,88 @@ to indicate an unlimited number of listeners.
 
 Returns a reference to the `EventEmitter`, so that calls can be chained.
 
+### emitter.rawListeners(eventName)
+<!-- YAML
+added: v9.4.0
+-->
+* `eventName` {string|symbol}
+* Returns: {Function[]}
+
+Returns a copy of the array of listeners for the event named `eventName`,
+including any wrappers (such as those created by `.once()`).
+
+```js
+const emitter = new EventEmitter();
+emitter.once('log', () => console.log('log once'));
+
+// Returns a new Array with a function `onceWrapper` which has a property
+// `listener` which contains the original listener bound above
+const listeners = emitter.rawListeners('log');
+const logFnWrapper = listeners[0];
+
+// logs "log once" to the console and does not unbind the `once` event
+logFnWrapper.listener();
+
+// logs "log once" to the console and removes the listener
+logFnWrapper();
+
+emitter.on('log', () => console.log('log persistently'));
+// will return a new Array with a single function bound by `.on()` above
+const newListeners = emitter.rawListeners('log');
+
+// logs "log persistently" twice
+newListeners[0]();
+emitter.emit('log');
+```
+
+## events.once(emitter, name)
+<!-- YAML
+added: v10.16.0
+-->
+* `emitter` {EventEmitter}
+* `name` {string}
+* Returns: {Promise}
+
+Creates a `Promise` that is resolved when the `EventEmitter` emits the given
+event or that is rejected when the `EventEmitter` emits `'error'`.
+The `Promise` will resolve with an array of all the arguments emitted to the
+given event.
+
+```js
+const { once, EventEmitter } = require('events');
+
+async function run() {
+  const ee = new EventEmitter();
+
+  process.nextTick(() => {
+    ee.emit('myevent', 42);
+  });
+
+  const [value] = await once(ee, 'myevent');
+  console.log(value);
+
+  const err = new Error('kaboom');
+  process.nextTick(() => {
+    ee.emit('error', err);
+  });
+
+  try {
+    await once(ee, 'myevent');
+  } catch (err) {
+    console.log('error happened', err);
+  }
+}
+
+run();
+```
+
 [`--trace-warnings`]: cli.html#cli_trace_warnings
 [`EventEmitter.defaultMaxListeners`]: #events_eventemitter_defaultmaxlisteners
 [`domain`]: domain.html
 [`emitter.listenerCount()`]: #events_emitter_listenercount_eventname
+[`emitter.removeListener()`]: #events_emitter_removelistener_eventname_listener
 [`emitter.setMaxListeners(n)`]: #events_emitter_setmaxlisteners_n
 [`fs.ReadStream`]: fs.html#fs_class_fs_readstream
 [`net.Server`]: net.html#net_class_net_server
 [`process.on('warning')`]: process.html#process_event_warning
-[`process` object's `uncaughtException` event]: process.html#process_event_uncaughtexception
 [stream]: stream.html

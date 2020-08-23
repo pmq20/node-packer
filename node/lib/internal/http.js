@@ -1,20 +1,31 @@
 'use strict';
 
-const timers = require('timers');
+const { setUnrefTimeout } = require('internal/timers');
 
-var dateCache;
-function utcDate() {
-  if (!dateCache) {
-    const d = new Date();
-    dateCache = d.toUTCString();
-    timers.enroll(utcDate, 1000 - d.getMilliseconds());
-    timers._unrefActive(utcDate);
-  }
-  return dateCache;
+var nowCache;
+var utcCache;
+
+function nowDate() {
+  if (!nowCache) cache();
+  return nowCache;
 }
-utcDate._onTimeout = function() {
-  dateCache = undefined;
-};
+
+function utcDate() {
+  if (!utcCache) cache();
+  return utcCache;
+}
+
+function cache() {
+  const d = new Date();
+  nowCache = d.valueOf();
+  utcCache = d.toUTCString();
+  setUnrefTimeout(resetCache, 1000 - d.getMilliseconds());
+}
+
+function resetCache() {
+  nowCache = undefined;
+  utcCache = undefined;
+}
 
 function ondrain() {
   if (this._httpMessage) this._httpMessage.emit('drain');
@@ -23,5 +34,6 @@ function ondrain() {
 module.exports = {
   outHeadersKey: Symbol('outHeadersKey'),
   ondrain,
+  nowDate,
   utcDate
 };

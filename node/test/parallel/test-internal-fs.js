@@ -1,10 +1,14 @@
 // Flags: --expose-internals
 'use strict';
 
-require('../common');
-const assert = require('assert');
-const fs = require('internal/fs');
+const common = require('../common');
+const fs = require('internal/fs/utils');
 
-assert.doesNotThrow(() => fs.assertEncoding());
-assert.doesNotThrow(() => fs.assertEncoding('utf8'));
-assert.throws(() => fs.assertEncoding('foo'), /^Error: Unknown encoding: foo$/);
+// Valid encodings and no args should not throw.
+fs.assertEncoding();
+fs.assertEncoding('utf8');
+
+common.expectsError(
+  () => fs.assertEncoding('foo'),
+  { code: 'ERR_INVALID_OPT_VALUE_ENCODING', type: TypeError }
+);

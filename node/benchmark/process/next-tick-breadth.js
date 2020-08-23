@@ -1,22 +1,21 @@
 'use strict';
 
-var common = require('../common.js');
-var bench = common.createBenchmark(main, {
-  millions: [2]
+const common = require('../common.js');
+const bench = common.createBenchmark(main, {
+  n: [4e6]
 });
 
-function main(conf) {
-  var N = +conf.millions * 1e6;
-  var n = 0;
+function main({ n }) {
+  var j = 0;
 
   function cb() {
-    n++;
-    if (n === N)
-      bench.end(n / 1e6);
+    j++;
+    if (j === n)
+      bench.end(n);
   }
 
   bench.start();
-  for (var i = 0; i < N; i++) {
+  for (var i = 0; i < n; i++) {
     process.nextTick(cb);
   }
 }

@@ -25,6 +25,7 @@
 
 const { Buffer } = require('buffer');
 const {
+  encodeStr,
   hexTable,
   isHexTable
 } = require('internal/querystring');
@@ -75,12 +76,12 @@ function unescapeBuffer(s, decodeSpaces) {
   var hasHex = false;
   while (index < s.length) {
     currentChar = s.charCodeAt(index);
-    if (currentChar === 43 /*'+'*/ && decodeSpaces) {
+    if (currentChar === 43 /* '+' */ && decodeSpaces) {
       out[outIndex++] = 32; // ' '
       index++;
       continue;
     }
-    if (currentChar === 37 /*'%'*/ && index < maxLength) {
+    if (currentChar === 37 /* '%' */ && index < maxLength) {
       currentChar = s.charCodeAt(++index);
       hexHigh = unhexTable[currentChar];
       if (!(hexHigh >= 0)) {
@@ -108,7 +109,7 @@ function unescapeBuffer(s, decodeSpaces) {
 function qsUnescape(s, decodeSpaces) {
   try {
     return decodeURIComponent(s);
-  } catch (e) {
+  } catch {
     return QueryString.unescapeBuffer(s, decodeSpaces).toString();
   }
 }
@@ -139,58 +140,8 @@ function qsEscape(str) {
     else
       str += '';
   }
-  var out = '';
-  var lastPos = 0;
 
-  for (var i = 0; i < str.length; ++i) {
-    var c = str.charCodeAt(i);
-
-    // ASCII
-    if (c < 0x80) {
-      if (noEscape[c] === 1)
-        continue;
-      if (lastPos < i)
-        out += str.slice(lastPos, i);
-      lastPos = i + 1;
-      out += hexTable[c];
-      continue;
-    }
-
-    if (lastPos < i)
-      out += str.slice(lastPos, i);
-
-    // Multi-byte characters ...
-    if (c < 0x800) {
-      lastPos = i + 1;
-      out += hexTable[0xC0 | (c >> 6)] + hexTable[0x80 | (c & 0x3F)];
-      continue;
-    }
-    if (c < 0xD800 || c >= 0xE000) {
-      lastPos = i + 1;
-      out += hexTable[0xE0 | (c >> 12)] +
-             hexTable[0x80 | ((c >> 6) & 0x3F)] +
-             hexTable[0x80 | (c & 0x3F)];
-      continue;
-    }
-    // Surrogate pair
-    ++i;
-    var c2;
-    if (i < str.length)
-      c2 = str.charCodeAt(i) & 0x3FF;
-    else
-      throw new URIError('URI malformed');
-    lastPos = i + 1;
-    c = 0x10000 + (((c & 0x3FF) << 10) | c2);
-    out += hexTable[0xF0 | (c >> 18)] +
-           hexTable[0x80 | ((c >> 12) & 0x3F)] +
-           hexTable[0x80 | ((c >> 6) & 0x3F)] +
-           hexTable[0x80 | (c & 0x3F)];
-  }
-  if (lastPos === 0)
-    return str;
-  if (lastPos < str.length)
-    return out + str.slice(lastPos);
-  return out;
+  return encodeStr(str, noEscape, hexTable);
 }
 
 function stringifyPrimitive(v) {
@@ -315,9 +266,8 @@ function parse(qs, sep, eq, options) {
             sepIdx = eqIdx = 0;
             continue;
           }
-        } else {
-          if (lastPos < end)
-            value += qs.slice(lastPos, end);
+        } else if (lastPos < end) {
+          value += qs.slice(lastPos, end);
         }
 
         if (key.length > 0 && keyEncoded)
@@ -364,12 +314,11 @@ function parse(qs, sep, eq, options) {
           if (!keyEncoded) {
             // Try to match an (valid) encoded byte once to minimize unnecessary
             // calls to string decoding functions
-            if (code === 37/*%*/) {
+            if (code === 37/* % */) {
               encodeCheck = 1;
               continue;
             } else if (encodeCheck > 0) {
-              // eslint-disable-next-line no-extra-boolean-cast
-              if (!!isHexTable[code]) {
+              if (isHexTable[code] === 1) {
                 if (++encodeCheck === 3)
                   keyEncoded = true;
                 continue;
@@ -379,7 +328,7 @@ function parse(qs, sep, eq, options) {
             }
           }
         }
-        if (code === 43/*+*/) {
+        if (code === 43/* + */) {
           if (lastPos < i)
             key += qs.slice(lastPos, i);
           key += plusChar;
@@ -387,7 +336,7 @@ function parse(qs, sep, eq, options) {
           continue;
         }
       }
-      if (code === 43/*+*/) {
+      if (code === 43/* + */) {
         if (lastPos < i)
           value += qs.slice(lastPos, i);
         value += plusChar;
@@ -395,11 +344,10 @@ function parse(qs, sep, eq, options) {
       } else if (!valEncoded) {
         // Try to match an (valid) encoded byte (once) to minimize unnecessary
         // calls to string decoding functions
-        if (code === 37/*%*/) {
+        if (code === 37/* % */) {
           encodeCheck = 1;
         } else if (encodeCheck > 0) {
-          // eslint-disable-next-line no-extra-boolean-cast
-          if (!!isHexTable[code]) {
+          if (isHexTable[code] === 1) {
             if (++encodeCheck === 3)
               valEncoded = true;
           } else {
@@ -447,7 +395,7 @@ function parse(qs, sep, eq, options) {
 function decodeStr(s, decoder) {
   try {
     return decoder(s);
-  } catch (e) {
+  } catch {
     return QueryString.unescape(s, true);
   }
 }

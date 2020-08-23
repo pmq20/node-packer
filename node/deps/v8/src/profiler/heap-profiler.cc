@@ -16,39 +16,38 @@ namespace internal {
 
 HeapProfiler::HeapProfiler(Heap* heap)
     : ids_(new HeapObjectsMap(heap)),
-      names_(new StringsStorage(heap)),
-      is_tracking_object_moves_(false),
-      get_retainer_infos_callback_(nullptr) {}
+      names_(new StringsStorage()),
+      is_tracking_object_moves_(false) {}
 
-static void DeleteHeapSnapshot(HeapSnapshot** snapshot_ptr) {
-  delete *snapshot_ptr;
-}
-
-
-HeapProfiler::~HeapProfiler() {
-  snapshots_.Iterate(DeleteHeapSnapshot);
-  snapshots_.Clear();
-}
-
+HeapProfiler::~HeapProfiler() = default;
 
 void HeapProfiler::DeleteAllSnapshots() {
-  snapshots_.Iterate(DeleteHeapSnapshot);
-  snapshots_.Clear();
-  names_.reset(new StringsStorage(heap()));
+  snapshots_.clear();
+  MaybeClearStringsStorage();
 }
 
+void HeapProfiler::MaybeClearStringsStorage() {
+  if (snapshots_.empty() && !sampling_heap_profiler_ && !allocation_tracker_) {
+    names_.reset(new StringsStorage());
+  }
+}
 
 void HeapProfiler::RemoveSnapshot(HeapSnapshot* snapshot) {
-  snapshots_.RemoveElement(snapshot);
+  snapshots_.erase(
+      std::find_if(snapshots_.begin(), snapshots_.end(),
+                   [&](const std::unique_ptr<HeapSnapshot>& entry) {
+                     return entry.get() == snapshot;
+                   }));
 }
 
 
 void HeapProfiler::DefineWrapperClass(
     uint16_t class_id, v8::HeapProfiler::WrapperInfoCallback callback) {
-  DCHECK(class_id != v8::HeapProfiler::kPersistentHandleNoClassId);
-  if (wrapper_callbacks_.length() <= class_id) {
-    wrapper_callbacks_.AddBlock(
-        NULL, class_id - wrapper_callbacks_.length() + 1);
+  DCHECK_NE(class_id, v8::HeapProfiler::kPersistentHandleNoClassId);
+  if (wrapper_callbacks_.size() <= class_id) {
+    wrapper_callbacks_.insert(wrapper_callbacks_.end(),
+                              class_id - wrapper_callbacks_.size() + 1,
+                              nullptr);
   }
   wrapper_callbacks_[class_id] = callback;
 }
@@ -56,7 +55,7 @@ void HeapProfiler::DefineWrapperClass(
 
 v8::RetainedObjectInfo* HeapProfiler::ExecuteWrapperClassCallback(
     uint16_t class_id, Object** wrapper) {
-  if (wrapper_callbacks_.length() <= class_id) return NULL;
+  if (wrapper_callbacks_.size() <= class_id) return nullptr;
   return wrapper_callbacks_[class_id](
       class_id, Utils::ToLocal(Handle<Object>(wrapper)));
 }
@@ -75,6 +74,27 @@ v8::HeapProfiler::RetainerInfos HeapProfiler::GetRetainerInfos(
   return infos;
 }
 
+void HeapProfiler::AddBuildEmbedderGraphCallback(
+    v8::HeapProfiler::BuildEmbedderGraphCallback callback, void* data) {
+  build_embedder_graph_callbacks_.push_back({callback, data});
+}
+
+void HeapProfiler::RemoveBuildEmbedderGraphCallback(
+    v8::HeapProfiler::BuildEmbedderGraphCallback callback, void* data) {
+  auto it = std::find(build_embedder_graph_callbacks_.begin(),
+                      build_embedder_graph_callbacks_.end(),
+                      std::make_pair(callback, data));
+  if (it != build_embedder_graph_callbacks_.end())
+    build_embedder_graph_callbacks_.erase(it);
+}
+
+void HeapProfiler::BuildEmbedderGraph(Isolate* isolate,
+                                      v8::EmbedderGraph* graph) {
+  for (const auto& cb : build_embedder_graph_callbacks_) {
+    cb.first(reinterpret_cast<v8::Isolate*>(isolate), graph, cb.second);
+  }
+}
+
 HeapSnapshot* HeapProfiler::TakeSnapshot(
     v8::ActivityControl* control,
     v8::HeapProfiler::ObjectNameResolver* resolver) {
@@ -83,9 +103,9 @@ HeapSnapshot* HeapProfiler::TakeSnapshot(
     HeapSnapshotGenerator generator(result, control, resolver, heap());
     if (!generator.GenerateSnapshot()) {
       delete result;
-      result = NULL;
+      result = nullptr;
     } else {
-      snapshots_.Add(result);
+      snapshots_.emplace_back(result);
     }
   }
   ids_->RemoveDeadEntries();
@@ -111,6 +131,7 @@ bool HeapProfiler::StartSamplingHeapProfiler(
 
 void HeapProfiler::StopSamplingHeapProfiler() {
   sampling_heap_profiler_.reset();
+  MaybeClearStringsStorage();
 }
 
 
@@ -126,59 +147,42 @@ v8::AllocationProfile* HeapProfiler::GetAllocationProfile() {
 void HeapProfiler::StartHeapObjectsTracking(bool track_allocations) {
   ids_->UpdateHeapObjectsMap();
   is_tracking_object_moves_ = true;
-  DCHECK(!is_tracking_allocations());
+  DCHECK(!allocation_tracker_);
   if (track_allocations) {
     allocation_tracker_.reset(new AllocationTracker(ids_.get(), names_.get()));
-    heap()->DisableInlineAllocation();
+    heap()->AddHeapObjectAllocationTracker(this);
     heap()->isolate()->debug()->feature_tracker()->Track(
         DebugFeatureTracker::kAllocationTracking);
   }
 }
-
 
 SnapshotObjectId HeapProfiler::PushHeapObjectsStats(OutputStream* stream,
                                                     int64_t* timestamp_us) {
   return ids_->PushHeapObjectsStats(stream, timestamp_us);
 }
 
-
 void HeapProfiler::StopHeapObjectsTracking() {
   ids_->StopHeapObjectsTracking();
-  if (is_tracking_allocations()) {
+  if (allocation_tracker_) {
     allocation_tracker_.reset();
-    heap()->EnableInlineAllocation();
+    MaybeClearStringsStorage();
+    heap()->RemoveHeapObjectAllocationTracker(this);
   }
 }
-
-
-size_t HeapProfiler::GetMemorySizeUsedByProfiler() {
-  size_t size = sizeof(*this);
-  size += names_->GetUsedMemorySize();
-  size += ids_->GetUsedMemorySize();
-  size += GetMemoryUsedByList(snapshots_);
-  for (int i = 0; i < snapshots_.length(); ++i) {
-    size += snapshots_[i]->RawSnapshotSize();
-  }
-  return size;
-}
-
 
 int HeapProfiler::GetSnapshotsCount() {
-  return snapshots_.length();
+  return static_cast<int>(snapshots_.size());
 }
-
 
 HeapSnapshot* HeapProfiler::GetSnapshot(int index) {
-  return snapshots_.at(index);
+  return snapshots_.at(index).get();
 }
-
 
 SnapshotObjectId HeapProfiler::GetSnapshotObjectId(Handle<Object> obj) {
   if (!obj->IsHeapObject())
     return v8::HeapProfiler::kUnknownObjectId;
   return ids_->FindEntry(HeapObject::cast(*obj)->address());
 }
-
 
 void HeapProfiler::ObjectMoveEvent(Address from, Address to, int size) {
   base::LockGuard<base::Mutex> guard(&profiler_mutex_);
@@ -187,7 +191,6 @@ void HeapProfiler::ObjectMoveEvent(Address from, Address to, int size) {
     allocation_tracker_->address_to_trace()->MoveObject(from, to, size);
   }
 }
-
 
 void HeapProfiler::AllocationEvent(Address addr, int size) {
   DisallowHeapAllocation no_allocation;
@@ -202,30 +205,48 @@ void HeapProfiler::UpdateObjectSizeEvent(Address addr, int size) {
 }
 
 Handle<HeapObject> HeapProfiler::FindHeapObjectById(SnapshotObjectId id) {
-  HeapObject* object = NULL;
+  HeapObject* object = nullptr;
   HeapIterator iterator(heap(), HeapIterator::kFilterUnreachable);
   // Make sure that object with the given id is still reachable.
-  for (HeapObject* obj = iterator.next();
-       obj != NULL;
+  for (HeapObject* obj = iterator.next(); obj != nullptr;
        obj = iterator.next()) {
     if (ids_->FindEntry(obj->address()) == id) {
-      DCHECK(object == NULL);
+      DCHECK_NULL(object);
       object = obj;
       // Can't break -- kFilterUnreachable requires full heap traversal.
     }
   }
-  return object != NULL ? Handle<HeapObject>(object) : Handle<HeapObject>();
+  return object != nullptr ? Handle<HeapObject>(object) : Handle<HeapObject>();
 }
 
 
 void HeapProfiler::ClearHeapObjectMap() {
   ids_.reset(new HeapObjectsMap(heap()));
-  if (!is_tracking_allocations()) is_tracking_object_moves_ = false;
+  if (!allocation_tracker_) is_tracking_object_moves_ = false;
 }
 
 
 Heap* HeapProfiler::heap() const { return ids_->heap(); }
 
+void HeapProfiler::QueryObjects(Handle<Context> context,
+                                debug::QueryObjectPredicate* predicate,
+                                PersistentValueVector<v8::Object>* objects) {
+  // We should return accurate information about live objects, so we need to
+  // collect all garbage first.
+  heap()->CollectAllAvailableGarbage(
+      GarbageCollectionReason::kLowMemoryNotification);
+  heap()->CollectAllGarbage(Heap::kMakeHeapIterableMask,
+                            GarbageCollectionReason::kHeapProfiler);
+  HeapIterator heap_iterator(heap());
+  HeapObject* heap_obj;
+  while ((heap_obj = heap_iterator.next()) != nullptr) {
+    if (!heap_obj->IsJSObject() || heap_obj->IsExternal()) continue;
+    v8::Local<v8::Object> v8_obj(
+        Utils::ToLocal(handle(JSObject::cast(heap_obj))));
+    if (!predicate->Filter(v8_obj)) continue;
+    objects->Append(v8_obj);
+  }
+}
 
 }  // namespace internal
 }  // namespace v8

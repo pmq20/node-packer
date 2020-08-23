@@ -1,10 +1,7 @@
-#include "node.h"
+#include "node_internals.h"
 #include "node_buffer.h"
-#include "base-object.h"
-#include "base-object-inl.h"
-#include "env.h"
-#include "env-inl.h"
-#include "v8.h"
+#include "node_errors.h"
+#include "base_object-inl.h"
 
 namespace node {
 
@@ -55,6 +52,11 @@ class SerializerContext : public BaseObject,
   static void WriteUint64(const FunctionCallbackInfo<Value>& args);
   static void WriteDouble(const FunctionCallbackInfo<Value>& args);
   static void WriteRawBytes(const FunctionCallbackInfo<Value>& args);
+
+  SET_NO_MEMORY_INFO()
+  SET_MEMORY_INFO_NAME(SerializerContext)
+  SET_SELF_SIZE(SerializerContext)
+
  private:
   ValueSerializer serializer_;
 };
@@ -79,6 +81,11 @@ class DeserializerContext : public BaseObject,
   static void ReadUint64(const FunctionCallbackInfo<Value>& args);
   static void ReadDouble(const FunctionCallbackInfo<Value>& args);
   static void ReadRawBytes(const FunctionCallbackInfo<Value>& args);
+
+  SET_NO_MEMORY_INFO()
+  SET_MEMORY_INFO_NAME(DeserializerContext)
+  SET_SELF_SIZE(DeserializerContext)
+
  private:
   const uint8_t* data_;
   const size_t length_;
@@ -89,7 +96,7 @@ class DeserializerContext : public BaseObject,
 SerializerContext::SerializerContext(Environment* env, Local<Object> wrap)
   : BaseObject(env, wrap),
     serializer_(env->isolate(), this) {
-  MakeWeak<SerializerContext>(this);
+  MakeWeak();
 }
 
 void SerializerContext::ThrowDataCloneError(Local<String> message) {
@@ -213,7 +220,8 @@ void SerializerContext::TransferArrayBuffer(
   if (id.IsNothing()) return;
 
   if (!args[1]->IsArrayBuffer())
-    return ctx->env()->ThrowTypeError("arrayBuffer must be an ArrayBuffer");
+    return node::THROW_ERR_INVALID_ARG_TYPE(
+        ctx->env(), "arrayBuffer must be an ArrayBuffer");
 
   Local<ArrayBuffer> ab = args[1].As<ArrayBuffer>();
   ctx->serializer_.TransferArrayBuffer(id.FromJust(), ab);
@@ -258,8 +266,9 @@ void SerializerContext::WriteRawBytes(const FunctionCallbackInfo<Value>& args) {
   SerializerContext* ctx;
   ASSIGN_OR_RETURN_UNWRAP(&ctx, args.Holder());
 
-  if (!args[0]->IsUint8Array()) {
-    return ctx->env()->ThrowTypeError("source must be a Uint8Array");
+  if (!args[0]->IsArrayBufferView()) {
+    return node::THROW_ERR_INVALID_ARG_TYPE(
+        ctx->env(), "source must be a TypedArray or a DataView");
   }
 
   ctx->serializer_.WriteRawBytes(Buffer::Data(args[0]),
@@ -275,7 +284,7 @@ DeserializerContext::DeserializerContext(Environment* env,
     deserializer_(env->isolate(), data_, length_, this) {
   object()->Set(env->context(), env->buffer_string(), buffer).FromJust();
 
-  MakeWeak<DeserializerContext>(this);
+  MakeWeak();
 }
 
 MaybeLocal<Object> DeserializerContext::ReadHostObject(Isolate* isolate) {
@@ -308,8 +317,9 @@ MaybeLocal<Object> DeserializerContext::ReadHostObject(Isolate* isolate) {
 void DeserializerContext::New(const FunctionCallbackInfo<Value>& args) {
   Environment* env = Environment::GetCurrent(args);
 
-  if (!args[0]->IsUint8Array()) {
-    return env->ThrowTypeError("buffer must be a Uint8Array");
+  if (!args[0]->IsArrayBufferView()) {
+    return node::THROW_ERR_INVALID_ARG_TYPE(
+        env, "buffer must be a TypedArray or a DataView");
   }
 
   new DeserializerContext(env, args.This(), args[0]);
@@ -353,8 +363,8 @@ void DeserializerContext::TransferArrayBuffer(
     return;
   }
 
-  return ctx->env()->ThrowTypeError("arrayBuffer must be an ArrayBuffer or "
-                                    "SharedArrayBuffer");
+  return node::THROW_ERR_INVALID_ARG_TYPE(
+      ctx->env(), "arrayBuffer must be an ArrayBuffer or SharedArrayBuffer");
 }
 
 void DeserializerContext::GetWireFormatVersion(
@@ -428,9 +438,9 @@ void DeserializerContext::ReadRawBytes(
   args.GetReturnValue().Set(offset);
 }
 
-void InitializeSerdesBindings(Local<Object> target,
-                              Local<Value> unused,
-                              Local<Context> context) {
+void Initialize(Local<Object> target,
+                Local<Value> unused,
+                Local<Context> context) {
   Environment* env = Environment::GetCurrent(context);
   Local<FunctionTemplate> ser =
       env->NewFunctionTemplate(SerializerContext::New);
@@ -451,9 +461,11 @@ void InitializeSerdesBindings(Local<Object> target,
                       "_setTreatArrayBufferViewsAsHostObjects",
                       SerializerContext::SetTreatArrayBufferViewsAsHostObjects);
 
-  ser->SetClassName(FIXED_ONE_BYTE_STRING(env->isolate(), "Serializer"));
+  Local<String> serializerString =
+      FIXED_ONE_BYTE_STRING(env->isolate(), "Serializer");
+  ser->SetClassName(serializerString);
   target->Set(env->context(),
-              FIXED_ONE_BYTE_STRING(env->isolate(), "Serializer"),
+              serializerString,
               ser->GetFunction(env->context()).ToLocalChecked()).FromJust();
 
   Local<FunctionTemplate> des =
@@ -474,13 +486,15 @@ void InitializeSerdesBindings(Local<Object> target,
   env->SetProtoMethod(des, "readDouble", DeserializerContext::ReadDouble);
   env->SetProtoMethod(des, "_readRawBytes", DeserializerContext::ReadRawBytes);
 
-  des->SetClassName(FIXED_ONE_BYTE_STRING(env->isolate(), "Deserializer"));
+  Local<String> deserializerString =
+      FIXED_ONE_BYTE_STRING(env->isolate(), "Deserializer");
+  des->SetClassName(deserializerString);
   target->Set(env->context(),
-              FIXED_ONE_BYTE_STRING(env->isolate(), "Deserializer"),
+              deserializerString,
               des->GetFunction(env->context()).ToLocalChecked()).FromJust();
 }
 
 }  // anonymous namespace
 }  // namespace node
 
-NODE_MODULE_CONTEXT_AWARE_BUILTIN(serdes, node::InitializeSerdesBindings)
+NODE_BUILTIN_MODULE_CONTEXT_AWARE(serdes, node::Initialize)

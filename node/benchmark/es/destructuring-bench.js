@@ -5,7 +5,7 @@ const assert = require('assert');
 
 const bench = common.createBenchmark(main, {
   method: ['swap', 'destructure'],
-  millions: [100]
+  n: [1e8]
 });
 
 function runSwapManual(n) {
@@ -19,7 +19,7 @@ function runSwapManual(n) {
     assert.strictEqual(x, 2);
     assert.strictEqual(y, 1);
   }
-  bench.end(n / 1e6);
+  bench.end(n);
 }
 
 function runSwapDestructured(n) {
@@ -31,13 +31,13 @@ function runSwapDestructured(n) {
     assert.strictEqual(x, 2);
     assert.strictEqual(y, 1);
   }
-  bench.end(n / 1e6);
+  bench.end(n);
 }
 
-function main(conf) {
-  const n = +conf.millions * 1e6;
-
-  switch (conf.method) {
+function main({ n, method }) {
+  switch (method) {
+    case '':
+      // Empty string falls through to next line as default, mostly for tests.
     case 'swap':
       runSwapManual(n);
       break;
@@ -45,6 +45,6 @@ function main(conf) {
       runSwapDestructured(n);
       break;
     default:
-      throw new Error('Unexpected method');
+      throw new Error(`Unexpected method "${method}"`);
   }
 }

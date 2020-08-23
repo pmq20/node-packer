@@ -20,13 +20,12 @@
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 'use strict';
-const common = require('../common');
+require('../common');
 const assert = require('assert');
-const path = require('path');
+const fixtures = require('../common/fixtures');
 
 const spawn = require('child_process').spawn;
-const childPath = path.join(common.fixturesDir,
-                            'parent-process-nonpersistent.js');
+const childPath = fixtures.path('parent-process-nonpersistent.js');
 let persistentPid = -1;
 
 const child = spawn(process.execPath, [ childPath ]);
@@ -40,7 +39,5 @@ process.on('exit', function() {
   assert.throws(function() {
     process.kill(child.pid);
   }, /^Error: kill ESRCH$/);
-  assert.doesNotThrow(function() {
-    process.kill(persistentPid);
-  });
+  process.kill(persistentPid);
 });

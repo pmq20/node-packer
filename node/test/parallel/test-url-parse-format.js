@@ -581,17 +581,17 @@ const parseTests = {
     href: 'git+http://github.com/joyent/node.git'
   },
 
-  //if local1@domain1 is uses as a relative URL it may
-  //be parse into auth@hostname, but here there is no
-  //way to make it work in url.parse, I add the test to be explicit
+  // If local1@domain1 is uses as a relative URL it may
+  // be parse into auth@hostname, but here there is no
+  // way to make it work in url.parse, I add the test to be explicit
   'local1@domain1': {
     pathname: 'local1@domain1',
     path: 'local1@domain1',
     href: 'local1@domain1'
   },
 
-  //While this may seem counter-intuitive, a browser will parse
-  //<a href='www.google.com'> as a path.
+  // While this may seem counter-intuitive, a browser will parse
+  // <a href='www.google.com'> as a path.
   'www.example.com': {
     href: 'www.example.com',
     pathname: 'www.example.com',
@@ -890,6 +890,39 @@ const parseTests = {
     pathname: '/*',
     path: '/*',
     href: 'https:///*'
+  },
+
+  // The following two URLs are the same, but they differ for
+  // a capital A: it is important that we verify that the protocol
+  // is checked in a case-insensitive manner.
+  'javascript:alert(1);a=\x27@white-listed.com\x27': {
+    protocol: 'javascript:',
+    slashes: null,
+    auth: null,
+    host: null,
+    port: null,
+    hostname: null,
+    hash: null,
+    search: null,
+    query: null,
+    pathname: "alert(1);a='@white-listed.com'",
+    path: "alert(1);a='@white-listed.com'",
+    href: "javascript:alert(1);a='@white-listed.com'"
+  },
+
+  'javAscript:alert(1);a=\x27@white-listed.com\x27': {
+    protocol: 'javascript:',
+    slashes: null,
+    auth: null,
+    host: null,
+    port: null,
+    hostname: null,
+    hash: null,
+    search: null,
+    query: null,
+    pathname: "alert(1);a='@white-listed.com'",
+    path: "alert(1);a='@white-listed.com'",
+    href: "javascript:alert(1);a='@white-listed.com'"
   }
 };
 
@@ -920,4 +953,26 @@ for (const u in parseTests) {
 
   assert.strictEqual(actual, expected,
                      `format(${u}) == ${u}\nactual:${actual}`);
+}
+
+{
+  const parsed = url.parse('http://nodejs.org/')
+    .resolveObject('jAvascript:alert(1);a=\x27@white-listed.com\x27');
+
+  const expected = Object.assign(new url.Url(), {
+    protocol: 'javascript:',
+    slashes: null,
+    auth: null,
+    host: null,
+    port: null,
+    hostname: null,
+    hash: null,
+    search: null,
+    query: null,
+    pathname: "alert(1);a='@white-listed.com'",
+    path: "alert(1);a='@white-listed.com'",
+    href: "javascript:alert(1);a='@white-listed.com'"
+  });
+
+  assert.deepStrictEqual(parsed, expected);
 }

@@ -21,52 +21,255 @@
 
 'use strict';
 
-const binding = process.binding('contextify');
-const Script = binding.ContextifyScript;
+const {
+  ContextifyScript,
+  makeContext,
+  isContext: _isContext,
+  compileFunction: _compileFunction
+} = process.binding('contextify');
+const { callbackMap } = internalBinding('module_wrap');
+const {
+  ERR_INVALID_ARG_TYPE,
+  ERR_OUT_OF_RANGE,
+  ERR_VM_MODULE_NOT_MODULE,
+} = require('internal/errors').codes;
+const { isModuleNamespaceObject, isArrayBufferView } = require('util').types;
+const { validateUint32 } = require('internal/validators');
+const kParsingContext = Symbol('script parsing context');
 
-// The binding provides a few useful primitives:
-// - Script(code, { filename = "evalmachine.anonymous",
-//                  displayErrors = true } = {})
-//   with methods:
-//   - runInThisContext({ displayErrors = true } = {})
-//   - runInContext(sandbox, { displayErrors = true, timeout = undefined } = {})
-// - makeContext(sandbox)
-// - isContext(sandbox)
-// From this we build the entire documented API.
+const ArrayForEach = Function.call.bind(Array.prototype.forEach);
+const ArrayIsArray = Array.isArray;
 
-const realRunInThisContext = Script.prototype.runInThisContext;
-const realRunInContext = Script.prototype.runInContext;
+class Script extends ContextifyScript {
+  constructor(code, options = {}) {
+    code = `${code}`;
+    if (typeof options === 'string') {
+      options = { filename: options };
+    } else if (typeof options !== 'object' || options === null) {
+      throw new ERR_INVALID_ARG_TYPE('options', 'Object', options);
+    }
 
-Script.prototype.runInThisContext = function(options) {
-  if (options && options.breakOnSigint && process._events.SIGINT) {
-    return sigintHandlersWrap(realRunInThisContext, this, [options]);
-  } else {
-    return realRunInThisContext.call(this, options);
+    const {
+      filename = 'evalmachine.<anonymous>',
+      lineOffset = 0,
+      columnOffset = 0,
+      cachedData,
+      produceCachedData = false,
+      importModuleDynamically,
+      [kParsingContext]: parsingContext,
+    } = options;
+
+    if (typeof filename !== 'string') {
+      throw new ERR_INVALID_ARG_TYPE('options.filename', 'string', filename);
+    }
+    validateInteger(lineOffset, 'options.lineOffset');
+    validateInteger(columnOffset, 'options.columnOffset');
+    if (cachedData !== undefined && !isArrayBufferView(cachedData)) {
+      throw new ERR_INVALID_ARG_TYPE(
+        'options.cachedData',
+        ['Buffer', 'TypedArray', 'DataView'],
+        cachedData
+      );
+    }
+    if (typeof produceCachedData !== 'boolean') {
+      throw new ERR_INVALID_ARG_TYPE('options.produceCachedData', 'boolean',
+                                     produceCachedData);
+    }
+
+    // Calling `ReThrow()` on a native TryCatch does not generate a new
+    // abort-on-uncaught-exception check. A dummy try/catch in JS land
+    // protects against that.
+    try { // eslint-disable-line no-useless-catch
+      super(code,
+            filename,
+            lineOffset,
+            columnOffset,
+            cachedData,
+            produceCachedData,
+            parsingContext);
+    } catch (e) {
+      throw e; /* node-do-not-add-exception-line */
+    }
+
+    if (importModuleDynamically !== undefined) {
+      if (typeof importModuleDynamically !== 'function') {
+        throw new ERR_INVALID_ARG_TYPE('options.importModuleDynamically',
+                                       'function',
+                                       importModuleDynamically);
+      }
+      const { wrapMap, linkingStatusMap } =
+        require('internal/vm/source_text_module');
+      callbackMap.set(this, { importModuleDynamically: async (...args) => {
+        const m = await importModuleDynamically(...args);
+        if (isModuleNamespaceObject(m)) {
+          return m;
+        }
+        if (!m || !wrapMap.has(m))
+          throw new ERR_VM_MODULE_NOT_MODULE();
+        const childLinkingStatus = linkingStatusMap.get(m);
+        if (childLinkingStatus === 'errored')
+          throw m.error;
+        return m.namespace;
+      } });
+    }
   }
-};
 
-Script.prototype.runInContext = function(contextifiedSandbox, options) {
-  if (options && options.breakOnSigint && process._events.SIGINT) {
-    return sigintHandlersWrap(realRunInContext, this,
-                              [contextifiedSandbox, options]);
-  } else {
-    return realRunInContext.call(this, contextifiedSandbox, options);
+  runInThisContext(options) {
+    const { breakOnSigint, args } = getRunInContextArgs(options);
+    if (breakOnSigint && process.listenerCount('SIGINT') > 0) {
+      return sigintHandlersWrap(super.runInThisContext, this, args);
+    } else {
+      return super.runInThisContext(...args);
+    }
   }
-};
 
-Script.prototype.runInNewContext = function(sandbox, options) {
-  var context = createContext(sandbox);
-  return this.runInContext(context, options);
-};
+  runInContext(contextifiedSandbox, options) {
+    validateContext(contextifiedSandbox);
+    const { breakOnSigint, args } = getRunInContextArgs(options);
+    if (breakOnSigint && process.listenerCount('SIGINT') > 0) {
+      return sigintHandlersWrap(super.runInContext, this,
+                                [contextifiedSandbox, ...args]);
+    } else {
+      return super.runInContext(contextifiedSandbox, ...args);
+    }
+  }
 
-function createContext(sandbox) {
-  if (sandbox === undefined) {
-    sandbox = {};
-  } else if (binding.isContext(sandbox)) {
+  runInNewContext(sandbox, options) {
+    const context = createContext(sandbox, getContextOptions(options));
+    return this.runInContext(context, options);
+  }
+}
+
+function validateContext(sandbox) {
+  if (typeof sandbox !== 'object' || sandbox === null) {
+    throw new ERR_INVALID_ARG_TYPE('contextifiedSandbox', 'Object', sandbox);
+  }
+  if (!_isContext(sandbox)) {
+    throw new ERR_INVALID_ARG_TYPE('contextifiedSandbox', 'vm.Context',
+                                   sandbox);
+  }
+}
+
+function validateInteger(prop, propName) {
+  if (!Number.isInteger(prop)) {
+    throw new ERR_INVALID_ARG_TYPE(propName, 'integer', prop);
+  }
+  if ((prop >> 0) !== prop) {
+    throw new ERR_OUT_OF_RANGE(propName, '32-bit integer', prop);
+  }
+}
+
+function validateString(prop, propName) {
+  if (prop !== undefined && typeof prop !== 'string')
+    throw new ERR_INVALID_ARG_TYPE(propName, 'string', prop);
+}
+
+function validateBool(prop, propName) {
+  if (prop !== undefined && typeof prop !== 'boolean')
+    throw new ERR_INVALID_ARG_TYPE(propName, 'boolean', prop);
+}
+
+function validateObject(prop, propName) {
+  if (prop !== undefined && (typeof prop !== 'object' || prop === null))
+    throw new ERR_INVALID_ARG_TYPE(propName, 'Object', prop);
+}
+
+function getRunInContextArgs(options = {}) {
+  if (typeof options !== 'object' || options === null) {
+    throw new ERR_INVALID_ARG_TYPE('options', 'Object', options);
+  }
+
+  let timeout = options.timeout;
+  if (timeout === undefined) {
+    timeout = -1;
+  } else if (!Number.isInteger(timeout) || timeout <= 0) {
+    throw new ERR_INVALID_ARG_TYPE('options.timeout', 'a positive integer',
+                                   timeout);
+  }
+
+  const {
+    displayErrors = true,
+    breakOnSigint = false
+  } = options;
+
+  if (typeof displayErrors !== 'boolean') {
+    throw new ERR_INVALID_ARG_TYPE('options.displayErrors', 'boolean',
+                                   displayErrors);
+  }
+  if (typeof breakOnSigint !== 'boolean') {
+    throw new ERR_INVALID_ARG_TYPE('options.breakOnSigint', 'boolean',
+                                   breakOnSigint);
+  }
+
+  return {
+    breakOnSigint,
+    args: [timeout, displayErrors, breakOnSigint]
+  };
+}
+
+function getContextOptions(options) {
+  if (options) {
+    validateObject(options.contextCodeGeneration,
+                   'options.contextCodeGeneration');
+    const contextOptions = {
+      name: options.contextName,
+      origin: options.contextOrigin,
+      codeGeneration: typeof options.contextCodeGeneration === 'object' ? {
+        strings: options.contextCodeGeneration.strings,
+        wasm: options.contextCodeGeneration.wasm,
+      } : undefined,
+    };
+    validateString(contextOptions.name, 'options.contextName');
+    validateString(contextOptions.origin, 'options.contextOrigin');
+    if (contextOptions.codeGeneration) {
+      validateBool(contextOptions.codeGeneration.strings,
+                   'options.contextCodeGeneration.strings');
+      validateBool(contextOptions.codeGeneration.wasm,
+                   'options.contextCodeGeneration.wasm');
+    }
+    return contextOptions;
+  }
+  return {};
+}
+
+function isContext(sandbox) {
+  if (typeof sandbox !== 'object' || sandbox === null) {
+    throw new ERR_INVALID_ARG_TYPE('sandbox', 'Object', sandbox);
+  }
+  return _isContext(sandbox);
+}
+
+let defaultContextNameIndex = 1;
+function createContext(sandbox = {}, options = {}) {
+  if (isContext(sandbox)) {
     return sandbox;
   }
 
-  binding.makeContext(sandbox);
+  if (typeof options !== 'object' || options === null) {
+    throw new ERR_INVALID_ARG_TYPE('options', 'Object', options);
+  }
+
+  const {
+    name = `VM Context ${defaultContextNameIndex++}`,
+    origin,
+    codeGeneration
+  } = options;
+
+  if (typeof name !== 'string') {
+    throw new ERR_INVALID_ARG_TYPE('options.name', 'string', options.name);
+  }
+  validateString(origin, 'options.origin');
+  validateObject(codeGeneration, 'options.codeGeneration');
+
+  let strings = true;
+  let wasm = true;
+  if (codeGeneration !== undefined) {
+    ({ strings = true, wasm = true } = codeGeneration);
+    validateBool(strings, 'options.codeGeneration.strings');
+    validateBool(wasm, 'options.codeGeneration.wasm');
+  }
+
+  makeContext(sandbox, name, origin, strings, wasm);
   return sandbox;
 }
 
@@ -77,14 +280,7 @@ function createScript(code, options) {
 // Remove all SIGINT listeners and re-attach them after the wrapped function
 // has executed, so that caught SIGINT are handled by the listeners again.
 function sigintHandlersWrap(fn, thisArg, argsArray) {
-  // Using the internal list here to make sure `.once()` wrappers are used,
-  // not the original ones.
-  let sigintListeners = process._events.SIGINT;
-
-  if (Array.isArray(sigintListeners))
-    sigintListeners = sigintListeners.slice();
-  else
-    sigintListeners = [sigintListeners];
+  const sigintListeners = process.rawListeners('SIGINT');
 
   process.removeAllListeners('SIGINT');
 
@@ -99,30 +295,140 @@ function sigintHandlersWrap(fn, thisArg, argsArray) {
   }
 }
 
-function runInDebugContext(code) {
-  return binding.runInDebugContext(code);
-}
-
 function runInContext(code, contextifiedSandbox, options) {
+  validateContext(contextifiedSandbox);
+  if (typeof options === 'string') {
+    options = {
+      filename: options,
+      [kParsingContext]: contextifiedSandbox
+    };
+  } else {
+    options = Object.assign({}, options, {
+      [kParsingContext]: contextifiedSandbox
+    });
+  }
   return createScript(code, options)
     .runInContext(contextifiedSandbox, options);
 }
 
 function runInNewContext(code, sandbox, options) {
+  if (typeof options === 'string') {
+    options = { filename: options };
+  }
+  sandbox = createContext(sandbox, getContextOptions(options));
+  options = Object.assign({}, options, {
+    [kParsingContext]: sandbox
+  });
   return createScript(code, options).runInNewContext(sandbox, options);
 }
 
 function runInThisContext(code, options) {
+  if (typeof options === 'string') {
+    options = { filename: options };
+  }
   return createScript(code, options).runInThisContext(options);
 }
+
+function compileFunction(code, params, options = {}) {
+  if (typeof code !== 'string') {
+    throw new ERR_INVALID_ARG_TYPE('code', 'string', code);
+  }
+  if (params !== undefined) {
+    if (!ArrayIsArray(params)) {
+      throw new ERR_INVALID_ARG_TYPE('params', 'Array', params);
+    }
+    ArrayForEach(params, (param, i) => {
+      if (typeof param !== 'string') {
+        throw new ERR_INVALID_ARG_TYPE(`params[${i}]`, 'string', param);
+      }
+    });
+  }
+
+  const {
+    filename = '',
+    columnOffset = 0,
+    lineOffset = 0,
+    cachedData = undefined,
+    produceCachedData = false,
+    parsingContext = undefined,
+    contextExtensions = [],
+  } = options;
+
+  if (typeof filename !== 'string') {
+    throw new ERR_INVALID_ARG_TYPE('options.filename', 'string', filename);
+  }
+  validateUint32(columnOffset, 'options.columnOffset');
+  validateUint32(lineOffset, 'options.lineOffset');
+  if (cachedData !== undefined && !isArrayBufferView(cachedData)) {
+    throw new ERR_INVALID_ARG_TYPE(
+      'options.cachedData',
+      ['Buffer', 'TypedArray', 'DataView'],
+      cachedData
+    );
+  }
+  if (typeof produceCachedData !== 'boolean') {
+    throw new ERR_INVALID_ARG_TYPE(
+      'options.produceCachedData',
+      'boolean',
+      produceCachedData
+    );
+  }
+  if (parsingContext !== undefined) {
+    if (
+      typeof parsingContext !== 'object' ||
+      parsingContext === null ||
+      !isContext(parsingContext)
+    ) {
+      throw new ERR_INVALID_ARG_TYPE(
+        'options.parsingContext',
+        'Context',
+        parsingContext
+      );
+    }
+  }
+  if (!ArrayIsArray(contextExtensions)) {
+    throw new ERR_INVALID_ARG_TYPE(
+      'options.contextExtensions',
+      'Array',
+      contextExtensions
+    );
+  }
+  ArrayForEach(contextExtensions, (extension, i) => {
+    if (typeof extension !== 'object') {
+      throw new ERR_INVALID_ARG_TYPE(
+        `options.contextExtensions[${i}]`,
+        'object',
+        extension
+      );
+    }
+  });
+
+  return _compileFunction(
+    code,
+    filename,
+    lineOffset,
+    columnOffset,
+    cachedData,
+    produceCachedData,
+    parsingContext,
+    contextExtensions,
+    params
+  );
+}
+
 
 module.exports = {
   Script,
   createContext,
   createScript,
-  runInDebugContext,
   runInContext,
   runInNewContext,
   runInThisContext,
-  isContext: binding.isContext
+  isContext,
+  compileFunction,
 };
+
+if (require('internal/options').getOptionValue('--experimental-vm-modules')) {
+  const { SourceTextModule } = require('internal/vm/source_text_module');
+  module.exports.SourceTextModule = SourceTextModule;
+}

@@ -36,6 +36,12 @@ try {
 }
 assert.strictEqual(caughtException, true);
 
+fs.openSync(__filename);
+
+fs.open(__filename, common.mustCall((err) => {
+  assert.ifError(err);
+}));
+
 fs.open(__filename, 'r', common.mustCall((err) => {
   assert.ifError(err);
 }));
@@ -43,3 +49,64 @@ fs.open(__filename, 'r', common.mustCall((err) => {
 fs.open(__filename, 'rs', common.mustCall((err) => {
   assert.ifError(err);
 }));
+
+fs.open(__filename, 'r', 0, common.mustCall((err) => {
+  assert.ifError(err);
+}));
+
+fs.open(__filename, 'r', null, common.mustCall((err) => {
+  assert.ifError(err);
+}));
+
+async function promise() {
+  await fs.promises.open(__filename);
+  await fs.promises.open(__filename, 'r');
+}
+
+promise().then(common.mustCall()).catch(common.mustNotCall());
+
+common.expectsError(
+  () => fs.open(__filename, 'r', 'boom', common.mustNotCall()),
+  {
+    code: 'ERR_INVALID_ARG_VALUE',
+    type: TypeError
+  }
+);
+
+for (const extra of [[], ['r'], ['r', 0], ['r', 0, 'bad callback']]) {
+  common.expectsError(
+    () => fs.open(__filename, ...extra),
+    {
+      code: 'ERR_INVALID_CALLBACK',
+      type: TypeError
+    }
+  );
+}
+
+[false, 1, [], {}, null, undefined].forEach((i) => {
+  common.expectsError(
+    () => fs.open(i, 'r', common.mustNotCall()),
+    {
+      code: 'ERR_INVALID_ARG_TYPE',
+      type: TypeError
+    }
+  );
+  common.expectsError(
+    () => fs.openSync(i, 'r', common.mustNotCall()),
+    {
+      code: 'ERR_INVALID_ARG_TYPE',
+      type: TypeError
+    }
+  );
+  fs.promises.open(i, 'r')
+    .then(common.mustNotCall())
+    .catch(common.mustCall((err) => {
+      common.expectsError(
+        () => { throw err; },
+        {
+          code: 'ERR_INVALID_ARG_TYPE',
+          type: TypeError
+        }
+      );
+    }));
+});

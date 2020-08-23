@@ -27,14 +27,14 @@ const url = require('url');
 
 const expectedRequests = ['/hello', '/there', '/world'];
 
-const server = http.Server(common.mustCall(function(req, res) {
+const server = http.Server(common.mustCall((req, res) => {
   assert.strictEqual(expectedRequests.shift(), req.url);
 
   switch (req.url) {
     case '/hello':
       assert.strictEqual(req.method, 'GET');
-      assert.strictEqual(req.headers['accept'], '*/*');
-      assert.strictEqual(req.headers['foo'], 'bar');
+      assert.strictEqual(req.headers.accept, '*/*');
+      assert.strictEqual(req.headers.foo, 'bar');
       assert.strictEqual(req.headers.cookie, 'foo=bar; bar=baz; baz=quux');
       break;
     case '/there':
@@ -50,10 +50,10 @@ const server = http.Server(common.mustCall(function(req, res) {
   }
 
   if (expectedRequests.length === 0)
-    this.close();
+    server.close();
 
-  req.on('end', function() {
-    res.writeHead(200, {'Content-Type': 'text/plain'});
+  req.on('end', () => {
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
     res.write(`The path was ${url.parse(req.url).pathname}`);
     res.end();
   });
@@ -61,10 +61,10 @@ const server = http.Server(common.mustCall(function(req, res) {
 }, 3));
 server.listen(0);
 
-server.on('listening', function() {
-  const agent = new http.Agent({ port: this.address().port, maxSockets: 1 });
+server.on('listening', () => {
+  const agent = new http.Agent({ port: server.address().port, maxSockets: 1 });
   const req = http.get({
-    port: this.address().port,
+    port: server.address().port,
     path: '/hello',
     headers: {
       Accept: '*/*',
@@ -72,33 +72,33 @@ server.on('listening', function() {
       Cookie: [ 'foo=bar', 'bar=baz', 'baz=quux' ]
     },
     agent: agent
-  }, common.mustCall(function(res) {
+  }, common.mustCall((res) => {
     const cookieHeaders = req._header.match(/^Cookie: .+$/img);
     assert.deepStrictEqual(cookieHeaders,
                            ['Cookie: foo=bar; bar=baz; baz=quux']);
     assert.strictEqual(res.statusCode, 200);
     let body = '';
     res.setEncoding('utf8');
-    res.on('data', function(chunk) { body += chunk; });
-    res.on('end', common.mustCall(function() {
+    res.on('data', (chunk) => { body += chunk; });
+    res.on('end', common.mustCall(() => {
       assert.strictEqual(body, 'The path was /hello');
     }));
   }));
 
-  setTimeout(common.mustCall(function() {
+  setTimeout(common.mustCall(() => {
     const req = http.request({
       port: server.address().port,
       method: 'PUT',
       path: '/there',
       agent: agent
-    }, common.mustCall(function(res) {
+    }, common.mustCall((res) => {
       const cookieHeaders = req._header.match(/^Cookie: .+$/img);
       assert.deepStrictEqual(cookieHeaders, ['Cookie: node=awesome; ta=da']);
       assert.strictEqual(res.statusCode, 200);
       let body = '';
       res.setEncoding('utf8');
-      res.on('data', function(chunk) { body += chunk; });
-      res.on('end', common.mustCall(function() {
+      res.on('data', (chunk) => { body += chunk; });
+      res.on('end', common.mustCall(() => {
         assert.strictEqual(body, 'The path was /there');
       }));
     }));
@@ -106,7 +106,7 @@ server.on('listening', function() {
     req.end();
   }), 1);
 
-  setTimeout(common.mustCall(function() {
+  setTimeout(common.mustCall(() => {
     const req = http.request({
       port: server.address().port,
       method: 'POST',
@@ -115,7 +115,7 @@ server.on('listening', function() {
                  ['Cookie', 'def=456'],
                  ['Cookie', 'ghi=789'] ],
       agent: agent
-    }, common.mustCall(function(res) {
+    }, common.mustCall((res) => {
       const cookieHeaders = req._header.match(/^Cookie: .+$/img);
       assert.deepStrictEqual(cookieHeaders,
                              ['Cookie: abc=123',
@@ -124,8 +124,8 @@ server.on('listening', function() {
       assert.strictEqual(res.statusCode, 200);
       let body = '';
       res.setEncoding('utf8');
-      res.on('data', function(chunk) { body += chunk; });
-      res.on('end', common.mustCall(function() {
+      res.on('data', (chunk) => { body += chunk; });
+      res.on('end', common.mustCall(() => {
         assert.strictEqual(body, 'The path was /world');
       }));
     }));

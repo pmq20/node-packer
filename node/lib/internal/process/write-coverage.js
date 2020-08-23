@@ -1,9 +1,6 @@
 'use strict';
-const process = require('process');
 const path = require('path');
-const fs = require('fs');
-const mkdirSync = fs.mkdirSync;
-const writeFileSync = fs.writeFileSync;
+const { mkdirSync, writeFileSync } = require('fs');
 
 function writeCoverage() {
   if (!global.__coverage__) {

@@ -1,7 +1,13 @@
 'use strict';
 
 const common = require('../common');
+
+const assert = require('assert');
 const http = require('http');
+
+let time = Date.now();
+let intervalWasInvoked = false;
+const TIMEOUT = common.platformTimeout(200);
 
 const server = http.createServer((req, res) => {
   server.close();
@@ -9,12 +15,16 @@ const server = http.createServer((req, res) => {
   res.writeHead(200);
   res.flushHeaders();
 
-  req.setTimeout(common.platformTimeout(200),
-                 common.mustNotCall('Request timeout should not fire'));
+  req.setTimeout(TIMEOUT, () => {
+    if (!intervalWasInvoked)
+      return common.skip('interval was not invoked quickly enough for test');
+    assert.fail('Request timeout should not fire');
+  });
+
   req.resume();
-  req.once('end', common.mustCall(() => {
+  req.once('end', () => {
     res.end();
-  }));
+  });
 });
 
 server.listen(0, common.mustCall(() => {
@@ -23,12 +33,19 @@ server.listen(0, common.mustCall(() => {
     method: 'POST'
   }, (res) => {
     const interval = setInterval(() => {
+      intervalWasInvoked = true;
+      // If machine is busy enough that the interval takes more than TIMEOUT ms
+      // to be invoked, skip the test.
+      const now = Date.now();
+      if (now - time > TIMEOUT)
+        return common.skip('interval is not invoked quickly enough for test');
+      time = now;
       req.write('a');
     }, common.platformTimeout(25));
     setTimeout(() => {
       clearInterval(interval);
       req.end();
-    }, common.platformTimeout(200));
+    }, TIMEOUT);
   });
   req.write('.');
 }));

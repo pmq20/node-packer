@@ -24,12 +24,13 @@ const common = require('../common');
 const assert = require('assert');
 const http = require('http');
 const net = require('net');
+const util = require('util');
 
 let outstanding_reqs = 0;
 
 const server = http.createServer(function(req, res) {
   res.writeHead(200, [['content-type', 'text/plain']]);
-  res.addTrailers({'x-foo': 'bar'});
+  res.addTrailers({ 'x-foo': 'bar' });
   res.end('stuff\n');
 });
 server.listen(0);
@@ -48,13 +49,15 @@ server.on('listening', function() {
   });
 
   c.on('data', function(chunk) {
-    //console.log(chunk);
     res_buffer += chunk;
   });
 
   c.on('end', function() {
     c.end();
-    assert.ok(!/x-foo/.test(res_buffer), 'Trailer in HTTP/1.0 response.');
+    assert.ok(
+      !/x-foo/.test(res_buffer),
+      `Trailer in HTTP/1.0 response. Response buffer: ${res_buffer}`
+    );
     outstanding_reqs--;
     if (outstanding_reqs === 0) {
       server.close();
@@ -78,14 +81,13 @@ server.on('listening', function() {
   });
 
   c.on('data', function(chunk) {
-    //console.log(chunk);
     res_buffer += chunk;
     if (/0\r\n/.test(res_buffer)) { // got the end.
       outstanding_reqs--;
       clearTimeout(tid);
       assert.ok(
         /0\r\nx-foo: bar\r\n\r\n$/.test(res_buffer),
-        'No trailer in HTTP/1.1 response.'
+        `No trailer in HTTP/1.1 response. Response buffer: ${res_buffer}`
       );
       if (outstanding_reqs === 0) {
         server.close();
@@ -103,8 +105,8 @@ server.on('listening', function() {
     headers: {}
   }, function(res) {
     res.on('end', function() {
-      //console.log(res.trailers);
-      assert.ok('x-foo' in res.trailers, 'Client doesn\'t see trailers.');
+      assert.ok('x-foo' in res.trailers,
+                `${util.inspect(res.trailers)} misses the 'x-foo' property`);
       outstanding_reqs--;
       if (outstanding_reqs === 0) {
         server.close();

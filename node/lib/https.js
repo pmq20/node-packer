@@ -25,11 +25,20 @@ require('internal/util').assertCrypto();
 
 const tls = require('tls');
 const url = require('url');
-const http = require('http');
 const util = require('util');
-const inherits = util.inherits;
+const { Agent: HttpAgent } = require('_http_agent');
+const {
+  Server: HttpServer,
+  _connectionListener,
+  kServerResponse
+} = require('_http_server');
+const { ClientRequest } = require('_http_client');
+const { inherits } = util;
 const debug = util.debuglog('https');
 const { urlToOptions, searchParamsSymbol } = require('internal/url');
+const { ERR_INVALID_DOMAIN_NAME } = require('internal/errors').codes;
+const { IncomingMessage, ServerResponse } = require('http');
+const { kIncomingMessage } = require('_http_common');
 
 function Server(opts, requestListener) {
   if (!(this instanceof Server)) return new Server(opts, requestListener);
@@ -40,18 +49,17 @@ function Server(opts, requestListener) {
   }
   opts = util._extend({}, opts);
 
-  if (process.features.tls_npn && !opts.NPNProtocols) {
-    opts.NPNProtocols = ['http/1.1', 'http/1.0'];
-  }
-
-  if (process.features.tls_alpn && !opts.ALPNProtocols) {
+  if (!opts.ALPNProtocols) {
     // http/1.0 is not defined as Protocol IDs in IANA
     // http://www.iana.org/assignments/tls-extensiontype-values
     //       /tls-extensiontype-values.xhtml#alpn-protocol-ids
     opts.ALPNProtocols = ['http/1.1'];
   }
 
-  tls.Server.call(this, opts, http._connectionListener);
+  this[kIncomingMessage] = opts.IncomingMessage || IncomingMessage;
+  this[kServerResponse] = opts.ServerResponse || ServerResponse;
+
+  tls.Server.call(this, opts, _connectionListener);
 
   this.httpAllowHalfOpen = false;
 
@@ -66,15 +74,16 @@ function Server(opts, requestListener) {
 
   this.timeout = 2 * 60 * 1000;
   this.keepAliveTimeout = 5000;
+  this.maxHeadersCount = null;
+  this.headersTimeout = 40 * 1000; // 40 seconds
 }
 inherits(Server, tls.Server);
-exports.Server = Server;
 
-Server.prototype.setTimeout = http.Server.prototype.setTimeout;
+Server.prototype.setTimeout = HttpServer.prototype.setTimeout;
 
-exports.createServer = function createServer(opts, requestListener) {
+function createServer(opts, requestListener) {
   return new Server(opts, requestListener);
-};
+}
 
 
 // HTTPS agents.
@@ -129,7 +138,7 @@ function Agent(options) {
   if (!(this instanceof Agent))
     return new Agent(options);
 
-  http.Agent.call(this, options);
+  HttpAgent.call(this, options);
   this.defaultPort = 443;
   this.protocol = 'https:';
   this.maxCachedSessions = this.options.maxCachedSessions;
@@ -141,11 +150,11 @@ function Agent(options) {
     list: []
   };
 }
-inherits(Agent, http.Agent);
+inherits(Agent, HttpAgent);
 Agent.prototype.createConnection = createConnection;
 
 Agent.prototype.getName = function getName(options) {
-  var name = http.Agent.prototype.getName.call(this, options);
+  var name = HttpAgent.prototype.getName.call(this, options);
 
   name += ':';
   if (options.ca)
@@ -154,6 +163,10 @@ Agent.prototype.getName = function getName(options) {
   name += ':';
   if (options.cert)
     name += options.cert;
+
+  name += ':';
+  if (options.clientCertEngine)
+    name += options.clientCertEngine;
 
   name += ':';
   if (options.ciphers)
@@ -176,8 +189,40 @@ Agent.prototype.getName = function getName(options) {
     name += options.servername;
 
   name += ':';
+  if (options.minVersion)
+    name += options.minVersion;
+
+  name += ':';
+  if (options.maxVersion)
+    name += options.maxVersion;
+
+  name += ':';
   if (options.secureProtocol)
     name += options.secureProtocol;
+
+  name += ':';
+  if (options.crl)
+    name += options.crl;
+
+  name += ':';
+  if (options.honorCipherOrder !== undefined)
+    name += options.honorCipherOrder;
+
+  name += ':';
+  if (options.ecdhCurve)
+    name += options.ecdhCurve;
+
+  name += ':';
+  if (options.dhparam)
+    name += options.dhparam;
+
+  name += ':';
+  if (options.secureOptions !== undefined)
+    name += options.secureOptions;
+
+  name += ':';
+  if (options.sessionIdContext)
+    name += options.sessionIdContext;
 
   return name;
 };
@@ -219,28 +264,42 @@ Agent.prototype._evictSession = function _evictSession(key) {
 
 const globalAgent = new Agent();
 
-exports.globalAgent = globalAgent;
-exports.Agent = Agent;
+function request(...args) {
+  let options = {};
 
-exports.request = function request(options, cb) {
-  if (typeof options === 'string') {
-    options = url.parse(options);
+  if (typeof args[0] === 'string') {
+    const urlStr = args.shift();
+    options = url.parse(urlStr);
     if (!options.hostname) {
-      throw new Error('Unable to determine the domain name');
+      throw new ERR_INVALID_DOMAIN_NAME();
     }
-  } else if (options && options[searchParamsSymbol] &&
-             options[searchParamsSymbol][searchParamsSymbol]) {
+  } else if (args[0] && args[0][searchParamsSymbol] &&
+             args[0][searchParamsSymbol][searchParamsSymbol]) {
     // url.URL instance
-    options = urlToOptions(options);
-  } else {
-    options = util._extend({}, options);
+    options = urlToOptions(args.shift());
   }
-  options._defaultAgent = globalAgent;
-  return http.request(options, cb);
-};
 
-exports.get = function get(options, cb) {
-  var req = exports.request(options, cb);
+  if (args[0] && typeof args[0] !== 'function') {
+    options = util._extend(options, args.shift());
+  }
+
+  options._defaultAgent = module.exports.globalAgent;
+  args.unshift(options);
+
+  return new ClientRequest(...args);
+}
+
+function get(input, options, cb) {
+  const req = request(input, options, cb);
   req.end();
   return req;
+}
+
+module.exports = {
+  Agent,
+  globalAgent,
+  Server,
+  createServer,
+  get,
+  request
 };

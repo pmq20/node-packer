@@ -4,8 +4,8 @@
 #if defined(NODE_WANT_INTERNALS) && NODE_WANT_INTERNALS
 
 #include "env.h"
-#include "req-wrap.h"
-#include "async-wrap.h"
+#include "req_wrap-inl.h"
+#include "async_wrap.h"
 #include "v8.h"
 
 namespace node {
@@ -15,9 +15,10 @@ class ConnectWrap : public ReqWrap<uv_connect_t> {
   ConnectWrap(Environment* env,
               v8::Local<v8::Object> req_wrap_obj,
               AsyncWrap::ProviderType provider);
-  ~ConnectWrap();
 
-  size_t self_size() const override { return sizeof(*this); }
+  SET_NO_MEMORY_INFO()
+  SET_MEMORY_INFO_NAME(ConnectWrap)
+  SET_SELF_SIZE(ConnectWrap)
 };
 
 }  // namespace node

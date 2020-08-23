@@ -18,18 +18,17 @@ class IntlBuiltinsAssembler : public CodeStubAssembler {
       : CodeStubAssembler(state) {}
 };
 
-TF_BUILTIN(StringPrototypeToLowerCaseIntl, IntlBuiltinsAssembler) {
-  Node* const maybe_string = Parameter(Descriptor::kReceiver);
+TF_BUILTIN(StringToLowerCaseIntl, IntlBuiltinsAssembler) {
+  Node* const string = Parameter(Descriptor::kString);
   Node* const context = Parameter(Descriptor::kContext);
 
-  Node* const string =
-      ToThisString(context, maybe_string, "String.prototype.toLowerCase");
+  CSA_ASSERT(this, IsString(string));
 
   Label call_c(this), return_string(this), runtime(this, Label::kDeferred);
 
   // Early exit on empty strings.
-  Node* const length = SmiUntag(LoadStringLength(string));
-  GotoIf(IntPtrEqual(length, IntPtrConstant(0)), &return_string);
+  TNode<Smi> const length = LoadStringLengthAsSmi(string);
+  GotoIf(SmiEqual(length, SmiConstant(0)), &return_string);
 
   // Unpack strings if possible, and bail to runtime unless we get a one-byte
   // flat string.
@@ -47,8 +46,7 @@ TF_BUILTIN(StringPrototypeToLowerCaseIntl, IntlBuiltinsAssembler) {
   Node* const dst = AllocateSeqOneByteString(context, length);
 
   const int kMaxShortStringLength = 24;  // Determined empirically.
-  GotoIf(IntPtrGreaterThan(length, IntPtrConstant(kMaxShortStringLength)),
-         &call_c);
+  GotoIf(SmiGreaterThan(length, SmiConstant(kMaxShortStringLength)), &call_c);
 
   {
     Node* const dst_ptr = PointerToSeqStringData(dst);
@@ -56,29 +54,30 @@ TF_BUILTIN(StringPrototypeToLowerCaseIntl, IntlBuiltinsAssembler) {
              IntPtrConstant(0));
 
     Node* const start_address = to_direct.PointerToData(&call_c);
-    Node* const end_address = IntPtrAdd(start_address, length);
+    TNode<IntPtrT> const end_address =
+        Signed(IntPtrAdd(start_address, SmiUntag(length)));
 
-    Node* const to_lower_table_addr = ExternalConstant(
-        ExternalReference::intl_to_latin1_lower_table(isolate()));
+    Node* const to_lower_table_addr =
+        ExternalConstant(ExternalReference::intl_to_latin1_lower_table());
 
     VARIABLE(var_did_change, MachineRepresentation::kWord32, Int32Constant(0));
 
     VariableList push_vars({&var_cursor, &var_did_change}, zone());
-    BuildFastLoop(
-        push_vars, start_address, end_address,
-        [=, &var_cursor, &var_did_change](Node* current) {
-          Node* c = Load(MachineType::Uint8(), current);
-          Node* lower = Load(MachineType::Uint8(), to_lower_table_addr,
+    BuildFastLoop(push_vars, start_address, end_address,
+                  [=, &var_cursor, &var_did_change](Node* current) {
+                    Node* c = Load(MachineType::Uint8(), current);
+                    Node* lower =
+                        Load(MachineType::Uint8(), to_lower_table_addr,
                              ChangeInt32ToIntPtr(c));
-          StoreNoWriteBarrier(MachineRepresentation::kWord8, dst_ptr,
-                              var_cursor.value(), lower);
+                    StoreNoWriteBarrier(MachineRepresentation::kWord8, dst_ptr,
+                                        var_cursor.value(), lower);
 
-          var_did_change.Bind(
-              Word32Or(Word32NotEqual(c, lower), var_did_change.value()));
+                    var_did_change.Bind(Word32Or(Word32NotEqual(c, lower),
+                                                 var_did_change.value()));
 
-          Increment(var_cursor);
-        },
-        kCharSize, INTPTR_PARAMETERS, IndexAdvanceMode::kPost);
+                    Increment(&var_cursor);
+                  },
+                  kCharSize, INTPTR_PARAMETERS, IndexAdvanceMode::kPost);
 
     // Return the original string if it remained unchanged in order to preserve
     // e.g. internalization and private symbols (such as the preserved object
@@ -94,8 +93,8 @@ TF_BUILTIN(StringPrototypeToLowerCaseIntl, IntlBuiltinsAssembler) {
   {
     Node* const src = to_direct.string();
 
-    Node* const function_addr = ExternalConstant(
-        ExternalReference::intl_convert_one_byte_to_lower(isolate()));
+    Node* const function_addr =
+        ExternalConstant(ExternalReference::intl_convert_one_byte_to_lower());
     Node* const isolate_ptr =
         ExternalConstant(ExternalReference::isolate_address(isolate()));
 
@@ -114,10 +113,20 @@ TF_BUILTIN(StringPrototypeToLowerCaseIntl, IntlBuiltinsAssembler) {
 
   BIND(&runtime);
   {
-    Node* const result =
-        CallRuntime(Runtime::kStringToLowerCaseIntl, context, string);
+    Node* const result = CallRuntime(Runtime::kStringToLowerCaseIntl,
+                                     NoContextConstant(), string);
     Return(result);
   }
+}
+
+TF_BUILTIN(StringPrototypeToLowerCaseIntl, IntlBuiltinsAssembler) {
+  Node* const maybe_string = Parameter(Descriptor::kReceiver);
+  Node* const context = Parameter(Descriptor::kContext);
+
+  Node* const string =
+      ToThisString(context, maybe_string, "String.prototype.toLowerCase");
+
+  Return(CallBuiltin(Builtins::kStringToLowerCaseIntl, context, string));
 }
 
 }  // namespace internal

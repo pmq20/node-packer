@@ -1,12 +1,9 @@
-// Flags: --expose-http2
 'use strict';
 
 const common = require('../common');
 if (!common.hasCrypto)
   common.skip('missing crypto');
 const assert = require('assert');
-
-assert.doesNotThrow(() => process.binding('http2'));
 
 const binding = process.binding('http2');
 const http2 = require('http2');
@@ -32,6 +29,7 @@ const expectedStatusCodes = {
   HTTP_STATUS_CONTINUE: 100,
   HTTP_STATUS_SWITCHING_PROTOCOLS: 101,
   HTTP_STATUS_PROCESSING: 102,
+  HTTP_STATUS_EARLY_HINTS: 103,
   HTTP_STATUS_OK: 200,
   HTTP_STATUS_CREATED: 201,
   HTTP_STATUS_ACCEPTED: 202,
@@ -99,13 +97,21 @@ const expectedHeaderNames = {
   HTTP2_HEADER_AUTHORITY: ':authority',
   HTTP2_HEADER_SCHEME: ':scheme',
   HTTP2_HEADER_PATH: ':path',
+  HTTP2_HEADER_PROTOCOL: ':protocol',
   HTTP2_HEADER_DATE: 'date',
   HTTP2_HEADER_ACCEPT_CHARSET: 'accept-charset',
   HTTP2_HEADER_ACCEPT_ENCODING: 'accept-encoding',
   HTTP2_HEADER_ACCEPT_LANGUAGE: 'accept-language',
   HTTP2_HEADER_ACCEPT_RANGES: 'accept-ranges',
   HTTP2_HEADER_ACCEPT: 'accept',
+  HTTP2_HEADER_ACCESS_CONTROL_ALLOW_CREDENTIALS: 'access-control-allow-credentials', // eslint-disable-line max-len
+  HTTP2_HEADER_ACCESS_CONTROL_ALLOW_HEADERS: 'access-control-allow-headers',
+  HTTP2_HEADER_ACCESS_CONTROL_ALLOW_METHODS: 'access-control-allow-methods',
   HTTP2_HEADER_ACCESS_CONTROL_ALLOW_ORIGIN: 'access-control-allow-origin',
+  HTTP2_HEADER_ACCESS_CONTROL_EXPOSE_HEADERS: 'access-control-expose-headers',
+  HTTP2_HEADER_ACCESS_CONTROL_MAX_AGE: 'access-control-max-age',
+  HTTP2_HEADER_ACCESS_CONTROL_REQUEST_HEADERS: 'access-control-request-headers',
+  HTTP2_HEADER_ACCESS_CONTROL_REQUEST_METHOD: 'access-control-request-method',
   HTTP2_HEADER_AGE: 'age',
   HTTP2_HEADER_ALLOW: 'allow',
   HTTP2_HEADER_AUTHORIZATION: 'authorization',
@@ -119,9 +125,11 @@ const expectedHeaderNames = {
   HTTP2_HEADER_CONTENT_TYPE: 'content-type',
   HTTP2_HEADER_COOKIE: 'cookie',
   HTTP2_HEADER_CONNECTION: 'connection',
+  HTTP2_HEADER_DNT: 'dnt',
   HTTP2_HEADER_ETAG: 'etag',
   HTTP2_HEADER_EXPECT: 'expect',
   HTTP2_HEADER_EXPIRES: 'expires',
+  HTTP2_HEADER_FORWARDED: 'forwarded',
   HTTP2_HEADER_FROM: 'from',
   HTTP2_HEADER_HOST: 'host',
   HTTP2_HEADER_IF_MATCH: 'if-match',
@@ -144,11 +152,17 @@ const expectedHeaderNames = {
   HTTP2_HEADER_SERVER: 'server',
   HTTP2_HEADER_SET_COOKIE: 'set-cookie',
   HTTP2_HEADER_STRICT_TRANSPORT_SECURITY: 'strict-transport-security',
+  HTTP2_HEADER_TRAILER: 'trailer',
   HTTP2_HEADER_TRANSFER_ENCODING: 'transfer-encoding',
+  HTTP2_HEADER_TK: 'tk',
+  HTTP2_HEADER_UPGRADE_INSECURE_REQUESTS: 'upgrade-insecure-requests',
   HTTP2_HEADER_USER_AGENT: 'user-agent',
   HTTP2_HEADER_VARY: 'vary',
   HTTP2_HEADER_VIA: 'via',
+  HTTP2_HEADER_WARNING: 'warning',
   HTTP2_HEADER_WWW_AUTHENTICATE: 'www-authenticate',
+  HTTP2_HEADER_X_CONTENT_TYPE_OPTIONS: 'x-content-type-options',
+  HTTP2_HEADER_X_FRAME_OPTIONS: 'x-frame-options',
   HTTP2_HEADER_KEEP_ALIVE: 'keep-alive',
   HTTP2_HEADER_CONTENT_MD5: 'content-md5',
   HTTP2_HEADER_TE: 'te',
@@ -204,7 +218,8 @@ const expectedNGConstants = {
   NGHTTP2_SETTINGS_MAX_CONCURRENT_STREAMS: 3,
   NGHTTP2_SETTINGS_INITIAL_WINDOW_SIZE: 4,
   NGHTTP2_SETTINGS_MAX_FRAME_SIZE: 5,
-  NGHTTP2_SETTINGS_MAX_HEADER_LIST_SIZE: 6
+  NGHTTP2_SETTINGS_MAX_HEADER_LIST_SIZE: 6,
+  NGHTTP2_SETTINGS_ENABLE_CONNECT_PROTOCOL: 8
 };
 
 const defaultSettings = {
@@ -216,16 +231,16 @@ const defaultSettings = {
 
 for (const name of Object.keys(constants)) {
   if (name.startsWith('HTTP_STATUS_')) {
-    assert.strictEqual(expectedStatusCodes[name], constants[name],
+    assert.strictEqual(constants[name], expectedStatusCodes[name],
                        `Expected status code match for ${name}`);
   } else if (name.startsWith('HTTP2_HEADER_')) {
-    assert.strictEqual(expectedHeaderNames[name], constants[name],
+    assert.strictEqual(constants[name], expectedHeaderNames[name],
                        `Expected header name match for ${name}`);
   } else if (name.startsWith('NGHTTP2_')) {
-    assert.strictEqual(expectedNGConstants[name], constants[name],
+    assert.strictEqual(constants[name], expectedNGConstants[name],
                        `Expected ng constant match for ${name}`);
   } else if (name.startsWith('DEFAULT_SETTINGS_')) {
-    assert.strictEqual(defaultSettings[name], constants[name],
+    assert.strictEqual(constants[name], defaultSettings[name],
                        `Expected default setting match for ${name}`);
   }
 }

@@ -24,29 +24,18 @@
 
 #if defined(NODE_WANT_INTERNALS) && NODE_WANT_INTERNALS
 
-#include "node.h"
-
 #include <stddef.h>  // size_t
-#include <stdlib.h>  // nullptr
+#include <stdint.h>
 
 namespace node {
 namespace crypto {
 
+// Parse the client hello so we can do async session resumption. OpenSSL's
+// session resumption uses synchronous callbacks, see SSL_CTX_sess_set_get_cb
+// and get_session_cb.
 class ClientHelloParser {
  public:
-  ClientHelloParser() : state_(kEnded),
-                        onhello_cb_(nullptr),
-                        onend_cb_(nullptr),
-                        cb_arg_(nullptr),
-                        session_size_(0),
-                        session_id_(nullptr),
-                        servername_size_(0),
-                        servername_(nullptr),
-                        ocsp_request_(0),
-                        tls_ticket_size_(0),
-                        tls_ticket_(nullptr) {
-    Reset();
-  }
+  inline ClientHelloParser();
 
   class ClientHello {
    public:
@@ -122,16 +111,16 @@ class ClientHelloParser {
   OnHelloCb onhello_cb_;
   OnEndCb onend_cb_;
   void* cb_arg_;
-  size_t frame_len_;
-  size_t body_offset_;
-  size_t extension_offset_;
-  uint8_t session_size_;
-  const uint8_t* session_id_;
-  uint16_t servername_size_;
-  const uint8_t* servername_;
-  uint8_t ocsp_request_;
-  uint16_t tls_ticket_size_;
-  const uint8_t* tls_ticket_;
+  size_t frame_len_ = 0;
+  size_t body_offset_ = 0;
+  size_t extension_offset_ = 0;
+  uint8_t session_size_ = 0;
+  const uint8_t* session_id_ = nullptr;
+  uint16_t servername_size_ = 0;
+  const uint8_t* servername_ = nullptr;
+  uint8_t ocsp_request_ = 0;
+  uint16_t tls_ticket_size_ = -1;
+  const uint8_t* tls_ticket_ = nullptr;
 };
 
 }  // namespace crypto

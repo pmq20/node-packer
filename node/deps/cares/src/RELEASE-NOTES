@@ -1,35 +1,43 @@
-c-ares version 1.10.0
+c-ares version 1.15.0
 
 Changes:
-
- o Added ares_create_query(), to be used instead of ares_mkquery()
- o ares_inet_ntop() and ares_inet_pton() are now recognized c-ares functions
+ o Add ares_init_options() configurability for path to resolv.conf file [1]
+ o Ability to exclude building of tools (adig, ahost, acountry) in CMake [3]
+ o Android: Support for domain search suffix [4]
+ o Report ARES_ENOTFOUND for .onion domain names as per RFC7686. [13]
 
 Bug fixes:
+ o AIX build fix for trying to include both nameser_compat.h and
+   onameser_compat.h [2]
+ o Windows: Improve DNS suffixes extracting from WinNT registry [5]
+ o Fix modern GCC warnings [6]
+ o Apply the IPv6 server blacklist to all nameserver sources, not just Windows
+   [7]
+ o Fix warnings emitted by MSVC when using -W4 [8]
+ o Prevent changing name servers while queries are outstanding [9]
+ o Harden and rationalize c-ares timeout computation [10]
+ o Distribute ares_android.h [11]
+ o ares_set_servers_csv() on failure should not leave channel in a bad state
+   [12]
+ o Add missing docs to distribution
 
- o include the ares_parse_soa_reply.* files in the tarball
- o read_udp_packets: bail out loop on bad sockets
- o get_DNS_AdaptersAddresses: fix IPv6 parsing
- o adig: perror() doesn't work for socket errors on windows
- o ares_parse_aaaa_reply: fix memory leak
- o setup_once.h: HP-UX <sys/socket.h> issue workaround
- o configure: several fixes
- o config-dos.h: define strerror() to strerror_s_() for High-C
- o config-dos.h: define HAVE_CLOSE_S for MSDOS/Watt-32
- o ares_build.h.dist: enhance non-configure GCC ABI detection logic
- o ares.h: stricter CARES_EXTERN linkage decorations logic
- o ares_cancel(): cancel requests safely
- o protocol parsing: check input data stricter
- o library init: be recursive, reference count inits/cleanups
- o ares_parse_txt_reply: return a ares_txt_reply node for each sub-string
- o ares_set_servers_csv: fixed IPv6 address parsing
- o build: fix build on msvc11
- 
 Thanks go to these friendly people for their efforts and contributions:
+  @afalin, Andi Schnebinger, Ben Noordhuis, Brad House, Brad Spencer,
+  David Hotham, @flyingdutchman23, John Schember, Ruslan Baratov,
+  Sarat Addepalli, Tobias Nießen (11 contributors)
 
- Eugeny Gladkih, Yang Tse, Gisle Vanem, Guenter Knauf, Horatiu Popescu,
- Alexander Klauer, Patrick Valsecchi, Paul Saab, Keith Shaw,
- Alex Loukissas
- 
+References to bug reports and discussions on issues:
+ [1] = https://github.com/c-ares/c-ares/issues/220
+ [2] = https://github.com/c-ares/c-ares/issues/224
+ [3] = https://github.com/c-ares/c-ares/issues/200
+ [4] = https://github.com/c-ares/c-ares/issues/207
+ [5] = https://github.com/c-ares/c-ares/pull/202
+ [6] = https://github.com/c-ares/c-ares/pull/201
+ [7] = https://github.com/c-ares/c-ares/pull/193
+ [8] = https://github.com/c-ares/c-ares/pull/192
+ [9] = https://github.com/c-ares/c-ares/pull/191
+ [10] = https://github.com/c-ares/c-ares/pull/187
+ [11] = https://c-ares.haxx.se/mail/c-ares-archive-2018-04/0000.shtml
+ [12] = https://c-ares.haxx.se/mail/c-ares-archive-2018-03/0000.shtml
+ [13] = https://github.com/c-ares/c-ares/issues/196
 
-Have fun!

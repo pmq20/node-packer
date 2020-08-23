@@ -2,14 +2,13 @@
 const assert = require('assert');
 const net = require('net');
 const { sendHelper } = require('internal/cluster/utils');
-const getOwnPropertyNames = Object.getOwnPropertyNames;
-const uv = process.binding('uv');
+const uv = internalBinding('uv');
 
 module.exports = RoundRobinHandle;
 
 function RoundRobinHandle(key, address, port, addressType, fd) {
   this.key = key;
-  this.all = {};
+  this.all = new Map();
   this.free = [];
   this.handles = [];
   this.handle = null;
@@ -31,8 +30,8 @@ function RoundRobinHandle(key, address, port, addressType, fd) {
 }
 
 RoundRobinHandle.prototype.add = function(worker, send) {
-  assert(worker.id in this.all === false);
-  this.all[worker.id] = worker;
+  assert(this.all.has(worker.id) === false);
+  this.all.set(worker.id, worker);
 
   const done = () => {
     if (this.handle.getsockname) {
@@ -56,26 +55,28 @@ RoundRobinHandle.prototype.add = function(worker, send) {
     // Hack: translate 'EADDRINUSE' error string back to numeric error code.
     // It works but ideally we'd have some backchannel between the net and
     // cluster modules for stuff like this.
-    const errno = uv['UV_' + err.errno];
-    send(errno, null);
+    send(uv[`UV_${err.errno}`], null);
   });
 };
 
 RoundRobinHandle.prototype.remove = function(worker) {
-  if (worker.id in this.all === false)
+  const existed = this.all.delete(worker.id);
+
+  if (!existed)
     return false;
 
-  delete this.all[worker.id];
   const index = this.free.indexOf(worker);
 
   if (index !== -1)
     this.free.splice(index, 1);
 
-  if (getOwnPropertyNames(this.all).length !== 0)
+  if (this.all.size !== 0)
     return false;
 
-  for (var handle; handle = this.handles.shift(); handle.close())
-    ;
+  for (const handle of this.handles) {
+    handle.close();
+  }
+  this.handles = [];
 
   this.handle.close();
   this.handle = null;
@@ -91,7 +92,7 @@ RoundRobinHandle.prototype.distribute = function(err, handle) {
 };
 
 RoundRobinHandle.prototype.handoff = function(worker) {
-  if (worker.id in this.all === false) {
+  if (this.all.has(worker.id) === false) {
     return;  // Worker is closing (or has closed) the server.
   }
 

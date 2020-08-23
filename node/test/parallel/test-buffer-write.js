@@ -1,9 +1,13 @@
 'use strict';
 
-require('../common');
+const common = require('../common');
 const assert = require('assert');
 
-const outsideBounds = /^RangeError: Attempt to write outside buffer bounds$/;
+const outsideBounds = common.expectsError({
+  code: 'ERR_BUFFER_OUT_OF_BOUNDS',
+  type: RangeError,
+  message: 'Attempt to write outside buffer bounds'
+}, 2);
 
 assert.throws(() => Buffer.alloc(9).write('foo', -1), outsideBounds);
 assert.throws(() => Buffer.alloc(9).write('foo', 10), outsideBounds);
@@ -57,8 +61,41 @@ encodings
 // Invalid encodings
 for (let i = 1; i < 10; i++) {
   const encoding = String(i).repeat(i);
-  const error = new RegExp(`^TypeError: Unknown encoding: ${encoding}$`);
+  const error = common.expectsError({
+    code: 'ERR_UNKNOWN_ENCODING',
+    type: TypeError,
+    message: `Unknown encoding: ${encoding}`
+  });
 
   assert.ok(!Buffer.isEncoding(encoding));
   assert.throws(() => Buffer.alloc(9).write('foo', encoding), error);
+}
+
+// UCS-2 overflow CVE-2018-12115
+for (let i = 1; i < 4; i++) {
+  // Allocate two Buffers sequentially off the pool. Run more than once in case
+  // we hit the end of the pool and don't get sequential allocations
+  const x = Buffer.allocUnsafe(4).fill(0);
+  const y = Buffer.allocUnsafe(4).fill(1);
+  // Should not write anything, pos 3 doesn't have enough room for a 16-bit char
+  assert.strictEqual(x.write('ыыыыыы', 3, 'ucs2'), 0);
+  // CVE-2018-12115 experienced via buffer overrun to next block in the pool
+  assert.strictEqual(Buffer.compare(y, Buffer.alloc(4, 1)), 0);
+}
+
+// Should not write any data when there is no space for 16-bit chars
+const z = Buffer.alloc(4, 0);
+assert.strictEqual(z.write('\u0001', 3, 'ucs2'), 0);
+assert.strictEqual(Buffer.compare(z, Buffer.alloc(4, 0)), 0);
+
+// Large overrun could corrupt the process
+assert.strictEqual(Buffer.alloc(4)
+  .write('ыыыыыы'.repeat(100), 3, 'utf16le'), 0);
+
+{
+  // .write() does not affect the byte after the written-to slice of the Buffer.
+  // Refs: https://github.com/nodejs/node/issues/26422
+  const buf = Buffer.alloc(8);
+  assert.strictEqual(buf.write('ыы', 1, 'utf16le'), 4);
+  assert.deepStrictEqual([...buf], [0, 0x4b, 0x04, 0x4b, 0x04, 0, 0, 0]);
 }

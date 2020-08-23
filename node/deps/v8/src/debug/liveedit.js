@@ -919,7 +919,7 @@
   function CopyErrorPositionToDetails(e, details) {
     function createPositionStruct(script, position) {
       if (position == -1) return;
-      var location = script.locationFromPosition(position, true);
+      var location = %ScriptPositionInfo(script, position, true);
       if (location == null) return;
       return {
         line: location.line + 1,
@@ -1047,6 +1047,11 @@
     CompareStrings: CompareStrings,
     ApplySingleChunkPatch: ApplySingleChunkPatch
   };
+
+  // Functions needed by the debugger runtime.
+  utils.InstallConstants(utils, [
+    "SetScriptSource", LiveEdit.SetScriptSource,
+  ]);
 
   global.Debug.LiveEdit = LiveEdit;
 

@@ -26,7 +26,7 @@
 #define NGHTTP2_BUF_H
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#  include <config.h>
 #endif /* HAVE_CONFIG_H */
 
 #include <nghttp2/nghttp2.h>
@@ -398,7 +398,7 @@ int nghttp2_bufs_advance(nghttp2_bufs *bufs);
 void nghttp2_bufs_seek_last_present(nghttp2_bufs *bufs);
 
 /*
- * Returns nonzero if bufs->cur->next is not emtpy.
+ * Returns nonzero if bufs->cur->next is not empty.
  */
 int nghttp2_bufs_next_present(nghttp2_bufs *bufs);
 

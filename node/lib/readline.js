@@ -27,8 +27,14 @@
 
 'use strict';
 
+const {
+  ERR_INVALID_ARG_TYPE,
+  ERR_INVALID_CURSOR_POS,
+  ERR_INVALID_OPT_VALUE
+} = require('internal/errors').codes;
 const { debug, inherits } = require('util');
-const Buffer = require('buffer').Buffer;
+const { emitExperimentalWarning } = require('internal/util');
+const { Buffer } = require('buffer');
 const EventEmitter = require('events');
 const {
   CSI,
@@ -46,19 +52,24 @@ const {
   kClearScreenDown
 } = CSI;
 
-const now = process.binding('timer_wrap').Timer.now;
+// Lazy load StringDecoder for startup performance.
+let StringDecoder;
+
+// Lazy load Readable for startup performance.
+let Readable;
 
 const kHistorySize = 30;
 const kMincrlfDelay = 100;
 // \r\n, \n, or \r followed by something other than \n
 const lineEnding = /\r?\n|\r(?!\n)/;
 
+const kLineObjectStream = Symbol('line object stream');
+
 const KEYPRESS_DECODER = Symbol('keypress-decoder');
 const ESCAPE_DECODER = Symbol('escape-decoder');
 
 // GNU readline library - keyseq-timeout is 500ms (default)
 const ESCAPE_CODE_TIMEOUT = 500;
-
 
 function createInterface(input, output, completer, terminal) {
   return new Interface(input, output, completer, terminal);
@@ -70,10 +81,14 @@ function Interface(input, output, completer, terminal) {
     return new Interface(input, output, completer, terminal);
   }
 
+  if (StringDecoder === undefined)
+    StringDecoder = require('string_decoder').StringDecoder;
+
   this._sawReturnAt = 0;
   this.isCompletionEnabled = true;
   this._sawKeyPress = false;
   this._previousKey = null;
+  this.escapeCodeTimeout = ESCAPE_CODE_TIMEOUT;
 
   EventEmitter.call(this);
   var historySize;
@@ -91,12 +106,22 @@ function Interface(input, output, completer, terminal) {
     if (input.prompt !== undefined) {
       prompt = input.prompt;
     }
+    if (input.escapeCodeTimeout !== undefined) {
+      if (Number.isFinite(input.escapeCodeTimeout)) {
+        this.escapeCodeTimeout = input.escapeCodeTimeout;
+      } else {
+        throw new ERR_INVALID_OPT_VALUE(
+          'escapeCodeTimeout',
+          this.escapeCodeTimeout
+        );
+      }
+    }
     crlfDelay = input.crlfDelay;
     input = input.input;
   }
 
   if (completer && typeof completer !== 'function') {
-    throw new TypeError('Argument "completer" must be a function');
+    throw new ERR_INVALID_OPT_VALUE('completer', completer);
   }
 
   if (historySize === undefined) {
@@ -104,9 +129,9 @@ function Interface(input, output, completer, terminal) {
   }
 
   if (typeof historySize !== 'number' ||
-      isNaN(historySize) ||
+      Number.isNaN(historySize) ||
       historySize < 0) {
-    throw new TypeError('Argument "historySize" must be a positive number');
+    throw new ERR_INVALID_OPT_VALUE.RangeError('historySize', historySize);
   }
 
   // backwards compat; check the isTTY prop of the output stream
@@ -123,12 +148,13 @@ function Interface(input, output, completer, terminal) {
   this.removeHistoryDuplicates = !!removeHistoryDuplicates;
   this.crlfDelay = crlfDelay ?
     Math.max(kMincrlfDelay, crlfDelay) : kMincrlfDelay;
-
   // Check arity, 2 - for async, 1 for sync
   if (typeof completer === 'function') {
-    this.completer = completer.length === 2 ? completer : function(v, cb) {
-      cb(null, completer(v));
-    };
+    this.completer = completer.length === 2 ?
+      completer :
+      function completerWrapper(v, cb) {
+        cb(null, completer(v));
+      };
   }
 
   this.setPrompt(prompt);
@@ -170,17 +196,26 @@ function Interface(input, output, completer, terminal) {
     self._refreshLine();
   }
 
+  this[kLineObjectStream] = undefined;
+
   if (!this.terminal) {
-    input.on('data', ondata);
-    input.on('end', onend);
-    self.once('close', function() {
+    function onSelfCloseWithoutTerminal() {
       input.removeListener('data', ondata);
       input.removeListener('end', onend);
-    });
-    var StringDecoder = require('string_decoder').StringDecoder; // lazy load
-    this._decoder = new StringDecoder('utf8');
+    }
 
+    input.on('data', ondata);
+    input.on('end', onend);
+    self.once('close', onSelfCloseWithoutTerminal);
+    this._decoder = new StringDecoder('utf8');
   } else {
+    function onSelfCloseWithTerminal() {
+      input.removeListener('keypress', onkeypress);
+      input.removeListener('end', ontermend);
+      if (output !== null && output !== undefined) {
+        output.removeListener('resize', onresize);
+      }
+    }
 
     emitKeypressEvents(input, this);
 
@@ -203,13 +238,7 @@ function Interface(input, output, completer, terminal) {
     if (output !== null && output !== undefined)
       output.on('resize', onresize);
 
-    self.once('close', function() {
-      input.removeListener('keypress', onkeypress);
-      input.removeListener('end', ontermend);
-      if (output !== null && output !== undefined) {
-        output.removeListener('resize', onresize);
-      }
-    });
+    self.once('close', onSelfCloseWithTerminal);
   }
 
   input.resume();
@@ -281,8 +310,9 @@ Interface.prototype._onLine = function(line) {
 };
 
 Interface.prototype._writeToOutput = function _writeToOutput(stringToWrite) {
-  if (typeof stringToWrite !== 'string')
-    throw new TypeError('"stringToWrite" argument must be a string');
+  if (typeof stringToWrite !== 'string') {
+    throw new ERR_INVALID_ARG_TYPE('stringToWrite', 'string', stringToWrite);
+  }
 
   if (this.output !== null && this.output !== undefined) {
     this.output.write(stringToWrite);
@@ -397,7 +427,7 @@ Interface.prototype._normalWrite = function(b) {
   }
   var string = this._decoder.write(b);
   if (this._sawReturnAt &&
-      now() - this._sawReturnAt <= this.crlfDelay) {
+      Date.now() - this._sawReturnAt <= this.crlfDelay) {
     string = string.replace(/^\n/, '');
     this._sawReturnAt = 0;
   }
@@ -410,7 +440,7 @@ Interface.prototype._normalWrite = function(b) {
     this._line_buffer = null;
   }
   if (newPartContainsEnding) {
-    this._sawReturnAt = string.endsWith('\r') ? now() : 0;
+    this._sawReturnAt = string.endsWith('\r') ? Date.now() : 0;
 
     // got one or more newlines; process into "line" events
     var lines = string.split(lineEnding);
@@ -451,7 +481,7 @@ Interface.prototype._tabComplete = function(lastKeypressWasTab) {
   var self = this;
 
   self.pause();
-  self.completer(self.line.slice(0, self.cursor), function(err, rv) {
+  self.completer(self.line.slice(0, self.cursor), function onComplete(err, rv) {
     self.resume();
 
     if (err) {
@@ -465,7 +495,7 @@ Interface.prototype._tabComplete = function(lastKeypressWasTab) {
       // Apply/show completions.
       if (lastKeypressWasTab) {
         self._writeToOutput('\r\n');
-        var width = completions.reduce(function(a, b) {
+        var width = completions.reduce(function completionReducer(a, b) {
           return a.length > b.length ? a : b;
         }).length + 2;  // 2 space padding
         var maxColumns = Math.floor(self.columns / width);
@@ -486,7 +516,7 @@ Interface.prototype._tabComplete = function(lastKeypressWasTab) {
       }
 
       // If there is a common prefix to all matches, then apply that portion.
-      var f = completions.filter(function(e) { if (e) return e; });
+      var f = completions.filter((e) => e);
       var prefix = commonPrefix(f);
       if (prefix.length > completeOn.length) {
         self._insertString(prefix.slice(completeOn.length));
@@ -683,7 +713,7 @@ Interface.prototype._getDisplayPos = function(str) {
   }
   var cols = offset % col;
   var rows = row + (offset - cols) / col;
-  return {cols: cols, rows: rows};
+  return { cols: cols, rows: rows };
 };
 
 
@@ -702,7 +732,7 @@ Interface.prototype._getCursorPos = function() {
     rows++;
     cols = 0;
   }
-  return {cols: cols, rows: rows};
+  return { cols: cols, rows: rows };
 };
 
 
@@ -746,7 +776,8 @@ Interface.prototype._ttyWrite = function(s, key) {
   key = key || {};
   this._previousKey = key;
 
-  // Ignore escape key - Fixes #2876
+  // Ignore escape key, fixes
+  // https://github.com/nodejs/node-v0.x-archive/issues/2876.
   if (key.name === 'escape') return;
 
   if (key.ctrl && key.shift) {
@@ -832,7 +863,7 @@ Interface.prototype._ttyWrite = function(s, key) {
         if (this.listenerCount('SIGTSTP') > 0) {
           this.emit('SIGTSTP');
         } else {
-          process.once('SIGCONT', (function(self) {
+          process.once('SIGCONT', (function continueProcess(self) {
             return function() {
               // Don't raise events if stream has already been abandoned.
               if (!self.paused) {
@@ -902,14 +933,14 @@ Interface.prototype._ttyWrite = function(s, key) {
 
     switch (key.name) {
       case 'return':  // carriage return, i.e. \r
-        this._sawReturnAt = now();
+        this._sawReturnAt = Date.now();
         this._line();
         break;
 
       case 'enter':
         // When key interval > crlfDelay
         if (this._sawReturnAt === 0 ||
-            now() - this._sawReturnAt > this.crlfDelay) {
+            Date.now() - this._sawReturnAt > this.crlfDelay) {
           this._line();
         }
         this._sawReturnAt = 0;
@@ -973,13 +1004,50 @@ Interface.prototype._ttyWrite = function(s, key) {
   }
 };
 
+Interface.prototype[Symbol.asyncIterator] = function() {
+  emitExperimentalWarning('readline Interface [Symbol.asyncIterator]');
+
+  if (this[kLineObjectStream] === undefined) {
+    if (Readable === undefined) {
+      Readable = require('stream').Readable;
+    }
+    const readable = new Readable({
+      objectMode: true,
+      read: () => {
+        this.resume();
+      },
+      destroy: (err, cb) => {
+        this.off('line', lineListener);
+        this.off('close', closeListener);
+        this.close();
+        cb(err);
+      }
+    });
+    const lineListener = (input) => {
+      if (!readable.push(input)) {
+        this.pause();
+      }
+    };
+    const closeListener = () => {
+      readable.push(null);
+    };
+    this.on('line', lineListener);
+    this.on('close', closeListener);
+    this[kLineObjectStream] = readable;
+  }
+
+  return this[kLineObjectStream][Symbol.asyncIterator]();
+};
+
 /**
  * accepts a readable Stream instance and makes it emit "keypress" events
  */
 
 function emitKeypressEvents(stream, iface) {
   if (stream[KEYPRESS_DECODER]) return;
-  var StringDecoder = require('string_decoder').StringDecoder; // lazy load
+
+  if (StringDecoder === undefined)
+    StringDecoder = require('string_decoder').StringDecoder;
   stream[KEYPRESS_DECODER] = new StringDecoder('utf8');
 
   stream[ESCAPE_DECODER] = emitKeys(stream);
@@ -1007,7 +1075,10 @@ function emitKeypressEvents(stream, iface) {
             stream[ESCAPE_DECODER].next(r[i]);
             // Escape letter at the tail position
             if (r[i] === kEscape && i + 1 === r.length) {
-              timeoutId = setTimeout(escapeCodeTimeout, ESCAPE_CODE_TIMEOUT);
+              timeoutId = setTimeout(
+                escapeCodeTimeout,
+                iface ? iface.escapeCodeTimeout : ESCAPE_CODE_TIMEOUT
+              );
             }
           } catch (err) {
             // if the generator throws (it could happen in the `keypress`
@@ -1055,7 +1126,7 @@ function cursorTo(stream, x, y) {
     return;
 
   if (typeof x !== 'number')
-    throw new Error('Can\'t set cursor row without also setting it\'s column');
+    throw new ERR_INVALID_CURSOR_POS();
 
   if (typeof y !== 'number') {
     stream.write(CSI`${x + 1}G`);

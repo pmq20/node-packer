@@ -1,12 +1,14 @@
 'use strict';
 const assert = require('assert');
 const util = require('util');
+const path = require('path');
 const EventEmitter = require('events');
+const { owner_symbol } = require('internal/async_hooks').symbols;
 const Worker = require('internal/cluster/worker');
 const { internal, sendHelper } = require('internal/cluster/utils');
 const cluster = new EventEmitter();
-const handles = {};
-const indexes = {};
+const handles = new Map();
+const indexes = new Map();
 const noop = () => {};
 
 module.exports = cluster;
@@ -48,21 +50,34 @@ cluster._setupWorker = function() {
 
 // obj is a net#Server or a dgram#Socket object.
 cluster._getServer = function(obj, options, cb) {
-  const indexesKey = [options.address,
+  let address = options.address;
+
+  // Resolve unix socket paths to absolute paths
+  if (options.port < 0 && typeof address === 'string' &&
+      process.platform !== 'win32')
+    address = path.resolve(address);
+
+  const indexesKey = [address,
                       options.port,
                       options.addressType,
                       options.fd ].join(':');
 
-  if (indexes[indexesKey] === undefined)
-    indexes[indexesKey] = 0;
+  let index = indexes.get(indexesKey);
+
+  if (index === undefined)
+    index = 0;
   else
-    indexes[indexesKey]++;
+    index++;
+
+  indexes.set(indexesKey, index);
 
   const message = util._extend({
     act: 'queryServer',
-    index: indexes[indexesKey],
+    index,
     data: null
   }, options);
+
+  message.address = address;
 
   // Set custom data on handle (i.e. tls tickets key)
   if (obj._getServerData)
@@ -96,12 +111,12 @@ function shared(message, handle, indexesKey, cb) {
 
   handle.close = function() {
     send({ act: 'close', key });
-    delete handles[key];
-    delete indexes[indexesKey];
+    handles.delete(key);
+    indexes.delete(indexesKey);
     return close.apply(this, arguments);
   }.bind(handle);
-  assert(handles[key] === undefined);
-  handles[key] = handle;
+  assert(handles.has(key) === false);
+  handles.set(key, handle);
   cb(message.errno, handle);
 }
 
@@ -129,8 +144,8 @@ function rr(message, indexesKey, cb) {
       return;
 
     send({ act: 'close', key });
-    delete handles[key];
-    delete indexes[indexesKey];
+    handles.delete(key);
+    indexes.delete(indexesKey);
     key = undefined;
   }
 
@@ -151,15 +166,15 @@ function rr(message, indexesKey, cb) {
     handle.getsockname = getsockname;  // TCP handles only.
   }
 
-  assert(handles[key] === undefined);
-  handles[key] = handle;
+  assert(handles.has(key) === false);
+  handles.set(key, handle);
   cb(0, handle);
 }
 
 // Round-robin connection.
 function onconnection(message, handle) {
   const key = message.key;
-  const server = handles[key];
+  const server = handles.get(key);
   const accepted = server !== undefined;
 
   send({ ack: message.seq, accepted });
@@ -192,17 +207,16 @@ function _disconnect(masterInitiated) {
     }
   }
 
-  for (var key in handles) {
-    const handle = handles[key];
-    delete handles[key];
+  handles.forEach((handle) => {
     waitingCount++;
 
-    if (handle.owner)
-      handle.owner.close(checkWaitingCount);
+    if (handle[owner_symbol])
+      handle[owner_symbol].close(checkWaitingCount);
     else
       handle.close(checkWaitingCount);
-  }
+  });
 
+  handles.clear();
   checkWaitingCount();
 }
 

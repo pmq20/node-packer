@@ -6,8 +6,8 @@
 #define V8_STRING_BUILDER_H_
 
 #include "src/assert-scope.h"
-#include "src/factory.h"
 #include "src/handles.h"
+#include "src/heap/factory.h"
 #include "src/isolate.h"
 #include "src/objects.h"
 #include "src/utils.h"
@@ -35,7 +35,7 @@ static inline void StringBuilderConcatHelper(String* special, sinkchar* sink,
     Object* element = fixed_array->get(i);
     if (element->IsSmi()) {
       // Smi encoding of position and length.
-      int encoded_slice = Smi::cast(element)->value();
+      int encoded_slice = Smi::ToInt(element);
       int pos;
       int len;
       if (encoded_slice > 0) {
@@ -46,7 +46,7 @@ static inline void StringBuilderConcatHelper(String* special, sinkchar* sink,
         // Position and length encoded in two smis.
         Object* obj = fixed_array->get(++i);
         DCHECK(obj->IsSmi());
-        pos = Smi::cast(obj)->value();
+        pos = Smi::ToInt(obj);
         len = -encoded_slice;
       }
       String::WriteToFlat(special, sink + position, pos, pos + len);
@@ -73,7 +73,7 @@ static inline int StringBuilderConcatLength(int special_length,
     Object* elt = fixed_array->get(i);
     if (elt->IsSmi()) {
       // Smi encoding of position and length.
-      int smi_value = Smi::cast(elt)->value();
+      int smi_value = Smi::ToInt(elt);
       int pos;
       int len;
       if (smi_value > 0) {
@@ -88,11 +88,11 @@ static inline int StringBuilderConcatLength(int special_length,
         if (i >= array_length) return -1;
         Object* next_smi = fixed_array->get(i);
         if (!next_smi->IsSmi()) return -1;
-        pos = Smi::cast(next_smi)->value();
+        pos = Smi::ToInt(next_smi);
         if (pos < 0) return -1;
       }
-      DCHECK(pos >= 0);
-      DCHECK(len >= 0);
+      DCHECK_GE(pos, 0);
+      DCHECK_GE(len, 0);
       if (pos > special_length || len > special_length - pos) return -1;
       increment = len;
     } else if (elt->IsString()) {
@@ -122,14 +122,14 @@ class FixedArrayBuilder {
         has_non_smi_elements_(false) {
     // Require a non-zero initial size. Ensures that doubling the size to
     // extend the array will work.
-    DCHECK(initial_capacity > 0);
+    DCHECK_GT(initial_capacity, 0);
   }
 
   explicit FixedArrayBuilder(Handle<FixedArray> backing_store)
       : array_(backing_store), length_(0), has_non_smi_elements_(false) {
     // Require a non-zero initial size. Ensures that doubling the size to
     // extend the array will work.
-    DCHECK(backing_store->length() > 0);
+    DCHECK_GT(backing_store->length(), 0);
   }
 
   bool HasCapacity(int elements) {
@@ -198,14 +198,14 @@ class ReplacementStringBuilder {
         is_one_byte_(subject->IsOneByteRepresentation()) {
     // Require a non-zero initial size. Ensures that doubling the size to
     // extend the array will work.
-    DCHECK(estimated_part_count > 0);
+    DCHECK_GT(estimated_part_count, 0);
   }
 
   static inline void AddSubjectSlice(FixedArrayBuilder* builder, int from,
                                      int to) {
-    DCHECK(from >= 0);
+    DCHECK_GE(from, 0);
     int length = to - from;
-    DCHECK(length > 0);
+    DCHECK_GT(length, 0);
     if (StringBuilderSubstringLength::is_valid(length) &&
         StringBuilderSubstringPosition::is_valid(from)) {
       int encoded_slice = StringBuilderSubstringLength::encode(length) |
@@ -230,7 +230,7 @@ class ReplacementStringBuilder {
 
   void AddString(Handle<String> string) {
     int length = string->length();
-    DCHECK(length > 0);
+    DCHECK_GT(length, 0);
     AddElement(*string);
     if (!string->IsOneByteRepresentation()) {
       is_one_byte_ = false;
@@ -302,6 +302,19 @@ class IncrementalStringBuilder {
 
   INLINE(bool CurrentPartCanFit(int length)) {
     return part_length_ - current_index_ > length;
+  }
+
+  // We make a rough estimate to find out if the current string can be
+  // serialized without allocating a new string part. The worst case length of
+  // an escaped character is 6. Shifting the remaining string length right by 3
+  // is a more pessimistic estimate, but faster to calculate.
+  INLINE(int EscapedLengthIfCurrentPartFits(int length)) {
+    if (length > kMaxPartLength) return 0;
+    STATIC_ASSERT((kMaxPartLength << 3) <= String::kMaxLength);
+    // This shift will not overflow because length is already less than the
+    // maximum part length.
+    int worst_case_length = length << 3;
+    return CurrentPartCanFit(worst_case_length) ? worst_case_length : 0;
   }
 
   void AppendString(Handle<String> string);

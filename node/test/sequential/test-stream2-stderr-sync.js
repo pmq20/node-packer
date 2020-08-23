@@ -38,7 +38,7 @@ function parent() {
 
     child.on('close', function() {
       assert.strictEqual(err, `child ${c}\nfoo\nbar\nbaz\n`);
-      console.log('ok %d child #%d', ++i, c);
+      console.log(`ok ${++i} child #${c}`);
       if (i === children.length)
         console.log(`1..${i}`);
     });
@@ -67,7 +67,7 @@ function child2() {
   const socket = new net.Socket({
     fd: 2,
     readable: false,
-    writable: true});
+    writable: true });
   socket.write('child 2\n');
   socket.write('foo\n');
   socket.write('bar\n');

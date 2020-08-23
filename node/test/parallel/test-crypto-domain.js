@@ -25,10 +25,10 @@ if (!common.hasCrypto)
   common.skip('missing crypto');
 
 const assert = require('assert');
-const domain = require('domain');
 const crypto = require('crypto');
+const domain = require('domain');
 
-function test(fn) {
+const test = (fn) => {
   const ex = new Error('BAM');
   const d = domain.create();
   d.on('error', common.mustCall(function(err) {
@@ -38,7 +38,7 @@ function test(fn) {
     throw ex;
   });
   d.run(cb);
-}
+};
 
 test(function(cb) {
   crypto.pbkdf2('password', 'salt', 1, 8, cb);

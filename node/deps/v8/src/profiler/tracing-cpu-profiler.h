@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef V8_PROFILER_TRACING_CPU_PROFILER_H
-#define V8_PROFILER_TRACING_CPU_PROFILER_H
+#ifndef V8_PROFILER_TRACING_CPU_PROFILER_H_
+#define V8_PROFILER_TRACING_CPU_PROFILER_H_
 
 #include "include/v8-platform.h"
 #include "include/v8-profiler.h"
@@ -17,13 +17,14 @@ namespace internal {
 class CpuProfiler;
 class Isolate;
 
-class TracingCpuProfilerImpl final : public TracingCpuProfiler,
-                                     private v8::Platform::TraceStateObserver {
+class TracingCpuProfilerImpl final
+    : public TracingCpuProfiler,
+      private v8::TracingController::TraceStateObserver {
  public:
   explicit TracingCpuProfilerImpl(Isolate*);
   ~TracingCpuProfilerImpl();
 
-  // v8::Platform::TraceStateObserver
+  // v8::TracingController::TraceStateObserver
   void OnTraceEnabled() final;
   void OnTraceDisabled() final;
 
@@ -42,4 +43,4 @@ class TracingCpuProfilerImpl final : public TracingCpuProfiler,
 }  // namespace internal
 }  // namespace v8
 
-#endif  // V8_PROFILER_TRACING_CPU_PROFILER_H
+#endif  // V8_PROFILER_TRACING_CPU_PROFILER_H_

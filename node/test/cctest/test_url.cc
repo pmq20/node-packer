@@ -79,3 +79,62 @@ TEST_F(URLTest, Base3) {
   EXPECT_EQ(simple.host(), "example.org");
   EXPECT_EQ(simple.path(), "/baz");
 }
+
+TEST_F(URLTest, ToFilePath) {
+#define T(url, path) EXPECT_EQ(path, URL(url).ToFilePath())
+  T("http://example.org/foo/bar", "");
+
+#ifdef _WIN32
+  T("file:///C:/Program%20Files/", "C:\\Program Files\\");
+  T("file:///C:/a/b/c?query#fragment", "C:\\a\\b\\c");
+  T("file://host/path/a/b/c?query#fragment", "\\\\host\\path\\a\\b\\c");
+#if defined(NODE_HAVE_I18N_SUPPORT)
+  T("file://xn--weird-prdj8vva.com/host/a", "\\\\wͪ͊eiͬ͋rd.com\\host\\a");
+#else
+  T("file://xn--weird-prdj8vva.com/host/a",
+    "\\\\xn--weird-prdj8vva.com\\host\\a");
+#endif
+  T("file:///C:/a%2Fb", "");
+  T("file:///", "");
+  T("file:///home", "");
+#else
+  T("file:///", "/");
+  T("file:///home/user?query#fragment", "/home/user");
+  T("file:///home/user/?query#fragment", "/home/user/");
+  T("file:///home/user/%20space", "/home/user/ space");
+  T("file:///home/us%5Cer", "/home/us\\er");
+  T("file:///home/us%2Fer", "");
+  T("file://host/path", "");
+#endif
+
+#undef T
+}
+
+TEST_F(URLTest, FromFilePath) {
+  URL file_url;
+#ifdef _WIN32
+  file_url = URL::FromFilePath("C:\\Program Files\\");
+  EXPECT_EQ("file:", file_url.protocol());
+  EXPECT_EQ("/C:/Program%20Files/", file_url.path());
+
+  file_url = URL::FromFilePath("C:\\a\\b\\c");
+  EXPECT_EQ("file:", file_url.protocol());
+  EXPECT_EQ("/C:/a/b/c", file_url.path());
+
+  file_url = URL::FromFilePath("b:\\a\\%%.js");
+  EXPECT_EQ("file:", file_url.protocol());
+  EXPECT_EQ("/b:/a/%25%25.js", file_url.path());
+#else
+  file_url = URL::FromFilePath("/");
+  EXPECT_EQ("file:", file_url.protocol());
+  EXPECT_EQ("/", file_url.path());
+
+  file_url = URL::FromFilePath("/a/b/c");
+  EXPECT_EQ("file:", file_url.protocol());
+  EXPECT_EQ("/a/b/c", file_url.path());
+
+  file_url = URL::FromFilePath("/a/%%.js");
+  EXPECT_EQ("file:", file_url.protocol());
+  EXPECT_EQ("/a/%25%25.js", file_url.path());
+#endif
+}

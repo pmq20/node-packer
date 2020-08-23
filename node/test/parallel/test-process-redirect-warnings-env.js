@@ -6,17 +6,20 @@
 // opened and the contents are validated
 
 const common = require('../common');
+const fixtures = require('../common/fixtures');
 const fs = require('fs');
 const fork = require('child_process').fork;
 const path = require('path');
 const assert = require('assert');
 
-common.refreshTmpDir();
+const tmpdir = require('../common/tmpdir');
+tmpdir.refresh();
 
-const warnmod = require.resolve(`${common.fixturesDir}/warnings.js`);
-const warnpath = path.join(common.tmpDir, 'warnings.txt');
+const warnmod = require.resolve(fixtures.path('warnings.js'));
+const warnpath = path.join(tmpdir.path, 'warnings.txt');
 
-fork(warnmod, {env: {NODE_REDIRECT_WARNINGS: warnpath}})
+fork(warnmod, { env: Object.assign({}, process.env,
+                                   { NODE_REDIRECT_WARNINGS: warnpath }) })
   .on('exit', common.mustCall(() => {
     fs.readFile(warnpath, 'utf8', common.mustCall((err, data) => {
       assert.ifError(err);

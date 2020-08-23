@@ -1,11 +1,21 @@
 'use strict';
 
 const EventEmitter = require('events');
+const {
+  ERR_INSPECTOR_ALREADY_CONNECTED,
+  ERR_INSPECTOR_CLOSED,
+  ERR_INSPECTOR_NOT_AVAILABLE,
+  ERR_INSPECTOR_NOT_CONNECTED,
+  ERR_INVALID_ARG_TYPE,
+  ERR_INVALID_CALLBACK
+} = require('internal/errors').codes;
+const { validateString } = require('internal/validators');
 const util = require('util');
-const { connect, open, url } = process.binding('inspector');
+const { Connection, open, url } = process.binding('inspector');
+const { originalConsole } = require('internal/process/per_thread');
 
-if (!connect)
-  throw new Error('Inspector is not available');
+if (!Connection)
+  throw new ERR_INSPECTOR_NOT_AVAILABLE();
 
 const connectionSymbol = Symbol('connectionProperty');
 const messageCallbacksSymbol = Symbol('messageCallbacks');
@@ -22,49 +32,52 @@ class Session extends EventEmitter {
 
   connect() {
     if (this[connectionSymbol])
-      throw new Error('Already connected');
-    this[connectionSymbol] =
-        connect((message) => this[onMessageSymbol](message));
+      throw new ERR_INSPECTOR_ALREADY_CONNECTED('The inspector session');
+    const connection =
+      new Connection((message) => this[onMessageSymbol](message));
+    if (connection.sessionAttached) {
+      throw new ERR_INSPECTOR_ALREADY_CONNECTED('Another inspector session');
+    }
+    this[connectionSymbol] = connection;
   }
 
   [onMessageSymbol](message) {
     const parsed = JSON.parse(message);
-    if (parsed.id) {
-      const callback = this[messageCallbacksSymbol].get(parsed.id);
-      this[messageCallbacksSymbol].delete(parsed.id);
-      if (callback)
-        callback(parsed.error || null, parsed.result || null);
-    } else {
-      this.emit(parsed.method, parsed);
-      this.emit('inspectorNotification', parsed);
+    try {
+      if (parsed.id) {
+        const callback = this[messageCallbacksSymbol].get(parsed.id);
+        this[messageCallbacksSymbol].delete(parsed.id);
+        if (callback)
+          callback(parsed.error || null, parsed.result || null);
+      } else {
+        this.emit(parsed.method, parsed);
+        this.emit('inspectorNotification', parsed);
+      }
+    } catch (error) {
+      process.emitWarning(error);
     }
   }
 
   post(method, params, callback) {
-    if (typeof method !== 'string') {
-      throw new TypeError(
-        `"method" must be a string, got ${typeof method} instead`);
-    }
+    validateString(method, 'method');
     if (!callback && util.isFunction(params)) {
       callback = params;
       params = null;
     }
     if (params && typeof params !== 'object') {
-      throw new TypeError(
-        `"params" must be an object, got ${typeof params} instead`);
+      throw new ERR_INVALID_ARG_TYPE('params', 'Object', params);
     }
     if (callback && typeof callback !== 'function') {
-      throw new TypeError(
-        `"callback" must be a function, got ${typeof callback} instead`);
+      throw new ERR_INVALID_CALLBACK();
     }
 
     if (!this[connectionSymbol]) {
-      throw new Error('Session is not connected');
+      throw new ERR_INSPECTOR_NOT_CONNECTED();
     }
     const id = this[nextIdSymbol]++;
-    const message = {id, method};
+    const message = { id, method };
     if (params) {
-      message['params'] = params;
+      message.params = params;
     }
     if (callback) {
       this[messageCallbacksSymbol].set(id, callback);
@@ -79,7 +92,7 @@ class Session extends EventEmitter {
     this[connectionSymbol] = null;
     const remainingCallbacks = this[messageCallbacksSymbol].values();
     for (const callback of remainingCallbacks) {
-      process.nextTick(callback, new Error('Session was closed'));
+      process.nextTick(callback, new ERR_INSPECTOR_CLOSED());
     }
     this[messageCallbacksSymbol].clear();
     this[nextIdSymbol] = 1;
@@ -90,5 +103,6 @@ module.exports = {
   open: (port, host, wait) => open(port, host, !!wait),
   close: process._debugEnd,
   url: url,
+  console: originalConsole,
   Session
 };

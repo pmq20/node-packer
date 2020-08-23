@@ -49,7 +49,7 @@ let main = {
   currentState : emptyState(),
 
   setMode(mode) {
-    if (mode != main.currentState.mode) {
+    if (mode !== main.currentState.mode) {
 
       function setCallTreeModifiers(attribution, categories, sort) {
         let callTreeState = Object.assign({}, main.currentState.callTree);
@@ -84,7 +84,7 @@ let main = {
   },
 
   setCallTreeAttribution(attribution) {
-    if (attribution != main.currentState.attribution) {
+    if (attribution !== main.currentState.attribution) {
       let callTreeState = Object.assign({}, main.currentState.callTree);
       callTreeState.attribution = attribution;
       main.currentState = setCallTreeState(main.currentState,  callTreeState);
@@ -93,7 +93,7 @@ let main = {
   },
 
   setCallTreeSort(sort) {
-    if (sort != main.currentState.sort) {
+    if (sort !== main.currentState.sort) {
       let callTreeState = Object.assign({}, main.currentState.callTree);
       callTreeState.sort = sort;
       main.currentState = setCallTreeState(main.currentState,  callTreeState);
@@ -102,7 +102,7 @@ let main = {
   },
 
   setCallTreeCategories(categories) {
-    if (categories != main.currentState.categories) {
+    if (categories !== main.currentState.categories) {
       let callTreeState = Object.assign({}, main.currentState.callTree);
       callTreeState.categories = categories;
       main.currentState = setCallTreeState(main.currentState,  callTreeState);
@@ -111,8 +111,8 @@ let main = {
   },
 
   setViewInterval(start, end) {
-    if (start != main.currentState.start ||
-        end != main.currentState.end) {
+    if (start !== main.currentState.start ||
+        end !== main.currentState.end) {
       main.currentState = Object.assign({}, main.currentState);
       main.currentState.start = start;
       main.currentState.end = end;
@@ -121,8 +121,8 @@ let main = {
   },
 
   setTimeLineDimensions(width, height) {
-    if (width != main.currentState.timeLine.width ||
-        height != main.currentState.timeLine.height) {
+    if (width !== main.currentState.timeLine.width ||
+        height !== main.currentState.timeLine.height) {
       let timeLine = Object.assign({}, main.currentState.timeLine);
       timeLine.width = width;
       timeLine.height = height;
@@ -133,7 +133,7 @@ let main = {
   },
 
   setFile(file) {
-    if (file != main.currentState.file) {
+    if (file !== main.currentState.file) {
       main.currentState = Object.assign({}, main.currentState);
       main.currentState.file = file;
       main.delayRender();
@@ -141,7 +141,7 @@ let main = {
   },
 
   setCurrentCode(codeId) {
-    if (codeId != main.currentState.currentCodeId) {
+    if (codeId !== main.currentState.currentCodeId) {
       main.currentState = Object.assign({}, main.currentState);
       main.currentState.currentCodeId = codeId;
       main.delayRender();
@@ -213,6 +213,14 @@ let bucketDescriptors =
         color : "#8080ff",
         backgroundColor : "#e0e0ff",
         text : "C++/external" },
+      { kinds : [ "CPPPARSE" ],
+        color : "#b890f7",
+        backgroundColor : "#ebdeff",
+        text : "C++/Parser" },
+      { kinds : [ "CPPCOMPBC" ],
+        color : "#52b0ce",
+        backgroundColor : "#a5c8d4",
+        text : "C++/Bytecode compiler" },
       { kinds : [ "CPPCOMP" ],
         color : "#00ffff",
         backgroundColor : "#c0ffff",
@@ -227,7 +235,7 @@ let bucketDescriptors =
         text : "Unknown" }
     ];
 
-let kindToBucketDescriptor = {}
+let kindToBucketDescriptor = {};
 for (let i = 0; i < bucketDescriptors.length; i++) {
   let bucket = bucketDescriptors[i];
   for (let j = 0; j < bucket.kinds.length; j++) {
@@ -251,6 +259,10 @@ function codeTypeToText(type) {
   switch (type) {
     case "UNKNOWN":
       return "Unknown";
+    case "CPPPARSE":
+      return "C++ (parser)";
+    case "CPPCOMPBC":
+      return "C++ (bytecode compiler)";
     case "CPPCOMP":
       return "C++ (compiler)";
     case "CPPGC":
@@ -323,11 +335,11 @@ function createTableExpander(indent) {
 }
 
 function createFunctionNode(name, codeId) {
-  if (codeId == -1) {
+  if (codeId === -1) {
     return document.createTextNode(name);
   }
   let nameElement = document.createElement("span");
-  nameElement.classList.add("codeid-link")
+  nameElement.classList.add("codeid-link");
   nameElement.onclick = function() {
     main.setCurrentCode(codeId);
   };
@@ -365,13 +377,13 @@ class CallTreeView {
           if (c1.ticks < c2.ticks) return 1;
           else if (c1.ticks > c2.ticks) return -1;
           return c2.ownTicks - c1.ownTicks;
-        }
+        };
       case "own-time":
         return (c1, c2) => {
           if (c1.ownTicks < c2.ownTicks) return 1;
           else if (c1.ownTicks > c2.ownTicks) return -1;
           return c2.ticks - c1.ticks;
-        }
+        };
       case "category-time":
         return (c1, c2) => {
           if (c1.type === c2.type) return c2.ticks - c1.ticks;
@@ -427,7 +439,7 @@ class CallTreeView {
       let row = this.rows.insertRow(index);
       row.id = id + i + "/";
 
-      if (node.type != "CAT") {
+      if (node.type !== "CAT") {
         row.style.backgroundColor = bucketFromKind(node.type).backgroundColor;
       }
 
@@ -619,7 +631,7 @@ class CallTreeView {
 
     } else {
       console.assert(mode === "bottom-up");
-      if (this.currentState.callTree.categories == "none") {
+      if (this.currentState.callTree.categories === "none") {
         stackProcessor =
             new PlainCallTreeProcessor(filter, true);
       } else {

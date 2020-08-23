@@ -4,7 +4,7 @@ require('../common');
 const assert = require('assert');
 const util = require('util');
 const processUtil = process.binding('util');
-const opts = {showProxy: true};
+const opts = { showProxy: true };
 
 const target = {};
 const handler = {
@@ -13,7 +13,7 @@ const handler = {
 const proxyObj = new Proxy(target, handler);
 
 // Inspecting the proxy should not actually walk it's properties
-assert.doesNotThrow(() => util.inspect(proxyObj, opts));
+util.inspect(proxyObj, opts);
 
 // getProxyDetails is an internal method, not intended for public use.
 // This is here to test that the internals are working correctly.
@@ -55,7 +55,9 @@ const expected6 = 'Proxy [ Proxy [ Proxy [ Proxy [Array], Proxy [Array]' +
                   ' ],\n    Proxy [ Proxy [Array], Proxy [Array] ] ],\n' +
                   '  Proxy [ Proxy [ Proxy [Array], Proxy [Array] ],\n' +
                   '    Proxy [ Proxy [Array], Proxy [Array] ] ] ]';
-assert.strictEqual(util.inspect(proxy1, opts), expected1);
+assert.strictEqual(
+  util.inspect(proxy1, { showProxy: true, depth: null }),
+  expected1);
 assert.strictEqual(util.inspect(proxy2, opts), expected2);
 assert.strictEqual(util.inspect(proxy3, opts), expected3);
 assert.strictEqual(util.inspect(proxy4, opts), expected4);
@@ -83,3 +85,17 @@ assert.strictEqual(util.inspect(proxy8, opts), expected8);
 assert.strictEqual(util.inspect(proxy9, opts), expected9);
 assert.strictEqual(util.inspect(proxy8), '[Function: Date]');
 assert.strictEqual(util.inspect(proxy9), '[Function: Date]');
+
+const proxy10 = new Proxy(() => {}, {});
+const proxy11 = new Proxy(() => {}, {
+  get() {
+    return proxy11;
+  },
+  apply() {
+    return proxy11;
+  }
+});
+const expected10 = '[Function]';
+const expected11 = '[Function]';
+assert.strictEqual(util.inspect(proxy10), expected10);
+assert.strictEqual(util.inspect(proxy11), expected11);

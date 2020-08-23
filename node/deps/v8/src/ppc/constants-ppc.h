@@ -11,6 +11,15 @@
 #include "src/base/macros.h"
 #include "src/globals.h"
 
+// UNIMPLEMENTED_ macro for PPC.
+#ifdef DEBUG
+#define UNIMPLEMENTED_PPC()                                                \
+  v8::internal::PrintF("%s, \tline %d: \tfunction %s not implemented. \n", \
+                       __FILE__, __LINE__, __func__)
+#else
+#define UNIMPLEMENTED_PPC()
+#endif
+
 namespace v8 {
 namespace internal {
 
@@ -29,6 +38,9 @@ const int kLoadDoubleMaxReachBits = 15;
 
 // sign-extend the least significant 16-bits of value <imm>
 #define SIGN_EXT_IMM16(imm) ((static_cast<int>(imm) << 16) >> 16)
+
+// sign-extend the least significant 22-bits of value <imm>
+#define SIGN_EXT_IMM22(imm) ((static_cast<int>(imm) << 10) >> 10)
 
 // sign-extend the least significant 26-bits of value <imm>
 #define SIGN_EXT_IMM26(imm) ((static_cast<int>(imm) << 6) >> 6)
@@ -2587,6 +2599,7 @@ enum {
   kImm24Mask = (1 << 24) - 1,
   kOff16Mask = (1 << 16) - 1,
   kImm16Mask = (1 << 16) - 1,
+  kImm22Mask = (1 << 22) - 1,
   kImm26Mask = (1 << 26) - 1,
   kBOfieldMask = 0x1f << 21,
   kOpcodeMask = 0x3f << 26,

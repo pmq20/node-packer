@@ -83,8 +83,3 @@ process.on('exit', function() {
   // ...but that only connections 0 and 2 were successful.
   assert.deepStrictEqual(received, ['0', '2']);
 });
-
-process.on('unhandledRejection', function() {
-  console.error('promise rejected');
-  assert.fail('A promise in the chain rejected');
-});

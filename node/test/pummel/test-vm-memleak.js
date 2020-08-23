@@ -37,7 +37,7 @@ assert(ok, 'Run this test with --max_old_space_size=32.');
 const interval = setInterval(function() {
   try {
     vm.runInNewContext('throw 1;');
-  } catch (e) {
+  } catch {
   }
 
   const rss = process.memoryUsage().rss;
@@ -57,6 +57,6 @@ function testContextLeak() {
 }
 
 process.on('exit', function() {
-  console.error('max mem: %dmb', Math.round(maxMem / (1024 * 1024)));
+  console.error(`max mem: ${Math.round(maxMem / (1024 * 1024))}mb`);
   assert.ok(maxMem < 64 * 1024 * 1024);
 });

@@ -21,7 +21,9 @@
 
 'use strict';
 
-const Buffer = require('buffer').Buffer;
+const { Buffer } = require('buffer');
+const pipeline = require('internal/streams/pipeline');
+const eos = require('internal/streams/end-of-stream');
 
 // Note: export Stream before Readable/Writable/Duplex/...
 // to avoid a cross-reference(require) issues
@@ -33,15 +35,23 @@ Stream.Duplex = require('_stream_duplex');
 Stream.Transform = require('_stream_transform');
 Stream.PassThrough = require('_stream_passthrough');
 
+Stream.pipeline = pipeline;
+Stream.finished = eos;
+
 // Backwards-compat with node 0.4.x
 Stream.Stream = Stream;
 
 // Internal utilities
 try {
-  Stream._isUint8Array = process.binding('util').isUint8Array;
-} catch (e) {
-  // This throws for Node < 4.2.0 because there’s no util binding and
-  // returns undefined for Node < 7.4.0.
+  const types = require('util').types;
+  if (types && typeof types.isUint8Array === 'function') {
+    Stream._isUint8Array = types.isUint8Array;
+  } else {
+    // This throws for Node < 4.2.0 because there's no util binding and
+    // returns undefined for Node < 7.4.0.
+    Stream._isUint8Array = process.binding('util').isUint8Array;
+  }
+} catch (e) { // eslint-disable-line no-unused-vars
 }
 
 if (!Stream._isUint8Array) {
@@ -61,7 +71,7 @@ if (version[0] === 0 && version[1] < 12) {
                                            chunk.byteOffset,
                                            chunk.byteLength);
     };
-  } catch (e) {
+  } catch (e) { // eslint-disable-line no-unused-vars
   }
 
   if (!Stream._uint8ArrayToBuffer) {

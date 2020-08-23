@@ -1,9 +1,14 @@
 'use strict';
 
-require('../common');
+const common = require('../common');
 const assert = require('assert');
+const { SlowBuffer } = require('buffer');
 
-const msg = /"size" argument must not be negative/;
+const msg = common.expectsError({
+  code: 'ERR_INVALID_OPT_VALUE',
+  type: RangeError,
+  message: /^The value "[^"]*" is invalid for option "size"$/
+}, 15);
 
 // Test that negative Buffer length inputs throw errors.
 
@@ -22,3 +27,7 @@ assert.throws(() => Buffer.allocUnsafe(-1), msg);
 assert.throws(() => Buffer.allocUnsafeSlow(-Buffer.poolSize), msg);
 assert.throws(() => Buffer.allocUnsafeSlow(-100), msg);
 assert.throws(() => Buffer.allocUnsafeSlow(-1), msg);
+
+assert.throws(() => SlowBuffer(-Buffer.poolSize), msg);
+assert.throws(() => SlowBuffer(-100), msg);
+assert.throws(() => SlowBuffer(-1), msg);

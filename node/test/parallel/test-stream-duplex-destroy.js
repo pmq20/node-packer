@@ -3,7 +3,6 @@
 const common = require('../common');
 const { Duplex } = require('stream');
 const assert = require('assert');
-const { inherits } = require('util');
 
 {
   const duplex = new Duplex({
@@ -13,8 +12,9 @@ const { inherits } = require('util');
 
   duplex.resume();
 
-  duplex.on('end', common.mustCall());
-  duplex.on('finish', common.mustCall());
+  duplex.on('end', common.mustNotCall());
+  duplex.on('finish', common.mustNotCall());
+  duplex.on('close', common.mustCall());
 
   duplex.destroy();
   assert.strictEqual(duplex.destroyed, true);
@@ -29,8 +29,8 @@ const { inherits } = require('util');
 
   const expected = new Error('kaboom');
 
-  duplex.on('end', common.mustCall());
-  duplex.on('finish', common.mustCall());
+  duplex.on('end', common.mustNotCall());
+  duplex.on('finish', common.mustNotCall());
   duplex.on('error', common.mustCall((err) => {
     assert.strictEqual(err, expected);
   }));
@@ -78,6 +78,7 @@ const { inherits } = require('util');
 
   // error is swallowed by the custom _destroy
   duplex.on('error', common.mustNotCall('no error event'));
+  duplex.on('close', common.mustCall());
 
   duplex.destroy(expected);
   assert.strictEqual(duplex.destroyed, true);
@@ -159,8 +160,8 @@ const { inherits } = require('util');
   });
   duplex.resume();
 
-  duplex.on('finish', common.mustCall());
-  duplex.on('end', common.mustCall());
+  duplex.on('finish', common.mustNotCall());
+  duplex.on('end', common.mustNotCall());
 
   duplex.destroy();
   assert.strictEqual(duplex.destroyed, true);
@@ -188,7 +189,8 @@ const { inherits } = require('util');
     Duplex.call(this);
   }
 
-  inherits(MyDuplex, Duplex);
+  Object.setPrototypeOf(MyDuplex.prototype, Duplex.prototype);
+  Object.setPrototypeOf(MyDuplex, Duplex);
 
   new MyDuplex();
 }

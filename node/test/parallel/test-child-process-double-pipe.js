@@ -23,7 +23,6 @@
 const common = require('../common');
 const assert = require('assert');
 const os = require('os');
-const util = require('util');
 const spawn = require('child_process').spawn;
 
 // We're trying to reproduce:
@@ -32,14 +31,14 @@ const spawn = require('child_process').spawn;
 let grep, sed, echo;
 
 if (common.isWindows) {
-  grep = spawn('grep', ['--binary', 'o']),
-  sed = spawn('sed', ['--binary', 's/o/O/']),
+  grep = spawn('grep', ['--binary', 'o']);
+  sed = spawn('sed', ['--binary', 's/o/O/']);
   echo = spawn('cmd.exe',
                ['/c', 'echo', 'hello&&', 'echo',
                 'node&&', 'echo', 'and&&', 'echo', 'world']);
 } else {
-  grep = spawn('grep', ['o']),
-  sed = spawn('sed', ['s/o/O/']),
+  grep = spawn('grep', ['o']);
+  sed = spawn('sed', ['s/o/O/']);
   echo = spawn('echo', ['hello\nnode\nand\nworld\n']);
 }
 
@@ -108,7 +107,7 @@ let result = '';
 // print sed's output
 sed.stdout.on('data', function(data) {
   result += data.toString('utf8', 0, data.length);
-  util.print(data);
+  console.log(data);
 });
 
 sed.stdout.on('end', function(code) {

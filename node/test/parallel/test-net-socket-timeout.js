@@ -34,27 +34,25 @@ const validDelays = [0, 0.001, 1, 1e6];
 
 
 for (let i = 0; i < nonNumericDelays.length; i++) {
-  assert.throws(function() {
+  assert.throws(() => {
     s.setTimeout(nonNumericDelays[i], () => {});
-  }, TypeError);
+  }, { code: 'ERR_INVALID_ARG_TYPE' }, nonNumericDelays[i]);
 }
 
 for (let i = 0; i < badRangeDelays.length; i++) {
-  assert.throws(function() {
+  assert.throws(() => {
     s.setTimeout(badRangeDelays[i], () => {});
-  }, RangeError);
+  }, { code: 'ERR_OUT_OF_RANGE' }, badRangeDelays[i]);
 }
 
 for (let i = 0; i < validDelays.length; i++) {
-  assert.doesNotThrow(function() {
-    s.setTimeout(validDelays[i], () => {});
-  });
+  s.setTimeout(validDelays[i], () => {});
 }
 
 const server = net.Server();
-server.listen(0, common.mustCall(function() {
-  const socket = net.createConnection(this.address().port);
-  socket.setTimeout(1, common.mustCall(function() {
+server.listen(0, common.mustCall(() => {
+  const socket = net.createConnection(server.address().port);
+  socket.setTimeout(1, common.mustCall(() => {
     socket.destroy();
     server.close();
   }));

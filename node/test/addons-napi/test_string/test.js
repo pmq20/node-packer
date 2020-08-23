@@ -69,3 +69,15 @@ assert.strictEqual(test_string.TestUtf8Insufficient(str6), str6.slice(0, 1));
 assert.strictEqual(test_string.TestUtf16Insufficient(str6), str6.slice(0, 3));
 assert.strictEqual(test_string.Utf16Length(str6), 5);
 assert.strictEqual(test_string.Utf8Length(str6), 14);
+
+assert.throws(() => {
+  test_string.TestLargeUtf8();
+}, /^Error: Invalid argument$/);
+
+assert.throws(() => {
+  test_string.TestLargeLatin1();
+}, /^Error: Invalid argument$/);
+
+assert.throws(() => {
+  test_string.TestLargeUtf16();
+}, /^Error: Invalid argument$/);

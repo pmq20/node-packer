@@ -1,14 +1,28 @@
 'use strict';
 
-const errors = require('internal/errors');
-const binding = process.binding('util');
-const signals = process.binding('constants').os.signals;
+const {
+  ERR_INVALID_ARG_TYPE,
+  ERR_NO_CRYPTO,
+  ERR_UNKNOWN_SIGNAL
+} = require('internal/errors').codes;
+const { signals } = process.binding('constants').os;
+const {
+  getHiddenValue,
+  setHiddenValue,
+  arrow_message_private_symbol: kArrowMessagePrivateSymbolIndex,
+  decorated_private_symbol: kDecoratedPrivateSymbolIndex
+} = process.binding('util');
+const { errmap } = process.binding('uv');
 
-const { createPromise, promiseResolve, promiseReject } = binding;
-
-const kArrowMessagePrivateSymbolIndex = binding['arrow_message_private_symbol'];
-const kDecoratedPrivateSymbolIndex = binding['decorated_private_symbol'];
 const noCrypto = !process.versions.openssl;
+
+const experimentalWarnings = new Set();
+
+const colorRegExp = /\u001b\[\d\d?m/g; // eslint-disable-line no-control-regex
+
+function removeColors(str) {
+  return str.replace(colorRegExp, '');
+}
 
 function isError(e) {
   return objectToString(e) === '[object Error]' || e instanceof Error;
@@ -18,30 +32,30 @@ function objectToString(o) {
   return Object.prototype.toString.call(o);
 }
 
+// Keep a list of deprecation codes that have been warned on so we only warn on
+// each one once.
+const codesWarned = {};
+
 // Mark that a method should not be used.
 // Returns a modified function which warns once by default.
 // If --no-deprecation is set, then it is a no-op.
 function deprecate(fn, msg, code) {
-  // Allow for deprecating things in the process of starting up.
-  if (global.process === undefined) {
-    return function(...args) {
-      return deprecate(fn, msg).apply(this, args);
-    };
-  }
-
   if (process.noDeprecation === true) {
     return fn;
   }
 
   if (code !== undefined && typeof code !== 'string')
-    throw new TypeError('`code` argument must be a string');
+    throw new ERR_INVALID_ARG_TYPE('code', 'string', code);
 
-  var warned = false;
+  let warned = false;
   function deprecated(...args) {
     if (!warned) {
       warned = true;
       if (code !== undefined) {
-        process.emitWarning(msg, 'DeprecationWarning', code, deprecated);
+        if (!codesWarned[code]) {
+          process.emitWarning(msg, 'DeprecationWarning', code, deprecated);
+          codesWarned[code] = true;
+        }
       } else {
         process.emitWarning(msg, 'DeprecationWarning', deprecated);
       }
@@ -66,53 +80,84 @@ function deprecate(fn, msg, code) {
 
 function decorateErrorStack(err) {
   if (!(isError(err) && err.stack) ||
-      binding.getHiddenValue(err, kDecoratedPrivateSymbolIndex) === true)
+      getHiddenValue(err, kDecoratedPrivateSymbolIndex) === true)
     return;
 
-  const arrow = binding.getHiddenValue(err, kArrowMessagePrivateSymbolIndex);
+  const arrow = getHiddenValue(err, kArrowMessagePrivateSymbolIndex);
 
   if (arrow) {
     err.stack = arrow + err.stack;
-    binding.setHiddenValue(err, kDecoratedPrivateSymbolIndex, true);
+    setHiddenValue(err, kDecoratedPrivateSymbolIndex, true);
   }
 }
 
 function assertCrypto() {
   if (noCrypto)
-    throw new Error('Node.js is not compiled with openssl crypto support');
+    throw new ERR_NO_CRYPTO();
 }
 
-// The loop should only run at most twice, retrying with lowercased enc
-// if there is no match in the first pass.
-// We use a loop instead of branching to retry with a helper
-// function in order to avoid the performance hit.
 // Return undefined if there is no match.
+// Move the "slow cases" to a separate function to make sure this function gets
+// inlined properly. That prioritizes the common case.
 function normalizeEncoding(enc) {
-  if (!enc) return 'utf8';
-  var retried;
-  while (true) {
-    switch (enc) {
-      case 'utf8':
-      case 'utf-8':
-        return 'utf8';
-      case 'ucs2':
-      case 'ucs-2':
-      case 'utf16le':
-      case 'utf-16le':
+  if (enc == null || enc === 'utf8' || enc === 'utf-8') return 'utf8';
+  return slowCases(enc);
+}
+
+function slowCases(enc) {
+  switch (enc.length) {
+    case 4:
+      if (enc === 'UTF8') return 'utf8';
+      if (enc === 'ucs2' || enc === 'UCS2') return 'utf16le';
+      enc = `${enc}`.toLowerCase();
+      if (enc === 'utf8') return 'utf8';
+      if (enc === 'ucs2') return 'utf16le';
+      break;
+    case 3:
+      if (enc === 'hex' || enc === 'HEX' || `${enc}`.toLowerCase() === 'hex')
+        return 'hex';
+      break;
+    case 5:
+      if (enc === 'ascii') return 'ascii';
+      if (enc === 'ucs-2') return 'utf16le';
+      if (enc === 'UTF-8') return 'utf8';
+      if (enc === 'ASCII') return 'ascii';
+      if (enc === 'UCS-2') return 'utf16le';
+      enc = `${enc}`.toLowerCase();
+      if (enc === 'utf-8') return 'utf8';
+      if (enc === 'ascii') return 'ascii';
+      if (enc === 'ucs-2') return 'utf16le';
+      break;
+    case 6:
+      if (enc === 'base64') return 'base64';
+      if (enc === 'latin1' || enc === 'binary') return 'latin1';
+      if (enc === 'BASE64') return 'base64';
+      if (enc === 'LATIN1' || enc === 'BINARY') return 'latin1';
+      enc = `${enc}`.toLowerCase();
+      if (enc === 'base64') return 'base64';
+      if (enc === 'latin1' || enc === 'binary') return 'latin1';
+      break;
+    case 7:
+      if (enc === 'utf16le' || enc === 'UTF16LE' ||
+        `${enc}`.toLowerCase() === 'utf16le')
         return 'utf16le';
-      case 'latin1':
-      case 'binary':
-        return 'latin1';
-      case 'base64':
-      case 'ascii':
-      case 'hex':
-        return enc;
-      default:
-        if (retried) return; // undefined
-        enc = ('' + enc).toLowerCase();
-        retried = true;
-    }
+      break;
+    case 8:
+      if (enc === 'utf-16le' || enc === 'UTF-16LE' ||
+        `${enc}`.toLowerCase() === 'utf-16le')
+        return 'utf16le';
+      break;
+    default:
+      if (enc === '') return 'utf8';
   }
+}
+
+function emitExperimentalWarning(feature) {
+  if (experimentalWarnings.has(feature)) return;
+  const msg = `${feature} is an experimental feature. This feature could ` +
+       'change at any time';
+  experimentalWarnings.add(feature);
+  process.emitWarning(msg, 'ExperimentalWarning');
 }
 
 function filterDuplicateStrings(items, low) {
@@ -130,7 +175,7 @@ function filterDuplicateStrings(items, low) {
 }
 
 function cachedResult(fn) {
-  var result;
+  let result;
   return () => {
     if (result === undefined)
       result = fn();
@@ -150,8 +195,8 @@ function createClassWrapper(type) {
   }
   // Mask the wrapper function name and length values
   Object.defineProperties(fn, {
-    name: {value: type.name},
-    length: {value: type.length}
+    name: { value: type.name },
+    length: { value: type.length }
   });
   Object.setPrototypeOf(fn, type);
   fn.prototype = type.prototype;
@@ -180,12 +225,12 @@ function convertToValidSignal(signal) {
     if (signalName) return signalName;
   }
 
-  throw new errors.Error('ERR_UNKNOWN_SIGNAL', signal);
+  throw new ERR_UNKNOWN_SIGNAL(signal);
 }
 
 function getConstructorOf(obj) {
   while (obj) {
-    var descriptor = Object.getOwnPropertyDescriptor(obj, 'constructor');
+    const descriptor = Object.getOwnPropertyDescriptor(obj, 'constructor');
     if (descriptor !== undefined &&
         typeof descriptor.value === 'function' &&
         descriptor.value.name !== '') {
@@ -198,59 +243,133 @@ function getConstructorOf(obj) {
   return null;
 }
 
+function getSystemErrorName(err) {
+  const entry = errmap.get(err);
+  return entry ? entry[0] : `Unknown system error ${err}`;
+}
+
 const kCustomPromisifiedSymbol = Symbol('util.promisify.custom');
 const kCustomPromisifyArgsSymbol = Symbol('customPromisifyArgs');
 
-function promisify(orig) {
-  if (typeof orig !== 'function')
-    throw new errors.TypeError('ERR_INVALID_ARG_TYPE', 'original', 'function');
+function promisify(original) {
+  if (typeof original !== 'function')
+    throw new ERR_INVALID_ARG_TYPE('original', 'Function', original);
 
-  if (orig[kCustomPromisifiedSymbol]) {
-    const fn = orig[kCustomPromisifiedSymbol];
+  if (original[kCustomPromisifiedSymbol]) {
+    const fn = original[kCustomPromisifiedSymbol];
     if (typeof fn !== 'function') {
-      throw new TypeError('The [util.promisify.custom] property must be ' +
-                          'a function');
+      throw new ERR_INVALID_ARG_TYPE('util.promisify.custom', 'Function', fn);
     }
-    Object.defineProperty(fn, kCustomPromisifiedSymbol, {
+    return Object.defineProperty(fn, kCustomPromisifiedSymbol, {
       value: fn, enumerable: false, writable: false, configurable: true
     });
-    return fn;
   }
 
   // Names to create an object from in case the callback receives multiple
   // arguments, e.g. ['stdout', 'stderr'] for child_process.exec.
-  const argumentNames = orig[kCustomPromisifyArgsSymbol];
+  const argumentNames = original[kCustomPromisifyArgsSymbol];
 
   function fn(...args) {
-    const promise = createPromise();
-    try {
-      orig.call(this, ...args, (err, ...values) => {
+    return new Promise((resolve, reject) => {
+      original.call(this, ...args, (err, ...values) => {
         if (err) {
-          promiseReject(promise, err);
-        } else if (argumentNames !== undefined && values.length > 1) {
+          return reject(err);
+        }
+        if (argumentNames !== undefined && values.length > 1) {
           const obj = {};
           for (var i = 0; i < argumentNames.length; i++)
             obj[argumentNames[i]] = values[i];
-          promiseResolve(promise, obj);
+          resolve(obj);
         } else {
-          promiseResolve(promise, values[0]);
+          resolve(values[0]);
         }
       });
-    } catch (err) {
-      promiseReject(promise, err);
-    }
-    return promise;
+    });
   }
 
-  Object.setPrototypeOf(fn, Object.getPrototypeOf(orig));
+  Object.setPrototypeOf(fn, Object.getPrototypeOf(original));
 
   Object.defineProperty(fn, kCustomPromisifiedSymbol, {
     value: fn, enumerable: false, writable: false, configurable: true
   });
-  return Object.defineProperties(fn, Object.getOwnPropertyDescriptors(orig));
+  return Object.defineProperties(
+    fn,
+    Object.getOwnPropertyDescriptors(original)
+  );
 }
 
 promisify.custom = kCustomPromisifiedSymbol;
+
+// The build-in Array#join is slower in v8 6.0
+function join(output, separator) {
+  let str = '';
+  if (output.length !== 0) {
+    for (var i = 0; i < output.length - 1; i++) {
+      // It is faster not to use a template string here
+      str += output[i];
+      str += separator;
+    }
+    str += output[i];
+  }
+  return str;
+}
+
+// As of V8 6.6, depending on the size of the array, this is anywhere
+// between 1.5-10x faster than the two-arg version of Array#splice()
+function spliceOne(list, index) {
+  for (; index + 1 < list.length; index++)
+    list[index] = list[index + 1];
+  list.pop();
+}
+
+const kNodeModulesRE = /^(.*)[\\/]node_modules[\\/]/;
+
+let getStructuredStack;
+
+function isInsideNodeModules() {
+  if (getStructuredStack === undefined) {
+    // Lazy-load to avoid a circular dependency.
+    const { runInNewContext } = require('vm');
+    // Use `runInNewContext()` to get something tamper-proof and
+    // side-effect-free. Since this is currently only used for a deprecated API,
+    // the perf implications should be okay.
+    getStructuredStack = runInNewContext(`(function() {
+      Error.prepareStackTrace = function(err, trace) {
+        err.stack = trace;
+      };
+      Error.stackTraceLimit = Infinity;
+
+      return function structuredStack() {
+        return new Error().stack;
+      };
+    })()`, {}, { filename: 'structured-stack' });
+  }
+
+  const stack = getStructuredStack();
+
+  // Iterate over all stack frames and look for the first one not coming
+  // from inside Node.js itself:
+  if (Array.isArray(stack)) {
+    for (const frame of stack) {
+      const filename = frame.getFileName();
+      // If a filename does not start with / or contain \,
+      // it's likely from Node.js core.
+      if (!/^\/|\\/.test(filename))
+        continue;
+      return kNodeModulesRE.test(filename);
+    }
+  }
+  return false;
+}
+
+function once(callback) {
+  let called = false;
+  return function(...args) {
+    if (called) return;
+    called = true;
+    callback.apply(this, args);
+  };
+}
 
 module.exports = {
   assertCrypto,
@@ -259,21 +378,29 @@ module.exports = {
   createClassWrapper,
   decorateErrorStack,
   deprecate,
+  emitExperimentalWarning,
   filterDuplicateStrings,
   getConstructorOf,
+  getSystemErrorName,
   isError,
+  isInsideNodeModules,
+  join,
   normalizeEncoding,
   objectToString,
+  once,
   promisify,
+  spliceOne,
+  removeColors,
 
   // Symbol used to customize promisify conversion
   customPromisifyArgs: kCustomPromisifyArgsSymbol,
 
   // Symbol used to provide a custom inspect function for an object as an
   // alternative to using 'inspect'
-  customInspectSymbol: Symbol('util.inspect.custom'),
+  customInspectSymbol: Symbol.for('nodejs.util.inspect.custom'),
 
   // Used by the buffer module to capture an internal reference to the
   // default isEncoding implementation, just in case userland overrides it.
-  kIsEncodingSymbol: Symbol('node.isEncoding')
+  kIsEncodingSymbol: Symbol('kIsEncodingSymbol'),
+  kExpandStackSymbol: Symbol('kExpandStackSymbol')
 };

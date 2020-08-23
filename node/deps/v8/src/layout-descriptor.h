@@ -7,7 +7,7 @@
 
 #include <iosfwd>
 
-#include "src/objects.h"
+#include "src/objects/fixed-array.h"
 
 namespace v8 {
 namespace internal {
@@ -21,8 +21,10 @@ namespace internal {
 // Otherwise the field is considered tagged. If the queried bit lays "outside"
 // of the descriptor then the field is also considered tagged.
 // Once a layout descriptor is created it is allowed only to append properties
-// to it.
-class LayoutDescriptor : public FixedTypedArray<Uint32ArrayTraits> {
+// to it. GC uses layout descriptors to iterate objects. Avoid heap pointers
+// in a layout descriptor because they can lead to data races in GC when
+// GC moves objects in parallel.
+class LayoutDescriptor : public ByteArray {
  public:
   V8_INLINE bool IsTagged(int field_index);
 
@@ -94,7 +96,10 @@ class LayoutDescriptor : public FixedTypedArray<Uint32ArrayTraits> {
   LayoutDescriptor* SetTaggedForTesting(int field_index, bool tagged);
 
  private:
-  static const int kNumberOfBits = 32;
+  static const int kBitsPerLayoutWord = 32;
+  int number_of_layout_words() { return length() / kUInt32Size; }
+  uint32_t get_layout_word(int index) const { return get_uint32(index); }
+  void set_layout_word(int index, uint32_t value) { set_uint32(index, value); }
 
   V8_INLINE static Handle<LayoutDescriptor> New(Isolate* isolate, int length);
   V8_INLINE static LayoutDescriptor* FromSmi(Smi* smi);
@@ -125,10 +130,10 @@ class LayoutDescriptor : public FixedTypedArray<Uint32ArrayTraits> {
   V8_INLINE bool GetIndexes(int field_index, int* layout_word_index,
                             int* layout_bit_index);
 
-  V8_INLINE MUST_USE_RESULT LayoutDescriptor* SetRawData(int field_index);
+  V8_INLINE V8_WARN_UNUSED_RESULT LayoutDescriptor* SetRawData(int field_index);
 
-  V8_INLINE MUST_USE_RESULT LayoutDescriptor* SetTagged(int field_index,
-                                                        bool tagged);
+  V8_INLINE V8_WARN_UNUSED_RESULT LayoutDescriptor* SetTagged(int field_index,
+                                                              bool tagged);
 };
 
 

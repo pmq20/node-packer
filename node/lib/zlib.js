@@ -21,16 +21,45 @@
 
 'use strict';
 
-const Buffer = require('buffer').Buffer;
+const {
+  ERR_BROTLI_INVALID_PARAM,
+  ERR_BUFFER_TOO_LARGE,
+  ERR_INVALID_ARG_TYPE,
+  ERR_OUT_OF_RANGE,
+  ERR_ZLIB_INITIALIZATION_FAILED,
+} = require('internal/errors').codes;
 const Transform = require('_stream_transform');
+const {
+  _extend,
+  inherits,
+  types: {
+    isAnyArrayBuffer,
+    isArrayBufferView
+  }
+} = require('util');
 const binding = process.binding('zlib');
 const assert = require('assert').ok;
-const kMaxLength = require('buffer').kMaxLength;
-const kRangeErrorMessage = 'Cannot create final Buffer. It would be larger ' +
-                           `than 0x${kMaxLength.toString(16)} bytes`;
+const {
+  Buffer,
+  kMaxLength
+} = require('buffer');
+const { owner_symbol } = require('internal/async_hooks').symbols;
 
 const constants = process.binding('constants').zlib;
-const { inherits } = require('util');
+const {
+  // Zlib flush levels
+  Z_NO_FLUSH, Z_BLOCK, Z_PARTIAL_FLUSH, Z_SYNC_FLUSH, Z_FULL_FLUSH, Z_FINISH,
+  // Zlib option values
+  Z_MIN_CHUNK, Z_MIN_WINDOWBITS, Z_MAX_WINDOWBITS, Z_MIN_LEVEL, Z_MAX_LEVEL,
+  Z_MIN_MEMLEVEL, Z_MAX_MEMLEVEL, Z_DEFAULT_CHUNK, Z_DEFAULT_COMPRESSION,
+  Z_DEFAULT_STRATEGY, Z_DEFAULT_WINDOWBITS, Z_DEFAULT_MEMLEVEL, Z_FIXED,
+  // Node's compression stream modes (node_zlib_mode)
+  DEFLATE, DEFLATERAW, INFLATE, INFLATERAW, GZIP, GUNZIP, UNZIP,
+  BROTLI_DECODE, BROTLI_ENCODE,
+  // Brotli operations (~flush levels)
+  BROTLI_OPERATION_PROCESS, BROTLI_OPERATION_FLUSH,
+  BROTLI_OPERATION_FINISH
+} = constants;
 
 // translation table for return codes.
 const codes = {
@@ -51,222 +80,194 @@ for (var ck = 0; ck < ckeys.length; ck++) {
   codes[codes[ckey]] = ckey;
 }
 
-function isInvalidFlushFlag(flag) {
-  return typeof flag !== 'number' ||
-         flag < constants.Z_NO_FLUSH ||
-         flag > constants.Z_BLOCK;
-
-  // Covers: constants.Z_NO_FLUSH (0),
-  //         constants.Z_PARTIAL_FLUSH (1),
-  //         constants.Z_SYNC_FLUSH (2),
-  //         constants.Z_FULL_FLUSH (3),
-  //         constants.Z_FINISH (4), and
-  //         constants.Z_BLOCK (5)
-}
-
-function isInvalidStrategy(strategy) {
-  return typeof strategy !== 'number' ||
-         strategy < constants.Z_DEFAULT_STRATEGY ||
-         strategy > constants.Z_FIXED;
-
-  // Covers: constants.Z_FILTERED, (1)
-  //         constants.Z_HUFFMAN_ONLY (2),
-  //         constants.Z_RLE (3),
-  //         constants.Z_FIXED (4), and
-  //         constants.Z_DEFAULT_STRATEGY (0)
-}
-
-function responseData(engine, buffer) {
-  if (engine._opts.info) {
-    return { buffer, engine };
-  }
-  return buffer;
-}
-
 function zlibBuffer(engine, buffer, callback) {
   // Streams do not support non-Buffer ArrayBufferViews yet. Convert it to a
   // Buffer without copying.
-  if (ArrayBuffer.isView(buffer) &&
+  if (isArrayBufferView(buffer) &&
       Object.getPrototypeOf(buffer) !== Buffer.prototype) {
     buffer = Buffer.from(buffer.buffer, buffer.byteOffset, buffer.byteLength);
+  } else if (isAnyArrayBuffer(buffer)) {
+    buffer = Buffer.from(buffer);
   }
-
-  var buffers = [];
-  var nread = 0;
-
-  engine.on('error', onError);
-  engine.on('end', onEnd);
-
+  engine.buffers = null;
+  engine.nread = 0;
+  engine.cb = callback;
+  engine.on('data', zlibBufferOnData);
+  engine.on('error', zlibBufferOnError);
+  engine.on('end', zlibBufferOnEnd);
   engine.end(buffer);
-  flow();
+}
 
-  function flow() {
-    var chunk;
-    while (null !== (chunk = engine.read())) {
-      buffers.push(chunk);
-      nread += chunk.byteLength;
-    }
-    engine.once('readable', flow);
+function zlibBufferOnData(chunk) {
+  if (!this.buffers)
+    this.buffers = [chunk];
+  else
+    this.buffers.push(chunk);
+  this.nread += chunk.length;
+}
+
+function zlibBufferOnError(err) {
+  this.removeAllListeners('end');
+  this.cb(err);
+}
+
+function zlibBufferOnEnd() {
+  var buf;
+  var err;
+  if (this.nread >= kMaxLength) {
+    err = new ERR_BUFFER_TOO_LARGE();
+  } else if (this.nread === 0) {
+    buf = Buffer.alloc(0);
+  } else {
+    var bufs = this.buffers;
+    buf = (bufs.length === 1 ? bufs[0] : Buffer.concat(bufs, this.nread));
   }
-
-  function onError(err) {
-    engine.removeListener('end', onEnd);
-    engine.removeListener('readable', flow);
-    callback(err);
-  }
-
-  function onEnd() {
-    var buf;
-    var err = null;
-
-    if (nread >= kMaxLength) {
-      err = new RangeError(kRangeErrorMessage);
-    } else {
-      buf = Buffer.concat(buffers, nread);
-    }
-
-    buffers = [];
-    engine.close();
-    callback(err, responseData(engine, buf));
-  }
+  this.close();
+  if (err)
+    this.cb(err);
+  else if (this._info)
+    this.cb(null, { buffer: buf, engine: this });
+  else
+    this.cb(null, buf);
 }
 
 function zlibBufferSync(engine, buffer) {
-  if (typeof buffer === 'string')
+  if (typeof buffer === 'string') {
     buffer = Buffer.from(buffer);
-  else if (!ArrayBuffer.isView(buffer))
-    throw new TypeError('"buffer" argument must be a string, Buffer, ' +
-                        'TypedArray, or DataView');
-
-  var flushFlag = engine._finishFlushFlag;
-
-  return responseData(engine, engine._processChunk(buffer, flushFlag));
+  } else if (!isArrayBufferView(buffer)) {
+    if (isAnyArrayBuffer(buffer)) {
+      buffer = Buffer.from(buffer);
+    } else {
+      throw new ERR_INVALID_ARG_TYPE(
+        'buffer',
+        ['string', 'Buffer', 'TypedArray', 'DataView', 'ArrayBuffer'],
+        buffer
+      );
+    }
+  }
+  buffer = processChunkSync(engine, buffer, engine._finishFlushFlag);
+  if (engine._info)
+    return { buffer, engine };
+  return buffer;
 }
 
-function zlibOnError(message, errno) {
+function zlibOnError(message, errno, code) {
+  var self = this[owner_symbol];
   // there is no way to cleanly recover.
   // continuing only obscures problems.
-  _close(this);
-  this._hadError = true;
+  _close(self);
+  self._hadError = true;
 
-  var error = new Error(message);
+  // eslint-disable-next-line no-restricted-syntax
+  const error = new Error(message);
   error.errno = errno;
-  error.code = codes[errno];
-  this.emit('error', error);
+  error.code = code;
+  self.emit('error', error);
 }
 
-function flushCallback(level, strategy, callback) {
-  assert(this._handle, 'zlib binding closed');
-  this._handle.params(level, strategy);
-  if (!this._hadError) {
-    this._level = level;
-    this._strategy = strategy;
-    if (callback) callback();
+// 1. Returns false for undefined and NaN
+// 2. Returns true for finite numbers
+// 3. Throws ERR_INVALID_ARG_TYPE for non-numbers
+// 4. Throws ERR_OUT_OF_RANGE for infinite numbers
+function checkFiniteNumber(number, name) {
+  // Common case
+  if (number === undefined) {
+    return false;
   }
+
+  if (Number.isFinite(number)) {
+    return true; // Is a valid number
+  }
+
+  if (Number.isNaN(number)) {
+    return false;
+  }
+
+  // Other non-numbers
+  if (typeof number !== 'number') {
+    const err = new ERR_INVALID_ARG_TYPE(name, 'number', number);
+    Error.captureStackTrace(err, checkFiniteNumber);
+    throw err;
+  }
+
+  // Infinite numbers
+  const err = new ERR_OUT_OF_RANGE(name, 'a finite number', number);
+  Error.captureStackTrace(err, checkFiniteNumber);
+  throw err;
 }
 
-// the Zlib class they all inherit from
-// This thing manages the queue of requests, and returns
-// true or false if there is anything in the queue when
-// you call the .write() method.
-function Zlib(opts, mode) {
-  opts = opts || {};
+// 1. Returns def for number when it's undefined or NaN
+// 2. Returns number for finite numbers >= lower and <= upper
+// 3. Throws ERR_INVALID_ARG_TYPE for non-numbers
+// 4. Throws ERR_OUT_OF_RANGE for infinite numbers or numbers > upper or < lower
+function checkRangesOrGetDefault(number, name, lower, upper, def) {
+  if (!checkFiniteNumber(number, name)) {
+    return def;
+  }
+  if (number < lower || number > upper) {
+    const err = new ERR_OUT_OF_RANGE(name,
+                                     `>= ${lower} and <= ${upper}`, number);
+    Error.captureStackTrace(err, checkRangesOrGetDefault);
+    throw err;
+  }
+  return number;
+}
+
+// The base class for all Zlib-style streams.
+function ZlibBase(opts, mode, handle, { flush, finishFlush, fullFlush }) {
+  var chunkSize = Z_DEFAULT_CHUNK;
+  // The ZlibBase class is not exported to user land, the mode should only be
+  // passed in by us.
+  assert(typeof mode === 'number');
+  assert(mode >= DEFLATE && mode <= BROTLI_ENCODE);
+
+  if (opts) {
+    chunkSize = opts.chunkSize;
+    if (!checkFiniteNumber(chunkSize, 'options.chunkSize')) {
+      chunkSize = Z_DEFAULT_CHUNK;
+    } else if (chunkSize < Z_MIN_CHUNK) {
+      throw new ERR_OUT_OF_RANGE('options.chunkSize',
+                                 `>= ${Z_MIN_CHUNK}`, chunkSize);
+    }
+
+    flush = checkRangesOrGetDefault(
+      opts.flush, 'options.flush',
+      Z_NO_FLUSH, Z_BLOCK, flush);
+
+    finishFlush = checkRangesOrGetDefault(
+      opts.finishFlush, 'options.finishFlush',
+      Z_NO_FLUSH, Z_BLOCK, finishFlush);
+
+    if (opts.encoding || opts.objectMode || opts.writableObjectMode) {
+      opts = _extend({}, opts);
+      opts.encoding = null;
+      opts.objectMode = false;
+      opts.writableObjectMode = false;
+    }
+  }
+
   Transform.call(this, opts);
-
-  this.bytesRead = 0;
-
-  this._opts = opts;
-  this._chunkSize = opts.chunkSize || constants.Z_DEFAULT_CHUNK;
-
-  if (opts.flush && isInvalidFlushFlag(opts.flush)) {
-    throw new RangeError('Invalid flush flag: ' + opts.flush);
-  }
-  if (opts.finishFlush && isInvalidFlushFlag(opts.finishFlush)) {
-    throw new RangeError('Invalid flush flag: ' + opts.finishFlush);
-  }
-
-  this._flushFlag = opts.flush || constants.Z_NO_FLUSH;
-  this._finishFlushFlag = opts.finishFlush !== undefined ?
-    opts.finishFlush : constants.Z_FINISH;
-  this._scheduledFlushFlag = constants.Z_NO_FLUSH;
-
-  if (opts.chunkSize !== undefined) {
-    if (opts.chunkSize < constants.Z_MIN_CHUNK) {
-      throw new RangeError('Invalid chunk size: ' + opts.chunkSize);
-    }
-  }
-
-  if (opts.windowBits !== undefined) {
-    if (opts.windowBits < constants.Z_MIN_WINDOWBITS ||
-        opts.windowBits > constants.Z_MAX_WINDOWBITS) {
-      throw new RangeError('Invalid windowBits: ' + opts.windowBits);
-    }
-  }
-
-  if (opts.level !== undefined) {
-    if (opts.level < constants.Z_MIN_LEVEL ||
-        opts.level > constants.Z_MAX_LEVEL) {
-      throw new RangeError('Invalid compression level: ' + opts.level);
-    }
-  }
-
-  if (opts.memLevel !== undefined) {
-    if (opts.memLevel < constants.Z_MIN_MEMLEVEL ||
-        opts.memLevel > constants.Z_MAX_MEMLEVEL) {
-      throw new RangeError('Invalid memLevel: ' + opts.memLevel);
-    }
-  }
-
-  if (opts.strategy !== undefined && isInvalidStrategy(opts.strategy))
-    throw new TypeError('Invalid strategy: ' + opts.strategy);
-
-  if (opts.dictionary !== undefined) {
-    if (!ArrayBuffer.isView(opts.dictionary)) {
-      throw new TypeError(
-        'Invalid dictionary: it should be a Buffer, TypedArray, or DataView');
-    }
-  }
-
-  this._handle = new binding.Zlib(mode);
-  this._handle.onerror = zlibOnError.bind(this);
   this._hadError = false;
+  this.bytesWritten = 0;
+  this._handle = handle;
+  handle[owner_symbol] = this;
+  // Used by processCallback() and zlibOnError()
+  handle.onerror = zlibOnError;
+  this._outBuffer = Buffer.allocUnsafe(chunkSize);
+  this._outOffset = 0;
 
-  var level = constants.Z_DEFAULT_COMPRESSION;
-  if (Number.isFinite(opts.level)) {
-    level = opts.level;
-  }
-
-  var strategy = constants.Z_DEFAULT_STRATEGY;
-  if (Number.isFinite(opts.strategy)) {
-    strategy = opts.strategy;
-  }
-
-  var windowBits = constants.Z_DEFAULT_WINDOWBITS;
-  if (Number.isFinite(opts.windowBits)) {
-    windowBits = opts.windowBits;
-  }
-
-  var memLevel = constants.Z_DEFAULT_MEMLEVEL;
-  if (Number.isFinite(opts.memLevel)) {
-    memLevel = opts.memLevel;
-  }
-
-  this._handle.init(windowBits,
-                    level,
-                    memLevel,
-                    strategy,
-                    opts.dictionary);
-
-  this._buffer = Buffer.allocUnsafe(this._chunkSize);
-  this._offset = 0;
-  this._level = level;
-  this._strategy = strategy;
-
+  this._chunkSize = chunkSize;
+  this._defaultFlushFlag = flush;
+  this._finishFlushFlag = finishFlush;
+  this._nextFlush = -1;
+  this._defaultFullFlushFlag = fullFlush;
   this.once('end', this.close);
+  this._info = opts && opts.info;
 }
-inherits(Zlib, Transform);
 
-Object.defineProperty(Zlib.prototype, '_closed', {
+inherits(ZlibBase, Transform);
+
+Object.defineProperty(ZlibBase.prototype, '_closed', {
   configurable: true,
   enumerable: true,
   get() {
@@ -274,30 +275,30 @@ Object.defineProperty(Zlib.prototype, '_closed', {
   }
 });
 
-Zlib.prototype.params = function params(level, strategy, callback) {
-  if (level < constants.Z_MIN_LEVEL ||
-      level > constants.Z_MAX_LEVEL) {
-    throw new RangeError('Invalid compression level: ' + level);
+// `bytesRead` made sense as a name when looking from the zlib engine's
+// perspective, but it is inconsistent with all other streams exposed by Node.js
+// that have this concept, where it stands for the number of bytes read
+// *from* the stream (that is, net.Socket/tls.Socket & file system streams).
+Object.defineProperty(ZlibBase.prototype, 'bytesRead', {
+  configurable: true,
+  enumerable: true,
+  get() {
+    return this.bytesWritten;
+  },
+  set(value) {
+    this.bytesWritten = value;
   }
-  if (isInvalidStrategy(strategy))
-    throw new TypeError('Invalid strategy: ' + strategy);
+});
 
-  if (this._level !== level || this._strategy !== strategy) {
-    this.flush(constants.Z_SYNC_FLUSH,
-               flushCallback.bind(this, level, strategy, callback));
-  } else {
-    process.nextTick(callback);
-  }
-};
-
-Zlib.prototype.reset = function reset() {
-  assert(this._handle, 'zlib binding closed');
+ZlibBase.prototype.reset = function() {
+  if (!this._handle)
+    assert(false, 'zlib binding closed');
   return this._handle.reset();
 };
 
 // This is the _flush function called by the transform class,
 // internally, when the last chunk has been written.
-Zlib.prototype._flush = function _flush(callback) {
+ZlibBase.prototype._flush = function(callback) {
   this._transform(Buffer.alloc(0), '', callback);
 };
 
@@ -308,9 +309,8 @@ Zlib.prototype._flush = function _flush(callback) {
 //     Z_SYNC_FLUSH < Z_FULL_FLUSH < Z_FINISH
 const flushiness = [];
 let i = 0;
-for (const flushFlag of [constants.Z_NO_FLUSH, constants.Z_BLOCK,
-                         constants.Z_PARTIAL_FLUSH, constants.Z_SYNC_FLUSH,
-                         constants.Z_FULL_FLUSH, constants.Z_FINISH]) {
+for (const flushFlag of [Z_NO_FLUSH, Z_BLOCK, Z_PARTIAL_FLUSH,
+                         Z_SYNC_FLUSH, Z_FULL_FLUSH, Z_FINISH]) {
   flushiness[flushFlag] = i++;
 }
 
@@ -318,12 +318,13 @@ function maxFlush(a, b) {
   return flushiness[a] > flushiness[b] ? a : b;
 }
 
-Zlib.prototype.flush = function flush(kind, callback) {
+const flushBuffer = Buffer.alloc(0);
+ZlibBase.prototype.flush = function(kind, callback) {
   var ws = this._writableState;
 
   if (typeof kind === 'function' || (kind === undefined && !callback)) {
     callback = kind;
-    kind = constants.Z_FULL_FLUSH;
+    kind = this._defaultFullFlushFlag;
   }
 
   if (ws.ended) {
@@ -332,188 +333,220 @@ Zlib.prototype.flush = function flush(kind, callback) {
   } else if (ws.ending) {
     if (callback)
       this.once('end', callback);
-  } else if (ws.needDrain) {
-    const alreadyHadFlushScheduled =
-        this._scheduledFlushFlag !== constants.Z_NO_FLUSH;
-    this._scheduledFlushFlag = maxFlush(kind, this._scheduledFlushFlag);
-
-    // If a callback was passed, always register a new `drain` + flush handler,
-    // mostly because that’s simpler and flush callbacks piling up is a rare
-    // thing anyway.
-    if (!alreadyHadFlushScheduled || callback) {
-      const drainHandler = () => this.flush(this._scheduledFlushFlag, callback);
-      this.once('drain', drainHandler);
-    }
+  } else if (this._nextFlush !== -1) {
+    // This means that there is a flush currently in the write queue.
+    // We currently coalesce this flush into the pending one.
+    this._nextFlush = maxFlush(this._nextFlush, kind);
   } else {
-    this._flushFlag = kind;
-    this.write(Buffer.alloc(0), '', callback);
-    this._scheduledFlushFlag = constants.Z_NO_FLUSH;
+    this._nextFlush = kind;
+    this.write(flushBuffer, '', callback);
   }
 };
 
-Zlib.prototype.close = function close(callback) {
+ZlibBase.prototype.close = function(callback) {
   _close(this, callback);
-  process.nextTick(emitCloseNT, this);
+  this.destroy();
 };
 
-Zlib.prototype._transform = function _transform(chunk, encoding, cb) {
-  var flushFlag;
+ZlibBase.prototype._destroy = function(err, callback) {
+  _close(this);
+  callback(err);
+};
+
+ZlibBase.prototype._transform = function(chunk, encoding, cb) {
+  var flushFlag = this._defaultFlushFlag;
+  // We use a 'fake' zero-length chunk to carry information about flushes from
+  // the public API to the actual stream implementation.
+  if (chunk === flushBuffer) {
+    flushFlag = this._nextFlush;
+    this._nextFlush = -1;
+  }
+
+  // For the last chunk, also apply `_finishFlushFlag`.
   var ws = this._writableState;
-  var ending = ws.ending || ws.ended;
-  var last = ending && (!chunk || ws.length === chunk.byteLength);
-
-  if (chunk !== null && !ArrayBuffer.isView(chunk))
-    return cb(new TypeError('invalid input'));
-
-  if (!this._handle)
-    return cb(new Error('zlib binding closed'));
-
-  // If it's the last chunk, or a final flush, we use the Z_FINISH flush flag
-  // (or whatever flag was provided using opts.finishFlush).
-  // If it's explicitly flushing at some other time, then we use
-  // Z_FULL_FLUSH. Otherwise, use Z_NO_FLUSH for maximum compression
-  // goodness.
-  if (last)
-    flushFlag = this._finishFlushFlag;
-  else {
-    flushFlag = this._flushFlag;
-    // once we've flushed the last of the queue, stop flushing and
-    // go back to the normal behavior.
-    if (chunk.byteLength >= ws.length) {
-      this._flushFlag = this._opts.flush || constants.Z_NO_FLUSH;
-    }
+  if ((ws.ending || ws.ended) && ws.length === chunk.byteLength) {
+    flushFlag = maxFlush(flushFlag, this._finishFlushFlag);
   }
-
-  this._processChunk(chunk, flushFlag, cb);
+  processChunk(this, chunk, flushFlag, cb);
 };
 
-Zlib.prototype._processChunk = function _processChunk(chunk, flushFlag, cb) {
-  var availInBefore = chunk && chunk.byteLength;
-  var availOutBefore = this._chunkSize - this._offset;
+ZlibBase.prototype._processChunk = function(chunk, flushFlag, cb) {
+  // _processChunk() is left for backwards compatibility
+  if (typeof cb === 'function')
+    processChunk(this, chunk, flushFlag, cb);
+  else
+    return processChunkSync(this, chunk, flushFlag);
+};
+
+function processChunkSync(self, chunk, flushFlag) {
+  var availInBefore = chunk.byteLength;
+  var availOutBefore = self._chunkSize - self._outOffset;
   var inOff = 0;
+  var availOutAfter;
+  var availInAfter;
 
-  var self = this;
+  var buffers = null;
+  var nread = 0;
+  var inputRead = 0;
+  var state = self._writeState;
+  var handle = self._handle;
+  var buffer = self._outBuffer;
+  var offset = self._outOffset;
+  var chunkSize = self._chunkSize;
 
-  var async = typeof cb === 'function';
+  var error;
+  self.on('error', function onError(er) {
+    error = er;
+  });
 
-  if (!async) {
-    var buffers = [];
-    var nread = 0;
-
-    var error;
-    this.on('error', function(er) {
-      error = er;
-    });
-
-    assert(this._handle, 'zlib binding closed');
-    do {
-      var res = this._handle.writeSync(flushFlag,
-                                       chunk, // in
-                                       inOff, // in_off
-                                       availInBefore, // in_len
-                                       this._buffer, // out
-                                       this._offset, //out_off
-                                       availOutBefore); // out_len
-    } while (!this._hadError && callback(res[0], res[1]));
-
-    if (this._hadError) {
+  while (true) {
+    handle.writeSync(flushFlag,
+                     chunk, // in
+                     inOff, // in_off
+                     availInBefore, // in_len
+                     buffer, // out
+                     offset, // out_off
+                     availOutBefore); // out_len
+    if (error)
       throw error;
-    }
 
-    if (nread >= kMaxLength) {
-      _close(this);
-      throw new RangeError(kRangeErrorMessage);
-    }
+    availOutAfter = state[0];
+    availInAfter = state[1];
 
-    var buf = Buffer.concat(buffers, nread);
-    _close(this);
-
-    return buf;
-  }
-
-  assert(this._handle, 'zlib binding closed');
-  var req = this._handle.write(flushFlag,
-                               chunk, // in
-                               inOff, // in_off
-                               availInBefore, // in_len
-                               this._buffer, // out
-                               this._offset, //out_off
-                               availOutBefore); // out_len
-
-  req.buffer = chunk;
-  req.callback = callback;
-
-  function callback(availInAfter, availOutAfter) {
-    // When the callback is used in an async write, the callback's
-    // context is the `req` object that was created. The req object
-    // is === this._handle, and that's why it's important to null
-    // out the values after they are done being used. `this._handle`
-    // can stay in memory longer than the callback and buffer are needed.
-    if (this) {
-      this.buffer = null;
-      this.callback = null;
-    }
-
-    if (self._hadError)
-      return;
-
-    if (self.destroyed)
-      return;
+    var inDelta = (availInBefore - availInAfter);
+    inputRead += inDelta;
 
     var have = availOutBefore - availOutAfter;
-    assert(have >= 0, 'have should not go down');
-
-    self.bytesRead += availInBefore - availInAfter;
-
     if (have > 0) {
-      var out = self._buffer.slice(self._offset, self._offset + have);
-      self._offset += have;
-      // serve some output to the consumer.
-      if (async) {
-        self.push(out);
-      } else {
+      var out = buffer.slice(offset, offset + have);
+      offset += have;
+      if (!buffers)
+        buffers = [out];
+      else
         buffers.push(out);
-        nread += out.byteLength;
-      }
+      nread += out.byteLength;
+    } else {
+      assert(have === 0, 'have should not go down');
     }
 
     // exhausted the output buffer, or used all the input create a new one.
-    if (availOutAfter === 0 || self._offset >= self._chunkSize) {
-      availOutBefore = self._chunkSize;
-      self._offset = 0;
-      self._buffer = Buffer.allocUnsafe(self._chunkSize);
+    if (availOutAfter === 0 || offset >= chunkSize) {
+      availOutBefore = chunkSize;
+      offset = 0;
+      buffer = Buffer.allocUnsafe(chunkSize);
     }
 
     if (availOutAfter === 0) {
-      // Not actually done.  Need to reprocess.
+      // Not actually done. Need to reprocess.
       // Also, update the availInBefore to the availInAfter value,
       // so that if we have to hit it a third (fourth, etc.) time,
       // it'll have the correct byte counts.
-      inOff += (availInBefore - availInAfter);
+      inOff += inDelta;
       availInBefore = availInAfter;
-
-      if (!async)
-        return true;
-
-      var newReq = self._handle.write(flushFlag,
-                                      chunk,
-                                      inOff,
-                                      availInBefore,
-                                      self._buffer,
-                                      self._offset,
-                                      self._chunkSize);
-      newReq.callback = callback; // this same function
-      newReq.buffer = chunk;
-      return;
+    } else {
+      break;
     }
-
-    if (!async)
-      return false;
-
-    // finished with the chunk.
-    cb();
   }
-};
+
+  self.bytesWritten = inputRead;
+  _close(self);
+
+  if (nread >= kMaxLength) {
+    throw new ERR_BUFFER_TOO_LARGE();
+  }
+
+  if (nread === 0)
+    return Buffer.alloc(0);
+
+  return (buffers.length === 1 ? buffers[0] : Buffer.concat(buffers, nread));
+}
+
+function processChunk(self, chunk, flushFlag, cb) {
+  var handle = self._handle;
+  assert(handle, 'zlib binding closed');
+
+  handle.buffer = chunk;
+  handle.cb = cb;
+  handle.availOutBefore = self._chunkSize - self._outOffset;
+  handle.availInBefore = chunk.byteLength;
+  handle.inOff = 0;
+  handle.flushFlag = flushFlag;
+
+  handle.write(flushFlag,
+               chunk, // in
+               0, // in_off
+               handle.availInBefore, // in_len
+               self._outBuffer, // out
+               self._outOffset, // out_off
+               handle.availOutBefore); // out_len
+}
+
+function processCallback() {
+  // This callback's context (`this`) is the `_handle` (ZCtx) object. It is
+  // important to null out the values once they are no longer needed since
+  // `_handle` can stay in memory long after the buffer is needed.
+  var handle = this;
+  var self = this[owner_symbol];
+  var state = self._writeState;
+
+  if (self._hadError) {
+    this.buffer = null;
+    return;
+  }
+
+  if (self.destroyed) {
+    this.buffer = null;
+    return;
+  }
+
+  var availOutAfter = state[0];
+  var availInAfter = state[1];
+
+  const inDelta = handle.availInBefore - availInAfter;
+  self.bytesWritten += inDelta;
+
+  var have = handle.availOutBefore - availOutAfter;
+  if (have > 0) {
+    var out = self._outBuffer.slice(self._outOffset, self._outOffset + have);
+    self._outOffset += have;
+    self.push(out);
+  } else {
+    assert(have === 0, 'have should not go down');
+  }
+
+  if (self.destroyed) {
+    return;
+  }
+
+  // exhausted the output buffer, or used all the input create a new one.
+  if (availOutAfter === 0 || self._outOffset >= self._chunkSize) {
+    handle.availOutBefore = self._chunkSize;
+    self._outOffset = 0;
+    self._outBuffer = Buffer.allocUnsafe(self._chunkSize);
+  }
+
+  if (availOutAfter === 0) {
+    // Not actually done. Need to reprocess.
+    // Also, update the availInBefore to the availInAfter value,
+    // so that if we have to hit it a third (fourth, etc.) time,
+    // it'll have the correct byte counts.
+    handle.inOff += inDelta;
+    handle.availInBefore = availInAfter;
+
+    this.write(handle.flushFlag,
+               this.buffer, // in
+               handle.inOff, // in_off
+               handle.availInBefore, // in_len
+               self._outBuffer, // out
+               self._outOffset, // out_off
+               self._chunkSize); // out_len
+    return;
+  }
+
+  // finished with the chunk.
+  this.buffer = null;
+  this.cb();
+}
 
 function _close(engine, callback) {
   if (callback)
@@ -527,84 +560,260 @@ function _close(engine, callback) {
   engine._handle = null;
 }
 
-function emitCloseNT(self) {
-  self.emit('close');
+const zlibDefaultOpts = {
+  flush: Z_NO_FLUSH,
+  finishFlush: Z_FINISH,
+  fullFlush: Z_FULL_FLUSH
+};
+// Base class for all streams actually backed by zlib and using zlib-specific
+// parameters.
+function Zlib(opts, mode) {
+  var windowBits = Z_DEFAULT_WINDOWBITS;
+  var level = Z_DEFAULT_COMPRESSION;
+  var memLevel = Z_DEFAULT_MEMLEVEL;
+  var strategy = Z_DEFAULT_STRATEGY;
+  var dictionary;
+
+  if (opts) {
+    // windowBits is special. On the compression side, 0 is an invalid value.
+    // But on the decompression side, a value of 0 for windowBits tells zlib
+    // to use the window size in the zlib header of the compressed stream.
+    if ((opts.windowBits == null || opts.windowBits === 0) &&
+        (mode === INFLATE ||
+         mode === GUNZIP ||
+         mode === UNZIP)) {
+      windowBits = 0;
+    } else {
+      windowBits = checkRangesOrGetDefault(
+        opts.windowBits, 'options.windowBits',
+        Z_MIN_WINDOWBITS, Z_MAX_WINDOWBITS, Z_DEFAULT_WINDOWBITS);
+    }
+
+    level = checkRangesOrGetDefault(
+      opts.level, 'options.level',
+      Z_MIN_LEVEL, Z_MAX_LEVEL, Z_DEFAULT_COMPRESSION);
+
+    memLevel = checkRangesOrGetDefault(
+      opts.memLevel, 'options.memLevel',
+      Z_MIN_MEMLEVEL, Z_MAX_MEMLEVEL, Z_DEFAULT_MEMLEVEL);
+
+    strategy = checkRangesOrGetDefault(
+      opts.strategy, 'options.strategy',
+      Z_DEFAULT_STRATEGY, Z_FIXED, Z_DEFAULT_STRATEGY);
+
+    dictionary = opts.dictionary;
+    if (dictionary !== undefined && !isArrayBufferView(dictionary)) {
+      if (isAnyArrayBuffer(dictionary)) {
+        dictionary = Buffer.from(dictionary);
+      } else {
+        throw new ERR_INVALID_ARG_TYPE(
+          'options.dictionary',
+          ['Buffer', 'TypedArray', 'DataView', 'ArrayBuffer'],
+          dictionary
+        );
+      }
+    }
+  }
+
+  const handle = new binding.Zlib(mode);
+  // Ideally, we could let ZlibBase() set up _writeState. I haven't been able
+  // to come up with a good solution that doesn't break our internal API,
+  // and with it all supported npm versions at the time of writing.
+  this._writeState = new Uint32Array(2);
+  if (!handle.init(windowBits,
+                   level,
+                   memLevel,
+                   strategy,
+                   this._writeState,
+                   processCallback,
+                   dictionary)) {
+    // TODO(addaleax): Sometimes we generate better error codes in C++ land,
+    // e.g. ERR_BROTLI_PARAM_SET_FAILED -- it's hard to access them with
+    // the current bindings setup, though.
+    throw new ERR_ZLIB_INITIALIZATION_FAILED();
+  }
+
+  ZlibBase.call(this, opts, mode, handle, zlibDefaultOpts);
+
+  this._level = level;
+  this._strategy = strategy;
 }
+inherits(Zlib, ZlibBase);
+
+// This callback is used by `.params()` to wait until a full flush happened
+// before adjusting the parameters. In particular, the call to the native
+// `params()` function should not happen while a write is currently in progress
+// on the threadpool.
+function paramsAfterFlushCallback(level, strategy, callback) {
+  assert(this._handle, 'zlib binding closed');
+  this._handle.params(level, strategy);
+  if (!this._hadError) {
+    this._level = level;
+    this._strategy = strategy;
+    if (callback) callback();
+  }
+}
+
+Zlib.prototype.params = function params(level, strategy, callback) {
+  checkRangesOrGetDefault(level, 'level', Z_MIN_LEVEL, Z_MAX_LEVEL);
+  checkRangesOrGetDefault(strategy, 'strategy', Z_DEFAULT_STRATEGY, Z_FIXED);
+
+  if (this._level !== level || this._strategy !== strategy) {
+    this.flush(Z_SYNC_FLUSH,
+               paramsAfterFlushCallback.bind(this, level, strategy, callback));
+  } else {
+    process.nextTick(callback);
+  }
+};
 
 // generic zlib
 // minimal 2-byte header
 function Deflate(opts) {
   if (!(this instanceof Deflate))
     return new Deflate(opts);
-  Zlib.call(this, opts, constants.DEFLATE);
+  Zlib.call(this, opts, DEFLATE);
 }
 inherits(Deflate, Zlib);
 
 function Inflate(opts) {
   if (!(this instanceof Inflate))
     return new Inflate(opts);
-  Zlib.call(this, opts, constants.INFLATE);
+  Zlib.call(this, opts, INFLATE);
 }
 inherits(Inflate, Zlib);
 
 function Gzip(opts) {
   if (!(this instanceof Gzip))
     return new Gzip(opts);
-  Zlib.call(this, opts, constants.GZIP);
+  Zlib.call(this, opts, GZIP);
 }
 inherits(Gzip, Zlib);
 
 function Gunzip(opts) {
   if (!(this instanceof Gunzip))
     return new Gunzip(opts);
-  Zlib.call(this, opts, constants.GUNZIP);
+  Zlib.call(this, opts, GUNZIP);
 }
 inherits(Gunzip, Zlib);
 
 function DeflateRaw(opts) {
+  if (opts && opts.windowBits === 8) opts.windowBits = 9;
   if (!(this instanceof DeflateRaw))
     return new DeflateRaw(opts);
-  Zlib.call(this, opts, constants.DEFLATERAW);
+  Zlib.call(this, opts, DEFLATERAW);
 }
 inherits(DeflateRaw, Zlib);
 
 function InflateRaw(opts) {
   if (!(this instanceof InflateRaw))
     return new InflateRaw(opts);
-  Zlib.call(this, opts, constants.INFLATERAW);
+  Zlib.call(this, opts, INFLATERAW);
 }
 inherits(InflateRaw, Zlib);
 
 function Unzip(opts) {
   if (!(this instanceof Unzip))
     return new Unzip(opts);
-  Zlib.call(this, opts, constants.UNZIP);
+  Zlib.call(this, opts, UNZIP);
 }
 inherits(Unzip, Zlib);
 
-function createConvenienceMethod(type, sync) {
+function createConvenienceMethod(ctor, sync) {
   if (sync) {
-    return function(buffer, opts) {
-      return zlibBufferSync(new type(opts), buffer);
+    return function syncBufferWrapper(buffer, opts) {
+      return zlibBufferSync(new ctor(opts), buffer);
     };
   } else {
-    return function(buffer, opts, callback) {
+    return function asyncBufferWrapper(buffer, opts, callback) {
       if (typeof opts === 'function') {
         callback = opts;
         opts = {};
       }
-      return zlibBuffer(new type(opts), buffer, callback);
+      return zlibBuffer(new ctor(opts), buffer, callback);
     };
   }
 }
 
-function createProperty(type) {
+const kMaxBrotliParam = Math.max(...Object.keys(constants).map((key) => {
+  return key.startsWith('BROTLI_PARAM_') ? constants[key] : 0;
+}));
+
+const brotliInitParamsArray = new Uint32Array(kMaxBrotliParam + 1);
+
+const brotliDefaultOpts = {
+  flush: BROTLI_OPERATION_PROCESS,
+  finishFlush: BROTLI_OPERATION_FINISH,
+  fullFlush: BROTLI_OPERATION_FLUSH
+};
+function Brotli(opts, mode) {
+  assert(mode === BROTLI_DECODE || mode === BROTLI_ENCODE);
+
+  brotliInitParamsArray.fill(-1);
+  if (opts && opts.params) {
+    for (const origKey of Object.keys(opts.params)) {
+      const key = +origKey;
+      if (Number.isNaN(key) || key < 0 || key > kMaxBrotliParam ||
+          (brotliInitParamsArray[key] | 0) !== -1) {
+        throw new ERR_BROTLI_INVALID_PARAM(origKey);
+      }
+
+      const value = opts.params[origKey];
+      if (typeof value !== 'number' && typeof value !== 'boolean') {
+        throw new ERR_INVALID_ARG_TYPE('options.params[key]',
+                                       'number', opts.params[origKey]);
+      }
+      brotliInitParamsArray[key] = value;
+    }
+  }
+
+  const handle = mode === BROTLI_DECODE ?
+    new binding.BrotliDecoder(mode) : new binding.BrotliEncoder(mode);
+
+  this._writeState = new Uint32Array(2);
+  if (!handle.init(brotliInitParamsArray,
+                   this._writeState,
+                   processCallback)) {
+    throw new ERR_ZLIB_INITIALIZATION_FAILED();
+  }
+
+  ZlibBase.call(this, opts, mode, handle, brotliDefaultOpts);
+}
+Object.setPrototypeOf(Brotli.prototype, Zlib.prototype);
+Object.setPrototypeOf(Brotli, Zlib);
+
+function BrotliCompress(opts) {
+  if (!(this instanceof BrotliCompress))
+    return new BrotliCompress(opts);
+  Brotli.call(this, opts, BROTLI_ENCODE);
+}
+Object.setPrototypeOf(BrotliCompress.prototype, Brotli.prototype);
+Object.setPrototypeOf(BrotliCompress, Brotli);
+
+function BrotliDecompress(opts) {
+  if (!(this instanceof BrotliDecompress))
+    return new BrotliDecompress(opts);
+  Brotli.call(this, opts, BROTLI_DECODE);
+}
+Object.setPrototypeOf(BrotliDecompress.prototype, Brotli.prototype);
+Object.setPrototypeOf(BrotliDecompress, Brotli);
+
+
+function createProperty(ctor) {
   return {
     configurable: true,
     enumerable: true,
-    value: type
+    value: function(options) {
+      return new ctor(options);
+    }
   };
 }
+
+// Legacy alias on the C++ wrapper object. This is not public API, so we may
+// want to runtime-deprecate it at some point. There's no hurry, though.
+Object.defineProperty(binding.Zlib.prototype, 'jsref', {
+  get() { return this[owner_symbol]; },
+  set(v) { return this[owner_symbol] = v; }
+});
 
 module.exports = {
   Deflate,
@@ -614,6 +823,8 @@ module.exports = {
   DeflateRaw,
   InflateRaw,
   Unzip,
+  BrotliCompress,
+  BrotliDecompress,
 
   // Convenience methods.
   // compress/decompress a string or buffer in one step.
@@ -630,17 +841,23 @@ module.exports = {
   gunzip: createConvenienceMethod(Gunzip, false),
   gunzipSync: createConvenienceMethod(Gunzip, true),
   inflateRaw: createConvenienceMethod(InflateRaw, false),
-  inflateRawSync: createConvenienceMethod(InflateRaw, true)
+  inflateRawSync: createConvenienceMethod(InflateRaw, true),
+  brotliCompress: createConvenienceMethod(BrotliCompress, false),
+  brotliCompressSync: createConvenienceMethod(BrotliCompress, true),
+  brotliDecompress: createConvenienceMethod(BrotliDecompress, false),
+  brotliDecompressSync: createConvenienceMethod(BrotliDecompress, true),
 };
 
 Object.defineProperties(module.exports, {
-  createDeflate: createProperty(module.exports.Deflate),
-  createInflate: createProperty(module.exports.Inflate),
-  createDeflateRaw: createProperty(module.exports.DeflateRaw),
-  createInflateRaw: createProperty(module.exports.InflateRaw),
-  createGzip: createProperty(module.exports.Gzip),
-  createGunzip: createProperty(module.exports.Gunzip),
-  createUnzip: createProperty(module.exports.Unzip),
+  createDeflate: createProperty(Deflate),
+  createInflate: createProperty(Inflate),
+  createDeflateRaw: createProperty(DeflateRaw),
+  createInflateRaw: createProperty(InflateRaw),
+  createGzip: createProperty(Gzip),
+  createGunzip: createProperty(Gunzip),
+  createUnzip: createProperty(Unzip),
+  createBrotliCompress: createProperty(BrotliCompress),
+  createBrotliDecompress: createProperty(BrotliDecompress),
   constants: {
     configurable: false,
     enumerable: true,
@@ -658,6 +875,7 @@ Object.defineProperties(module.exports, {
 const bkeys = Object.keys(constants);
 for (var bk = 0; bk < bkeys.length; bk++) {
   var bkey = bkeys[bk];
+  if (bkey.startsWith('BROTLI')) continue;
   Object.defineProperty(module.exports, bkey, {
     enumerable: true, value: constants[bkey], writable: false
   });

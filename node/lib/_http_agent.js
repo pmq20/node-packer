@@ -25,8 +25,7 @@ const net = require('net');
 const util = require('util');
 const EventEmitter = require('events');
 const debug = util.debuglog('http');
-const async_id_symbol = process.binding('async_wrap').async_id_symbol;
-const nextTick = require('internal/process/next_tick').nextTick;
+const { async_id_symbol } = require('internal/async_hooks').symbols;
 
 // New Agent code.
 
@@ -46,33 +45,32 @@ function Agent(options) {
 
   EventEmitter.call(this);
 
-  var self = this;
+  this.defaultPort = 80;
+  this.protocol = 'http:';
 
-  self.defaultPort = 80;
-  self.protocol = 'http:';
-
-  self.options = util._extend({}, options);
+  this.options = util._extend({}, options);
 
   // don't confuse net and make it think that we're connecting to a pipe
-  self.options.path = null;
-  self.requests = {};
-  self.sockets = {};
-  self.freeSockets = {};
-  self.keepAliveMsecs = self.options.keepAliveMsecs || 1000;
-  self.keepAlive = self.options.keepAlive || false;
-  self.maxSockets = self.options.maxSockets || Agent.defaultMaxSockets;
-  self.maxFreeSockets = self.options.maxFreeSockets || 256;
+  this.options.path = null;
+  this.requests = {};
+  this.sockets = {};
+  this.freeSockets = {};
+  this.keepAliveMsecs = this.options.keepAliveMsecs || 1000;
+  this.keepAlive = this.options.keepAlive || false;
+  this.maxSockets = this.options.maxSockets || Agent.defaultMaxSockets;
+  this.maxFreeSockets = this.options.maxFreeSockets || 256;
 
-  self.on('free', function(socket, options) {
-    var name = self.getName(options);
+  this.on('free', (socket, options) => {
+    var name = this.getName(options);
     debug('agent.on(free)', name);
 
     if (socket.writable &&
-        self.requests[name] && self.requests[name].length) {
-      self.requests[name].shift().onSocket(socket);
-      if (self.requests[name].length === 0) {
+        this.requests[name] && this.requests[name].length) {
+      const req = this.requests[name].shift();
+      setRequestSocket(this, req, socket);
+      if (this.requests[name].length === 0) {
         // don't leak
-        delete self.requests[name];
+        delete this.requests[name];
       }
     } else {
       // If there are no pending requests, then put it in
@@ -81,21 +79,21 @@ function Agent(options) {
       if (req &&
           req.shouldKeepAlive &&
           socket.writable &&
-          self.keepAlive) {
-        var freeSockets = self.freeSockets[name];
+          this.keepAlive) {
+        var freeSockets = this.freeSockets[name];
         var freeLen = freeSockets ? freeSockets.length : 0;
         var count = freeLen;
-        if (self.sockets[name])
-          count += self.sockets[name].length;
+        if (this.sockets[name])
+          count += this.sockets[name].length;
 
-        if (count > self.maxSockets || freeLen >= self.maxFreeSockets) {
+        if (count > this.maxSockets || freeLen >= this.maxFreeSockets) {
           socket.destroy();
-        } else if (self.keepSocketAlive(socket)) {
+        } else if (this.keepSocketAlive(socket)) {
           freeSockets = freeSockets || [];
-          self.freeSockets[name] = freeSockets;
+          this.freeSockets[name] = freeSockets;
           socket[async_id_symbol] = -1;
           socket._httpMessage = null;
-          self.removeSocket(socket, options);
+          this.removeSocket(socket, options);
           freeSockets.push(socket);
         } else {
           // Implementation doesn't want to keep socket alive
@@ -129,13 +127,16 @@ Agent.prototype.getName = function getName(options) {
   // Pacify parallel/test-http-agent-getname by only appending
   // the ':' when options.family is set.
   if (options.family === 4 || options.family === 6)
-    name += ':' + options.family;
+    name += `:${options.family}`;
+
+  if (options.socketPath)
+    name += `:${options.socketPath}`;
 
   return name;
 };
 
-Agent.prototype.addRequest = function addRequest(req, options, port/*legacy*/,
-                                                 localAddress/*legacy*/) {
+Agent.prototype.addRequest = function addRequest(req, options, port/* legacy */,
+                                                 localAddress/* legacy */) {
   // Legacy API: addRequest(req, host, port, localAddress)
   if (typeof options === 'string') {
     options = {
@@ -147,14 +148,11 @@ Agent.prototype.addRequest = function addRequest(req, options, port/*legacy*/,
 
   options = util._extend({}, options);
   util._extend(options, this.options);
+  if (options.socketPath)
+    options.path = options.socketPath;
 
-  if (!options.servername) {
-    options.servername = options.host;
-    const hostHeader = req.getHeader('host');
-    if (hostHeader) {
-      options.servername = hostHeader.replace(/:.*$/, '');
-    }
-  }
+  if (!options.servername)
+    options.servername = calculateServerName(options, req);
 
   var name = this.getName(options);
   if (!this.sockets[name]) {
@@ -169,7 +167,7 @@ Agent.prototype.addRequest = function addRequest(req, options, port/*legacy*/,
     var socket = this.freeSockets[name].shift();
     // Guard against an uninitialized or user supplied Socket.
     if (socket._handle && typeof socket._handle.asyncReset === 'function') {
-      // Assign the handle a new asyncId and run any init() hooks.
+      // Assign the handle a new asyncId and run any destroy()/init() hooks.
       socket._handle.asyncReset();
       socket[async_id_symbol] = socket._handle.getAsyncId();
     }
@@ -179,12 +177,12 @@ Agent.prototype.addRequest = function addRequest(req, options, port/*legacy*/,
       delete this.freeSockets[name];
 
     this.reuseSocket(socket, req);
-    req.onSocket(socket);
+    setRequestSocket(this, req, socket);
     this.sockets[name].push(socket);
   } else if (sockLen < this.maxSockets) {
     debug('call onSocket', sockLen, freeLen);
     // If we are under maxSockets create a new one.
-    this.createSocket(req, options, handleSocketCreation(req, true));
+    this.createSocket(req, options, handleSocketCreation(this, req, true));
   } else {
     debug('wait for socket');
     // We are over limit so we'll add it to the queue.
@@ -196,43 +194,63 @@ Agent.prototype.addRequest = function addRequest(req, options, port/*legacy*/,
 };
 
 Agent.prototype.createSocket = function createSocket(req, options, cb) {
-  var self = this;
   options = util._extend({}, options);
-  util._extend(options, self.options);
+  util._extend(options, this.options);
+  if (options.socketPath)
+    options.path = options.socketPath;
 
-  if (!options.servername) {
-    options.servername = options.host;
-    const hostHeader = req.getHeader('host');
-    if (hostHeader) {
-      options.servername = hostHeader.replace(/:.*$/, '');
-    }
-  }
+  if (!options.servername)
+    options.servername = calculateServerName(options, req);
 
-  var name = self.getName(options);
+  var name = this.getName(options);
   options._agentKey = name;
 
   debug('createConnection', name, options);
   options.encoding = null;
   var called = false;
-  const newSocket = self.createConnection(options, oncreate);
-  if (newSocket)
-    oncreate(null, newSocket);
 
-  function oncreate(err, s) {
+  const oncreate = (err, s) => {
     if (called)
       return;
     called = true;
     if (err)
       return cb(err);
-    if (!self.sockets[name]) {
-      self.sockets[name] = [];
+    if (!this.sockets[name]) {
+      this.sockets[name] = [];
     }
-    self.sockets[name].push(s);
-    debug('sockets', name, self.sockets[name].length);
-    installListeners(self, s, options);
+    this.sockets[name].push(s);
+    debug('sockets', name, this.sockets[name].length);
+    installListeners(this, s, options);
     cb(null, s);
-  }
+  };
+
+  const newSocket = this.createConnection(options, oncreate);
+  if (newSocket)
+    oncreate(null, newSocket);
 };
+
+function calculateServerName(options, req) {
+  let servername = options.host;
+  const hostHeader = req.getHeader('host');
+  if (hostHeader) {
+    // abc => abc
+    // abc:123 => abc
+    // [::1] => ::1
+    // [::1]:123 => ::1
+    if (hostHeader.startsWith('[')) {
+      const index = hostHeader.indexOf(']');
+      if (index === -1) {
+        // Leading '[', but no ']'. Need to do something...
+        servername = hostHeader;
+      } else {
+        servername = hostHeader.substr(1, index - 1);
+      }
+    } else {
+      servername = hostHeader.split(':', 1)[0];
+    }
+  }
+  return servername;
+}
 
 function installListeners(agent, s, options) {
   function onFree() {
@@ -288,9 +306,10 @@ Agent.prototype.removeSocket = function removeSocket(s, options) {
 
   if (this.requests[name] && this.requests[name].length) {
     debug('removeSocket, have a request, make a socket');
-    var req = this.requests[name][0];
+    const req = this.requests[name][0];
     // If we have pending requests and a socket gets closed make a new one
-    this.createSocket(req, options, handleSocketCreation(req, false));
+    const socketCreationHandler = handleSocketCreation(this, req, false);
+    this.createSocket(req, options, socketCreationHandler);
   }
 };
 
@@ -320,20 +339,38 @@ Agent.prototype.destroy = function destroy() {
   }
 };
 
-function handleSocketCreation(request, informRequest) {
+function handleSocketCreation(agent, request, informRequest) {
   return function handleSocketCreation_Inner(err, socket) {
     if (err) {
-      const asyncId = (socket && socket._handle && socket._handle.getAsyncId) ?
-        socket._handle.getAsyncId() :
-        null;
-      nextTick(asyncId, () => request.emit('error', err));
+      process.nextTick(emitErrorNT, request, err);
       return;
     }
     if (informRequest)
-      request.onSocket(socket);
+      setRequestSocket(agent, request, socket);
     else
       socket.emit('free');
   };
+}
+
+function setRequestSocket(agent, req, socket) {
+  req.onSocket(socket);
+  const agentTimeout = agent.options.timeout || 0;
+  if (req.timeout === undefined || req.timeout === agentTimeout) {
+    return;
+  }
+  socket.setTimeout(req.timeout);
+  // reset timeout after response end
+  req.once('response', (res) => {
+    res.once('end', () => {
+      if (socket.timeout !== agentTimeout) {
+        socket.setTimeout(agentTimeout);
+      }
+    });
+  });
+}
+
+function emitErrorNT(emitter, err) {
+  emitter.emit('error', err);
 }
 
 module.exports = {

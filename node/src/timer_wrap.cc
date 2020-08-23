@@ -19,12 +19,9 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#include "async-wrap.h"
-#include "async-wrap-inl.h"
-#include "env.h"
+#include "async_wrap-inl.h"
 #include "env-inl.h"
 #include "handle_wrap.h"
-#include "util.h"
 #include "util-inl.h"
 
 #include <stdint.h>
@@ -32,16 +29,18 @@
 namespace node {
 namespace {
 
+using v8::Array;
 using v8::Context;
+using v8::Function;
 using v8::FunctionCallbackInfo;
 using v8::FunctionTemplate;
 using v8::HandleScope;
 using v8::Integer;
 using v8::Local;
+using v8::MaybeLocal;
 using v8::Object;
+using v8::String;
 using v8::Value;
-
-const uint32_t kOnTimeout = 0;
 
 class TimerWrap : public HandleWrap {
  public:
@@ -50,30 +49,49 @@ class TimerWrap : public HandleWrap {
                          Local<Context> context) {
     Environment* env = Environment::GetCurrent(context);
     Local<FunctionTemplate> constructor = env->NewFunctionTemplate(New);
+    Local<String> timerString = FIXED_ONE_BYTE_STRING(env->isolate(), "Timer");
+    constructor->Inherit(HandleWrap::GetConstructorTemplate(env));
     constructor->InstanceTemplate()->SetInternalFieldCount(1);
-    constructor->SetClassName(FIXED_ONE_BYTE_STRING(env->isolate(), "Timer"));
-    constructor->Set(FIXED_ONE_BYTE_STRING(env->isolate(), "kOnTimeout"),
-                     Integer::New(env->isolate(), kOnTimeout));
+    constructor->SetClassName(timerString);
 
     env->SetTemplateMethod(constructor, "now", Now);
-
-    env->SetProtoMethod(constructor, "getAsyncId", AsyncWrap::GetAsyncId);
-
-    env->SetProtoMethod(constructor, "close", HandleWrap::Close);
-    env->SetProtoMethod(constructor, "ref", HandleWrap::Ref);
-    env->SetProtoMethod(constructor, "unref", HandleWrap::Unref);
-    env->SetProtoMethod(constructor, "hasRef", HandleWrap::HasRef);
-
     env->SetProtoMethod(constructor, "start", Start);
     env->SetProtoMethod(constructor, "stop", Stop);
 
-    target->Set(FIXED_ONE_BYTE_STRING(env->isolate(), "Timer"),
-                constructor->GetFunction());
+    target->Set(timerString, constructor->GetFunction());
+
+    target->Set(env->context(),
+                FIXED_ONE_BYTE_STRING(env->isolate(), "setupTimers"),
+                env->NewFunctionTemplate(SetupTimers)
+                   ->GetFunction(env->context()).ToLocalChecked()).FromJust();
   }
 
-  size_t self_size() const override { return sizeof(*this); }
+  SET_NO_MEMORY_INFO()
+  SET_MEMORY_INFO_NAME(TimerWrap)
+  SET_SELF_SIZE(TimerWrap)
 
  private:
+  static void SetupTimers(const FunctionCallbackInfo<Value>& args) {
+    CHECK(args[0]->IsFunction());
+    CHECK(args[1]->IsFunction());
+    auto env = Environment::GetCurrent(args);
+
+    env->set_immediate_callback_function(args[0].As<Function>());
+    env->set_timers_callback_function(args[1].As<Function>());
+
+    auto toggle_ref_cb = [] (const FunctionCallbackInfo<Value>& args) {
+      Environment::GetCurrent(args)->ToggleImmediateRef(args[0]->IsTrue());
+    };
+    auto toggle_ref_function =
+        env->NewFunctionTemplate(toggle_ref_cb)->GetFunction(env->context())
+        .ToLocalChecked();
+    auto result = Array::New(env->isolate(), 2);
+    result->Set(env->context(), 0,
+                env->immediate_info()->fields().GetJSArray()).FromJust();
+    result->Set(env->context(), 1, toggle_ref_function).FromJust();
+    args.GetReturnValue().Set(result);
+  }
+
   static void New(const FunctionCallbackInfo<Value>& args) {
     // This constructor should not be exposed to public javascript.
     // Therefore we assert that we are not trying to call this as a
@@ -93,7 +111,8 @@ class TimerWrap : public HandleWrap {
   }
 
   static void Start(const FunctionCallbackInfo<Value>& args) {
-    TimerWrap* wrap = Unwrap<TimerWrap>(args.Holder());
+    TimerWrap* wrap;
+    ASSIGN_OR_RETURN_UNWRAP(&wrap, args.Holder());
 
     CHECK(HandleWrap::IsAlive(wrap));
 
@@ -103,7 +122,8 @@ class TimerWrap : public HandleWrap {
   }
 
   static void Stop(const FunctionCallbackInfo<Value>& args) {
-    TimerWrap* wrap = Unwrap<TimerWrap>(args.Holder());
+    TimerWrap* wrap;
+    ASSIGN_OR_RETURN_UNWRAP(&wrap, args.Holder());
 
     CHECK(HandleWrap::IsAlive(wrap));
 
@@ -116,19 +136,22 @@ class TimerWrap : public HandleWrap {
     Environment* env = wrap->env();
     HandleScope handle_scope(env->isolate());
     Context::Scope context_scope(env->context());
-    wrap->MakeCallback(kOnTimeout, 0, nullptr);
+    MaybeLocal<Value> ret;
+    Local<Value> args[1];
+    do {
+      args[0] = env->GetNow();
+      ret = wrap->MakeCallback(env->timers_callback_function(), 1, args);
+    } while ((ret.IsEmpty() || ret.ToLocalChecked()->IsUndefined()) &&
+             !env->tick_info()->has_thrown() &&
+             env->can_call_into_js() &&
+             wrap->object()->Get(env->context(),
+                                 env->owner_symbol()).ToLocalChecked()
+                                                     ->IsUndefined());
   }
 
   static void Now(const FunctionCallbackInfo<Value>& args) {
     Environment* env = Environment::GetCurrent(args);
-    uv_update_time(env->event_loop());
-    uint64_t now = uv_now(env->event_loop());
-    CHECK(now >= env->timer_base());
-    now -= env->timer_base();
-    if (now <= 0xfffffff)
-      args.GetReturnValue().Set(static_cast<uint32_t>(now));
-    else
-      args.GetReturnValue().Set(static_cast<double>(now));
+    args.GetReturnValue().Set(env->GetNow());
   }
 
   uv_timer_t handle_;
@@ -138,4 +161,4 @@ class TimerWrap : public HandleWrap {
 }  // anonymous namespace
 }  // namespace node
 
-NODE_MODULE_CONTEXT_AWARE_BUILTIN(timer_wrap, node::TimerWrap::Initialize)
+NODE_BUILTIN_MODULE_CONTEXT_AWARE(timer_wrap, node::TimerWrap::Initialize)

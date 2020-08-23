@@ -7,67 +7,42 @@
 #include <fstream>
 #include <memory>
 
-#include "src/codegen.h"
-#include "src/compilation-info.h"
+#include "src/ast/prettyprinter.h"
+#include "src/bootstrapper.h"
 #include "src/compiler.h"
-#include "src/counters.h"
+#include "src/counters-inl.h"
 #include "src/interpreter/bytecode-generator.h"
 #include "src/interpreter/bytecodes.h"
 #include "src/log.h"
-#include "src/objects.h"
+#include "src/objects-inl.h"
+#include "src/objects/shared-function-info.h"
+#include "src/parsing/parse-info.h"
 #include "src/setup-isolate.h"
+#include "src/snapshot/snapshot.h"
+#include "src/unoptimized-compilation-info.h"
 #include "src/visitors.h"
 
 namespace v8 {
 namespace internal {
 namespace interpreter {
 
-class InterpreterCompilationJob final : public CompilationJob {
+class InterpreterCompilationJob final : public UnoptimizedCompilationJob {
  public:
-  explicit InterpreterCompilationJob(CompilationInfo* info);
+  InterpreterCompilationJob(ParseInfo* parse_info, FunctionLiteral* literal,
+                            AccountingAllocator* allocator,
+                            ZoneVector<FunctionLiteral*>* eager_inner_literals);
 
  protected:
-  Status PrepareJobImpl() final;
   Status ExecuteJobImpl() final;
-  Status FinalizeJobImpl() final;
+  Status FinalizeJobImpl(Handle<SharedFunctionInfo> shared_info,
+                         Isolate* isolate) final;
 
  private:
-  class TimerScope final {
-   public:
-    TimerScope(RuntimeCallStats* stats, RuntimeCallStats::CounterId counter_id)
-        : stats_(stats) {
-      if (V8_UNLIKELY(FLAG_runtime_stats)) {
-        RuntimeCallStats::Enter(stats_, &timer_, counter_id);
-      }
-    }
-
-    explicit TimerScope(RuntimeCallCounter* counter) : stats_(nullptr) {
-      if (V8_UNLIKELY(FLAG_runtime_stats)) {
-        timer_.Start(counter, nullptr);
-      }
-    }
-
-    ~TimerScope() {
-      if (V8_UNLIKELY(FLAG_runtime_stats)) {
-        if (stats_) {
-          RuntimeCallStats::Leave(stats_, &timer_);
-        } else {
-          timer_.Stop();
-        }
-      }
-    }
-
-   private:
-    RuntimeCallStats* stats_;
-    RuntimeCallTimer timer_;
-  };
-
   BytecodeGenerator* generator() { return &generator_; }
 
+  Zone zone_;
+  UnoptimizedCompilationInfo compilation_info_;
   BytecodeGenerator generator_;
-  RuntimeCallStats* runtime_call_stats_;
-  RuntimeCallCounter background_execute_counter_;
-  bool print_bytecode_;
 
   DISALLOW_COPY_AND_ASSIGN(InterpreterCompilationJob);
 };
@@ -84,6 +59,26 @@ Interpreter::Interpreter(Isolate* isolate) : isolate_(isolate) {
   }
 }
 
+Code* Interpreter::GetAndMaybeDeserializeBytecodeHandler(
+    Bytecode bytecode, OperandScale operand_scale) {
+  Code* code = GetBytecodeHandler(bytecode, operand_scale);
+
+  // Already deserialized? Then just return the handler.
+  if (!isolate_->heap()->IsDeserializeLazyHandler(code)) return code;
+
+  DCHECK(FLAG_lazy_handler_deserialization);
+  DCHECK(Bytecodes::BytecodeHasHandler(bytecode, operand_scale));
+  code = Snapshot::DeserializeHandler(isolate_, bytecode, operand_scale);
+
+  DCHECK(code->IsCode());
+  DCHECK_EQ(code->kind(), Code::BYTECODE_HANDLER);
+  DCHECK(!isolate_->heap()->IsDeserializeLazyHandler(code));
+
+  SetBytecodeHandler(bytecode, operand_scale, code);
+
+  return code;
+}
+
 Code* Interpreter::GetBytecodeHandler(Bytecode bytecode,
                                       OperandScale operand_scale) {
   DCHECK(IsDispatchTableInitialized());
@@ -91,6 +86,14 @@ Code* Interpreter::GetBytecodeHandler(Bytecode bytecode,
   size_t index = GetDispatchTableIndex(bytecode, operand_scale);
   Address code_entry = dispatch_table_[index];
   return Code::GetCodeFromTargetAddress(code_entry);
+}
+
+void Interpreter::SetBytecodeHandler(Bytecode bytecode,
+                                     OperandScale operand_scale,
+                                     Code* handler) {
+  DCHECK(handler->kind() == Code::BYTECODE_HANDLER);
+  size_t index = GetDispatchTableIndex(bytecode, operand_scale);
+  dispatch_table_[index] = handler->entry();
 }
 
 // static
@@ -107,29 +110,42 @@ size_t Interpreter::GetDispatchTableIndex(Bytecode bytecode,
       return index + 2 * kEntriesPerOperandScale;
   }
   UNREACHABLE();
-  return 0;
 }
 
 void Interpreter::IterateDispatchTable(RootVisitor* v) {
   for (int i = 0; i < kDispatchTableSize; i++) {
     Address code_entry = dispatch_table_[i];
-    Object* code = code_entry == nullptr
+    Object* code = code_entry == kNullAddress
                        ? nullptr
                        : Code::GetCodeFromTargetAddress(code_entry);
     Object* old_code = code;
-    v->VisitRootPointer(Root::kDispatchTable, &code);
+    v->VisitRootPointer(Root::kDispatchTable, nullptr, &code);
     if (code != old_code) {
       dispatch_table_[i] = reinterpret_cast<Code*>(code)->entry();
     }
   }
 }
 
-// static
 int Interpreter::InterruptBudget() {
-  return FLAG_interrupt_budget * kCodeSizeMultiplier;
+  return FLAG_interrupt_budget;
 }
 
 namespace {
+
+void MaybePrintAst(ParseInfo* parse_info,
+                   UnoptimizedCompilationInfo* compilation_info) {
+  if (!FLAG_print_ast) return;
+
+  OFStream os(stdout);
+  std::unique_ptr<char[]> name = compilation_info->literal()->GetDebugName();
+  os << "[generating bytecode for function: " << name.get() << "]" << std::endl;
+#ifdef DEBUG
+  os << "--- AST ---" << std::endl
+     << AstPrinter(parse_info->stack_limit())
+            .PrintProgram(compilation_info->literal())
+     << std::endl;
+#endif  // DEBUG
+}
 
 bool ShouldPrintBytecode(Handle<SharedFunctionInfo> shared) {
   if (!FLAG_print_bytecode) return false;
@@ -145,33 +161,29 @@ bool ShouldPrintBytecode(Handle<SharedFunctionInfo> shared) {
 
 }  // namespace
 
-InterpreterCompilationJob::InterpreterCompilationJob(CompilationInfo* info)
-    : CompilationJob(info->isolate(), info, "Ignition"),
-      generator_(info),
-      runtime_call_stats_(info->isolate()->counters()->runtime_call_stats()),
-      background_execute_counter_("CompileBackgroundIgnition"),
-      print_bytecode_(ShouldPrintBytecode(info->shared_info())) {}
-
-InterpreterCompilationJob::Status InterpreterCompilationJob::PrepareJobImpl() {
-  CodeGenerator::MakeCodePrologue(info(), "interpreter");
-
-  if (print_bytecode_) {
-    OFStream os(stdout);
-    std::unique_ptr<char[]> name = info()->GetDebugName();
-    os << "[generating bytecode for function: " << info()->GetDebugName().get()
-       << "]" << std::endl;
-  }
-
-  return SUCCEEDED;
-}
+InterpreterCompilationJob::InterpreterCompilationJob(
+    ParseInfo* parse_info, FunctionLiteral* literal,
+    AccountingAllocator* allocator,
+    ZoneVector<FunctionLiteral*>* eager_inner_literals)
+    : UnoptimizedCompilationJob(parse_info->stack_limit(), parse_info,
+                                &compilation_info_),
+      zone_(allocator, ZONE_NAME),
+      compilation_info_(&zone_, parse_info, literal),
+      generator_(&compilation_info_, parse_info->ast_string_constants(),
+                 eager_inner_literals) {}
 
 InterpreterCompilationJob::Status InterpreterCompilationJob::ExecuteJobImpl() {
-  TimerScope runtimeTimer =
-      executed_on_background_thread()
-          ? TimerScope(&background_execute_counter_)
-          : TimerScope(runtime_call_stats_, &RuntimeCallStats::CompileIgnition);
+  RuntimeCallTimerScope runtimeTimerScope(
+      parse_info()->runtime_call_stats(),
+      parse_info()->on_background_thread()
+          ? RuntimeCallCounterId::kCompileBackgroundIgnition
+          : RuntimeCallCounterId::kCompileIgnition);
   // TODO(lpy): add support for background compilation RCS trace.
   TRACE_EVENT0(TRACE_DISABLED_BY_DEFAULT("v8.compile"), "V8.CompileIgnition");
+
+  // Print AST if flag is enabled. Note, if compiling on a background thread
+  // then ASTs from different functions may be intersperse when printed.
+  MaybePrintAst(parse_info(), compilation_info());
 
   generator()->GenerateBytecode(stack_limit());
 
@@ -181,38 +193,44 @@ InterpreterCompilationJob::Status InterpreterCompilationJob::ExecuteJobImpl() {
   return SUCCEEDED;
 }
 
-InterpreterCompilationJob::Status InterpreterCompilationJob::FinalizeJobImpl() {
-  // Add background runtime call stats.
-  if (V8_UNLIKELY(FLAG_runtime_stats && executed_on_background_thread())) {
-    runtime_call_stats_->CompileBackgroundIgnition.Add(
-        &background_execute_counter_);
-  }
+InterpreterCompilationJob::Status InterpreterCompilationJob::FinalizeJobImpl(
+    Handle<SharedFunctionInfo> shared_info, Isolate* isolate) {
+  RuntimeCallTimerScope runtimeTimerScope(
+      parse_info()->runtime_call_stats(),
+      RuntimeCallCounterId::kCompileIgnitionFinalization);
+  TRACE_EVENT0(TRACE_DISABLED_BY_DEFAULT("v8.compile"),
+               "V8.CompileIgnitionFinalization");
 
-  RuntimeCallTimerScope runtimeTimer(
-      runtime_call_stats_, &RuntimeCallStats::CompileIgnitionFinalization);
-
-  Handle<BytecodeArray> bytecodes = generator()->FinalizeBytecode(isolate());
+  Handle<BytecodeArray> bytecodes =
+      generator()->FinalizeBytecode(isolate, parse_info()->script());
   if (generator()->HasStackOverflow()) {
     return FAILED;
   }
 
-  if (print_bytecode_) {
+  if (ShouldPrintBytecode(shared_info)) {
     OFStream os(stdout);
+    std::unique_ptr<char[]> name =
+        compilation_info()->literal()->GetDebugName();
+    os << "[generated bytecode for function: " << name.get() << "]"
+       << std::endl;
     bytecodes->Disassemble(os);
     os << std::flush;
   }
 
-  info()->SetBytecodeArray(bytecodes);
-  info()->SetCode(info()->isolate()->builtins()->InterpreterEntryTrampoline());
+  compilation_info()->SetBytecodeArray(bytecodes);
   return SUCCEEDED;
 }
 
-CompilationJob* Interpreter::NewCompilationJob(CompilationInfo* info) {
-  return new InterpreterCompilationJob(info);
+UnoptimizedCompilationJob* Interpreter::NewCompilationJob(
+    ParseInfo* parse_info, FunctionLiteral* literal,
+    AccountingAllocator* allocator,
+    ZoneVector<FunctionLiteral*>* eager_inner_literals) {
+  return new InterpreterCompilationJob(parse_info, literal, allocator,
+                                       eager_inner_literals);
 }
 
-bool Interpreter::IsDispatchTableInitialized() {
-  return dispatch_table_[0] != nullptr;
+bool Interpreter::IsDispatchTableInitialized() const {
+  return dispatch_table_[0] != kNullAddress;
 }
 
 const char* Interpreter::LookupNameOfBytecodeHandler(Code* code) {

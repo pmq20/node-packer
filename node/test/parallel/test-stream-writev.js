@@ -45,7 +45,7 @@ function run() {
 }
 
 function test(decode, uncork, multi, next) {
-  console.log('# decode=%j uncork=%j multi=%j', decode, uncork, multi);
+  console.log(`# decode=${decode} uncork=${uncork} multi=${multi}`);
   let counter = 0;
   let expectCount = 0;
   function cnt(msg) {
@@ -71,7 +71,7 @@ function test(decode, uncork, multi, next) {
     { encoding: 'buffer',
       chunk: [10, 97, 110, 100, 32, 116, 104, 101, 110, 46, 46, 46] },
     { encoding: 'buffer',
-      chunk: [250, 206, 190, 167, 222, 173, 190, 239, 222, 202, 251, 173]}
+      chunk: [250, 206, 190, 167, 222, 173, 190, 239, 222, 202, 251, 173] }
   ] : [
     { encoding: 'ascii', chunk: 'hello, ' },
     { encoding: 'utf8', chunk: 'world' },
@@ -115,7 +115,7 @@ function test(decode, uncork, multi, next) {
   w.on('finish', function() {
     // make sure finish comes after all the write cb
     cnt('finish')();
-    assert.deepStrictEqual(expectChunks, actualChunks);
+    assert.deepStrictEqual(actualChunks, expectChunks);
     next();
   });
 }

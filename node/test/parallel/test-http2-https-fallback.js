@@ -1,14 +1,12 @@
-// Flags: --expose-http2
 'use strict';
 
 const common = require('../common');
+const fixtures = require('../common/fixtures');
 
 if (!common.hasCrypto)
   common.skip('missing crypto');
 
-const { strictEqual } = require('assert');
-const { join } = require('path');
-const { readFileSync } = require('fs');
+const { strictEqual, ok } = require('assert');
 const { createSecureContext } = require('tls');
 const { createSecureServer, connect } = require('http2');
 const { get } = require('https');
@@ -17,13 +15,9 @@ const { connect: tls } = require('tls');
 
 const countdown = (count, done) => () => --count === 0 && done();
 
-function loadKey(keyname) {
-  return readFileSync(join(common.fixturesDir, 'keys', keyname));
-}
-
-const key = loadKey('agent8-key.pem');
-const cert = loadKey('agent8-cert.pem');
-const ca = loadKey('fake-startcom-root-cert.pem');
+const key = fixtures.readKey('agent8-key.pem');
+const cert = fixtures.readKey('agent8-cert.pem');
+const ca = fixtures.readKey('fake-startcom-root-cert.pem');
 
 const clientOptions = { secureContext: createSecureContext({ ca }) };
 
@@ -37,7 +31,7 @@ function onRequest(request, response) {
   }));
 }
 
-function onSession(session) {
+function onSession(session, next) {
   const headers = {
     ':path': '/',
     ':method': 'GET',
@@ -58,8 +52,12 @@ function onSession(session) {
     strictEqual(alpnProtocol, 'h2');
     strictEqual(httpVersion, '2.0');
 
-    session.destroy();
+    session.close();
     this.cleanup();
+
+    if (typeof next === 'function') {
+      next();
+    }
   }));
   request.end();
 }
@@ -116,9 +114,9 @@ function onSession(session) {
     common.mustCall(onRequest)
   );
 
-  server.on('unknownProtocol', common.mustCall((socket) => {
+  server.once('unknownProtocol', common.mustCall((socket) => {
     socket.destroy();
-  }, 2));
+  }));
 
   server.listen(0);
 
@@ -132,15 +130,31 @@ function onSession(session) {
     connect(
       origin,
       clientOptions,
-      common.mustCall(onSession.bind({ cleanup, server }))
+      common.mustCall(function(session) {
+        onSession.call({ cleanup, server },
+                       session,
+                       common.mustCall(testNoTls));
+      })
     );
 
-    // HTTP/1.1 client
-    get(Object.assign(parse(origin), clientOptions), common.mustNotCall())
-      .on('error', common.mustCall(cleanup));
+    function testNoTls() {
+      // HTTP/1.1 client
+      get(Object.assign(parse(origin), clientOptions), common.mustNotCall)
+        .on('error', common.mustCall(cleanup))
+        .on('error', common.mustCall(testWrongALPN))
+        .end();
+    }
 
-    // Incompatible ALPN TLS client
-    tls(Object.assign({ port, ALPNProtocols: ['fake'] }, clientOptions))
-      .on('error', common.mustCall(cleanup));
+    function testWrongALPN() {
+      // Incompatible ALPN TLS client
+      let text = '';
+      tls(Object.assign({ port, ALPNProtocols: ['fake'] }, clientOptions))
+        .setEncoding('utf8')
+        .on('data', (chunk) => text += chunk)
+        .on('end', common.mustCall(() => {
+          ok(/Unknown ALPN Protocol, expected `h2` to be available/.test(text));
+          cleanup();
+        }));
+    }
   }));
 }

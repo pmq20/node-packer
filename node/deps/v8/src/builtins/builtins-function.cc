@@ -10,6 +10,7 @@
 #include "src/counters.h"
 #include "src/lookup.h"
 #include "src/objects-inl.h"
+#include "src/objects/api-callbacks.h"
 #include "src/string-builder.h"
 
 namespace v8 {
@@ -134,8 +135,7 @@ MaybeHandle<Object> CreateDynamicFunction(Isolate* isolate,
         JSFunction::GetDerivedMap(isolate, target, new_target), Object);
 
     Handle<SharedFunctionInfo> shared_info(function->shared(), isolate);
-    Handle<Map> map = Map::AsLanguageMode(
-        initial_map, shared_info->language_mode(), shared_info->kind());
+    Handle<Map> map = Map::AsLanguageMode(initial_map, shared_info);
 
     Handle<Context> context(function->context(), isolate);
     function = isolate->factory()->NewFunctionFromSharedFunctionInfo(
@@ -235,7 +235,7 @@ Object* DoFunctionBind(Isolate* isolate, BuiltinArguments args) {
     Handle<Object> length(Smi::kZero, isolate);
     Maybe<PropertyAttributes> attributes =
         JSReceiver::GetPropertyAttributes(&length_lookup);
-    if (!attributes.IsJust()) return isolate->heap()->exception();
+    if (attributes.IsNothing()) return isolate->heap()->exception();
     if (attributes.FromJust() != ABSENT) {
       Handle<Object> target_length;
       ASSIGN_RETURN_FAILURE_ON_EXCEPTION(isolate, target_length,
@@ -253,14 +253,14 @@ Object* DoFunctionBind(Isolate* isolate, BuiltinArguments args) {
   }
 
   // Setup the "name" property based on the "name" of the {target}.
-  // If the targets name is the default JSFunction accessor, we can keep the
+  // If the target's name is the default JSFunction accessor, we can keep the
   // accessor that's installed by default on the JSBoundFunction. It lazily
   // computes the value from the underlying internal name.
-  LookupIterator name_lookup(target, isolate->factory()->name_string(), target,
-                             LookupIterator::OWN);
+  LookupIterator name_lookup(target, isolate->factory()->name_string(), target);
   if (!target->IsJSFunction() ||
       name_lookup.state() != LookupIterator::ACCESSOR ||
-      !name_lookup.GetAccessors()->IsAccessorInfo()) {
+      !name_lookup.GetAccessors()->IsAccessorInfo() ||
+      (name_lookup.IsFound() && !name_lookup.HolderIsReceiver())) {
     Handle<Object> target_name;
     ASSIGN_RETURN_FAILURE_ON_EXCEPTION(isolate, target_name,
                                        Object::GetProperty(&name_lookup));
@@ -289,25 +289,21 @@ Object* DoFunctionBind(Isolate* isolate, BuiltinArguments args) {
 // ES6 section 19.2.3.2 Function.prototype.bind ( thisArg, ...args )
 BUILTIN(FunctionPrototypeBind) { return DoFunctionBind(isolate, args); }
 
-// TODO(verwaest): This is a temporary helper until the FastFunctionBind stub
-// can tailcall to the builtin directly.
-RUNTIME_FUNCTION(Runtime_FunctionBind) {
-  DCHECK_EQ(2, args.length());
-  Arguments* incoming = reinterpret_cast<Arguments*>(args[0]);
-  // Rewrap the arguments as builtins arguments.
-  int argc = incoming->length() + BuiltinArguments::kNumExtraArgsWithReceiver;
-  BuiltinArguments caller_args(argc, incoming->arguments() + 1);
-  return DoFunctionBind(isolate, caller_args);
-}
-
 // ES6 section 19.2.3.5 Function.prototype.toString ( )
 BUILTIN(FunctionPrototypeToString) {
   HandleScope scope(isolate);
   Handle<Object> receiver = args.receiver();
   if (receiver->IsJSBoundFunction()) {
     return *JSBoundFunction::ToString(Handle<JSBoundFunction>::cast(receiver));
-  } else if (receiver->IsJSFunction()) {
+  }
+  if (receiver->IsJSFunction()) {
     return *JSFunction::ToString(Handle<JSFunction>::cast(receiver));
+  }
+  // With the revised toString behavior, all callable objects are valid
+  // receivers for this method.
+  if (FLAG_harmony_function_tostring && receiver->IsJSReceiver() &&
+      JSReceiver::cast(*receiver)->map()->is_callable()) {
+    return isolate->heap()->function_native_code_string();
   }
   THROW_NEW_ERROR_RETURN_FAILURE(
       isolate, NewTypeError(MessageTemplate::kNotGeneric,

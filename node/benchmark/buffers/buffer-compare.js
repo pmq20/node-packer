@@ -20,24 +20,22 @@
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 'use strict';
-var common = require('../common.js');
+const common = require('../common.js');
 
-var bench = common.createBenchmark(main, {
+const bench = common.createBenchmark(main, {
   size: [16, 512, 1024, 4096, 16386],
-  millions: [1]
+  n: [1e6]
 });
 
-function main(conf) {
-  const iter = (conf.millions >>> 0) * 1e6;
-  const size = (conf.size >>> 0);
+function main({ n, size }) {
   const b0 = Buffer.alloc(size, 'a');
   const b1 = Buffer.alloc(size, 'a');
 
   b1[size - 1] = 'b'.charCodeAt(0);
 
   bench.start();
-  for (var i = 0; i < iter; i++) {
+  for (var i = 0; i < n; i++) {
     Buffer.compare(b0, b1);
   }
-  bench.end(iter / 1e6);
+  bench.end(n);
 }

@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef V8_INSPECTOR_V8CONSOLEMESSAGE_H_
-#define V8_INSPECTOR_V8CONSOLEMESSAGE_H_
+#ifndef V8_INSPECTOR_V8_CONSOLE_MESSAGE_H_
+#define V8_INSPECTOR_V8_CONSOLE_MESSAGE_H_
 
 #include <deque>
 #include <map>
@@ -49,7 +49,7 @@ class V8ConsoleMessage {
       v8::Local<v8::Context> v8Context, int contextId, int groupId,
       V8InspectorImpl* inspector, double timestamp, ConsoleAPIType,
       const std::vector<v8::Local<v8::Value>>& arguments,
-      std::unique_ptr<V8StackTraceImpl>);
+      const String16& consoleContext, std::unique_ptr<V8StackTraceImpl>);
 
   static std::unique_ptr<V8ConsoleMessage> createForException(
       double timestamp, const String16& detailedMessage, const String16& url,
@@ -99,6 +99,7 @@ class V8ConsoleMessage {
   int m_v8Size = 0;
   Arguments m_arguments;
   String16 m_detailedMessage;
+  String16 m_consoleContext;
 };
 
 class V8ConsoleMessageStorage {
@@ -117,8 +118,10 @@ class V8ConsoleMessageStorage {
 
   bool shouldReportDeprecationMessage(int contextId, const String16& method);
   int count(int contextId, const String16& id);
+  bool countReset(int contextId, const String16& id);
   void time(int contextId, const String16& id);
   double timeEnd(int contextId, const String16& id);
+  bool hasTimer(int contextId, const String16& id);
 
  private:
   V8InspectorImpl* m_inspector;
@@ -128,7 +131,9 @@ class V8ConsoleMessageStorage {
 
   struct PerContextData {
     std::set<String16> m_reportedDeprecationMessages;
+    // Corresponds to https://console.spec.whatwg.org/#count-map
     std::map<String16, int> m_count;
+    // Corresponds to https://console.spec.whatwg.org/#timer-table
     std::map<String16, double> m_time;
   };
   std::map<int, PerContextData> m_data;
@@ -136,4 +141,4 @@ class V8ConsoleMessageStorage {
 
 }  // namespace v8_inspector
 
-#endif  // V8_INSPECTOR_V8CONSOLEMESSAGE_H_
+#endif  // V8_INSPECTOR_V8_CONSOLE_MESSAGE_H_

@@ -1,4 +1,3 @@
-// Flags: --expose-http2
 'use strict';
 
 // Verifies that uploading data from a client works
@@ -9,9 +8,10 @@ if (!common.hasCrypto)
 const assert = require('assert');
 const http2 = require('http2');
 const fs = require('fs');
-const path = require('path');
+const fixtures = require('../common/fixtures');
+const Countdown = require('../common/countdown');
 
-const loc = path.join(common.fixturesDir, 'person.jpg');
+const loc = fixtures.path('person-large.jpg');
 let fileData;
 
 assert(fs.existsSync(loc));
@@ -35,20 +35,21 @@ fs.readFile(loc, common.mustCall((err, data) => {
   server.listen(0, common.mustCall(() => {
     const client = http2.connect(`http://localhost:${server.address().port}`);
 
-    let remaining = 2;
-    function maybeClose() {
-      if (--remaining === 0) {
-        server.close();
-        client.destroy();
-      }
-    }
+    const countdown = new Countdown(2, () => {
+      server.close();
+      client.close();
+    });
 
     const req = client.request({ ':method': 'POST' });
     req.on('response', common.mustCall());
+
     req.resume();
-    req.on('end', common.mustCall(maybeClose));
+    req.on('end', common.mustCall());
+
+    req.on('finish', () => countdown.dec());
     const str = fs.createReadStream(loc);
-    str.on('end', common.mustCall(maybeClose));
+    str.on('end', common.mustCall());
+    str.on('close', () => countdown.dec());
     str.pipe(req);
   }));
 }));

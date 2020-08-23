@@ -3,14 +3,18 @@
 namespace node {
 namespace tracing {
 
-v8::Platform* platform_ = nullptr;
+Agent* g_agent = nullptr;
 
-void TraceEventHelper::SetCurrentPlatform(v8::Platform* platform) {
-  platform_ = platform;
+void TraceEventHelper::SetAgent(Agent* agent) {
+  g_agent = agent;
 }
 
-v8::Platform* TraceEventHelper::GetCurrentPlatform() {
-  return platform_;
+Agent* TraceEventHelper::GetAgent() {
+  return g_agent;
+}
+
+TracingController* TraceEventHelper::GetTracingController() {
+  return g_agent->GetTracingController();
 }
 
 }  // namespace tracing

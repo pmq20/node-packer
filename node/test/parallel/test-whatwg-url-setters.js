@@ -6,15 +6,12 @@ if (!common.hasIntl) {
   common.skip('missing Intl');
 }
 
-const assert = require('assert');
-const path = require('path');
 const URL = require('url').URL;
 const { test, assert_equals } = require('../common/wpt');
-const additionalTestCases = require(
-  path.join(common.fixturesDir, 'url-setter-tests-additional.js'));
+const fixtures = require('../common/fixtures');
 
 const request = {
-  response: require(path.join(common.fixturesDir, 'url-setter-tests'))
+  response: require(fixtures.path('url-setter-tests'))
 };
 
 /* The following tests are copied from WPT. Modifications to them should be
@@ -45,10 +42,10 @@ function runURLSettersTests(all_test_cases) {
     var test_cases = all_test_cases[attribute_to_be_set];
     for(var i = 0, l = test_cases.length; i < l; i++) {
       var test_case = test_cases[i];
-      var name = "Setting <" + test_case.href + ">." + attribute_to_be_set +
-                 " = '" + test_case.new_value + "'";
+      var name = `Setting <${test_case.href}>.${attribute_to_be_set}` +
+                 ` = '${test_case.new_value}'`;
       if ("comment" in test_case) {
-        name += " " + test_case.comment;
+        name += ` ${test_case.comment}`;
       }
       test(function() {
         var url = new URL(test_case.href);
@@ -56,7 +53,7 @@ function runURLSettersTests(all_test_cases) {
         for (var attribute in test_case.expected) {
           assert_equals(url[attribute], test_case.expected[attribute])
         }
-      }, "URL: " + name)
+      }, `URL: ${name}`);
       // test(function() {
       //   var url = document.createElement("a");
       //   url.href = test_case.href;
@@ -79,48 +76,3 @@ function runURLSettersTests(all_test_cases) {
 
 startURLSettersTests()
 /* eslint-enable */
-
-// Tests below are not from WPT.
-
-{
-  for (const attributeToBeSet in additionalTestCases) {
-    if (attributeToBeSet === 'comment') {
-      continue;
-    }
-    const testCases = additionalTestCases[attributeToBeSet];
-    for (const testCase of testCases) {
-      let name = `Setting <${testCase.href}>.${attributeToBeSet}` +
-                 ` = "${testCase.new_value}"`;
-      if ('comment' in testCase) {
-        name += ' ' + testCase.comment;
-      }
-      test(function() {
-        const url = new URL(testCase.href);
-        url[attributeToBeSet] = testCase.new_value;
-        for (const attribute in testCase.expected) {
-          assert_equals(url[attribute], testCase.expected[attribute]);
-        }
-      }, 'URL: ' + name);
-    }
-  }
-}
-
-{
-  const url = new URL('http://example.com/');
-  const obj = {
-    toString() { throw new Error('toString'); },
-    valueOf() { throw new Error('valueOf'); }
-  };
-  const sym = Symbol();
-  const props = Object.getOwnPropertyDescriptors(Object.getPrototypeOf(url));
-  for (const [name, { set }] of Object.entries(props)) {
-    if (set) {
-      assert.throws(() => url[name] = obj,
-                    /^Error: toString$/,
-                    `url.${name} = { toString() { throw ... } }`);
-      assert.throws(() => url[name] = sym,
-                    /^TypeError: Cannot convert a Symbol value to a string$/,
-                    `url.${name} = ${String(sym)}`);
-    }
-  }
-}

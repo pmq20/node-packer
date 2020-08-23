@@ -21,8 +21,7 @@
 
 #include "node_watchdog.h"
 #include "node_internals.h"
-#include "util.h"
-#include "util-inl.h"
+#include "debug_utils.h"
 #include <algorithm>
 
 namespace node {
@@ -62,8 +61,7 @@ Watchdog::~Watchdog() {
   // UV_RUN_DEFAULT so that libuv has a chance to clean up.
   uv_run(loop_, UV_RUN_DEFAULT);
 
-  int rc = uv_loop_close(loop_);
-  CHECK_EQ(0, rc);
+  CheckedUvLoopClose(loop_);
   delete loop_;
   loop_ = nullptr;
 }
@@ -188,7 +186,9 @@ int SigintWatchdogHelper::Start() {
 
   sigset_t sigmask;
   sigfillset(&sigmask);
-  CHECK_EQ(0, pthread_sigmask(SIG_SETMASK, &sigmask, &sigmask));
+  sigset_t savemask;
+  CHECK_EQ(0, pthread_sigmask(SIG_SETMASK, &sigmask, &savemask));
+  sigmask = savemask;
   int ret = pthread_create(&thread_, nullptr, RunSigintWatchdog, nullptr);
   CHECK_EQ(0, pthread_sigmask(SIG_SETMASK, &sigmask, nullptr));
   if (ret != 0) {

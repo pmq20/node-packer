@@ -35,11 +35,11 @@
         'include_dirs': [ 'include' ]
       },
       'sources': [
-        'common.gypi',
         'include/ares.h',
         'include/ares_rules.h',
         'include/ares_version.h',
         'include/nameser.h',
+        'src/ares_android.c',
         'src/ares_cancel.c',
         'src/ares__close_sockets.c',
         'src/ares_create_query.c',
@@ -92,6 +92,7 @@
         'src/ares_strdup.c',
         'src/ares_strdup.h',
         'src/ares_strerror.c',
+        'src/ares_strsplit.c',
         'src/ares_timeout.c',
         'src/ares__timeval.c',
         'src/ares_version.c',
@@ -111,6 +112,7 @@
           'defines': [ 'CARES_BUILDING_LIBRARY' ]
         }],
         [ 'OS=="win"', {
+          'defines': [ 'CARES_PULL_WS2TCPIP_H=1' ],
           'include_dirs': [ 'config/win32' ],
           'sources': [
             'src/config-win32.h',

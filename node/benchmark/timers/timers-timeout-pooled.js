@@ -1,23 +1,34 @@
 'use strict';
-var common = require('../common.js');
+const common = require('../common.js');
 
-var bench = common.createBenchmark(main, {
-  thousands: [500],
+// The following benchmark measures setting up n * 1e6 timeouts,
+// which then get executed on the next uv tick
+
+const bench = common.createBenchmark(main, {
+  n: [1e7],
 });
 
-function main(conf) {
-  var iterations = +conf.thousands * 1e3;
-  var count = 0;
+function main({ n }) {
+  let count = 0;
 
-  for (var i = 0; i < iterations; i++) {
-    setTimeout(cb, 1);
-  }
-
-  bench.start();
+  // Function tracking on the hidden class in V8 can cause misleading
+  // results in this benchmark if only a single function is used —
+  // alternate between two functions for a fairer benchmark
 
   function cb() {
     count++;
-    if (count === iterations)
-      bench.end(iterations / 1e3);
+    if (count === n)
+      bench.end(n);
   }
+  function cb2() {
+    count++;
+    if (count === n)
+      bench.end(n);
+  }
+
+  for (var i = 0; i < n; i++) {
+    setTimeout(i % 2 ? cb : cb2, 1);
+  }
+
+  bench.start();
 }

@@ -4,7 +4,7 @@
 
 void EnsureAllocation(const v8::FunctionCallbackInfo<v8::Value> &args) {
   v8::Isolate* isolate = args.GetIsolate();
-  uintptr_t size = args[0]->IntegerValue();
+  uintptr_t size = args[0].As<v8::Integer>()->Value();
   v8::Local<v8::Boolean> success;
 
   void* buffer = malloc(size);
@@ -21,4 +21,4 @@ void init(v8::Local<v8::Object> exports) {
   NODE_SET_METHOD(exports, "ensureAllocation", EnsureAllocation);
 }
 
-NODE_MODULE(binding, init)
+NODE_MODULE(NODE_GYP_MODULE_NAME, init)

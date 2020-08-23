@@ -5,8 +5,6 @@ const domain = require('domain');
 const fs = require('fs');
 const vm = require('vm');
 
-common.crashOnUnhandledRejection();
-
 {
   const d = domain.create();
 
@@ -31,9 +29,13 @@ common.crashOnUnhandledRejection();
   const d = domain.create();
 
   d.run(common.mustCall(() => {
-    vm.runInNewContext(`Promise.resolve().then(common.mustCall(() => {
-      assert.strictEqual(process.domain, d);
-    }));`, { common, assert, process, d });
+    vm.runInNewContext(`
+      const promise = Promise.resolve();
+      assert.strictEqual(promise.domain, undefined);
+      promise.then(common.mustCall(() => {
+        assert.strictEqual(process.domain, d);
+      }));
+    `, { common, assert, process, d });
   }));
 }
 

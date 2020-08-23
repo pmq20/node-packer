@@ -1,47 +1,36 @@
-#!/bin/bash
+#!/bin/bash -xe
 
-# Get V8 branch from v8/include/v8-version.h
-MAJOR=$(grep V8_MAJOR_VERSION deps/v8/include/v8-version.h | cut -d ' ' -f 3)
-MINOR=$(grep V8_MINOR_VERSION deps/v8/include/v8-version.h | cut -d ' ' -f 3)
-BRANCH=$MAJOR.$MINOR
+BUILD_ARCH_TYPE=$1
+V8_BUILD_OPTIONS=$2
 
-# clean up if someone presses ctrl-c
-trap cleanup INT
+cd deps/v8
+tools/node/fetch_deps.py .
 
-function cleanup() {
-  trap - INT
-  rm .gclient || true
-  rm .gclient_entries || true
-  rm -rf _bad_scm/ || true
-  find v8 -name ".git" | xargs rm -rf || true
-  echo "git cleanup"
-  git reset --hard HEAD
-  git clean -fdq
-  # unstash local changes
-  git stash pop
-  exit 0
-}
-
-cd deps
-# stash local changes
-git stash
-rm -rf v8
-
-echo "Fetching V8 from chromium.googlesource.com"
-fetch v8
-if [ "$?" -ne 0 ]; then
-  echo "V8 fetch failed"
-  exit 1
+ARCH="`arch`"
+if [[ "$ARCH" == "s390x" ]] || [[ "$ARCH" == "ppc64le" ]]; then
+  # set paths manually for now to use locally installed gn
+  export BUILD_TOOLS=/home/iojs/build-tools
+  export LD_LIBRARY_PATH=$BUILD_TOOLS:$LD_LIBRARY_PATH
+  export PATH=$BUILD_TOOLS:$PATH
+  CXX_PATH=`which $CXX |grep g++`
+  rm -f "$BUILD_TOOLS/g++"
+  rm -f "$BUILD_TOOLS/gcc"
 fi
-echo "V8 fetched"
-
-cd v8
-
-echo "Checking out branch:$BRANCH"
-git checkout remotes/branch-heads/$BRANCH
-
-echo "Sync dependencies"
-gclient sync
-
-cd ..
-cleanup
+if [[ "$ARCH" == "s390x" ]]; then
+  ln -s $CXX_PATH "$BUILD_TOOLS/g++"
+  ln -s $CXX_PATH "$BUILD_TOOLS/gcc"
+  g++ --version
+  export PKG_CONFIG_PATH=$BUILD_TOOLS/pkg-config
+  gn gen -v out.gn/$BUILD_ARCH_TYPE --args='is_component_build=false is_debug=false use_goma=false goma_dir="None" use_custom_libcxx=false v8_target_cpu="s390x" target_cpu="s390x"'
+  ninja -v -C out.gn/$BUILD_ARCH_TYPE d8 cctest inspector-test
+elif [[ "$ARCH" == "ppc64le" ]]; then
+  ln -s /usr/bin/$CXX "$BUILD_TOOLS/g++"
+  ln -s /usr/bin/$CC "$BUILD_TOOLS/gcc"
+  g++ --version
+  export PKG_CONFIG_PATH=$BUILD_TOOLS/pkg-config-files
+  gn gen out.gn/$BUILD_ARCH_TYPE --args='is_component_build=false is_debug=false use_goma=false goma_dir="None" use_custom_libcxx=false v8_target_cpu="ppc64" target_cpu="ppc64"'
+  ninja -C out.gn/$BUILD_ARCH_TYPE d8 cctest inspector-test
+else
+  PATH=~/_depot_tools:$PATH tools/dev/v8gen.py $BUILD_ARCH_TYPE --no-goma $V8_BUILD_OPTIONS
+  PATH=~/_depot_tools:$PATH ninja -C out.gn/$BUILD_ARCH_TYPE/ d8 cctest inspector-test
+fi

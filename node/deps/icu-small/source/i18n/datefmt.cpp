@@ -460,7 +460,12 @@ DateFormat::createInstanceForSkeleton(
         status = U_ILLEGAL_ARGUMENT_ERROR;
         return NULL;
     }
-    DateFormat *result = createInstanceForSkeleton(skeleton, locale, status);
+    Locale localeWithCalendar = locale;
+    localeWithCalendar.setKeywordValue("calendar", calendar->getType(), status);
+    if (U_FAILURE(status)) {
+        return NULL;
+    }
+    DateFormat *result = createInstanceForSkeleton(skeleton, localeWithCalendar, status);
     if (U_FAILURE(status)) {
         return NULL;
     }
@@ -586,6 +591,7 @@ DateFormat::adoptNumberFormat(NumberFormat* newNumberFormat)
     delete fNumberFormat;
     fNumberFormat = newNumberFormat;
     newNumberFormat->setParseIntegerOnly(TRUE);
+    newNumberFormat->setGroupingUsed(FALSE);
 }
 //----------------------------------------------------------------------
 
@@ -738,7 +744,7 @@ DateFormat::setBooleanAttribute(UDateFormatBooleanAttribute attr,
 UBool
 DateFormat::getBooleanAttribute(UDateFormatBooleanAttribute attr, UErrorCode &/*status*/) const {
 
-    return fBoolFlags.get(attr);
+    return static_cast<UBool>(fBoolFlags.get(attr));
 }
 
 U_NAMESPACE_END

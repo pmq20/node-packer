@@ -1,15 +1,13 @@
 'use strict';
 const common = require('../common');
+const { isCPPSymbolsNotMapped } = require('./util');
 
 if (!common.enoughTestCpu)
   common.skip('test is CPU-intensive');
 
-if (common.isWindows ||
-    common.isSunOS ||
-    common.isAIX ||
-    common.isLinuxPPCBE ||
-    common.isFreeBSD)
+if (isCPPSymbolsNotMapped) {
   common.skip('C++ symbols are not mapped for this os.');
+}
 
 const base = require('./tick-processor-base.js');
 

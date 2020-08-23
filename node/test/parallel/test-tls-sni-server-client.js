@@ -24,20 +24,13 @@ const common = require('../common');
 if (!common.hasCrypto)
   common.skip('missing crypto');
 
-if (!process.features.tls_sni)
-  common.skip('node compiled without OpenSSL or with old OpenSSL version.');
-
 const assert = require('assert');
-const fs = require('fs');
-const path = require('path');
 const tls = require('tls');
+const fixtures = require('../common/fixtures');
 
-function filenamePEM(n) {
-  return path.join(common.fixturesDir, 'keys', `${n}.pem`);
-}
 
 function loadPEM(n) {
-  return fs.readFileSync(filenamePEM(n));
+  return fixtures.readKey(`${n}.pem`);
 }
 
 const serverOptions = {
@@ -113,7 +106,7 @@ function startTest() {
     const client = tls.connect(options, function() {
       clientResults.push(
         client.authorizationError &&
-        /Hostname\/IP doesn't/.test(client.authorizationError));
+        (client.authorizationError === 'ERR_TLS_CERT_ALTNAME_INVALID'));
       client.destroy();
 
       // Continue

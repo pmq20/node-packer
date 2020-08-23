@@ -15,7 +15,7 @@ class ThreadLocalTop;
 
 class ThreadState {
  public:
-  // Returns NULL after the last one.
+  // Returns nullptr after the last one.
   ThreadState* Next();
 
   enum List {FREE_LIST, IN_USE_LIST};
@@ -67,6 +67,7 @@ class ThreadManager {
   void Lock();
   void Unlock();
 
+  void InitThread(const ExecutionAccess&);
   void ArchiveThread();
   bool RestoreThread();
   void FreeThreadResources();

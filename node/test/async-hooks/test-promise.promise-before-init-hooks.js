@@ -5,18 +5,18 @@ const assert = require('assert');
 const initHooks = require('./init-hooks');
 const { checkInvocations } = require('./hook-checks');
 
-const p = new Promise(common.mustCall(function executor(resolve, reject) {
+const p = new Promise(common.mustCall(function executor(resolve) {
   resolve(5);
 }));
 
 // init hooks after promise was created
-const hooks = initHooks({allowNoInit: true});
+const hooks = initHooks({ allowNoInit: true });
 hooks.enable();
 
-p.then(function afterresolution(val) {
+p.then(function afterResolution(val) {
   assert.strictEqual(val, 5);
   const as = hooks.activitiesOfTypes('PROMISE');
-  assert.strictEqual(as.length, 1, 'one activity');
+  assert.strictEqual(as.length, 1);
   checkInvocations(as[0], { init: 1, before: 1 },
                    'after resolution child promise');
   return val;

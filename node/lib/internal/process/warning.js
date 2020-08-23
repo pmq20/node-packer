@@ -1,27 +1,24 @@
 'use strict';
 
-const config = process.binding('config');
 const prefix = `(${process.release.name}:${process.pid}) `;
+const { ERR_INVALID_ARG_TYPE } = require('internal/errors').codes;
 
 exports.setup = setupProcessWarnings;
 
-var errors;
-var fs;
+let options;
+function lazyOption(name) {
+  if (!options) {
+    options = require('internal/options');
+  }
+  return options.getOptionValue(name);
+}
+
 var cachedFd;
 var acquiringFd = false;
 function nop() {}
 
-function lazyErrors() {
-  if (!errors)
-    errors = require('internal/errors');
-  return errors;
-}
-
-function lazyFs() {
-  if (!fs)
-    fs = require('fs');
-  return fs;
-}
+// Lazily loaded
+var fs = null;
 
 function writeOut(message) {
   if (console && typeof console.error === 'function')
@@ -30,13 +27,16 @@ function writeOut(message) {
 }
 
 function onClose(fd) {
-  return function() {
-    lazyFs().close(fd, nop);
+  return () => {
+    if (fs === null) fs = require('fs');
+    try {
+      fs.closeSync(fd);
+    } catch {}
   };
 }
 
 function onOpen(cb) {
-  return function(err, fd) {
+  return (err, fd) => {
     acquiringFd = false;
     if (fd !== undefined) {
       cachedFd = fd;
@@ -50,17 +50,19 @@ function onOpen(cb) {
 function onAcquired(message) {
   // make a best effort attempt at writing the message
   // to the fd. Errors are ignored at this point.
-  return function(err, fd) {
+  return (err, fd) => {
     if (err)
       return writeOut(message);
-    lazyFs().appendFile(fd, `${message}\n`, nop);
+    if (fs === null) fs = require('fs');
+    fs.appendFile(fd, `${message}\n`, nop);
   };
 }
 
-function acquireFd(cb) {
+function acquireFd(warningFile, cb) {
   if (cachedFd === undefined && !acquiringFd) {
     acquiringFd = true;
-    lazyFs().open(config.warningFile, 'a', onOpen(cb));
+    if (fs === null) fs = require('fs');
+    fs.open(warningFile, 'a', onOpen(cb));
   } else if (cachedFd !== undefined && !acquiringFd) {
     cb(null, cachedFd);
   } else {
@@ -69,15 +71,16 @@ function acquireFd(cb) {
 }
 
 function output(message) {
-  if (typeof config.warningFile === 'string') {
-    acquireFd(onAcquired(message));
+  const warningFile = lazyOption('--redirect-warnings');
+  if (warningFile) {
+    acquireFd(warningFile, onAcquired(message));
     return;
   }
   writeOut(message);
 }
 
 function doEmitWarning(warning) {
-  return function() {
+  return () => {
     process.emit('warning', warning);
   };
 }
@@ -90,7 +93,7 @@ function setupProcessWarnings() {
       if (isDeprecation && process.noDeprecation) return;
       const trace = process.traceProcessWarnings ||
                     (isDeprecation && process.traceDeprecation);
-      var msg = `${prefix}`;
+      var msg = prefix;
       if (warning.code)
         msg += `[${warning.code}] `;
       if (trace && warning.stack) {
@@ -111,8 +114,7 @@ function setupProcessWarnings() {
   // process.emitWarning(error)
   // process.emitWarning(str[, type[, code]][, ctor])
   // process.emitWarning(str[, options])
-  process.emitWarning = function(warning, type, code, ctor, now) {
-    const errors = lazyErrors();
+  process.emitWarning = (warning, type, code, ctor, now) => {
     var detail;
     if (type !== null && typeof type === 'object' && !Array.isArray(type)) {
       ctor = type.ctor;
@@ -130,10 +132,11 @@ function setupProcessWarnings() {
       code = undefined;
     }
     if (code !== undefined && typeof code !== 'string')
-      throw new errors.TypeError('ERR_INVALID_ARG_TYPE', 'code', 'string');
+      throw new ERR_INVALID_ARG_TYPE('code', 'string', code);
     if (type !== undefined && typeof type !== 'string')
-      throw new errors.TypeError('ERR_INVALID_ARG_TYPE', 'type', 'string');
+      throw new ERR_INVALID_ARG_TYPE('type', 'string', type);
     if (warning === undefined || typeof warning === 'string') {
+      // eslint-disable-next-line no-restricted-syntax
       warning = new Error(warning);
       warning.name = String(type || 'Warning');
       if (code !== undefined) warning.code = code;
@@ -141,8 +144,7 @@ function setupProcessWarnings() {
       Error.captureStackTrace(warning, ctor || process.emitWarning);
     }
     if (!(warning instanceof Error)) {
-      throw new errors.TypeError('ERR_INVALID_ARG_TYPE',
-                                 'warning', ['Error', 'string']);
+      throw new ERR_INVALID_ARG_TYPE('warning', ['Error', 'string'], warning);
     }
     if (warning.name === 'DeprecationWarning') {
       if (process.noDeprecation)

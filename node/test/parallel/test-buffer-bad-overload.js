@@ -1,15 +1,17 @@
 'use strict';
-require('../common');
+const common = require('../common');
 const assert = require('assert');
 
-assert.doesNotThrow(function() {
-  Buffer.allocUnsafe(10);
-});
+Buffer.allocUnsafe(10); // Should not throw.
 
+const err = common.expectsError({
+  code: 'ERR_INVALID_ARG_TYPE',
+  type: TypeError,
+  message: 'The "value" argument must not be of type number. ' +
+           'Received type number'
+});
 assert.throws(function() {
   Buffer.from(10, 'hex');
-}, /^TypeError: "value" argument must not be a number$/);
+}, err);
 
-assert.doesNotThrow(function() {
-  Buffer.from('deadbeaf', 'hex');
-});
+Buffer.from('deadbeaf', 'hex'); // Should not throw.

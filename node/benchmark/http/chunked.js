@@ -8,19 +8,19 @@
 // Verify that our assumptions are valid.
 'use strict';
 
-var common = require('../common.js');
+const common = require('../common.js');
 
-var bench = common.createBenchmark(main, {
+const bench = common.createBenchmark(main, {
   n: [1, 4, 8, 16],
   len: [1, 64, 256],
   c: [100]
 });
 
-function main(conf) {
+function main({ len, n, c }) {
   const http = require('http');
-  var chunk = Buffer.alloc(conf.len, '8');
+  const chunk = Buffer.alloc(len, '8');
 
-  var server = http.createServer(function(req, res) {
+  const server = http.createServer(function(req, res) {
     function send(left) {
       if (left === 0) return res.end();
       res.write(chunk);
@@ -28,12 +28,12 @@ function main(conf) {
         send(left - 1);
       }, 0);
     }
-    send(conf.n);
+    send(n);
   });
 
   server.listen(common.PORT, function() {
     bench.http({
-      connections: conf.c
+      connections: c
     }, function() {
       server.close();
     });

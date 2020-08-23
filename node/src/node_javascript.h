@@ -24,13 +24,15 @@
 
 #if defined(NODE_WANT_INTERNALS) && NODE_WANT_INTERNALS
 
-#include "v8.h"
-#include "env.h"
+#include "node_internals.h"
 
 namespace node {
 
 void DefineJavaScript(Environment* env, v8::Local<v8::Object> target);
-v8::Local<v8::String> MainSource(Environment* env);
+void DefineJavaScriptHash(Environment* env, v8::Local<v8::Object> target);
+v8::Local<v8::String> NodePerContextSource(v8::Isolate* isolate);
+v8::Local<v8::String> LoadersBootstrapperSource(Environment* env);
+v8::Local<v8::String> NodeBootstrapperSource(Environment* env);
 
 }  // namespace node
 

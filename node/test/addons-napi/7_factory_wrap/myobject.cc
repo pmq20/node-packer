@@ -1,6 +1,8 @@
 #include "myobject.h"
 #include "../common.h"
 
+static int finalize_count = 0;
+
 MyObject::MyObject() : env_(nullptr), wrapper_(nullptr) {}
 
 MyObject::~MyObject() { napi_delete_reference(env_, wrapper_); }
@@ -8,8 +10,15 @@ MyObject::~MyObject() { napi_delete_reference(env_, wrapper_); }
 void MyObject::Destructor(napi_env env,
                           void* nativeObject,
                           void* /*finalize_hint*/) {
+  ++finalize_count;
   MyObject* obj = static_cast<MyObject*>(nativeObject);
   delete obj;
+}
+
+napi_value MyObject::GetFinalizeCount(napi_env env, napi_callback_info info) {
+  napi_value result;
+  NAPI_CALL(env, napi_create_int32(env, finalize_count, &result));
+  return result;
 }
 
 napi_ref MyObject::constructor;
@@ -21,8 +30,8 @@ napi_status MyObject::Init(napi_env env) {
   };
 
   napi_value cons;
-  status =
-      napi_define_class(env, "MyObject", New, nullptr, 1, properties, &cons);
+  status = napi_define_class(
+      env, "MyObject", -1, New, nullptr, 1, properties, &cons);
   if (status != napi_ok) return status;
 
   status = napi_create_reference(env, cons, 1, &constructor);
@@ -50,11 +59,11 @@ napi_value MyObject::New(napi_env env, napi_callback_info info) {
 
   obj->env_ = env;
   NAPI_CALL(env, napi_wrap(env,
-                          _this,
-                          obj,
-                          MyObject::Destructor,
-                          nullptr, /* finalize_hint */
-                          &obj->wrapper_));
+                           _this,
+                           obj,
+                           MyObject::Destructor,
+                           nullptr, /* finalize_hint */
+                           &obj->wrapper_));
 
   return _this;
 }
@@ -80,7 +89,7 @@ napi_status MyObject::NewInstance(napi_env env,
 napi_value MyObject::PlusOne(napi_env env, napi_callback_info info) {
   napi_value _this;
   NAPI_CALL(env,
-    napi_get_cb_info(env, info, nullptr, nullptr, &_this, nullptr));
+      napi_get_cb_info(env, info, nullptr, nullptr, &_this, nullptr));
 
   MyObject* obj;
   NAPI_CALL(env, napi_unwrap(env, _this, reinterpret_cast<void**>(&obj)));

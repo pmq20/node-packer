@@ -1,19 +1,17 @@
 'use strict';
-var common = require('../common.js');
-var domain = require('domain');
+const common = require('../common.js');
+const domain = require('domain');
 
-var bench = common.createBenchmark(main, {
-  arguments: [0, 1, 2, 3],
+const bench = common.createBenchmark(main, {
+  args: [0, 1, 2, 3],
   n: [10]
 });
 
-var bdomain = domain.create();
-var gargs = [1, 2, 3];
+const bdomain = domain.create();
+const gargs = [1, 2, 3];
 
-function main(conf) {
-
-  var n = +conf.n;
-  var myArguments = gargs.slice(0, conf.arguments);
+function main({ n, args }) {
+  const myArguments = gargs.slice(0, args);
   bench.start();
 
   bdomain.enter();
@@ -30,15 +28,6 @@ function main(conf) {
   bench.end(n);
 }
 
-function fn(a, b, c) {
-  if (!a)
-    a = 1;
-
-  if (!b)
-    b = 2;
-
-  if (!c)
-    c = 3;
-
+function fn(a = 1, b = 2, c = 3) {
   return a + b + c;
 }

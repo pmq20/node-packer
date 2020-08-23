@@ -1,5 +1,6 @@
 # Global Objects
 
+<!--introduced_in=v0.10.0-->
 <!-- type=misc -->
 
 These objects are available in all modules. The following variables may appear
@@ -137,6 +138,39 @@ added: v0.0.1
 
 [`setTimeout`] is described in the [timers][] section.
 
+## URL
+<!-- YAML
+added: v10.0.0
+-->
+
+<!-- type=global -->
+
+The WHATWG `URL` class. See the [`URL`][] section.
+
+## URLSearchParams
+<!-- YAML
+added: v10.0.0
+-->
+
+<!-- type=global -->
+
+The WHATWG `URLSearchParams` class. See the [`URLSearchParams`][] section.
+
+## WebAssembly
+<!-- YAML
+added: v8.0.0
+-->
+
+<!-- type=global -->
+
+* {Object}
+
+The object that acts as the namespace for all W3C
+[WebAssembly][webassembly-org] related functionality. See the
+[Mozilla Developer Network][webassembly-mdn] for usage and compatibility.
+
+[`URLSearchParams`]: url.html#url_class_urlsearchparams
+[`URL`]: url.html#url_class_url
 [`__dirname`]: modules.html#modules_dirname
 [`__filename`]: modules.html#modules_filename
 [`clearImmediate`]: timers.html#timers_clearimmediate_immediate
@@ -154,3 +188,5 @@ added: v0.0.1
 [built-in objects]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects
 [module system documentation]: modules.html
 [timers]: timers.html
+[webassembly-mdn]: https://developer.mozilla.org/en-US/docs/WebAssembly
+[webassembly-org]: https://webassembly.org

@@ -66,7 +66,7 @@ const multipleForbidden = [
   'Max-Forwards',
 
   // special case, tested differently
-  //'Content-Length',
+  // 'Content-Length',
 ];
 
 const srv = http.createServer(function(req, res) {
@@ -80,7 +80,7 @@ const srv = http.createServer(function(req, res) {
                        `header parsed incorrectly: ${header}`);
   });
 
-  res.writeHead(200, {'Content-Type': 'text/plain'});
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
   res.end('EOF');
 
   srv.close();

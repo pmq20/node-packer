@@ -20,8 +20,8 @@
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "node_counters.h"
+#include "node_internals.h"
 #include "uv.h"
-#include "env.h"
 #include "env-inl.h"
 
 #include <string.h>

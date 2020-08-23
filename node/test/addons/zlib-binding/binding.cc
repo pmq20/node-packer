@@ -45,11 +45,14 @@ inline void Initialize(v8::Local<v8::Object> exports,
                        v8::Local<v8::Value> module,
                        v8::Local<v8::Context> context) {
   auto isolate = context->GetIsolate();
-  auto key = v8::String::NewFromUtf8(isolate, "compressBytes");
-  auto value = v8::FunctionTemplate::New(isolate, CompressBytes)->GetFunction();
+  auto key = v8::String::NewFromUtf8(
+      isolate, "compressBytes", v8::NewStringType::kNormal).ToLocalChecked();
+  auto value = v8::FunctionTemplate::New(isolate, CompressBytes)
+                   ->GetFunction(context)
+                   .ToLocalChecked();
   assert(exports->Set(context, key, value).IsJust());
 }
 
 }  // anonymous namespace
 
-NODE_MODULE_CONTEXT_AWARE(binding, Initialize)
+NODE_MODULE_CONTEXT_AWARE(NODE_GYP_MODULE_NAME, Initialize)

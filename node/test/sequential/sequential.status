@@ -5,8 +5,12 @@ prefix sequential
 # sample-test                       : PASS,FLAKY
 
 [true] # This section applies to all platforms
+# https://github.com/nodejs/node/issues/22336
+test-gc-http-client: PASS,FLAKY
 
 [$system==win32]
+# https://github.com/nodejs/node/issues/22327
+test-http2-large-file: PASS, FLAKY
 
 [$system==linux]
 
@@ -17,3 +21,8 @@ prefix sequential
 [$system==freebsd]
 
 [$system==aix]
+# https://github.com/nodejs/node/pull/28469
+test-async-wrap-getasyncid: SKIP
+test-buffer-creation-regression: SKIP
+
+[$arch==arm]

@@ -1,5 +1,5 @@
 'use strict';
-require('../common');
+const common = require('../common');
 const assert = require('assert');
 
 const http = require('http');
@@ -7,69 +7,115 @@ const OutgoingMessage = http.OutgoingMessage;
 const ClientRequest = http.ClientRequest;
 const ServerResponse = http.ServerResponse;
 
-assert.throws(OutgoingMessage.prototype._implicitHeader,
-              /^Error: _implicitHeader\(\) method is not implemented$/);
 assert.strictEqual(
   typeof ClientRequest.prototype._implicitHeader, 'function');
 assert.strictEqual(
   typeof ServerResponse.prototype._implicitHeader, 'function');
 
 // validateHeader
-assert.throws(() => {
+common.expectsError(() => {
   const outgoingMessage = new OutgoingMessage();
   outgoingMessage.setHeader();
-}, /^TypeError: Header name must be a valid HTTP Token \["undefined"\]$/);
+}, {
+  code: 'ERR_INVALID_HTTP_TOKEN',
+  type: TypeError,
+  message: 'Header name must be a valid HTTP token ["undefined"]'
+});
 
-assert.throws(() => {
+common.expectsError(() => {
   const outgoingMessage = new OutgoingMessage();
   outgoingMessage.setHeader('test');
-}, /^Error: "value" required in setHeader\("test", value\)$/);
+}, {
+  code: 'ERR_HTTP_INVALID_HEADER_VALUE',
+  type: TypeError,
+  message: 'Invalid value "undefined" for header "test"'
+});
 
-assert.throws(() => {
+common.expectsError(() => {
   const outgoingMessage = new OutgoingMessage();
   outgoingMessage.setHeader(404);
-}, /^TypeError: Header name must be a valid HTTP Token \["404"\]$/);
+}, {
+  code: 'ERR_INVALID_HTTP_TOKEN',
+  type: TypeError,
+  message: 'Header name must be a valid HTTP token ["404"]'
+});
 
-assert.throws(() => {
+common.expectsError(() => {
   const outgoingMessage = new OutgoingMessage();
-  outgoingMessage.setHeader.call({_header: 'test'}, 'test', 'value');
-}, /^Error: Can't set headers after they are sent\.$/);
+  outgoingMessage.setHeader.call({ _header: 'test' }, 'test', 'value');
+}, {
+  code: 'ERR_HTTP_HEADERS_SENT',
+  type: Error,
+  message: 'Cannot set headers after they are sent to the client'
+});
 
-assert.throws(() => {
+common.expectsError(() => {
   const outgoingMessage = new OutgoingMessage();
   outgoingMessage.setHeader('200', 'あ');
-}, /^TypeError: The header content contains invalid characters$/);
+}, {
+  code: 'ERR_INVALID_CHAR',
+  type: TypeError,
+  message: 'Invalid character in header content ["200"]'
+});
 
 // write
-assert.throws(() => {
+{
   const outgoingMessage = new OutgoingMessage();
-  outgoingMessage.write();
-}, /^Error: _implicitHeader\(\) method is not implemented$/);
 
-assert(OutgoingMessage.prototype.write.call({_header: 'test'}));
+  outgoingMessage.on('error', common.expectsError({
+    code: 'ERR_METHOD_NOT_IMPLEMENTED',
+    type: Error,
+    message: 'The _implicitHeader() method is not implemented'
+  }));
 
-assert.throws(() => {
+  outgoingMessage.write('');
+}
+
+assert(OutgoingMessage.prototype.write.call({ _header: 'test' }));
+
+common.expectsError(() => {
   const outgoingMessage = new OutgoingMessage();
-  outgoingMessage.write.call({_header: 'test', _hasBody: 'test'});
-}, /^TypeError: First argument must be a string or Buffer$/);
+  outgoingMessage.write.call({ _header: 'test', _hasBody: 'test' });
+}, {
+  code: 'ERR_INVALID_ARG_TYPE',
+  type: TypeError,
+  message: 'The first argument must be one of type string or Buffer. ' +
+           'Received type undefined'
+});
 
-assert.throws(() => {
+common.expectsError(() => {
   const outgoingMessage = new OutgoingMessage();
-  outgoingMessage.write.call({_header: 'test', _hasBody: 'test'}, 1);
-}, /^TypeError: First argument must be a string or Buffer$/);
+  outgoingMessage.write.call({ _header: 'test', _hasBody: 'test' }, 1);
+}, {
+  code: 'ERR_INVALID_ARG_TYPE',
+  type: TypeError,
+  message: 'The first argument must be one of type string or Buffer. ' +
+           'Received type number'
+});
 
-// addTrailers
+// addTrailers()
+// The `Error` comes from the JavaScript engine so confirm that it is a
+// `TypeError` but do not check the message. It will be different in different
+// JavaScript engines.
 assert.throws(() => {
   const outgoingMessage = new OutgoingMessage();
   outgoingMessage.addTrailers();
-}, /^TypeError: Cannot convert undefined or null to object$/);
+}, TypeError);
 
-assert.throws(() => {
+common.expectsError(() => {
   const outgoingMessage = new OutgoingMessage();
-  outgoingMessage.addTrailers({'あ': 'value'});
-}, /^TypeError: Trailer name must be a valid HTTP Token \["あ"\]$/);
+  outgoingMessage.addTrailers({ 'あ': 'value' });
+}, {
+  code: 'ERR_INVALID_HTTP_TOKEN',
+  type: TypeError,
+  message: 'Trailer name must be a valid HTTP token ["あ"]'
+});
 
-assert.throws(() => {
+common.expectsError(() => {
   const outgoingMessage = new OutgoingMessage();
-  outgoingMessage.addTrailers({404: 'あ'});
-}, /^TypeError: The trailer content contains invalid characters$/);
+  outgoingMessage.addTrailers({ 404: 'あ' });
+}, {
+  code: 'ERR_INVALID_CHAR',
+  type: TypeError,
+  message: 'Invalid character in trailer content ["404"]'
+});

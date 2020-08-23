@@ -7,10 +7,10 @@ prefix known_issues
 [true] # This section applies to all platforms
 
 [$system==win32]
-test-stdout-buffer-flush-on-exit: SKIP
-test-cluster-disconnect-handles: SKIP
 
 [$system==linux]
+test-vm-timeout-escape-nexttick: PASS,FLAKY
+test-vm-timeout-escape-promise: PASS,FLAKY
 
 [$system==macos]
 
@@ -19,3 +19,7 @@ test-cluster-disconnect-handles: SKIP
 [$system==freebsd]
 
 [$system==aix]
+
+[$arch==arm]
+# https://github.com/nodejs/node/issues/24120
+test-vm-timeout-escape-nexttick: PASS,FLAKY

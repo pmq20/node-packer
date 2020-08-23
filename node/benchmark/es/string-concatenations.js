@@ -16,17 +16,15 @@ const configs = {
 
 const bench = common.createBenchmark(main, configs);
 
-
-function main(conf) {
-  const n = +conf.n;
-  const mode = conf.mode;
-
+function main({ n, mode }) {
   const str = 'abc';
   const num = 123;
 
   let string;
 
   switch (mode) {
+    case '':
+      // Empty string falls through to next line as default, mostly for tests.
     case 'multi-concat':
       bench.start();
       for (let i = 0; i < n; i++)
@@ -63,6 +61,8 @@ function main(conf) {
         string = `${num}`;
       bench.end(n);
       break;
+    default:
+      throw new Error(`Unexpected method "${mode}"`);
   }
 
   return string;

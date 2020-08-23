@@ -31,11 +31,20 @@
 #include <net/if_dl.h>
 #endif
 
-static int uv__ifaddr_exclude(struct ifaddrs *ent) {
+static int uv__ifaddr_exclude(struct ifaddrs *ent, int exclude_type) {
   if (!((ent->ifa_flags & IFF_UP) && (ent->ifa_flags & IFF_RUNNING)))
     return 1;
   if (ent->ifa_addr == NULL)
     return 1;
+#if !defined(__CYGWIN__) && !defined(__MSYS__)
+  /*
+   * If `exclude_type` is `UV__EXCLUDE_IFPHYS`, just see whether `sa_family`
+   * equals to `AF_LINK` or not. Otherwise, the result depends on the operation
+   * system with `AF_LINK` or `PF_INET`.
+   */
+  if (exclude_type == UV__EXCLUDE_IFPHYS)
+    return (ent->ifa_addr->sa_family != AF_LINK);
+#endif
 #if defined(__APPLE__) || defined(__FreeBSD__) || defined(__DragonFly__)
   /*
    * On BSD getifaddrs returns information related to the raw underlying
@@ -44,7 +53,8 @@ static int uv__ifaddr_exclude(struct ifaddrs *ent) {
   if (ent->ifa_addr->sa_family == AF_LINK)
     return 1;
 #elif defined(__NetBSD__) || defined(__OpenBSD__)
-  if (ent->ifa_addr->sa_family != PF_INET)
+  if (ent->ifa_addr->sa_family != PF_INET &&
+      ent->ifa_addr->sa_family != PF_INET6)
     return 1;
 #endif
   return 0;
@@ -56,29 +66,36 @@ int uv_interface_addresses(uv_interface_address_t** addresses, int* count) {
   uv_interface_address_t* address;
   int i;
 
-  if (getifaddrs(&addrs) != 0)
-    return -errno;
-
   *count = 0;
+  *addresses = NULL;
+
+  if (getifaddrs(&addrs) != 0)
+    return UV__ERR(errno);
 
   /* Count the number of interfaces */
   for (ent = addrs; ent != NULL; ent = ent->ifa_next) {
-    if (uv__ifaddr_exclude(ent))
+    if (uv__ifaddr_exclude(ent, UV__EXCLUDE_IFADDR))
       continue;
     (*count)++;
   }
 
-  *addresses = uv__malloc(*count * sizeof(**addresses));
+  if (*count == 0) {
+    freeifaddrs(addrs);
+    return 0;
+  }
+
+  /* Make sure the memory is initiallized to zero using calloc() */
+  *addresses = uv__calloc(*count, sizeof(**addresses));
 
   if (*addresses == NULL) {
     freeifaddrs(addrs);
-    return -ENOMEM;
+    return UV_ENOMEM;
   }
 
   address = *addresses;
 
   for (ent = addrs; ent != NULL; ent = ent->ifa_next) {
-    if (uv__ifaddr_exclude(ent))
+    if (uv__ifaddr_exclude(ent, UV__EXCLUDE_IFADDR))
       continue;
 
     address->name = uv__strdup(ent->ifa_name);
@@ -100,26 +117,24 @@ int uv_interface_addresses(uv_interface_address_t** addresses, int* count) {
     address++;
   }
 
+#if !(defined(__CYGWIN__) || defined(__MSYS__))
   /* Fill in physical addresses for each interface */
   for (ent = addrs; ent != NULL; ent = ent->ifa_next) {
-    if (uv__ifaddr_exclude(ent))
+    if (uv__ifaddr_exclude(ent, UV__EXCLUDE_IFPHYS))
       continue;
 
     address = *addresses;
 
     for (i = 0; i < *count; i++) {
       if (strcmp(address->name, ent->ifa_name) == 0) {
-#if defined(__CYGWIN__) || defined(__MSYS__)
-        memset(address->phys_addr, 0, sizeof(address->phys_addr));
-#else
         struct sockaddr_dl* sa_addr;
         sa_addr = (struct sockaddr_dl*)(ent->ifa_addr);
         memcpy(address->phys_addr, LLADDR(sa_addr), sizeof(address->phys_addr));
-#endif
       }
       address++;
     }
   }
+#endif
 
   freeifaddrs(addrs);
 

@@ -119,10 +119,10 @@ function listener2() {}
 
   // listener4 will still be called although it is removed by listener 3.
   ee.emit('hello');
-  // This is so because the interal listener array at time of emit
+  // This is so because the internal listener array at time of emit
   // was [listener3,listener4]
 
-  // Interal listener array [listener3]
+  // Internal listener array [listener3]
   ee.emit('hello');
 }
 
@@ -144,11 +144,15 @@ function listener2() {}
 }
 
 // Verify that the removed listener must be a function
-assert.throws(() => {
+common.expectsError(() => {
   const ee = new EventEmitter();
-
   ee.removeListener('foo', null);
-}, /^TypeError: "listener" argument must be a function$/);
+}, {
+  code: 'ERR_INVALID_ARG_TYPE',
+  type: TypeError,
+  message: 'The "listener" argument must be of type Function. ' +
+           'Received type object'
+});
 
 {
   const ee = new EventEmitter();

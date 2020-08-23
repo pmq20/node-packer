@@ -22,6 +22,8 @@ const objects = [
   circular
 ];
 
+const hostObject = new (process.binding('js_stream').JSStream)();
+
 const serializerTypeError =
   /^TypeError: Class constructor Serializer cannot be invoked without 'new'$/;
 const deserializerTypeError =
@@ -65,8 +67,8 @@ const deserializerTypeError =
 {
   const ser = new v8.DefaultSerializer();
   ser._writeHostObject = common.mustCall((object) => {
-    assert.strictEqual(object, process.stdin._handle);
-    const buf = Buffer.from('stdin');
+    assert.strictEqual(object, hostObject);
+    const buf = Buffer.from('hostObjectTag');
 
     ser.writeUint32(buf.length);
     ser.writeRawBytes(buf);
@@ -76,23 +78,64 @@ const deserializerTypeError =
   });
 
   ser.writeHeader();
-  ser.writeValue({ val: process.stdin._handle });
+  ser.writeValue({ val: hostObject });
 
   const des = new v8.DefaultDeserializer(ser.releaseBuffer());
   des._readHostObject = common.mustCall(() => {
     const length = des.readUint32();
     const buf = des.readRawBytes(length);
 
-    assert.strictEqual(buf.toString(), 'stdin');
+    assert.strictEqual(buf.toString(), 'hostObjectTag');
 
     assert.deepStrictEqual(des.readUint64(), [1, 2]);
     assert.strictEqual(des.readDouble(), -0.25);
-    return process.stdin._handle;
+    return hostObject;
   });
 
   des.readHeader();
 
-  assert.strictEqual(des.readValue().val, process.stdin._handle);
+  assert.strictEqual(des.readValue().val, hostObject);
+}
+
+// This test ensures that `v8.Serializer.writeRawBytes()` support
+// `TypedArray` and `DataView`.
+{
+  const text = 'hostObjectTag';
+  const data = Buffer.from(text);
+  const arrayBufferViews = common.getArrayBufferViews(data);
+
+  // `buf` is one of `TypedArray` or `DataView`.
+  function testWriteRawBytes(buf) {
+    let writeHostObjectCalled = false;
+    const ser = new v8.DefaultSerializer();
+
+    ser._writeHostObject = common.mustCall((object) => {
+      writeHostObjectCalled = true;
+      ser.writeUint32(buf.byteLength);
+      ser.writeRawBytes(buf);
+    });
+
+    ser.writeHeader();
+    ser.writeValue({ val: hostObject });
+
+    const des = new v8.DefaultDeserializer(ser.releaseBuffer());
+    des._readHostObject = common.mustCall(() => {
+      assert.strictEqual(writeHostObjectCalled, true);
+      const length = des.readUint32();
+      const buf = des.readRawBytes(length);
+      assert.strictEqual(buf.toString(), text);
+
+      return hostObject;
+    });
+
+    des.readHeader();
+
+    assert.strictEqual(des.readValue().val, hostObject);
+  }
+
+  arrayBufferViews.forEach((buf) => {
+    testWriteRawBytes(buf);
+  });
 }
 
 {
@@ -103,12 +146,12 @@ const deserializerTypeError =
 
   ser.writeHeader();
   assert.throws(() => {
-    ser.writeValue({ val: process.stdin._handle });
+    ser.writeValue({ val: hostObject });
   }, /foobar/);
 }
 
 {
-  assert.throws(() => v8.serialize(process.stdin._handle),
+  assert.throws(() => v8.serialize(hostObject),
                 /^Error: Unknown host object type: \[object .*\]$/);
 }
 
@@ -142,4 +185,47 @@ const deserializerTypeError =
 {
   assert.throws(v8.Serializer, serializerTypeError);
   assert.throws(v8.Deserializer, deserializerTypeError);
+}
+
+
+// `v8.deserialize()` and `new v8.Deserializer()` should support both
+// `TypedArray` and `DataView`.
+{
+  for (const obj of objects) {
+    const buf = v8.serialize(obj);
+
+    for (const arrayBufferView of common.getArrayBufferViews(buf)) {
+      assert.deepStrictEqual(v8.deserialize(arrayBufferView), obj);
+    }
+
+    for (const arrayBufferView of common.getArrayBufferViews(buf)) {
+      const deserializer = new v8.DefaultDeserializer(arrayBufferView);
+      deserializer.readHeader();
+      const value = deserializer.readValue();
+      assert.deepStrictEqual(value, obj);
+
+      const serializer = new v8.DefaultSerializer();
+      serializer.writeHeader();
+      serializer.writeValue(value);
+      assert.deepStrictEqual(buf, serializer.releaseBuffer());
+    }
+  }
+}
+
+{
+  const INVALID_SOURCE = 'INVALID_SOURCE_TYPE';
+  const serializer = new v8.Serializer();
+  serializer.writeHeader();
+  assert.throws(
+    () => serializer.writeRawBytes(INVALID_SOURCE),
+    /^TypeError: source must be a TypedArray or a DataView$/,
+  );
+  assert.throws(
+    () => v8.deserialize(INVALID_SOURCE),
+    /^TypeError: buffer must be a TypedArray or a DataView$/,
+  );
+  assert.throws(
+    () => new v8.Deserializer(INVALID_SOURCE),
+    /^TypeError: buffer must be a TypedArray or a DataView$/,
+  );
 }

@@ -20,68 +20,77 @@
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 'use strict';
-require('../common');
+const common = require('../common');
 const assert = require('assert');
 
 const vm = require('vm');
 const Script = vm.Script;
 let script = new Script('"passed";');
 
-console.error('run in a new empty context');
+// Run in a new empty context
 let context = vm.createContext();
 let result = script.runInContext(context);
-assert.strictEqual('passed', result);
+assert.strictEqual(result, 'passed');
 
-console.error('create a new pre-populated context');
-context = vm.createContext({'foo': 'bar', 'thing': 'lala'});
-assert.strictEqual('bar', context.foo);
-assert.strictEqual('lala', context.thing);
+// Create a new pre-populated context
+context = vm.createContext({ 'foo': 'bar', 'thing': 'lala' });
+assert.strictEqual(context.foo, 'bar');
+assert.strictEqual(context.thing, 'lala');
 
-console.error('test updating context');
+// Test updating context
 script = new Script('foo = 3;');
 result = script.runInContext(context);
-assert.strictEqual(3, context.foo);
-assert.strictEqual('lala', context.thing);
+assert.strictEqual(context.foo, 3);
+assert.strictEqual(context.thing, 'lala');
 
 // Issue GH-227:
-assert.throws(function() {
+common.expectsError(() => {
   vm.runInNewContext('', null, 'some.js');
-}, /^TypeError: sandbox must be an object$/);
+}, {
+  code: 'ERR_INVALID_ARG_TYPE',
+  type: TypeError
+});
 
 // Issue GH-1140:
-console.error('test runInContext signature');
+// Test runInContext signature
 let gh1140Exception;
 try {
   vm.runInContext('throw new Error()', context, 'expected-filename.js');
 } catch (e) {
   gh1140Exception = e;
   assert.ok(/expected-filename/.test(e.stack),
-            'expected appearance of filename in Error stack');
+            `expected appearance of filename in Error stack: ${e.stack}`);
 }
-assert.ok(gh1140Exception,
-          'expected exception from runInContext signature test');
+// This is outside of catch block to confirm catch block ran.
+assert.strictEqual(gh1140Exception.toString(), 'Error');
 
-// GH-558, non-context argument segfaults / raises assertion
-const nonContextualSandboxErrorMsg =
-  /^TypeError: contextifiedSandbox argument must be an object\.$/;
-const contextifiedSandboxErrorMsg =
-    /^TypeError: sandbox argument must have been converted to a context\.$/;
+const nonContextualSandboxError = {
+  code: 'ERR_INVALID_ARG_TYPE',
+  type: TypeError,
+  message: /must be of type Object/
+};
+const contextifiedSandboxError = {
+  code: 'ERR_INVALID_ARG_TYPE',
+  type: TypeError,
+  message: /must be of type vm\.Context/
+};
+
 [
-  [undefined, nonContextualSandboxErrorMsg],
-  [null, nonContextualSandboxErrorMsg], [0, nonContextualSandboxErrorMsg],
-  [0.0, nonContextualSandboxErrorMsg], ['', nonContextualSandboxErrorMsg],
-  [{}, contextifiedSandboxErrorMsg], [[], contextifiedSandboxErrorMsg]
+  [undefined, nonContextualSandboxError],
+  [null, nonContextualSandboxError], [0, nonContextualSandboxError],
+  [0.0, nonContextualSandboxError], ['', nonContextualSandboxError],
+  [{}, contextifiedSandboxError], [[], contextifiedSandboxError]
 ].forEach((e) => {
-  assert.throws(() => { script.runInContext(e[0]); }, e[1]);
-  assert.throws(() => { vm.runInContext('', e[0]); }, e[1]);
+  common.expectsError(() => { script.runInContext(e[0]); }, e[1]);
+  common.expectsError(() => { vm.runInContext('', e[0]); }, e[1]);
 });
 
 // Issue GH-693:
-console.error('test RegExp as argument to assert.throws');
+// Test RegExp as argument to assert.throws
 script = vm.createScript('const assert = require(\'assert\'); assert.throws(' +
                          'function() { throw "hello world"; }, /hello/);',
                          'some.js');
-script.runInNewContext({ require: require });
+script.runInNewContext({ require });
 
 // Issue GH-7529
 script = vm.createScript('delete b');
@@ -90,31 +99,23 @@ Object.defineProperty(ctx, 'b', { configurable: false });
 ctx = vm.createContext(ctx);
 assert.strictEqual(script.runInContext(ctx), false);
 
-// Error on the first line of a module should
-// have the correct line and column number
-assert.throws(function() {
-  vm.runInContext('throw new Error()', context, {
-    filename: 'expected-filename.js',
-    lineOffset: 32,
-    columnOffset: 123
-  });
-}, function(err) {
-  return /expected-filename\.js:33:130/.test(err.stack);
-}, 'Expected appearance of proper offset in Error stack');
+// Error on the first line of a module should have the correct line and column
+// number.
+{
+  let stack = null;
+  assert.throws(() => {
+    vm.runInContext(' throw new Error()', context, {
+      filename: 'expected-filename.js',
+      lineOffset: 32,
+      columnOffset: 123
+    });
+  }, (err) => {
+    stack = err.stack;
+    return /^ \^/m.test(stack) &&
+           /expected-filename\.js:33:131/.test(stack);
+  }, `stack not formatted as expected: ${stack}`);
+}
 
 // https://github.com/nodejs/node/issues/6158
 ctx = new Proxy({}, {});
 assert.strictEqual(typeof vm.runInNewContext('String', ctx), 'function');
-
-// https://github.com/nodejs/node/issues/10223
-ctx = vm.createContext();
-vm.runInContext('Object.defineProperty(this, "x", { value: 42 })', ctx);
-assert.strictEqual(ctx.x, 42);
-assert.strictEqual(vm.runInContext('x', ctx), 42);
-
-vm.runInContext('x = 0', ctx);                      // Does not throw but x...
-assert.strictEqual(vm.runInContext('x', ctx), 42);  // ...should be unaltered.
-
-assert.throws(() => vm.runInContext('"use strict"; x = 0', ctx),
-              /Cannot assign to read only property 'x'/);
-assert.strictEqual(vm.runInContext('x', ctx), 42);

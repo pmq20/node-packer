@@ -362,7 +362,7 @@ parseUCARules(ParseState* state, char *tag, uint32_t startline, const struct USt
     ucbuf = ucbuf_open(filename, &cp, getShowWarning(),FALSE, status);
 
     if (U_FAILURE(*status)) {
-        error(line, "An error occured while opening the input file %s\n", filename);
+        error(line, "An error occurred while opening the input file %s\n", filename);
         return NULL;
     }
 
@@ -500,7 +500,7 @@ parseTransliterator(ParseState* state, char *tag, uint32_t startline, const stru
     ucbuf = ucbuf_open(filename, &cp, getShowWarning(),FALSE, status);
 
     if (U_FAILURE(*status)) {
-        error(line, "An error occured while opening the input file %s\n", filename);
+        error(line, "An error occurred while opening the input file %s\n", filename);
         return NULL;
     }
 
@@ -758,13 +758,13 @@ GenrbImporter::getRules(
         return;
     }
     if (ucbuf.isNull() || U_FAILURE(errorCode)) {
-        fprintf(stderr, "An error occured processing file %s. Error: %s\n", openFileName.data(), u_errorName(errorCode));
+        fprintf(stderr, "An error occurred processing file %s. Error: %s\n", openFileName.data(), u_errorName(errorCode));
         return;
     }
 
     /* Parse the data into an SRBRoot */
-    struct SRBRoot *data =
-            parse(ucbuf.getAlias(), inputDir, outputDir, filename.data(), FALSE, FALSE, &errorCode);
+    LocalPointer<SRBRoot> data(
+            parse(ucbuf.getAlias(), inputDir, outputDir, filename.data(), FALSE, FALSE, &errorCode));
     if (U_FAILURE(errorCode)) {
         return;
     }
@@ -1018,6 +1018,11 @@ addCollation(ParseState* state, TableResource  *result, const char *collationTyp
             icu::CollationInfo::printReorderRanges(
                     *t->data, t->settings->reorderCodes, t->settings->reorderCodesLength);
         }
+#if 0  // debugging output
+    } else {
+        printf("%s~%s collation tailoring part sizes:\n", state->filename, collationType);
+        icu::CollationInfo::printSizes(totalSize, indexes);
+#endif
     }
     struct SResource *collationBin = bin_open(state->bundle, "%%CollationBin", totalSize, dest, NULL, NULL, status);
     result->add(collationBin, line, *status);
@@ -1995,6 +2000,8 @@ parse(UCHARBUF *buf, const char *inputDir, const char *outputDir, const char *fi
 
     if (state.bundle == NULL || U_FAILURE(*status))
     {
+        delete state.bundle;
+
         return NULL;
     }
 

@@ -4,37 +4,49 @@
 
 # Use this to run several variants of the tests.
 ALL_VARIANT_FLAGS = {
+  "code_serializer": [["--cache=code"]],
   "default": [[]],
+  "future": [["--future"]],
+  "gc_stats": [["--gc_stats=1"]],
+  # Alias of exhaustive variants, but triggering new test framework features.
+  "infra_staging": [[]],
+  "liftoff": [["--liftoff"]],
+  "minor_mc": [["--minor-mc"]],
+  # No optimization means disable all optimizations. OptimizeFunctionOnNextCall
+  # would not force optimization too. It turns into a Nop. Please see
+  # https://chromium-review.googlesource.com/c/452620/ for more discussion.
+  "nooptimization": [["--noopt"]],
+  "slow_path": [["--force-slow-path"]],
   "stress": [["--stress-opt", "--always-opt"]],
-  "turbofan": [["--turbo"]],
-  "turbofan_opt": [["--turbo", "--always-opt"]],
-  "noturbofan": [["--no-turbo"]],
-  "noturbofan_stress": [["--no-turbo", "--stress-opt", "--always-opt"]],
-  "fullcode": [["--noopt", "--no-turbo"]],
-  # No optimization means disable all optimizations. OptimizeFunctionOnNextCall
-  # would not force optimization too. It turns into a Nop. Please see
-  # https://chromium-review.googlesource.com/c/452620/ for more discussion.
-  "nooptimization": [["--noopt"]],
-  "asm_wasm": [["--validate-asm", "--stress-validate-asm", "--suppress-asm-messages"]],
-  "wasm_traps": [["--wasm_guard_pages", "--wasm_trap_handler", "--invoke-weak-callbacks"]],
+  "stress_background_compile": [["--stress-background-compile"]],
+  "stress_incremental_marking":  [["--stress-incremental-marking"]],
+  # Trigger stress sampling allocation profiler with sample interval = 2^14
+  "stress_sampling": [["--stress-sampling-allocation-profiler=16384"]],
+  "trusted": [["--no-untrusted-code-mitigations"]],
+  "no_wasm_traps": [["--no-wasm-trap-handler"]],
 }
 
-# FAST_VARIANTS implies no --always-opt.
-FAST_VARIANT_FLAGS = {
-  "default": [[]],
-  "stress": [["--stress-opt"]],
-  "turbofan": [["--turbo"]],
-  "noturbofan": [["--no-turbo"]],
-  "noturbofan_stress": [["--no-turbo", "--stress-opt"]],
-  "fullcode": [["--noopt", "--no-turbo"]],
-  # No optimization means disable all optimizations. OptimizeFunctionOnNextCall
-  # would not force optimization too. It turns into a Nop. Please see
-  # https://chromium-review.googlesource.com/c/452620/ for more discussion.
-  "nooptimization": [["--noopt"]],
-  "asm_wasm": [["--validate-asm", "--stress-validate-asm", "--suppress-asm-messages"]],
-  "wasm_traps": [["--wasm_guard_pages", "--wasm_trap_handler", "--invoke-weak-callbacks"]],
-}
+SLOW_VARIANTS = set([
+  'stress',
+  'nooptimization',
+])
 
-ALL_VARIANTS = set(["default", "stress", "turbofan", "turbofan_opt",
-                    "noturbofan", "noturbofan_stress", "fullcode",
-                    "nooptimization", "asm_wasm", "wasm_traps"])
+FAST_VARIANTS = set([
+  'default'
+])
+
+
+def _variant_order_key(v):
+  if v in SLOW_VARIANTS:
+    return 0
+  if v in FAST_VARIANTS:
+    return 100
+  return 50
+
+ALL_VARIANTS = sorted(ALL_VARIANT_FLAGS.keys(),
+                      key=_variant_order_key)
+
+# Check {SLOW,FAST}_VARIANTS entries
+for variants in [SLOW_VARIANTS, FAST_VARIANTS]:
+  for v in variants:
+    assert v in ALL_VARIANT_FLAGS

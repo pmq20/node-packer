@@ -11,18 +11,48 @@
 namespace v8 {
 namespace internal {
 
-class CodeSerializer : public Serializer {
+class ScriptData {
  public:
-  static ScriptData* Serialize(Isolate* isolate,
-                               Handle<SharedFunctionInfo> info,
-                               Handle<String> source);
+  ScriptData(const byte* data, int length);
+  ~ScriptData() {
+    if (owns_data_) DeleteArray(data_);
+  }
 
-  ScriptData* Serialize(Handle<HeapObject> obj);
+  const byte* data() const { return data_; }
+  int length() const { return length_; }
+  bool rejected() const { return rejected_; }
 
-  MUST_USE_RESULT static MaybeHandle<SharedFunctionInfo> Deserialize(
+  void Reject() { rejected_ = true; }
+
+  void AcquireDataOwnership() {
+    DCHECK(!owns_data_);
+    owns_data_ = true;
+  }
+
+  void ReleaseDataOwnership() {
+    DCHECK(owns_data_);
+    owns_data_ = false;
+  }
+
+ private:
+  bool owns_data_ : 1;
+  bool rejected_ : 1;
+  const byte* data_;
+  int length_;
+
+  DISALLOW_COPY_AND_ASSIGN(ScriptData);
+};
+
+class CodeSerializer : public Serializer<> {
+ public:
+  static ScriptCompiler::CachedData* Serialize(Handle<SharedFunctionInfo> info);
+
+  ScriptData* SerializeSharedFunctionInfo(Handle<SharedFunctionInfo> info);
+
+  V8_WARN_UNUSED_RESULT static MaybeHandle<SharedFunctionInfo> Deserialize(
       Isolate* isolate, ScriptData* cached_data, Handle<String> source);
 
-  const List<uint32_t>* stub_keys() const { return &stub_keys_; }
+  const std::vector<uint32_t>* stub_keys() const { return &stub_keys_; }
 
   uint32_t source_hash() const { return source_hash_; }
 
@@ -39,8 +69,6 @@ class CodeSerializer : public Serializer {
   virtual bool ElideObject(Object* obj) { return false; }
   void SerializeGeneric(HeapObject* heap_object, HowToCode how_to_code,
                         WhereToPoint where_to_point);
-  void SerializeBuiltin(int builtin_index, HowToCode how_to_code,
-                        WhereToPoint where_to_point);
 
  private:
   void SerializeObject(HeapObject* o, HowToCode how_to_code,
@@ -49,29 +77,13 @@ class CodeSerializer : public Serializer {
   void SerializeCodeStub(Code* code_stub, HowToCode how_to_code,
                          WhereToPoint where_to_point);
 
+  bool SerializeReadOnlyObject(HeapObject* obj, HowToCode how_to_code,
+                               WhereToPoint where_to_point, int skip);
+
   DisallowHeapAllocation no_gc_;
   uint32_t source_hash_;
-  List<uint32_t> stub_keys_;
+  std::vector<uint32_t> stub_keys_;
   DISALLOW_COPY_AND_ASSIGN(CodeSerializer);
-};
-
-class WasmCompiledModuleSerializer : public CodeSerializer {
- public:
-  static std::unique_ptr<ScriptData> SerializeWasmModule(
-      Isolate* isolate, Handle<FixedArray> compiled_module);
-  static MaybeHandle<FixedArray> DeserializeWasmModule(
-      Isolate* isolate, ScriptData* data, Vector<const byte> wire_bytes);
-
- protected:
-  void SerializeCodeObject(Code* code_object, HowToCode how_to_code,
-                           WhereToPoint where_to_point) override;
-  bool ElideObject(Object* obj) override;
-
- private:
-  WasmCompiledModuleSerializer(Isolate* isolate, uint32_t source_hash,
-                               Handle<Context> native_context,
-                               Handle<SeqOneByteString> module_bytes);
-  DISALLOW_COPY_AND_ASSIGN(WasmCompiledModuleSerializer);
 };
 
 // Wrapper around ScriptData to provide code-serializer-specific functionality.
@@ -104,16 +116,19 @@ class SerializedCodeData : public SerializedData {
   // ...  reservations
   // ...  code stub keys
   // ...  serialized payload
-  static const int kSourceHashOffset = kVersionHashOffset + kInt32Size;
-  static const int kCpuFeaturesOffset = kSourceHashOffset + kInt32Size;
-  static const int kFlagHashOffset = kCpuFeaturesOffset + kInt32Size;
-  static const int kNumReservationsOffset = kFlagHashOffset + kInt32Size;
-  static const int kNumCodeStubKeysOffset = kNumReservationsOffset + kInt32Size;
-  static const int kPayloadLengthOffset = kNumCodeStubKeysOffset + kInt32Size;
-  static const int kChecksum1Offset = kPayloadLengthOffset + kInt32Size;
-  static const int kChecksum2Offset = kChecksum1Offset + kInt32Size;
-  static const int kUnalignedHeaderSize = kChecksum2Offset + kInt32Size;
-  static const int kHeaderSize = POINTER_SIZE_ALIGN(kUnalignedHeaderSize);
+  static const uint32_t kVersionHashOffset = kMagicNumberOffset + kUInt32Size;
+  static const uint32_t kSourceHashOffset = kVersionHashOffset + kUInt32Size;
+  static const uint32_t kCpuFeaturesOffset = kSourceHashOffset + kUInt32Size;
+  static const uint32_t kFlagHashOffset = kCpuFeaturesOffset + kUInt32Size;
+  static const uint32_t kNumReservationsOffset = kFlagHashOffset + kUInt32Size;
+  static const uint32_t kNumCodeStubKeysOffset =
+      kNumReservationsOffset + kUInt32Size;
+  static const uint32_t kPayloadLengthOffset =
+      kNumCodeStubKeysOffset + kUInt32Size;
+  static const uint32_t kChecksum1Offset = kPayloadLengthOffset + kUInt32Size;
+  static const uint32_t kChecksum2Offset = kChecksum1Offset + kUInt32Size;
+  static const uint32_t kUnalignedHeaderSize = kChecksum2Offset + kUInt32Size;
+  static const uint32_t kHeaderSize = POINTER_SIZE_ALIGN(kUnalignedHeaderSize);
 
   // Used when consuming.
   static SerializedCodeData FromCachedData(Isolate* isolate,
@@ -122,12 +137,13 @@ class SerializedCodeData : public SerializedData {
                                            SanityCheckResult* rejection_result);
 
   // Used when producing.
-  SerializedCodeData(const List<byte>* payload, const CodeSerializer* cs);
+  SerializedCodeData(const std::vector<byte>* payload,
+                     const CodeSerializer* cs);
 
   // Return ScriptData object and relinquish ownership over it to the caller.
   ScriptData* GetScriptData();
 
-  Vector<const Reservation> Reservations() const;
+  std::vector<Reservation> Reservations() const;
   Vector<const byte> Payload() const;
 
   Vector<const uint32_t> CodeStubKeys() const;

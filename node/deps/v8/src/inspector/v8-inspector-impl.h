@@ -28,12 +28,14 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef V8_INSPECTOR_V8INSPECTORIMPL_H_
-#define V8_INSPECTOR_V8INSPECTORIMPL_H_
+#ifndef V8_INSPECTOR_V8_INSPECTOR_IMPL_H_
+#define V8_INSPECTOR_V8_INSPECTOR_IMPL_H_
 
-#include <vector>
+#include <functional>
+#include <map>
 
 #include "src/base/macros.h"
+#include "src/base/platform/mutex.h"
 #include "src/inspector/protocol/Protocol.h"
 
 #include "include/v8-inspector.h"
@@ -58,8 +60,9 @@ class V8InspectorImpl : public V8Inspector {
   v8::Isolate* isolate() const { return m_isolate; }
   V8InspectorClient* client() { return m_client; }
   V8Debugger* debugger() { return m_debugger.get(); }
-  int contextGroupId(v8::Local<v8::Context>);
-  int contextGroupId(int contextId);
+  int contextGroupId(v8::Local<v8::Context>) const;
+  int contextGroupId(int contextId) const;
+  uint64_t isolateId() const { return m_isolateId; }
 
   v8::MaybeLocal<v8::Value> compileAndRunInternalScript(v8::Local<v8::Context>,
                                                         v8::Local<v8::String>);
@@ -96,6 +99,10 @@ class V8InspectorImpl : public V8Inspector {
   void asyncTaskFinished(void* task) override;
   void allAsyncTasksCanceled() override;
 
+  V8StackTraceId storeCurrentStackTrace(const StringView& description) override;
+  void externalAsyncTaskStarted(const V8StackTraceId& parent) override;
+  void externalAsyncTaskFinished(const V8StackTraceId& parent) override;
+
   unsigned nextExceptionId() { return ++m_lastExceptionId; }
   void enableStackCapturingIfNeeded();
   void disableStackCapturingIfNeeded();
@@ -103,17 +110,31 @@ class V8InspectorImpl : public V8Inspector {
   void unmuteExceptions(int contextGroupId);
   V8ConsoleMessageStorage* ensureConsoleMessageStorage(int contextGroupId);
   bool hasConsoleMessageStorage(int contextGroupId);
-  using ContextByIdMap =
-      protocol::HashMap<int, std::unique_ptr<InspectedContext>>;
   void discardInspectedContext(int contextGroupId, int contextId);
-  const ContextByIdMap* contextGroup(int contextGroupId);
   void disconnect(V8InspectorSessionImpl*);
-  V8InspectorSessionImpl* sessionForContextGroup(int contextGroupId);
+  V8InspectorSessionImpl* sessionById(int contextGroupId, int sessionId);
   InspectedContext* getContext(int groupId, int contextId) const;
-  V8DebuggerAgentImpl* enabledDebuggerAgentForGroup(int contextGroupId);
-  V8RuntimeAgentImpl* enabledRuntimeAgentForGroup(int contextGroupId);
-  V8ProfilerAgentImpl* enabledProfilerAgentForGroup(int contextGroupId);
+  InspectedContext* getContext(int contextId) const;
   V8Console* console();
+  void forEachContext(int contextGroupId,
+                      std::function<void(InspectedContext*)> callback);
+  void forEachSession(int contextGroupId,
+                      std::function<void(V8InspectorSessionImpl*)> callback);
+
+  class EvaluateScope {
+   public:
+    explicit EvaluateScope(v8::Isolate* isolate);
+    ~EvaluateScope();
+
+    protocol::Response setTimeout(double timeout);
+
+   private:
+    v8::Isolate* m_isolate;
+    class TerminateTask;
+    struct CancelToken;
+    std::shared_ptr<CancelToken> m_cancelToken;
+    v8::Isolate::SafeForTerminationScope m_safeForTerminationScope;
+  };
 
  private:
   v8::Isolate* m_isolate;
@@ -123,16 +144,20 @@ class V8InspectorImpl : public V8Inspector {
   int m_capturingStackTracesCount;
   unsigned m_lastExceptionId;
   int m_lastContextId;
+  int m_lastSessionId = 0;
+  uint64_t m_isolateId;
 
   using MuteExceptionsMap = protocol::HashMap<int, int>;
   MuteExceptionsMap m_muteExceptionsMap;
 
+  using ContextByIdMap =
+      protocol::HashMap<int, std::unique_ptr<InspectedContext>>;
   using ContextsByGroupMap =
       protocol::HashMap<int, std::unique_ptr<ContextByIdMap>>;
   ContextsByGroupMap m_contexts;
 
-  using SessionMap = protocol::HashMap<int, V8InspectorSessionImpl*>;
-  SessionMap m_sessions;
+  // contextGroupId -> sessionId -> session
+  protocol::HashMap<int, std::map<int, V8InspectorSessionImpl*>> m_sessions;
 
   using ConsoleStorageMap =
       protocol::HashMap<int, std::unique_ptr<V8ConsoleMessageStorage>>;
@@ -147,4 +172,4 @@ class V8InspectorImpl : public V8Inspector {
 
 }  // namespace v8_inspector
 
-#endif  // V8_INSPECTOR_V8INSPECTORIMPL_H_
+#endif  // V8_INSPECTOR_V8_INSPECTOR_IMPL_H_

@@ -21,20 +21,40 @@
 
 'use strict';
 
+const { parseCertString } = require('internal/tls');
+const { isArrayBufferView } = require('internal/util/types');
 const tls = require('tls');
+const {
+  ERR_CRYPTO_CUSTOM_ENGINE_NOT_SUPPORTED,
+  ERR_INVALID_ARG_TYPE,
+  ERR_TLS_INVALID_PROTOCOL_VERSION,
+  ERR_TLS_PROTOCOL_VERSION_CONFLICT,
+} = require('internal/errors').codes;
 
-const SSL_OP_CIPHER_SERVER_PREFERENCE =
-    process.binding('constants').crypto.SSL_OP_CIPHER_SERVER_PREFERENCE;
+const {
+  SSL_OP_CIPHER_SERVER_PREFERENCE,
+  TLS1_VERSION,
+  TLS1_1_VERSION,
+  TLS1_2_VERSION,
+} = process.binding('constants').crypto;
 
 // Lazily loaded
 var crypto = null;
 
-const binding = process.binding('crypto');
-const NativeSecureContext = binding.SecureContext;
+function toV(which, v, def) {
+  if (v == null) v = def;
+  if (v === 'TLSv1') return TLS1_VERSION;
+  if (v === 'TLSv1.1') return TLS1_1_VERSION;
+  if (v === 'TLSv1.2') return TLS1_2_VERSION;
+  throw new ERR_TLS_INVALID_PROTOCOL_VERSION(v, which);
+}
 
-function SecureContext(secureProtocol, secureOptions, context) {
+const { SecureContext: NativeSecureContext } = internalBinding('crypto');
+function SecureContext(secureProtocol, secureOptions, context,
+                       minVersion, maxVersion) {
   if (!(this instanceof SecureContext)) {
-    return new SecureContext(secureProtocol, secureOptions, context);
+    return new SecureContext(secureProtocol, secureOptions, context,
+                             minVersion, maxVersion);
   }
 
   if (context) {
@@ -43,13 +63,28 @@ function SecureContext(secureProtocol, secureOptions, context) {
     this.context = new NativeSecureContext();
 
     if (secureProtocol) {
-      this.context.init(secureProtocol);
-    } else {
-      this.context.init();
+      if (minVersion != null)
+        throw new ERR_TLS_PROTOCOL_VERSION_CONFLICT(minVersion, secureProtocol);
+      if (maxVersion != null)
+        throw new ERR_TLS_PROTOCOL_VERSION_CONFLICT(maxVersion, secureProtocol);
     }
+
+    this.context.init(secureProtocol,
+                      toV('minimum', minVersion, tls.DEFAULT_MIN_VERSION),
+                      toV('maximum', maxVersion, tls.DEFAULT_MAX_VERSION));
   }
 
   if (secureOptions) this.context.setOptions(secureOptions);
+}
+
+function validateKeyCert(name, value) {
+  if (typeof value !== 'string' && !isArrayBufferView(value)) {
+    throw new ERR_INVALID_ARG_TYPE(
+      `options.${name}`,
+      ['string', 'Buffer', 'TypedArray', 'DataView'],
+      value
+    );
+  }
 }
 
 exports.SecureContext = SecureContext;
@@ -62,31 +97,42 @@ exports.createSecureContext = function createSecureContext(options, context) {
   if (options.honorCipherOrder)
     secureOptions |= SSL_OP_CIPHER_SERVER_PREFERENCE;
 
-  var c = new SecureContext(options.secureProtocol, secureOptions, context);
+  const c = new SecureContext(options.secureProtocol, secureOptions, context,
+                              options.minVersion, options.maxVersion);
   var i;
+  var val;
 
   if (context) return c;
 
   // NOTE: It's important to add CA before the cert to be able to load
   // cert's issuer in C++ code.
-  if (options.ca) {
-    if (Array.isArray(options.ca)) {
-      for (i = 0; i < options.ca.length; i++) {
-        c.context.addCACert(options.ca[i]);
+  const { ca } = options;
+  if (ca) {
+    if (Array.isArray(ca)) {
+      for (i = 0; i < ca.length; ++i) {
+        val = ca[i];
+        validateKeyCert('ca', val);
+        c.context.addCACert(val);
       }
     } else {
-      c.context.addCACert(options.ca);
+      validateKeyCert('ca', ca);
+      c.context.addCACert(ca);
     }
   } else {
     c.context.addRootCerts();
   }
 
-  if (options.cert) {
-    if (Array.isArray(options.cert)) {
-      for (i = 0; i < options.cert.length; i++)
-        c.context.setCert(options.cert[i]);
+  const { cert } = options;
+  if (cert) {
+    if (Array.isArray(cert)) {
+      for (i = 0; i < cert.length; ++i) {
+        val = cert[i];
+        validateKeyCert('cert', val);
+        c.context.setCert(val);
+      }
     } else {
-      c.context.setCert(options.cert);
+      validateKeyCert('cert', cert);
+      c.context.setCert(cert);
     }
   }
 
@@ -94,15 +140,20 @@ exports.createSecureContext = function createSecureContext(options, context) {
   // `ssl_set_pkey` returns `0` when the key does not match the cert, but
   // `ssl_set_cert` returns `1` and nullifies the key in the SSL structure
   // which leads to the crash later on.
-  if (options.key) {
-    if (Array.isArray(options.key)) {
-      for (i = 0; i < options.key.length; i++) {
-        const key = options.key[i];
-        const passphrase = key.passphrase || options.passphrase;
-        c.context.setKey(key.pem || key, passphrase);
+  var key = options.key;
+  var passphrase = options.passphrase;
+  if (key) {
+    if (Array.isArray(key)) {
+      for (i = 0; i < key.length; ++i) {
+        val = key[i];
+        // eslint-disable-next-line eqeqeq
+        const pem = (val != undefined && val.pem !== undefined ? val.pem : val);
+        validateKeyCert('key', pem);
+        c.context.setKey(pem, val.passphrase || passphrase);
       }
     } else {
-      c.context.setKey(options.key, options.passphrase);
+      validateKeyCert('key', key);
+      c.context.setKey(key, passphrase);
     }
   }
 
@@ -137,20 +188,29 @@ exports.createSecureContext = function createSecureContext(options, context) {
   }
 
   if (options.pfx) {
-    var pfx = options.pfx;
-    var passphrase = options.passphrase;
-
     if (!crypto)
       crypto = require('crypto');
 
-    pfx = crypto._toBuf(pfx);
-    if (passphrase)
-      passphrase = crypto._toBuf(passphrase);
-
-    if (passphrase) {
-      c.context.loadPKCS12(pfx, passphrase);
+    if (Array.isArray(options.pfx)) {
+      for (i = 0; i < options.pfx.length; i++) {
+        const pfx = options.pfx[i];
+        const raw = pfx.buf ? pfx.buf : pfx;
+        const buf = crypto._toBuf(raw);
+        const passphrase = pfx.passphrase || options.passphrase;
+        if (passphrase) {
+          c.context.loadPKCS12(buf, crypto._toBuf(passphrase));
+        } else {
+          c.context.loadPKCS12(buf);
+        }
+      }
     } else {
-      c.context.loadPKCS12(pfx);
+      const buf = crypto._toBuf(options.pfx);
+      const passphrase = options.passphrase;
+      if (passphrase) {
+        c.context.loadPKCS12(buf, crypto._toBuf(passphrase));
+      } else {
+        c.context.loadPKCS12(buf);
+      }
     }
   }
 
@@ -162,6 +222,17 @@ exports.createSecureContext = function createSecureContext(options, context) {
     c.context.setFreeListLength(0);
   }
 
+  if (typeof options.clientCertEngine === 'string') {
+    if (c.context.setClientCertEngine)
+      c.context.setClientCertEngine(options.clientCertEngine);
+    else
+      throw new ERR_CRYPTO_CUSTOM_ENGINE_NOT_SUPPORTED();
+  } else if (options.clientCertEngine != null) {
+    throw new ERR_INVALID_ARG_TYPE('options.clientCertEngine',
+                                   ['string', 'null', 'undefined'],
+                                   options.clientCertEngine);
+  }
+
   return c;
 };
 
@@ -169,21 +240,18 @@ exports.translatePeerCertificate = function translatePeerCertificate(c) {
   if (!c)
     return null;
 
-  if (c.issuer != null) c.issuer = tls.parseCertString(c.issuer);
+  if (c.issuer != null) c.issuer = parseCertString(c.issuer);
   if (c.issuerCertificate != null && c.issuerCertificate !== c) {
     c.issuerCertificate = translatePeerCertificate(c.issuerCertificate);
   }
-  if (c.subject != null) c.subject = tls.parseCertString(c.subject);
+  if (c.subject != null) c.subject = parseCertString(c.subject);
   if (c.infoAccess != null) {
     var info = c.infoAccess;
-    c.infoAccess = {};
+    c.infoAccess = Object.create(null);
 
     // XXX: More key validation?
-    info.replace(/([^\n:]*):([^\n]*)(?:\n|$)/g, function(all, key, val) {
-      if (key === '__proto__')
-        return;
-
-      if (c.infoAccess.hasOwnProperty(key))
+    info.replace(/([^\n:]*):([^\n]*)(?:\n|$)/g, (all, key, val) => {
+      if (key in c.infoAccess)
         c.infoAccess[key].push(val);
       else
         c.infoAccess[key] = [val];

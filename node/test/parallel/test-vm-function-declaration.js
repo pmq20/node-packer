@@ -24,7 +24,7 @@ require('../common');
 const assert = require('assert');
 
 const vm = require('vm');
-const o = vm.createContext({ console: console });
+const o = vm.createContext({ console });
 
 // Function declaration and expression should both be copied to the
 // sandboxed context.
@@ -37,10 +37,8 @@ code += '(function(){return this})().b;\n';
 
 const res = vm.runInContext(code, o, 'test');
 
-assert.strictEqual(typeof res, 'function', 'result should be function');
-assert.strictEqual(res.name, 'b', 'res should be named b');
-assert.strictEqual(typeof o.a, 'function', 'a should be function');
-assert.strictEqual(typeof o.b, 'function', 'b should be function');
-assert.strictEqual(res, o.b, 'result should be global b function');
-
-console.log('ok');
+assert.strictEqual(typeof res, 'function');
+assert.strictEqual(res.name, 'b');
+assert.strictEqual(typeof o.a, 'function');
+assert.strictEqual(typeof o.b, 'function');
+assert.strictEqual(res, o.b);

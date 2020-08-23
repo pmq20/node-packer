@@ -29,6 +29,20 @@
 
 {
   'variables': {
+    'v8_target_arch%': '<(target_arch)',
+
+    # Emulate GN variables
+    'conditions': [
+      ['OS=="android"', { # GYP reverts OS to linux so use `-D OS=android`
+        'is_android': 1,
+      }, {
+        'is_android': 0,
+      }],
+    ],
+
+    # Allows the embedder to add a custom suffix to the version string.
+    'v8_embedder_string%': '',
+
     'v8_enable_disassembler%': 0,
 
     'v8_promise_internal_field_count%': 0,
@@ -73,14 +87,36 @@
 
     # Enable/disable JavaScript API accessors.
     'v8_js_accessors%': 0,
+
+    # Temporary flag to allow embedders to update their microtasks scopes.
+    'v8_check_microtasks_scopes_consistency%': 'false',
+
+    # Enable concurrent marking.
+    'v8_enable_concurrent_marking%': 1,
+
+    # Enables various testing features.
+    'v8_enable_test_features%': 0,
+
+    # Controls the threshold for on-heap/off-heap Typed Arrays.
+    'v8_typed_array_max_size_in_heap%': 64,
+
+    # Enable mitigations for executing untrusted code.
+    'v8_untrusted_code_mitigations%': 'true',
+
+    # Currently set for node by common.gypi, avoiding default because of gyp file bug.
+    # Should be turned on only for debugging.
+    #'v8_enable_handle_zapping%': 0,
   },
   'target_defaults': {
     'conditions': [
+      ['v8_embedder_string!=""', {
+        'defines': ['V8_EMBEDDER_STRING="<(v8_embedder_string)"',],
+      }],
       ['v8_enable_disassembler==1', {
         'defines': ['ENABLE_DISASSEMBLER',],
       }],
       ['v8_promise_internal_field_count!=0', {
-        'defines': ['V8_PROMISE_INTERNAL_FIELD_COUNT','v8_promise_internal_field_count'],
+        'defines': ['V8_PROMISE_INTERNAL_FIELD_COUNT=<(v8_promise_internal_field_count)'],
       }],
       ['v8_enable_gdbjit==1', {
         'defines': ['ENABLE_GDB_JIT_INTERFACE',],
@@ -96,6 +132,9 @@
       }],
       ['v8_trace_maps==1', {
         'defines': ['V8_TRACE_MAPS',],
+      }],
+      ['v8_enable_test_features==1', {
+        'defines': ['V8_ENABLE_ALLOCATION_TIMEOUT', 'V8_ENABLE_FORCE_SLOW_PATH'],
       }],
       ['v8_enable_verify_predictable==1', {
         'defines': ['VERIFY_PREDICTABLE',],
@@ -118,32 +157,23 @@
       ['dcheck_always_on!=0', {
         'defines': ['DEBUG',],
       }],
+      ['v8_check_microtasks_scopes_consistency=="true"', {
+        'defines': ['V8_CHECK_MICROTASKS_SCOPES_CONSISTENCY',],
+      }],
+      ['v8_enable_concurrent_marking==1', {
+        'defines': ['V8_CONCURRENT_MARKING',],
+      }],
+      ['v8_untrusted_code_mitigations=="false"', {
+        'defines': ['DISABLE_UNTRUSTED_CODE_MITIGATIONS',],
+      }],
+      # Refs: https://github.com/nodejs/node/pull/23801
+      # ['v8_enable_handle_zapping==1', {
+      #  'defines': ['ENABLE_HANDLE_ZAPPING',],
+      # }],
     ],  # conditions
-    'configurations': {
-      'DebugBaseCommon': {
-        'abstract': 1,
-        'variables': {
-          'v8_enable_handle_zapping%': 0,
-        },
-        'conditions': [
-          ['v8_enable_handle_zapping==1', {
-            'defines': ['ENABLE_HANDLE_ZAPPING',],
-          }],
-        ],
-      },  # Debug
-      'Release': {
-        'variables': {
-          'v8_enable_handle_zapping%': 1,
-        },
-        'conditions': [
-          ['v8_enable_handle_zapping==1', {
-            'defines': ['ENABLE_HANDLE_ZAPPING',],
-          }],
-        ],  # conditions
-      },  # Release
-    },  # configurations
     'defines': [
       'V8_GYP_BUILD',
+      'V8_TYPED_ARRAY_MAX_SIZE_IN_HEAP=<(v8_typed_array_max_size_in_heap)',
     ],  # defines
   },  # target_defaults
 }

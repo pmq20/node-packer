@@ -31,7 +31,11 @@ const common = require('../common');
 const assert = require('assert');
 const child = require('child_process');
 const path = require('path');
+const fixtures = require('../common/fixtures');
 const nodejs = `"${process.execPath}"`;
+
+if (!common.isMainThread)
+  common.skip('process.chdir is not available in Workers');
 
 if (process.argv.length > 2) {
   console.log(process.argv.slice(2).join(' '));
@@ -138,7 +142,10 @@ child.exec(`${nodejs} --use-strict -p process.execArgv`,
 
 // Regression test for https://github.com/nodejs/node/issues/3574.
 {
-  const emptyFile = path.join(common.fixturesDir, 'empty.js');
+  let emptyFile = fixtures.path('empty.js');
+  if (common.isWindows) {
+    emptyFile = emptyFile.replace(/\\/g, '\\\\');
+  }
 
   child.exec(`${nodejs} -e 'require("child_process").fork("${emptyFile}")'`,
              common.mustCall((err, stdout, stderr) => {

@@ -26,7 +26,7 @@
 #define NGHTTP2_CALLBACKS_H
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#  include <config.h>
 #endif /* HAVE_CONFIG_H */
 
 #include <nghttp2/nghttp2.h>
@@ -119,6 +119,7 @@ struct nghttp2_session_callbacks {
   nghttp2_unpack_extension_callback unpack_extension_callback;
   nghttp2_on_extension_chunk_recv_callback on_extension_chunk_recv_callback;
   nghttp2_error_callback error_callback;
+  nghttp2_error_callback2 error_callback2;
 };
 
 #endif /* NGHTTP2_CALLBACKS_H */

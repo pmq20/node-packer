@@ -235,16 +235,16 @@ public:
      * Returns TRUE if "other" is the same as "this".
      *
      * The base class implementation returns TRUE if "other" has the same type/class as "this":
-     * <code>typeid(*this) == typeid(other)</code>.
+     * `typeid(*this) == typeid(other)`.
      *
      * Subclass implementations should do something like the following:
-     * <pre>
-     *   if (this == &other) { return TRUE; }
-     *   if (!Collator::operator==(other)) { return FALSE; }  // not the same class
      *
-     *   const MyCollator &o = (const MyCollator&)other;
-     *   (compare this vs. o's subclass fields)
-     * </pre>
+     *     if (this == &other) { return TRUE; }
+     *     if (!Collator::operator==(other)) { return FALSE; }  // not the same class
+     *
+     *     const MyCollator &o = (const MyCollator&)other;
+     *     (compare this vs. o's subclass fields)
+     *
      * @param other Collator object to be compared
      * @return TRUE if other is the same as this.
      * @stable ICU 2.0
@@ -672,7 +672,7 @@ public:
                                 UErrorCode& status);
 
     /**
-     * Get name of the object for the desired Locale, in the desired langauge
+     * Get name of the object for the desired Locale, in the desired language
      * @param objectLocale must be from getAvailableLocales
      * @param displayLocale specifies the desired locale for output
      * @param name the fill-in parameter of the return value
@@ -685,7 +685,7 @@ public:
                                          UnicodeString& name);
 
     /**
-    * Get name of the object for the desired Locale, in the langauge of the
+    * Get name of the object for the desired Locale, in the language of the
     * default locale.
     * @param objectLocale must be from getAvailableLocales
     * @param name the fill-in parameter of the return value

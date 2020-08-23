@@ -1,3 +1,26 @@
+### 1.11.5
+
+* Fix eslint issues - **[@jkrems](https://github.com/jkrems)** [#63](https://github.com/nodejs/node-inspect/pull/63)
+  - [`2adadbc`](https://github.com/nodejs/node-inspect/commit/2adadbc1086d2e374c425acbf96260a122705db2) **style:** Fix eslint issues
+  - [`a6d2f88`](https://github.com/nodejs/node-inspect/commit/a6d2f882c026409696a1b063ff40ceba7e1ddb86) **doc:** Remove redundant newline at the end
+
+
+### 1.11.4
+
+* Handle blocked port - **[@jkrems](https://github.com/jkrems)** [#62](https://github.com/nodejs/node-inspect/pull/62)
+  - [`3388969`](https://github.com/nodejs/node-inspect/commit/3388969d0032a78ff0cdb8146f170b978ec13b7b) **chore:** Disable package-lock
+  - [`d278b23`](https://github.com/nodejs/node-inspect/commit/d278b233ae5e11a2b62d01ccbaae594f39b32a96) **fix:** Stop asking to report a blocked port - see: [#60](https://github.com/nodejs/node-inspect/issues/60)
+
+
+### 1.11.3
+
+* [`93caa0f`](https://github.com/nodejs/node-inspect/commit/93caa0f5267c7ab452b258d3b03329a0bb5ac7f7) **docs:** Add missing oc in protocol
+* [`2d87cbe`](https://github.com/nodejs/node-inspect/commit/2d87cbe76aa968dfc1ac69d9571af1be81abd8e0) **fix:** Make --inspect-port=0 work
+* [`ebfd02e`](https://github.com/nodejs/node-inspect/commit/ebfd02ece9b642586023f7791da71defeb13d746) **chore:** Bump tap to 10.7
+* [`c07adb1`](https://github.com/nodejs/node-inspect/commit/c07adb17b164c1cf3da8d38659ea9f5d7ff42e9c) **test:** Use useful break location
+* [`94f0bf9`](https://github.com/nodejs/node-inspect/commit/94f0bf97d24c376baf3ecced2088d81715a73464) **fix:** Fix `takeHeapSnapshot()` truncation bug
+
+
 ### 1.11.2
 
 * [`42e0cd1`](https://github.com/nodejs/node-inspect/commit/42e0cd111d89ed09faba1c0ec45089b0b44de011) **fix:** look for generic hint text

@@ -30,9 +30,9 @@ const cookies = [
   'prefers_open_id=; path=/; expires=Thu, 01-Jan-1970 00:00:00 GMT'
 ];
 
-const headers = {'content-type': 'text/plain',
-                 'set-cookie': cookies,
-                 'hello': 'world' };
+const headers = { 'content-type': 'text/plain',
+                  'set-cookie': cookies,
+                  'hello': 'world' };
 
 const backend = http.createServer(function(req, res) {
   console.error('backend request');
@@ -50,9 +50,9 @@ const proxy = http.createServer(function(req, res) {
 
     console.error(`proxy res headers: ${JSON.stringify(proxy_res.headers)}`);
 
-    assert.strictEqual('world', proxy_res.headers['hello']);
-    assert.strictEqual('text/plain', proxy_res.headers['content-type']);
-    assert.deepStrictEqual(cookies, proxy_res.headers['set-cookie']);
+    assert.strictEqual(proxy_res.headers.hello, 'world');
+    assert.strictEqual(proxy_res.headers['content-type'], 'text/plain');
+    assert.deepStrictEqual(proxy_res.headers['set-cookie'], cookies);
 
     res.writeHead(proxy_res.statusCode, proxy_res.headers);
 
@@ -79,11 +79,11 @@ function startReq() {
     path: '/test'
   }, function(res) {
     console.error('got res');
-    assert.strictEqual(200, res.statusCode);
+    assert.strictEqual(res.statusCode, 200);
 
-    assert.strictEqual('world', res.headers['hello']);
-    assert.strictEqual('text/plain', res.headers['content-type']);
-    assert.deepStrictEqual(cookies, res.headers['set-cookie']);
+    assert.strictEqual(res.headers.hello, 'world');
+    assert.strictEqual(res.headers['content-type'], 'text/plain');
+    assert.deepStrictEqual(res.headers['set-cookie'], cookies);
 
     res.setEncoding('utf8');
     res.on('data', function(chunk) { body += chunk; });

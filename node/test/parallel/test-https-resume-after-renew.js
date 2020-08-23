@@ -3,14 +3,14 @@ const common = require('../common');
 if (!common.hasCrypto)
   common.skip('missing crypto');
 
-const fs = require('fs');
+const fixtures = require('../common/fixtures');
 const https = require('https');
 const crypto = require('crypto');
 
 const options = {
-  key: fs.readFileSync(`${common.fixturesDir}/keys/agent1-key.pem`),
-  cert: fs.readFileSync(`${common.fixturesDir}/keys/agent1-cert.pem`),
-  ca: fs.readFileSync(`${common.fixturesDir}/keys/ca1-cert.pem`)
+  key: fixtures.readKey('agent1-key.pem'),
+  cert: fixtures.readKey('agent1-cert.pem'),
+  ca: fixtures.readKey('ca1-cert.pem')
 };
 
 const server = https.createServer(options, function(req, res) {
@@ -22,16 +22,13 @@ const hmac = Buffer.alloc(16, 'H');
 
 server._sharedCreds.context.enableTicketKeyCallback();
 server._sharedCreds.context.onticketkeycallback = function(name, iv, enc) {
-  let newName, newIV;
   if (enc) {
-    newName = Buffer.alloc(16, 'A');
-    newIV = crypto.randomBytes(16);
-  } else {
-    // Renew
-    return [ 2, hmac, aes ];
+    const newName = Buffer.alloc(16, 'A');
+    const newIV = crypto.randomBytes(16);
+    return [ 1, hmac, aes, newName, newIV ];
   }
-
-  return [ 1, hmac, aes, newName, newIV ];
+  // Renew
+  return [ 2, hmac, aes ];
 };
 
 server.listen(0, function() {

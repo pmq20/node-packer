@@ -29,12 +29,8 @@ if (cluster.isWorker) {
   http.Server(() => {
 
   }).listen(0, '127.0.0.1');
-  const worker = cluster.worker;
-  assert.strictEqual(worker.exitedAfterDisconnect, worker.suicide);
 
   cluster.worker.on('disconnect', common.mustCall(() => {
-    assert.strictEqual(cluster.worker.exitedAfterDisconnect,
-                       cluster.worker.suicide);
     process.exit(42);
   }));
 
@@ -62,7 +58,7 @@ if (cluster.isWorker) {
   // Disconnect worker when it is ready
   worker.once('listening', common.mustCall(() => {
     const w = worker.disconnect();
-    assert.strictEqual(worker, w, 'did not return a reference');
+    assert.strictEqual(worker, w, `${worker.id} did not return a reference`);
   }));
 
   // Check cluster events
@@ -101,10 +97,8 @@ if (cluster.isWorker) {
     assert.ok(c.emitExit, 'Exit event did not emit');
 
     // flags
-    assert.strictEqual(w.state, 'disconnected',
-                       'The state property was not set');
-    assert.strictEqual(w.voluntaryMode, true,
-                       'Voluntary exit mode was not set');
+    assert.strictEqual(w.state, 'disconnected');
+    assert.strictEqual(w.voluntaryMode, true);
 
     // is process alive
     assert.ok(w.died, 'The worker did not die');

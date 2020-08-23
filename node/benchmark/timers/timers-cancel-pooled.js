@@ -1,16 +1,15 @@
 'use strict';
-var common = require('../common.js');
-var assert = require('assert');
+const common = require('../common.js');
+const assert = require('assert');
 
-var bench = common.createBenchmark(main, {
-  thousands: [500],
+const bench = common.createBenchmark(main, {
+  n: [5e6],
 });
 
-function main(conf) {
-  var iterations = +conf.thousands * 1e3;
+function main({ n }) {
 
   var timer = setTimeout(() => {}, 1);
-  for (var i = 0; i < iterations; i++) {
+  for (var i = 0; i < n; i++) {
     setTimeout(cb, 1);
   }
   var next = timer._idlePrev;
@@ -18,15 +17,15 @@ function main(conf) {
 
   bench.start();
 
-  for (var j = 0; j < iterations; j++) {
+  for (var j = 0; j < n; j++) {
     timer = next;
     next = timer._idlePrev;
     clearTimeout(timer);
   }
 
-  bench.end(iterations / 1e3);
+  bench.end(n);
 }
 
 function cb() {
-  assert(false, 'Timer should not call callback');
+  assert.fail('Timer should not call callback');
 }

@@ -1,18 +1,10 @@
-#include "node.h"
-#include "env.h"
-#include "v8.h"
+#include "node_internals.h"
 #include "libplatform/libplatform.h"
 
 #include <string>
 #include "gtest/gtest.h"
 #include "node_test_fixture.h"
 
-using node::Environment;
-using node::IsolateData;
-using node::CreateIsolateData;
-using node::FreeIsolateData;
-using node::CreateEnvironment;
-using node::FreeEnvironment;
 using node::AtExit;
 using node::RunAtExit;
 
@@ -22,40 +14,7 @@ static void at_exit_callback1(void* arg);
 static void at_exit_callback2(void* arg);
 static std::string cb_1_arg;  // NOLINT(runtime/string)
 
-class EnvironmentTest : public NodeTestFixture {
- public:
-  class Env {
-   public:
-    Env(const v8::HandleScope& handle_scope,
-        v8::Isolate* isolate,
-        const Argv& argv) {
-      context_ = v8::Context::New(isolate);
-      CHECK(!context_.IsEmpty());
-      isolate_data_ = CreateIsolateData(isolate, uv_default_loop());
-      CHECK_NE(nullptr, isolate_data_);
-      environment_ = CreateEnvironment(isolate_data_,
-                                       context_,
-                                       1, *argv,
-                                       argv.nr_args(), *argv);
-      CHECK_NE(nullptr, environment_);
-    }
-
-    ~Env() {
-      environment_->CleanupHandles();
-      FreeEnvironment(environment_);
-      FreeIsolateData(isolate_data_);
-    }
-
-    Environment* operator*() const {
-      return environment_;
-    }
-
-   private:
-    v8::Local<v8::Context> context_;
-    IsolateData* isolate_data_;
-    Environment* environment_;
-  };
-
+class EnvironmentTest : public EnvironmentTestFixture {
  private:
   virtual void TearDown() {
     NodeTestFixture::TearDown();
@@ -67,9 +26,19 @@ class EnvironmentTest : public NodeTestFixture {
 TEST_F(EnvironmentTest, AtExitWithEnvironment) {
   const v8::HandleScope handle_scope(isolate_);
   const Argv argv;
-  Env env {handle_scope, isolate_, argv};
+  Env env {handle_scope, argv};
 
   AtExit(*env, at_exit_callback1);
+  RunAtExit(*env);
+  EXPECT_TRUE(called_cb_1);
+}
+
+TEST_F(EnvironmentTest, AtExitWithoutEnvironment) {
+  const v8::HandleScope handle_scope(isolate_);
+  const Argv argv;
+  Env env {handle_scope, argv};
+
+  AtExit(at_exit_callback1);  // No Environment is passed to AtExit.
   RunAtExit(*env);
   EXPECT_TRUE(called_cb_1);
 }
@@ -77,7 +46,7 @@ TEST_F(EnvironmentTest, AtExitWithEnvironment) {
 TEST_F(EnvironmentTest, AtExitWithArgument) {
   const v8::HandleScope handle_scope(isolate_);
   const Argv argv;
-  Env env {handle_scope, isolate_, argv};
+  Env env {handle_scope, argv};
 
   std::string arg{"some args"};
   AtExit(*env, at_exit_callback1, static_cast<void*>(&arg));
@@ -88,8 +57,8 @@ TEST_F(EnvironmentTest, AtExitWithArgument) {
 TEST_F(EnvironmentTest, MultipleEnvironmentsPerIsolate) {
   const v8::HandleScope handle_scope(isolate_);
   const Argv argv;
-  Env env1 {handle_scope, isolate_, argv};
-  Env env2 {handle_scope, isolate_, argv};
+  Env env1 {handle_scope, argv};
+  Env env2 {handle_scope, argv};
 
   AtExit(*env1, at_exit_callback1);
   AtExit(*env2, at_exit_callback2);
@@ -99,6 +68,29 @@ TEST_F(EnvironmentTest, MultipleEnvironmentsPerIsolate) {
 
   RunAtExit(*env2);
   EXPECT_TRUE(called_cb_2);
+}
+
+TEST_F(EnvironmentTest, NonNodeJSContext) {
+  const v8::HandleScope handle_scope(isolate_);
+  const Argv argv;
+  Env test_env {handle_scope, argv};
+
+  EXPECT_EQ(node::Environment::GetCurrent(v8::Local<v8::Context>()), nullptr);
+
+  node::Environment* env = *test_env;
+  EXPECT_EQ(node::Environment::GetCurrent(isolate_), env);
+  EXPECT_EQ(node::Environment::GetCurrent(env->context()), env);
+  EXPECT_EQ(node::GetCurrentEnvironment(env->context()), env);
+
+  v8::Local<v8::Context> context = v8::Context::New(isolate_);
+  EXPECT_EQ(node::Environment::GetCurrent(context), nullptr);
+  EXPECT_EQ(node::GetCurrentEnvironment(context), nullptr);
+  EXPECT_EQ(node::Environment::GetCurrent(isolate_), env);
+
+  v8::Context::Scope context_scope(context);
+  EXPECT_EQ(node::Environment::GetCurrent(context), nullptr);
+  EXPECT_EQ(node::GetCurrentEnvironment(context), nullptr);
+  EXPECT_EQ(node::Environment::GetCurrent(isolate_), nullptr);
 }
 
 static void at_exit_callback1(void* arg) {

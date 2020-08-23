@@ -26,11 +26,8 @@ const cluster = require('cluster');
 
 assert(cluster.isMaster);
 
-assert.deepStrictEqual(
-  cluster.settings,
-  {},
-  'cluster.settings should not be initialized until needed'
-);
+// cluster.settings should not be initialized until needed
+assert.deepStrictEqual(cluster.settings, {});
 
 cluster.setupMaster();
 assert.deepStrictEqual(cluster.settings, {
@@ -43,7 +40,7 @@ console.log('ok sets defaults');
 
 cluster.setupMaster({ exec: 'overridden' });
 assert.strictEqual(cluster.settings.exec, 'overridden');
-console.log('ok overrids defaults');
+console.log('ok overrides defaults');
 
 cluster.setupMaster({ args: ['foo', 'bar'] });
 assert.strictEqual(cluster.settings.exec, 'overridden');

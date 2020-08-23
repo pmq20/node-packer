@@ -207,8 +207,7 @@ u_UCharsToChars(const UChar *us, char *cs, int32_t length) {
     while(length>0) {
         u=*us++;
         if(!UCHAR_IS_INVARIANT(u)) {
-            U_ASSERT(FALSE); /* Variant characters were used. These are not portable in ICU. */
-            u=0;
+            UPRV_UNREACHABLE; /* Variant characters were used. These are not portable in ICU. */
         }
         *cs++=(char)UCHAR_TO_CHAR(u);
         --length;
@@ -573,7 +572,7 @@ uprv_aestrncpy(uint8_t *dst, const uint8_t *src, int32_t n)
   uint8_t *orig_dst = dst;
 
   if(n==-1) {
-    n = uprv_strlen((const char*)src)+1; /* copy NUL */
+    n = static_cast<int32_t>(uprv_strlen((const char*)src)+1); /* copy NUL */
   }
   /* copy non-null */
   while(*src && n>0) {
@@ -594,7 +593,7 @@ uprv_eastrncpy(uint8_t *dst, const uint8_t *src, int32_t n)
   uint8_t *orig_dst = dst;
 
   if(n==-1) {
-    n = uprv_strlen((const char*)src)+1; /* copy NUL */
+    n = static_cast<int32_t>(uprv_strlen((const char*)src)+1); /* copy NUL */
   }
   /* copy non-null */
   while(*src && n>0) {

@@ -1,24 +1,12 @@
 'use strict';
-const common = require('../common');
+require('../common');
 const assert = require('assert');
-const util = require('util');
 
-// Template tag function turning an error message into a RegExp
-// for assert.throws()
-function re(literals, ...values) {
-  let result = literals[0];
-  const escapeRE = /[\\^$.*+?()[\]{}|=!<>:-]/g;
-  for (const [i, value] of values.entries()) {
-    const str = util.inspect(value);
-    // Need to escape special characters.
-    result += str.replace(escapeRE, '\\$&');
-    result += literals[i + 1];
-  }
-  return common.expectsError({
-    code: 'ERR_ASSERTION',
-    message: new RegExp(`^${result}$`)
-  });
-}
+// Disable colored output to prevent color codes from breaking assertion
+// message comparisons. This should only be an issue when process.stdout
+// is a TTY.
+if (process.stdout.isTTY)
+  process.env.NODE_DISABLE_COLORS = '1';
 
 // Turn off no-restricted-properties because we are testing deepEqual!
 /* eslint-disable no-restricted-properties */
@@ -30,15 +18,25 @@ function re(literals, ...values) {
   FakeDate.prototype = Date.prototype;
   const fake = new FakeDate();
 
-  assert.doesNotThrow(() => assert.deepEqual(date, fake));
-  assert.doesNotThrow(() => assert.deepEqual(fake, date));
+  assert.deepEqual(date, fake);
+  assert.deepEqual(fake, date);
 
   // For deepStrictEqual we check the runtime type,
   // then reveal the fakeness of the fake date
-  assert.throws(() => assert.deepStrictEqual(date, fake),
-                re`${date} deepStrictEqual Date {}`);
-  assert.throws(() => assert.deepStrictEqual(fake, date),
-                re`Date {} deepStrictEqual ${date}`);
+  assert.throws(
+    () => assert.deepStrictEqual(date, fake),
+    {
+      message: 'Input A expected to strictly deep-equal input B:\n' +
+               '+ expected - actual\n\n- 2016-01-01T00:00:00.000Z\n+ Date {}'
+    }
+  );
+  assert.throws(
+    () => assert.deepStrictEqual(fake, date),
+    {
+      message: 'Input A expected to strictly deep-equal input B:\n' +
+               '+ expected - actual\n\n- Date {}\n+ 2016-01-01T00:00:00.000Z'
+    }
+  );
 }
 
 {  // At the moment global has its own type tag
@@ -47,7 +45,7 @@ function re(literals, ...values) {
   for (const prop of Object.keys(global)) {
     fakeGlobal[prop] = global[prop];
   }
-  assert.doesNotThrow(() => assert.deepEqual(fakeGlobal, global));
+  assert.deepEqual(fakeGlobal, global);
   // Message will be truncated anyway, don't validate
   assert.throws(() => assert.deepStrictEqual(fakeGlobal, global),
                 assert.AssertionError);
@@ -59,7 +57,7 @@ function re(literals, ...values) {
   for (const prop of Object.keys(process)) {
     fakeProcess[prop] = process[prop];
   }
-  assert.doesNotThrow(() => assert.deepEqual(fakeProcess, process));
+  assert.deepEqual(fakeProcess, process);
   // Message will be truncated anyway, don't validate
   assert.throws(() => assert.deepStrictEqual(fakeProcess, process),
                 assert.AssertionError);

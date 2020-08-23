@@ -4,11 +4,14 @@
 
 #include "src/wasm/signature-map.h"
 
+#include "src/signature.h"
+
 namespace v8 {
 namespace internal {
 namespace wasm {
 
 uint32_t SignatureMap::FindOrInsert(FunctionSig* sig) {
+  CHECK(!frozen_);
   auto pos = map_.find(sig);
   if (pos != map_.end()) {
     return pos->second;

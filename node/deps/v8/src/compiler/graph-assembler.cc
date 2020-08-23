@@ -6,7 +6,6 @@
 
 #include "src/code-factory.h"
 #include "src/compiler/linkage.h"
-#include "src/objects-inl.h"
 
 namespace v8 {
 namespace internal {
@@ -87,10 +86,13 @@ CHECKED_ASSEMBLER_MACH_BINOP_LIST(CHECKED_BINOP_DEF)
 #undef CHECKED_BINOP_DEF
 
 Node* GraphAssembler::Float64RoundDown(Node* value) {
-  if (machine()->Float64RoundDown().IsSupported()) {
-    return graph()->NewNode(machine()->Float64RoundDown().op(), value);
-  }
-  return nullptr;
+  CHECK(machine()->Float64RoundDown().IsSupported());
+  return graph()->NewNode(machine()->Float64RoundDown().op(), value);
+}
+
+Node* GraphAssembler::Float64RoundTruncate(Node* value) {
+  CHECK(machine()->Float64RoundTruncate().IsSupported());
+  return graph()->NewNode(machine()->Float64RoundTruncate().op(), value);
 }
 
 Node* GraphAssembler::Projection(int index, Node* value) {
@@ -98,8 +100,8 @@ Node* GraphAssembler::Projection(int index, Node* value) {
 }
 
 Node* GraphAssembler::Allocate(PretenureFlag pretenure, Node* size) {
-  return current_effect_ =
-             graph()->NewNode(simplified()->Allocate(Type::Any(), NOT_TENURED),
+  return current_control_ = current_effect_ =
+             graph()->NewNode(simplified()->AllocateRaw(Type::Any(), pretenure),
                               size, current_effect_, current_control_);
 }
 
@@ -128,6 +130,16 @@ Node* GraphAssembler::StoreElement(ElementAccess const& access, Node* object,
   return current_effect_ =
              graph()->NewNode(simplified()->StoreElement(access), object, index,
                               value, current_effect_, current_control_);
+}
+
+Node* GraphAssembler::DebugBreak() {
+  return current_effect_ = graph()->NewNode(machine()->DebugBreak(),
+                                            current_effect_, current_control_);
+}
+
+Node* GraphAssembler::Unreachable() {
+  return current_effect_ = graph()->NewNode(common()->Unreachable(),
+                                            current_effect_, current_control_);
 }
 
 Node* GraphAssembler::Store(StoreRepresentation rep, Node* object, Node* offset,
@@ -160,30 +172,38 @@ Node* GraphAssembler::ToNumber(Node* value) {
                               value, NoContextConstant(), current_effect_);
 }
 
-Node* GraphAssembler::DeoptimizeIf(DeoptimizeReason reason, Node* condition,
-                                   Node* frame_state) {
+Node* GraphAssembler::BitcastWordToTagged(Node* value) {
+  return current_effect_ =
+             graph()->NewNode(machine()->BitcastWordToTagged(), value,
+                              current_effect_, current_control_);
+}
+
+Node* GraphAssembler::Word32PoisonOnSpeculation(Node* value) {
+  return current_effect_ =
+             graph()->NewNode(machine()->Word32PoisonOnSpeculation(), value,
+                              current_effect_, current_control_);
+}
+
+Node* GraphAssembler::DeoptimizeIf(DeoptimizeReason reason,
+                                   VectorSlotPair const& feedback,
+                                   Node* condition, Node* frame_state) {
   return current_control_ = current_effect_ = graph()->NewNode(
-             common()->DeoptimizeIf(DeoptimizeKind::kEager, reason), condition,
-             frame_state, current_effect_, current_control_);
+             common()->DeoptimizeIf(DeoptimizeKind::kEager, reason, feedback),
+             condition, frame_state, current_effect_, current_control_);
 }
 
-Node* GraphAssembler::DeoptimizeUnless(DeoptimizeKind kind,
-                                       DeoptimizeReason reason, Node* condition,
-                                       Node* frame_state) {
+Node* GraphAssembler::DeoptimizeIfNot(DeoptimizeReason reason,
+                                      VectorSlotPair const& feedback,
+                                      Node* condition, Node* frame_state,
+                                      IsSafetyCheck is_safety_check) {
   return current_control_ = current_effect_ = graph()->NewNode(
-             common()->DeoptimizeUnless(kind, reason), condition, frame_state,
-             current_effect_, current_control_);
+             common()->DeoptimizeUnless(DeoptimizeKind::kEager, reason,
+                                        feedback, is_safety_check),
+             condition, frame_state, current_effect_, current_control_);
 }
 
-Node* GraphAssembler::DeoptimizeUnless(DeoptimizeReason reason, Node* condition,
-                                       Node* frame_state) {
-  return DeoptimizeUnless(DeoptimizeKind::kEager, reason, condition,
-                          frame_state);
-}
-
-void GraphAssembler::Branch(Node* condition,
-                            GraphAssemblerStaticLabel<1>* if_true,
-                            GraphAssemblerStaticLabel<1>* if_false) {
+void GraphAssembler::Branch(Node* condition, GraphAssemblerLabel<0u>* if_true,
+                            GraphAssemblerLabel<0u>* if_false) {
   DCHECK_NOT_NULL(current_control_);
 
   BranchHint hint = BranchHint::kNone;
@@ -224,75 +244,16 @@ void GraphAssembler::Reset(Node* effect, Node* control) {
 
 Operator const* GraphAssembler::ToNumberOperator() {
   if (!to_number_operator_.is_set()) {
-    Callable callable = CodeFactory::ToNumber(jsgraph()->isolate());
+    Callable callable =
+        Builtins::CallableFor(jsgraph()->isolate(), Builtins::kToNumber);
     CallDescriptor::Flags flags = CallDescriptor::kNoFlags;
-    CallDescriptor* desc = Linkage::GetStubCallDescriptor(
+    auto call_descriptor = Linkage::GetStubCallDescriptor(
         jsgraph()->isolate(), graph()->zone(), callable.descriptor(), 0, flags,
         Operator::kEliminatable);
-    to_number_operator_.set(common()->Call(desc));
+    to_number_operator_.set(common()->Call(call_descriptor));
   }
   return to_number_operator_.get();
 }
-
-Node* GraphAssemblerLabel::PhiAt(size_t index) {
-  DCHECK(IsBound());
-  return GetBindingsPtrFor(index)[0];
-}
-
-GraphAssemblerLabel::GraphAssemblerLabel(GraphAssemblerLabelType is_deferred,
-                                         size_t merge_count, size_t var_count,
-                                         MachineRepresentation* representations,
-                                         Zone* zone)
-    : is_deferred_(is_deferred == GraphAssemblerLabelType::kDeferred),
-      max_merge_count_(merge_count),
-      var_count_(var_count) {
-  effects_ = zone->NewArray<Node*>(MaxMergeCount() + 1);
-  for (size_t i = 0; i < MaxMergeCount() + 1; i++) {
-    effects_[i] = nullptr;
-  }
-
-  controls_ = zone->NewArray<Node*>(MaxMergeCount());
-  for (size_t i = 0; i < MaxMergeCount(); i++) {
-    controls_[i] = nullptr;
-  }
-
-  size_t num_bindings = (MaxMergeCount() + 1) * PhiCount() + 1;
-  bindings_ = zone->NewArray<Node*>(num_bindings);
-  for (size_t i = 0; i < num_bindings; i++) {
-    bindings_[i] = nullptr;
-  }
-
-  representations_ = zone->NewArray<MachineRepresentation>(PhiCount() + 1);
-  for (size_t i = 0; i < PhiCount(); i++) {
-    representations_[i] = representations[i];
-  }
-}
-
-GraphAssemblerLabel::~GraphAssemblerLabel() {
-  DCHECK(IsBound() || MergedCount() == 0);
-}
-
-Node** GraphAssemblerLabel::GetBindingsPtrFor(size_t phi_index) {
-  DCHECK_LT(phi_index, PhiCount());
-  return &bindings_[phi_index * (MaxMergeCount() + 1)];
-}
-
-void GraphAssemblerLabel::SetBinding(size_t phi_index, size_t merge_index,
-                                     Node* binding) {
-  DCHECK_LT(phi_index, PhiCount());
-  DCHECK_LT(merge_index, MaxMergeCount());
-  bindings_[phi_index * (MaxMergeCount() + 1) + merge_index] = binding;
-}
-
-MachineRepresentation GraphAssemblerLabel::GetRepresentationFor(
-    size_t phi_index) {
-  DCHECK_LT(phi_index, PhiCount());
-  return representations_[phi_index];
-}
-
-Node** GraphAssemblerLabel::GetControlsPtr() { return controls_; }
-
-Node** GraphAssemblerLabel::GetEffectsPtr() { return effects_; }
 
 }  // namespace compiler
 }  // namespace internal

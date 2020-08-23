@@ -29,7 +29,7 @@ int uv_uptime(double* uptime) {
   struct sysinfo info;
 
   if (sysinfo(&info) < 0)
-    return -errno;
+    return UV__ERR(errno);
 
   *uptime = info.uptime;
   return 0;
@@ -38,7 +38,7 @@ int uv_uptime(double* uptime) {
 int uv_resident_set_memory(size_t* rss) {
   /* FIXME: read /proc/meminfo? */
   *rss = 0;
-  return UV_ENOSYS;
+  return 0;
 }
 
 int uv_cpu_info(uv_cpu_info_t** cpu_infos, int* count) {

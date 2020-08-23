@@ -33,9 +33,10 @@ const net = require('net');
 
 if (cluster.isMaster && process.argv.length !== 3) {
   // cluster.isMaster
-  common.refreshTmpDir();
+  const tmpdir = require('../common/tmpdir');
+  tmpdir.refresh();
   const PIPE_NAME = common.PIPE;
-  const worker = cluster.fork({PIPE_NAME});
+  const worker = cluster.fork({ PIPE_NAME });
 
   // makes sure master is able to fork the worker
   cluster.on('fork', common.mustCall());
@@ -46,7 +47,7 @@ if (cluster.isMaster && process.argv.length !== 3) {
   worker.on('message', common.mustCall(function(err) {
     // disconnect first, so that we will not leave zombies
     worker.disconnect();
-    assert.strictEqual('EADDRINUSE', err.code);
+    assert.strictEqual(err.code, 'EADDRINUSE');
   }));
 } else if (process.argv.length !== 3) {
   // cluster.worker

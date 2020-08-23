@@ -3,6 +3,9 @@
 require('../common');
 const assert = require('assert');
 const http = require('http');
+const path = require('path');
+
+const tmpdir = require('../common/tmpdir');
 
 const agent = new http.Agent();
 
@@ -29,6 +32,15 @@ assert.strictEqual(
     localAddress: '192.168.1.1'
   }),
   '0.0.0.0:80:192.168.1.1'
+);
+
+// unix socket
+const socketPath = path.join(tmpdir.path, 'foo', 'bar');
+assert.strictEqual(
+  agent.getName({
+    socketPath
+  }),
+  `localhost:::${socketPath}`
 );
 
 for (const family of [0, null, undefined, 'bogus'])

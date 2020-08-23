@@ -27,6 +27,10 @@
 #include "src/base/timezone-cache.h"
 #include "src/base/utils/random-number-generator.h"
 
+#if defined(_MSC_VER)
+#include <crtdbg.h>  // NOLINT
+#endif               // defined(_MSC_VER)
+
 // Extra functions for MinGW. Most of these are the _s functions which are in
 // the Microsoft Visual Studio C++ CRT.
 #ifdef __MINGW32__
@@ -37,7 +41,7 @@
 #define _TRUNCATE 0
 #define STRUNCATE 80
 
-inline void MemoryBarrier() {
+inline void MemoryFence() {
   int barrier = 0;
   __asm__ __volatile__("xchgl %%eax,%0 ":"=r" (barrier));
 }
@@ -47,14 +51,14 @@ inline void MemoryBarrier() {
 
 int localtime_s(tm* out_tm, const time_t* time) {
   tm* posix_local_time_struct = localtime_r(time, out_tm);
-  if (posix_local_time_struct == NULL) return 1;
+  if (posix_local_time_struct == nullptr) return 1;
   return 0;
 }
 
 
 int fopen_s(FILE** pFile, const char* filename, const char* mode) {
   *pFile = fopen(filename, mode);
-  return *pFile != NULL ? 0 : 1;
+  return *pFile != nullptr ? 0 : 1;
 }
 
 int _vsnprintf_s(char* buffer, size_t sizeOfBuffer, size_t count,
@@ -65,8 +69,8 @@ int _vsnprintf_s(char* buffer, size_t sizeOfBuffer, size_t count,
 
 
 int strncpy_s(char* dest, size_t dest_size, const char* source, size_t count) {
-  CHECK(source != NULL);
-  CHECK(dest != NULL);
+  CHECK(source != nullptr);
+  CHECK(dest != nullptr);
   CHECK_GT(dest_size, 0);
 
   if (count == _TRUNCATE) {
@@ -111,7 +115,7 @@ class WindowsTimezoneCache : public TimezoneCache {
 
   const char* LocalTimezone(double time) override;
 
-  double LocalTimeOffset() override;
+  double LocalTimeOffset(double time, bool is_utc) override;
 
   double DaylightSavingsOffset(double time) override;
 
@@ -139,11 +143,11 @@ class WindowsTimezoneCache : public TimezoneCache {
     }
 
     // Make standard and DST timezone names.
-    WideCharToMultiByte(CP_UTF8, 0, tzinfo_.StandardName, -1,
-                        std_tz_name_, kTzNameSize, NULL, NULL);
+    WideCharToMultiByte(CP_UTF8, 0, tzinfo_.StandardName, -1, std_tz_name_,
+                        kTzNameSize, nullptr, nullptr);
     std_tz_name_[kTzNameSize - 1] = '\0';
-    WideCharToMultiByte(CP_UTF8, 0, tzinfo_.DaylightName, -1,
-                        dst_tz_name_, kTzNameSize, NULL, NULL);
+    WideCharToMultiByte(CP_UTF8, 0, tzinfo_.DaylightName, -1, dst_tz_name_,
+                        kTzNameSize, nullptr, nullptr);
     dst_tz_name_[kTzNameSize - 1] = '\0';
 
     // If OS returned empty string or resource id (like "@tzres.dll,-211")
@@ -462,7 +466,9 @@ const char* WindowsTimezoneCache::LocalTimezone(double time) {
 
 // Returns the local time offset in milliseconds east of UTC without
 // taking daylight savings time into account.
-double WindowsTimezoneCache::LocalTimeOffset() {
+double WindowsTimezoneCache::LocalTimeOffset(double time_ms, bool is_utc) {
+  // Ignore is_utc and time_ms for now. That way, the behavior wouldn't
+  // change with icu_timezone_data disabled.
   // Use current time, rounded to the millisecond.
   Win32Time t(OS::TimeCurrentMillis());
   // Time::LocalOffset inlcudes any daylight savings offset, so subtract it.
@@ -493,6 +499,13 @@ int OS::GetCurrentThreadId() {
   return static_cast<int>(::GetCurrentThreadId());
 }
 
+void OS::ExitProcess(int exit_code) {
+  // Use TerminateProcess avoid races between isolate threads and
+  // static destructors.
+  fflush(stdout);
+  fflush(stderr);
+  TerminateProcess(GetCurrentProcess(), exit_code);
+}
 
 // ----------------------------------------------------------------------------
 // Win32 console output.
@@ -553,7 +566,7 @@ FILE* OS::FOpen(const char* path, const char* mode) {
   if (fopen_s(&result, path, mode) == 0) {
     return result;
   } else {
-    return NULL;
+    return nullptr;
   }
 }
 
@@ -574,13 +587,13 @@ FILE* OS::OpenTemporaryFile() {
   char tempPathBuffer[MAX_PATH];
   DWORD path_result = 0;
   path_result = GetTempPathA(MAX_PATH, tempPathBuffer);
-  if (path_result > MAX_PATH || path_result == 0) return NULL;
+  if (path_result > MAX_PATH || path_result == 0) return nullptr;
   UINT name_result = 0;
   char tempNameBuffer[MAX_PATH];
   name_result = GetTempFileNameA(tempPathBuffer, "", 0, tempNameBuffer);
-  if (name_result == 0) return NULL;
+  if (name_result == 0) return nullptr;
   FILE* result = FOpen(tempNameBuffer, "w+");  // Same mode as tmpfile uses.
-  if (result != NULL) {
+  if (result != nullptr) {
     Remove(tempNameBuffer);  // Delete on close.
   }
   return result;
@@ -674,24 +687,16 @@ void OS::StrNCpy(char* dest, int length, const char* src, size_t n) {
 #undef _TRUNCATE
 #undef STRUNCATE
 
+static LazyInstance<RandomNumberGenerator>::type
+    platform_random_number_generator = LAZY_INSTANCE_INITIALIZER;
+static LazyMutex rng_mutex = LAZY_MUTEX_INITIALIZER;
 
-// Get the system's page size used by VirtualAlloc() or the next power
-// of two. The reason for always returning a power of two is that the
-// rounding up in OS::Allocate expects that.
-static size_t GetPageSize() {
-  static size_t page_size = 0;
-  if (page_size == 0) {
-    SYSTEM_INFO info;
-    GetSystemInfo(&info);
-    page_size = base::bits::RoundUpToPowerOfTwo32(info.dwPageSize);
-  }
-  return page_size;
+void OS::Initialize(bool hard_abort, const char* const gc_fake_mmap) {
+  g_hard_abort = hard_abort;
 }
 
-
-// The allocation alignment is the guaranteed alignment for
-// VirtualAlloc'ed blocks of memory.
-size_t OS::AllocateAlignment() {
+// static
+size_t OS::AllocatePageSize() {
   static size_t allocate_alignment = 0;
   if (allocate_alignment == 0) {
     SYSTEM_INFO info;
@@ -701,26 +706,33 @@ size_t OS::AllocateAlignment() {
   return allocate_alignment;
 }
 
-
-static LazyInstance<RandomNumberGenerator>::type
-    platform_random_number_generator = LAZY_INSTANCE_INITIALIZER;
-
-
-void OS::Initialize(int64_t random_seed, bool hard_abort,
-                    const char* const gc_fake_mmap) {
-  if (random_seed) {
-    platform_random_number_generator.Pointer()->SetSeed(random_seed);
+// static
+size_t OS::CommitPageSize() {
+  static size_t page_size = 0;
+  if (page_size == 0) {
+    SYSTEM_INFO info;
+    GetSystemInfo(&info);
+    page_size = info.dwPageSize;
+    DCHECK_EQ(4096, page_size);
   }
-  g_hard_abort = hard_abort;
+  return page_size;
 }
 
+// static
+void OS::SetRandomMmapSeed(int64_t seed) {
+  if (seed) {
+    LockGuard<Mutex> guard(rng_mutex.Pointer());
+    platform_random_number_generator.Pointer()->SetSeed(seed);
+  }
+}
 
+// static
 void* OS::GetRandomMmapAddr() {
-  // The address range used to randomize RWX allocations in OS::Allocate
-  // Try not to map pages into the default range that windows loads DLLs
-  // Use a multiple of 64k to prevent committing unused memory.
-  // Note: This does not guarantee RWX regions will be within the
-  // range kAllocationRandomAddressMin to kAllocationRandomAddressMax
+// The address range used to randomize RWX allocations in OS::Allocate
+// Try not to map pages into the default range that windows loads DLLs
+// Use a multiple of 64k to prevent committing unused memory.
+// Note: This does not guarantee RWX regions will be within the
+// range kAllocationRandomAddressMin to kAllocationRandomAddressMax
 #ifdef V8_HOST_ARCH_64_BIT
   static const uintptr_t kAllocationRandomAddressMin = 0x0000000080000000;
   static const uintptr_t kAllocationRandomAddressMax = 0x000003FFFFFF0000;
@@ -729,17 +741,38 @@ void* OS::GetRandomMmapAddr() {
   static const uintptr_t kAllocationRandomAddressMax = 0x3FFF0000;
 #endif
   uintptr_t address;
-  platform_random_number_generator.Pointer()->NextBytes(&address,
-                                                        sizeof(address));
+  {
+    LockGuard<Mutex> guard(rng_mutex.Pointer());
+    platform_random_number_generator.Pointer()->NextBytes(&address,
+                                                          sizeof(address));
+  }
   address <<= kPageSizeBits;
   address += kAllocationRandomAddressMin;
   address &= kAllocationRandomAddressMax;
-  return reinterpret_cast<void *>(address);
+  return reinterpret_cast<void*>(address);
 }
 
+namespace {
 
-static void* RandomizedVirtualAlloc(size_t size, int action, int protection) {
-  LPVOID base = NULL;
+DWORD GetProtectionFromMemoryPermission(OS::MemoryPermission access) {
+  switch (access) {
+    case OS::MemoryPermission::kNoAccess:
+      return PAGE_NOACCESS;
+    case OS::MemoryPermission::kRead:
+      return PAGE_READONLY;
+    case OS::MemoryPermission::kReadWrite:
+      return PAGE_READWRITE;
+    case OS::MemoryPermission::kReadWriteExecute:
+      return PAGE_EXECUTE_READWRITE;
+    case OS::MemoryPermission::kReadExecute:
+      return PAGE_EXECUTE_READ;
+  }
+  UNREACHABLE();
+}
+
+uint8_t* RandomizedVirtualAlloc(size_t size, DWORD flags, DWORD protect,
+                                void* hint) {
+  LPVOID base = nullptr;
   static BOOL use_aslr = -1;
 #ifdef V8_HOST_ARCH_32_BIT
   // Don't bother randomizing on 32-bit hosts, because they lack the room and
@@ -750,92 +783,101 @@ static void* RandomizedVirtualAlloc(size_t size, int action, int protection) {
   use_aslr = TRUE;
 #endif
 
-  if (use_aslr &&
-      (protection == PAGE_EXECUTE_READWRITE || protection == PAGE_NOACCESS)) {
-    // For executable pages try and randomize the allocation address
-    for (size_t attempts = 0; base == NULL && attempts < 3; ++attempts) {
-      base = VirtualAlloc(OS::GetRandomMmapAddr(), size, action, protection);
-    }
+  if (use_aslr && protect != PAGE_READWRITE) {
+    // For executable or reserved pages try to randomize the allocation address.
+    base = VirtualAlloc(hint, size, flags, protect);
   }
 
-  // After three attempts give up and let the OS find an address to use.
-  if (base == NULL) base = VirtualAlloc(NULL, size, action, protection);
-
-  return base;
-}
-
-void* OS::Allocate(const size_t requested, size_t* allocated,
-                   bool is_executable) {
-  return OS::Allocate(requested, allocated,
-                      is_executable ? OS::MemoryPermission::kReadWriteExecute
-                                    : OS::MemoryPermission::kReadWrite);
-}
-
-void* OS::Allocate(const size_t requested, size_t* allocated,
-                   OS::MemoryPermission access) {
-  // VirtualAlloc rounds allocated size to page size automatically.
-  size_t msize = RoundUp(requested, static_cast<int>(GetPageSize()));
-
-  // Windows XP SP2 allows Data Excution Prevention (DEP).
-  int prot = PAGE_NOACCESS;
-  switch (access) {
-    case OS::MemoryPermission::kNoAccess: {
-      prot = PAGE_NOACCESS;
-      break;
-    }
-    case OS::MemoryPermission::kReadWrite: {
-      prot = PAGE_READWRITE;
-      break;
-    }
-    case OS::MemoryPermission::kReadWriteExecute: {
-      prot = PAGE_EXECUTE_READWRITE;
-      break;
-    }
+  // On failure, let the OS find an address to use.
+  if (base == nullptr) {
+    base = VirtualAlloc(nullptr, size, flags, protect);
   }
-
-  LPVOID mbase = RandomizedVirtualAlloc(msize,
-                                        MEM_COMMIT | MEM_RESERVE,
-                                        prot);
-
-  if (mbase == NULL) return NULL;
-
-  DCHECK((reinterpret_cast<uintptr_t>(mbase) % OS::AllocateAlignment()) == 0);
-
-  *allocated = msize;
-  return mbase;
+  return reinterpret_cast<uint8_t*>(base);
 }
 
-void* OS::AllocateGuarded(const size_t requested) {
-  return VirtualAlloc(nullptr, requested, MEM_RESERVE, PAGE_NOACCESS);
+}  // namespace
+
+// static
+void* OS::Allocate(void* address, size_t size, size_t alignment,
+                   MemoryPermission access) {
+  size_t page_size = AllocatePageSize();
+  DCHECK_EQ(0, size % page_size);
+  DCHECK_EQ(0, alignment % page_size);
+  DCHECK_LE(page_size, alignment);
+  address = AlignedAddress(address, alignment);
+
+  DWORD flags = (access == OS::MemoryPermission::kNoAccess)
+                    ? MEM_RESERVE
+                    : MEM_RESERVE | MEM_COMMIT;
+  DWORD protect = GetProtectionFromMemoryPermission(access);
+
+  // First, try an exact size aligned allocation.
+  uint8_t* base = RandomizedVirtualAlloc(size, flags, protect, address);
+  if (base == nullptr) return nullptr;  // Can't allocate, we're OOM.
+
+  // If address is suitably aligned, we're done.
+  uint8_t* aligned_base = RoundUp(base, alignment);
+  if (base == aligned_base) return reinterpret_cast<void*>(base);
+
+  // Otherwise, free it and try a larger allocation.
+  CHECK(Free(base, size));
+
+  // Clear the hint. It's unlikely we can allocate at this address.
+  address = nullptr;
+
+  // Add the maximum misalignment so we are guaranteed an aligned base address
+  // in the allocated region.
+  size_t padded_size = size + (alignment - page_size);
+  const int kMaxAttempts = 3;
+  aligned_base = nullptr;
+  for (int i = 0; i < kMaxAttempts; ++i) {
+    base = RandomizedVirtualAlloc(padded_size, flags, protect, address);
+    if (base == nullptr) return nullptr;  // Can't allocate, we're OOM.
+
+    // Try to trim the allocation by freeing the padded allocation and then
+    // calling VirtualAlloc at the aligned base.
+    CHECK(Free(base, padded_size));
+    aligned_base = RoundUp(base, alignment);
+    base = reinterpret_cast<uint8_t*>(
+        VirtualAlloc(aligned_base, size, flags, protect));
+    // We might not get the reduced allocation due to a race. In that case,
+    // base will be nullptr.
+    if (base != nullptr) break;
+  }
+  DCHECK_IMPLIES(base, base == aligned_base);
+  return reinterpret_cast<void*>(base);
 }
 
-void OS::Free(void* address, const size_t size) {
-  // TODO(1240712): VirtualFree has a return value which is ignored here.
-  VirtualFree(address, 0, MEM_RELEASE);
+// static
+bool OS::Free(void* address, const size_t size) {
+  DCHECK_EQ(0, reinterpret_cast<uintptr_t>(address) % AllocatePageSize());
+  DCHECK_EQ(0, size % AllocatePageSize());
   USE(size);
+  return VirtualFree(address, 0, MEM_RELEASE) != 0;
 }
 
-
-intptr_t OS::CommitPageSize() {
-  return 4096;
+// static
+bool OS::Release(void* address, size_t size) {
+  DCHECK_EQ(0, reinterpret_cast<uintptr_t>(address) % CommitPageSize());
+  DCHECK_EQ(0, size % CommitPageSize());
+  return VirtualFree(address, size, MEM_DECOMMIT) != 0;
 }
 
-
-void OS::ProtectCode(void* address, const size_t size) {
-  DWORD old_protect;
-  VirtualProtect(address, size, PAGE_EXECUTE_READ, &old_protect);
+// static
+bool OS::SetPermissions(void* address, size_t size, MemoryPermission access) {
+  DCHECK_EQ(0, reinterpret_cast<uintptr_t>(address) % CommitPageSize());
+  DCHECK_EQ(0, size % CommitPageSize());
+  if (access == MemoryPermission::kNoAccess) {
+    return VirtualFree(address, size, MEM_DECOMMIT) != 0;
+  }
+  DWORD protect = GetProtectionFromMemoryPermission(access);
+  return VirtualAlloc(address, size, MEM_COMMIT, protect) != nullptr;
 }
 
-
-void OS::Guard(void* address, const size_t size) {
-  DWORD oldprotect;
-  VirtualProtect(address, size, PAGE_NOACCESS, &oldprotect);
-}
-
-void OS::Unprotect(void* address, const size_t size) {
-  LPVOID result = VirtualAlloc(address, size, MEM_COMMIT, PAGE_READWRITE);
-  DCHECK_IMPLIES(result != nullptr, GetLastError() == 0);
-  USE(result);
+// static
+bool OS::HasLazyCommits() {
+  // TODO(alph): implement for the platform.
+  return false;
 }
 
 void OS::Sleep(TimeDelta interval) {
@@ -844,6 +886,10 @@ void OS::Sleep(TimeDelta interval) {
 
 
 void OS::Abort() {
+  // Before aborting, make sure to flush output buffers.
+  fflush(stdout);
+  fflush(stderr);
+
   if (g_hard_abort) {
     V8_IMMEDIATE_CRASH();
   }
@@ -891,15 +937,16 @@ class Win32MemoryMappedFile final : public OS::MemoryMappedFile {
 OS::MemoryMappedFile* OS::MemoryMappedFile::open(const char* name) {
   // Open a physical file
   HANDLE file = CreateFileA(name, GENERIC_READ | GENERIC_WRITE,
-      FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
-  if (file == INVALID_HANDLE_VALUE) return NULL;
+                            FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr,
+                            OPEN_EXISTING, 0, nullptr);
+  if (file == INVALID_HANDLE_VALUE) return nullptr;
 
-  DWORD size = GetFileSize(file, NULL);
+  DWORD size = GetFileSize(file, nullptr);
 
   // Create a file mapping for the physical file
   HANDLE file_mapping =
-      CreateFileMapping(file, NULL, PAGE_READWRITE, 0, size, NULL);
-  if (file_mapping == NULL) return NULL;
+      CreateFileMapping(file, nullptr, PAGE_READWRITE, 0, size, nullptr);
+  if (file_mapping == nullptr) return nullptr;
 
   // Map a view of the file into memory
   void* memory = MapViewOfFile(file_mapping, FILE_MAP_ALL_ACCESS, 0, 0, size);
@@ -912,13 +959,13 @@ OS::MemoryMappedFile* OS::MemoryMappedFile::create(const char* name,
                                                    size_t size, void* initial) {
   // Open a physical file
   HANDLE file = CreateFileA(name, GENERIC_READ | GENERIC_WRITE,
-                            FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
-                            OPEN_ALWAYS, 0, NULL);
-  if (file == NULL) return NULL;
+                            FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr,
+                            OPEN_ALWAYS, 0, nullptr);
+  if (file == nullptr) return nullptr;
   // Create a file mapping for the physical file
-  HANDLE file_mapping = CreateFileMapping(file, NULL, PAGE_READWRITE, 0,
-                                          static_cast<DWORD>(size), NULL);
-  if (file_mapping == NULL) return NULL;
+  HANDLE file_mapping = CreateFileMapping(file, nullptr, PAGE_READWRITE, 0,
+                                          static_cast<DWORD>(size), nullptr);
+  if (file_mapping == nullptr) return nullptr;
   // Map a view of the file into memory
   void* memory = MapViewOfFile(file_mapping, FILE_MAP_ALL_ACCESS, 0, 0, size);
   if (memory) memmove(memory, initial, size);
@@ -1034,7 +1081,7 @@ typedef BOOL (__stdcall *DLL_FUNC_TYPE(Module32NextW))(HANDLE hSnapshot,
 #undef VOID
 
 // Declare a variable for each dynamically loaded DLL function.
-#define DEF_DLL_FUNCTION(name) DLL_FUNC_TYPE(name) DLL_FUNC_VAR(name) = NULL;
+#define DEF_DLL_FUNCTION(name) DLL_FUNC_TYPE(name) DLL_FUNC_VAR(name) = nullptr;
 DBGHELP_FUNCTION_LIST(DEF_DLL_FUNCTION)
 TLHELP32_FUNCTION_LIST(DEF_DLL_FUNCTION)
 #undef DEF_DLL_FUNCTION
@@ -1051,7 +1098,7 @@ static bool LoadDbgHelpAndTlHelp32() {
 
   // Load functions from the dbghelp.dll module.
   module = LoadLibrary(TEXT("dbghelp.dll"));
-  if (module == NULL) {
+  if (module == nullptr) {
     return false;
   }
 
@@ -1066,7 +1113,7 @@ DBGHELP_FUNCTION_LIST(LOAD_DLL_FUNC)
   // Load functions from the kernel32.dll module (the TlHelp32.h function used
   // to be in tlhelp32.dll but are now moved to kernel32.dll).
   module = LoadLibrary(TEXT("kernel32.dll"));
-  if (module == NULL) {
+  if (module == nullptr) {
     return false;
   }
 
@@ -1079,14 +1126,14 @@ TLHELP32_FUNCTION_LIST(LOAD_DLL_FUNC)
 #undef LOAD_DLL_FUNC
 
   // Check that all functions where loaded.
-  bool result =
-#define DLL_FUNC_LOADED(name) (DLL_FUNC_VAR(name) != NULL) &&
+bool result =
+#define DLL_FUNC_LOADED(name) (DLL_FUNC_VAR(name) != nullptr)&&
 
-DBGHELP_FUNCTION_LIST(DLL_FUNC_LOADED)
-TLHELP32_FUNCTION_LIST(DLL_FUNC_LOADED)
+    DBGHELP_FUNCTION_LIST(DLL_FUNC_LOADED)
+        TLHELP32_FUNCTION_LIST(DLL_FUNC_LOADED)
 
 #undef DLL_FUNC_LOADED
-  true;
+            true;
 
   dbghelp_loaded = result;
   return result;
@@ -1113,7 +1160,7 @@ static std::vector<OS::SharedLibraryAddress> LoadSymbols(
 
   // Initialize the symbol engine.
   ok = _SymInitialize(process_handle,  // hProcess
-                      NULL,            // UserSearchPath
+                      nullptr,         // UserSearchPath
                       false);          // fInvadeProcess
   if (!ok) return result;
 
@@ -1157,10 +1204,10 @@ static std::vector<OS::SharedLibraryAddress> LoadSymbols(
       }
     }
     int lib_name_length = WideCharToMultiByte(
-        CP_UTF8, 0, module_entry.szExePath, -1, NULL, 0, NULL, NULL);
+        CP_UTF8, 0, module_entry.szExePath, -1, nullptr, 0, nullptr, nullptr);
     std::string lib_name(lib_name_length, 0);
     WideCharToMultiByte(CP_UTF8, 0, module_entry.szExePath, -1, &lib_name[0],
-                        lib_name_length, NULL, NULL);
+                        lib_name_length, nullptr, nullptr);
     result.push_back(OS::SharedLibraryAddress(
         lib_name, reinterpret_cast<uintptr_t>(module_entry.modBaseAddr),
         reinterpret_cast<uintptr_t>(module_entry.modBaseAddr +
@@ -1184,18 +1231,14 @@ std::vector<OS::SharedLibraryAddress> OS::GetSharedLibraryAddresses() {
   return LoadSymbols(process_handle);
 }
 
-
-void OS::SignalCodeMovingGC() {
-}
-
+void OS::SignalCodeMovingGC() {}
 
 #else  // __MINGW32__
 std::vector<OS::SharedLibraryAddress> OS::GetSharedLibraryAddresses() {
   return std::vector<OS::SharedLibraryAddress>();
 }
 
-
-void OS::SignalCodeMovingGC() { }
+void OS::SignalCodeMovingGC() {}
 #endif  // __MINGW32__
 
 
@@ -1211,115 +1254,23 @@ int OS::ActivationFrameAlignment() {
 #endif
 }
 
-
-VirtualMemory::VirtualMemory() : address_(NULL), size_(0) { }
-
-
-VirtualMemory::VirtualMemory(size_t size)
-    : address_(ReserveRegion(size)), size_(size) { }
-
-
-VirtualMemory::VirtualMemory(size_t size, size_t alignment)
-    : address_(NULL), size_(0) {
-  DCHECK((alignment % OS::AllocateAlignment()) == 0);
-  size_t request_size = RoundUp(size + alignment,
-                                static_cast<intptr_t>(OS::AllocateAlignment()));
-  void* address = ReserveRegion(request_size);
-  if (address == NULL) return;
-  uint8_t* base = RoundUp(static_cast<uint8_t*>(address), alignment);
-  // Try reducing the size by freeing and then reallocating a specific area.
-  bool result = ReleaseRegion(address, request_size);
-  USE(result);
-  DCHECK(result);
-  address = VirtualAlloc(base, size, MEM_RESERVE, PAGE_NOACCESS);
-  if (address != NULL) {
-    request_size = size;
-    DCHECK(base == static_cast<uint8_t*>(address));
-  } else {
-    // Resizing failed, just go with a bigger area.
-    address = ReserveRegion(request_size);
-    if (address == NULL) return;
-  }
-  address_ = address;
-  size_ = request_size;
+#if (defined(_WIN32) || defined(_WIN64))
+void EnsureConsoleOutputWin32() {
+  UINT new_flags =
+      SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX | SEM_NOOPENFILEERRORBOX;
+  UINT existing_flags = SetErrorMode(new_flags);
+  SetErrorMode(existing_flags | new_flags);
+#if defined(_MSC_VER)
+  _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG | _CRTDBG_MODE_FILE);
+  _CrtSetReportFile(_CRT_WARN, _CRTDBG_FILE_STDERR);
+  _CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_DEBUG | _CRTDBG_MODE_FILE);
+  _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);
+  _CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_DEBUG | _CRTDBG_MODE_FILE);
+  _CrtSetReportFile(_CRT_ERROR, _CRTDBG_FILE_STDERR);
+  _set_error_mode(_OUT_TO_STDERR);
+#endif  // defined(_MSC_VER)
 }
-
-
-VirtualMemory::~VirtualMemory() {
-  if (IsReserved()) {
-    bool result = ReleaseRegion(address(), size());
-    DCHECK(result);
-    USE(result);
-  }
-}
-
-
-bool VirtualMemory::IsReserved() {
-  return address_ != NULL;
-}
-
-
-void VirtualMemory::Reset() {
-  address_ = NULL;
-  size_ = 0;
-}
-
-
-bool VirtualMemory::Commit(void* address, size_t size, bool is_executable) {
-  return CommitRegion(address, size, is_executable);
-}
-
-
-bool VirtualMemory::Uncommit(void* address, size_t size) {
-  DCHECK(IsReserved());
-  return UncommitRegion(address, size);
-}
-
-
-bool VirtualMemory::Guard(void* address) {
-  if (NULL == VirtualAlloc(address,
-                           OS::CommitPageSize(),
-                           MEM_COMMIT,
-                           PAGE_NOACCESS)) {
-    return false;
-  }
-  return true;
-}
-
-
-void* VirtualMemory::ReserveRegion(size_t size) {
-  return RandomizedVirtualAlloc(size, MEM_RESERVE, PAGE_NOACCESS);
-}
-
-
-bool VirtualMemory::CommitRegion(void* base, size_t size, bool is_executable) {
-  int prot = is_executable ? PAGE_EXECUTE_READWRITE : PAGE_READWRITE;
-  if (NULL == VirtualAlloc(base, size, MEM_COMMIT, prot)) {
-    return false;
-  }
-  return true;
-}
-
-
-bool VirtualMemory::UncommitRegion(void* base, size_t size) {
-  return VirtualFree(base, size, MEM_DECOMMIT) != 0;
-}
-
-bool VirtualMemory::ReleasePartialRegion(void* base, size_t size,
-                                         void* free_start, size_t free_size) {
-  return VirtualFree(free_start, free_size, MEM_DECOMMIT) != 0;
-}
-
-bool VirtualMemory::ReleaseRegion(void* base, size_t size) {
-  return VirtualFree(base, 0, MEM_RELEASE) != 0;
-}
-
-
-bool VirtualMemory::HasLazyCommits() {
-  // TODO(alph): implement for the platform.
-  return false;
-}
-
+#endif  // (defined(_WIN32) || defined(_WIN64))
 
 // ----------------------------------------------------------------------------
 // Win32 thread support.
@@ -1350,8 +1301,7 @@ class Thread::PlatformData {
 // handle until it is started.
 
 Thread::Thread(const Options& options)
-    : stack_size_(options.stack_size()),
-      start_semaphore_(NULL) {
+    : stack_size_(options.stack_size()), start_semaphore_(nullptr) {
   data_ = new PlatformData(kNoThread);
   set_name(options.name());
 }
@@ -1375,12 +1325,8 @@ Thread::~Thread() {
 // initialize thread specific structures in the C runtime library.
 void Thread::Start() {
   data_->thread_ = reinterpret_cast<HANDLE>(
-      _beginthreadex(NULL,
-                     static_cast<unsigned>(stack_size_),
-                     ThreadEntry,
-                     this,
-                     0,
-                     &data_->thread_id_));
+      _beginthreadex(nullptr, static_cast<unsigned>(stack_size_), ThreadEntry,
+                     this, 0, &data_->thread_id_));
 }
 
 

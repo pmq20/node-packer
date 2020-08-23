@@ -3,68 +3,39 @@ const common = require('../common.js');
 const assert = require('assert');
 
 const primValues = {
-  'null': null,
-  'undefined': undefined,
   'string': 'a',
   'number': 1,
-  'boolean': true,
   'object': { 0: 'a' },
-  'array': [1, 2, 3],
-  'new-array': new Array([1, 2, 3])
+  'array': [1, 2, 3]
 };
 
 const bench = common.createBenchmark(main, {
-  prim: Object.keys(primValues),
-  n: [1e6],
+  primitive: Object.keys(primValues),
+  n: [2e4],
+  strict: [0, 1],
   method: [
     'deepEqual',
-    'deepStrictEqual',
     'notDeepEqual',
-    'notDeepStrictEqual'
   ]
 });
 
-function main(conf) {
-  const prim = primValues[conf.prim];
-  const n = +conf.n;
+function main({ n, primitive, method, strict }) {
+  if (!method)
+    method = 'deepEqual';
+  const prim = primValues[primitive];
   const actual = prim;
   const expected = prim;
   const expectedWrong = 'b';
-  var i;
 
-  // Creates new array to avoid loop invariant code motion
-  switch (conf.method) {
-    case 'deepEqual':
-      bench.start();
-      for (i = 0; i < n; ++i) {
-        // eslint-disable-next-line no-restricted-properties
-        assert.deepEqual([actual], [expected]);
-      }
-      bench.end(n);
-      break;
-    case 'deepStrictEqual':
-      bench.start();
-      for (i = 0; i < n; ++i) {
-        assert.deepStrictEqual([actual], [expected]);
-      }
-      bench.end(n);
-      break;
-    case 'notDeepEqual':
-      bench.start();
-      for (i = 0; i < n; ++i) {
-        // eslint-disable-next-line no-restricted-properties
-        assert.notDeepEqual([actual], [expectedWrong]);
-      }
-      bench.end(n);
-      break;
-    case 'notDeepStrictEqual':
-      bench.start();
-      for (i = 0; i < n; ++i) {
-        assert.notDeepStrictEqual([actual], [expectedWrong]);
-      }
-      bench.end(n);
-      break;
-    default:
-      throw new Error('Unsupported method');
+  if (strict) {
+    method = method.replace('eep', 'eepStrict');
   }
+  const fn = assert[method];
+  const value2 = method.includes('not') ? expectedWrong : expected;
+
+  bench.start();
+  for (var i = 0; i < n; ++i) {
+    fn([actual], [value2]);
+  }
+  bench.end(n);
 }

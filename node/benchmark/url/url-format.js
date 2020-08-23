@@ -3,8 +3,8 @@ const common = require('../common.js');
 const url = require('url');
 
 const inputs = {
-  slashes: {slashes: true, host: 'localhost'},
-  file: {protocol: 'file:', pathname: '/foo'},
+  slashes: { slashes: true, host: 'localhost' },
+  file: { protocol: 'file:', pathname: '/foo' },
 };
 
 const bench = common.createBenchmark(main, {
@@ -12,10 +12,7 @@ const bench = common.createBenchmark(main, {
   n: [25e6]
 });
 
-function main(conf) {
-  const type = conf.type;
-  const n = conf.n | 0;
-
+function main({ type, n }) {
   const input = inputs[type] || '';
 
   // Force-optimize url.format() so that the benchmark doesn't get

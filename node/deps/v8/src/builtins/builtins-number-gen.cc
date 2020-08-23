@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include "src/builtins/builtins-math-gen.h"
 #include "src/builtins/builtins-utils-gen.h"
 #include "src/builtins/builtins.h"
 #include "src/code-stub-assembler.h"
@@ -20,39 +21,53 @@ class NumberBuiltinsAssembler : public CodeStubAssembler {
 
  protected:
   template <typename Descriptor>
-  void BitwiseOp(std::function<Node*(Node* lhs, Node* rhs)> body,
-                 Signedness signed_result = kSigned) {
+  void EmitBitwiseOp(Operation op) {
     Node* left = Parameter(Descriptor::kLeft);
     Node* right = Parameter(Descriptor::kRight);
     Node* context = Parameter(Descriptor::kContext);
 
-    Node* lhs_value = TruncateTaggedToWord32(context, left);
-    Node* rhs_value = TruncateTaggedToWord32(context, right);
-    Node* value = body(lhs_value, rhs_value);
-    Node* result = signed_result == kSigned ? ChangeInt32ToTagged(value)
-                                            : ChangeUint32ToTagged(value);
-    Return(result);
+    VARIABLE(var_left_word32, MachineRepresentation::kWord32);
+    VARIABLE(var_right_word32, MachineRepresentation::kWord32);
+    VARIABLE(var_left_bigint, MachineRepresentation::kTagged, left);
+    VARIABLE(var_right_bigint, MachineRepresentation::kTagged);
+    Label if_left_number(this), do_number_op(this);
+    Label if_left_bigint(this), do_bigint_op(this);
+
+    TaggedToWord32OrBigInt(context, left, &if_left_number, &var_left_word32,
+                           &if_left_bigint, &var_left_bigint);
+    BIND(&if_left_number);
+    TaggedToWord32OrBigInt(context, right, &do_number_op, &var_right_word32,
+                           &do_bigint_op, &var_right_bigint);
+    BIND(&do_number_op);
+    Return(BitwiseOp(var_left_word32.value(), var_right_word32.value(), op));
+
+    // BigInt cases.
+    BIND(&if_left_bigint);
+    TaggedToNumeric(context, right, &do_bigint_op, &var_right_bigint);
+
+    BIND(&do_bigint_op);
+    Return(CallRuntime(Runtime::kBigIntBinaryOp, context,
+                       var_left_bigint.value(), var_right_bigint.value(),
+                       SmiConstant(op)));
   }
 
   template <typename Descriptor>
-  void BitwiseShiftOp(std::function<Node*(Node* lhs, Node* shift_count)> body,
-                      Signedness signed_result = kSigned) {
-    BitwiseOp<Descriptor>(
-        [=](Node* lhs, Node* rhs) {
-          Node* shift_count = Word32And(rhs, Int32Constant(0x1f));
-          return body(lhs, shift_count);
-        },
-        signed_result);
-  }
-
-  template <typename Descriptor>
-  void RelationalComparisonBuiltin(RelationalComparisonMode mode) {
+  void RelationalComparisonBuiltin(Operation op) {
     Node* lhs = Parameter(Descriptor::kLeft);
     Node* rhs = Parameter(Descriptor::kRight);
     Node* context = Parameter(Descriptor::kContext);
 
-    Return(RelationalComparison(mode, lhs, rhs, context));
+    Return(RelationalComparison(op, lhs, rhs, context));
   }
+
+  template <typename Descriptor>
+  void UnaryOp(Variable* var_input, Label* do_smi, Label* do_double,
+               Variable* var_input_double, Label* do_bigint);
+
+  template <typename Descriptor>
+  void BinaryOp(Label* smis, Variable* var_left, Variable* var_right,
+                Label* doubles, Variable* var_left_double,
+                Variable* var_right_double, Label* bigints);
 };
 
 // ES6 #sec-number.isfinite
@@ -65,7 +80,7 @@ TF_BUILTIN(NumberIsFinite, CodeStubAssembler) {
   GotoIf(TaggedIsSmi(number), &return_true);
 
   // Check if {number} is a HeapNumber.
-  GotoIfNot(IsHeapNumberMap(LoadMap(number)), &return_false);
+  GotoIfNot(IsHeapNumber(number), &return_false);
 
   // Check if {number} contains a finite, non-NaN value.
   Node* number_value = LoadHeapNumberValue(number);
@@ -73,10 +88,15 @@ TF_BUILTIN(NumberIsFinite, CodeStubAssembler) {
                        &return_true);
 
   BIND(&return_true);
-  Return(BooleanConstant(true));
+  Return(TrueConstant());
 
   BIND(&return_false);
-  Return(BooleanConstant(false));
+  Return(FalseConstant());
+}
+
+TF_BUILTIN(AllocateHeapNumber, CodeStubAssembler) {
+  Node* result = AllocateHeapNumber();
+  Return(result);
 }
 
 // ES6 #sec-number.isinteger
@@ -89,7 +109,7 @@ TF_BUILTIN(NumberIsInteger, CodeStubAssembler) {
   GotoIf(TaggedIsSmi(number), &return_true);
 
   // Check if {number} is a HeapNumber.
-  GotoIfNot(IsHeapNumberMap(LoadMap(number)), &return_false);
+  GotoIfNot(IsHeapNumber(number), &return_false);
 
   // Load the actual value of {number}.
   Node* number_value = LoadHeapNumberValue(number);
@@ -102,10 +122,10 @@ TF_BUILTIN(NumberIsInteger, CodeStubAssembler) {
          &return_true, &return_false);
 
   BIND(&return_true);
-  Return(BooleanConstant(true));
+  Return(TrueConstant());
 
   BIND(&return_false);
-  Return(BooleanConstant(false));
+  Return(FalseConstant());
 }
 
 // ES6 #sec-number.isnan
@@ -118,17 +138,17 @@ TF_BUILTIN(NumberIsNaN, CodeStubAssembler) {
   GotoIf(TaggedIsSmi(number), &return_false);
 
   // Check if {number} is a HeapNumber.
-  GotoIfNot(IsHeapNumberMap(LoadMap(number)), &return_false);
+  GotoIfNot(IsHeapNumber(number), &return_false);
 
   // Check if {number} contains a NaN value.
   Node* number_value = LoadHeapNumberValue(number);
   BranchIfFloat64IsNaN(number_value, &return_true, &return_false);
 
   BIND(&return_true);
-  Return(BooleanConstant(true));
+  Return(TrueConstant());
 
   BIND(&return_false);
-  Return(BooleanConstant(false));
+  Return(FalseConstant());
 }
 
 // ES6 #sec-number.issafeinteger
@@ -141,7 +161,7 @@ TF_BUILTIN(NumberIsSafeInteger, CodeStubAssembler) {
   GotoIf(TaggedIsSmi(number), &return_true);
 
   // Check if {number} is a HeapNumber.
-  GotoIfNot(IsHeapNumberMap(LoadMap(number)), &return_false);
+  GotoIfNot(IsHeapNumber(number), &return_false);
 
   // Load the actual value of {number}.
   Node* number_value = LoadHeapNumberValue(number);
@@ -160,10 +180,10 @@ TF_BUILTIN(NumberIsSafeInteger, CodeStubAssembler) {
          &return_true, &return_false);
 
   BIND(&return_true);
-  Return(BooleanConstant(true));
+  Return(TrueConstant());
 
   BIND(&return_false);
-  Return(BooleanConstant(false));
+  Return(FalseConstant());
 }
 
 // ES6 #sec-number.parsefloat
@@ -205,10 +225,9 @@ TF_BUILTIN(NumberParseFloat, CodeStubAssembler) {
         // a cached array index.
         Label if_inputcached(this), if_inputnotcached(this);
         Node* input_hash = LoadNameHashField(input);
-        Node* input_bit = Word32And(
-            input_hash, Int32Constant(String::kContainsCachedArrayIndexMask));
-        Branch(Word32Equal(input_bit, Int32Constant(0)), &if_inputcached,
-               &if_inputnotcached);
+        Branch(IsClearWord32(input_hash,
+                             Name::kDoesNotContainCachedArrayIndexMask),
+               &if_inputcached, &if_inputnotcached);
 
         BIND(&if_inputcached);
         {
@@ -252,8 +271,7 @@ TF_BUILTIN(NumberParseFloat, CodeStubAssembler) {
         {
           // Need to convert the {input} to String first.
           // TODO(bmeurer): This could be more efficient if necessary.
-          Callable callable = CodeFactory::ToString(isolate());
-          var_input.Bind(CallStub(callable, context, input));
+          var_input.Bind(CallBuiltin(Builtins::kToString, context, input));
           Goto(&loop);
         }
       }
@@ -262,16 +280,16 @@ TF_BUILTIN(NumberParseFloat, CodeStubAssembler) {
 }
 
 // ES6 #sec-number.parseint
-TF_BUILTIN(NumberParseInt, CodeStubAssembler) {
+TF_BUILTIN(ParseInt, CodeStubAssembler) {
   Node* context = Parameter(Descriptor::kContext);
   Node* input = Parameter(Descriptor::kString);
   Node* radix = Parameter(Descriptor::kRadix);
 
   // Check if {radix} is treated as 10 (i.e. undefined, 0 or 10).
   Label if_radix10(this), if_generic(this, Label::kDeferred);
-  GotoIf(WordEqual(radix, UndefinedConstant()), &if_radix10);
-  GotoIf(WordEqual(radix, SmiConstant(Smi::FromInt(10))), &if_radix10);
-  GotoIf(WordEqual(radix, SmiConstant(Smi::FromInt(0))), &if_radix10);
+  GotoIf(IsUndefined(radix), &if_radix10);
+  GotoIf(WordEqual(radix, SmiConstant(10)), &if_radix10);
+  GotoIf(WordEqual(radix, SmiConstant(0)), &if_radix10);
   Goto(&if_generic);
 
   BIND(&if_radix10);
@@ -301,12 +319,14 @@ TF_BUILTIN(NumberParseInt, CodeStubAssembler) {
       GotoIf(Float64Equal(input_value, ChangeInt32ToFloat64(input_value32)),
              &if_inputissigned32);
 
-      // Check if the absolute {input} value is in the ]0.01,1e9[ range.
+      // Check if the absolute {input} value is in the [1,1<<31[ range.
+      // Take the generic path for the range [0,1[ because the result
+      // could be -0.
       Node* input_value_abs = Float64Abs(input_value);
 
-      GotoIfNot(Float64LessThan(input_value_abs, Float64Constant(1e9)),
+      GotoIfNot(Float64LessThan(input_value_abs, Float64Constant(1u << 31)),
                 &if_generic);
-      Branch(Float64LessThan(Float64Constant(0.01), input_value_abs),
+      Branch(Float64LessThanOrEqual(Float64Constant(1), input_value_abs),
              &if_inputissigned32, &if_generic);
 
       // Return the truncated int32 value, and return the tagged result.
@@ -319,9 +339,8 @@ TF_BUILTIN(NumberParseInt, CodeStubAssembler) {
     {
       // Check if the String {input} has a cached array index.
       Node* input_hash = LoadNameHashField(input);
-      Node* input_bit = Word32And(
-          input_hash, Int32Constant(String::kContainsCachedArrayIndexMask));
-      GotoIf(Word32NotEqual(input_bit, Int32Constant(0)), &if_generic);
+      GotoIf(IsSetWord32(input_hash, Name::kDoesNotContainCachedArrayIndexMask),
+             &if_generic);
 
       // Return the cached array index as result.
       Node* input_index =
@@ -338,6 +357,14 @@ TF_BUILTIN(NumberParseInt, CodeStubAssembler) {
   }
 }
 
+// ES6 #sec-number.parseint
+TF_BUILTIN(NumberParseInt, CodeStubAssembler) {
+  Node* context = Parameter(Descriptor::kContext);
+  Node* input = Parameter(Descriptor::kString);
+  Node* radix = Parameter(Descriptor::kRadix);
+  Return(CallBuiltin(Builtins::kParseInt, context, input, radix));
+}
+
 // ES6 #sec-number.prototype.valueof
 TF_BUILTIN(NumberPrototypeValueOf, CodeStubAssembler) {
   Node* context = Parameter(Descriptor::kContext);
@@ -348,1034 +375,670 @@ TF_BUILTIN(NumberPrototypeValueOf, CodeStubAssembler) {
   Return(result);
 }
 
-TF_BUILTIN(Add, CodeStubAssembler) {
+class AddStubAssembler : public CodeStubAssembler {
+ public:
+  explicit AddStubAssembler(compiler::CodeAssemblerState* state)
+      : CodeStubAssembler(state) {}
+
+ protected:
+  void ConvertReceiverAndLoop(Variable* var_value, Label* loop, Node* context) {
+    // Call ToPrimitive explicitly without hint (whereas ToNumber
+    // would pass a "number" hint).
+    Callable callable = CodeFactory::NonPrimitiveToPrimitive(isolate());
+    var_value->Bind(CallStub(callable, context, var_value->value()));
+    Goto(loop);
+  }
+
+  void ConvertNonReceiverAndLoop(Variable* var_value, Label* loop,
+                                 Node* context) {
+    var_value->Bind(CallBuiltin(Builtins::kNonNumberToNumeric, context,
+                                var_value->value()));
+    Goto(loop);
+  }
+
+  void ConvertAndLoop(Variable* var_value, Node* instance_type, Label* loop,
+                      Node* context) {
+    Label is_not_receiver(this, Label::kDeferred);
+    GotoIfNot(IsJSReceiverInstanceType(instance_type), &is_not_receiver);
+
+    ConvertReceiverAndLoop(var_value, loop, context);
+
+    BIND(&is_not_receiver);
+    ConvertNonReceiverAndLoop(var_value, loop, context);
+  }
+};
+
+TF_BUILTIN(Add, AddStubAssembler) {
   Node* context = Parameter(Descriptor::kContext);
-  Node* left = Parameter(Descriptor::kLeft);
-  Node* right = Parameter(Descriptor::kRight);
+  VARIABLE(var_left, MachineRepresentation::kTagged,
+           Parameter(Descriptor::kLeft));
+  VARIABLE(var_right, MachineRepresentation::kTagged,
+           Parameter(Descriptor::kRight));
 
   // Shared entry for floating point addition.
-  Label do_fadd(this);
-  VARIABLE(var_fadd_lhs, MachineRepresentation::kFloat64);
-  VARIABLE(var_fadd_rhs, MachineRepresentation::kFloat64);
+  Label do_double_add(this);
+  VARIABLE(var_left_double, MachineRepresentation::kFloat64);
+  VARIABLE(var_right_double, MachineRepresentation::kFloat64);
 
   // We might need to loop several times due to ToPrimitive, ToString and/or
-  // ToNumber conversions.
-  VARIABLE(var_lhs, MachineRepresentation::kTagged);
-  VARIABLE(var_rhs, MachineRepresentation::kTagged);
+  // ToNumeric conversions.
   VARIABLE(var_result, MachineRepresentation::kTagged);
-  Variable* loop_vars[2] = {&var_lhs, &var_rhs};
-  Label loop(this, 2, loop_vars), end(this),
+  Variable* loop_vars[2] = {&var_left, &var_right};
+  Label loop(this, 2, loop_vars),
       string_add_convert_left(this, Label::kDeferred),
-      string_add_convert_right(this, Label::kDeferred);
-  var_lhs.Bind(left);
-  var_rhs.Bind(right);
+      string_add_convert_right(this, Label::kDeferred),
+      do_bigint_add(this, Label::kDeferred);
   Goto(&loop);
   BIND(&loop);
   {
-    // Load the current {lhs} and {rhs} values.
-    Node* lhs = var_lhs.value();
-    Node* rhs = var_rhs.value();
+    Node* left = var_left.value();
+    Node* right = var_right.value();
 
-    // Check if the {lhs} is a Smi or a HeapObject.
-    Label if_lhsissmi(this), if_lhsisnotsmi(this);
-    Branch(TaggedIsSmi(lhs), &if_lhsissmi, &if_lhsisnotsmi);
+    Label if_left_smi(this), if_left_heapobject(this);
+    Branch(TaggedIsSmi(left), &if_left_smi, &if_left_heapobject);
 
-    BIND(&if_lhsissmi);
+    BIND(&if_left_smi);
     {
-      // Check if the {rhs} is also a Smi.
-      Label if_rhsissmi(this), if_rhsisnotsmi(this);
-      Branch(TaggedIsSmi(rhs), &if_rhsissmi, &if_rhsisnotsmi);
+      Label if_right_smi(this), if_right_heapobject(this);
+      Branch(TaggedIsSmi(right), &if_right_smi, &if_right_heapobject);
 
-      BIND(&if_rhsissmi);
+      BIND(&if_right_smi);
       {
-        // Try fast Smi addition first.
-        Node* pair = IntPtrAddWithOverflow(BitcastTaggedToWord(lhs),
-                                           BitcastTaggedToWord(rhs));
-        Node* overflow = Projection(1, pair);
-
-        // Check if the Smi additon overflowed.
-        Label if_overflow(this), if_notoverflow(this);
-        Branch(overflow, &if_overflow, &if_notoverflow);
+        Label if_overflow(this);
+        TNode<Smi> result = TrySmiAdd(CAST(left), CAST(right), &if_overflow);
+        Return(result);
 
         BIND(&if_overflow);
         {
-          var_fadd_lhs.Bind(SmiToFloat64(lhs));
-          var_fadd_rhs.Bind(SmiToFloat64(rhs));
-          Goto(&do_fadd);
+          var_left_double.Bind(SmiToFloat64(left));
+          var_right_double.Bind(SmiToFloat64(right));
+          Goto(&do_double_add);
         }
+      }  // if_right_smi
 
-        BIND(&if_notoverflow);
-        var_result.Bind(BitcastWordToTaggedSigned(Projection(0, pair)));
-        Goto(&end);
-      }
-
-      BIND(&if_rhsisnotsmi);
+      BIND(&if_right_heapobject);
       {
-        // Load the map of {rhs}.
-        Node* rhs_map = LoadMap(rhs);
+        Node* right_map = LoadMap(right);
 
-        // Check if the {rhs} is a HeapNumber.
-        Label if_rhsisnumber(this), if_rhsisnotnumber(this, Label::kDeferred);
-        Branch(IsHeapNumberMap(rhs_map), &if_rhsisnumber, &if_rhsisnotnumber);
+        Label if_right_not_number(this, Label::kDeferred);
+        GotoIfNot(IsHeapNumberMap(right_map), &if_right_not_number);
 
-        BIND(&if_rhsisnumber);
+        // {right} is a HeapNumber.
+        var_left_double.Bind(SmiToFloat64(left));
+        var_right_double.Bind(LoadHeapNumberValue(right));
+        Goto(&do_double_add);
+
+        BIND(&if_right_not_number);
         {
-          var_fadd_lhs.Bind(SmiToFloat64(lhs));
-          var_fadd_rhs.Bind(LoadHeapNumberValue(rhs));
-          Goto(&do_fadd);
+          Node* right_instance_type = LoadMapInstanceType(right_map);
+          GotoIf(IsStringInstanceType(right_instance_type),
+                 &string_add_convert_left);
+          GotoIf(IsBigIntInstanceType(right_instance_type), &do_bigint_add);
+          ConvertAndLoop(&var_right, right_instance_type, &loop, context);
         }
+      }  // if_right_heapobject
+    }    // if_left_smi
 
-        BIND(&if_rhsisnotnumber);
-        {
-          // Load the instance type of {rhs}.
-          Node* rhs_instance_type = LoadMapInstanceType(rhs_map);
-
-          // Check if the {rhs} is a String.
-          Label if_rhsisstring(this, Label::kDeferred),
-              if_rhsisnotstring(this, Label::kDeferred);
-          Branch(IsStringInstanceType(rhs_instance_type), &if_rhsisstring,
-                 &if_rhsisnotstring);
-
-          BIND(&if_rhsisstring);
-          {
-            var_lhs.Bind(lhs);
-            var_rhs.Bind(rhs);
-            Goto(&string_add_convert_left);
-          }
-
-          BIND(&if_rhsisnotstring);
-          {
-            // Check if {rhs} is a JSReceiver.
-            Label if_rhsisreceiver(this, Label::kDeferred),
-                if_rhsisnotreceiver(this, Label::kDeferred);
-            Branch(IsJSReceiverInstanceType(rhs_instance_type),
-                   &if_rhsisreceiver, &if_rhsisnotreceiver);
-
-            BIND(&if_rhsisreceiver);
-            {
-              // Convert {rhs} to a primitive first passing no hint.
-              Callable callable =
-                  CodeFactory::NonPrimitiveToPrimitive(isolate());
-              var_rhs.Bind(CallStub(callable, context, rhs));
-              Goto(&loop);
-            }
-
-            BIND(&if_rhsisnotreceiver);
-            {
-              // Convert {rhs} to a Number first.
-              Callable callable = CodeFactory::NonNumberToNumber(isolate());
-              var_rhs.Bind(CallStub(callable, context, rhs));
-              Goto(&loop);
-            }
-          }
-        }
-      }
-    }
-
-    BIND(&if_lhsisnotsmi);
+    BIND(&if_left_heapobject);
     {
-      // Load the map and instance type of {lhs}.
-      Node* lhs_instance_type = LoadInstanceType(lhs);
+      Node* left_map = LoadMap(left);
+      Label if_right_smi(this), if_right_heapobject(this);
+      Branch(TaggedIsSmi(right), &if_right_smi, &if_right_heapobject);
 
-      // Check if {lhs} is a String.
-      Label if_lhsisstring(this), if_lhsisnotstring(this);
-      Branch(IsStringInstanceType(lhs_instance_type), &if_lhsisstring,
-             &if_lhsisnotstring);
-
-      BIND(&if_lhsisstring);
+      BIND(&if_right_smi);
       {
-        var_lhs.Bind(lhs);
-        var_rhs.Bind(rhs);
-        Goto(&string_add_convert_right);
-      }
+        Label if_left_not_number(this, Label::kDeferred);
+        GotoIfNot(IsHeapNumberMap(left_map), &if_left_not_number);
 
-      BIND(&if_lhsisnotstring);
+        // {left} is a HeapNumber, {right} is a Smi.
+        var_left_double.Bind(LoadHeapNumberValue(left));
+        var_right_double.Bind(SmiToFloat64(right));
+        Goto(&do_double_add);
+
+        BIND(&if_left_not_number);
+        {
+          Node* left_instance_type = LoadMapInstanceType(left_map);
+          GotoIf(IsStringInstanceType(left_instance_type),
+                 &string_add_convert_right);
+          GotoIf(IsBigIntInstanceType(left_instance_type), &do_bigint_add);
+          // {left} is neither a Numeric nor a String, and {right} is a Smi.
+          ConvertAndLoop(&var_left, left_instance_type, &loop, context);
+        }
+      }  // if_right_smi
+
+      BIND(&if_right_heapobject);
       {
-        // Check if {rhs} is a Smi.
-        Label if_rhsissmi(this), if_rhsisnotsmi(this);
-        Branch(TaggedIsSmi(rhs), &if_rhsissmi, &if_rhsisnotsmi);
+        Node* right_map = LoadMap(right);
 
-        BIND(&if_rhsissmi);
+        Label if_left_number(this), if_left_not_number(this, Label::kDeferred);
+        Branch(IsHeapNumberMap(left_map), &if_left_number, &if_left_not_number);
+
+        BIND(&if_left_number);
         {
-          // Check if {lhs} is a Number.
-          Label if_lhsisnumber(this), if_lhsisnotnumber(this, Label::kDeferred);
-          Branch(
-              Word32Equal(lhs_instance_type, Int32Constant(HEAP_NUMBER_TYPE)),
-              &if_lhsisnumber, &if_lhsisnotnumber);
+          Label if_right_not_number(this, Label::kDeferred);
+          GotoIfNot(IsHeapNumberMap(right_map), &if_right_not_number);
 
-          BIND(&if_lhsisnumber);
+          // Both {left} and {right} are HeapNumbers.
+          var_left_double.Bind(LoadHeapNumberValue(left));
+          var_right_double.Bind(LoadHeapNumberValue(right));
+          Goto(&do_double_add);
+
+          BIND(&if_right_not_number);
           {
-            // The {lhs} is a HeapNumber, the {rhs} is a Smi, just add them.
-            var_fadd_lhs.Bind(LoadHeapNumberValue(lhs));
-            var_fadd_rhs.Bind(SmiToFloat64(rhs));
-            Goto(&do_fadd);
+            Node* right_instance_type = LoadMapInstanceType(right_map);
+            GotoIf(IsStringInstanceType(right_instance_type),
+                   &string_add_convert_left);
+            GotoIf(IsBigIntInstanceType(right_instance_type), &do_bigint_add);
+            // {left} is a HeapNumber, {right} is neither Number nor String.
+            ConvertAndLoop(&var_right, right_instance_type, &loop, context);
           }
+        }  // if_left_number
 
-          BIND(&if_lhsisnotnumber);
-          {
-            // The {lhs} is neither a Number nor a String, and the {rhs} is a
-            // Smi.
-            Label if_lhsisreceiver(this, Label::kDeferred),
-                if_lhsisnotreceiver(this, Label::kDeferred);
-            Branch(IsJSReceiverInstanceType(lhs_instance_type),
-                   &if_lhsisreceiver, &if_lhsisnotreceiver);
-
-            BIND(&if_lhsisreceiver);
-            {
-              // Convert {lhs} to a primitive first passing no hint.
-              Callable callable =
-                  CodeFactory::NonPrimitiveToPrimitive(isolate());
-              var_lhs.Bind(CallStub(callable, context, lhs));
-              Goto(&loop);
-            }
-
-            BIND(&if_lhsisnotreceiver);
-            {
-              // Convert {lhs} to a Number first.
-              Callable callable = CodeFactory::NonNumberToNumber(isolate());
-              var_lhs.Bind(CallStub(callable, context, lhs));
-              Goto(&loop);
-            }
-          }
-        }
-
-        BIND(&if_rhsisnotsmi);
+        BIND(&if_left_not_number);
         {
-          // Load the instance type of {rhs}.
-          Node* rhs_instance_type = LoadInstanceType(rhs);
+          Label if_left_bigint(this);
+          Node* left_instance_type = LoadMapInstanceType(left_map);
+          GotoIf(IsStringInstanceType(left_instance_type),
+                 &string_add_convert_right);
+          Node* right_instance_type = LoadMapInstanceType(right_map);
+          GotoIf(IsStringInstanceType(right_instance_type),
+                 &string_add_convert_left);
+          GotoIf(IsBigIntInstanceType(left_instance_type), &if_left_bigint);
+          Label if_left_not_receiver(this, Label::kDeferred);
+          Label if_right_not_receiver(this, Label::kDeferred);
+          GotoIfNot(IsJSReceiverInstanceType(left_instance_type),
+                    &if_left_not_receiver);
+          // {left} is a JSReceiver, convert it first.
+          ConvertReceiverAndLoop(&var_left, &loop, context);
 
-          // Check if {rhs} is a String.
-          Label if_rhsisstring(this), if_rhsisnotstring(this);
-          Branch(IsStringInstanceType(rhs_instance_type), &if_rhsisstring,
-                 &if_rhsisnotstring);
-
-          BIND(&if_rhsisstring);
+          BIND(&if_left_bigint);
           {
-            var_lhs.Bind(lhs);
-            var_rhs.Bind(rhs);
-            Goto(&string_add_convert_left);
+            // {right} is a HeapObject, but not a String. Jump to
+            // {do_bigint_add} if {right} is already a Numeric.
+            GotoIf(IsBigIntInstanceType(right_instance_type), &do_bigint_add);
+            GotoIf(IsHeapNumberMap(right_map), &do_bigint_add);
+            ConvertAndLoop(&var_right, right_instance_type, &loop, context);
           }
 
-          BIND(&if_rhsisnotstring);
-          {
-            // Check if {lhs} is a HeapNumber.
-            Label if_lhsisnumber(this), if_lhsisnotnumber(this);
-            Branch(
-                Word32Equal(lhs_instance_type, Int32Constant(HEAP_NUMBER_TYPE)),
-                &if_lhsisnumber, &if_lhsisnotnumber);
+          BIND(&if_left_not_receiver);
+          GotoIfNot(IsJSReceiverInstanceType(right_instance_type),
+                    &if_right_not_receiver);
+          // {left} is a Primitive, but {right} is a JSReceiver, so convert
+          // {right} with priority.
+          ConvertReceiverAndLoop(&var_right, &loop, context);
 
-            BIND(&if_lhsisnumber);
-            {
-              // Check if {rhs} is also a HeapNumber.
-              Label if_rhsisnumber(this),
-                  if_rhsisnotnumber(this, Label::kDeferred);
-              Branch(Word32Equal(rhs_instance_type,
-                                 Int32Constant(HEAP_NUMBER_TYPE)),
-                     &if_rhsisnumber, &if_rhsisnotnumber);
-
-              BIND(&if_rhsisnumber);
-              {
-                // Perform a floating point addition.
-                var_fadd_lhs.Bind(LoadHeapNumberValue(lhs));
-                var_fadd_rhs.Bind(LoadHeapNumberValue(rhs));
-                Goto(&do_fadd);
-              }
-
-              BIND(&if_rhsisnotnumber);
-              {
-                // Check if {rhs} is a JSReceiver.
-                Label if_rhsisreceiver(this, Label::kDeferred),
-                    if_rhsisnotreceiver(this, Label::kDeferred);
-                Branch(IsJSReceiverInstanceType(rhs_instance_type),
-                       &if_rhsisreceiver, &if_rhsisnotreceiver);
-
-                BIND(&if_rhsisreceiver);
-                {
-                  // Convert {rhs} to a primitive first passing no hint.
-                  Callable callable =
-                      CodeFactory::NonPrimitiveToPrimitive(isolate());
-                  var_rhs.Bind(CallStub(callable, context, rhs));
-                  Goto(&loop);
-                }
-
-                BIND(&if_rhsisnotreceiver);
-                {
-                  // Convert {rhs} to a Number first.
-                  Callable callable = CodeFactory::NonNumberToNumber(isolate());
-                  var_rhs.Bind(CallStub(callable, context, rhs));
-                  Goto(&loop);
-                }
-              }
-            }
-
-            BIND(&if_lhsisnotnumber);
-            {
-              // Check if {lhs} is a JSReceiver.
-              Label if_lhsisreceiver(this, Label::kDeferred),
-                  if_lhsisnotreceiver(this);
-              Branch(IsJSReceiverInstanceType(lhs_instance_type),
-                     &if_lhsisreceiver, &if_lhsisnotreceiver);
-
-              BIND(&if_lhsisreceiver);
-              {
-                // Convert {lhs} to a primitive first passing no hint.
-                Callable callable =
-                    CodeFactory::NonPrimitiveToPrimitive(isolate());
-                var_lhs.Bind(CallStub(callable, context, lhs));
-                Goto(&loop);
-              }
-
-              BIND(&if_lhsisnotreceiver);
-              {
-                // Check if {rhs} is a JSReceiver.
-                Label if_rhsisreceiver(this, Label::kDeferred),
-                    if_rhsisnotreceiver(this, Label::kDeferred);
-                Branch(IsJSReceiverInstanceType(rhs_instance_type),
-                       &if_rhsisreceiver, &if_rhsisnotreceiver);
-
-                BIND(&if_rhsisreceiver);
-                {
-                  // Convert {rhs} to a primitive first passing no hint.
-                  Callable callable =
-                      CodeFactory::NonPrimitiveToPrimitive(isolate());
-                  var_rhs.Bind(CallStub(callable, context, rhs));
-                  Goto(&loop);
-                }
-
-                BIND(&if_rhsisnotreceiver);
-                {
-                  // Convert {lhs} to a Number first.
-                  Callable callable = CodeFactory::NonNumberToNumber(isolate());
-                  var_lhs.Bind(CallStub(callable, context, lhs));
-                  Goto(&loop);
-                }
-              }
-            }
-          }
+          BIND(&if_right_not_receiver);
+          // Neither {left} nor {right} are JSReceivers.
+          ConvertNonReceiverAndLoop(&var_left, &loop, context);
         }
-      }
-    }
+      }  // if_right_heapobject
+    }    // if_left_heapobject
   }
   BIND(&string_add_convert_left);
   {
-    // Convert {lhs}, which is a Smi, to a String and concatenate the
-    // resulting string with the String {rhs}.
+    // Convert {left} to a String and concatenate it with the String {right}.
     Callable callable =
         CodeFactory::StringAdd(isolate(), STRING_ADD_CONVERT_LEFT, NOT_TENURED);
-    var_result.Bind(
-        CallStub(callable, context, var_lhs.value(), var_rhs.value()));
-    Goto(&end);
+    Return(CallStub(callable, context, var_left.value(), var_right.value()));
   }
 
   BIND(&string_add_convert_right);
   {
-    // Convert {lhs}, which is a Smi, to a String and concatenate the
-    // resulting string with the String {rhs}.
+    // Convert {right} to a String and concatenate it with the String {left}.
     Callable callable = CodeFactory::StringAdd(
         isolate(), STRING_ADD_CONVERT_RIGHT, NOT_TENURED);
-    var_result.Bind(
-        CallStub(callable, context, var_lhs.value(), var_rhs.value()));
-    Goto(&end);
+    Return(CallStub(callable, context, var_left.value(), var_right.value()));
   }
 
-  BIND(&do_fadd);
+  BIND(&do_bigint_add);
   {
-    Node* lhs_value = var_fadd_lhs.value();
-    Node* rhs_value = var_fadd_rhs.value();
-    Node* value = Float64Add(lhs_value, rhs_value);
-    Node* result = AllocateHeapNumberWithValue(value);
-    var_result.Bind(result);
-    Goto(&end);
+    Return(CallRuntime(Runtime::kBigIntBinaryOp, context, var_left.value(),
+                       var_right.value(), SmiConstant(Operation::kAdd)));
   }
-  BIND(&end);
-  Return(var_result.value());
+
+  BIND(&do_double_add);
+  {
+    Node* value = Float64Add(var_left_double.value(), var_right_double.value());
+    Return(AllocateHeapNumberWithValue(value));
+  }
 }
 
-TF_BUILTIN(Subtract, CodeStubAssembler) {
+template <typename Descriptor>
+void NumberBuiltinsAssembler::UnaryOp(Variable* var_input, Label* do_smi,
+                                      Label* do_double,
+                                      Variable* var_input_double,
+                                      Label* do_bigint) {
+  DCHECK_EQ(var_input->rep(), MachineRepresentation::kTagged);
+  DCHECK_IMPLIES(var_input_double != nullptr,
+                 var_input_double->rep() == MachineRepresentation::kFloat64);
+
   Node* context = Parameter(Descriptor::kContext);
-  Node* left = Parameter(Descriptor::kLeft);
-  Node* right = Parameter(Descriptor::kRight);
+  var_input->Bind(Parameter(Descriptor::kValue));
 
-  // Shared entry for floating point subtraction.
-  Label do_fsub(this), end(this);
-  VARIABLE(var_fsub_lhs, MachineRepresentation::kFloat64);
-  VARIABLE(var_fsub_rhs, MachineRepresentation::kFloat64);
-
-  // We might need to loop several times due to ToPrimitive and/or ToNumber
-  // conversions.
-  VARIABLE(var_lhs, MachineRepresentation::kTagged);
-  VARIABLE(var_rhs, MachineRepresentation::kTagged);
-  VARIABLE(var_result, MachineRepresentation::kTagged);
-  Variable* loop_vars[2] = {&var_lhs, &var_rhs};
-  Label loop(this, 2, loop_vars);
-  var_lhs.Bind(left);
-  var_rhs.Bind(right);
+  // We might need to loop for ToNumeric conversion.
+  Label loop(this, {var_input});
   Goto(&loop);
   BIND(&loop);
-  {
-    // Load the current {lhs} and {rhs} values.
-    Node* lhs = var_lhs.value();
-    Node* rhs = var_rhs.value();
+  Node* input = var_input->value();
 
-    // Check if the {lhs} is a Smi or a HeapObject.
-    Label if_lhsissmi(this), if_lhsisnotsmi(this);
-    Branch(TaggedIsSmi(lhs), &if_lhsissmi, &if_lhsisnotsmi);
-
-    BIND(&if_lhsissmi);
-    {
-      // Check if the {rhs} is also a Smi.
-      Label if_rhsissmi(this), if_rhsisnotsmi(this);
-      Branch(TaggedIsSmi(rhs), &if_rhsissmi, &if_rhsisnotsmi);
-
-      BIND(&if_rhsissmi);
-      {
-        // Try a fast Smi subtraction first.
-        Node* pair = IntPtrSubWithOverflow(BitcastTaggedToWord(lhs),
-                                           BitcastTaggedToWord(rhs));
-        Node* overflow = Projection(1, pair);
-
-        // Check if the Smi subtraction overflowed.
-        Label if_overflow(this), if_notoverflow(this);
-        Branch(overflow, &if_overflow, &if_notoverflow);
-
-        BIND(&if_overflow);
-        {
-          // The result doesn't fit into Smi range.
-          var_fsub_lhs.Bind(SmiToFloat64(lhs));
-          var_fsub_rhs.Bind(SmiToFloat64(rhs));
-          Goto(&do_fsub);
-        }
-
-        BIND(&if_notoverflow);
-        var_result.Bind(BitcastWordToTaggedSigned(Projection(0, pair)));
-        Goto(&end);
-      }
-
-      BIND(&if_rhsisnotsmi);
-      {
-        // Load the map of the {rhs}.
-        Node* rhs_map = LoadMap(rhs);
-
-        // Check if {rhs} is a HeapNumber.
-        Label if_rhsisnumber(this), if_rhsisnotnumber(this, Label::kDeferred);
-        Branch(IsHeapNumberMap(rhs_map), &if_rhsisnumber, &if_rhsisnotnumber);
-
-        BIND(&if_rhsisnumber);
-        {
-          // Perform a floating point subtraction.
-          var_fsub_lhs.Bind(SmiToFloat64(lhs));
-          var_fsub_rhs.Bind(LoadHeapNumberValue(rhs));
-          Goto(&do_fsub);
-        }
-
-        BIND(&if_rhsisnotnumber);
-        {
-          // Convert the {rhs} to a Number first.
-          Callable callable = CodeFactory::NonNumberToNumber(isolate());
-          var_rhs.Bind(CallStub(callable, context, rhs));
-          Goto(&loop);
-        }
-      }
-    }
-
-    BIND(&if_lhsisnotsmi);
-    {
-      // Load the map of the {lhs}.
-      Node* lhs_map = LoadMap(lhs);
-
-      // Check if the {lhs} is a HeapNumber.
-      Label if_lhsisnumber(this), if_lhsisnotnumber(this, Label::kDeferred);
-      Branch(IsHeapNumberMap(lhs_map), &if_lhsisnumber, &if_lhsisnotnumber);
-
-      BIND(&if_lhsisnumber);
-      {
-        // Check if the {rhs} is a Smi.
-        Label if_rhsissmi(this), if_rhsisnotsmi(this);
-        Branch(TaggedIsSmi(rhs), &if_rhsissmi, &if_rhsisnotsmi);
-
-        BIND(&if_rhsissmi);
-        {
-          // Perform a floating point subtraction.
-          var_fsub_lhs.Bind(LoadHeapNumberValue(lhs));
-          var_fsub_rhs.Bind(SmiToFloat64(rhs));
-          Goto(&do_fsub);
-        }
-
-        BIND(&if_rhsisnotsmi);
-        {
-          // Load the map of the {rhs}.
-          Node* rhs_map = LoadMap(rhs);
-
-          // Check if the {rhs} is a HeapNumber.
-          Label if_rhsisnumber(this), if_rhsisnotnumber(this, Label::kDeferred);
-          Branch(IsHeapNumberMap(rhs_map), &if_rhsisnumber, &if_rhsisnotnumber);
-
-          BIND(&if_rhsisnumber);
-          {
-            // Perform a floating point subtraction.
-            var_fsub_lhs.Bind(LoadHeapNumberValue(lhs));
-            var_fsub_rhs.Bind(LoadHeapNumberValue(rhs));
-            Goto(&do_fsub);
-          }
-
-          BIND(&if_rhsisnotnumber);
-          {
-            // Convert the {rhs} to a Number first.
-            Callable callable = CodeFactory::NonNumberToNumber(isolate());
-            var_rhs.Bind(CallStub(callable, context, rhs));
-            Goto(&loop);
-          }
-        }
-      }
-
-      BIND(&if_lhsisnotnumber);
-      {
-        // Convert the {lhs} to a Number first.
-        Callable callable = CodeFactory::NonNumberToNumber(isolate());
-        var_lhs.Bind(CallStub(callable, context, lhs));
-        Goto(&loop);
-      }
-    }
+  Label not_number(this);
+  GotoIf(TaggedIsSmi(input), do_smi);
+  GotoIfNot(IsHeapNumber(input), &not_number);
+  if (var_input_double != nullptr) {
+    var_input_double->Bind(LoadHeapNumberValue(input));
   }
+  Goto(do_double);
 
-  BIND(&do_fsub);
-  {
-    Node* lhs_value = var_fsub_lhs.value();
-    Node* rhs_value = var_fsub_rhs.value();
-    Node* value = Float64Sub(lhs_value, rhs_value);
-    var_result.Bind(AllocateHeapNumberWithValue(value));
-    Goto(&end);
-  }
-  BIND(&end);
-  Return(var_result.value());
+  BIND(&not_number);
+  GotoIf(IsBigInt(input), do_bigint);
+  var_input->Bind(CallBuiltin(Builtins::kNonNumberToNumeric, context, input));
+  Goto(&loop);
 }
 
-TF_BUILTIN(Multiply, CodeStubAssembler) {
+template <typename Descriptor>
+void NumberBuiltinsAssembler::BinaryOp(Label* smis, Variable* var_left,
+                                       Variable* var_right, Label* doubles,
+                                       Variable* var_left_double,
+                                       Variable* var_right_double,
+                                       Label* bigints) {
+  DCHECK_EQ(var_left->rep(), MachineRepresentation::kTagged);
+  DCHECK_EQ(var_right->rep(), MachineRepresentation::kTagged);
+  DCHECK_IMPLIES(var_left_double != nullptr,
+                 var_left_double->rep() == MachineRepresentation::kFloat64);
+  DCHECK_IMPLIES(var_right_double != nullptr,
+                 var_right_double->rep() == MachineRepresentation::kFloat64);
+  DCHECK_EQ(var_left_double == nullptr, var_right_double == nullptr);
+
   Node* context = Parameter(Descriptor::kContext);
-  Node* left = Parameter(Descriptor::kLeft);
-  Node* right = Parameter(Descriptor::kRight);
+  var_left->Bind(Parameter(Descriptor::kLeft));
+  var_right->Bind(Parameter(Descriptor::kRight));
 
-  // Shared entry point for floating point multiplication.
-  Label do_fmul(this), return_result(this);
-  VARIABLE(var_lhs_float64, MachineRepresentation::kFloat64);
-  VARIABLE(var_rhs_float64, MachineRepresentation::kFloat64);
-
-  // We might need to loop one or two times due to ToNumber conversions.
-  VARIABLE(var_lhs, MachineRepresentation::kTagged);
-  VARIABLE(var_rhs, MachineRepresentation::kTagged);
-  VARIABLE(var_result, MachineRepresentation::kTagged);
-  Variable* loop_variables[] = {&var_lhs, &var_rhs};
-  Label loop(this, 2, loop_variables);
-  var_lhs.Bind(left);
-  var_rhs.Bind(right);
+  // We might need to loop for ToNumeric conversions.
+  Label loop(this, {var_left, var_right});
   Goto(&loop);
   BIND(&loop);
+
+  Label left_not_smi(this), right_not_smi(this);
+  Label left_not_number(this), right_not_number(this);
+  GotoIfNot(TaggedIsSmi(var_left->value()), &left_not_smi);
+  GotoIf(TaggedIsSmi(var_right->value()), smis);
+
+  // At this point, var_left is a Smi but var_right is not.
+  GotoIfNot(IsHeapNumber(var_right->value()), &right_not_number);
+  if (var_left_double != nullptr) {
+    var_left_double->Bind(SmiToFloat64(var_left->value()));
+    var_right_double->Bind(LoadHeapNumberValue(var_right->value()));
+  }
+  Goto(doubles);
+
+  BIND(&left_not_smi);
   {
-    Node* lhs = var_lhs.value();
-    Node* rhs = var_rhs.value();
+    GotoIfNot(IsHeapNumber(var_left->value()), &left_not_number);
+    GotoIfNot(TaggedIsSmi(var_right->value()), &right_not_smi);
 
-    Label lhs_is_smi(this), lhs_is_not_smi(this);
-    Branch(TaggedIsSmi(lhs), &lhs_is_smi, &lhs_is_not_smi);
-
-    BIND(&lhs_is_smi);
-    {
-      Label rhs_is_smi(this), rhs_is_not_smi(this);
-      Branch(TaggedIsSmi(rhs), &rhs_is_smi, &rhs_is_not_smi);
-
-      BIND(&rhs_is_smi);
-      {
-        // Both {lhs} and {rhs} are Smis. The result is not necessarily a smi,
-        // in case of overflow.
-        var_result.Bind(SmiMul(lhs, rhs));
-        Goto(&return_result);
-      }
-
-      BIND(&rhs_is_not_smi);
-      {
-        Node* rhs_map = LoadMap(rhs);
-
-        // Check if {rhs} is a HeapNumber.
-        Label rhs_is_number(this), rhs_is_not_number(this, Label::kDeferred);
-        Branch(IsHeapNumberMap(rhs_map), &rhs_is_number, &rhs_is_not_number);
-
-        BIND(&rhs_is_number);
-        {
-          // Convert {lhs} to a double and multiply it with the value of {rhs}.
-          var_lhs_float64.Bind(SmiToFloat64(lhs));
-          var_rhs_float64.Bind(LoadHeapNumberValue(rhs));
-          Goto(&do_fmul);
-        }
-
-        BIND(&rhs_is_not_number);
-        {
-          // Multiplication is commutative, swap {lhs} with {rhs} and loop.
-          var_lhs.Bind(rhs);
-          var_rhs.Bind(lhs);
-          Goto(&loop);
-        }
-      }
+    // At this point, var_left is a HeapNumber and var_right is a Smi.
+    if (var_left_double != nullptr) {
+      var_left_double->Bind(LoadHeapNumberValue(var_left->value()));
+      var_right_double->Bind(SmiToFloat64(var_right->value()));
     }
+    Goto(doubles);
+  }
 
-    BIND(&lhs_is_not_smi);
+  BIND(&right_not_smi);
+  {
+    GotoIfNot(IsHeapNumber(var_right->value()), &right_not_number);
+    if (var_left_double != nullptr) {
+      var_left_double->Bind(LoadHeapNumberValue(var_left->value()));
+      var_right_double->Bind(LoadHeapNumberValue(var_right->value()));
+    }
+    Goto(doubles);
+  }
+
+  BIND(&left_not_number);
+  {
+    Label left_bigint(this);
+    GotoIf(IsBigInt(var_left->value()), &left_bigint);
+    var_left->Bind(
+        CallBuiltin(Builtins::kNonNumberToNumeric, context, var_left->value()));
+    Goto(&loop);
+
+    BIND(&left_bigint);
     {
-      Node* lhs_map = LoadMap(lhs);
-
-      // Check if {lhs} is a HeapNumber.
-      Label lhs_is_number(this), lhs_is_not_number(this, Label::kDeferred);
-      Branch(IsHeapNumberMap(lhs_map), &lhs_is_number, &lhs_is_not_number);
-
-      BIND(&lhs_is_number);
-      {
-        // Check if {rhs} is a Smi.
-        Label rhs_is_smi(this), rhs_is_not_smi(this);
-        Branch(TaggedIsSmi(rhs), &rhs_is_smi, &rhs_is_not_smi);
-
-        BIND(&rhs_is_smi);
-        {
-          // Convert {rhs} to a double and multiply it with the value of {lhs}.
-          var_lhs_float64.Bind(LoadHeapNumberValue(lhs));
-          var_rhs_float64.Bind(SmiToFloat64(rhs));
-          Goto(&do_fmul);
-        }
-
-        BIND(&rhs_is_not_smi);
-        {
-          Node* rhs_map = LoadMap(rhs);
-
-          // Check if {rhs} is a HeapNumber.
-          Label rhs_is_number(this), rhs_is_not_number(this, Label::kDeferred);
-          Branch(IsHeapNumberMap(rhs_map), &rhs_is_number, &rhs_is_not_number);
-
-          BIND(&rhs_is_number);
-          {
-            // Both {lhs} and {rhs} are HeapNumbers. Load their values and
-            // multiply them.
-            var_lhs_float64.Bind(LoadHeapNumberValue(lhs));
-            var_rhs_float64.Bind(LoadHeapNumberValue(rhs));
-            Goto(&do_fmul);
-          }
-
-          BIND(&rhs_is_not_number);
-          {
-            // Multiplication is commutative, swap {lhs} with {rhs} and loop.
-            var_lhs.Bind(rhs);
-            var_rhs.Bind(lhs);
-            Goto(&loop);
-          }
-        }
-      }
-
-      BIND(&lhs_is_not_number);
-      {
-        // Convert {lhs} to a Number and loop.
-        Callable callable = CodeFactory::NonNumberToNumber(isolate());
-        var_lhs.Bind(CallStub(callable, context, lhs));
-        Goto(&loop);
-      }
+      // Jump to {bigints} if {var_right} is already a Numeric.
+      GotoIf(TaggedIsSmi(var_right->value()), bigints);
+      GotoIf(IsBigInt(var_right->value()), bigints);
+      GotoIf(IsHeapNumber(var_right->value()), bigints);
+      var_right->Bind(CallBuiltin(Builtins::kNonNumberToNumeric, context,
+                                  var_right->value()));
+      Goto(&loop);
     }
   }
 
-  BIND(&do_fmul);
+  BIND(&right_not_number);
   {
-    Node* value = Float64Mul(var_lhs_float64.value(), var_rhs_float64.value());
-    Node* result = AllocateHeapNumberWithValue(value);
-    var_result.Bind(result);
-    Goto(&return_result);
+    GotoIf(IsBigInt(var_right->value()), bigints);
+    var_right->Bind(CallBuiltin(Builtins::kNonNumberToNumeric, context,
+                                var_right->value()));
+    Goto(&loop);
   }
-
-  BIND(&return_result);
-  Return(var_result.value());
 }
 
-TF_BUILTIN(Divide, CodeStubAssembler) {
-  Node* context = Parameter(Descriptor::kContext);
-  Node* left = Parameter(Descriptor::kLeft);
-  Node* right = Parameter(Descriptor::kRight);
+TF_BUILTIN(Subtract, NumberBuiltinsAssembler) {
+  VARIABLE(var_left, MachineRepresentation::kTagged);
+  VARIABLE(var_right, MachineRepresentation::kTagged);
+  VARIABLE(var_left_double, MachineRepresentation::kFloat64);
+  VARIABLE(var_right_double, MachineRepresentation::kFloat64);
+  Label do_smi_sub(this), do_double_sub(this), do_bigint_sub(this);
 
-  // Shared entry point for floating point division.
-  Label do_fdiv(this), end(this);
-  VARIABLE(var_dividend_float64, MachineRepresentation::kFloat64);
-  VARIABLE(var_divisor_float64, MachineRepresentation::kFloat64);
+  BinaryOp<Descriptor>(&do_smi_sub, &var_left, &var_right, &do_double_sub,
+                       &var_left_double, &var_right_double, &do_bigint_sub);
 
-  // We might need to loop one or two times due to ToNumber conversions.
-  VARIABLE(var_dividend, MachineRepresentation::kTagged);
-  VARIABLE(var_divisor, MachineRepresentation::kTagged);
-  VARIABLE(var_result, MachineRepresentation::kTagged);
-  Variable* loop_variables[] = {&var_dividend, &var_divisor};
-  Label loop(this, 2, loop_variables);
-  var_dividend.Bind(left);
-  var_divisor.Bind(right);
-  Goto(&loop);
-  BIND(&loop);
+  BIND(&do_smi_sub);
   {
-    Node* dividend = var_dividend.value();
-    Node* divisor = var_divisor.value();
+    Label if_overflow(this);
+    TNode<Smi> result = TrySmiSub(CAST(var_left.value()),
+                                  CAST(var_right.value()), &if_overflow);
+    Return(result);
 
-    Label dividend_is_smi(this), dividend_is_not_smi(this);
-    Branch(TaggedIsSmi(dividend), &dividend_is_smi, &dividend_is_not_smi);
-
-    BIND(&dividend_is_smi);
+    BIND(&if_overflow);
     {
-      Label divisor_is_smi(this), divisor_is_not_smi(this);
-      Branch(TaggedIsSmi(divisor), &divisor_is_smi, &divisor_is_not_smi);
-
-      BIND(&divisor_is_smi);
-      {
-        Label bailout(this);
-
-        // Do floating point division if {divisor} is zero.
-        GotoIf(SmiEqual(divisor, SmiConstant(0)), &bailout);
-
-        // Do floating point division {dividend} is zero and {divisor} is
-        // negative.
-        Label dividend_is_zero(this), dividend_is_not_zero(this);
-        Branch(SmiEqual(dividend, SmiConstant(0)), &dividend_is_zero,
-               &dividend_is_not_zero);
-
-        BIND(&dividend_is_zero);
-        {
-          GotoIf(SmiLessThan(divisor, SmiConstant(0)), &bailout);
-          Goto(&dividend_is_not_zero);
-        }
-        BIND(&dividend_is_not_zero);
-
-        Node* untagged_divisor = SmiToWord32(divisor);
-        Node* untagged_dividend = SmiToWord32(dividend);
-
-        // Do floating point division if {dividend} is kMinInt (or kMinInt - 1
-        // if the Smi size is 31) and {divisor} is -1.
-        Label divisor_is_minus_one(this), divisor_is_not_minus_one(this);
-        Branch(Word32Equal(untagged_divisor, Int32Constant(-1)),
-               &divisor_is_minus_one, &divisor_is_not_minus_one);
-
-        BIND(&divisor_is_minus_one);
-        {
-          GotoIf(
-              Word32Equal(untagged_dividend,
-                          Int32Constant(kSmiValueSize == 32 ? kMinInt
-                                                            : (kMinInt >> 1))),
-              &bailout);
-          Goto(&divisor_is_not_minus_one);
-        }
-        BIND(&divisor_is_not_minus_one);
-
-        // TODO(epertoso): consider adding a machine instruction that returns
-        // both the result and the remainder.
-        Node* untagged_result = Int32Div(untagged_dividend, untagged_divisor);
-        Node* truncated = Int32Mul(untagged_result, untagged_divisor);
-        // Do floating point division if the remainder is not 0.
-        GotoIf(Word32NotEqual(untagged_dividend, truncated), &bailout);
-        var_result.Bind(SmiFromWord32(untagged_result));
-        Goto(&end);
-
-        // Bailout: convert {dividend} and {divisor} to double and do double
-        // division.
-        BIND(&bailout);
-        {
-          var_dividend_float64.Bind(SmiToFloat64(dividend));
-          var_divisor_float64.Bind(SmiToFloat64(divisor));
-          Goto(&do_fdiv);
-        }
-      }
-
-      BIND(&divisor_is_not_smi);
-      {
-        Node* divisor_map = LoadMap(divisor);
-
-        // Check if {divisor} is a HeapNumber.
-        Label divisor_is_number(this),
-            divisor_is_not_number(this, Label::kDeferred);
-        Branch(IsHeapNumberMap(divisor_map), &divisor_is_number,
-               &divisor_is_not_number);
-
-        BIND(&divisor_is_number);
-        {
-          // Convert {dividend} to a double and divide it with the value of
-          // {divisor}.
-          var_dividend_float64.Bind(SmiToFloat64(dividend));
-          var_divisor_float64.Bind(LoadHeapNumberValue(divisor));
-          Goto(&do_fdiv);
-        }
-
-        BIND(&divisor_is_not_number);
-        {
-          // Convert {divisor} to a number and loop.
-          Callable callable = CodeFactory::NonNumberToNumber(isolate());
-          var_divisor.Bind(CallStub(callable, context, divisor));
-          Goto(&loop);
-        }
-      }
-    }
-
-    BIND(&dividend_is_not_smi);
-    {
-      Node* dividend_map = LoadMap(dividend);
-
-      // Check if {dividend} is a HeapNumber.
-      Label dividend_is_number(this),
-          dividend_is_not_number(this, Label::kDeferred);
-      Branch(IsHeapNumberMap(dividend_map), &dividend_is_number,
-             &dividend_is_not_number);
-
-      BIND(&dividend_is_number);
-      {
-        // Check if {divisor} is a Smi.
-        Label divisor_is_smi(this), divisor_is_not_smi(this);
-        Branch(TaggedIsSmi(divisor), &divisor_is_smi, &divisor_is_not_smi);
-
-        BIND(&divisor_is_smi);
-        {
-          // Convert {divisor} to a double and use it for a floating point
-          // division.
-          var_dividend_float64.Bind(LoadHeapNumberValue(dividend));
-          var_divisor_float64.Bind(SmiToFloat64(divisor));
-          Goto(&do_fdiv);
-        }
-
-        BIND(&divisor_is_not_smi);
-        {
-          Node* divisor_map = LoadMap(divisor);
-
-          // Check if {divisor} is a HeapNumber.
-          Label divisor_is_number(this),
-              divisor_is_not_number(this, Label::kDeferred);
-          Branch(IsHeapNumberMap(divisor_map), &divisor_is_number,
-                 &divisor_is_not_number);
-
-          BIND(&divisor_is_number);
-          {
-            // Both {dividend} and {divisor} are HeapNumbers. Load their values
-            // and divide them.
-            var_dividend_float64.Bind(LoadHeapNumberValue(dividend));
-            var_divisor_float64.Bind(LoadHeapNumberValue(divisor));
-            Goto(&do_fdiv);
-          }
-
-          BIND(&divisor_is_not_number);
-          {
-            // Convert {divisor} to a number and loop.
-            Callable callable = CodeFactory::NonNumberToNumber(isolate());
-            var_divisor.Bind(CallStub(callable, context, divisor));
-            Goto(&loop);
-          }
-        }
-      }
-
-      BIND(&dividend_is_not_number);
-      {
-        // Convert {dividend} to a Number and loop.
-        Callable callable = CodeFactory::NonNumberToNumber(isolate());
-        var_dividend.Bind(CallStub(callable, context, dividend));
-        Goto(&loop);
-      }
+      var_left_double.Bind(SmiToFloat64(var_left.value()));
+      var_right_double.Bind(SmiToFloat64(var_right.value()));
+      Goto(&do_double_sub);
     }
   }
 
-  BIND(&do_fdiv);
+  BIND(&do_double_sub);
   {
-    Node* value =
-        Float64Div(var_dividend_float64.value(), var_divisor_float64.value());
-    var_result.Bind(AllocateHeapNumberWithValue(value));
-    Goto(&end);
+    Node* value = Float64Sub(var_left_double.value(), var_right_double.value());
+    Return(AllocateHeapNumberWithValue(value));
   }
-  BIND(&end);
-  Return(var_result.value());
+
+  BIND(&do_bigint_sub);
+  {
+    Node* context = Parameter(Descriptor::kContext);
+    Return(CallRuntime(Runtime::kBigIntBinaryOp, context, var_left.value(),
+                       var_right.value(), SmiConstant(Operation::kSubtract)));
+  }
 }
 
-TF_BUILTIN(Modulus, CodeStubAssembler) {
+TF_BUILTIN(BitwiseNot, NumberBuiltinsAssembler) {
   Node* context = Parameter(Descriptor::kContext);
-  Node* left = Parameter(Descriptor::kLeft);
-  Node* right = Parameter(Descriptor::kRight);
+  VARIABLE(var_input, MachineRepresentation::kTagged);
+  Label do_number(this), do_bigint(this);
 
-  VARIABLE(var_result, MachineRepresentation::kTagged);
-  Label return_result(this, &var_result);
+  UnaryOp<Descriptor>(&var_input, &do_number, &do_number, nullptr, &do_bigint);
 
-  // Shared entry point for floating point modulus.
-  Label do_fmod(this);
-  VARIABLE(var_dividend_float64, MachineRepresentation::kFloat64);
-  VARIABLE(var_divisor_float64, MachineRepresentation::kFloat64);
-
-  // We might need to loop one or two times due to ToNumber conversions.
-  VARIABLE(var_dividend, MachineRepresentation::kTagged);
-  VARIABLE(var_divisor, MachineRepresentation::kTagged);
-  Variable* loop_variables[] = {&var_dividend, &var_divisor};
-  Label loop(this, 2, loop_variables);
-  var_dividend.Bind(left);
-  var_divisor.Bind(right);
-  Goto(&loop);
-  BIND(&loop);
+  BIND(&do_number);
   {
-    Node* dividend = var_dividend.value();
-    Node* divisor = var_divisor.value();
+    TailCallBuiltin(Builtins::kBitwiseXor, context, var_input.value(),
+                    SmiConstant(-1));
+  }
 
-    Label dividend_is_smi(this), dividend_is_not_smi(this);
-    Branch(TaggedIsSmi(dividend), &dividend_is_smi, &dividend_is_not_smi);
+  BIND(&do_bigint);
+  {
+    Return(CallRuntime(Runtime::kBigIntUnaryOp, context, var_input.value(),
+                       SmiConstant(Operation::kBitwiseNot)));
+  }
+}
 
-    BIND(&dividend_is_smi);
+TF_BUILTIN(Decrement, NumberBuiltinsAssembler) {
+  Node* context = Parameter(Descriptor::kContext);
+  VARIABLE(var_input, MachineRepresentation::kTagged);
+  Label do_number(this), do_bigint(this);
+
+  UnaryOp<Descriptor>(&var_input, &do_number, &do_number, nullptr, &do_bigint);
+
+  BIND(&do_number);
+  {
+    TailCallBuiltin(Builtins::kSubtract, context, var_input.value(),
+                    SmiConstant(1));
+  }
+
+  BIND(&do_bigint);
+  {
+    Return(CallRuntime(Runtime::kBigIntUnaryOp, context, var_input.value(),
+                       SmiConstant(Operation::kDecrement)));
+  }
+}
+
+TF_BUILTIN(Increment, NumberBuiltinsAssembler) {
+  Node* context = Parameter(Descriptor::kContext);
+  VARIABLE(var_input, MachineRepresentation::kTagged);
+  Label do_number(this), do_bigint(this);
+
+  UnaryOp<Descriptor>(&var_input, &do_number, &do_number, nullptr, &do_bigint);
+
+  BIND(&do_number);
+  {
+    TailCallBuiltin(Builtins::kAdd, context, var_input.value(), SmiConstant(1));
+  }
+
+  BIND(&do_bigint);
+  {
+    Return(CallRuntime(Runtime::kBigIntUnaryOp, context, var_input.value(),
+                       SmiConstant(Operation::kIncrement)));
+  }
+}
+
+TF_BUILTIN(Negate, NumberBuiltinsAssembler) {
+  VARIABLE(var_input, MachineRepresentation::kTagged);
+  VARIABLE(var_input_double, MachineRepresentation::kFloat64);
+  Label do_smi(this), do_double(this), do_bigint(this);
+
+  UnaryOp<Descriptor>(&var_input, &do_smi, &do_double, &var_input_double,
+                      &do_bigint);
+
+  BIND(&do_smi);
+  { Return(SmiMul(CAST(var_input.value()), SmiConstant(-1))); }
+
+  BIND(&do_double);
+  {
+    Node* value = Float64Mul(var_input_double.value(), Float64Constant(-1));
+    Return(AllocateHeapNumberWithValue(value));
+  }
+
+  BIND(&do_bigint);
+  {
+    Node* context = Parameter(Descriptor::kContext);
+    Return(CallRuntime(Runtime::kBigIntUnaryOp, context, var_input.value(),
+                       SmiConstant(Operation::kNegate)));
+  }
+}
+
+TF_BUILTIN(Multiply, NumberBuiltinsAssembler) {
+  VARIABLE(var_left, MachineRepresentation::kTagged);
+  VARIABLE(var_right, MachineRepresentation::kTagged);
+  VARIABLE(var_left_double, MachineRepresentation::kFloat64);
+  VARIABLE(var_right_double, MachineRepresentation::kFloat64);
+  Label do_smi_mul(this), do_double_mul(this), do_bigint_mul(this);
+
+  BinaryOp<Descriptor>(&do_smi_mul, &var_left, &var_right, &do_double_mul,
+                       &var_left_double, &var_right_double, &do_bigint_mul);
+
+  BIND(&do_smi_mul);
+  // The result is not necessarily a smi, in case of overflow.
+  Return(SmiMul(CAST(var_left.value()), CAST(var_right.value())));
+
+  BIND(&do_double_mul);
+  Node* value = Float64Mul(var_left_double.value(), var_right_double.value());
+  Return(AllocateHeapNumberWithValue(value));
+
+  BIND(&do_bigint_mul);
+  {
+    Node* context = Parameter(Descriptor::kContext);
+    Return(CallRuntime(Runtime::kBigIntBinaryOp, context, var_left.value(),
+                       var_right.value(), SmiConstant(Operation::kMultiply)));
+  }
+}
+
+TF_BUILTIN(Divide, NumberBuiltinsAssembler) {
+  VARIABLE(var_left, MachineRepresentation::kTagged);
+  VARIABLE(var_right, MachineRepresentation::kTagged);
+  VARIABLE(var_left_double, MachineRepresentation::kFloat64);
+  VARIABLE(var_right_double, MachineRepresentation::kFloat64);
+  Label do_smi_div(this), do_double_div(this), do_bigint_div(this);
+
+  BinaryOp<Descriptor>(&do_smi_div, &var_left, &var_right, &do_double_div,
+                       &var_left_double, &var_right_double, &do_bigint_div);
+
+  BIND(&do_smi_div);
+  {
+    // TODO(jkummerow): Consider just always doing a double division.
+    Label bailout(this);
+    TNode<Smi> dividend = CAST(var_left.value());
+    TNode<Smi> divisor = CAST(var_right.value());
+
+    // Do floating point division if {divisor} is zero.
+    GotoIf(SmiEqual(divisor, SmiConstant(0)), &bailout);
+
+    // Do floating point division if {dividend} is zero and {divisor} is
+    // negative.
+    Label dividend_is_zero(this), dividend_is_not_zero(this);
+    Branch(SmiEqual(dividend, SmiConstant(0)), &dividend_is_zero,
+           &dividend_is_not_zero);
+
+    BIND(&dividend_is_zero);
     {
-      Label dividend_is_not_zero(this);
-      Label divisor_is_smi(this), divisor_is_not_smi(this);
-      Branch(TaggedIsSmi(divisor), &divisor_is_smi, &divisor_is_not_smi);
-
-      BIND(&divisor_is_smi);
-      {
-        // Compute the modulus of two Smis.
-        var_result.Bind(SmiMod(dividend, divisor));
-        Goto(&return_result);
-      }
-
-      BIND(&divisor_is_not_smi);
-      {
-        Node* divisor_map = LoadMap(divisor);
-
-        // Check if {divisor} is a HeapNumber.
-        Label divisor_is_number(this),
-            divisor_is_not_number(this, Label::kDeferred);
-        Branch(IsHeapNumberMap(divisor_map), &divisor_is_number,
-               &divisor_is_not_number);
-
-        BIND(&divisor_is_number);
-        {
-          // Convert {dividend} to a double and compute its modulus with the
-          // value of {dividend}.
-          var_dividend_float64.Bind(SmiToFloat64(dividend));
-          var_divisor_float64.Bind(LoadHeapNumberValue(divisor));
-          Goto(&do_fmod);
-        }
-
-        BIND(&divisor_is_not_number);
-        {
-          // Convert {divisor} to a number and loop.
-          Callable callable = CodeFactory::NonNumberToNumber(isolate());
-          var_divisor.Bind(CallStub(callable, context, divisor));
-          Goto(&loop);
-        }
-      }
+      GotoIf(SmiLessThan(divisor, SmiConstant(0)), &bailout);
+      Goto(&dividend_is_not_zero);
     }
+    BIND(&dividend_is_not_zero);
 
-    BIND(&dividend_is_not_smi);
+    Node* untagged_divisor = SmiToInt32(divisor);
+    Node* untagged_dividend = SmiToInt32(dividend);
+
+    // Do floating point division if {dividend} is kMinInt (or kMinInt - 1
+    // if the Smi size is 31) and {divisor} is -1.
+    Label divisor_is_minus_one(this), divisor_is_not_minus_one(this);
+    Branch(Word32Equal(untagged_divisor, Int32Constant(-1)),
+           &divisor_is_minus_one, &divisor_is_not_minus_one);
+
+    BIND(&divisor_is_minus_one);
     {
-      Node* dividend_map = LoadMap(dividend);
+      GotoIf(Word32Equal(
+                 untagged_dividend,
+                 Int32Constant(kSmiValueSize == 32 ? kMinInt : (kMinInt >> 1))),
+             &bailout);
+      Goto(&divisor_is_not_minus_one);
+    }
+    BIND(&divisor_is_not_minus_one);
 
-      // Check if {dividend} is a HeapNumber.
-      Label dividend_is_number(this),
-          dividend_is_not_number(this, Label::kDeferred);
-      Branch(IsHeapNumberMap(dividend_map), &dividend_is_number,
-             &dividend_is_not_number);
+    // TODO(epertoso): consider adding a machine instruction that returns
+    // both the result and the remainder.
+    Node* untagged_result = Int32Div(untagged_dividend, untagged_divisor);
+    Node* truncated = Int32Mul(untagged_result, untagged_divisor);
+    // Do floating point division if the remainder is not 0.
+    GotoIf(Word32NotEqual(untagged_dividend, truncated), &bailout);
+    Return(SmiFromInt32(untagged_result));
 
-      BIND(&dividend_is_number);
-      {
-        // Check if {divisor} is a Smi.
-        Label divisor_is_smi(this), divisor_is_not_smi(this);
-        Branch(TaggedIsSmi(divisor), &divisor_is_smi, &divisor_is_not_smi);
-
-        BIND(&divisor_is_smi);
-        {
-          // Convert {divisor} to a double and compute {dividend}'s modulus with
-          // it.
-          var_dividend_float64.Bind(LoadHeapNumberValue(dividend));
-          var_divisor_float64.Bind(SmiToFloat64(divisor));
-          Goto(&do_fmod);
-        }
-
-        BIND(&divisor_is_not_smi);
-        {
-          Node* divisor_map = LoadMap(divisor);
-
-          // Check if {divisor} is a HeapNumber.
-          Label divisor_is_number(this),
-              divisor_is_not_number(this, Label::kDeferred);
-          Branch(IsHeapNumberMap(divisor_map), &divisor_is_number,
-                 &divisor_is_not_number);
-
-          BIND(&divisor_is_number);
-          {
-            // Both {dividend} and {divisor} are HeapNumbers. Load their values
-            // and compute their modulus.
-            var_dividend_float64.Bind(LoadHeapNumberValue(dividend));
-            var_divisor_float64.Bind(LoadHeapNumberValue(divisor));
-            Goto(&do_fmod);
-          }
-
-          BIND(&divisor_is_not_number);
-          {
-            // Convert {divisor} to a number and loop.
-            Callable callable = CodeFactory::NonNumberToNumber(isolate());
-            var_divisor.Bind(CallStub(callable, context, divisor));
-            Goto(&loop);
-          }
-        }
-      }
-
-      BIND(&dividend_is_not_number);
-      {
-        // Convert {dividend} to a Number and loop.
-        Callable callable = CodeFactory::NonNumberToNumber(isolate());
-        var_dividend.Bind(CallStub(callable, context, dividend));
-        Goto(&loop);
-      }
+    // Bailout: convert {dividend} and {divisor} to double and do double
+    // division.
+    BIND(&bailout);
+    {
+      var_left_double.Bind(SmiToFloat64(dividend));
+      var_right_double.Bind(SmiToFloat64(divisor));
+      Goto(&do_double_div);
     }
   }
 
-  BIND(&do_fmod);
+  BIND(&do_double_div);
   {
-    Node* value =
-        Float64Mod(var_dividend_float64.value(), var_divisor_float64.value());
-    var_result.Bind(AllocateHeapNumberWithValue(value));
-    Goto(&return_result);
+    Node* value = Float64Div(var_left_double.value(), var_right_double.value());
+    Return(AllocateHeapNumberWithValue(value));
   }
 
-  BIND(&return_result);
-  Return(var_result.value());
+  BIND(&do_bigint_div);
+  {
+    Node* context = Parameter(Descriptor::kContext);
+    Return(CallRuntime(Runtime::kBigIntBinaryOp, context, var_left.value(),
+                       var_right.value(), SmiConstant(Operation::kDivide)));
+  }
+}
+
+TF_BUILTIN(Modulus, NumberBuiltinsAssembler) {
+  VARIABLE(var_left, MachineRepresentation::kTagged);
+  VARIABLE(var_right, MachineRepresentation::kTagged);
+  VARIABLE(var_left_double, MachineRepresentation::kFloat64);
+  VARIABLE(var_right_double, MachineRepresentation::kFloat64);
+  Label do_smi_mod(this), do_double_mod(this), do_bigint_mod(this);
+
+  BinaryOp<Descriptor>(&do_smi_mod, &var_left, &var_right, &do_double_mod,
+                       &var_left_double, &var_right_double, &do_bigint_mod);
+
+  BIND(&do_smi_mod);
+  Return(SmiMod(CAST(var_left.value()), CAST(var_right.value())));
+
+  BIND(&do_double_mod);
+  Node* value = Float64Mod(var_left_double.value(), var_right_double.value());
+  Return(AllocateHeapNumberWithValue(value));
+
+  BIND(&do_bigint_mod);
+  {
+    Node* context = Parameter(Descriptor::kContext);
+    Return(CallRuntime(Runtime::kBigIntBinaryOp, context, var_left.value(),
+                       var_right.value(), SmiConstant(Operation::kModulus)));
+  }
+}
+
+TF_BUILTIN(Exponentiate, NumberBuiltinsAssembler) {
+  VARIABLE(var_left, MachineRepresentation::kTagged);
+  VARIABLE(var_right, MachineRepresentation::kTagged);
+  Label do_number_exp(this), do_bigint_exp(this);
+  Node* context = Parameter(Descriptor::kContext);
+
+  BinaryOp<Descriptor>(&do_number_exp, &var_left, &var_right, &do_number_exp,
+                       nullptr, nullptr, &do_bigint_exp);
+
+  BIND(&do_number_exp);
+  {
+    MathBuiltinsAssembler math_asm(state());
+    Return(math_asm.MathPow(context, var_left.value(), var_right.value()));
+  }
+
+  BIND(&do_bigint_exp);
+  Return(CallRuntime(Runtime::kBigIntBinaryOp, context, var_left.value(),
+                     var_right.value(), SmiConstant(Operation::kExponentiate)));
 }
 
 TF_BUILTIN(ShiftLeft, NumberBuiltinsAssembler) {
-  BitwiseShiftOp<Descriptor>([=](Node* lhs, Node* shift_count) {
-    return Word32Shl(lhs, shift_count);
-  });
+  EmitBitwiseOp<Descriptor>(Operation::kShiftLeft);
 }
 
 TF_BUILTIN(ShiftRight, NumberBuiltinsAssembler) {
-  BitwiseShiftOp<Descriptor>([=](Node* lhs, Node* shift_count) {
-    return Word32Sar(lhs, shift_count);
-  });
+  EmitBitwiseOp<Descriptor>(Operation::kShiftRight);
 }
 
 TF_BUILTIN(ShiftRightLogical, NumberBuiltinsAssembler) {
-  BitwiseShiftOp<Descriptor>(
-      [=](Node* lhs, Node* shift_count) { return Word32Shr(lhs, shift_count); },
-      kUnsigned);
+  EmitBitwiseOp<Descriptor>(Operation::kShiftRightLogical);
 }
 
 TF_BUILTIN(BitwiseAnd, NumberBuiltinsAssembler) {
-  BitwiseOp<Descriptor>(
-      [=](Node* lhs, Node* rhs) { return Word32And(lhs, rhs); });
+  EmitBitwiseOp<Descriptor>(Operation::kBitwiseAnd);
 }
 
 TF_BUILTIN(BitwiseOr, NumberBuiltinsAssembler) {
-  BitwiseOp<Descriptor>(
-      [=](Node* lhs, Node* rhs) { return Word32Or(lhs, rhs); });
+  EmitBitwiseOp<Descriptor>(Operation::kBitwiseOr);
 }
 
 TF_BUILTIN(BitwiseXor, NumberBuiltinsAssembler) {
-  BitwiseOp<Descriptor>(
-      [=](Node* lhs, Node* rhs) { return Word32Xor(lhs, rhs); });
+  EmitBitwiseOp<Descriptor>(Operation::kBitwiseXor);
 }
 
 TF_BUILTIN(LessThan, NumberBuiltinsAssembler) {
-  RelationalComparisonBuiltin<Descriptor>(kLessThan);
+  RelationalComparisonBuiltin<Descriptor>(Operation::kLessThan);
 }
 
 TF_BUILTIN(LessThanOrEqual, NumberBuiltinsAssembler) {
-  RelationalComparisonBuiltin<Descriptor>(kLessThanOrEqual);
+  RelationalComparisonBuiltin<Descriptor>(Operation::kLessThanOrEqual);
 }
 
 TF_BUILTIN(GreaterThan, NumberBuiltinsAssembler) {
-  RelationalComparisonBuiltin<Descriptor>(kGreaterThan);
+  RelationalComparisonBuiltin<Descriptor>(Operation::kGreaterThan);
 }
 
 TF_BUILTIN(GreaterThanOrEqual, NumberBuiltinsAssembler) {
-  RelationalComparisonBuiltin<Descriptor>(kGreaterThanOrEqual);
+  RelationalComparisonBuiltin<Descriptor>(Operation::kGreaterThanOrEqual);
 }
 
 TF_BUILTIN(Equal, CodeStubAssembler) {
@@ -1391,61 +1054,6 @@ TF_BUILTIN(StrictEqual, CodeStubAssembler) {
   Node* rhs = Parameter(Descriptor::kRight);
 
   Return(StrictEqual(lhs, rhs));
-}
-
-TF_BUILTIN(AddWithFeedback, BinaryOpAssembler) {
-  Node* context = Parameter(Descriptor::kContext);
-  Node* left = Parameter(Descriptor::kLeft);
-  Node* right = Parameter(Descriptor::kRight);
-  Node* slot = Parameter(Descriptor::kSlot);
-  Node* vector = Parameter(Descriptor::kVector);
-
-  Return(Generate_AddWithFeedback(context, left, right,
-                                  ChangeUint32ToWord(slot), vector));
-}
-
-TF_BUILTIN(SubtractWithFeedback, BinaryOpAssembler) {
-  Node* context = Parameter(Descriptor::kContext);
-  Node* left = Parameter(Descriptor::kLeft);
-  Node* right = Parameter(Descriptor::kRight);
-  Node* slot = Parameter(Descriptor::kSlot);
-  Node* vector = Parameter(Descriptor::kVector);
-
-  Return(Generate_SubtractWithFeedback(context, left, right,
-                                       ChangeUint32ToWord(slot), vector));
-}
-
-TF_BUILTIN(MultiplyWithFeedback, BinaryOpAssembler) {
-  Node* context = Parameter(Descriptor::kContext);
-  Node* left = Parameter(Descriptor::kLeft);
-  Node* right = Parameter(Descriptor::kRight);
-  Node* slot = Parameter(Descriptor::kSlot);
-  Node* vector = Parameter(Descriptor::kVector);
-
-  Return(Generate_MultiplyWithFeedback(context, left, right,
-                                       ChangeUint32ToWord(slot), vector));
-}
-
-TF_BUILTIN(DivideWithFeedback, BinaryOpAssembler) {
-  Node* context = Parameter(Descriptor::kContext);
-  Node* left = Parameter(Descriptor::kLeft);
-  Node* right = Parameter(Descriptor::kRight);
-  Node* slot = Parameter(Descriptor::kSlot);
-  Node* vector = Parameter(Descriptor::kVector);
-
-  Return(Generate_DivideWithFeedback(context, left, right,
-                                     ChangeUint32ToWord(slot), vector));
-}
-
-TF_BUILTIN(ModulusWithFeedback, BinaryOpAssembler) {
-  Node* context = Parameter(Descriptor::kContext);
-  Node* left = Parameter(Descriptor::kLeft);
-  Node* right = Parameter(Descriptor::kRight);
-  Node* slot = Parameter(Descriptor::kSlot);
-  Node* vector = Parameter(Descriptor::kVector);
-
-  Return(Generate_ModulusWithFeedback(context, left, right,
-                                      ChangeUint32ToWord(slot), vector));
 }
 
 }  // namespace internal

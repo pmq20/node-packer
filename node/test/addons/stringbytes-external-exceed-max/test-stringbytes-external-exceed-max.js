@@ -5,8 +5,12 @@ const skipMessage = 'intensive toString tests due to memory confinements';
 if (!common.enoughTestMem)
   common.skip(skipMessage);
 
+// See https://github.com/nodejs/build/issues/1820#issuecomment-505998851
+// See https://github.com/nodejs/node/pull/28469
+if (process.platform === 'aix')
+  common.skip('flaky on AIX');
+
 const binding = require(`./build/${common.buildType}/binding`);
-const assert = require('assert');
 
 // v8 fails silently if string length > v8::String::kMaxLength
 // v8::String::kMaxLength defined in v8.h
@@ -25,6 +29,13 @@ try {
 if (!binding.ensureAllocation(2 * kStringMaxLength))
   common.skip(skipMessage);
 
-assert.throws(function() {
+const stringLengthHex = kStringMaxLength.toString(16);
+
+common.expectsError(function() {
   buf.toString('utf16le');
-}, /"toString\(\)" failed/);
+}, {
+  message: `Cannot create a string longer than 0x${stringLengthHex} ` +
+           'characters',
+  code: 'ERR_STRING_TOO_LONG',
+  type: Error
+});

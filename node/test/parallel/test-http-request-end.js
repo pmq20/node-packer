@@ -35,7 +35,7 @@ const server = http.Server(function(req, res) {
   });
 
   req.on('end', function() {
-    assert.strictEqual(expected, result);
+    assert.strictEqual(result, expected);
     server.close();
     res.writeHead(200);
     res.end('hello world\n');
@@ -44,7 +44,7 @@ const server = http.Server(function(req, res) {
 });
 
 server.listen(0, function() {
-  http.request({
+  const req = http.request({
     port: this.address().port,
     path: '/',
     method: 'POST'
@@ -54,5 +54,9 @@ server.listen(0, function() {
   }).on('error', function(e) {
     console.log(e.message);
     process.exit(1);
-  }).end(expected);
+  });
+
+  const result = req.end(expected);
+
+  assert.strictEqual(req, result);
 });

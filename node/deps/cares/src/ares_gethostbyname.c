@@ -95,6 +95,13 @@ void ares_gethostbyname(ares_channel channel, const char *name, int family,
     return;
   }
 
+  /* Per RFC 7686, reject queries for ".onion" domain names with NXDOMAIN. */
+  if (ares__is_onion_domain(name))
+    {
+      callback(arg, ARES_ENOTFOUND, 0, NULL);
+      return;
+    }
+
   if (fake_hostent(name, family, callback, arg))
     return;
 
@@ -339,6 +346,10 @@ static int file_lookup(const char *name, int family, struct hostent **host)
   int status;
   int error;
 
+  /* Per RFC 7686, reject queries for ".onion" domain names with NXDOMAIN. */
+  if (ares__is_onion_domain(name))
+    return ARES_ENOTFOUND;
+
 #ifdef WIN32
   char PATH_HOSTS[MAX_PATH];
   win_platform platform;
@@ -351,18 +362,18 @@ static int file_lookup(const char *name, int family, struct hostent **host)
     char tmp[MAX_PATH];
     HKEY hkeyHosts;
 
-    if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, WIN_NS_NT_KEY, 0, KEY_READ,
+    if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, WIN_NS_NT_KEY, 0, KEY_READ,
                      &hkeyHosts) == ERROR_SUCCESS)
     {
       DWORD dwLength = MAX_PATH;
-      RegQueryValueEx(hkeyHosts, DATABASEPATH, NULL, NULL, (LPBYTE)tmp,
+      RegQueryValueExA(hkeyHosts, DATABASEPATH, NULL, NULL, (LPBYTE)tmp,
                       &dwLength);
-      ExpandEnvironmentStrings(tmp, PATH_HOSTS, MAX_PATH);
+      ExpandEnvironmentStringsA(tmp, PATH_HOSTS, MAX_PATH);
       RegCloseKey(hkeyHosts);
     }
   }
   else if (platform == WIN_9X)
-    GetWindowsDirectory(PATH_HOSTS, MAX_PATH);
+    GetWindowsDirectoryA(PATH_HOSTS, MAX_PATH);
   else
     return ARES_ENOTFOUND;
 

@@ -1,21 +1,25 @@
 'use strict';
 const assert = require('assert');
-const fork = require('child_process').fork;
+const { fork } = require('child_process');
 const util = require('util');
+const path = require('path');
 const EventEmitter = require('events');
 const RoundRobinHandle = require('internal/cluster/round_robin_handle');
 const SharedHandle = require('internal/cluster/shared_handle');
 const Worker = require('internal/cluster/worker');
-const { internal, sendHelper, handles } = require('internal/cluster/utils');
+const { internal, sendHelper } = require('internal/cluster/utils');
+const { ERR_SOCKET_BAD_PORT } = require('internal/errors').codes;
 const keys = Object.keys;
 const cluster = new EventEmitter();
 const intercom = new EventEmitter();
 const SCHED_NONE = 1;
 const SCHED_RR = 2;
-const {isLegalPort} = require('internal/net');
+const { isLegalPort } = require('internal/net');
+const [ minPort, maxPort ] = [ 1024, 65535 ];
 
 module.exports = cluster;
 
+const handles = new Map();
 cluster.isWorker = false;
 cluster.isMaster = true;
 cluster.Worker = Worker;
@@ -77,10 +81,7 @@ cluster.setupMaster = function(options) {
     if (message.cmd !== 'NODE_DEBUG_ENABLED')
       return;
 
-    var key;
-    for (key in cluster.workers) {
-      const worker = cluster.workers[key];
-
+    for (const worker of Object.values(cluster.workers)) {
       if (worker.state === 'online' || worker.state === 'listening') {
         process._debugProcess(worker.process.pid);
       } else {
@@ -100,11 +101,14 @@ function createWorkerProcess(id, env) {
   const workerEnv = util._extend({}, process.env);
   const execArgv = cluster.settings.execArgv.slice();
   const debugArgRegex = /--inspect(?:-brk|-port)?|--debug-port/;
+  const nodeOptions = process.env.NODE_OPTIONS ?
+    process.env.NODE_OPTIONS : '';
 
   util._extend(workerEnv, env);
   workerEnv.NODE_UNIQUE_ID = '' + id;
 
-  if (execArgv.some((arg) => arg.match(debugArgRegex))) {
+  if (execArgv.some((arg) => arg.match(debugArgRegex)) ||
+      nodeOptions.match(debugArgRegex)) {
     let inspectPort;
     if ('inspectPort' in cluster.settings) {
       if (typeof cluster.settings.inspectPort === 'function')
@@ -113,11 +117,12 @@ function createWorkerProcess(id, env) {
         inspectPort = cluster.settings.inspectPort;
 
       if (!isLegalPort(inspectPort)) {
-        throw new TypeError('cluster.settings.inspectPort' +
-          ' is invalid');
+        throw new ERR_SOCKET_BAD_PORT(inspectPort);
       }
     } else {
       inspectPort = process.debugPort + debugPortOffset;
+      if (inspectPort > maxPort)
+        inspectPort = inspectPort - maxPort + minPort - 1;
       debugPortOffset++;
     }
 
@@ -125,8 +130,10 @@ function createWorkerProcess(id, env) {
   }
 
   return fork(cluster.settings.exec, cluster.settings.args, {
+    cwd: cluster.settings.cwd,
     env: workerEnv,
     silent: cluster.settings.silent,
+    windowsHide: cluster.settings.windowsHide,
     execArgv: execArgv,
     stdio: cluster.settings.stdio,
     gid: cluster.settings.gid,
@@ -139,7 +146,7 @@ function removeWorker(worker) {
   delete cluster.workers[worker.id];
 
   if (keys(cluster.workers).length === 0) {
-    assert(keys(handles).length === 0, 'Resource leak detected.');
+    assert(handles.size === 0, 'Resource leak detected.');
     intercom.emit('disconnect');
   }
 }
@@ -147,12 +154,10 @@ function removeWorker(worker) {
 function removeHandlesForWorker(worker) {
   assert(worker);
 
-  for (var key in handles) {
-    const handle = handles[key];
-
+  handles.forEach((handle, key) => {
     if (handle.remove(worker))
-      delete handles[key];
-  }
+      handles.delete(key);
+  });
 }
 
 cluster.fork = function(env) {
@@ -223,11 +228,10 @@ cluster.disconnect = function(cb) {
   if (workers.length === 0) {
     process.nextTick(() => intercom.emit('disconnect'));
   } else {
-    for (var key in workers) {
-      key = workers[key];
-
-      if (cluster.workers[key].isConnected())
-        cluster.workers[key].disconnect();
+    for (const worker of Object.values(cluster.workers)) {
+      if (worker.isConnected()) {
+        worker.disconnect();
+      }
     }
   }
 
@@ -266,15 +270,23 @@ function queryServer(worker, message) {
   if (worker.exitedAfterDisconnect)
     return;
 
-  const args = [message.address,
-                message.port,
-                message.addressType,
-                message.fd,
-                message.index];
-  const key = args.join(':');
-  var handle = handles[key];
+  const key = `${message.address}:${message.port}:${message.addressType}:` +
+              `${message.fd}:${message.index}`;
+  var handle = handles.get(key);
 
   if (handle === undefined) {
+    let address = message.address;
+
+    // Find shortest path for unix sockets because of the ~100 byte limit
+    if (message.port < 0 && typeof address === 'string' &&
+        process.platform !== 'win32') {
+
+      address = path.relative(process.cwd(), address);
+
+      if (message.address.length < address.length)
+        address = message.address;
+    }
+
     var constructor = RoundRobinHandle;
     // UDP is exempt from round-robin connection balancing for what should
     // be obvious reasons: it's connectionless. There is nothing to send to
@@ -285,12 +297,13 @@ function queryServer(worker, message) {
       constructor = SharedHandle;
     }
 
-    handles[key] = handle = new constructor(key,
-                                            message.address,
-                                            message.port,
-                                            message.addressType,
-                                            message.fd,
-                                            message.flags);
+    handle = new constructor(key,
+                             address,
+                             message.port,
+                             message.addressType,
+                             message.fd,
+                             message.flags);
+    handles.set(key, handle);
   }
 
   if (!handle.data)
@@ -302,11 +315,11 @@ function queryServer(worker, message) {
       errno: errno,
       key: key,
       ack: message.seq,
-      data: handles[key].data
+      data: handles.get(key).data
     }, reply);
 
     if (errno)
-      delete handles[key];  // Gives other workers a chance to retry.
+      handles.delete(key);  // Gives other workers a chance to retry.
 
     send(worker, reply, handle);
   });
@@ -329,10 +342,10 @@ function listening(worker, message) {
 // removed by a prior call to removeHandlesForWorker() so guard against that.
 function close(worker, message) {
   const key = message.key;
-  const handle = handles[key];
+  const handle = handles.get(key);
 
   if (handle && handle.remove(worker))
-    delete handles[key];
+    handles.delete(key);
 }
 
 function send(worker, message, handle, cb) {

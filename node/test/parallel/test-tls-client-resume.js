@@ -30,15 +30,15 @@ if (!common.hasCrypto)
 
 const assert = require('assert');
 const tls = require('tls');
-const fs = require('fs');
+const fixtures = require('../common/fixtures');
 
 const options = {
-  key: fs.readFileSync(`${common.fixturesDir}/keys/agent2-key.pem`),
-  cert: fs.readFileSync(`${common.fixturesDir}/keys/agent2-cert.pem`)
+  key: fixtures.readKey('agent2-key.pem'),
+  cert: fixtures.readKey('agent2-cert.pem')
 };
 
 // create server
-const server = tls.Server(options, common.mustCall(function(socket) {
+const server = tls.Server(options, common.mustCall((socket) => {
   socket.end('Goodbye');
 }, 2));
 
@@ -49,13 +49,13 @@ server.listen(0, function() {
   const client1 = tls.connect({
     port: this.address().port,
     rejectUnauthorized: false
-  }, function() {
+  }, () => {
     console.log('connect1');
     assert.ok(!client1.isSessionReused(), 'Session *should not* be reused.');
     session1 = client1.getSession();
   });
 
-  client1.on('close', function() {
+  client1.on('close', () => {
     console.log('close1');
 
     const opts = {
@@ -64,14 +64,18 @@ server.listen(0, function() {
       session: session1
     };
 
-    const client2 = tls.connect(opts, function() {
+    const client2 = tls.connect(opts, () => {
       console.log('connect2');
       assert.ok(client2.isSessionReused(), 'Session *should* be reused.');
     });
 
-    client2.on('close', function() {
+    client2.on('close', () => {
       console.log('close2');
       server.close();
     });
+
+    client2.resume();
   });
+
+  client1.resume();
 });

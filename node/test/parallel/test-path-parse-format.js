@@ -20,7 +20,7 @@
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 'use strict';
-require('../common');
+const common = require('../common');
 const assert = require('assert');
 const path = require('path');
 
@@ -55,12 +55,12 @@ const winSpecialCaseParseTests = [
 ];
 
 const winSpecialCaseFormatTests = [
-  [{dir: 'some\\dir'}, 'some\\dir\\'],
-  [{base: 'index.html'}, 'index.html'],
-  [{root: 'C:\\'}, 'C:\\'],
-  [{name: 'index', ext: '.html'}, 'index.html'],
-  [{dir: 'some\\dir', name: 'index', ext: '.html'}, 'some\\dir\\index.html'],
-  [{root: 'C:\\', name: 'index', ext: '.html'}, 'C:\\index.html'],
+  [{ dir: 'some\\dir' }, 'some\\dir\\'],
+  [{ base: 'index.html' }, 'index.html'],
+  [{ root: 'C:\\' }, 'C:\\'],
+  [{ name: 'index', ext: '.html' }, 'index.html'],
+  [{ dir: 'some\\dir', name: 'index', ext: '.html' }, 'some\\dir\\index.html'],
+  [{ root: 'C:\\', name: 'index', ext: '.html' }, 'C:\\index.html'],
   [{}, '']
 ];
 
@@ -89,38 +89,30 @@ const unixPaths = [
 ];
 
 const unixSpecialCaseFormatTests = [
-  [{dir: 'some/dir'}, 'some/dir/'],
-  [{base: 'index.html'}, 'index.html'],
-  [{root: '/'}, '/'],
-  [{name: 'index', ext: '.html'}, 'index.html'],
-  [{dir: 'some/dir', name: 'index', ext: '.html'}, 'some/dir/index.html'],
-  [{root: '/', name: 'index', ext: '.html'}, '/index.html'],
+  [{ dir: 'some/dir' }, 'some/dir/'],
+  [{ base: 'index.html' }, 'index.html'],
+  [{ root: '/' }, '/'],
+  [{ name: 'index', ext: '.html' }, 'index.html'],
+  [{ dir: 'some/dir', name: 'index', ext: '.html' }, 'some/dir/index.html'],
+  [{ root: '/', name: 'index', ext: '.html' }, '/index.html'],
   [{}, '']
 ];
 
+const expectedMessage = common.expectsError({
+  code: 'ERR_INVALID_ARG_TYPE',
+  type: TypeError
+}, 18);
+
 const errors = [
-  {method: 'parse', input: [null],
-   message: /^TypeError: Path must be a string\. Received null$/},
-  {method: 'parse', input: [{}],
-   message: /^TypeError: Path must be a string\. Received {}$/},
-  {method: 'parse', input: [true],
-   message: /^TypeError: Path must be a string\. Received true$/},
-  {method: 'parse', input: [1],
-   message: /^TypeError: Path must be a string\. Received 1$/},
-  {method: 'parse', input: [],
-   message: /^TypeError: Path must be a string\. Received undefined$/},
-  {method: 'format', input: [null],
-   message:
-      /^TypeError: Parameter "pathObject" must be an object, not object$/},
-  {method: 'format', input: [''],
-   message:
-      /^TypeError: Parameter "pathObject" must be an object, not string$/},
-  {method: 'format', input: [true],
-   message:
-      /^TypeError: Parameter "pathObject" must be an object, not boolean$/},
-  {method: 'format', input: [1],
-   message:
-      /^TypeError: Parameter "pathObject" must be an object, not number$/},
+  { method: 'parse', input: [null], message: expectedMessage },
+  { method: 'parse', input: [{}], message: expectedMessage },
+  { method: 'parse', input: [true], message: expectedMessage },
+  { method: 'parse', input: [1], message: expectedMessage },
+  { method: 'parse', input: [], message: expectedMessage },
+  { method: 'format', input: [null], message: expectedMessage },
+  { method: 'format', input: [''], message: expectedMessage },
+  { method: 'format', input: [true], message: expectedMessage },
+  { method: 'format', input: [1], message: expectedMessage },
 ];
 
 checkParseFormat(path.win32, winPaths);
@@ -226,5 +218,16 @@ function checkSpecialCaseParseFormat(path, testCases) {
 function checkFormat(path, testCases) {
   testCases.forEach(function(testCase) {
     assert.strictEqual(path.format(testCase[0]), testCase[1]);
+  });
+
+  [null, undefined, 1, true, false, 'string'].forEach((pathObject) => {
+    common.expectsError(() => {
+      path.format(pathObject);
+    }, {
+      code: 'ERR_INVALID_ARG_TYPE',
+      type: TypeError,
+      message: 'The "pathObject" argument must be of type Object. ' +
+               `Received type ${typeof pathObject}`
+    });
   });
 }

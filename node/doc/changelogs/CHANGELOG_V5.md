@@ -1,5 +1,8 @@
 # Node.js 5 ChangeLog
 
+<!--lint disable prohibited-strings-->
+<!--lint disable maximum-line-length-->
+
 <table>
 <tr>
 <th>Stable</th>
@@ -30,6 +33,8 @@
 </table>
 
 * Other Versions
+  * [10.x](CHANGELOG_V10.md)
+  * [9.x](CHANGELOG_V9.md)
   * [8.x](CHANGELOG_V8.md)
   * [7.x](CHANGELOG_V7.md)
   * [6.x](CHANGELOG_V6.md)
@@ -413,7 +418,7 @@ https://github.com/nodejs/node/pull/5655
 * **timers**: Internal Node.js timeouts now use the same logic path as those created with `setTimeout()` (Jeremiah Senkpiel) [#4007](https://github.com/nodejs/node/pull/4007)
   * This may cause a slightly different performance profile in some situations. So far, it has shown to be positive in most cases.
 * **v8**: backport fb4ccae from v8 upstream (Vladimir Krivosheev) #4231
-  -  breakout events from v8 to offer better support for external debuggers
+  - breakout events from v8 to offer better support for external debuggers
 * **zlib**: add support for concatenated members (Kári Tristan Helgason)
 https://github.com/nodejs/node/pull/5120
   * Previously, if multiple members were in the same archive, only the first would be read. The others are no longer thrown away.

@@ -1,10 +1,10 @@
-#include "stream_base.h"
 #include "stream_base-inl.h"
 #include "stream_wrap.h"
 
 #include "node.h"
 #include "node_buffer.h"
-#include "env.h"
+#include "node_errors.h"
+#include "node_internals.h"
 #include "env-inl.h"
 #include "js_stream.h"
 #include "string_bytes.h"
@@ -17,6 +17,7 @@
 namespace node {
 
 using v8::Array;
+using v8::Boolean;
 using v8::Context;
 using v8::FunctionCallbackInfo;
 using v8::HandleScope;
@@ -37,60 +38,36 @@ template int StreamBase::WriteString<LATIN1>(
     const FunctionCallbackInfo<Value>& args);
 
 
-int StreamBase::ReadStart(const FunctionCallbackInfo<Value>& args) {
+int StreamBase::ReadStartJS(const FunctionCallbackInfo<Value>& args) {
   return ReadStart();
 }
 
 
-int StreamBase::ReadStop(const FunctionCallbackInfo<Value>& args) {
+int StreamBase::ReadStopJS(const FunctionCallbackInfo<Value>& args) {
   return ReadStop();
 }
 
 
 int StreamBase::Shutdown(const FunctionCallbackInfo<Value>& args) {
-  Environment* env = Environment::GetCurrent(args);
-
   CHECK(args[0]->IsObject());
   Local<Object> req_wrap_obj = args[0].As<Object>();
 
-  AsyncWrap* wrap = GetAsyncWrap();
-  CHECK_NE(wrap, nullptr);
-  env->set_init_trigger_id(wrap->get_id());
-  ShutdownWrap* req_wrap = new ShutdownWrap(env,
-                                            req_wrap_obj,
-                                            this,
-                                            AfterShutdown);
-
-  int err = DoShutdown(req_wrap);
-  if (err)
-    delete req_wrap;
-  return err;
+  return Shutdown(req_wrap_obj);
 }
 
-
-void StreamBase::AfterShutdown(ShutdownWrap* req_wrap, int status) {
-  StreamBase* wrap = req_wrap->wrap();
-  Environment* env = req_wrap->env();
-
-  // The wrap and request objects should still be there.
-  CHECK_EQ(req_wrap->persistent().IsEmpty(), false);
-
-  HandleScope handle_scope(env->isolate());
-  Context::Scope context_scope(env->context());
-
-  Local<Object> req_wrap_obj = req_wrap->object();
-  Local<Value> argv[3] = {
-    Integer::New(env->isolate(), status),
-    wrap->GetObject(),
-    req_wrap_obj
-  };
-
-  if (req_wrap_obj->Has(env->context(), env->oncomplete_string()).FromJust())
-    req_wrap->MakeCallback(env->oncomplete_string(), arraysize(argv), argv);
-
-  delete req_wrap;
+inline void SetWriteResultPropertiesOnWrapObject(
+    Environment* env,
+    Local<Object> req_wrap_obj,
+    const StreamWriteResult& res) {
+  req_wrap_obj->Set(
+      env->context(),
+      env->bytes_string(),
+      Number::New(env->isolate(), res.bytes)).FromJust();
+  req_wrap_obj->Set(
+      env->context(),
+      env->async(),
+      Boolean::New(env->isolate(), res.async)).FromJust();
 }
-
 
 int StreamBase::Writev(const FunctionCallbackInfo<Value>& args) {
   Environment* env = Environment::GetCurrent(args);
@@ -109,20 +86,13 @@ int StreamBase::Writev(const FunctionCallbackInfo<Value>& args) {
     count = chunks->Length() >> 1;
 
   MaybeStackBuffer<uv_buf_t, 16> bufs(count);
-  uv_buf_t* buf_list = *bufs;
 
   size_t storage_size = 0;
-  uint32_t bytes = 0;
   size_t offset;
-  AsyncWrap* wrap;
-  WriteWrap* req_wrap;
-  int err;
 
   if (!all_buffers) {
     // Determine storage size first
     for (size_t i = 0; i < count; i++) {
-      storage_size = ROUND_UP(storage_size, WriteWrap::kAlignSize);
-
       Local<Value> chunk = chunks->Get(i * 2);
 
       if (Buffer::HasInstance(chunk))
@@ -130,15 +100,16 @@ int StreamBase::Writev(const FunctionCallbackInfo<Value>& args) {
         // Buffer chunk, no additional storage required
 
       // String chunk
-      Local<String> string = chunk->ToString(env->isolate());
+      Local<String> string = chunk->ToString(env->context()).ToLocalChecked();
       enum encoding encoding = ParseEncoding(env->isolate(),
                                              chunks->Get(i * 2 + 1));
       size_t chunk_size;
-      if (encoding == UTF8 && string->Length() > 65535)
-        chunk_size = StringBytes::Size(env->isolate(), string, encoding);
-      else
-        chunk_size = StringBytes::StorageSize(env->isolate(), string, encoding);
-
+      if (encoding == UTF8 && string->Length() > 65535 &&
+          !StringBytes::Size(env->isolate(), string, encoding).To(&chunk_size))
+        return 0;
+      else if (!StringBytes::StorageSize(env->isolate(), string, encoding)
+                    .To(&chunk_size))
+        return 0;
       storage_size += chunk_size;
     }
 
@@ -149,19 +120,12 @@ int StreamBase::Writev(const FunctionCallbackInfo<Value>& args) {
       Local<Value> chunk = chunks->Get(i);
       bufs[i].base = Buffer::Data(chunk);
       bufs[i].len = Buffer::Length(chunk);
-      bytes += bufs[i].len;
     }
-
-    // Try writing immediately without allocation
-    err = DoTryWrite(&buf_list, &count);
-    if (err != 0 || count == 0)
-      goto done;
   }
 
-  wrap = GetAsyncWrap();
-  CHECK_NE(wrap, nullptr);
-  env->set_init_trigger_id(wrap->get_id());
-  req_wrap = WriteWrap::New(env, req_wrap_obj, this, AfterWrite, storage_size);
+  MallocedBuffer<char> storage;
+  if (storage_size > 0)
+    storage = MallocedBuffer<char>(storage_size);
 
   offset = 0;
   if (!all_buffers) {
@@ -172,17 +136,15 @@ int StreamBase::Writev(const FunctionCallbackInfo<Value>& args) {
       if (Buffer::HasInstance(chunk)) {
         bufs[i].base = Buffer::Data(chunk);
         bufs[i].len = Buffer::Length(chunk);
-        bytes += bufs[i].len;
         continue;
       }
 
       // Write string
-      offset = ROUND_UP(offset, WriteWrap::kAlignSize);
       CHECK_LE(offset, storage_size);
-      char* str_storage = req_wrap->Extra(offset);
+      char* str_storage = storage.data + offset;
       size_t str_size = storage_size - offset;
 
-      Local<String> string = chunk->ToString(env->isolate());
+      Local<String> string = chunk->ToString(env->context()).ToLocalChecked();
       enum encoding encoding = ParseEncoding(env->isolate(),
                                              chunks->Get(i * 2 + 1));
       str_size = StringBytes::Write(env->isolate(),
@@ -193,28 +155,16 @@ int StreamBase::Writev(const FunctionCallbackInfo<Value>& args) {
       bufs[i].base = str_storage;
       bufs[i].len = str_size;
       offset += str_size;
-      bytes += str_size;
     }
   }
 
-  err = DoWrite(req_wrap, buf_list, count, nullptr);
-  req_wrap_obj->Set(env->async(), True(env->isolate()));
-
-  if (err)
-    req_wrap->Dispose();
-
- done:
-  const char* msg = Error();
-  if (msg != nullptr) {
-    req_wrap_obj->Set(env->error_string(), OneByteString(env->isolate(), msg));
-    ClearError();
+  StreamWriteResult res = Write(*bufs, count, nullptr, req_wrap_obj);
+  SetWriteResultPropertiesOnWrapObject(env, req_wrap_obj, res);
+  if (res.wrap != nullptr && storage_size > 0) {
+    res.wrap->SetAllocatedStorage(storage.release(), storage_size);
   }
-  req_wrap_obj->Set(env->bytes_string(), Number::New(env->isolate(), bytes));
-
-  return err;
+  return res.err;
 }
-
-
 
 
 int StreamBase::WriteBuffer(const FunctionCallbackInfo<Value>& args) {
@@ -223,52 +173,23 @@ int StreamBase::WriteBuffer(const FunctionCallbackInfo<Value>& args) {
   Environment* env = Environment::GetCurrent(args);
 
   if (!args[1]->IsUint8Array()) {
-    env->ThrowTypeError("Second argument must be a buffer");
+    node::THROW_ERR_INVALID_ARG_TYPE(env, "Second argument must be a buffer");
     return 0;
   }
 
   Local<Object> req_wrap_obj = args[0].As<Object>();
-  const char* data = Buffer::Data(args[1]);
-  size_t length = Buffer::Length(args[1]);
 
-  AsyncWrap* wrap;
-  WriteWrap* req_wrap;
   uv_buf_t buf;
-  buf.base = const_cast<char*>(data);
-  buf.len = length;
+  buf.base = Buffer::Data(args[1]);
+  buf.len = Buffer::Length(args[1]);
 
-  // Try writing immediately without allocation
-  uv_buf_t* bufs = &buf;
-  size_t count = 1;
-  int err = DoTryWrite(&bufs, &count);
-  if (err != 0)
-    goto done;
-  if (count == 0)
-    goto done;
-  CHECK_EQ(count, 1);
+  StreamWriteResult res = Write(&buf, 1, nullptr, req_wrap_obj);
 
-  wrap = GetAsyncWrap();
-  if (wrap != nullptr)
-    env->set_init_trigger_id(wrap->get_id());
-  // Allocate, or write rest
-  req_wrap = WriteWrap::New(env, req_wrap_obj, this, AfterWrite);
+  if (res.async)
+    req_wrap_obj->Set(env->context(), env->buffer_string(), args[1]).FromJust();
+  SetWriteResultPropertiesOnWrapObject(env, req_wrap_obj, res);
 
-  err = DoWrite(req_wrap, bufs, count, nullptr);
-  req_wrap_obj->Set(env->async(), True(env->isolate()));
-  req_wrap_obj->Set(env->buffer_string(), args[1]);
-
-  if (err)
-    req_wrap->Dispose();
-
- done:
-  const char* msg = Error();
-  if (msg != nullptr) {
-    req_wrap_obj->Set(env->error_string(), OneByteString(env->isolate(), msg));
-    ClearError();
-  }
-  req_wrap_obj->Set(env->bytes_string(),
-                    Integer::NewFromUnsigned(env->isolate(), length));
-  return err;
+  return res.err;
 }
 
 
@@ -281,29 +202,27 @@ int StreamBase::WriteString(const FunctionCallbackInfo<Value>& args) {
   Local<Object> req_wrap_obj = args[0].As<Object>();
   Local<String> string = args[1].As<String>();
   Local<Object> send_handle_obj;
-  AsyncWrap* wrap;
   if (args[2]->IsObject())
     send_handle_obj = args[2].As<Object>();
-
-  int err;
 
   // Compute the size of the storage that the string will be flattened into.
   // For UTF8 strings that are very long, go ahead and take the hit for
   // computing their actual size, rather than tripling the storage.
   size_t storage_size;
-  if (enc == UTF8 && string->Length() > 65535)
-    storage_size = StringBytes::Size(env->isolate(), string, enc);
-  else
-    storage_size = StringBytes::StorageSize(env->isolate(), string, enc);
+  if (enc == UTF8 && string->Length() > 65535 &&
+      !StringBytes::Size(env->isolate(), string, enc).To(&storage_size))
+    return 0;
+  else if (!StringBytes::StorageSize(env->isolate(), string, enc)
+                .To(&storage_size))
+    return 0;
 
   if (storage_size > INT_MAX)
     return UV_ENOBUFS;
 
   // Try writing immediately if write size isn't too big
-  WriteWrap* req_wrap;
-  char* data;
   char stack_storage[16384];  // 16kb
   size_t data_size;
+  size_t synchronously_written = 0;
   uv_buf_t buf;
 
   bool try_write = storage_size <= sizeof(stack_storage) &&
@@ -318,35 +237,40 @@ int StreamBase::WriteString(const FunctionCallbackInfo<Value>& args) {
 
     uv_buf_t* bufs = &buf;
     size_t count = 1;
-    err = DoTryWrite(&bufs, &count);
+    const int err = DoTryWrite(&bufs, &count);
+    // Keep track of the bytes written here, because we're taking a shortcut
+    // by using `DoTryWrite()` directly instead of using the utilities
+    // provided by `Write()`.
+    synchronously_written = count == 0 ? data_size : data_size - buf.len;
+    bytes_written_ += synchronously_written;
 
-    // Failure
-    if (err != 0)
-      goto done;
-
-    // Success
-    if (count == 0)
-      goto done;
+    // Immediate failure or success
+    if (err != 0 || count == 0) {
+      req_wrap_obj->Set(env->context(), env->async(), False(env->isolate()))
+          .FromJust();
+      req_wrap_obj->Set(env->context(),
+                        env->bytes_string(),
+                        Integer::NewFromUnsigned(env->isolate(), data_size))
+          .FromJust();
+      return err;
+    }
 
     // Partial write
     CHECK_EQ(count, 1);
   }
 
-  wrap = GetAsyncWrap();
-  if (wrap != nullptr)
-    env->set_init_trigger_id(wrap->get_id());
-  req_wrap = WriteWrap::New(env, req_wrap_obj, this, AfterWrite, storage_size);
-
-  data = req_wrap->Extra();
+  MallocedBuffer<char> data;
 
   if (try_write) {
     // Copy partial data
-    memcpy(data, buf.base, buf.len);
+    data = MallocedBuffer<char>(buf.len);
+    memcpy(data.data, buf.base, buf.len);
     data_size = buf.len;
   } else {
     // Write it
+    data = MallocedBuffer<char>(storage_size);
     data_size = StringBytes::Write(env->isolate(),
-                                   data,
+                                   data.data,
                                    storage_size,
                                    string,
                                    enc);
@@ -354,101 +278,44 @@ int StreamBase::WriteString(const FunctionCallbackInfo<Value>& args) {
 
   CHECK_LE(data_size, storage_size);
 
-  buf = uv_buf_init(data, data_size);
+  buf = uv_buf_init(data.data, data_size);
 
-  if (!IsIPCPipe()) {
-    err = DoWrite(req_wrap, &buf, 1, nullptr);
-  } else {
-    uv_handle_t* send_handle = nullptr;
+  uv_stream_t* send_handle = nullptr;
 
-    if (!send_handle_obj.IsEmpty()) {
-      HandleWrap* wrap;
-      ASSIGN_OR_RETURN_UNWRAP(&wrap, send_handle_obj, UV_EINVAL);
-      send_handle = wrap->GetHandle();
-      // Reference StreamWrap instance to prevent it from being garbage
-      // collected before `AfterWrite` is called.
-      CHECK_EQ(false, req_wrap->persistent().IsEmpty());
-      req_wrap_obj->Set(env->handle_string(), send_handle_obj);
-    }
-
-    err = DoWrite(
-        req_wrap,
-        &buf,
-        1,
-        reinterpret_cast<uv_stream_t*>(send_handle));
+  if (IsIPCPipe() && !send_handle_obj.IsEmpty()) {
+    HandleWrap* wrap;
+    ASSIGN_OR_RETURN_UNWRAP(&wrap, send_handle_obj, UV_EINVAL);
+    send_handle = reinterpret_cast<uv_stream_t*>(wrap->GetHandle());
+    // Reference LibuvStreamWrap instance to prevent it from being garbage
+    // collected before `AfterWrite` is called.
+    req_wrap_obj->Set(env->handle_string(), send_handle_obj);
   }
 
-  req_wrap_obj->Set(env->async(), True(env->isolate()));
+  StreamWriteResult res = Write(&buf, 1, send_handle, req_wrap_obj);
+  res.bytes += synchronously_written;
 
-  if (err)
-    req_wrap->Dispose();
-
- done:
-  const char* msg = Error();
-  if (msg != nullptr) {
-    req_wrap_obj->Set(env->error_string(), OneByteString(env->isolate(), msg));
-    ClearError();
+  SetWriteResultPropertiesOnWrapObject(env, req_wrap_obj, res);
+  if (res.wrap != nullptr) {
+    res.wrap->SetAllocatedStorage(data.release(), data_size);
   }
-  req_wrap_obj->Set(env->bytes_string(),
-                    Integer::NewFromUnsigned(env->isolate(), data_size));
-  return err;
+
+  return res.err;
 }
 
 
-void StreamBase::AfterWrite(WriteWrap* req_wrap, int status) {
-  StreamBase* wrap = req_wrap->wrap();
-  Environment* env = req_wrap->env();
-
-  HandleScope handle_scope(env->isolate());
-  Context::Scope context_scope(env->context());
-
-  // The wrap and request objects should still be there.
-  CHECK_EQ(req_wrap->persistent().IsEmpty(), false);
-
-  // Unref handle property
-  Local<Object> req_wrap_obj = req_wrap->object();
-  req_wrap_obj->Delete(env->context(), env->handle_string()).FromJust();
-  wrap->OnAfterWrite(req_wrap);
-
-  Local<Value> argv[] = {
-    Integer::New(env->isolate(), status),
-    wrap->GetObject(),
-    req_wrap_obj,
-    Undefined(env->isolate())
-  };
-
-  const char* msg = wrap->Error();
-  if (msg != nullptr) {
-    argv[3] = OneByteString(env->isolate(), msg);
-    wrap->ClearError();
-  }
-
-  if (req_wrap_obj->Has(env->context(), env->oncomplete_string()).FromJust())
-    req_wrap->MakeCallback(env->oncomplete_string(), arraysize(argv), argv);
-
-  req_wrap->Dispose();
-}
-
-
-void StreamBase::EmitData(ssize_t nread,
-                          Local<Object> buf,
-                          Local<Object> handle) {
+void StreamBase::CallJSOnreadMethod(ssize_t nread, Local<Object> buf) {
   Environment* env = env_;
 
   Local<Value> argv[] = {
     Integer::New(env->isolate(), nread),
-    buf,
-    handle
+    buf
   };
 
   if (argv[1].IsEmpty())
     argv[1] = Undefined(env->isolate());
 
-  if (argv[2].IsEmpty())
-    argv[2] = Undefined(env->isolate());
-
   AsyncWrap* wrap = GetAsyncWrap();
-  CHECK_NE(wrap, nullptr);
+  CHECK_NOT_NULL(wrap);
   wrap->MakeCallback(env->onread_string(), arraysize(argv), argv);
 }
 
@@ -482,5 +349,70 @@ const char* StreamResource::Error() const {
 void StreamResource::ClearError() {
   // No-op
 }
+
+
+uv_buf_t StreamListener::OnStreamAlloc(size_t suggested_size) {
+  return uv_buf_init(Malloc(suggested_size), suggested_size);
+}
+
+
+void EmitToJSStreamListener::OnStreamRead(ssize_t nread, const uv_buf_t& buf) {
+  CHECK_NOT_NULL(stream_);
+  StreamBase* stream = static_cast<StreamBase*>(stream_);
+  Environment* env = stream->stream_env();
+  HandleScope handle_scope(env->isolate());
+  Context::Scope context_scope(env->context());
+
+  if (nread <= 0)  {
+    free(buf.base);
+    if (nread < 0)
+      stream->CallJSOnreadMethod(nread, Local<Object>());
+    return;
+  }
+
+  CHECK_LE(static_cast<size_t>(nread), buf.len);
+  char* base = Realloc(buf.base, nread);
+
+  Local<Object> obj = Buffer::New(env, base, nread).ToLocalChecked();
+  stream->CallJSOnreadMethod(nread, obj);
+}
+
+
+void ReportWritesToJSStreamListener::OnStreamAfterReqFinished(
+    StreamReq* req_wrap, int status) {
+  StreamBase* stream = static_cast<StreamBase*>(stream_);
+  Environment* env = stream->stream_env();
+  AsyncWrap* async_wrap = req_wrap->GetAsyncWrap();
+  HandleScope handle_scope(env->isolate());
+  Context::Scope context_scope(env->context());
+  CHECK(!async_wrap->persistent().IsEmpty());
+  Local<Object> req_wrap_obj = async_wrap->object();
+
+  Local<Value> argv[] = {
+    Integer::New(env->isolate(), status),
+    stream->GetObject(),
+    Undefined(env->isolate())
+  };
+
+  const char* msg = stream->Error();
+  if (msg != nullptr) {
+    argv[2] = OneByteString(env->isolate(), msg);
+    stream->ClearError();
+  }
+
+  if (req_wrap_obj->Has(env->context(), env->oncomplete_string()).FromJust())
+    async_wrap->MakeCallback(env->oncomplete_string(), arraysize(argv), argv);
+}
+
+void ReportWritesToJSStreamListener::OnStreamAfterWrite(
+    WriteWrap* req_wrap, int status) {
+  OnStreamAfterReqFinished(req_wrap, status);
+}
+
+void ReportWritesToJSStreamListener::OnStreamAfterShutdown(
+    ShutdownWrap* req_wrap, int status) {
+  OnStreamAfterReqFinished(req_wrap, status);
+}
+
 
 }  // namespace node

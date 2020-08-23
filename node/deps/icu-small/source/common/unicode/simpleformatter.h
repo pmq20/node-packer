@@ -21,6 +21,13 @@
 
 U_NAMESPACE_BEGIN
 
+// Forward declaration:
+namespace number {
+namespace impl {
+class SimpleModifier;
+}
+}
+
 /**
  * Formats simple patterns like "{1} was born in {0}".
  * Minimal subset of MessageFormat; fast, simple, minimal dependencies.
@@ -258,8 +265,37 @@ public:
      * @stable ICU 57
      */
     UnicodeString getTextWithNoArguments() const {
-        return getTextWithNoArguments(compiledPattern.getBuffer(), compiledPattern.length());
+        return getTextWithNoArguments(
+            compiledPattern.getBuffer(),
+            compiledPattern.length(),
+            nullptr,
+            0);
     }
+
+#ifndef U_HIDE_INTERNAL_API
+    /**
+     * Returns the pattern text with none of the arguments.
+     * Like formatting with all-empty string values.
+     *
+     * TODO(ICU-20406): Replace this with an Iterator interface.
+     *
+     * @param offsets offsets[i] receives the offset of where {i} was located
+     *                before it was replaced by an empty string.
+     *                For example, "a{0}b{1}" produces offset 1 for i=0 and 2 for i=1.
+     *                Can be nullptr if offsetsLength==0.
+     *                If there is no {i} in the pattern, then offsets[i] is set to -1.
+     * @param offsetsLength The length of the offsets array.
+     *
+     * @internal
+     */
+    UnicodeString getTextWithNoArguments(int32_t *offsets, int32_t offsetsLength) const {
+        return getTextWithNoArguments(
+            compiledPattern.getBuffer(),
+            compiledPattern.length(),
+            offsets,
+            offsetsLength);
+    }
+#endif // U_HIDE_INTERNAL_API
 
 private:
     /**
@@ -278,7 +314,11 @@ private:
         return compiledPatternLength == 0 ? 0 : compiledPattern[0];
     }
 
-    static UnicodeString getTextWithNoArguments(const char16_t *compiledPattern, int32_t compiledPatternLength);
+    static UnicodeString getTextWithNoArguments(
+        const char16_t *compiledPattern,
+        int32_t compiledPatternLength,
+        int32_t *offsets,
+        int32_t offsetsLength);
 
     static UnicodeString &format(
             const char16_t *compiledPattern, int32_t compiledPatternLength,
@@ -286,6 +326,9 @@ private:
             UnicodeString &result, const UnicodeString *resultCopy, UBool forbidResultAsValue,
             int32_t *offsets, int32_t offsetsLength,
             UErrorCode &errorCode);
+
+    // Give access to internals to SimpleModifier for number formatting
+    friend class number::impl::SimpleModifier;
 };
 
 U_NAMESPACE_END

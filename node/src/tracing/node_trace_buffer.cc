@@ -1,12 +1,13 @@
 #include "tracing/node_trace_buffer.h"
+#include "util-inl.h"
 
 namespace node {
 namespace tracing {
 
 InternalTraceBuffer::InternalTraceBuffer(size_t max_chunks, uint32_t id,
-                                         NodeTraceWriter* trace_writer)
+                                         Agent* agent)
     : flushing_(false), max_chunks_(max_chunks),
-      trace_writer_(trace_writer), id_(id) {
+      agent_(agent), id_(id) {
   chunks_.resize(max_chunks);
 }
 
@@ -32,7 +33,7 @@ TraceObject* InternalTraceBuffer::GetEventByHandle(uint64_t handle) {
   Mutex::ScopedLock scoped_lock(mutex_);
   if (handle == 0) {
     // A handle value of zero never has a trace event associated with it.
-    return NULL;
+    return nullptr;
   }
   size_t chunk_index, event_index;
   uint32_t buffer_id, chunk_seq;
@@ -41,12 +42,12 @@ TraceObject* InternalTraceBuffer::GetEventByHandle(uint64_t handle) {
     // Either the chunk belongs to the other buffer, or is outside the current
     // range of chunks loaded in memory (the latter being true suggests that
     // the chunk has already been flushed and is no longer in memory.)
-    return NULL;
+    return nullptr;
   }
   auto& chunk = chunks_[chunk_index];
   if (chunk->seq() != chunk_seq) {
     // Chunk is no longer in memory.
-    return NULL;
+    return nullptr;
   }
   return chunk->GetEventAt(event_index);
 }
@@ -59,14 +60,20 @@ void InternalTraceBuffer::Flush(bool blocking) {
       for (size_t i = 0; i < total_chunks_; ++i) {
         auto& chunk = chunks_[i];
         for (size_t j = 0; j < chunk->size(); ++j) {
-          trace_writer_->AppendTraceEvent(chunk->GetEventAt(j));
+          TraceObject* trace_event = chunk->GetEventAt(j);
+          // Another thread may have added a trace that is yet to be
+          // initialized. Skip such traces.
+          // https://github.com/nodejs/node/issues/21038.
+          if (trace_event->name()) {
+            agent_->AppendTraceEvent(trace_event);
+          }
         }
       }
       total_chunks_ = 0;
       flushing_ = false;
     }
   }
-  trace_writer_->Flush(blocking);
+  agent_->Flush(blocking);
 }
 
 uint64_t InternalTraceBuffer::MakeHandle(
@@ -87,10 +94,10 @@ void InternalTraceBuffer::ExtractHandle(
 }
 
 NodeTraceBuffer::NodeTraceBuffer(size_t max_chunks,
-    NodeTraceWriter* trace_writer, uv_loop_t* tracing_loop)
-    : tracing_loop_(tracing_loop), trace_writer_(trace_writer),
-      buffer1_(max_chunks, 0, trace_writer),
-      buffer2_(max_chunks, 1, trace_writer) {
+    Agent* agent, uv_loop_t* tracing_loop)
+    : tracing_loop_(tracing_loop),
+      buffer1_(max_chunks, 0, agent),
+      buffer2_(max_chunks, 1, agent) {
   current_buf_.store(&buffer1_);
 
   flush_signal_.data = this;
@@ -134,7 +141,7 @@ bool NodeTraceBuffer::Flush() {
 }
 
 // Attempts to set current_buf_ such that it references a buffer that can
-// can write at least one trace event. If both buffers are unavailable this
+// write at least one trace event. If both buffers are unavailable this
 // method returns false; otherwise it returns true.
 bool NodeTraceBuffer::TryLoadAvailableBuffer() {
   InternalTraceBuffer* prev_buf = current_buf_.load();
@@ -164,15 +171,25 @@ void NodeTraceBuffer::NonBlockingFlushSignalCb(uv_async_t* signal) {
 
 // static
 void NodeTraceBuffer::ExitSignalCb(uv_async_t* signal) {
-  NodeTraceBuffer* buffer = reinterpret_cast<NodeTraceBuffer*>(signal->data);
-  uv_close(reinterpret_cast<uv_handle_t*>(&buffer->flush_signal_), nullptr);
-  uv_close(reinterpret_cast<uv_handle_t*>(&buffer->exit_signal_),
+  NodeTraceBuffer* buffer =
+      ContainerOf(&NodeTraceBuffer::exit_signal_, signal);
+
+  // Close both flush_signal_ and exit_signal_.
+  uv_close(reinterpret_cast<uv_handle_t*>(&buffer->flush_signal_),
            [](uv_handle_t* signal) {
+    NodeTraceBuffer* buffer =
+        ContainerOf(&NodeTraceBuffer::flush_signal_,
+                    reinterpret_cast<uv_async_t*>(signal));
+
+    uv_close(reinterpret_cast<uv_handle_t*>(&buffer->exit_signal_),
+             [](uv_handle_t* signal) {
       NodeTraceBuffer* buffer =
-          reinterpret_cast<NodeTraceBuffer*>(signal->data);
-      Mutex::ScopedLock scoped_lock(buffer->exit_mutex_);
-      buffer->exited_ = true;
-      buffer->exit_cond_.Signal(scoped_lock);
+          ContainerOf(&NodeTraceBuffer::exit_signal_,
+                      reinterpret_cast<uv_async_t*>(signal));
+        Mutex::ScopedLock scoped_lock(buffer->exit_mutex_);
+        buffer->exited_ = true;
+        buffer->exit_cond_.Signal(scoped_lock);
+    });
   });
 }
 

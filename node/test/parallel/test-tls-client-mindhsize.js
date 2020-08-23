@@ -5,18 +5,16 @@ if (!common.hasCrypto)
 
 const assert = require('assert');
 const tls = require('tls');
-const fs = require('fs');
+const fixtures = require('../common/fixtures');
 
-const key = fs.readFileSync(`${common.fixturesDir}/keys/agent2-key.pem`);
-const cert = fs.readFileSync(`${common.fixturesDir}/keys/agent2-cert.pem`);
+const key = fixtures.readKey('agent2-key.pem');
+const cert = fixtures.readKey('agent2-cert.pem');
 
 let nsuccess = 0;
 let nerror = 0;
 
 function loadDHParam(n) {
-  let path = common.fixturesDir;
-  if (n !== 'error') path += '/keys';
-  return fs.readFileSync(`${path}/dh${n}.pem`);
+  return fixtures.readKey(`dh${n}.pem`);
 }
 
 function test(size, err, next) {
@@ -51,8 +49,7 @@ function test(size, err, next) {
     if (err) {
       client.on('error', function(e) {
         nerror++;
-        assert.strictEqual(e.message,
-                           'DH parameter size 1024 is less than 2048');
+        assert.strictEqual(e.code, 'ERR_TLS_DH_PARAM_SIZE');
         server.close();
       });
     }

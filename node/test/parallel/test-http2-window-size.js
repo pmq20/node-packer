@@ -1,4 +1,3 @@
-// Flags: --expose-http2
 'use strict';
 
 // This test ensures that servers are able to send data independent of window
@@ -67,7 +66,7 @@ function run(buffers, initialWindowSize) {
             const actualBuffer = Buffer.concat(responses);
             assert.strictEqual(Buffer.compare(actualBuffer, expectedBuffer), 0);
             // shut down
-            client.destroy();
+            client.close();
             server.close(() => {
               resolve();
             });

@@ -23,8 +23,8 @@
 require('../common');
 const assert = require('assert');
 const Process = process.binding('process_wrap').Process;
-const Pipe = process.binding('pipe_wrap').Pipe;
-const pipe = new Pipe();
+const { Pipe, constants: PipeConstants } = process.binding('pipe_wrap');
+const pipe = new Pipe(PipeConstants.SOCKET);
 const p = new Process();
 
 let processExited = false;
@@ -36,8 +36,8 @@ p.onexit = function(exitCode, signal) {
   p.close();
   pipe.readStart();
 
-  assert.strictEqual(0, exitCode);
-  assert.strictEqual('', signal);
+  assert.strictEqual(exitCode, 0);
+  assert.strictEqual(signal, '');
 
   processExited = true;
 };

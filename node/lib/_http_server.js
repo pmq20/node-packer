@@ -23,23 +23,41 @@
 
 const util = require('util');
 const net = require('net');
-const HTTPParser = process.binding('http_parser').HTTPParser;
+const { HTTPParser } = internalBinding('http_parser');
 const assert = require('assert').ok;
-const common = require('_http_common');
-const parsers = common.parsers;
-const freeParser = common.freeParser;
-const debug = common.debug;
-const CRLF = common.CRLF;
-const continueExpression = common.continueExpression;
-const chunkExpression = common.chunkExpression;
-const httpSocketSetup = common.httpSocketSetup;
-const OutgoingMessage = require('_http_outgoing').OutgoingMessage;
-const { outHeadersKey, ondrain } = require('internal/http');
+const {
+  parsers,
+  freeParser,
+  debug,
+  CRLF,
+  continueExpression,
+  chunkExpression,
+  httpSocketSetup,
+  kIncomingMessage,
+  _checkInvalidHeaderChar: checkInvalidHeaderChar
+} = require('_http_common');
+const { OutgoingMessage } = require('_http_outgoing');
+const { outHeadersKey, ondrain, nowDate } = require('internal/http');
+const {
+  defaultTriggerAsyncIdScope,
+  getOrSetAsyncId
+} = require('internal/async_hooks');
+const is_reused_symbol = require('internal/freelist').symbols.is_reused_symbol;
+const { IncomingMessage } = require('_http_incoming');
+const {
+  ERR_HTTP_HEADERS_SENT,
+  ERR_HTTP_INVALID_STATUS_CODE,
+  ERR_INVALID_CHAR
+} = require('internal/errors').codes;
+const Buffer = require('buffer').Buffer;
+
+const kServerResponse = Symbol('ServerResponse');
 
 const STATUS_CODES = {
   100: 'Continue',
   101: 'Switching Protocols',
   102: 'Processing',                 // RFC 2518, obsoleted by RFC 4918
+  103: 'Early Hints',
   200: 'OK',
   201: 'Created',
   202: 'Accepted',
@@ -50,7 +68,7 @@ const STATUS_CODES = {
   207: 'Multi-Status',               // RFC 4918
   208: 'Already Reported',
   226: 'IM Used',
-  300: 'Multiple Choices',
+  300: 'Multiple Choices',           // RFC 7231
   301: 'Moved Permanently',
   302: 'Found',
   303: 'See Other',
@@ -76,7 +94,7 @@ const STATUS_CODES = {
   415: 'Unsupported Media Type',
   416: 'Range Not Satisfiable',
   417: 'Expectation Failed',
-  418: 'I\'m a teapot',              // RFC 2324
+  418: 'I\'m a Teapot',              // RFC 7168
   421: 'Misdirected Request',
   422: 'Unprocessable Entity',       // RFC 4918
   423: 'Locked',                     // RFC 4918
@@ -122,7 +140,6 @@ util.inherits(ServerResponse, OutgoingMessage);
 
 ServerResponse.prototype._finish = function _finish() {
   DTRACE_HTTP_SERVER_RESPONSE(this.connection);
-  LTTNG_HTTP_SERVER_RESPONSE(this.connection);
   COUNTER_HTTP_SERVER_RESPONSE();
   OutgoingMessage.prototype._finish.call(this);
 };
@@ -171,8 +188,12 @@ ServerResponse.prototype.detachSocket = function detachSocket(socket) {
 };
 
 ServerResponse.prototype.writeContinue = function writeContinue(cb) {
-  this._writeRaw('HTTP/1.1 100 Continue' + CRLF + CRLF, 'ascii', cb);
+  this._writeRaw(`HTTP/1.1 100 Continue${CRLF}${CRLF}`, 'ascii', cb);
   this._sent100 = true;
+};
+
+ServerResponse.prototype.writeProcessing = function writeProcessing(cb) {
+  this._writeRaw(`HTTP/1.1 102 Processing${CRLF}${CRLF}`, 'ascii', cb);
 };
 
 ServerResponse.prototype._implicitHeader = function _implicitHeader() {
@@ -184,8 +205,10 @@ function writeHead(statusCode, reason, obj) {
   var originalStatusCode = statusCode;
 
   statusCode |= 0;
-  if (statusCode < 100 || statusCode > 999)
-    throw new RangeError(`Invalid status code: ${originalStatusCode}`);
+  if (statusCode < 100 || statusCode > 999) {
+    throw new ERR_HTTP_INVALID_STATUS_CODE(originalStatusCode);
+  }
+
 
   if (typeof reason === 'string') {
     // writeHead(statusCode, reasonPhrase[, headers])
@@ -209,11 +232,8 @@ function writeHead(statusCode, reason, obj) {
         if (k) this.setHeader(k, obj[k]);
       }
     }
-    if (k === undefined) {
-      if (this._header) {
-        throw new Error('Can\'t render headers after they are sent to the ' +
-                        'client');
-      }
+    if (k === undefined && this._header) {
+      throw new ERR_HTTP_HEADERS_SENT('render');
     }
     // only progressive api is used
     headers = this[outHeadersKey];
@@ -222,10 +242,10 @@ function writeHead(statusCode, reason, obj) {
     headers = obj;
   }
 
-  if (common._checkInvalidHeaderChar(this.statusMessage))
-    throw new Error('Invalid character in statusMessage.');
+  if (checkInvalidHeaderChar(this.statusMessage))
+    throw new ERR_INVALID_CHAR('statusMessage');
 
-  var statusLine = 'HTTP/1.1 ' + statusCode + ' ' + this.statusMessage + CRLF;
+  var statusLine = `HTTP/1.1 ${statusCode} ${this.statusMessage}${CRLF}`;
 
   if (statusCode === 204 || statusCode === 304 ||
       (statusCode >= 100 && statusCode <= 199)) {
@@ -254,9 +274,19 @@ function writeHead(statusCode, reason, obj) {
 // Docs-only deprecated: DEP0063
 ServerResponse.prototype.writeHeader = ServerResponse.prototype.writeHead;
 
+function Server(options, requestListener) {
+  if (!(this instanceof Server)) return new Server(options, requestListener);
 
-function Server(requestListener) {
-  if (!(this instanceof Server)) return new Server(requestListener);
+  if (typeof options === 'function') {
+    requestListener = options;
+    options = {};
+  } else if (options == null || typeof options === 'object') {
+    options = util._extend({}, options);
+  }
+
+  this[kIncomingMessage] = options.IncomingMessage || IncomingMessage;
+  this[kServerResponse] = options.ServerResponse || ServerResponse;
+
   net.Server.call(this, { allowHalfOpen: true });
 
   if (requestListener) {
@@ -272,8 +302,8 @@ function Server(requestListener) {
 
   this.timeout = 2 * 60 * 1000;
   this.keepAliveTimeout = 5000;
-  this._pendingResponseData = 0;
   this.maxHeadersCount = null;
+  this.headersTimeout = 40 * 1000; // 40 seconds
 }
 util.inherits(Server, net.Server);
 
@@ -287,6 +317,12 @@ Server.prototype.setTimeout = function setTimeout(msecs, callback) {
 
 
 function connectionListener(socket) {
+  defaultTriggerAsyncIdScope(
+    getOrSetAsyncId(socket), connectionListenerInternal, this, socket
+  );
+}
+
+function connectionListenerInternal(server, socket) {
   debug('SERVER new http connection');
 
   httpSocketSetup(socket);
@@ -294,27 +330,26 @@ function connectionListener(socket) {
   // Ensure that the server property of the socket is correctly set.
   // See https://github.com/nodejs/node/issues/13435
   if (socket.server === null)
-    socket.server = this;
+    socket.server = server;
 
   // If the user has added a listener to the server,
   // request, or response, then it's their responsibility.
   // otherwise, destroy on timeout by default
-  if (this.timeout)
-    socket.setTimeout(this.timeout);
+  if (server.timeout && typeof socket.setTimeout === 'function')
+    socket.setTimeout(server.timeout);
   socket.on('timeout', socketOnTimeout);
 
   var parser = parsers.alloc();
-  parser.reinitialize(HTTPParser.REQUEST);
+  parser.reinitialize(HTTPParser.REQUEST, parser[is_reused_symbol]);
   parser.socket = socket;
+
+  // We are starting to wait for our headers.
+  parser.parsingHeadersStart = nowDate();
   socket.parser = parser;
-  parser.incoming = null;
 
   // Propagate headers limit from server instance to parser
-  if (typeof this.maxHeadersCount === 'number') {
-    parser.maxHeaderPairs = this.maxHeadersCount << 1;
-  } else {
-    // Set default value because parser may be reused from FreeList
-    parser.maxHeaderPairs = 2000;
+  if (typeof server.maxHeadersCount === 'number') {
+    parser.maxHeaderPairs = server.maxHeadersCount << 1;
   }
 
   var state = {
@@ -331,8 +366,8 @@ function connectionListener(socket) {
     outgoingData: 0,
     keepAliveTimeoutSet: false
   };
-  state.onData = socketOnData.bind(undefined, this, socket, parser, state);
-  state.onEnd = socketOnEnd.bind(undefined, this, socket, parser, state);
+  state.onData = socketOnData.bind(undefined, server, socket, parser, state);
+  state.onEnd = socketOnEnd.bind(undefined, server, socket, parser, state);
   state.onClose = socketOnClose.bind(undefined, socket, state);
   state.onDrain = socketOnDrain.bind(undefined, socket, state);
   socket.on('data', state.onData);
@@ -340,7 +375,7 @@ function connectionListener(socket) {
   socket.on('end', state.onEnd);
   socket.on('close', state.onClose);
   socket.on('drain', state.onDrain);
-  parser.onIncoming = parserOnIncoming.bind(undefined, this, socket, state);
+  parser.onIncoming = parserOnIncoming.bind(undefined, server, socket, state);
 
   // We are consuming socket, so it won't get any actual data
   socket.on('resume', onSocketResume);
@@ -350,14 +385,16 @@ function connectionListener(socket) {
   socket.on = socketOnWrap;
 
   // We only consume the socket if it has never been consumed before.
-  var external = socket._handle._externalStream;
-  if (!socket._handle._consumed && external) {
-    parser._consumed = true;
-    socket._handle._consumed = true;
-    parser.consume(external);
+  if (socket._handle) {
+    var external = socket._handle._externalStream;
+    if (!socket._handle._consumed && external) {
+      parser._consumed = true;
+      socket._handle._consumed = true;
+      parser.consume(external);
+    }
   }
   parser[kOnExecute] =
-    onParserExecute.bind(undefined, this, socket, parser, state);
+    onParserExecute.bind(undefined, server, socket, parser, state);
 
   socket._paused = false;
 }
@@ -366,13 +403,13 @@ function connectionListener(socket) {
 function updateOutgoingData(socket, state, delta) {
   state.outgoingData += delta;
   if (socket._paused &&
-      state.outgoingData < socket._writableState.highWaterMark) {
+      state.outgoingData < socket.writableHighWaterMark) {
     return socketOnDrain(socket, state);
   }
 }
 
 function socketOnDrain(socket, state) {
-  var needPause = state.outgoingData > socket._writableState.highWaterMark;
+  var needPause = state.outgoingData > socket.writableHighWaterMark;
 
   // If we previously paused, then start reading again.
   if (socket._paused && !needPause) {
@@ -407,6 +444,7 @@ function socketOnClose(socket, state) {
 function abortIncoming(incoming) {
   while (incoming.length) {
     var req = incoming.shift();
+    req.aborted = true;
     req.emit('aborted');
     req.emit('close');
   }
@@ -429,8 +467,8 @@ function socketOnEnd(server, socket, parser, state) {
     state.outgoing[state.outgoing.length - 1]._last = true;
   } else if (socket._httpMessage) {
     socket._httpMessage._last = true;
-  } else {
-    if (socket.writable) socket.end();
+  } else if (socket.writable) {
+    socket.end();
   }
 }
 
@@ -442,25 +480,48 @@ function socketOnData(server, socket, parser, state, d) {
   onParserExecuteCommon(server, socket, parser, state, ret, d);
 }
 
-function onParserExecute(server, socket, parser, state, ret, d) {
+function onParserExecute(server, socket, parser, state, ret) {
   socket._unrefTimer();
+  const start = parser.parsingHeadersStart;
   debug('SERVER socketOnParserExecute %d', ret);
+
+  // If we have not parsed the headers, destroy the socket
+  // after server.headersTimeout to protect from DoS attacks.
+  // start === 0 means that we have parsed headers.
+  if (start !== 0 && nowDate() - start > server.headersTimeout) {
+    const serverTimeout = server.emit('timeout', socket);
+
+    if (!serverTimeout)
+      socket.destroy();
+    return;
+  }
+
   onParserExecuteCommon(server, socket, parser, state, ret, undefined);
 }
 
+const noop = () => {};
+const badRequestResponse = Buffer.from(
+  `HTTP/1.1 400 ${STATUS_CODES[400]}${CRLF}` +
+  `Connection: close${CRLF}${CRLF}`, 'ascii'
+);
 function socketOnError(e) {
   // Ignore further errors
   this.removeListener('error', socketOnError);
-  this.on('error', () => {});
+  this.on('error', noop);
 
-  if (!this.server.emit('clientError', e, this))
+  if (!this.server.emit('clientError', e, this)) {
+    if (this.writable) {
+      this.write(badRequestResponse);
+    }
     this.destroy(e);
+  }
 }
 
 function onParserExecuteCommon(server, socket, parser, state, ret, d) {
   resetSocketTimeout(server, socket, state);
 
   if (ret instanceof Error) {
+    ret.rawPacket = d || parser.getCurrentBuffer();
     debug('parse error', ret);
     socketOnError.call(socket, ret);
   } else if (parser.incoming && parser.incoming.upgrade) {
@@ -477,22 +538,21 @@ function onParserExecuteCommon(server, socket, parser, state, ret, d) {
     socket.removeListener('close', state.onClose);
     socket.removeListener('drain', state.onDrain);
     socket.removeListener('drain', ondrain);
+    socket.removeListener('error', socketOnError);
     unconsume(parser, socket);
     parser.finish();
-    freeParser(parser, req, null);
+    freeParser(parser, req, socket);
     parser = null;
 
     var eventName = req.method === 'CONNECT' ? 'connect' : 'upgrade';
-    if (server.listenerCount(eventName) > 0) {
+    if (eventName === 'upgrade' || server.listenerCount(eventName) > 0) {
       debug('SERVER have listener for %s', eventName);
       var bodyHead = d.slice(bytesParsed, d.length);
 
-      // TODO(isaacs): Need a way to reset a stream to fresh state
-      // IE, not flowing, and not explicitly paused.
-      socket._readableState.flowing = null;
+      socket.readableFlowing = null;
       server.emit(eventName, req, socket, bodyHead);
     } else {
-      // Got upgrade header or CONNECT method, but have no handler.
+      // Got CONNECT method, but have no handler.
       socket.destroy();
     }
   }
@@ -521,9 +581,13 @@ function resOnFinish(req, res, socket, state, server) {
   res.detachSocket(socket);
 
   if (res._last) {
-    socket.destroySoon();
+    if (typeof socket.destroySoon === 'function') {
+      socket.destroySoon();
+    } else {
+      socket.end();
+    }
   } else if (state.outgoing.length === 0) {
-    if (server.keepAliveTimeout) {
+    if (server.keepAliveTimeout && typeof socket.setTimeout === 'function') {
       socket.setTimeout(0);
       socket.setTimeout(server.keepAliveTimeout);
       state.keepAliveTimeoutSet = true;
@@ -543,6 +607,20 @@ function resOnFinish(req, res, socket, state, server) {
 function parserOnIncoming(server, socket, state, req, keepAlive) {
   resetSocketTimeout(server, socket, state);
 
+  if (server.keepAliveTimeout > 0) {
+    req.on('end', resetHeadersTimeoutOnReqEnd);
+  }
+
+  // Set to zero to communicate that we have finished parsing.
+  socket.parser.parsingHeadersStart = 0;
+
+  if (req.upgrade) {
+    req.upgrade = req.method === 'CONNECT' ||
+                  server.listenerCount('upgrade') > 0;
+    if (req.upgrade)
+      return 2;
+  }
+
   state.incoming.push(req);
 
   // If the writable end isn't consuming, then stop reading
@@ -550,7 +628,7 @@ function parserOnIncoming(server, socket, state, req, keepAlive) {
   // pipelined requests that may never be resolved.
   if (!socket._paused) {
     var ws = socket._writableState;
-    if (ws.needDrain || state.outgoingData >= ws.highWaterMark) {
+    if (ws.needDrain || state.outgoingData >= socket.writableHighWaterMark) {
       socket._paused = true;
       // We also need to pause the parser, but don't do that until after
       // the call to execute, because we may still be processing the last
@@ -559,12 +637,11 @@ function parserOnIncoming(server, socket, state, req, keepAlive) {
     }
   }
 
-  var res = new ServerResponse(req);
+  var res = new server[kServerResponse](req);
   res._onPendingData = updateOutgoingData.bind(undefined, socket, state);
 
   res.shouldKeepAlive = keepAlive;
   DTRACE_HTTP_SERVER_REQUEST(req, socket);
-  LTTNG_HTTP_SERVER_REQUEST(req, socket);
   COUNTER_HTTP_SERVER_REQUEST();
 
   if (socket._httpMessage) {
@@ -590,18 +667,16 @@ function parserOnIncoming(server, socket, state, req, keepAlive) {
         res.writeContinue();
         server.emit('request', req, res);
       }
+    } else if (server.listenerCount('checkExpectation') > 0) {
+      server.emit('checkExpectation', req, res);
     } else {
-      if (server.listenerCount('checkExpectation') > 0) {
-        server.emit('checkExpectation', req, res);
-      } else {
-        res.writeHead(417);
-        res.end();
-      }
+      res.writeHead(417);
+      res.end();
     }
   } else {
     server.emit('request', req, res);
   }
-  return false; // Not a HEAD response. (Not even a response!)
+  return 0;  // No special treatment.
 }
 
 function resetSocketTimeout(server, socket, state) {
@@ -640,7 +715,7 @@ function onSocketPause() {
 function unconsume(parser, socket) {
   if (socket._handle) {
     if (parser._consumed)
-      parser.unconsume(socket._handle._externalStream);
+      parser.unconsume();
     parser._consumed = false;
     socket.removeListener('pause', onSocketPause);
     socket.removeListener('resume', onSocketResume);
@@ -660,9 +735,21 @@ function socketOnWrap(ev, fn) {
   return res;
 }
 
+function resetHeadersTimeoutOnReqEnd() {
+  debug('resetHeadersTimeoutOnReqEnd');
+
+  const parser = this.socket.parser;
+  // Parser can be null if the socket was destroyed
+  // in that case, there is nothing to do.
+  if (parser) {
+    parser.parsingHeadersStart = nowDate();
+  }
+}
+
 module.exports = {
   STATUS_CODES,
   Server,
   ServerResponse,
-  _connectionListener: connectionListener
+  _connectionListener: connectionListener,
+  kServerResponse
 };

@@ -39,6 +39,46 @@ for (let i = 1; i <= 16; i++) {
 
 encodings.forEach(testEncoding);
 
+testEnd('utf8', Buffer.of(0xE2), Buffer.of(0x61), '\uFFFDa');
+testEnd('utf8', Buffer.of(0xE2), Buffer.of(0x82), '\uFFFD\uFFFD');
+testEnd('utf8', Buffer.of(0xE2), Buffer.of(0xE2), '\uFFFD\uFFFD');
+testEnd('utf8', Buffer.of(0xE2, 0x82), Buffer.of(0x61), '\uFFFDa');
+testEnd('utf8', Buffer.of(0xE2, 0x82), Buffer.of(0xAC), '\uFFFD\uFFFD');
+testEnd('utf8', Buffer.of(0xE2, 0x82), Buffer.of(0xE2), '\uFFFD\uFFFD');
+testEnd('utf8', Buffer.of(0xE2, 0x82, 0xAC), Buffer.of(0x61), '€a');
+
+testEnd('utf16le', Buffer.of(0x3D), Buffer.of(0x61, 0x00), 'a');
+testEnd('utf16le', Buffer.of(0x3D), Buffer.of(0xD8, 0x4D, 0xDC), '\u4DD8');
+testEnd('utf16le', Buffer.of(0x3D, 0xD8), Buffer.of(), '\uD83D');
+testEnd('utf16le', Buffer.of(0x3D, 0xD8), Buffer.of(0x61, 0x00), '\uD83Da');
+testEnd(
+  'utf16le',
+  Buffer.of(0x3D, 0xD8),
+  Buffer.of(0x4D, 0xDC),
+  '\uD83D\uDC4D'
+);
+testEnd('utf16le', Buffer.of(0x3D, 0xD8, 0x4D), Buffer.of(), '\uD83D');
+testEnd(
+  'utf16le',
+  Buffer.of(0x3D, 0xD8, 0x4D),
+  Buffer.of(0x61, 0x00),
+  '\uD83Da'
+);
+testEnd('utf16le', Buffer.of(0x3D, 0xD8, 0x4D), Buffer.of(0xDC), '\uD83D');
+testEnd(
+  'utf16le',
+  Buffer.of(0x3D, 0xD8, 0x4D, 0xDC),
+  Buffer.of(0x61, 0x00),
+  '👍a'
+);
+
+testEnd('base64', Buffer.of(0x61), Buffer.of(), 'YQ==');
+testEnd('base64', Buffer.of(0x61), Buffer.of(0x61), 'YQ==YQ==');
+testEnd('base64', Buffer.of(0x61, 0x61), Buffer.of(), 'YWE=');
+testEnd('base64', Buffer.of(0x61, 0x61), Buffer.of(0x61), 'YWE=YQ==');
+testEnd('base64', Buffer.of(0x61, 0x61, 0x61), Buffer.of(), 'YWFh');
+testEnd('base64', Buffer.of(0x61, 0x61, 0x61), Buffer.of(0x61), 'YWFhYQ==');
+
 function testEncoding(encoding) {
   bufs.forEach((buf) => {
     testBuf(encoding, buf);
@@ -63,6 +103,19 @@ function testBuf(encoding, buf) {
   // .toString() on the buffer
   const res3 = buf.toString(encoding);
 
-  assert.strictEqual(res1, res3, 'one byte at a time should match toString');
-  assert.strictEqual(res2, res3, 'all bytes at once should match toString');
+  // One byte at a time should match toString
+  assert.strictEqual(res1, res3);
+  // All bytes at once should match toString
+  assert.strictEqual(res2, res3);
+}
+
+function testEnd(encoding, incomplete, next, expected) {
+  let res = '';
+  const s = new SD(encoding);
+  res += s.write(incomplete);
+  res += s.end();
+  res += s.write(next);
+  res += s.end();
+
+  assert.strictEqual(res, expected);
 }

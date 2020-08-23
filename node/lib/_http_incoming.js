@@ -38,11 +38,6 @@ function readStop(socket) {
 function IncomingMessage(socket) {
   Stream.Readable.call(this);
 
-  // Set this to `true` so that stream.Readable won't attempt to read more
-  // data on `IncomingMessage#push` (see `maybeReadMore` in
-  // `_stream_readable.js`). This is important for proper tracking of
-  // `IncomingMessage#_consuming` which is used to dump requests that users
-  // haven't attempted to read.
   this._readableState.readingMore = true;
 
   this.socket = socket;
@@ -59,6 +54,8 @@ function IncomingMessage(socket) {
 
   this.readable = true;
 
+  this.aborted = false;
+
   this.upgrade = null;
 
   // request (server) only
@@ -70,9 +67,7 @@ function IncomingMessage(socket) {
   this.statusMessage = null;
   this.client = socket;
 
-  // flag for backwards compatibility grossness.
   this._consuming = false;
-
   // flag for when we decide that this message cannot possibly be
   // read by the user, so there's no point continuing to handle it.
   this._dumped = false;
@@ -88,16 +83,12 @@ IncomingMessage.prototype.setTimeout = function setTimeout(msecs, callback) {
 };
 
 
-IncomingMessage.prototype.read = function read(n) {
-  if (!this._consuming)
-    this._readableState.readingMore = false;
-  this._consuming = true;
-  this.read = Stream.Readable.prototype.read;
-  return this.read(n);
-};
-
-
 IncomingMessage.prototype._read = function _read(n) {
+  if (!this._consuming) {
+    this._readableState.readingMore = false;
+    this._consuming = true;
+  }
+
   // We actually do almost nothing here, because the parserOnBody
   // function fills up our internal buffer directly.  However, we
   // do need to unpause the underlying socket so that it flows.
@@ -301,10 +292,9 @@ function _addHeaderLine(field, value, dest) {
     } else {
       dest['set-cookie'] = [value];
     }
-  } else {
+  } else if (dest[field] === undefined) {
     // Drop duplicates
-    if (dest[field] === undefined)
-      dest[field] = value;
+    dest[field] = value;
   }
 }
 

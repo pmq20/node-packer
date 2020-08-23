@@ -1,4 +1,3 @@
-// Flags: --expose-http2
 'use strict';
 
 const common = require('../common');
@@ -15,15 +14,24 @@ server.on('stream', common.mustCall((stream, headers) => {
       ':scheme': 'http',
       ':path': '/foobar',
       ':authority': `localhost:${port}`,
-    }, (push, headers) => {
+    }, common.mustCall((err, push, headers) => {
+      assert.ifError(err);
       push.respond({
         'content-type': 'text/html',
         ':status': 200,
         'x-push-data': 'pushed by server',
       });
       push.end('pushed by server data');
+
+      common.expectsError(() => {
+        push.pushStream({}, common.mustNotCall());
+      }, {
+        code: 'ERR_HTTP2_NESTED_PUSH',
+        type: Error
+      });
+
       stream.end('test');
-    });
+    }));
   }
   stream.respond({
     'content-type': 'text/html',
@@ -46,6 +54,7 @@ server.listen(0, common.mustCall(() => {
       assert.strictEqual(headers['content-type'], 'text/html');
       assert.strictEqual(headers['x-push-data'], 'pushed by server');
     }));
+    stream.on('aborted', common.mustNotCall());
   }));
 
   let data = '';
@@ -54,7 +63,7 @@ server.listen(0, common.mustCall(() => {
   req.on('end', common.mustCall(() => {
     assert.strictEqual(data, 'test');
     server.close();
-    client.destroy();
+    client.close();
   }));
   req.end();
 }));

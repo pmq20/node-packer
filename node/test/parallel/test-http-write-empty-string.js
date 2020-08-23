@@ -28,7 +28,7 @@ const http = require('http');
 const server = http.createServer(function(request, response) {
   console.log(`responding to ${request.url}`);
 
-  response.writeHead(200, {'Content-Type': 'text/plain'});
+  response.writeHead(200, { 'Content-Type': 'text/plain' });
   response.write('1\n');
   response.write('');
   response.write('2\n');
@@ -38,17 +38,17 @@ const server = http.createServer(function(request, response) {
   this.close();
 });
 
-server.listen(0, common.mustCall(function() {
-  http.get({ port: this.address().port }, common.mustCall(function(res) {
+server.listen(0, common.mustCall(() => {
+  http.get({ port: server.address().port }, common.mustCall((res) => {
     let response = '';
 
-    assert.strictEqual(200, res.statusCode);
+    assert.strictEqual(res.statusCode, 200);
     res.setEncoding('ascii');
-    res.on('data', function(chunk) {
+    res.on('data', (chunk) => {
       response += chunk;
     });
-    res.on('end', common.mustCall(function() {
-      assert.strictEqual('1\n2\n3\n', response);
+    res.on('end', common.mustCall(() => {
+      assert.strictEqual(response, '1\n2\n3\n');
     }));
   }));
 }));

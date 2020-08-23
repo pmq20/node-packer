@@ -5,15 +5,13 @@ const fs = require('fs');
 
 const bench = common.createBenchmark(main, {
   n: [20e4],
-  kind: ['fstat', 'lstat', 'stat']
+  statType: ['fstat', 'lstat', 'stat']
 });
 
 
-function main(conf) {
-  const n = conf.n >>> 0;
-  const kind = conf.kind;
+function main({ n, statType }) {
   var arg;
-  if (kind === 'fstat')
+  if (statType === 'fstat')
     arg = fs.openSync(__filename, 'r');
   else
     arg = __filename;
@@ -22,12 +20,12 @@ function main(conf) {
   (function r(cntr, fn) {
     if (cntr-- <= 0) {
       bench.end(n);
-      if (kind === 'fstat')
+      if (statType === 'fstat')
         fs.closeSync(arg);
       return;
     }
     fn(arg, function() {
       r(cntr, fn);
     });
-  }(n, fs[kind]));
+  }(n, fs[statType]));
 }

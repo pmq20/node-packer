@@ -28,9 +28,9 @@ const URL = url.URL;
 const testPath = '/foo?bar';
 
 const server = http.createServer(common.mustCall((req, res) => {
-  assert.strictEqual('GET', req.method);
-  assert.strictEqual(testPath, req.url);
-  res.writeHead(200, {'Content-Type': 'text/plain'});
+  assert.strictEqual(req.method, 'GET');
+  assert.strictEqual(req.url, testPath);
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
   res.write('hello\n');
   res.end();
 }, 3));

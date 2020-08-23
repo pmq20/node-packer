@@ -22,35 +22,56 @@
 'use strict';
 const common = require('../common');
 const assert = require('assert');
+const util = require('util');
+
+const {
+  hijackStdout,
+  hijackStderr,
+  restoreStdout,
+  restoreStderr
+} = require('../common/hijackstdio');
 
 assert.ok(process.stdout.writable);
 assert.ok(process.stderr.writable);
 // Support legacy API
-assert.strictEqual('number', typeof process.stdout.fd);
-assert.strictEqual('number', typeof process.stderr.fd);
+if (common.isMainThread) {
+  assert.strictEqual(typeof process.stdout.fd, 'number');
+  assert.strictEqual(typeof process.stderr.fd, 'number');
+}
 
-assert.doesNotThrow(function() {
-  process.once('warning', common.mustCall((warning) => {
-    assert(/no such label/.test(warning.message));
-  }));
+common.expectWarning(
+  'Warning',
+  [
+    ['No such label \'nolabel\' for console.timeEnd()', common.noWarnCode],
+    ['No such label \'nolabel\' for console.timeLog()', common.noWarnCode]
+  ]
+);
 
-  console.timeEnd('no such label');
-});
+console.timeEnd('nolabel');
+console.timeLog('nolabel');
 
-assert.doesNotThrow(function() {
-  console.time('label');
-  console.timeEnd('label');
-});
+console.time('label');
+console.timeEnd('label');
 
-// an Object with a custom .inspect() function
-const custom_inspect = { foo: 'bar', inspect: () => 'inspect' };
+// Check that the `Error` is a `TypeError` but do not check the message as it
+// will be different in different JavaScript engines.
+assert.throws(() => console.time(Symbol('test')),
+              TypeError);
+assert.throws(() => console.timeEnd(Symbol('test')),
+              TypeError);
+
+
+// An Object with a custom inspect function.
+const custom_inspect = { foo: 'bar', [util.inspect.custom]: () => 'inspect' };
 
 const strings = [];
 const errStrings = [];
-common.hijackStdout(function(data) {
+process.stdout.isTTY = false;
+hijackStdout(function(data) {
   strings.push(data);
 });
-common.hijackStderr(function(data) {
+process.stderr.isTTY = false;
+hijackStderr(function(data) {
   errStrings.push(data);
 });
 
@@ -58,28 +79,35 @@ common.hijackStderr(function(data) {
 console.log('foo');
 console.log('foo', 'bar');
 console.log('%s %s', 'foo', 'bar', 'hop');
-console.log({slashes: '\\\\'});
+console.log({ slashes: '\\\\' });
 console.log(custom_inspect);
+
+// test console.debug() goes to stdout
+console.debug('foo');
+console.debug('foo', 'bar');
+console.debug('%s %s', 'foo', 'bar', 'hop');
+console.debug({ slashes: '\\\\' });
+console.debug(custom_inspect);
 
 // test console.info() goes to stdout
 console.info('foo');
 console.info('foo', 'bar');
 console.info('%s %s', 'foo', 'bar', 'hop');
-console.info({slashes: '\\\\'});
+console.info({ slashes: '\\\\' });
 console.info(custom_inspect);
 
 // test console.error() goes to stderr
 console.error('foo');
 console.error('foo', 'bar');
 console.error('%s %s', 'foo', 'bar', 'hop');
-console.error({slashes: '\\\\'});
+console.error({ slashes: '\\\\' });
 console.error(custom_inspect);
 
 // test console.warn() goes to stderr
 console.warn('foo');
 console.warn('foo', 'bar');
 console.warn('%s %s', 'foo', 'bar', 'hop');
-console.warn({slashes: '\\\\'});
+console.warn({ slashes: '\\\\' });
 console.warn(custom_inspect);
 
 // test console.dir()
@@ -87,6 +115,14 @@ console.dir(custom_inspect);
 console.dir(custom_inspect, { showHidden: false });
 console.dir({ foo: { bar: { baz: true } } }, { depth: 0 });
 console.dir({ foo: { bar: { baz: true } } }, { depth: 1 });
+
+// test console.dirxml()
+console.dirxml(custom_inspect, custom_inspect);
+console.dirxml(
+  { foo: { bar: { baz: true } } },
+  { foo: { bar: { quux: false } } },
+  { foo: { bar: { quux: true } } }
+);
 
 // test console.trace()
 console.trace('This is a %j %d', { formatted: 'trace' }, 10, 'foo');
@@ -103,10 +139,44 @@ console.timeEnd('constructor');
 console.time('hasOwnProperty');
 console.timeEnd('hasOwnProperty');
 
+// Verify that values are coerced to strings.
+console.time([]);
+console.timeEnd([]);
+console.time({});
+console.timeEnd({});
+// Repeat the object call to verify that everything really worked.
+console.time({});
+console.timeEnd({});
+console.time(null);
+console.timeEnd(null);
+console.time(undefined);
+console.timeEnd('default');
+console.time('default');
+console.timeEnd();
+console.time(NaN);
+console.timeEnd(NaN);
+
+console.time('log1');
+console.timeLog('log1');
+console.timeLog('log1', 'test');
+console.timeLog('log1', {}, [1, 2, 3]);
+console.timeEnd('log1');
+
+console.assert(false, '%s should', 'console.assert', 'not throw');
+assert.strictEqual(errStrings[errStrings.length - 1],
+                   'Assertion failed: console.assert should not throw\n');
+
+console.assert(false);
+assert.strictEqual(errStrings[errStrings.length - 1], 'Assertion failed\n');
+
+console.assert(true, 'this should not throw');
+
+console.assert(true);
+
 assert.strictEqual(strings.length, process.stdout.writeTimes);
 assert.strictEqual(errStrings.length, process.stderr.writeTimes);
-common.restoreStdout();
-common.restoreStderr();
+restoreStdout();
+restoreStderr();
 
 // verify that console.timeEnd() doesn't leave dead links
 const timesMapSize = console._times.size;
@@ -123,47 +193,64 @@ const expectedStrings = [
 ];
 
 for (const expected of expectedStrings) {
-  assert.strictEqual(`${expected}\n`, strings.shift());
-  assert.strictEqual(`${expected}\n`, errStrings.shift());
+  assert.strictEqual(strings.shift(), `${expected}\n`);
+  assert.strictEqual(errStrings.shift(), `${expected}\n`);
 }
 
 for (const expected of expectedStrings) {
-  assert.strictEqual(`${expected}\n`, strings.shift());
-  assert.strictEqual(`${expected}\n`, errStrings.shift());
+  assert.strictEqual(strings.shift(), `${expected}\n`);
+  assert.strictEqual(errStrings.shift(), `${expected}\n`);
 }
 
-assert.strictEqual("{ foo: 'bar', inspect: [Function: inspect] }\n",
-                   strings.shift());
-assert.strictEqual("{ foo: 'bar', inspect: [Function: inspect] }\n",
-                   strings.shift());
+for (const expected of expectedStrings) {
+  assert.strictEqual(strings.shift(), `${expected}\n`);
+}
+
+assert.strictEqual(strings.shift(),
+                   "{ foo: 'bar',\n  [Symbol(nodejs.util.inspect.custom)]: " +
+                    '[Function: [nodejs.util.inspect.custom]] }\n');
+assert.strictEqual(strings.shift(),
+                   "{ foo: 'bar',\n  [Symbol(nodejs.util.inspect.custom)]: " +
+                    '[Function: [nodejs.util.inspect.custom]] }\n');
 assert.ok(strings.shift().includes('foo: [Object]'));
 assert.strictEqual(strings.shift().includes('baz'), false);
+assert.strictEqual(strings.shift(), 'inspect inspect\n');
+assert.ok(strings[0].includes('foo: { bar: { baz:'));
+assert.ok(strings[0].includes('quux'));
+assert.ok(strings.shift().includes('quux: true'));
+
 assert.ok(/^label: \d+\.\d{3}ms$/.test(strings.shift().trim()));
 assert.ok(/^__proto__: \d+\.\d{3}ms$/.test(strings.shift().trim()));
 assert.ok(/^constructor: \d+\.\d{3}ms$/.test(strings.shift().trim()));
 assert.ok(/^hasOwnProperty: \d+\.\d{3}ms$/.test(strings.shift().trim()));
 
-assert.strictEqual('Trace: This is a {"formatted":"trace"} 10 foo',
-                   errStrings.shift().split('\n').shift());
+// verify that console.time() coerces label values to strings as expected
+assert.ok(/^: \d+\.\d{3}ms$/.test(strings.shift().trim()));
+assert.ok(/^\[object Object\]: \d+\.\d{3}ms$/.test(strings.shift().trim()));
+assert.ok(/^\[object Object\]: \d+\.\d{3}ms$/.test(strings.shift().trim()));
+assert.ok(/^null: \d+\.\d{3}ms$/.test(strings.shift().trim()));
+assert.ok(/^default: \d+\.\d{3}ms$/.test(strings.shift().trim()));
+assert.ok(/^default: \d+\.\d{3}ms$/.test(strings.shift().trim()));
+assert.ok(/^NaN: \d+\.\d{3}ms$/.test(strings.shift().trim()));
 
-assert.throws(() => {
-  console.assert(false, 'should throw');
-}, common.expectsError({
-  code: 'ERR_ASSERTION',
-  message: /^should throw$/
-}));
+assert.ok(/^log1: \d+\.\d{3}ms$/.test(strings.shift().trim()));
+assert.ok(/^log1: \d+\.\d{3}ms test$/.test(strings.shift().trim()));
+assert.ok(/^log1: \d+\.\d{3}ms {} \[ 1, 2, 3 ]$/.test(strings.shift().trim()));
+assert.ok(/^log1: \d+\.\d{3}ms$/.test(strings.shift().trim()));
 
-assert.doesNotThrow(() => {
-  console.assert(true, 'this should not throw');
-});
+// Make sure that we checked all strings
+assert.strictEqual(strings.length, 0);
+
+assert.strictEqual(errStrings.shift().split('\n').shift(),
+                   'Trace: This is a {"formatted":"trace"} 10 foo');
 
 // hijack stderr to catch `process.emitWarning` which is using
 // `process.nextTick`
-common.hijackStderr(common.mustCall(function(data) {
-  common.restoreStderr();
+hijackStderr(common.mustCall(function(data) {
+  restoreStderr();
 
   // stderr.write will catch sync error, so use `process.nextTick` here
   process.nextTick(function() {
-    assert.strictEqual(data.includes('no such label'), true);
+    assert.strictEqual(data.includes('nolabel'), true);
   });
 }));

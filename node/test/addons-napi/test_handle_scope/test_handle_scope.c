@@ -3,11 +3,11 @@
 #include <string.h>
 
 // these tests validate the handle scope functions in the normal
-// flow.  Forcing gc behaviour to fully validate they are doing
+// flow.  Forcing gc behavior to fully validate they are doing
 // the right right thing would be quite hard so we keep it
 // simple for now.
 
-napi_value NewScope(napi_env env, napi_callback_info info) {
+static napi_value NewScope(napi_env env, napi_callback_info info) {
   napi_handle_scope scope;
   napi_value output = NULL;
 
@@ -17,7 +17,7 @@ napi_value NewScope(napi_env env, napi_callback_info info) {
   return NULL;
 }
 
-napi_value NewScopeEscape(napi_env env, napi_callback_info info) {
+static napi_value NewScopeEscape(napi_env env, napi_callback_info info) {
   napi_escapable_handle_scope scope;
   napi_value output = NULL;
   napi_value escapee = NULL;
@@ -29,20 +29,22 @@ napi_value NewScopeEscape(napi_env env, napi_callback_info info) {
   return escapee;
 }
 
-napi_value NewScopeEscapeTwice(napi_env env, napi_callback_info info) {
+static napi_value NewScopeEscapeTwice(napi_env env, napi_callback_info info) {
   napi_escapable_handle_scope scope;
   napi_value output = NULL;
   napi_value escapee = NULL;
+  napi_status status;
 
   NAPI_CALL(env, napi_open_escapable_handle_scope(env, &scope));
   NAPI_CALL(env, napi_create_object(env, &output));
   NAPI_CALL(env, napi_escape_handle(env, scope, output, &escapee));
-  NAPI_CALL(env, napi_escape_handle(env, scope, output, &escapee));
+  status = napi_escape_handle(env, scope, output, &escapee);
+  NAPI_ASSERT(env, status == napi_escape_called_twice, "Escaping twice fails");
   NAPI_CALL(env, napi_close_escapable_handle_scope(env, scope));
-  return escapee;
+  return NULL;
 }
 
-napi_value NewScopeWithException(napi_env env, napi_callback_info info) {
+static napi_value NewScopeWithException(napi_env env, napi_callback_info info) {
   napi_handle_scope scope;
   size_t argc;
   napi_value exception_function;
@@ -54,19 +56,19 @@ napi_value NewScopeWithException(napi_env env, napi_callback_info info) {
 
   argc = 1;
   NAPI_CALL(env, napi_get_cb_info(
-    env, info, &argc, &exception_function, NULL, NULL));
+      env, info, &argc, &exception_function, NULL, NULL));
 
-	status = napi_call_function(
-    env, output, exception_function, 0, NULL, NULL);
+  status = napi_call_function(
+      env, output, exception_function, 0, NULL, NULL);
   NAPI_ASSERT(env, status == napi_pending_exception,
-    "Function should have thrown.");
+      "Function should have thrown.");
 
   // Closing a handle scope should still work while an exception is pending.
   NAPI_CALL(env, napi_close_handle_scope(env, scope));
   return NULL;
 }
 
-void Init(napi_env env, napi_value exports, napi_value module, void* priv) {
+static napi_value Init(napi_env env, napi_value exports) {
   napi_property_descriptor properties[] = {
     DECLARE_NAPI_PROPERTY("NewScope", NewScope),
     DECLARE_NAPI_PROPERTY("NewScopeEscape", NewScopeEscape),
@@ -74,8 +76,10 @@ void Init(napi_env env, napi_value exports, napi_value module, void* priv) {
     DECLARE_NAPI_PROPERTY("NewScopeWithException", NewScopeWithException),
   };
 
-  NAPI_CALL_RETURN_VOID(env, napi_define_properties(
-    env, exports, sizeof(properties) / sizeof(*properties), properties));
+  NAPI_CALL(env, napi_define_properties(
+      env, exports, sizeof(properties) / sizeof(*properties), properties));
+
+  return exports;
 }
 
-NAPI_MODULE(addon, Init)
+NAPI_MODULE(NODE_GYP_MODULE_NAME, Init)

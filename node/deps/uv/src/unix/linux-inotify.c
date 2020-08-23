@@ -19,7 +19,7 @@
  */
 
 #include "uv.h"
-#include "tree.h"
+#include "uv/tree.h"
 #include "internal.h"
 
 #include <stdint.h>
@@ -73,11 +73,11 @@ static int new_inotify_fd(void) {
     return fd;
 
   if (errno != ENOSYS)
-    return -errno;
+    return UV__ERR(errno);
 
   fd = uv__inotify_init();
   if (fd == -1)
-    return -errno;
+    return UV__ERR(errno);
 
   err = uv__cloexec(fd, 1);
   if (err == 0)
@@ -278,12 +278,13 @@ int uv_fs_event_start(uv_fs_event_t* handle,
                       const char* path,
                       unsigned int flags) {
   struct watcher_list* w;
+  size_t len;
   int events;
   int err;
   int wd;
 
   if (uv__is_active(handle))
-    return -EINVAL;
+    return UV_EINVAL;
 
   err = init_inotify(handle->loop);
   if (err)
@@ -300,18 +301,19 @@ int uv_fs_event_start(uv_fs_event_t* handle,
 
   wd = uv__inotify_add_watch(handle->loop->inotify_fd, path, events);
   if (wd == -1)
-    return -errno;
+    return UV__ERR(errno);
 
   w = find_watcher(handle->loop, wd);
   if (w)
     goto no_insert;
 
-  w = uv__malloc(sizeof(*w) + strlen(path) + 1);
+  len = strlen(path) + 1;
+  w = uv__malloc(sizeof(*w) + len);
   if (w == NULL)
-    return -ENOMEM;
+    return UV_ENOMEM;
 
   w->wd = wd;
-  w->path = strcpy((char*)(w + 1), path);
+  w->path = memcpy(w + 1, path, len);
   QUEUE_INIT(&w->watchers);
   w->iterating = 0;
   RB_INSERT(watcher_root, CAST(&handle->loop->inotify_watchers), w);

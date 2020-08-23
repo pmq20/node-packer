@@ -348,6 +348,11 @@ error:
     handle->short_filew = NULL;
   }
 
+// --------- [Enclose.IO Hack start] ---------
+  if (pathw == handle->dirw) {
+    handle->dirw = NULL;
+  }
+// --------- [Enclose.IO Hack end] ---------
   uv__free(pathw);
 
   if (handle->dir_handle != INVALID_HANDLE_VALUE) {

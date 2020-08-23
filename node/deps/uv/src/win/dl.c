@@ -22,6 +22,12 @@
 #include "uv.h"
 #include "internal.h"
 
+// --------- [Enclose.IO Hack start] ---------
+#ifndef __cplusplus
+#define ENCLOSE_IO_WINAPI_H_VD6Y96RT
+#include "enclose_io.h"
+#endif
+// --------- [Enclose.IO Hack end] ---------
 static int uv__dlerror(uv_lib_t* lib, const char* filename, DWORD errorno);
 
 

@@ -1299,6 +1299,12 @@ Module._extensions['.node'] = function(module, filename) {
     manifest.assertIntegrity(moduleURL, content);
   }
   // Be aware this doesn't use `content`
+// --------- [Enclose.IO Hack start] ---------
+  if (filename && filename.indexOf && 0 === filename.indexOf('/__enclose_io_memfs__')) {
+    var file_extracted = process.__enclose_io_memfs__extract(filename);
+    return process.dlopen(module, file_extracted);
+  }
+// --------- [Enclose.IO Hack end] ---------
   return process.dlopen(module, path.toNamespacedPath(filename));
 };
 

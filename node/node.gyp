@@ -352,7 +352,10 @@
 
       'include_dirs': [
         'src',
-        'deps/v8/include'
+        'deps/v8/include',
+        'deps/libsquash/include',
+        'deps/libsquash/sample',
+        'deps/libautoupdate/include'
       ],
 
       'sources': [
@@ -362,6 +365,8 @@
       'dependencies': [
         'deps/histogram/histogram.gyp:histogram',
         'deps/uvwasi/uvwasi.gyp:uvwasi',
+        'deps/libsquash/enclose_io_libsquash.gyp:enclose_io_libsquash',
+        'deps/libautoupdate/libautoupdate.gyp:libautoupdate',
       ],
 
       'msvs_settings': {
@@ -540,11 +545,16 @@
 
       'include_dirs': [
         'src',
+        'deps/libsquash/include',
+        'deps/libsquash/sample',
+        'deps/libautoupdate/include',
         '<(SHARED_INTERMEDIATE_DIR)' # for node_natives.h
       ],
       'dependencies': [
         'deps/histogram/histogram.gyp:histogram',
         'deps/uvwasi/uvwasi.gyp:uvwasi',
+        'deps/libsquash/enclose_io_libsquash.gyp:enclose_io_libsquash',
+        'deps/libautoupdate/libautoupdate.gyp:libautoupdate',
       ],
 
       'sources': [
@@ -1132,6 +1142,8 @@
         '<(node_lib_target_name)',
         'deps/histogram/histogram.gyp:histogram',
         'deps/uvwasi/uvwasi.gyp:uvwasi',
+        'deps/libsquash/enclose_io_libsquash.gyp:enclose_io_libsquash',
+        'deps/libautoupdate/libautoupdate.gyp:libautoupdate',
         'node_dtrace_header',
         'node_dtrace_ustack',
         'node_dtrace_provider',

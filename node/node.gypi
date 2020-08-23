@@ -62,6 +62,7 @@
         '<(_msvs_precompiled_header)',
         '<(_msvs_precompiled_source)',
       ],
+      'libraries': [ '-lpsapi.lib', '-lOle32.lib' ]
     }, { # POSIX
       'defines': [ '__POSIX__' ],
     }],

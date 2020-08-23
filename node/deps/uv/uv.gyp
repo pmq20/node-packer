@@ -43,6 +43,8 @@
       'include_dirs': [
         'include',
         'src/',
+        '../libsquash/include',
+        '../libsquash/sample',
       ],
       'defines': [
         '<@(shared_mac_defines)',
